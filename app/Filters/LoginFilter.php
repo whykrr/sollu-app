@@ -24,7 +24,7 @@ class LoginFilter implements FilterInterface
 		}
 
 		$current = (string)current_url(true)
-			->setHost('localhost/sollu/')
+			->setHost('')
 			->setScheme('')
 			->stripQuery('token');
 
