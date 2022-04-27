@@ -9,8 +9,9 @@ use App\Models\FinancialModel;
 use App\Models\StockSalesModel;
 use App\Models\InvoiceStockSalesModel;
 use App\Models\AccountReceivableModel;
-
+use App\Models\SettingModel;
 use Mike42\Escpos\PrintConnectors\FilePrintConnector;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
 
 
@@ -210,22 +211,78 @@ class Cashier extends BaseController
         $text .= '\n';
         $text .= receipt_separator('_', 20);
 
-        $connector = new FilePrintConnector("php://stdout");
+        $connector = new WindowsPrintConnector("STMicroelectronics CX Printer");
         $printer = new Printer($connector);
         $printer->text($text);
         $printer->cut();
         $printer->close();
     }
 
+    private function _receipt($inv_id)
+    {
+
+        $setting = new SettingModel();
+        $invoice = new InvoiceStockSalesModel();
+        $stockSales = new StockSalesModel();
+
+        $name = $setting->find('outlet');
+        $address = $setting->find('outlet_address');
+        $phone = $setting->find('outlet_phone');
+        $receipt_note = $setting->find('receipt_note');
+
+        $invoice_data = $invoice
+            ->select('invoice_stock_sales.*, users.name as user_name')
+            ->join('users', 'users.id = invoice_stock_sales.user_id')
+            ->where('id', $inv_id)->find();
+        $stockSales_data = $stockSales
+            ->select('stock_sales.*, products.name as product_name')
+            ->join('products', 'products.id = stock_sales.product_id')
+            ->where('invoice_id', $inv_id)->findAll();
+
+        $max_char = 32;
+        $max_char_price = 10;
+        $max_char_qty = 3;
+        $max_char_sub = $max_char - ($max_char_price + $max_char_qty);
+
+        $text = "";
+        $text .= receipt_align($name, "center", 32);
+        $text .= "\n";
+        $text .= receipt_align_multiline($address, "center", 32);
+        $text .= "\n";
+        $text .= receipt_align("Telp. $phone", "center", 32);
+        $text .= "\n";
+        $text .= receipt_separator('-', 32);
+        $text .= receipt_align("No", "left", 4) . ":" . receipt_align($invoice_data['invoice_no'], "right", 27) . "\n";
+        $text .= receipt_align("Tanggal", "left", 4) . ":" . receipt_align(formatDateTimeSimple($invoice['created_at']), "right", 27) . "\n";
+        $text .= receipt_align("Ksr", "left", 4) . ":" . receipt_align($invoice_data['user_name'], "right", 27) . "\n";
+        $text .= receipt_align("Pel", "left", 4) . ":" . receipt_align($invoice_data['custommer'], "right", 27) . "\n";
+        $text .= receipt_separator('-', 32);
+
+        foreach ($stockSales_data as $key => $ss) {
+            $text .= receipt_align($ss['product_name'], "left", 32) . "\n";
+            $text .= receipt_align(intval($ss['price']), "left", $max_char_price);
+            $text .= receipt_align("x$ss[qty]", "left", $max_char_qty);
+            $text .= receipt_align(intval($ss['subtotal']), "right", $max_char_sub) . "\n";
+        }
+
+        $text .= receipt_separator('-', 32);
+        $text .= receipt_align("Total", "left", 15) . receipt_align($invoice_data['total'], "right", 17) . "\n";
+        $text .= receipt_align("Diskon", "left", 15) . receipt_align($invoice_data['discount'], "right", 17) . "\n";
+        $text .= receipt_align("Grand Total", "left", 15) . receipt_align($invoice_data['grand_total'], "right", 17) . "\n";
+        $text .= receipt_align("Bayar", "left", 15) . receipt_align($invoice_data['pay'], "right", 17) . "\n";
+        $text .= receipt_repeater(' ', 15) . receipt_separator('-', 17);
+        $text .= receipt_align("Kembalian", "left", 15) . receipt_align($invoice_data['return'], "right", 17) . "\n";
+        $text .= receipt_align("note : ", "left", 32);
+        $text .= receipt_align_multiline($receipt_note, "left", 32);
+
+        return $text;
+    }
+
     public function test_receipt()
     {
-        $text = '';
-        $text .= receipt_align("Toko Saya", "center", 30);
-        $text .= '<br>';
-        $text .= receipt_align("Jl. Danuri. 27", "center", 30);
-        $text .= '<br>';
-        $text .= receipt_separator('_', 20);
+        $text = $this->_receipt(1);
+        $text = str_replace(' ', '&nbsp;', $text);
 
-        echo $text;
+        echo "<tt>" . nl2br($text) . "</tt>";
     }
 }
