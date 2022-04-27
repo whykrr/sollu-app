@@ -50,8 +50,8 @@ class Datatables
             'action_button' => 'edit,delete',
         ],
         'product' => [
-            'col_title' => 'Kode,Nama,Kategori,Satuan,Harga Beli,Harga Jual, Keterangan',
-            'col_data' => 'code,name,category_name,unit_name,cogs,selling_price,description',
+            'col_title' => 'Kode,Barcode,Nama,Kategori,Satuan,Harga Beli,Harga Jual, Keterangan',
+            'col_data' => 'code,barcode,name,category_name,unit_name,cogs,selling_price,description',
             'helpers' => [
                 'cogs' => ['formatIDR', '{cogs}'],
                 'selling_price' => ['formatIDR', '{selling_price}'],

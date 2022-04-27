@@ -26,7 +26,7 @@
                 <table class="table table-sm table-bordered" id="table-history-stock">
                     <thead>
                         <tr>
-                            <th>Tanggal Pembelian</th>
+                            <th>Keterangan</th>
                             <th>Stok Masuk</th>
                             <th>Stok Keluar</th>
                             <th>Harga Pokok</th>
@@ -35,7 +35,7 @@
                     <tbody>
                         <?php foreach ($history_stock as $key => $value) : ?>
                             <tr>
-                                <td><?= (empty($value['invoice_date'])) ? '-' : formatDateSimple($value['invoice_date']) ?></td>
+                                <td><?= $value['description'] ?></td>
                                 <td><?= $value['stock_in'] . " " . $value['unit_name'] ?></td>
                                 <td><?= $value['stock_out'] . " " . $value['unit_name'] ?></td>
                                 <td><?= formatIDR($value['cogs']) ?></td>

@@ -151,7 +151,7 @@ class ProductsModel extends Model
         foreach ($data as $row) {
             $remapData[] = [
                 'id' => $row['id'],
-                'name' => $row['code'] . ' - ' . $row['name'],
+                'name' => $row['code'] . ' - ' . $row['name'] . ' - ' . $row['barcode'],
                 'cogs' => (int) $row['cogs'],
                 'selling_price' => (int) $row['selling_price'],
                 'unit' => $row['unit_name'],
