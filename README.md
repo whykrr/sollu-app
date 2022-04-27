@@ -1,3 +1,3 @@
-# ci4-coreui
+# sollu-app
 
-Master CI4 with CoreUI Template
+Sollu App
