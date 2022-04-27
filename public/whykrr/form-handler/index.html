@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        />
+        <link rel="stylesheet" href="css/form-handler.beta.css" />
+        <title>Form Handler</title>
+        <style>
+            code {
+                font-family: monospace;
+            }
+            .alert-light {
+                background-color: #f1f1f1;
+            }
+        </style>
+    </head>
+
+    <body>
+        <nav class="navbar navbar-light bg-light">
+            <div class="container-fluid justify-content-center">
+                <span class="navbar-brand mb-0 mr-0 h1">Form Handler</span>
+            </div>
+        </nav>
+        <div class="container mt-4">
+            <div class="row justify-content-center">
+                <div class="col-8">
+                    <h5>Input Currency</h5>
+                    <h6>Without Prefix</h6>
+                    <div class="alert alert-light mb-1 p-3" role="alert">
+                        <div class="bg-white p-3">
+                            <label for="curency">
+                                Input Currency Without Prefix
+                            </label>
+                            <div class="form-currency">
+                                <input
+                                    type="text"
+                                    id="currency"
+                                    class="form-control"
+                                    placeholder="Currency"
+                                />
+                                <div class="label-currency"></div>
+                            </div>
+                        </div>
+                        <code>
+                            &lt;div class="form-currency">
+                            <br />
+                            &ensp; &lt;input type="text" id="currency"
+                            class="form-control" placeholder="Currency" />
+                            <br />
+                            &ensp; &lt;div class="label-currency">&lt;/div>
+                            <br />
+                            &lt;/div>
+                        </code>
+                    </div>
+                    <h6 class="mt-2">With Prefix</h6>
+                    <div class="alert alert-light mb-1 p-3" role="alert">
+                        <div class="bg-white p-3">
+                            <label for="curency2">
+                                Input Currency With Prefix
+                            </label>
+                            <div class="form-currency">
+                                <input
+                                    type="text"
+                                    id="currency2"
+                                    class="form-control"
+                                    placeholder="Currency"
+                                    data-prefix="Rp. "
+                                />
+                                <div class="label-currency"></div>
+                            </div>
+                        </div>
+                        <code>
+                            &lt;div class="form-currency">
+                            <br />
+                            &ensp; &lt;input type="text" id="currency"
+                            class="form-control" placeholder="Currency"
+                            data-prefix="Rp. " />
+                            <br />
+                            &ensp; &lt;div class="label-currency">&lt;/div>
+                            <br />
+                            &lt;/div>
+                        </code>
+                    </div>
+                    <hr class="pb-2" />
+                </div>
+            </div>
+        </div>
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script src="js/form-handler.beta.js"></script>
+    <script>
+        setTimeout(() => {
+            $("#currency").val("3000").keyup();
+        }, 3000);
+    </script>
+</html>

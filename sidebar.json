@@ -1,0 +1,133 @@
+[
+    {
+        "name": "Master Data",
+        "slug": "master-data",
+        "link": "masterdata",
+        "icon": "c-icon cil-grid",
+        "app_type": ["complex", "simple"],
+        "submenu": [
+            {
+                "name": "Satuan",
+                "slug": "unit",
+                "link": "unit"
+            },
+            {
+                "name": "Kategori Produk",
+                "slug": "prodcategory",
+                "link": "product_category"
+            },
+            {
+                "name": "Produk",
+                "slug": "product",
+                "link": "product"
+            }
+        ]
+    },
+    {
+        "name": "Pengguna",
+        "slug": "user",
+        "link": "user",
+        "icon": "c-icon cil-user",
+        "group_access": ["superadmin", "owner", "admin"],
+        "app_type": ["complex", "simple"],
+        "submenu": []
+    },
+    {
+        "name": "Inventori",
+        "slug": "inventory",
+        "link": "inventory",
+        "icon": "c-icon cil-storage",
+        "group_access": ["superadmin", "owner", "admin"],
+        "app_type": ["complex", "simple"],
+        "submenu": [
+            {
+                "name": "Stok",
+                "slug": "stock",
+                "link": "stock"
+            },
+            {
+                "name": "Pembelian Stok",
+                "slug": "stock-purchase",
+                "link": "stock_purchase"
+            }
+        ]
+    },
+    {
+        "name": "Kasir",
+        "slug": "cashier",
+        "link": "cashier",
+        "icon": "c-icon cil-cart",
+        "group_access": ["user"],
+        "app_type": ["complex", "simple"],
+        "submenu": []
+    },
+    {
+        "name": "Penjualan",
+        "slug": "sales",
+        "link": "sales",
+        "icon": "c-icon cil-3d",
+        "group_access": ["superadmin", "owner", "admin", "user"],
+        "app_type": ["complex", "simple"],
+        "submenu": []
+    },
+    {
+        "name": "Keuangan",
+        "slug": "finance",
+        "link": "finance",
+        "icon": "c-icon cil-money",
+        "group_access": ["superadmin", "owner", "admin"],
+        "app_type": ["complex"],
+        "submenu": [
+            {
+                "name": "Penerimaan",
+                "slug": "income",
+                "link": "income"
+            },
+            {
+                "name": "Pengeluaran",
+                "slug": "expense",
+                "link": "expense"
+            }
+        ]
+    },
+    {
+        "name": "Hutang Piutang",
+        "slug": "debtcredit",
+        "link": "debtcredit",
+        "icon": "c-icon cil-credit-card",
+        "group_access": ["superadmin", "owner", "admin", "user"],
+        "app_type": ["complex"],
+        "submenu": [
+            {
+                "name": "Hutang",
+                "slug": "debt",
+                "link": "debt"
+            },
+            {
+                "name": "Piutang",
+                "slug": "credit",
+                "link": "credit"
+            }
+        ]
+    },
+    {
+        "name": "Laporan",
+        "slug": "report",
+        "link": "report",
+        "icon": "c-icon cil-book",
+        "group_access": ["superadmin", "owner", "admin"],
+        "app_type": ["complex", "simple"],
+        "submenu": [
+            {
+                "name": "Laporan Produk",
+                "slug": "product",
+                "link": "product"
+            },
+            {
+                "name": "Laporan Penjualan",
+                "slug": "receipt",
+                "link": "receipt"
+            }
+        ]
+    }
+]

@@ -1,0 +1,121 @@
+[
+    {
+        "name": "Master Data",
+        "slug": "master-data",
+        "link": "masterdata",
+        "icon": "c-icon cil-grid",
+        "submenu": [
+            {
+                "name": "Satuan",
+                "slug": "unit",
+                "link": "unit"
+            },
+            {
+                "name": "Kategori Produk",
+                "slug": "prodcategory",
+                "link": "product_category"
+            },
+            {
+                "name": "Produk",
+                "slug": "product",
+                "link": "product"
+            }
+        ]
+    },
+    {
+        "name": "Pengguna",
+        "slug": "user",
+        "link": "user",
+        "icon": "c-icon cil-user",
+        "submenu": []
+    },
+    {
+        "name": "Kasir",
+        "slug": "cashier",
+        "link": "cashier",
+        "icon": "c-icon cil-3d",
+        "submenu": []
+    },
+    {
+        "name": "Inventori",
+        "slug": "inventory",
+        "link": "inventory",
+        "icon": "c-icon cil-storage",
+        "submenu": [
+            {
+                "name": "Stok",
+                "slug": "stock",
+                "link": "stock"
+            },
+            {
+                "name": "Pembelian Stok",
+                "slug": "stock-purchase",
+                "link": "stock_purchase"
+            }
+        ]
+    },
+    {
+        "name": "Keuangan",
+        "slug": "finance",
+        "link": "finance",
+        "icon": "c-icon cil-money",
+        "submenu": [
+            {
+                "name": "Penerimaan",
+                "slug": "income",
+                "link": "income"
+            },
+            {
+                "name": "Pengeluaran",
+                "slug": "expense",
+                "link": "expense"
+            }
+        ]
+    },
+    {
+        "name": "Hutang Piutang",
+        "slug": "debtcredit",
+        "link": "debtcredit",
+        "icon": "c-icon cil-credit-card",
+        "submenu": [
+            {
+                "name": "Hutang",
+                "slug": "debt",
+                "link": "debt"
+            },
+            {
+                "name": "Piutang",
+                "slug": "credit",
+                "link": "credit"
+            }
+        ]
+    },
+    {
+        "name": "Laporan",
+        "slug": "report",
+        "link": "report",
+        "icon": "c-icon cil-book",
+        "submenu": [
+            {
+                "name": "Laporan Produk",
+                "slug": "product",
+                "link": "product"
+            },
+            {
+                "name": "Laporan Penjualan",
+                "slug": "receipt",
+                "link": "receipt"
+            },
+            {
+                "name": "Laporan Pembelian",
+                "slug": "expense",
+                "link": "expense"
+            },
+            {
+                "name": "Laporan Laba Rugi",
+                "slug": "profit",
+                "link": "profit"
+            }
+        ]
+    }
+]

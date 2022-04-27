@@ -1,0 +1,175 @@
+#modalSide .modal-dialog {
+    min-width: 40% !important;
+}
+
+@media (min-width: 576px) {
+    #modalSide .modal-dialog {
+        min-width: 55% !important;
+    }
+}
+
+#modalSide .modal-dialog .modal-content {
+    height: 100% !important;
+    border-radius: 0% !important;
+}
+#modalSide .modal-dialog .modal-content .modal-footer {
+    justify-content: space-between !important;
+}
+#modalSide .modal-dialog-scrollable {
+    max-height: 100% !important;
+}
+
+/*******************************
+* MODAL AS LEFT/RIGHT SIDEBAR
+* Add "left" or "right" in modal parent div, after class="modal".
+* Get free snippets on bootpen.com
+*******************************/
+.modal.left .modal-dialog,
+.modal.right .modal-dialog {
+    position: fixed;
+    margin: auto;
+    width: 40%;
+    height: 100%;
+    -webkit-transform: translate3d(0%, 0, 0);
+    -ms-transform: translate3d(0%, 0, 0);
+    -o-transform: translate3d(0%, 0, 0);
+    transform: translate(0%, 0, 0);
+}
+
+.modal.left .modal-content,
+.modal.right .modal-content {
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+.modal.left .modal-body,
+.modal.right .modal-body {
+    padding: 15px 15px 25px;
+}
+
+/*Left*/
+.modal.left.fade .modal-dialog {
+    left: -40%;
+    -webkit-transition: opacity 0.35s linear, left 0.35s ease-out;
+    -moz-transition: opacity 0.35s linear, left 0.35s ease-out;
+    -o-transition: opacity 0.35s linear, left 0.35s ease-out;
+    transition: opacity 0.35s linear, left 0.35s ease-out;
+}
+
+.modal.left.fade.show .modal-dialog {
+    left: 0;
+}
+
+/*Right*/
+.modal.right.fade .modal-dialog {
+    right: -40%;
+    -webkit-transition: opacity 0.35s linear, right 0.35s ease-out;
+    -moz-transition: opacity 0.35s linear, right 0.35s ease-out;
+    -o-transition: opacity 0.35s linear, right 0.35s ease-out;
+    transition: opacity 0.35s linear, right 0.35s ease-out;
+}
+
+.modal.right.fade.show .modal-dialog {
+    right: 0;
+}
+*/
+
+/* ----- MODAL STYLE ----- */
+.modal-content {
+    border-radius: 0;
+    border: none;
+}
+
+.modal-header {
+    border-bottom-color: #eeeeee;
+    background-color: #fafafa;
+}
+
+/* Loading Modal  */
+.loading-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Loading page */
+.loading-page {
+    position: absolute;
+    right: 30px;
+    display: none;
+}
+
+/* circle Card */
+.card-square,
+.card-square .card-header {
+    border-radius: 0px !important;
+}
+
+/* .note-group-image-url {
+    display: none;
+} */
+
+/* CUstom Chat Desain */
+.container-fluid-chat,
+.fade-in-chat,
+.row-chat,
+.card-head-threat,
+.card-chat {
+    height: 100%;
+    border-radius: 0 !important;
+}
+.row-chat {
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+}
+.card-head-threat {
+    border-top: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    border-radius: 0 !important;
+}
+.card-head-threat .card-body {
+    position: relative;
+}
+.threat-body::-webkit-scrollbar {
+    display: none;
+}
+.threat-body {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overflow-y: scroll;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none;
+}
+
+.card-threat {
+    margin-right: 0rem !important;
+}
+.card-threat .card-body .bg-icon {
+    background-color: #ced2d8 !important;
+}
+.card-threat.active {
+    border: 1px solid #3c4b64 !important;
+}
+.card-threat.active .card-body .bg-icon {
+    background-color: #3c4b64 !important;
+}
+.card-chat {
+    border-top: none;
+}
+.card-chat .card-body {
+    position: relative;
+    overflow: hidden;
+    overflow-y: scroll;
+}
+
+.chat-history {
+    padding: 20px 20px 15px;
+    margin-bottom: 0px;
+    height: 100%;
+    position: absolute;
+    width: 100%;
+}
