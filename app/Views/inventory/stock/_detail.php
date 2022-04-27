@@ -38,7 +38,7 @@
                                 <td><?= $value['description'] ?></td>
                                 <td><?= $value['stock_in'] . " " . $value['unit_name'] ?></td>
                                 <td><?= $value['stock_out'] . " " . $value['unit_name'] ?></td>
-                                <td><?= formatIDR($value['cogs']) ?></td>
+                                <td><?= formatIDRHidden($value['cogs']) ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

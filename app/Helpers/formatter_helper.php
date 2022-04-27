@@ -17,6 +17,24 @@ if (!function_exists('formatIDR')) {
 }
 
 /**
+ * formating int to format IDR
+ * 
+ * @param int $number
+ * @return string
+ */
+if (!function_exists('formatIDRHidden')) {
+    function formatIDRHidden($value)
+    {
+        // remormat string $value to float
+        if (in_groups('user') || in_groups('warehouse')) {
+            return 'Rp. xxx';
+        } else {
+            return 'Rp. ' . number_format($value, 0, ',', '.');
+        }
+    }
+}
+
+/**
  * formatting status 1 to active and 0 to inactive
  * 
  * @param int $value
@@ -69,6 +87,22 @@ if (!function_exists('formatDateSimple')) {
         $value = date('Y-m-d', strtotime($value));
 
         return date('d/m/Y', strtotime($value));
+    }
+}
+
+/**
+ * formatting datetime to (Y/m/d H:i:s)
+ * 
+ * @param string $value
+ * @return string
+ */
+if (!function_exists('formatDateTimeSimple')) {
+    function formatDateTimeSimple($value)
+    {
+        // make sure date is Y-m-d
+        $value = date('Y-m-d H:i:s', strtotime($value));
+
+        return date('d/m/Y H:i:s', strtotime($value));
     }
 }
 
