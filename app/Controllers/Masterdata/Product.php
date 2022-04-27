@@ -108,4 +108,79 @@ class Product extends BaseController
         $json = $product->autocomplete($key);
         return $this->response->setJSON($json);
     }
+
+    public function migrate_product()
+    {
+        $filename = $get = $this->request->getGet('file');
+
+        // call method _read_excel
+        $data = $this->_read_excel($filename);
+        $unit = [];
+        $units = [];
+
+        foreach ($data as $key => $product) {
+            if ($key == 0) {
+                continue;
+            }
+
+            if (!in_array($product[7], $unit)) {
+                array_push($unit, $product[7]);
+                array_push($units, [
+                    'name' =>  $product[7]
+                ]);
+            }
+        }
+
+        $unitM = new UnitsModel();
+        $productM = new ProductsModel();
+
+        $unitM->insertBatch($units);
+
+
+        $units = $unitM->findAll();
+
+        $unit_names = array_column($units, 'name');
+        $unit_ids = array_column($units, 'id');
+
+        $products = [];
+
+        foreach ($data as $key => $p) {
+            if ($key == 0) {
+                continue;
+            }
+
+            $product = [
+                'code' => $p[0],
+                'barcode' => $p[1],
+                'name' => $p[2],
+                'category_id' => 0,
+                'stock' => 0,
+                'stock_min' => 0,
+                'cogs' => $p[8],
+                'selling_price' => $p[9],
+                'description' => (empty($p[10])) ? '' : $p[10],
+            ];
+
+            $unit_id = $unit_ids[array_search($p[7], $unit_names)];
+
+            $product['unit_id'] = $unit_id;
+
+            array_push($products, $product);
+            $productM->save($product);
+        }
+        // print_r($productM->errors());
+        dd($products);
+        // $productM->insertBatch($products);
+    }
+
+    public function _read_excel($file)
+    {
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        $reader->setReadDataOnly(true);
+        $spreadsheet = $reader->load($file);
+
+        // $read = new \PhpOffice\PhpSpreadsheet\Reader\IReadFilter();
+
+        return ($spreadsheet->getActiveSheet()->toArray());
+    }
 }
