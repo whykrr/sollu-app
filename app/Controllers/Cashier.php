@@ -10,6 +10,10 @@ use App\Models\StockSalesModel;
 use App\Models\InvoiceStockSalesModel;
 use App\Models\AccountReceivableModel;
 
+use Mike42\Escpos\PrintConnectors\FilePrintConnector;
+use Mike42\Escpos\Printer;
+
+
 class Cashier extends BaseController
 {
     public function index()
@@ -194,5 +198,34 @@ class Cashier extends BaseController
 
         $json['message'] = 'success';
         return $this->respond($json, 200);
+    }
+
+    private function _print_receipt($data)
+    {
+
+        $text = '';
+        $text .= receipt_align("Toko Saya", "center", 30);
+        $text .= '\n';
+        $text .= receipt_align("Jl. Danuri. 27", "center", 30);
+        $text .= '\n';
+        $text .= receipt_separator('_', 20);
+
+        $connector = new FilePrintConnector("php://stdout");
+        $printer = new Printer($connector);
+        $printer->text($text);
+        $printer->cut();
+        $printer->close();
+    }
+
+    public function test_receipt()
+    {
+        $text = '';
+        $text .= receipt_align("Toko Saya", "center", 30);
+        $text .= '<br>';
+        $text .= receipt_align("Jl. Danuri. 27", "center", 30);
+        $text .= '<br>';
+        $text .= receipt_separator('_', 20);
+
+        echo $text;
     }
 }
