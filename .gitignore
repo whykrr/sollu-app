@@ -128,3 +128,5 @@ nb-configuration.xml
 vendor/
 
 .env
+public/harga-eceran.xlsx
+public/harga-gudang.xlsx
