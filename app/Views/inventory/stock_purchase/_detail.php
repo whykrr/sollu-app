@@ -35,7 +35,7 @@
                                 <td><?= $value['product_code'] ?></td>
                                 <td><?= $value['product_name'] ?></td>
                                 <td><?= $value['qty'] . " " . $value['unit_name'] ?></td>
-                                <td><?= formatIDR($value['cogs']) ?></td>
+                                <td><?= formatIDRHidden($value['cogs']) ?></td>
                                 <td><?= formatIDR($value['selling_price']) ?></td>
                             </tr>
                         <?php endforeach; ?>
