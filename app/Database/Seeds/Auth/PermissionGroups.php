@@ -91,10 +91,6 @@ class PermissionGroups extends Seeder
         $auth->addPermissionToGroup('report-product', 'admin');
         $auth->addPermissionToGroup('report-receipt', 'admin');
 
-        $auth->addPermissionToGroup('master-data', 'warehouse');
-        $auth->addPermissionToGroup('master-data-unit', 'warehouse');
-        $auth->addPermissionToGroup('master-data-prodcategory', 'warehouse');
-        $auth->addPermissionToGroup('master-data-product', 'warehouse');
         $auth->addPermissionToGroup('inventory', 'warehouse');
         $auth->addPermissionToGroup('inventory-stock', 'warehouse');
         $auth->addPermissionToGroup('inventory-stock-purchase', 'warehouse');
@@ -103,10 +99,6 @@ class PermissionGroups extends Seeder
         $auth->addPermissionToGroup('report', 'warehouse');
         $auth->addPermissionToGroup('report-product', 'warehouse');
 
-        $auth->addPermissionToGroup('master-data', 'user');
-        $auth->addPermissionToGroup('master-data-unit', 'user');
-        $auth->addPermissionToGroup('master-data-prodcategory', 'user');
-        $auth->addPermissionToGroup('master-data-product', 'user');
         $auth->addPermissionToGroup('inventory', 'user');
         $auth->addPermissionToGroup('inventory-stock', 'user');
         $auth->addPermissionToGroup('inventory-stock-purchase', 'user');
