@@ -18,6 +18,7 @@ class Dashboard extends BaseController
 			'today_income' => $sales->getIncome('daily', date('Y-m-d')),
 			'monthly_income' => $sales->getIncome('monthlyAll', date('Y-m')),
 		];
+
 		return view('dashboard/dashboard', $data);
 	}
 

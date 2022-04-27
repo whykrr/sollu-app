@@ -28,6 +28,9 @@ class LoginFilter implements FilterInterface
 			->setScheme('')
 			->stripQuery('token');
 
+		// remove segment sollu
+		$current = str_replace('sollu', '', $current);
+
 		$config = config(App::class);
 		if ($config->forceGlobalSecureRequests) {
 			# Remove "https:/"
