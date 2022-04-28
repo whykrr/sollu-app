@@ -172,16 +172,16 @@
 
     // action on enter #cogs
     $('#cogs').keypress(function(e) {
-        e.preventDefault();
         if (e.which == 13) {
+            e.preventDefault();
             $('#selling_price').focus();
         }
     });
 
     // action on enter #selling_price
     $('#selling_price').keypress(function(e) {
-        e.preventDefault();
         if (e.which == 13) {
+            e.preventDefault();
             $('#qty').focus();
         }
     });

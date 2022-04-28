@@ -12,7 +12,7 @@ define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
 
 // Location of the Paths config file.
 // This is the line that might need to be changed, depending on your folder structure.
-$pathsPath = realpath(FCPATH . '../sollu-pos/app/Config/Paths.php');
+$pathsPath = realpath(FCPATH . '/sollu-app/app/Config/Paths.php');
 // ^^^ Change this if you move your application folder
 
 /*

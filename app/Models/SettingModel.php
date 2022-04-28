@@ -8,14 +8,15 @@ class SettingModel extends Model
 {
     protected $DBGroup              = 'default';
     protected $table                = 'settings';
-    protected $primaryKey           = 'key';
+    protected $primaryKey           = 'id';
     protected $useAutoIncrement     = false;
     protected $insertID             = 0;
     protected $returnType           = 'array';
     protected $useSoftDeletes       = false;
     protected $protectFields        = true;
     protected $allowedFields        = [
-        'key',
+        'id',
+        'name',
         'category',
         'value',
         'desc',

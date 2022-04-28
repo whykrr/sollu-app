@@ -14,7 +14,12 @@ class Product extends BaseController
      */
     public function index()
     {
+        $category = new ProductCategoriesModel();
+
+
         $data['sidebar_active'] = 'master-data-produk';
+        $data['category'] = $category->findAll();
+
         return view('masterdata/product/list', $data);
     }
 
@@ -53,6 +58,7 @@ class Product extends BaseController
     {
         // get model
         $model = new ProductsModel();
+
 
         // get data
         $data = $this->request->getPost();
@@ -107,6 +113,66 @@ class Product extends BaseController
 
         $json = $product->autocomplete($key);
         return $this->response->setJSON($json);
+    }
+
+    /**
+     * function get_product for autocomplete
+     */
+    public function barcode()
+    {
+        $product = new ProductsModel();
+        $key = $this->request->getGet('scan');
+        if ($key == null) {
+            return $this->respond([], 400);
+        }
+
+        $json = $product->barcode($key);
+        if ($json == null) {
+            return $this->respond([], 400);
+        }
+
+        return $this->respond($json, 200);
+    }
+
+    /**
+     * create function to export excel
+     */
+    public function export()
+    {
+        $model = new ProductsModel();
+        $data = $model->findAllDetail();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet->getActiveSheet()->setTitle('Data Produk');
+
+        $worksheet = $spreadsheet->setActiveSheetIndex(0);
+        $worksheet->setCellValue('A1', 'No');
+        $worksheet->setCellValue('B1', 'Kode');
+        $worksheet->setCellValue('C1', 'Barcode');
+        $worksheet->setCellValue('D1', 'Nama');
+        $worksheet->setCellValue('E1', 'Kategori');
+        $worksheet->setCellValue('F1', 'Satuan');
+        $worksheet->setCellValue('G1', 'Harga Beli');
+        $worksheet->setCellValue('H1', 'Harga Jual');
+        $worksheet->setCellValue('I1', 'Keterangan');
+
+        // $row_start = 2;
+        foreach ($data as $key => $value) {
+            $worksheet->setCellValue('A' . ($key + 2), $key + 1);
+            $worksheet->setCellValue('B' . ($key + 2), $value['code']);
+            $worksheet->setCellValue('C' . ($key + 2), $value['barcode']);
+            $worksheet->setCellValue('D' . ($key + 2), $value['name']);
+            $worksheet->setCellValue('E' . ($key + 2), $value['category_name']);
+            $worksheet->setCellValue('F' . ($key + 2), $value['unit_name']);
+            $worksheet->setCellValue('G' . ($key + 2), $value['cogs']);
+            $worksheet->setCellValue('H' . ($key + 2), $value['selling_price']);
+            $worksheet->setCellValue('I' . ($key + 2), $value['description']);
+        }
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('data-product.xlsx');
+
+        return redirect()->to('data-product.xlsx');
     }
 
     public function migrate_product()

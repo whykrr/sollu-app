@@ -40,6 +40,7 @@ class PermissionGroups extends Seeder
         $auth->addPermissionToGroup('inventory', 'superadmin');
         $auth->addPermissionToGroup('inventory-stock', 'superadmin');
         $auth->addPermissionToGroup('inventory-stock-purchase', 'superadmin');
+        $auth->addPermissionToGroup('inventory-stock-opname', 'superadmin');
         $auth->addPermissionToGroup('cashier', 'superadmin');
         $auth->addPermissionToGroup('sales', 'superadmin');
         $auth->addPermissionToGroup('finance', 'superadmin');
@@ -51,6 +52,7 @@ class PermissionGroups extends Seeder
         $auth->addPermissionToGroup('report', 'superadmin');
         $auth->addPermissionToGroup('report-product', 'superadmin');
         $auth->addPermissionToGroup('report-receipt', 'superadmin');
+        $auth->addPermissionToGroup('setting', 'superadmin');
 
         $auth->addPermissionToGroup('master-data', 'owner');
         $auth->addPermissionToGroup('master-data-unit', 'owner');
@@ -60,6 +62,7 @@ class PermissionGroups extends Seeder
         $auth->addPermissionToGroup('inventory', 'owner');
         $auth->addPermissionToGroup('inventory-stock', 'owner');
         $auth->addPermissionToGroup('inventory-stock-purchase', 'owner');
+        $auth->addPermissionToGroup('inventory-stock-opname', 'owner');
         $auth->addPermissionToGroup('sales', 'owner');
         $auth->addPermissionToGroup('finance', 'owner');
         $auth->addPermissionToGroup('finance-income', 'owner');
@@ -79,6 +82,7 @@ class PermissionGroups extends Seeder
         $auth->addPermissionToGroup('inventory', 'admin');
         $auth->addPermissionToGroup('inventory-stock', 'admin');
         $auth->addPermissionToGroup('inventory-stock-purchase', 'admin');
+        $auth->addPermissionToGroup('inventory-stock-opname', 'admin');
         $auth->addPermissionToGroup('cashier', 'admin');
         $auth->addPermissionToGroup('sales', 'admin');
         $auth->addPermissionToGroup('finance', 'admin');
@@ -101,7 +105,6 @@ class PermissionGroups extends Seeder
 
         $auth->addPermissionToGroup('inventory', 'user');
         $auth->addPermissionToGroup('inventory-stock', 'user');
-        $auth->addPermissionToGroup('inventory-stock-purchase', 'user');
         $auth->addPermissionToGroup('cashier', 'user');
         $auth->addPermissionToGroup('sales', 'user');
         $auth->addPermissionToGroup('report', 'user');

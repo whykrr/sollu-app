@@ -32,6 +32,11 @@ class StockOutHistory extends Migration
                 'type' => 'DECIMAL',
                 'constraint' => '10,2',
             ],
+            'type' => [
+                'type' => 'ENUM',
+                'constraint' => ['sell', 'opname'],
+                'default' => 'sell',
+            ],
             'created_at' => [
                 'type' => 'DATETIME',
             ],

@@ -112,8 +112,35 @@ class ProductsModel extends Model
     {
         $custom = $this->select('products.*, units.name as unit_name, pc.name as category_name')
             ->join('product_categories pc', 'pc.id = products.category_id', 'left')
+            ->join('units', 'units.id = products.unit_id', 'left');
+
+        if ($args['search'] != "") {
+            // group like
+            $custom->groupStart();
+            $custom->like('products.name', $args['search'], 'both')
+                ->orLike('products.code', $args['search'], 'both')
+                ->orLike('products.barcode', $args['search'], 'both');
+            $custom->groupEnd();
+        }
+        if ($args['category_id'] != "") {
+            $custom->where('products.category_id', $args['category_id']);
+        }
+
+        $custom->orderBy('products.code', 'asc');
+
+        return $custom;
+    }
+
+    /**
+     * find all detail products
+     */
+    public function findAllDetail()
+    {
+        $custom = $this->select('products.*, units.name as unit_name, pc.name as category_name')
+            ->join('product_categories pc', 'pc.id = products.category_id', 'left')
             ->join('units', 'units.id = products.unit_id', 'left')
-            ->orderBy('products.created_at', 'desc');
+            ->orderBy('products.code', 'asc')
+            ->get()->getResultArray();
 
         return $custom;
     }
@@ -135,6 +162,33 @@ class ProductsModel extends Model
     }
 
     /**
+     * scan barcode product
+     */
+    public function barcode($barcode)
+    {
+        $data = $this
+            ->select('products.*, units.name as unit_name')
+            ->join('units', 'units.id = products.unit_id', 'left')
+            ->where('products.barcode', $barcode)
+            ->first();
+
+        // check
+        if (!$data) {
+            return null;
+        }
+
+        $remapData = [
+            'id' => $data['id'],
+            'name' => $data['code'] . ' - ' . $data['name'],
+            'cogs' => (int) $data['cogs'],
+            'selling_price' => (int) $data['selling_price'],
+            'unit' => $data['unit_name'],
+        ];
+
+        return $remapData;
+    }
+
+    /**
      * autocomplete product
      */
     public function autocomplete($keyword)
@@ -144,14 +198,13 @@ class ProductsModel extends Model
             ->join('units', 'units.id = products.unit_id', 'left')
             ->like('products.name', $keyword, 'both')
             ->orLike('products.code', $keyword, 'both')
-            ->orLike('products.barcode', $keyword)
             ->findAll();
 
         $remapData = [];
         foreach ($data as $row) {
             $remapData[] = [
                 'id' => $row['id'],
-                'name' => $row['code'] . ' - ' . $row['name'] . ' - ' . $row['barcode'],
+                'name' => $row['code'] . ' - ' . $row['name'],
                 'cogs' => (int) $row['cogs'],
                 'selling_price' => (int) $row['selling_price'],
                 'unit' => $row['unit_name'],

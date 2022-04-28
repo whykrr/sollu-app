@@ -19,8 +19,6 @@
     <title>Sollu POS | Autentikasi</title>
     <link rel="icon" type="image/png" href="aicons/logo-mini.png">
     <link rel="manifest" href="assets/favicon/manifest.json">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="assets/favicon/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
     <!-- Main styles for this application-->
     <link href="css/style.css" rel="stylesheet">

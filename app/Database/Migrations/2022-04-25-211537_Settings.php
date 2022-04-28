@@ -13,11 +13,16 @@ class Settings extends Migration
          * (key, category, value, created_at, updated_at)
          */
         $this->forge->addField([
-            'key' => [
+            'id' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,
                 'null' => false,
                 'unique' => true,
+            ],
+            'name' => [
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+                'null' => true,
             ],
             'category' => [
                 'type' => 'VARCHAR',
@@ -41,7 +46,7 @@ class Settings extends Migration
                 'null' => false,
             ],
         ]);
-        $this->forge->addKey('key', true);
+        $this->forge->addKey('id', true);
         $this->forge->addKey('category');
         $this->forge->createTable('settings');
     }

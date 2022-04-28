@@ -10,10 +10,8 @@
 	<meta name="author" content="Wahyu Kristiawan">
 	<meta name="keyword" content="Application">
 	<title>404 Page Not Found</title>
-	<link rel="icon" type="image/png" href="aicons/logo.png">
+	<link rel="icon" type="image/png" href="aicons/logo-mini.png">
 	<link rel="manifest" href="assets/favicon/manifest.json">
-	<meta name="msapplication-TileColor" content="#ffffff">
-	<meta name="msapplication-TileImage" content="assets/favicon/ms-icon-144x144.png">
 	<meta name="theme-color" content="#ffffff">
 	<!-- Vendors styles-->
 	<link rel="stylesheet" href="vendors/simplebar/css/simplebar.css">

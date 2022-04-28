@@ -49,6 +49,11 @@
                 "name": "Pembelian Stok",
                 "slug": "stock-purchase",
                 "link": "stock_purchase"
+            },
+            {
+                "name": "Stok Opname",
+                "slug": "stock-opname",
+                "link": "stock_opname"
             }
         ]
     },
@@ -129,5 +134,14 @@
                 "link": "receipt"
             }
         ]
+    },
+    {
+        "name": "Pengaturan",
+        "slug": "setting",
+        "link": "setting",
+        "icon": "c-icon cil-cog",
+        "group_access": ["superadmin"],
+        "app_type": ["complex", "simple"],
+        "submenu": []
     }
 ]

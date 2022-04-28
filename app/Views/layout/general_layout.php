@@ -18,9 +18,6 @@
     <meta name="keyword" content="Application">
     <title>Sollu POS | Dashboard</title>
     <link rel="icon" type="image/png" href="aicons/logo-mini.png">
-    <link rel="manifest" href="assets/favicon/manifest.json">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="assets/favicon/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
     <!-- Main styles for this application-->
     <link href="css/style.css" rel="stylesheet">
@@ -119,7 +116,6 @@
     <!-- Plugins and scripts required by this view-->
     <script src="vendors/@coreui/chartjs/js/coreui-chartjs.bundle.js"></script>
     <script src="vendors/@coreui/utils/js/coreui-utils.js"></script>
-    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 
     <!-- <script src="js/main.js"></script> -->
     <script src="js/sidepage.js"></script>

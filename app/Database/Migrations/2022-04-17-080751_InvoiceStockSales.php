@@ -44,6 +44,16 @@ class InvoiceStockSales extends Migration
                 'null' => true,
                 'comment' => '0 = cash, 1 = credit',
             ],
+            'pay' => [
+                'type' => 'DECIMAL',
+                'constraint' => '10,2',
+                'null' => true,
+            ],
+            'return' => [
+                'type' => 'DECIMAL',
+                'constraint' => '10,2',
+                'null' => true,
+            ],
             'customer' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,

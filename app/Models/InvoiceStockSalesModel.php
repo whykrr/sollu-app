@@ -23,6 +23,8 @@ class InvoiceStockSalesModel extends Model
         'discount',
         'grand_total',
         'payment_type',
+        'pay',
+        'return',
         'user_id',
     ];
 

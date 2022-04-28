@@ -5,7 +5,7 @@ namespace App\Database\Seeds\App;
 use CodeIgniter\Database\Seeder;
 use App\Models\SettingModel;
 
-class SettingComplex extends Seeder
+class Setting extends Seeder
 {
     public function run()
     {
@@ -17,37 +17,44 @@ class SettingComplex extends Seeder
 
         $data = [
             [
-                'key' => 'type_app',
-                'category' => 'hidden',
-                'value' => 'complex'
-            ],
-            [
-                'key' => 'outlet',
-                'category' => 'basic',
-                'value' => 'Gudang',
-                'desc' => '',
-            ],
-            [
-                'key' => 'outlet_address',
+                'id' => 'outlet',
+                'name' => 'Nama Toko',
                 'category' => 'basic',
                 'value' => '-',
                 'desc' => '',
             ],
             [
-                'key' => 'outlet_phone',
+                'id' => 'outlet_address',
+                'name' => 'Alamat Toko',
                 'category' => 'basic',
                 'value' => '-',
                 'desc' => '',
             ],
             [
-                'key' => 'printer_name',
+                'id' => 'outlet_phone',
+                'name' => 'Telepon Toko',
                 'category' => 'basic',
                 'value' => '-',
                 'desc' => '',
             ],
             [
-                'key' => 'printer_paper_size',
-                'category' => 'basic',
+                'id' => 'printer_name',
+                'name' => 'Nama Printer',
+                'category' => 'printer',
+                'value' => '-',
+                'desc' => '',
+            ],
+            [
+                'id' => 'printer_max_length',
+                'name' => 'Maksimal Panjang Baris',
+                'category' => 'printer',
+                'value' => '32',
+                'desc' => '',
+            ],
+            [
+                'id' => 'receipt_note',
+                'name' => 'Catatan Pembayaran',
+                'category' => 'printer',
                 'value' => '-',
                 'desc' => '',
             ]

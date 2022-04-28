@@ -52,6 +52,10 @@ class Permissions extends Seeder
                 'description' => 'Inventori > Pembelian Stok',
             ],
             [
+                'name' => 'inventory-stock-opname',
+                'description' => 'Inventori > Stok Opname',
+            ],
+            [
                 'name' => 'cashier',
                 'description' => 'Kasir',
             ],
@@ -94,6 +98,10 @@ class Permissions extends Seeder
             [
                 'name' => 'report-receipt',
                 'description' => 'Laporan > Penjualan',
+            ],
+            [
+                'name' => 'setting',
+                'description' => 'Pengaturan',
             ],
         ];
 

@@ -45,6 +45,12 @@
                     </div>
                     <div class="card-body p-2">
                         <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group mb-1">
+                                    <label for="barcode">Barcdoe</label>
+                                    <input type="text" class="form-control form-item" id="barcode" autocomplete="off" placeholder="Scan barcode ..."></input>
+                                </div>
+                            </div>
                             <div class="col-md-4 pr-0">
                                 <div class="form-group mb-1">
                                     <label for="product-display">Kode - Nama</label>
@@ -117,27 +123,32 @@
                                 <input type="currency" id="discount" class="form-control" data-prefix="Rp. ">
                             </div>
                         </div>
-                        <div class="form-group row">
-                            <label for="customer" class="col-md-5 col-form-label font-weight-bold">Nama Pelanggan</label>
-                            <div class="col-md-7">
-                                <input type="text" class="form-control" id="customer">
+                        <?php if (verifyPos('compex')) : ?>
+                            <div class="form-group row">
+                                <label for="customer" class="col-md-5 col-form-label font-weight-bold">Nama Pelanggan</label>
+                                <div class="col-md-7">
+                                    <input type="text" class="form-control" id="customer">
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="payment_type" class="col-md-5 col-form-label font-weight-bold">Tipe Pembayaran</label>
-                            <div class="col-md-7">
-                                <select id="payment_type" class="form-control">
-                                    <option value="0">Cash</option>
-                                    <option value="1">Kredit</option>
-                                </select>
+                            <div class="form-group row">
+                                <label for="payment_type" class="col-md-5 col-form-label font-weight-bold">Tipe Pembayaran</label>
+                                <div class="col-md-7">
+                                    <select id="payment_type" class="form-control">
+                                        <option value="0">Cash</option>
+                                        <option value="1">Kredit</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group row type-credit d-none">
-                            <label for="duedate" class="col-md-5 col-form-label font-weight-bold">Jatuh Tempo</label>
-                            <div class="col-md-7">
-                                <input type="date" class="form-control" id="duedate">
+                            <div class="form-group row type-credit d-none">
+                                <label for="duedate" class="col-md-5 col-form-label font-weight-bold">Jatuh Tempo</label>
+                                <div class="col-md-7">
+                                    <input type="date" class="form-control" id="duedate">
+                                </div>
                             </div>
-                        </div>
+                        <?php else : ?>
+                            <input type="hidden" id="customer" value="">
+                            <input type="hidden" id="payment_type" value="0">
+                        <?php endif; ?>
                         <div class="form-group row type-cash">
                             <label for="cash" class="col-md-5 col-form-label font-weight-bold">Bayar</label>
                             <div class="col-md-7">
@@ -162,6 +173,49 @@
 <?= $this->section('js'); ?>
 <script>
     items = [];
+
+    // focus #barcode on load
+    $('#barcode').focus();
+
+    $(document).keyup(function(e) {
+        if (e.which == 35) {
+            e.preventDefault();
+            $('#cash').focus();
+        }
+        if (e.which == 36) {
+            e.preventDefault();
+            $('#barcode').focus();
+        }
+    });
+
+    $('#barcode').keypress(function(e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            $.ajax({
+                url: "<?= base_url('masterdata/product/barcode') ?>",
+                data: 'scan=' + $(this).val(),
+                dataType: "json",
+                type: "GET",
+                success: function(item) {
+                    $('#product_id').val(item.id);
+                    $('#product-display').val(item.name);
+                    $('#product_price').val(parseInt(item.selling_price));
+                    $('#qty').val(1);
+
+                    // click add btn
+                    $('#btn-item-add').click();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    swal("Oops!", "kode barcode tidak ada", "error");
+                }
+            });
+        }
+        if (e.which == 35) {
+            e.preventDefault();
+            $('#cash').focus();
+        }
+    });
+
     $('#product-display').typeahead({
         source: function(query, result) {
             $.ajax({
@@ -231,7 +285,7 @@
 
         // remove value .form-item
         $('.form-item').val('');
-        $('#product-display').focus();
+        $('#barcode').focus();
     })
 
     // action keyup on discount
@@ -310,6 +364,13 @@
         }
     });
 
+    $('#cash').keypress(function(e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            $('#save-transaction').click();
+        }
+    });
+
     // action #save-transaction
     $('#save-transaction').click(function(e) {
         e.preventDefault();
@@ -381,8 +442,8 @@
             'grand_total': $('#grand-total-input').val(),
             'payment_type': $('#payment_type').val(),
             'duedate': duedate,
-            'cash': $('#cash').val(),
-            'cash_return': $('#cash-return-input').val(),
+            'pay': $('#cash').val(),
+            'return': $('#cash-return-input').val(),
         };
 
         // send ajax
@@ -392,11 +453,22 @@
             dataType: 'json',
             data: data,
             beforeSend: function() {
-                $('#save-transaction').html('<i class="fa fa-spin fa-spinner"></i>');
+                $('#save-transaction').html('Loading...');
+                $('#save-transaction').attr('disabled', true);
             },
             success: function(response) {
-                // reload page
-                window.location.reload();
+                // swall alert
+                swal({
+                    title: 'Berhasil',
+                    text: 'Transaksi berhasil disimpan',
+                    icon: "success",
+                    button: "OK",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                }).then(function() {
+                    // reload page
+                    window.location.reload();
+                });
             },
             error: function(xhr, status, error) {
                 if (xhr.status == 404) {
@@ -408,6 +480,8 @@
             },
             complete: function() {
                 $('#save-transaction').html('Simpan');
+                $('#save-transaction').attr('disabled', false);
+
             }
         });
     });
