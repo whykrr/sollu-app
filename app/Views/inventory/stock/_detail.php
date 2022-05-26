@@ -30,6 +30,7 @@
                             <th>Stok Masuk</th>
                             <th>Stok Keluar</th>
                             <th>Harga Pokok</th>
+                            <th>Harga Jual</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -39,6 +40,7 @@
                                 <td><?= $value['stock_in'] . " " . $value['unit_name'] ?></td>
                                 <td><?= $value['stock_out'] . " " . $value['unit_name'] ?></td>
                                 <td><?= formatIDRHidden($value['cogs']) ?></td>
+                                <td><?= formatIDR($value['selling_price']) ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

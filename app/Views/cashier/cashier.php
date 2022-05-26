@@ -1,18 +1,10 @@
 <?= $this->extend('layout/general_layout'); ?>
 
-<?= $this->section('breadcrumb'); ?>
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb my-0 ms-2">
-        <li class="breadcrumb-item"><span>Kasir</span></li>
-    </ol>
-</nav>
-<?= $this->endSection('breadcrumb'); ?>
-
 <?= $this->section('main'); ?>
 <div class="container-fluid">
     <div class="fade-in">
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-8 pl-0">
                 <div class="card mb-3">
                     <div class="card-header p-2">
                         <h5 class="card-title mb-0"><b>Transaksi</b></h5>
@@ -25,6 +17,8 @@
                         <input type="hidden" id="transaction_code" value="<?= $tr_code ?>">
                         <input type="hidden" id="transaction_date" value="<?= $tr_date ?>">
                         <input type="hidden" id="user_id" value="<?= user_id() ?>">
+                        <input type="hidden" id="cashier_log_id" value="<?= $cashier_log_id ?>">
+                        <input type="hidden" id="with_log" value="<?= $with_log ?>">
                         <div class="row">
                             <div class="col-md-4">
                                 <p class="mb-1"><strong>Nomor Transaksi</strong></p>
@@ -63,12 +57,14 @@
                                     <label for="price">Harga</label>
                                     <input type="text" class="form-control form-item" id="price-display" disabled>
                                     <input type="hidden" class="form-item" id="product_price">
+                                    <input type="hidden" class="form-item" id="cogs">
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group mb-1">
                                     <label for="qty">Qty</label>
                                     <input type="number" class="form-control form-item" id="qty" placeholder="Qty">
+                                    <input type="hidden" id="stock">
                                 </div>
                             </div>
                             <div class="col-md-2 pl-0 align-self-end">
@@ -81,13 +77,15 @@
                         </div>
                         <hr class="my-2">
                         <div class="table-responsive">
-                            <table class="table table-sm table-bordered" id="table-items">
+                            <table class="table table-sm table-bordered table-align-middle" id="table-items">
                                 <thead>
                                     <tr>
                                         <th>Nama</th>
                                         <th>Harga</th>
+                                        <th>Diskon Satuan</th>
                                         <th>Qty</th>
                                         <th>Subtotal</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -98,7 +96,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 pl-0">
+            <div class="col-md-4 px-0">
                 <div class="card text-white bg-info mb-3">
                     <div class="card-header p-2">
                         <h5 class="card-title mb-0"><b>Grand Total</b></h5>
@@ -123,7 +121,7 @@
                                 <input type="currency" id="discount" class="form-control" data-prefix="Rp. ">
                             </div>
                         </div>
-                        <?php if (verifyPos('compex')) : ?>
+                        <?php if (verifyPos('complex')) : ?>
                             <div class="form-group row">
                                 <label for="customer" class="col-md-5 col-form-label font-weight-bold">Nama Pelanggan</label>
                                 <div class="col-md-7">
@@ -197,16 +195,24 @@
                 dataType: "json",
                 type: "GET",
                 success: function(item) {
-                    $('#product_id').val(item.id);
-                    $('#product-display').val(item.name);
-                    $('#product_price').val(parseInt(item.selling_price));
-                    $('#qty').val(1);
+                    if (item.stock < 1) {
+                        notEnoughStock();
+                        clearFormCashier();
+                    } else {
+                        $('#product_id').val(item.id);
+                        $('#product-display').val(item.name);
+                        $('#product_price').val(parseInt(item.selling_price));
+                        $('#cogs').val(parseInt(item.cogs));
+                        $('#qty').val(1);
+                        $('#stock').val(parseInt(item.stock));
 
-                    // click add btn
-                    $('#btn-item-add').click();
+                        // click add btn
+                        $('#btn-item-add').click();
+                    }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     swal("Oops!", "kode barcode tidak ada", "error");
+                    clearFormCashier();
                 }
             });
         }
@@ -217,6 +223,7 @@
     });
 
     $('#product-display').typeahead({
+        highlight: true,
         source: function(query, result) {
             $.ajax({
                 url: "<?= base_url('masterdata/product/autocomplete') ?>",
@@ -235,6 +242,8 @@
             $('#product_id').val(item.id);
             $('#price-display').val(formatRupiah(item.selling_price.toString(), true));
             $('#product_price').val(parseInt(item.selling_price));
+            $('#cogs').val(parseInt(item.cogs));
+            $('#stock').val(parseInt(item.stock));
             $('#qty').focus();
             $('#qty').val(1);
         }
@@ -258,13 +267,26 @@
             return false;
         }
 
+        // check stock less than qty
+        if (parseInt($('#stock').val()) < parseInt($('#qty').val())) {
+            notEnoughStock();
+            return false;
+        }
+
         // replace items if same roduct id
         var item_exist = false;
         $.each(items, function(index, value) {
             if (value.product_id == $('#product_id').val()) {
                 item_exist = true;
+                if (parseInt($('#stock').val()) < parseInt(items[index].qty) + parseInt($('#qty').val())) {
+                    notEnoughStock();
+                    return false;
+                }
                 items[index].qty = parseInt(items[index].qty) + parseInt($('#qty').val());
-                items[index].subtotal = parseInt(items[index].qty) * parseInt(items[index].price);
+                items[index].subtotal = parseInt(items[index].qty) * parseInt(items[index].price - items[index].discount);
+
+                // stop loop
+                return false;
             }
         });
 
@@ -273,7 +295,9 @@
             items.push({
                 product_id: $('#product_id').val(),
                 product_name: $('#product-display').val(),
+                cogs: $('#cogs').val(),
                 price: $('#product_price').val(),
+                discount: '0',
                 qty: $('#qty').val(),
                 subtotal: $('#qty').val() * $('#product_price').val()
             });
@@ -283,9 +307,37 @@
         appendItemsToTable();
         countTotal();
 
-        // remove value .form-item
+        clearFormCashier();
+    })
+
+    function clearFormCashier() {
         $('.form-item').val('');
         $('#barcode').focus();
+    }
+
+    function notEnoughStock() {
+        swal('Oops', 'Stok tidak cukup', 'error');
+        $('#product-display').focus();
+    }
+
+    //action .btn-delete-item
+    $(document).on('click', '.btn-delete-item', function(e) {
+        e.preventDefault();
+        var index = $(this).data('index');
+        items.splice(index, 1);
+        appendItemsToTable();
+        countTotal();
+    })
+
+    // action .discount-item
+    $(document).on('change', '.discount-item', function(e) {
+        e.preventDefault();
+        var index = $(this).data('index');
+        console.log(items[index]);
+        items[index].discount = $(this).val();
+        items[index].subtotal = (items[index].price - items[index].discount) * items[index].qty;
+        appendItemsToTable();
+        countTotal();
     })
 
     // action keyup on discount
@@ -300,9 +352,10 @@
             html += '<tr>';
             html += '<td>' + value.product_name + '</td>';
             html += '<td>' + formatRupiah(value.price.toString(), true) + '</td>';
+            html += '<td><input type="currency" class="form-control discount-item" data-index="' + index + '" value="' + value.discount + '"></td>';
             html += '<td>' + value.qty + '</td>';
             html += '<td>' + formatRupiah(value.subtotal.toString(), true) + '</td>';
-            // html += '<td><button class="btn btn-sm btn-danger btn-delete-item" data-id="' + value.product_id + '"><i class="fa fa-trash"></i></button></td>';
+            html += '<td><button class="btn btn-sm btn-danger btn-delete-item" data-index="' + index + '"><i class="c-icon cil-trash"></i></button></td>';
             html += '</tr>';
         });
         $('#table-items tbody').html(html);
@@ -433,6 +486,7 @@
         // creeate json data
         var data = {
             'invoice_no': $('#transaction_code').val(),
+            'cashier_log_id': $('#cashier_log_id').val(),
             'date': $('#transaction_date').val(),
             'user_id': $('#user_id').val(),
             'customer': $('#customer').val(),
@@ -446,16 +500,15 @@
             'return': $('#cash-return-input').val(),
         };
 
+        $('#save-transaction').html('Loading...');
+        $('#save-transaction').attr('disabled', true);
+
         // send ajax
         $.ajax({
             url: '<?= base_url('cashier/save') ?>',
             type: 'POST',
             dataType: 'json',
             data: data,
-            beforeSend: function() {
-                $('#save-transaction').html('Loading...');
-                $('#save-transaction').attr('disabled', true);
-            },
             success: function(response) {
                 // swall alert
                 swal({

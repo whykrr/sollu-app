@@ -29,6 +29,11 @@ class Settings extends Migration
                 'constraint' => 255,
                 'null' => true,
             ],
+            'type' => [
+                'type' => 'enum',
+                'constraint' => ['text', 'boolean'],
+                'null' => true,
+            ],
             'value' => [
                 'type' => 'TEXT',
                 'null' => true,

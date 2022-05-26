@@ -118,8 +118,8 @@ class Stock_purchase extends BaseController
                 if ($value['id'] == $valueItem['product_id']) {
                     $product_data[$key]['id'] = $value['id'];
                     $product_data[$key]['stock'] = $value['stock'] + $valueItem['qty'];
-                    $product_data[$key]['cogs'] = $value['cogs'];
-                    $product_data[$key]['selling_price'] = $value['selling_price'];
+                    $product_data[$key]['cogs'] = $valueItem['cogs'];
+                    $product_data[$key]['selling_price'] = $valueItem['selling_price'];
                 }
             }
         }

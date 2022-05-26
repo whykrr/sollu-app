@@ -27,4 +27,5 @@
 </div>
 <div class="modal-footer">
     <button class="btn btn-danger" type="button" data-dismiss="modal">Close</button>
+    <button class="btn btn-warning float-right ajax-del" data-source="sales" key="<?= $data['id'] ?>" type="button">Hapus Transaksi</button>
 </div>

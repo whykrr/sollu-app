@@ -18,7 +18,9 @@ class StockSalesModel extends Model
         'invoice_id',
         'product_id',
         'qty',
+        'cogs',
         'price',
+        'discount',
         'sub_total'
     ];
 
@@ -77,5 +79,39 @@ class StockSalesModel extends Model
         $result = $builder->get()->getResultArray();
 
         return $result;
+    }
+
+    /**
+     * get available year
+     */
+    public function getAvailableYear()
+    {
+        $builder = $this->db->table($this->table);
+        $builder->select('DISTINCT YEAR(created_at) as year');
+        $builder->orderBy('year', 'DESC');
+        $result = $builder->get()->getResultArray();
+
+        return $result;
+    }
+
+    public function getCOGSStockSales()
+    {
+        // select stock_out
+        $stock_out = $this->db->table('stock_out')
+            ->get()->getResultArray();
+
+        foreach ($stock_out as $key => $so) {
+            $data['cogs'] = $so['cogs'];
+
+            // reformat date
+            $created_at = date('Y-m-d H:i', strtotime($so['created_at']));
+
+            $this->db->table('stock_sales')
+                ->set($data)
+                ->where('product_id', $so['product_id'])
+                ->where('qty', $so['qty'])
+                ->like('created_at', $created_at, 'after')
+                ->update();
+        }
     }
 }

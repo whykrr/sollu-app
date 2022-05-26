@@ -114,7 +114,7 @@ class ProductsModel extends Model
             ->join('product_categories pc', 'pc.id = products.category_id', 'left')
             ->join('units', 'units.id = products.unit_id', 'left');
 
-        if ($args['search'] != "") {
+        if (@$args['search'] != "") {
             // group like
             $custom->groupStart();
             $custom->like('products.name', $args['search'], 'both')
@@ -122,7 +122,7 @@ class ProductsModel extends Model
                 ->orLike('products.barcode', $args['search'], 'both');
             $custom->groupEnd();
         }
-        if ($args['category_id'] != "") {
+        if (@$args['category_id'] != "") {
             $custom->where('products.category_id', $args['category_id']);
         }
 
@@ -183,6 +183,7 @@ class ProductsModel extends Model
             'cogs' => (int) $data['cogs'],
             'selling_price' => (int) $data['selling_price'],
             'unit' => $data['unit_name'],
+            'stock' => $data['stock'],
         ];
 
         return $remapData;
@@ -208,6 +209,7 @@ class ProductsModel extends Model
                 'cogs' => (int) $row['cogs'],
                 'selling_price' => (int) $row['selling_price'],
                 'unit' => $row['unit_name'],
+                'stock' => $row['stock'],
             ];
         }
 

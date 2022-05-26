@@ -18,6 +18,7 @@ $("body").on("submit", ".ajax", function (e) {
     form = $(this);
     uri_redirect = $(this).data("redirect");
     respondType = $(this).data("respond");
+    loadingAjax(form, "show");
     $.ajax({
         type: "post",
         url: $(this).attr("action"),
@@ -26,7 +27,6 @@ $("body").on("submit", ".ajax", function (e) {
         cache: false,
         processData: false,
         dataType: "json",
-        beforeSend: loadingAjax(form, "show"),
         statusCode: {
             200: function (json) {
                 switch (respondType) {
@@ -108,6 +108,7 @@ $("body").on("click", ".ajax-del", function () {
         product_category: "masterdata/product_category/delete",
         product: "masterdata/product/delete",
         user: "user/delete",
+        sales: "cashier/delete",
     };
 
     source = $(this).data("source");
@@ -126,6 +127,7 @@ $("body").on("click", ".ajax-del", function () {
                     swal(data.message, {
                         icon: "success",
                     });
+                    $("#modalSide").modal("hide");
                     refreshDatatables(".datatable-builder");
                 },
                 error: function () {

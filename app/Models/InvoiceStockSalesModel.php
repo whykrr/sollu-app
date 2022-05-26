@@ -17,6 +17,7 @@ class InvoiceStockSalesModel extends Model
     protected $allowedFields        = [
         'id',
         'invoice_no',
+        'cashier_log_id',
         'customer',
         'date',
         'total',
@@ -26,6 +27,7 @@ class InvoiceStockSalesModel extends Model
         'pay',
         'return',
         'user_id',
+        'created_at',
     ];
 
     // Dates
@@ -89,6 +91,19 @@ class InvoiceStockSalesModel extends Model
             ->where('invoice_stock_sales.id', $invoice_id)
             ->get();
         return $query->getRowArray();
+    }
+
+    /**
+     * get available year
+     */
+    public function getAvailableYear()
+    {
+        $builder = $this->db->table($this->table);
+        $builder->select('DISTINCT YEAR(created_at) as year');
+        $builder->orderBy('year', 'DESC');
+        $result = $builder->get()->getResultArray();
+
+        return $result;
     }
 
     /**

@@ -9,32 +9,173 @@ use App\Models\FinancialModel;
 use App\Models\StockSalesModel;
 use App\Models\InvoiceStockSalesModel;
 use App\Models\AccountReceivableModel;
+use App\Models\CashierLogModel;
 use App\Models\SettingModel;
-use Mike42\Escpos\PrintConnectors\FilePrintConnector;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
 
-
 class Cashier extends BaseController
 {
+    /**
+     * ANCHOR - index
+     */
     public function index()
     {
+        $cl = new CashierLogModel();
+        $setting = new SettingModel();
+
         $data['sidebar_active'] = 'cashier';
+
+        $data['cashier_log_id'] = $cl->getLog();
+        $data['with_log'] = $setting->where('id', 'cashier_with_log')->first()['value'];
+        return view('cashier/layout', $data);
+    }
+
+    /**
+     * ANCHOR - cashier panel
+     */
+    public function panel()
+    {
+        $cl = new CashierLogModel();
+        $setting = new SettingModel();
+
+        $data['blank'] = true;
+        $data['cashier_log_id'] = $cl->getLog();
+        $data['with_log'] = $setting->where('id', 'cashier_with_log')->first()['value'];
+
         return view('cashier/cashier', $data);
     }
 
-
     /**
-     * show page open cashier
+     * ANCHOR - Show page open cashier
      */
-    public function open_cashier()
+    public function start_cashier()
     {
-        $data['sidebar_active'] = 'cashier';
-        return view('cashier/open', $data);
+        return view('cashier/_start');
     }
 
     /**
-     * save data
+     * SECTION - Store data open cashier log
+     */
+    public function store_log()
+    {
+        $cl = new CashierLogModel();
+
+        $post = $this->request->getPost();
+
+        // TODO - Set data to insert
+        $data = [
+            'date' => date('Y-m-d'),
+            'start_time' => date('H:i:s'),
+            'begining_balance' => $post['begining_balance'],
+            'start_by' => user_id(),
+        ];
+
+        // TODO - Insert data
+        if (!$cl->save($data)) {
+            // INFO - Respond with error
+            $errors = $cl->errors();
+            $json = [
+                "message" => "validation error",
+                "validation_error" => $errors,
+            ];
+
+            return $this->respond($json, 400);
+        }
+
+        // INFO - Respond success
+        $json = [
+            "message" => 'Data berhasil disimpan',
+        ];
+        return $this->respond($json, 200);
+    }
+    // !SECTION
+
+    /**
+     * ANCHOR - Show page open cashier
+     */
+    public function end_cashier()
+    {
+        $cl = new CashierLogModel();
+        $invoice = new InvoiceStockSalesModel();
+
+        $data['data'] = $cl->getDataOpenToday();
+        $data['total_transaction'] = $invoice->getSales('daily', date('Y-m-d'));
+        $data['total_sales'] = $invoice->getIncome('daily', date('Y-m-d'));
+        return view('cashier/_end', $data);
+    }
+
+    /**
+     * SECTION - Attemp end cashier
+     */
+    public function attemp_end_cashier()
+    {
+        $setting = new SettingModel();
+        $cl = new CashierLogModel();
+
+        $post = $this->request->getPost();
+
+        // TODO - Set data to insert
+        $data = [
+            'id' => @$post['id'],
+            'end_time' => date('H:i:s'),
+            'ending_balance' => @$post['ending_balance'],
+            'total_sales' => @$post['total_sales'],
+            'end_by' => user_id(),
+            'status' => 1,
+        ];
+
+        // TODO - Update data log
+        $cl->save($data);
+
+        // TODO - Get data setting
+        $dept = $setting->find('outlet')['value'];
+        $max_char = $setting->find('printer_max_length')['value'];
+
+        // TODO - Create template for print
+        $receipt = "";
+        $receipt .= receipt_align("LAPORAN PENJUALAN", "center", $max_char) . "\n";
+        $receipt .= receipt_separator('-', $max_char);
+        $receipt .= receipt_align("TANGGAL", "left", 12);
+        $receipt .= receipt_align(": " . date("d/m/Y"), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("JAM TUTUP", "left", 12);
+        $receipt .= receipt_align(": " . $data['end_time'], "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("KASIR", "left", 12);
+        $receipt .= receipt_align(": " . user()->name, "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("DEPT", "left", 12);
+        $receipt .= receipt_align(": $dept", "left", $max_char - 12) . "\n";
+        $receipt .= receipt_separator('-', $max_char);
+        $receipt .= receipt_align("Saldo Awal", "left", 12);
+        $receipt .= receipt_align(": " . intval(@$post['begining_balance']), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("Jml Trans", "left", 12);
+        $receipt .= receipt_align(": " . intval(@$post['total_transaction']), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("Total", "left", 12);
+        $receipt .= receipt_align(": " . intval(@$post['total_sales']), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("Tunai", "left", 12);
+        $receipt .= receipt_align(": " . intval(@$post['total_sales']), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("Transfer", "left", 12);
+        $receipt .= receipt_align(': 0', "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("Saldo Akhir", "left", 12);
+        $receipt .= receipt_align(": " . intval(@$post['ending_balance']), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_separator('-', $max_char);
+        // $receipt .= receipt_separator($max_char);
+        // $receipt .= receipt_align("RETUR PENJUALAN", "left", 12) . receipt_align(': 0', 'right', $max_char - 12) . "\n";
+        // $receipt .= receipt_align("Total", "left", 12) . receipt_align(': 0', 'right', $max_char - 12) . "\n";
+        // $receipt .= receipt_separator($max_char);
+
+        // TODO - Print
+        $this->_print_receipt($receipt);
+
+        // INFO - respond success
+        $json = [
+            "message" => 'Kasir berhasil ditutup',
+        ];
+        return $this->respond($json, 200);
+    }
+    // !SECTION
+
+    /**
+     * SECTION - Save data transaction
      */
     public function save()
     {
@@ -43,7 +184,7 @@ class Cashier extends BaseController
         // get data
         $data = $this->request->getPost();
 
-        // instace models
+        // INFO - Instace models
         $stock = new StockModel();
         $financial = new FinancialModel();
         $receivable = new AccountReceivableModel();
@@ -51,9 +192,10 @@ class Cashier extends BaseController
         $invoice = new InvoiceStockSalesModel();
         $product = new ProductsModel();
 
-        // remmap data invoice
+        // INFO - Remapping data invoice_stock_sales
         $invoiceData = [
             'invoice_no' => $data['invoice_no'],
+            'cashier_log_id' => $data['cashier_log_id'],
             'date' => $data['date'],
             'total' => $data['total'],
             'discount' => $data['discount'],
@@ -64,20 +206,23 @@ class Cashier extends BaseController
             'customer' => $data['customer'],
         ];
 
+        // INFO - Remapping data stock_sales
         $stockSalesData = [];
         foreach ($data['items'] as $row) {
             $stockSalesData[] = [
                 'product_id' => $row['product_id'],
                 'qty' => $row['qty'],
+                'cogs' => $row['cogs'],
                 'price' => $row['price'],
+                'discount' => $row['discount'],
                 'sub_total' => $row['subtotal'],
             ];
         }
 
-        // get product updated
+        // TODO - Get product updated
         $product_updated = $product->whereIn('id', array_column($data['items'], 'product_id'))->findAll();
 
-        // remap product
+        // INFO - Remapping data to update data product
         foreach ($product_updated as $key => $value) {
             // check product id
             foreach ($data['items'] as $keyItem => $valueItem) {
@@ -88,8 +233,9 @@ class Cashier extends BaseController
             }
         }
 
+        // SECTION - Set data financial
         if ($data['payment_type'] == 0) {
-            // remaap financial
+            // INFO - Set data financial cash
             $financialData = [
                 'account_id' => '1-2',
                 'type' => 'in',
@@ -98,15 +244,7 @@ class Cashier extends BaseController
                 'user_id' => user_id(),
             ];
         } else {
-            // remaap financial
-            $financialData = [
-                'account_id' => '11-1',
-                'type' => 'in',
-                'amount' => $data['grand_total'],
-                'description' => 'Piutang dagang ' . $data['invoice_no'],
-                'user_id' => user_id(),
-            ];
-
+            // INFO - Set data receivable_account
             $receivableData = [
                 'date' => $data['date'],
                 'customer' => $data['customer'],
@@ -116,14 +254,15 @@ class Cashier extends BaseController
                 'status' => 0,
             ];
         }
+        // !SECTION
 
         // instance builder library
         $db = \Config\Database::connect();
 
-        // transaction begin
+        // SECTION Transaction begin
         $db->transBegin();
 
-        // save invoice
+        // TODO - save invoice_stock_sales
         if (!$invoice->save($invoiceData)) {
             // rollback 
             $db->transRollback();
@@ -132,13 +271,15 @@ class Cashier extends BaseController
         }
 
         /**
-         * STOCK
+         * SECTION - Stock
          */
-        // set invoice_id to stock sales
+
+        // INFO - Set invoice_id to stock_sales
         foreach ($stockSalesData as $key => $row) {
             $stockSalesData[$key]['invoice_id'] = $invoice->getInsertID();
         }
-        // save stock sales
+
+        // TODO - Save stock sales
         if (!$stockSales->insertBatch($stockSalesData)) {
             // rollback 
             $db->transRollback();
@@ -146,7 +287,7 @@ class Cashier extends BaseController
             $error = implode(',', $stockSales->errors());
         }
 
-        //save stock
+        // TODO - Update stock
         if (!$stock->updateStockFIFO($stockSalesData)) {
             // rollback 
             $db->transRollback();
@@ -154,40 +295,49 @@ class Cashier extends BaseController
             $error = implode(',', $stock->errors());
         }
 
-        // update stock product
+        // TODO - Update product
         if (!$product->updateStocks($product_data)) {
             // rollback 
             $db->transRollback();
 
             $error = implode(',', $product->errors());
         }
+        // !SECTION
 
 
         /**
-         * FINANCIAL
+         * SECTION - Financial
          */
-        $financialData['reference_id'] = $invoice->getInsertID();
-        if (!$financial->save($financialData)) {
-            // rollback 
-            $db->transRollback();
 
-            $error = implode(',', $financial->errors());
-        }
+        // INFO - Set reference_id
 
-        // check if paymet type = 1
+        // INFO - check payment
+        if ($data['payment_type'] == 0) {
+
+            $financialData['reference_id'] = $invoice->getInsertID();
+
+            // TODO - Save financial
+            if (!$financial->save($financialData)) {
+                // rollback
+                $db->transRollback();
+
+                $error = implode(',', $financial->errors());
+            }
+        } else 
         if ($data['payment_type'] == 1) {
+
             $receivableData['invoice_id'] = $invoice->getInsertID();
-            // save receivable
+
+            // TODO - save receivable_account
             if (!$receivable->save($receivableData)) {
-                // rollback 
+
+                // rollback
                 $db->transRollback();
 
                 $error = implode(',', $receivable->errors());
             }
         }
-
-        // commit 
-        $db->transCommit();
+        // !SECTION
 
         $json = [];
 
@@ -199,6 +349,10 @@ class Cashier extends BaseController
             return $this->respond($json, 500);
         }
 
+        // commit 
+        $db->transCommit();
+        // !SECTION
+
         // genrate text receipt
         $text = $this->_receipt($invoice->getInsertID());
 
@@ -208,24 +362,192 @@ class Cashier extends BaseController
         $json['message'] = 'success';
         return $this->respond($json, 200);
     }
+    // !SECTION
 
+
+    /**
+     * SECTION - Delete data transaction
+     */
+    public function delete($inv_id)
+    {
+        // load all model
+        $stock = new StockModel();
+        $stockSales = new StockSalesModel();
+        $product = new ProductsModel();
+        $invoice = new InvoiceStockSalesModel();
+        $financial = new FinancialModel();
+        $receivable = new AccountReceivableModel();
+
+        // get data invoice
+        $invoiceData = $invoice->where('id', $inv_id)->first();
+
+        // Get Stock Sales
+        $stockSalesData = $stockSales->where('invoice_id', $inv_id)->findAll();
+
+        // Get product updated
+        $product_updated = $product->whereIn('id', array_column($stockSalesData, 'product_id'))->findAll();
+
+        // TODO - Mapping data to update data product
+        $updateProduct = [];
+        foreach ($product_updated as $key => $itemPU) {
+            // check product id
+            foreach ($stockSalesData as $keyItem => $itemSS) {
+                if ($itemPU['id'] == $itemSS['product_id']) {
+                    // push to array updateProduct
+                    $updateProduct[] = [
+                        'id' => $itemPU['id'],
+                        'stock' => $itemPU['stock'] + $itemSS['qty'],
+                    ];
+                }
+            }
+        }
+
+        // TODO - Mapping data to add stock
+        $addStock = [];
+        foreach ($stockSalesData as $key => $itemSS) {
+            // push to array addStock
+            $addStock[] = [
+                'product_id' => $itemSS['product_id'],
+                'stock_in' => $itemSS['qty'],
+                'cogs' => $itemSS['cogs'],
+                'selling_price' => $itemSS['price'],
+                'description' => 'Hapus Penjualan ' . $invoiceData['invoice_no'],
+            ];
+        }
+
+        // SECTION - Transaction begin
+        $error = "";
+        $db = \Config\Database::connect();
+        $db->transBegin();
+
+        // TODO - Delete invoice stock sales
+        if (!$invoice->delete($inv_id)) {
+            // rollback 
+            $db->transRollback();
+
+            $error = implode(',', $invoice->errors());
+        }
+
+        // TODO - Delete stock sales
+        if (!$stockSales
+            ->where('invoice_id', $inv_id)
+            ->delete()) {
+            // rollback 
+            $db->transRollback();
+
+            $error = implode(',', $stockSales->errors());
+        }
+
+        // TODO - insert stock
+        if (!$stock->insertBatch($addStock)) {
+            // rollback 
+            $db->transRollback();
+
+            $error = implode(',', $stock->errors());
+        }
+
+        // TODO - update product
+        if (!$product->updateStocks($updateProduct)) {
+            // rollback 
+            $db->transRollback();
+
+            $error = implode(',', $product->errors());
+        }
+
+        // TODO - update product
+        if (!$product->updateStocks($updateProduct)) {
+            // rollback 
+            $db->transRollback();
+
+            $error = implode(',', $product->errors());
+        }
+
+        // check payment type
+        if ($invoiceData['payment_type'] == 0) {
+            // TODO - Delete financial
+            if (!$financial
+                ->where('reference_id', $inv_id)
+                ->where('type', 'in')
+                ->delete()) {
+                // rollback 
+                $db->transRollback();
+
+                $error = implode(',', $financial->errors());
+            }
+        } else {
+            // TODO - Delete receivable account
+            if (!$receivable
+                ->where('invoice_id', $inv_id)
+                ->delete()) {
+                // rollback 
+                $db->transRollback();
+
+                $error = implode(',', $receivable->errors());
+            }
+        }
+
+        // check error
+        if ($error != "") {
+            $json['message'] = $error;
+
+            //return respond
+            return $this->respond($json, 500);
+        }
+
+        // commit
+        $db->transCommit();
+        // !SECTION
+
+        $json['message'] = 'success';
+        return $this->respond($json, 200);
+    }
+    // !SECTION
+
+    /**
+     * ANCHOR - Get COGS stock_sales
+     */
+    public function get_cogs()
+    {
+        $stockSales = new StockSalesModel();
+
+        $stockSales->getCOGSStockSales();
+
+        echo "success!";
+    }
+
+
+
+    /**
+     * ANCHOR - Print
+     */
     private function _print_receipt($text)
     {
 
         $setting = new SettingModel();
         $printerName = $setting->find('printer_name')['value'];
+        $printerCutter = $setting->find('printer_cutter')['value'];
 
         if (!empty($printerName)) {
-            $connector = new WindowsPrintConnector($printerName);
-            $printer = new Printer($connector);
-            $printer->text($text);
-            $printer->cut();
-            // open cash drawer
-            $printer->pulse();
-            $printer->close();
+            if (!empty($printerName)) {
+                $connector = new WindowsPrintConnector($printerName);
+                $printer = new Printer($connector);
+                $printer->text($text);
+                $printer->feed(4);
+
+                if ($printerCutter == 1) {
+                    $printer->cut();
+                }
+
+                // open cash drawer
+                $printer->pulse();
+                $printer->close();
+            }
         }
     }
 
+    /**
+     * ANCHOR - Generate text receipt
+     */
     private function _receipt($inv_id)
     {
 
@@ -268,10 +590,16 @@ class Cashier extends BaseController
         $text .= receipt_separator('-', 32);
 
         foreach ($stockSales_data as $key => $ss) {
+            $diskon_item = $ss['discount'] * $ss['qty'];
+
             $text .= receipt_align($ss['product_name'], "left", 32) . "\n";
             $text .= receipt_align(intval($ss['price']), "left", $max_char_price);
             $text .= receipt_align("x$ss[qty]", "left", $max_char_qty);
-            $text .= receipt_align(intval($ss['sub_total']), "right", $max_char_sub) . "\n";
+            $text .= receipt_align(intval($ss['sub_total'] + $diskon_item), "right", $max_char_sub) . "\n";
+            if ($diskon_item > 0) {
+                $text .= receipt_align("Potongan", "left", 13);
+                $text .= receipt_align("-" . intval($diskon_item), "right", $max_char_sub) . "\n";
+            }
         }
 
         $text .= receipt_separator('-', 32);
@@ -287,17 +615,12 @@ class Cashier extends BaseController
         return $text;
     }
 
+    /**
+     * ANCHOR - Test printer
+     */
     public function test_print()
     {
-        $text = $this->_receipt(1);
+        $text = '-- TEST --';
         $this->_print_receipt($text);
-    }
-
-    public function test_receipt()
-    {
-        $text = $this->_receipt(1);
-        $text = str_replace(' ', '&nbsp;', $text);
-
-        echo "<tt>" . nl2br($text) . "</tt>";
     }
 }

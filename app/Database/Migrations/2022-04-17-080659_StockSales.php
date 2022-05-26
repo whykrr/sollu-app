@@ -39,6 +39,10 @@ class StockSales extends Migration
                 'type' => 'DECIMAL',
                 'constraint' => '10,2',
             ],
+            'discount' => [
+                'type' => 'DECIMAL',
+                'constraint' => '10,2',
+            ],
             'sub_total' => [
                 'type' => 'DECIMAL',
                 'constraint' => '10,2',

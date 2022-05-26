@@ -52,7 +52,7 @@ class StockModel extends Model
 
     public $updateBatchQuery = "";
     /**
-     * get history
+     * ANCHOR - get history
      * 
      * @param int $id
      */
@@ -73,34 +73,33 @@ class StockModel extends Model
     }
 
     /**
-     * update stock fifo
+     * SECTION - Update stock FIFO
      */
-
     public function updateStockFIFO($items)
     {
         // convert items product id to array
         $product_ids = array_column($items, 'product_id');
 
-        //get data stock
+        // INFO - Get data stock
         $builder = $this->db->table($this->table);
         $builder->whereIn('product_id', $product_ids);
         $builder->where('stock_in <> stock_out');
+        $builder->orderBy('created_at', 'ASC');
         $stocks = $builder->get()->getResultArray();
 
         $updateBatch = [];
         $stockOuts = [];
 
-        // find and update stock out
+        // INFO - Update stock and get data to insert stock_out
         foreach ($stocks as $keyStock => $valueStock) {
             // check if $items length is 0 and stop loop
             if (count($items) == 0) {
                 break;
             } else {
                 foreach ($items as $keyItem => $valueItem) {
-                    // check if $items product id is equal to $valueStock product id
+                    // check if $items product_id is equal to $valueStock product id
                     if ($valueItem['product_id'] == $valueStock['product_id']) {
                         // check remaining stock
-
 
                         // check if $valueStock remaining stock is greater than $valueItem stock out
                         if (($valueStock['stock_in'] - $valueStock['stock_out']) > $valueItem['qty']) {
@@ -123,7 +122,6 @@ class StockModel extends Model
                             ];
                             array_push($updateBatch, $updateBatchSingle);
 
-
                             // set remaining stock
                             $items[$keyItem]['qty'] = $remaining;
                         }
@@ -138,20 +136,21 @@ class StockModel extends Model
             }
         }
 
-        //update batch stock
+        // TODO - Update batch stock
         $builder = $this->db->table($this->table);
         if (!$builder->updateBatch($updateBatch, 'id')) {
             return false;
         }
 
-        //instance StockOutModel
+        // INFO - Instance StockOutModel
         $stockOut = new StockOutModel();
 
-        //insert stock_out
+        // INFO - Insert stock_out
         if (!$stockOut->insertBatch($stockOuts)) {
             return false;
         }
 
         return true;
     }
+    // !SECTION
 }

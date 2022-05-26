@@ -22,6 +22,12 @@ class InvoiceStockSales extends Migration
                 'type' => 'VARCHAR',
                 'constraint' => 255,
             ],
+            'cashier_log_id' => [
+                'type' => 'INT',
+                'constraint' => 11,
+                'unsigned' => true,
+                'null' => true,
+            ],
             'date' => [
                 'type' => 'DATETIME',
                 'null' => true,
@@ -76,6 +82,7 @@ class InvoiceStockSales extends Migration
         ]);
         $this->forge->addKey('id', true);
         $this->forge->addKey('invoice_no');
+        $this->forge->addKey('cashier_log_id');
         $this->forge->addKey('date');
         $this->forge->addKey('user_id');
         $this->forge->createTable('invoice_stock_sales');

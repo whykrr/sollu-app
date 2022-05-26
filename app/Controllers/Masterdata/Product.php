@@ -146,15 +146,15 @@ class Product extends BaseController
         $spreadsheet->getActiveSheet()->setTitle('Data Produk');
 
         $worksheet = $spreadsheet->setActiveSheetIndex(0);
-        $worksheet->setCellValue('A1', 'No');
-        $worksheet->setCellValue('B1', 'Kode');
-        $worksheet->setCellValue('C1', 'Barcode');
-        $worksheet->setCellValue('D1', 'Nama');
-        $worksheet->setCellValue('E1', 'Kategori');
-        $worksheet->setCellValue('F1', 'Satuan');
-        $worksheet->setCellValue('G1', 'Harga Beli');
-        $worksheet->setCellValue('H1', 'Harga Jual');
-        $worksheet->setCellValue('I1', 'Keterangan');
+        $worksheet->setCellValue('A1', 'No')->getStyle('A1')->getFont()->setBold(true);
+        $worksheet->setCellValue('B1', 'Kode')->getStyle('B1')->getFont()->setBold(true);
+        $worksheet->setCellValue('C1', 'Barcode')->getStyle('C1')->getFont()->setBold(true);
+        $worksheet->setCellValue('D1', 'Nama')->getStyle('D1')->getFont()->setBold(true);
+        $worksheet->setCellValue('E1', 'Kategori')->getStyle('E1')->getFont()->setBold(true);
+        $worksheet->setCellValue('F1', 'Satuan')->getStyle('F1')->getFont()->setBold(true);
+        $worksheet->setCellValue('G1', 'Harga Beli')->getStyle('G1')->getFont()->setBold(true);
+        $worksheet->setCellValue('H1', 'Harga Jual')->getStyle('H1')->getFont()->setBold(true);
+        $worksheet->setCellValue('I1', 'Keterangan')->getStyle('I1')->getFont()->setBold(true);
 
         // $row_start = 2;
         foreach ($data as $key => $value) {
@@ -167,6 +167,12 @@ class Product extends BaseController
             $worksheet->setCellValue('G' . ($key + 2), $value['cogs']);
             $worksheet->setCellValue('H' . ($key + 2), $value['selling_price']);
             $worksheet->setCellValue('I' . ($key + 2), $value['description']);
+        }
+
+        // resize column
+        foreach (range('A', 'I') as $columnID) {
+            $spreadsheet->getActiveSheet()->getColumnDimension($columnID)
+                ->setAutoSize(true);
         }
 
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
