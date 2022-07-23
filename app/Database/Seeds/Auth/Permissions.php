@@ -56,6 +56,14 @@ class Permissions extends Seeder
                 'description' => 'Inventori > Stok Opname',
             ],
             [
+                'name' => 'inventory-stock-spoil',
+                'description' => 'Inventori > Stok Spoil',
+            ],
+            [
+                'name' => 'inventory-stock-out',
+                'description' => 'Inventori > Stok Keluar',
+            ],
+            [
                 'name' => 'cashier',
                 'description' => 'Kasir',
             ],

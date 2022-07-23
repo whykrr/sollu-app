@@ -41,7 +41,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group mb-1">
-                                    <label for="barcode">Barcdoe</label>
+                                    <label for="barcode">Barcode</label>
                                     <input type="text" class="form-control form-item" id="barcode" autocomplete="off" placeholder="Scan barcode ..."></input>
                                 </div>
                             </div>
@@ -245,13 +245,17 @@
             $('#cogs').val(parseInt(item.cogs));
             $('#stock').val(parseInt(item.stock));
             $('#qty').focus();
-            $('#qty').val(1);
+            $('#qty').val("");
         }
     });
 
     // acction #qty on enter
     $('#qty').keypress(function(e) {
         if (e.which == 13) {
+            // get value if empty
+            if ($(this).val() == "") {
+                $(this).val(1);
+            }
             $('#btn-item-add').click();
         }
     });

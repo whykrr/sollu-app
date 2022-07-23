@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Models\InvoiceStockSalesModel;
 use App\Models\StockSalesModel;
+use App\Libraries\TableFilter;
 
 class Sales extends BaseController
 {
@@ -13,7 +14,19 @@ class Sales extends BaseController
      */
     public function index()
     {
-        $data['sidebar_active'] = 'finance-income';
+        $data['sidebar_active'] = 'sales';
+        $sales = new InvoiceStockSalesModel();
+
+        $filter_year = $sales->getAvailableYear();
+        if (count($filter_year) == 0) {
+            $filter_year[0]['year'] = date('Y');
+        }
+
+        // get filter
+        $filter_form = new TableFilter();
+        $filter_form->setYear($filter_year);
+        $data['filter_form'] = $filter_form->getFilter(base_url('sales'), []);
+
         return view('sales/list', $data);
     }
 

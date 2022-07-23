@@ -29,15 +29,15 @@ class CashierLog extends Migration
             ],
             'begining_balance' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'total_sales' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'ending_balance' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'start_by' => [
                 'type' => 'INT',

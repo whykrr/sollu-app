@@ -12,7 +12,7 @@ class AddCogsStockSales extends Migration
         $this->forge->addColumn('stock_sales', [
             'cogs' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
                 'default' => 0,
                 'after' => 'qty',
             ],

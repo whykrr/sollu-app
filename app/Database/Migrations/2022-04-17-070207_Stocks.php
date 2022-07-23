@@ -43,11 +43,11 @@ class Stocks extends Migration
             ],
             'cogs' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'selling_price' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'description' => [
                 'type' => 'TEXT',

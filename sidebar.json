@@ -54,6 +54,11 @@
                 "name": "Stok Opname",
                 "slug": "stock-opname",
                 "link": "stock_opname"
+            },
+            {
+                "name": "Stok Keluar",
+                "slug": "stock-out",
+                "link": "stock_out"
             }
         ]
     },

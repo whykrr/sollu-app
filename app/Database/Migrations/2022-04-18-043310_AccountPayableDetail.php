@@ -29,7 +29,7 @@ class AccountPayableDetail extends Migration
             ],
             'amount' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'user_id' => [
                 'type' => 'INT',

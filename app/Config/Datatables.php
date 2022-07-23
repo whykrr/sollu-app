@@ -77,6 +77,16 @@ class Datatables
             'numbering' => true,
             'action_button' => 'detailStock',
         ],
+        'stock_out' => [
+            'col_title' => 'Tanggal,Kode,Keterangan,Total',
+            'col_data' => 'date,invoice_no,note,grand_total',
+            'helpers' => [
+                'date' => ['formatDateSimple', '{date}'],
+                'grand_total' => ['formatIDR', '{grand_total}'],
+            ],
+            'numbering' => true,
+            'action_button' => 'detailStockOut',
+        ],
         'sales' => [
             'col_title' => 'Tanggal,Invoice,Total',
             'col_data' => 'date,invoice_no,grand_total',
@@ -126,8 +136,8 @@ class Datatables
             'numbering' => true,
         ],
         'credit' => [
-            'col_title' => 'Transaksi,Custommer,Total,Tanggal Jatuh Tempo,Status',
-            'col_data' => 'invoice_no,customer,amount,due_date,status',
+            'col_title' => 'Transaksi,Keterangan,Total,Tanggal Jatuh Tempo,Status',
+            'col_data' => 'invoice_no,description,amount,due_date,status',
             'helpers' => [
                 'due_date' => ['formatDateSimple', '{due_date}'],
                 'amount' => ['formatIDR', '{amount}'],
@@ -157,6 +167,7 @@ class Datatables
         'user' => 'App\Models\UserExtensionModel',
         'stock' => 'App\Models\ProductsModel',
         'stock_purchase' => 'App\Models\InvoiceStockPurchaseModel',
+        'stock_out' => 'App\Models\InvoiceStockSalesMoveModel',
         'sales' => 'App\Models\InvoiceStockSalesModel',
         'finance_income' => 'App\Models\FinancialIncomeModel',
         'finance_expense' => 'App\Models\FinancialExpenseModel',
@@ -178,6 +189,7 @@ class Datatables
         'detailSales' => 'sales/button_detail',
         'detailStock' => 'inventory/stock/button_detail',
         'detailStockPurchase' => 'inventory/stock_purchase/button_detail',
+        'detailStockOut' => 'inventory/stock_out/button_detail',
         'detailIncome' => 'finance/income/button_detail',
         'detailExpense' => 'finance/expense/button_detail',
         'detailCredit' => 'debtcredit/credit/button_detail',

@@ -10,10 +10,6 @@
 <?= $this->endSection('breadcrumb'); ?>
 
 <?= $this->section('main'); ?>
-<?php
-$filter['month'] = @$filter['month'] ?: date('m');
-$filter['year'] = @$filter['year'] ?: date('Y');
-?>
 <div class="container-fluid">
     <div class="fade-in">
         <div class="card">
@@ -21,43 +17,18 @@ $filter['year'] = @$filter['year'] ?: date('Y');
                 <h5 class="card-title mb-0">Data Laporan Penjualan</h5>
             </div>
             <div class="card-body">
-                <form method="post" action="<?= base_url('report/receipt') ?>" class="row mb-4">
-                    <div class="col-md-4">
-                        <label for="month">Bulan</label>
-                        <select name="month" id="month" class="form-control">
-                            <?php foreach (getMonthIndo() as $key => $item) : ?>
-                                <?php if ($filter['month'] == $key) : ?>
-                                    <option value="<?= $key ?>" selected><?= $item ?></option>
-                                <?php else : ?>
-                                    <option value="<?= $key ?>"><?= $item ?></option>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="year">Tahun</label>
-                        <select name="year" id="year" class="form-control">
-                            <?php foreach ($filter_year as $key => $item) : ?>
-                                <?php if ($filter['year'] == $key) : ?>
-                                    <option value="<?= $item['year'] ?>" selected><?= $item['year'] ?></option>
-                                <?php else : ?>
-                                    <option value="<?= $item['year'] ?>"><?= $item['year'] ?></option>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-2 align-self-end">
-                        <a class="btn btn-secondary btn-block" id="btn-filter" href="<?= base_url('report/receipt') ?>">Reset</a>
-                    </div>
-                    <div class="col-md-2 align-self-end pl-0">
-                        <button type="submit" class="btn btn-primary btn-block" id="btn-filter">Cari</button>
-                    </div>
-                </form>
+                <?= $filter_form ?>
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th colspan="4">Laporan Penjualan Periode <?= formatMonthID($filter['month']) ?> <?= $filter['year'] ?></th>
+                                <?php if ($filter['type_filter'] == 'monthly') : ?>
+                                    <th colspan="4">Laporan Penjualan Periode <?= formatMonthID($filter['month']) ?> <?= $filter['year'] ?></th>
+                                <?php elseif ($filter['type_filter'] == 'daily') : ?>
+                                    <th colspan="4">Laporan Penjualan Tanggal <?= formatDateID($filter['date']) ?> </th>
+                                <?php elseif ($filter['type_filter'] == 'range') : ?>
+                                    <th colspan="4">Laporan Penjualan Periode <?= formatDateID($filter['start_date']) ?> s/d <?= formatDateID($filter['end_date']) ?></th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody>

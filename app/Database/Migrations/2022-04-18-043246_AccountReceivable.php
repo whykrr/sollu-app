@@ -35,11 +35,11 @@ class AccountReceivable extends Migration
             ],
             'amount' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'pay_amount' => [
                 'type'          => 'DECIMAL',
-                'constraint'    => '10,2',
+                'constraint'    => '20,2',
                 'default'       => 0,
                 'comment'       => 'Total piutang yang sudah dibayar',
             ],

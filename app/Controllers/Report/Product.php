@@ -5,26 +5,31 @@ namespace App\Controllers\Report;
 use App\Controllers\BaseController;
 use App\Models\ProductsModel;
 use App\Models\StockSalesModel;
+use App\Libraries\TableFilter;
 
 class Product extends BaseController
 {
     public function index()
     {
-        $data['filter'] = [];
         $data['sidebar_active'] = 'report-product';
 
         // get filter
         $filter = $this->request->getPost();
-        $data['filter'] = $filter;
 
         // instance model
         $stockSales = new StockSalesModel();
 
         // get available year
-        $data['filter_year'] = $stockSales->getAvailableYear();
-        if (count($data['filter_year']) == 0) {
-            $data['filter_year'][0]['year'] = date('Y');
+        $filter_year = $stockSales->getAvailableYear();
+        if (count($filter_year) == 0) {
+            $filter_year[0]['year'] = date('Y');
         }
+
+        $filter_form = new TableFilter();
+        $filter_form->setYear($filter_year);
+        $data['filter_form'] = $filter_form->getFilter(base_url('report/product'), $filter, true);
+
+        // get filter
 
         $data['report'] = $this->_getData($filter);
 
@@ -39,20 +44,34 @@ class Product extends BaseController
         // instance model
         $products = new ProductsModel();
 
+        $type =  @$filter['type_filter'] ?: 'monthly';
+
         // get where
         $where['month'] = @$filter['month'] ?: date('m');
         $where['year'] = @$filter['year'] ?: date('Y');
+        $where['start_date'] = @$filter['start_date'] ?: date('Y-m-d');
+        $where['end_date'] = @$filter['end_date'] ?: date('Y-m-d');
+        $where['date'] = @$filter['date'] ?: date('Y-m-d');
 
         // get data
-        return $products
+        $get_data = $products
             ->select('products.*, units.name as unit_name, SUM(stock_sales.qty) as total_sales')
             ->join('stock_sales', 'stock_sales.product_id = products.id', 'left')
             ->join('units', 'units.id = products.unit_id', 'left')
             ->orderBy('total_sales', 'DESC')
-            ->groupBy('products.id')
-            ->where('MONTH(stock_sales.created_at)', $where['month'])
-            ->where('YEAR(stock_sales.created_at)', $where['year'])
-            ->findAll();
+            ->groupBy('products.id');
+        if ($type == 'daily') {
+            $get_data->where('DATE(stock_sales.created_at)', $where['date']);
+        } elseif ($type == 'range') {
+            $get_data->where('DATE(stock_sales.created_at) >=', $where['start_date'])
+                ->where('DATE(stock_sales.created_at) <=', $where['end_date']);
+        } elseif ($type == 'monthly') {
+            $get_data->where('MONTH(stock_sales.created_at)', $where['month'])
+                ->where('YEAR(stock_sales.created_at)', $where['year']);
+        }
+        $get_data = $get_data->findAll();
+
+        return $get_data;
     }
 
     /**
@@ -63,7 +82,13 @@ class Product extends BaseController
         $filter = $this->request->getGet();
         $data = $this->_getData($filter);
 
-        $name = 'Laporan Penjualan Produk Periode ' . formatMonthID($filter['month']) . ' ' . $filter['year'];
+        if ($filter == 'monthly') {
+            $name = 'Laporan Penjualan Produk Periode ' . formatMonthID($filter['month']) . ' ' . $filter['year'];
+        } else if ($filter == 'daily') {
+            $name = 'Laporan Penjualan Produk Tanggal ' . formatDateID($filter['date']);
+        } else if ($filter == 'range') {
+            $name = 'Laporan Penjualan Produk Tanggal ' . formatDateID($filter['start_date']) . ' s/d ' . formatDateID($filter['end_date']);
+        }
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $spreadsheet->getActiveSheet()->setTitle('Laporan Penjualan Produk');

@@ -26,6 +26,8 @@ class PermissionGroup extends Seeder
         $auth->addPermissionToGroup('inventory-stock', 'superadmin');
         $auth->addPermissionToGroup('inventory-stock-purchase', 'superadmin');
         $auth->addPermissionToGroup('inventory-stock-opname', 'superadmin');
+        $auth->addPermissionToGroup('inventory-stock-spoil', 'superadmin');
+        $auth->addPermissionToGroup('inventory-stock-out', 'superadmin');
         $auth->addPermissionToGroup('cashier', 'superadmin');
         $auth->addPermissionToGroup('sales', 'superadmin');
         $auth->addPermissionToGroup('finance', 'superadmin');
@@ -48,6 +50,8 @@ class PermissionGroup extends Seeder
         $auth->addPermissionToGroup('inventory-stock', 'owner');
         $auth->addPermissionToGroup('inventory-stock-purchase', 'owner');
         $auth->addPermissionToGroup('inventory-stock-opname', 'owner');
+        $auth->addPermissionToGroup('inventory-stock-spoil', 'owner');
+        $auth->addPermissionToGroup('inventory-stock-out', 'owner');
         $auth->addPermissionToGroup('sales', 'owner');
         $auth->addPermissionToGroup('finance', 'owner');
         $auth->addPermissionToGroup('finance-income', 'owner');
@@ -68,6 +72,8 @@ class PermissionGroup extends Seeder
         $auth->addPermissionToGroup('inventory-stock', 'admin');
         $auth->addPermissionToGroup('inventory-stock-purchase', 'admin');
         $auth->addPermissionToGroup('inventory-stock-opname', 'admin');
+        $auth->addPermissionToGroup('inventory-stock-spoil', 'admin');
+        $auth->addPermissionToGroup('inventory-stock-out', 'admin');
         $auth->addPermissionToGroup('cashier', 'admin');
         $auth->addPermissionToGroup('sales', 'admin');
         $auth->addPermissionToGroup('finance', 'admin');
@@ -83,6 +89,9 @@ class PermissionGroup extends Seeder
         $auth->addPermissionToGroup('inventory', 'warehouse');
         $auth->addPermissionToGroup('inventory-stock', 'warehouse');
         $auth->addPermissionToGroup('inventory-stock-purchase', 'warehouse');
+        $auth->addPermissionToGroup('inventory-stock-opname', 'warehouse');
+        $auth->addPermissionToGroup('inventory-stock-spoil', 'warehouse');
+        $auth->addPermissionToGroup('inventory-stock-out', 'warehouse');
         $auth->addPermissionToGroup('cashier', 'warehouse');
         $auth->addPermissionToGroup('sales', 'warehouse');
         $auth->addPermissionToGroup('report', 'warehouse');
@@ -90,6 +99,7 @@ class PermissionGroup extends Seeder
 
         $auth->addPermissionToGroup('inventory', 'user');
         $auth->addPermissionToGroup('inventory-stock', 'user');
+        $auth->addPermissionToGroup('inventory-stock-out', 'user');
         $auth->addPermissionToGroup('cashier', 'user');
         $auth->addPermissionToGroup('sales', 'user');
         $auth->addPermissionToGroup('report', 'user');

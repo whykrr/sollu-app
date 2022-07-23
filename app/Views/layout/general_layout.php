@@ -220,6 +220,23 @@
             rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
             return prefix == undefined ? rupiah : (rupiah ? 'Rp. ' + rupiah : '');
         }
+
+        // filter type action hide show
+        function filterType(obj) {
+            // hide all filter
+            $('.filter').removeClass('d-none');
+            $('.filter').addClass('d-none');
+
+            // get val of obj
+            var val = obj.value;
+            if (val == 'daily') {
+                $('.filter-daily').removeClass('d-none');
+            } else if (val == 'range') {
+                $('.filter-range').removeClass('d-none');
+            } else if (val == 'monthly') {
+                $('.filter-monthly').removeClass('d-none');
+            }
+        }
     </script>
     <?= $this->renderSection('js'); ?>
 

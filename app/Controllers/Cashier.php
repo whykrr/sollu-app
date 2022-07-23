@@ -177,7 +177,7 @@ class Cashier extends BaseController
     /**
      * SECTION - Save data transaction
      */
-    public function save()
+    public function save($print = true)
     {
         $error = "";
 
@@ -205,6 +205,17 @@ class Cashier extends BaseController
             'return' => $data['return'],
             'customer' => $data['customer'],
         ];
+
+        // check if type is exist
+        if (isset($data['type'])) {
+            $invoiceData['type'] = $data['type'];
+        }
+
+        // check if note is exist
+        if (isset($data['note'])) {
+            $invoiceData['note'] = $data['note'];
+        }
+
 
         // INFO - Remapping data stock_sales
         $stockSalesData = [];
@@ -249,7 +260,7 @@ class Cashier extends BaseController
                 'date' => $data['date'],
                 'customer' => $data['customer'],
                 'amount' => $data['grand_total'],
-                'description' => 'Piutang dagang ' . $data['invoice_no'] . ' - ' . $data['customer'],
+                'description' => 'Piutang dagang ' . $data['invoice_no'] . ' - ' . (isset($data['note']) ? $data['customer'] . ' ' . $data['note'] : $data['customer']),
                 'due_date' => $data['duedate'],
                 'status' => 0,
             ];
@@ -357,7 +368,9 @@ class Cashier extends BaseController
         $text = $this->_receipt($invoice->getInsertID());
 
         //print 
-        $this->_print_receipt($text);
+        if ($print) {
+            $this->_print_receipt($text);
+        }
 
         $json['message'] = 'success';
         return $this->respond($json, 200);

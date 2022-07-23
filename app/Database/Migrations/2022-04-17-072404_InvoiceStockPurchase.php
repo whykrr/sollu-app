@@ -31,15 +31,15 @@ class InvoiceStockPurchase extends Migration
             ],
             'total' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'discount' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'grand_total' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'payment_type' => [
                 'type' => 'TINYINT',

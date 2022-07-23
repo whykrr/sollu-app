@@ -34,7 +34,7 @@ class Financial extends Migration
             ],
             'amount' => [
                 'type' => 'DECIMAL',
-                'constraint' => '10,2',
+                'constraint' => '20,2',
             ],
             'description' => [
                 'type' => 'TEXT',

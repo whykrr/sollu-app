@@ -16,6 +16,9 @@
                 <h5 class="card-title mb-0">Data Penjualan</h5>
             </div>
             <div class="card-body">
+                <?= startSearchForm('sales') ?>
+                <div class="row mb-2"><?= $filter_form ?></div>
+                <?= endSearchForm() ?>
                 <div class="table-responsive">
                     <?= loadDatatables("sales") ?>
                 </div>
