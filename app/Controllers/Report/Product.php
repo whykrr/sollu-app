@@ -2,10 +2,11 @@
 
 namespace App\Controllers\Report;
 
-use App\Controllers\BaseController;
+use App\Controllers\Export;
 use App\Models\ProductsModel;
-use App\Models\StockSalesModel;
 use App\Libraries\TableFilter;
+use App\Models\StockSalesModel;
+use App\Controllers\BaseController;
 
 class Product extends BaseController
 {
@@ -82,36 +83,22 @@ class Product extends BaseController
         $filter = $this->request->getGet();
         $data = $this->_getData($filter);
 
-        if ($filter == 'monthly') {
-            $name = 'Laporan Penjualan Produk Periode ' . formatMonthID($filter['month']) . ' ' . $filter['year'];
-        } else if ($filter == 'daily') {
-            $name = 'Laporan Penjualan Produk Tanggal ' . formatDateID($filter['date']);
-        } else if ($filter == 'range') {
-            $name = 'Laporan Penjualan Produk Tanggal ' . formatDateID($filter['start_date']) . ' s/d ' . formatDateID($filter['end_date']);
+        if ($filter['type_filter'] == 'monthly') {
+            $filename = 'Laporan Penjualan Produk Periode ' . formatMonthID($filter['month']) . ' ' . $filter['year'];
+        } else if ($filter['type_filter'] == 'daily') {
+            $filename = 'Laporan Penjualan Produk Tanggal ' . formatDateID($filter['date']);
+        } else if ($filter['type_filter'] == 'range') {
+            $filename = 'Laporan Penjualan Produk Tanggal ' . formatDateID($filter['start_date']) . ' s/d ' . formatDateID($filter['end_date']);
         }
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $spreadsheet->getActiveSheet()->setTitle('Laporan Penjualan Produk');
+        $format = [
+            ['label' => 'No', 'data' => 'increament'],
+            ['label' => 'Produk', 'data' => 'name'],
+            ['label' => 'Satuan', 'data' => 'unit_name'],
+            ['label' => 'Harga Jual', 'data' => 'selling_price'],
+            ['label' => 'Total Penjualan', 'data' => 'total_sales'],
+        ];
 
-        $worksheet = $spreadsheet->setActiveSheetIndex(0);
-        $worksheet->setCellValue('A1', 'No');
-        $worksheet->setCellValue('B1', 'Produk');
-        $worksheet->setCellValue('C1', 'Satuan');
-        $worksheet->setCellValue('D1', 'Harga Jual');
-        $worksheet->setCellValue('E1', 'Total Penjualan');
-
-        // $row_start = 2;
-        foreach ($data as $key => $value) {
-            $worksheet->setCellValue('A' . ($key + 2), $key + 1);
-            $worksheet->setCellValue('B' . ($key + 2), $value['name']);
-            $worksheet->setCellValue('C' . ($key + 2), $value['unit_name']);
-            $worksheet->setCellValue('D' . ($key + 2), $value['selling_price']);
-            $worksheet->setCellValue('E' . ($key + 2), $value['total_sales']);
-        }
-
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save("$name.xlsx");
-
-        return redirect()->to("$name.xlsx");
+        return Export::do($format, $data, $filename);
     }
 }

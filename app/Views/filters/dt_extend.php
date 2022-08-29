@@ -11,9 +11,19 @@
             <button type="submit" class="btn btn-primary">Cari</button>
         </div>
         <?php if ($export_button) : ?>
-            <a class="btn btn-success" href="<?= "$action/export?" . http_build_query($filter) ?>">
+            <a class="btn btn-success export-data-btn" href="<?= "$action/export?" . http_build_query($filter) ?>">
                 <span>Export Data</span>
             </a>
         <?php endif; ?>
     </div>
 </div>
+<script>
+    // $(document).ready(function() {
+    //     $base_action = "<?= "$action/export?" ?>"
+    //     $('.filter input').change(function() {
+    //         $('.filter input').each(function(e) {
+    //             console.log(e.target.value)
+    //         })
+    //     })
+    // })
+</script>

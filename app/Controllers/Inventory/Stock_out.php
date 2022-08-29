@@ -4,16 +4,11 @@ namespace App\Controllers\Inventory;
 
 use App\Controllers\Cashier;
 use App\Libraries\TableFilter;
-use App\Models\StockPurchaseModel;
+use App\Models\StockSalesModel;
 use App\Models\InvoiceStockSalesModel;
-use App\Models\InvoiceStockPurchaseModel;
 
 class Stock_out extends Cashier
 {
-    public function __construct()
-    {
-        // $this->cashier = new \App\Controllers\Cashier();
-    }
     /**
      * show page list
      */
@@ -58,16 +53,13 @@ class Stock_out extends Cashier
      */
     public function detail($id)
     {
-        $invoice_stock_purchase = new InvoiceStockPurchaseModel();
-        $stock_purchase = new StockPurchaseModel();
-        $data = [];
+        // get instance model
+        $sales = new InvoiceStockSalesModel();
+        $stock_sales = new StockSalesModel();
 
-        // get invoice stock purchase detail
-        $data['data'] = $invoice_stock_purchase->find($id);
+        $data['data'] = $sales->getDetail($id);
+        $data['product'] = $stock_sales->getListSales($id);
 
-        // get stock purchase detail
-        $data['detail'] = $stock_purchase->getByInvoice($id);
-
-        return view('inventory/stock_purchase/_detail', $data);
+        return view('inventory/stock_out/_detail', $data);
     }
 }

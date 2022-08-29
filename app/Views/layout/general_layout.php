@@ -79,7 +79,7 @@
                 </footer>
             </div>
         </div>
-        <div class="modal right fade" id="modalSide" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal right fade modal-side" id="modalSide" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-scrollable" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -95,6 +95,34 @@
                     <div class="modal-footer">
                         <button class="btn btn-danger" type="button" data-dismiss="modal">Close</button>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal right fade modal-side" id="modalPrintBarcode" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable" role="document">
+                <div class="modal-content">
+                    <form action="<?= base_url('masterdata/product/print') ?>" class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Print Barcode</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label for="pbProduct" class="col-sm-2 col-form-label">Product</label>
+                                    <input type="text" class="form-control" id="pbProduct" placeholder="Cari Produk ..." required autocomplete="off">
+                                    <input type="hidden" name="id" id="pbProductID">
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="pbProductLoop" class="col-sm-2 col-form-label">Jumlah</label>
+                                    <input type="number" name="loop" class="form-control" id="pbProductLoop" value="7">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-danger" type="button" data-dismiss="modal">Close</button>
+                            <button class="btn btn-primary" type="submit">Print</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -237,6 +265,41 @@
                 $('.filter-monthly').removeClass('d-none');
             }
         }
+
+        $('.form-filter').change(function() {
+            var filterQuery = []
+            $('.form-filter').each(function(index, elem) {
+                filterQuery.push($(elem).attr('name') + "=" + $(elem).val())
+            })
+            query = filterQuery.join('&')
+            old_link = $('.export-data-btn').attr('href');
+            if (old_link) {
+                links = old_link.split('?')
+                $('.export-data-btn').attr('href', links[0] + "?" + query)
+            }
+        })
+
+        // modal print barcode
+        $('#pbProduct').typeahead({
+            highlight: true,
+            source: function(query, result) {
+                $.ajax({
+                    url: "<?= base_url('masterdata/product/autocomplete') ?>",
+                    data: 'q=' + query,
+                    dataType: "json",
+                    type: "GET",
+                    success: function(data) {
+                        result($.map(data, function(item) {
+                            return item;
+                        }));
+                    }
+                });
+            },
+            autoSelect: true,
+            afterSelect: function(item) {
+                $('#pbProductID').val(item.id);
+            }
+        });
     </script>
     <?= $this->renderSection('js'); ?>
 

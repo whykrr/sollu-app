@@ -40,9 +40,12 @@
     </div>
 </form>
 <form class="ajax" id="paid" action="<?= base_url('debtcredit/credit/attemppay') ?>">
+    <input type="hidden" name="total_credit" value="<?= ($data['amount']) ?>">
     <input type="hidden" name="account_receivable_id" value="<?= $data['id'] ?>">
+    <input type="hidden" name="remaining_credit" value="<?= ($data['amount'] - $data['pay_amount']) ?>">
+    <input type="hidden" name="pay_amount" value="<?= $data['pay_amount'] ?>">
     <input type="hidden" name="date" value="<?= date('Y-m-d') ?>">
-    <input type="hidden" name="amount" value="<?= $data['amount'] ?>">
+    <input type="hidden" name="amount" value="<?= ($data['amount'] - $data['pay_amount']) ?>">
 </form>
 <script>
     // when click #btn-paid submit #paid

@@ -171,7 +171,6 @@ class ProductsModel extends Model
             ->join('units', 'units.id = products.unit_id', 'left')
             ->where('products.barcode', $barcode)
             ->first();
-
         // check
         if (!$data) {
             return null;

@@ -2,12 +2,15 @@
 
 namespace App\Controllers\Inventory;
 
+use App\Models\StockModel;
+use App\Controllers\Export;
+use App\Models\ProductsModel;
+use App\Libraries\TableFilter;
+use App\Models\FinancialModel;
+use App\Models\StockPurchaseModel;
 use App\Controllers\BaseController;
 use App\Models\InvoiceStockPurchaseModel;
-use App\Models\StockPurchaseModel;
-use App\Models\StockModel;
-use App\Models\ProductsModel;
-use App\Models\FinancialModel;
+use App\Database\Migrations\InvoiceStockPurchase;
 
 class Stock_purchase extends BaseController
 {
@@ -17,6 +20,16 @@ class Stock_purchase extends BaseController
     public function index()
     {
         $data['sidebar_active'] = 'inventory-stock-purchase';
+        $isp = new InvoiceStockPurchaseModel();
+
+        $filter_year = $isp->getAvailableYear();
+        if (count($filter_year) == 0) {
+            $filter_year[0]['year'] = date('Y');
+        }
+
+        $filter_form = new TableFilter('dt_extend');
+        $filter_form->setYear($filter_year);
+        $data['filter_form'] = $filter_form->getFilter(base_url('inventory/stock_purchase'), [], true);
         return view('inventory/stock_purchase/list', $data);
     }
 
@@ -241,5 +254,46 @@ class Stock_purchase extends BaseController
         $data['detail'] = $stock_purchase->getByInvoice($id);
 
         return view('inventory/stock_purchase/_detail', $data);
+    }
+
+    public function export()
+    {
+        $query = $this->request->getGet();
+        $isp = new InvoiceStockPurchaseModel();
+
+        $filename = 'Pembelian Stok ';
+
+        if ($query['type_filter'] == 'monthly') {
+            $filename .= 'Periode ' . formatMonthID($query['month']) . ' ' . $query['year'];
+        } else if ($query['type_filter'] == 'daily') {
+            $filename .= 'Tanggal ' . formatDateID($query['date']);
+        } else if ($query['type_filter'] == 'range') {
+            $filename .= 'Tanggal ' . formatDateID($query['start_date']) . ' s/d ' . formatDateID($query['end_date']);
+        }
+
+        $isp->select('*, DATE(date) as date_pur, IF(payment_type=0, "Cash", "Kredit") as dt');
+        if ($query['type_filter'] == 'daily') {
+            $isp->where('DATE(created_at)', $query['date']);
+        } elseif ($query['type_filter'] == 'range') {
+            $isp->where('DATE(created_at) >=', $query['start_date'])
+                ->where('DATE(created_at) <=', $query['end_date']);
+        } elseif ($query['type_filter'] == 'monthly') {
+            $isp->where('MONTH(created_at)', $query['month'])
+                ->where('YEAR(created_at)', $query['year']);
+        }
+        $data = $isp->findAll();
+
+        $format = [
+            ['label' => 'No', 'data' => 'increament'],
+            ['label' => 'Kode', 'data' => 'invoice_no'],
+            ['label' => 'Supplier', 'data' => 'supplier'],
+            ['label' => 'Tanggal Pembelian', 'data' => 'date_pur'],
+            ['label' => 'Total', 'data' => 'total'],
+            ['label' => 'Diskon', 'data' => 'discount'],
+            ['label' => 'Grand Total', 'data' => 'grand_total'],
+            ['label' => 'Pembayaran', 'data' => 'dt'],
+        ];
+
+        return Export::do($format, $data, $filename);
     }
 }

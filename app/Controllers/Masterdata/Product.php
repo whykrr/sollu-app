@@ -2,10 +2,11 @@
 
 namespace App\Controllers\Masterdata;
 
-use App\Controllers\BaseController;
-use App\Models\ProductsModel;
-use App\Models\ProductCategoriesModel;
 use App\Models\UnitsModel;
+use App\Controllers\Export;
+use App\Models\ProductsModel;
+use App\Controllers\BaseController;
+use App\Models\ProductCategoriesModel;
 
 class Product extends BaseController
 {
@@ -134,6 +135,23 @@ class Product extends BaseController
         return $this->respond($json, 200);
     }
 
+    public function print()
+    {
+        $query = $this->request->getGet();
+
+        $products = new ProductsModel();
+
+        // find product
+        $product = $products->find($query['id']);
+
+        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+        $data['barcode'] =  '<img width="100%" src="data:image/png;base64,' . base64_encode($generator->getBarcode($product['barcode'], $generator::TYPE_CODE_128)) . '">';
+        $data['loop'] = $query['loop'];
+        $data['name'] = $product['name'];
+        $data['code'] = $product['barcode'];
+        return view('masterdata/product/_print', $data);
+    }
+
     /**
      * create function to export excel
      */
@@ -141,44 +159,21 @@ class Product extends BaseController
     {
         $model = new ProductsModel();
         $data = $model->findAllDetail();
+        $filename = 'data-product';
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $spreadsheet->getActiveSheet()->setTitle('Data Produk');
+        $format = [
+            ['label' => 'No', 'data' => 'increament'],
+            ['label' => 'Kode', 'data' => 'code'],
+            ['label' => 'Barcode', 'data' => 'barcode'],
+            ['label' => 'Nama', 'data' => 'name'],
+            ['label' => 'Kategori', 'data' => 'category_name'],
+            ['label' => 'Satuan', 'data' => 'unit_name'],
+            ['label' => 'Harga', 'data' => 'cogs'],
+            ['label' => 'Harga', 'data' => 'selling_price'],
+            ['label' => 'Keterangan', 'data' => 'description'],
+        ];
 
-        $worksheet = $spreadsheet->setActiveSheetIndex(0);
-        $worksheet->setCellValue('A1', 'No')->getStyle('A1')->getFont()->setBold(true);
-        $worksheet->setCellValue('B1', 'Kode')->getStyle('B1')->getFont()->setBold(true);
-        $worksheet->setCellValue('C1', 'Barcode')->getStyle('C1')->getFont()->setBold(true);
-        $worksheet->setCellValue('D1', 'Nama')->getStyle('D1')->getFont()->setBold(true);
-        $worksheet->setCellValue('E1', 'Kategori')->getStyle('E1')->getFont()->setBold(true);
-        $worksheet->setCellValue('F1', 'Satuan')->getStyle('F1')->getFont()->setBold(true);
-        $worksheet->setCellValue('G1', 'Harga Beli')->getStyle('G1')->getFont()->setBold(true);
-        $worksheet->setCellValue('H1', 'Harga Jual')->getStyle('H1')->getFont()->setBold(true);
-        $worksheet->setCellValue('I1', 'Keterangan')->getStyle('I1')->getFont()->setBold(true);
-
-        // $row_start = 2;
-        foreach ($data as $key => $value) {
-            $worksheet->setCellValue('A' . ($key + 2), $key + 1);
-            $worksheet->setCellValue('B' . ($key + 2), $value['code']);
-            $worksheet->setCellValue('C' . ($key + 2), $value['barcode']);
-            $worksheet->setCellValue('D' . ($key + 2), $value['name']);
-            $worksheet->setCellValue('E' . ($key + 2), $value['category_name']);
-            $worksheet->setCellValue('F' . ($key + 2), $value['unit_name']);
-            $worksheet->setCellValue('G' . ($key + 2), $value['cogs']);
-            $worksheet->setCellValue('H' . ($key + 2), $value['selling_price']);
-            $worksheet->setCellValue('I' . ($key + 2), $value['description']);
-        }
-
-        // resize column
-        foreach (range('A', 'I') as $columnID) {
-            $spreadsheet->getActiveSheet()->getColumnDimension($columnID)
-                ->setAutoSize(true);
-        }
-
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save('data-product.xlsx');
-
-        return redirect()->to('data-product.xlsx');
+        return Export::do($format, $data, $filename);
     }
 
     public function migrate_product()

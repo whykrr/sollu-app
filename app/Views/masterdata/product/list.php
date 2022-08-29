@@ -22,6 +22,9 @@
                         <a class="btn btn-success mb-2" href="<?= base_url('masterdata/product/export') ?>">
                             <span>Export Data</span>
                         </a>
+                        <button class="btn btn-primary mb-2" data-toggle="modal" data-target="#modalPrintBarcode">
+                            <span>Print Barcode</span>
+                        </button>
                         <button class="btn btn-success mb-2 float-right" data-toggle="modal" data-target="#modalSide" data-page="masterdata/product/form">
                             <div class="c-icon mr-1 cil-plus"></div>
                             <span>Tambah Data</span>

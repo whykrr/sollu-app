@@ -17,10 +17,17 @@
                 <h5 class="card-title mb-0">Data Pembelian Stok</h5>
             </div>
             <div class="card-body">
-                <a href="<?= base_url('inventory/stock_purchase/form') ?>" class="btn btn-success mb-2 float-right">
-                    <div class="c-icon mr-1 cil-plus"></div>
-                    <span>Pembelian Baru</span>
-                </a>
+                <div class="row">
+                    <div class="col-md-12">
+                        <a href="<?= base_url('inventory/stock_purchase/form') ?>" class="btn btn-success mb-2 float-right">
+                            <div class="c-icon mr-1 cil-plus"></div>
+                            <span>Pembelian Baru</span>
+                        </a>
+                    </div>
+                </div>
+                <?= startSearchForm('stock_purchase') ?>
+                <div class="row mb-2"><?= $filter_form ?></div>
+                <?= endSearchForm() ?>
                 <div class="table-responsive">
                     <?= loadDatatables("stock_purchase") ?>
                 </div>

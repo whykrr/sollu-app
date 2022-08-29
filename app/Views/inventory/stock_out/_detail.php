@@ -1,50 +1,28 @@
 <div class="modal-header">
-    <h4 class="modal-title">Detail Pembelian Stok</h4>
+    <h4 class="modal-title">Detail Penerimaan</h4>
 </div>
 <div class="modal-body">
     <div class="row">
         <div class="col-md-6 mb-0">
-            <p><strong>Invoice No :</strong> <br> <?= $data['invoice_no'] ?></p>
-
-            <p><strong>Tanggal Pembelian :</strong> <br> <?= formatDateID($data['date']) ?></p>
+            <p><strong>Nomor Transaksi :</strong> <br> <?= $data['invoice_no'] ?></p>
+            <p><strong>Tanggal :</strong> <br> <?= formatDateSimple($data['date']) ?></p>
+            <p><strong>User :</strong> <br> <?= $data['user_name'] ?></p>
+            <p><strong>Catatan :</strong> <br> <?= (!empty($data['note'])) ? $data['note'] : '-'; ?></p>
         </div>
         <div class="col-md-6">
-            <p><strong>Supplier :</strong> <br> <?= $data['supplier'] ?></p>
+            <p><strong>Total :</strong> <br> <?= formatIDR($data['total']) ?></p>
         </div>
     </div>
-    <!-- card history stock -->
-    <div class="card">
-        <div class="card-header p-2">
-            <b>List Pembelian</b>
-        </div>
-        <div class="card-body p-2">
+    <div class="row mt-2">
+        <div class="col-md-12">
+            <h3>Detail Stok Keluar</h3>
             <div class="table-responsive">
-                <table class="table table-sm table-bordered" id="table-history-stock">
-                    <thead>
-                        <tr>
-                            <th>Kode Produk</th>
-                            <th>Nama Produk</th>
-                            <th>Qty</th>
-                            <th>Harga Pokok</th>
-                            <th>Harga Jual</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($detail as $key => $value) : ?>
-                            <tr>
-                                <td><?= $value['product_code'] ?></td>
-                                <td><?= $value['product_name'] ?></td>
-                                <td><?= $value['qty'] . " " . $value['unit_name'] ?></td>
-                                <td><?= formatIDRHidden($value['cogs']) ?></td>
-                                <td><?= formatIDR($value['selling_price']) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                <?= $this->include('sales/_product_sales'); ?>
             </div>
         </div>
     </div>
 </div>
 <div class="modal-footer">
     <button class="btn btn-danger" type="button" data-dismiss="modal">Close</button>
+    <button class="btn btn-warning float-right ajax-del" data-source="sales" key="<?= $data['id'] ?>" type="button">Hapus Stok Keluar</button>
 </div>

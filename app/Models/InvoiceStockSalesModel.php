@@ -146,6 +146,7 @@ class InvoiceStockSalesModel extends Model
         // if $type is 'daily'
         if ($type == 'daily') {
             $data = $this->select('COUNT(id) AS total')
+                ->where('type', 'sales')
                 ->where('date', $date)
                 ->first();
         }
@@ -163,6 +164,7 @@ class InvoiceStockSalesModel extends Model
         // if $type is 'daily'
         if ($type == 'daily') {
             $data = $this->select('SUM(grand_total) AS total')
+                ->where('type', 'sales')
                 ->where('date', $date)
                 ->first();
 
@@ -172,6 +174,7 @@ class InvoiceStockSalesModel extends Model
         // if $type is 'monthly'
         if ($type == 'monthlyAll') {
             $data = $this->select('SUM(grand_total) AS total, date')
+                ->where('type', 'sales')
                 ->like('date', $date, 'after')
                 ->groupBy('date')
                 ->findAll();

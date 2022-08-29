@@ -203,7 +203,9 @@
                         $('#product-display').val(item.name);
                         $('#product_price').val(parseInt(item.selling_price));
                         $('#cogs').val(parseInt(item.cogs));
-                        $('#qty').val(1);
+                        if ($('#qty').val() == '') {
+                            $('#qty').val(1);
+                        }
                         $('#stock').val(parseInt(item.stock));
 
                         // click add btn

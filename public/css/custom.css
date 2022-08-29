@@ -1,21 +1,21 @@
-#modalSide .modal-dialog {
+.modal-side .modal-dialog {
     min-width: 40% !important;
 }
 
 @media (min-width: 576px) {
-    #modalSide .modal-dialog {
+    .modal-side .modal-dialog {
         min-width: 55% !important;
     }
 }
 
-#modalSide .modal-dialog .modal-content {
+.modal-side .modal-dialog .modal-content {
     height: 100% !important;
     border-radius: 0% !important;
 }
-#modalSide .modal-dialog .modal-content .modal-footer {
+.modal-side .modal-dialog .modal-content .modal-footer {
     justify-content: space-between !important;
 }
-#modalSide .modal-dialog-scrollable {
+.modal-side .modal-dialog-scrollable {
     max-height: 100% !important;
 }
 

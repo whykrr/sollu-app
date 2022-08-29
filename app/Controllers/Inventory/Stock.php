@@ -2,13 +2,14 @@
 
 namespace App\Controllers\Inventory;
 
-use App\Controllers\BaseController;
-use App\Models\InvoiceStockPurchaseModel;
-use App\Models\StockPurchaseModel;
 use App\Models\StockModel;
+use App\Controllers\Export;
 use App\Models\ProductsModel;
 use App\Models\FinancialModel;
+use App\Models\StockPurchaseModel;
+use App\Controllers\BaseController;
 use App\Models\ProductCategoriesModel;
+use App\Models\InvoiceStockPurchaseModel;
 
 class Stock extends BaseController
 {
@@ -163,42 +164,19 @@ class Stock extends BaseController
         $model = new ProductsModel();
         $data = $model->findAllDetail();
 
-        $name = 'Laporan Stok ' . formatDateID(date('Y-m-d'));
+        $filename = 'Laporan Stok ' . formatDateID(date('Y-m-d'));
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $spreadsheet->getActiveSheet()->setTitle('Data Stok');
+        $format = [
+            ['label' => 'No', 'data' => 'increament'],
+            ['label' => 'Kode', 'data' => 'code'],
+            ['label' => 'Barcode', 'data' => 'barcode'],
+            ['label' => 'Nama', 'data' => 'name'],
+            ['label' => 'Kategori', 'data' => 'category_name'],
+            ['label' => 'Satuan', 'data' => 'unit_name'],
+            ['label' => 'Stok', 'data' => 'stock'],
+            ['label' => 'Keterangan', 'data' => 'description'],
+        ];
 
-        $worksheet = $spreadsheet->setActiveSheetIndex(0);
-        $worksheet->setCellValue('A1', 'No')->getStyle('A1')->getFont()->setBold(true);
-        $worksheet->setCellValue('B1', 'Kode')->getStyle('B1')->getFont()->setBold(true);
-        $worksheet->setCellValue('C1', 'Barcode')->getStyle('C1')->getFont()->setBold(true);
-        $worksheet->setCellValue('D1', 'Nama')->getStyle('D1')->getFont()->setBold(true);
-        $worksheet->setCellValue('E1', 'Kategori')->getStyle('E1')->getFont()->setBold(true);
-        $worksheet->setCellValue('F1', 'Satuan')->getStyle('F1')->getFont()->setBold(true);
-        $worksheet->setCellValue('G1', 'Stok')->getStyle('G1')->getFont()->setBold(true);
-        $worksheet->setCellValue('H1', 'Keterangan')->getStyle('H1')->getFont()->setBold(true);
-
-        // $row_start = 2;
-        foreach ($data as $key => $value) {
-            $worksheet->setCellValue('A' . ($key + 2), $key + 1);
-            $worksheet->setCellValue('B' . ($key + 2), $value['code']);
-            $worksheet->setCellValue('C' . ($key + 2), $value['barcode']);
-            $worksheet->setCellValue('D' . ($key + 2), $value['name']);
-            $worksheet->setCellValue('E' . ($key + 2), $value['category_name']);
-            $worksheet->setCellValue('F' . ($key + 2), $value['unit_name']);
-            $worksheet->setCellValue('G' . ($key + 2), $value['stock']);
-            $worksheet->setCellValue('H' . ($key + 2), $value['description']);
-        }
-
-        // resize column
-        foreach (range('A', 'H') as $columnID) {
-            $spreadsheet->getActiveSheet()->getColumnDimension($columnID)
-                ->setAutoSize(true);
-        }
-
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save("$name.xlsx");
-
-        return redirect()->to("$name.xlsx");
+        return Export::do($format, $data, $filename);
     }
 }

@@ -17,7 +17,7 @@ use Mike42\Escpos\Printer;
 class Cashier extends BaseController
 {
     /**
-     * ANCHOR - index
+     * index
      */
     public function index()
     {
@@ -32,7 +32,7 @@ class Cashier extends BaseController
     }
 
     /**
-     * ANCHOR - cashier panel
+     * cashier panel
      */
     public function panel()
     {
@@ -47,7 +47,7 @@ class Cashier extends BaseController
     }
 
     /**
-     * ANCHOR - Show page open cashier
+     * Show page open cashier
      */
     public function start_cashier()
     {
@@ -55,7 +55,7 @@ class Cashier extends BaseController
     }
 
     /**
-     * SECTION - Store data open cashier log
+     * Store data open cashier log
      */
     public function store_log()
     {
@@ -63,7 +63,7 @@ class Cashier extends BaseController
 
         $post = $this->request->getPost();
 
-        // TODO - Set data to insert
+        // Set data to insert
         $data = [
             'date' => date('Y-m-d'),
             'start_time' => date('H:i:s'),
@@ -71,9 +71,9 @@ class Cashier extends BaseController
             'start_by' => user_id(),
         ];
 
-        // TODO - Insert data
+        // Insert data
         if (!$cl->save($data)) {
-            // INFO - Respond with error
+            // Respond with error
             $errors = $cl->errors();
             $json = [
                 "message" => "validation error",
@@ -83,16 +83,15 @@ class Cashier extends BaseController
             return $this->respond($json, 400);
         }
 
-        // INFO - Respond success
+        // Respond success
         $json = [
             "message" => 'Data berhasil disimpan',
         ];
         return $this->respond($json, 200);
     }
-    // !SECTION
 
     /**
-     * ANCHOR - Show page open cashier
+     * Show page open cashier
      */
     public function end_cashier()
     {
@@ -106,7 +105,7 @@ class Cashier extends BaseController
     }
 
     /**
-     * SECTION - Attemp end cashier
+     * Attemp end cashier
      */
     public function attemp_end_cashier()
     {
@@ -115,7 +114,7 @@ class Cashier extends BaseController
 
         $post = $this->request->getPost();
 
-        // TODO - Set data to insert
+        // Set data to insert
         $data = [
             'id' => @$post['id'],
             'end_time' => date('H:i:s'),
@@ -125,14 +124,14 @@ class Cashier extends BaseController
             'status' => 1,
         ];
 
-        // TODO - Update data log
+        // Update data log
         $cl->save($data);
 
-        // TODO - Get data setting
+        // Get data setting
         $dept = $setting->find('outlet')['value'];
         $max_char = $setting->find('printer_max_length')['value'];
 
-        // TODO - Create template for print
+        // Create template for print
         $receipt = "";
         $receipt .= receipt_align("LAPORAN PENJUALAN", "center", $max_char) . "\n";
         $receipt .= receipt_separator('-', $max_char);
@@ -163,19 +162,18 @@ class Cashier extends BaseController
         // $receipt .= receipt_align("Total", "left", 12) . receipt_align(': 0', 'right', $max_char - 12) . "\n";
         // $receipt .= receipt_separator($max_char);
 
-        // TODO - Print
+        // Print
         $this->_print_receipt($receipt);
 
-        // INFO - respond success
+        // respond success
         $json = [
             "message" => 'Kasir berhasil ditutup',
         ];
         return $this->respond($json, 200);
     }
-    // !SECTION
 
     /**
-     * SECTION - Save data transaction
+     * Save data transaction
      */
     public function save($print = true)
     {
@@ -184,7 +182,7 @@ class Cashier extends BaseController
         // get data
         $data = $this->request->getPost();
 
-        // INFO - Instace models
+        // Instace models
         $stock = new StockModel();
         $financial = new FinancialModel();
         $receivable = new AccountReceivableModel();
@@ -192,7 +190,7 @@ class Cashier extends BaseController
         $invoice = new InvoiceStockSalesModel();
         $product = new ProductsModel();
 
-        // INFO - Remapping data invoice_stock_sales
+        // Remapping data invoice_stock_sales
         $invoiceData = [
             'invoice_no' => $data['invoice_no'],
             'cashier_log_id' => $data['cashier_log_id'],
@@ -217,7 +215,7 @@ class Cashier extends BaseController
         }
 
 
-        // INFO - Remapping data stock_sales
+        // Remapping data stock_sales
         $stockSalesData = [];
         foreach ($data['items'] as $row) {
             $stockSalesData[] = [
@@ -230,10 +228,10 @@ class Cashier extends BaseController
             ];
         }
 
-        // TODO - Get product updated
+        // Get product updated
         $product_updated = $product->whereIn('id', array_column($data['items'], 'product_id'))->findAll();
 
-        // INFO - Remapping data to update data product
+        // Remapping data to update data product
         foreach ($product_updated as $key => $value) {
             // check product id
             foreach ($data['items'] as $keyItem => $valueItem) {
@@ -244,9 +242,9 @@ class Cashier extends BaseController
             }
         }
 
-        // SECTION - Set data financial
+        // Set data financial
         if ($data['payment_type'] == 0) {
-            // INFO - Set data financial cash
+            // Set data financial cash
             $financialData = [
                 'account_id' => '1-2',
                 'type' => 'in',
@@ -255,7 +253,7 @@ class Cashier extends BaseController
                 'user_id' => user_id(),
             ];
         } else {
-            // INFO - Set data receivable_account
+            // Set data receivable_account
             $receivableData = [
                 'date' => $data['date'],
                 'customer' => $data['customer'],
@@ -265,15 +263,14 @@ class Cashier extends BaseController
                 'status' => 0,
             ];
         }
-        // !SECTION
+
 
         // instance builder library
         $db = \Config\Database::connect();
-
-        // SECTION Transaction begin
+        //  Transaction begin
         $db->transBegin();
 
-        // TODO - save invoice_stock_sales
+        // save invoice_stock_sales
         if (!$invoice->save($invoiceData)) {
             // rollback 
             $db->transRollback();
@@ -282,15 +279,15 @@ class Cashier extends BaseController
         }
 
         /**
-         * SECTION - Stock
+         * Stock
          */
 
-        // INFO - Set invoice_id to stock_sales
+        // Set invoice_id to stock_sales
         foreach ($stockSalesData as $key => $row) {
             $stockSalesData[$key]['invoice_id'] = $invoice->getInsertID();
         }
 
-        // TODO - Save stock sales
+        // Save stock sales
         if (!$stockSales->insertBatch($stockSalesData)) {
             // rollback 
             $db->transRollback();
@@ -298,7 +295,7 @@ class Cashier extends BaseController
             $error = implode(',', $stockSales->errors());
         }
 
-        // TODO - Update stock
+        // Update stock
         if (!$stock->updateStockFIFO($stockSalesData)) {
             // rollback 
             $db->transRollback();
@@ -306,28 +303,28 @@ class Cashier extends BaseController
             $error = implode(',', $stock->errors());
         }
 
-        // TODO - Update product
+        // Update product
         if (!$product->updateStocks($product_data)) {
             // rollback 
             $db->transRollback();
 
             $error = implode(',', $product->errors());
         }
-        // !SECTION
+
 
 
         /**
-         * SECTION - Financial
+         * Financial
          */
 
-        // INFO - Set reference_id
+        // Set reference_id
 
-        // INFO - check payment
+        // check payment
         if ($data['payment_type'] == 0) {
 
             $financialData['reference_id'] = $invoice->getInsertID();
 
-            // TODO - Save financial
+            // Save financial
             if (!$financial->save($financialData)) {
                 // rollback
                 $db->transRollback();
@@ -339,7 +336,7 @@ class Cashier extends BaseController
 
             $receivableData['invoice_id'] = $invoice->getInsertID();
 
-            // TODO - save receivable_account
+            // save receivable_account
             if (!$receivable->save($receivableData)) {
 
                 // rollback
@@ -348,7 +345,7 @@ class Cashier extends BaseController
                 $error = implode(',', $receivable->errors());
             }
         }
-        // !SECTION
+
 
         $json = [];
 
@@ -362,7 +359,7 @@ class Cashier extends BaseController
 
         // commit 
         $db->transCommit();
-        // !SECTION
+
 
         // genrate text receipt
         $text = $this->_receipt($invoice->getInsertID());
@@ -375,11 +372,10 @@ class Cashier extends BaseController
         $json['message'] = 'success';
         return $this->respond($json, 200);
     }
-    // !SECTION
 
 
     /**
-     * SECTION - Delete data transaction
+     * Delete data transaction
      */
     public function delete($inv_id)
     {
@@ -400,7 +396,7 @@ class Cashier extends BaseController
         // Get product updated
         $product_updated = $product->whereIn('id', array_column($stockSalesData, 'product_id'))->findAll();
 
-        // TODO - Mapping data to update data product
+        // Mapping data to update data product
         $updateProduct = [];
         foreach ($product_updated as $key => $itemPU) {
             // check product id
@@ -415,7 +411,7 @@ class Cashier extends BaseController
             }
         }
 
-        // TODO - Mapping data to add stock
+        // Mapping data to add stock
         $addStock = [];
         foreach ($stockSalesData as $key => $itemSS) {
             // push to array addStock
@@ -428,12 +424,12 @@ class Cashier extends BaseController
             ];
         }
 
-        // SECTION - Transaction begin
+        // Transaction begin
         $error = "";
         $db = \Config\Database::connect();
         $db->transBegin();
 
-        // TODO - Delete invoice stock sales
+        // Delete invoice stock sales
         if (!$invoice->delete($inv_id)) {
             // rollback 
             $db->transRollback();
@@ -441,7 +437,7 @@ class Cashier extends BaseController
             $error = implode(',', $invoice->errors());
         }
 
-        // TODO - Delete stock sales
+        // Delete stock sales
         if (!$stockSales
             ->where('invoice_id', $inv_id)
             ->delete()) {
@@ -451,7 +447,7 @@ class Cashier extends BaseController
             $error = implode(',', $stockSales->errors());
         }
 
-        // TODO - insert stock
+        // insert stock
         if (!$stock->insertBatch($addStock)) {
             // rollback 
             $db->transRollback();
@@ -459,7 +455,7 @@ class Cashier extends BaseController
             $error = implode(',', $stock->errors());
         }
 
-        // TODO - update product
+        // update product
         if (!$product->updateStocks($updateProduct)) {
             // rollback 
             $db->transRollback();
@@ -467,7 +463,7 @@ class Cashier extends BaseController
             $error = implode(',', $product->errors());
         }
 
-        // TODO - update product
+        // update product
         if (!$product->updateStocks($updateProduct)) {
             // rollback 
             $db->transRollback();
@@ -477,7 +473,7 @@ class Cashier extends BaseController
 
         // check payment type
         if ($invoiceData['payment_type'] == 0) {
-            // TODO - Delete financial
+            // Delete financial
             if (!$financial
                 ->where('reference_id', $inv_id)
                 ->where('type', 'in')
@@ -488,7 +484,7 @@ class Cashier extends BaseController
                 $error = implode(',', $financial->errors());
             }
         } else {
-            // TODO - Delete receivable account
+            // Delete receivable account
             if (!$receivable
                 ->where('invoice_id', $inv_id)
                 ->delete()) {
@@ -509,15 +505,14 @@ class Cashier extends BaseController
 
         // commit
         $db->transCommit();
-        // !SECTION
+
 
         $json['message'] = 'success';
         return $this->respond($json, 200);
     }
-    // !SECTION
 
     /**
-     * ANCHOR - Get COGS stock_sales
+     * Get COGS stock_sales
      */
     public function get_cogs()
     {
@@ -531,7 +526,7 @@ class Cashier extends BaseController
 
 
     /**
-     * ANCHOR - Print
+     * Print
      */
     private function _print_receipt($text)
     {
@@ -559,7 +554,7 @@ class Cashier extends BaseController
     }
 
     /**
-     * ANCHOR - Generate text receipt
+     * Generate text receipt
      */
     private function _receipt($inv_id)
     {
@@ -629,7 +624,7 @@ class Cashier extends BaseController
     }
 
     /**
-     * ANCHOR - Test printer
+     * Test printer
      */
     public function test_print()
     {

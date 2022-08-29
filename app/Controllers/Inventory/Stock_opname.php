@@ -76,7 +76,7 @@ class Stock_opname extends BaseController
         d($products);
         d($update_stock_product);
         d($add_stock);
-        dd($update_stock_fifo);
+        d($update_stock_fifo);
 
         if (count($update_stock_product) > 0) {
             $product->updateStocks($update_stock_product, 'id');
