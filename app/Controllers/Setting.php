@@ -68,11 +68,6 @@ class Setting extends BaseController
             fwrite($file, $line . PHP_EOL);
         }
 
-        // exec('php spark migrate', $result_migrate);
-        // fwrite($file, PHP_EOL . "-- Run Latest Migration --" . PHP_EOL);
-        // foreach ($result_migrate as $line) {
-        //     fwrite($file, $line . PHP_EOL);
-        // }
         $seeder = \Config\Database::seeder();
         $migrate = \Config\Services::migrations();
         $db = \Config\Database::connect();
