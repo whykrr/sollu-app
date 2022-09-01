@@ -52,7 +52,7 @@ class Setting extends BaseController
 
     public function update()
     {
-        exec('cd ' . ROOTPATH . '; git pull;', $result);
+        exec('cd ' . ROOTPATH . '; git pull', $result);
 
         // check dir update-log exist or not
         if (!file_exists(ROOTPATH . 'update-log')) {
