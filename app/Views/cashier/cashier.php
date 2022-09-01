@@ -114,7 +114,7 @@
                         <div class="form-group row">
                             <label for="discount" class="col-md-5 col-form-label font-weight-bold">Diskon</label>
                             <div class="col-md-7">
-                                <input type="currency" id="discount" class="form-control" data-prefix="Rp. ">
+                                <input type="currency" id="discount" class="form-control" autocomplete="off" data-prefix="Rp. ">
                             </div>
                         </div>
                         <?php if (verifyPos('complex')) : ?>
@@ -146,7 +146,7 @@
                         <div class="form-group row type-cash">
                             <label for="cash" class="col-md-5 col-form-label font-weight-bold">Bayar</label>
                             <div class="col-md-7">
-                                <input type="currency" id="cash" class="form-control" data-prefix="Rp. ">
+                                <input type="currency" id="cash" class="form-control" autocomplete="off" data-prefix="Rp. ">
                             </div>
                         </div>
                         <div class="form-group row mb-1 type-cash">
