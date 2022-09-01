@@ -40,27 +40,35 @@ class Permissions extends Seeder
                 'description' => 'User',
             ],
             [
+                'name' => 'customer',
+                'description' => 'Pelanggan',
+            ],
+            [
                 'name' => 'inventory',
                 'description' => 'Inventori',
+            ],
+            [
+                'name' => 'inventory-supplier',
+                'description' => 'Inventori > Supplier',
             ],
             [
                 'name' => 'inventory-stock',
                 'description' => 'Inventori > Stok',
             ],
             [
-                'name' => 'inventory-stock-purchase',
+                'name' => 'inventory-st-purchase',
                 'description' => 'Inventori > Pembelian Stok',
             ],
             [
-                'name' => 'inventory-stock-opname',
+                'name' => 'inventory-st-opname',
                 'description' => 'Inventori > Stok Opname',
             ],
             [
-                'name' => 'inventory-stock-spoil',
+                'name' => 'inventory-st-spoil',
                 'description' => 'Inventori > Stok Spoil',
             ],
             [
-                'name' => 'inventory-stock-out',
+                'name' => 'inventory-st-out',
                 'description' => 'Inventori > Stok Keluar',
             ],
             [

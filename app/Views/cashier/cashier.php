@@ -6,9 +6,6 @@
         <div class="row">
             <div class="col-md-8 pl-0">
                 <div class="card mb-3">
-                    <div class="card-header p-2">
-                        <h5 class="card-title mb-0"><b>Transaksi</b></h5>
-                    </div>
                     <?php
                     $tr_code = "TR" . rand(10000, 99999) . '.' . date('Y') . '.' . date('m') . '-' . date('his');
                     $tr_date = date('Y-m-d');
@@ -22,21 +19,20 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <p class="mb-1"><strong>Nomor Transaksi</strong></p>
-                                <p class="mb-1"><strong>Tanggal</strong></p>
-                                <p class="mb-1"><strong>Kasir</strong></p>
+                                <p class="mb-1"><?= $tr_code ?></p>
                             </div>
-                            <div class="col-md-8">
-                                <p class="mb-1">: <?= $tr_code ?></p>
-                                <p class="mb-1">: <?= formatDateID($tr_date) ?></p>
-                                <p class="mb-1">: <?= user()->name ?></p>
+                            <div class="col-md-4">
+                                <p class="mb-1"><strong>Tanggal</strong></p>
+                                <p class="mb-1"><?= formatDateID($tr_date) ?></p>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="mb-1"><strong>Kasir</strong></p>
+                                <p class="mb-1"><?= user()->name ?></p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-header p-2">
-                        <h5 class="card-title mb-0">Detail Barang</h5>
-                    </div>
                     <div class="card-body p-2">
                         <div class="row">
                             <div class="col-md-12">
@@ -266,6 +262,10 @@
     $('#btn-item-add').click(function(e) {
         e.preventDefault
 
+        if ($("#qty").val() == "") {
+            $("#qty").val(1);
+        }
+
         // check product id if exist on items
         if ($('#product_id').val() == '') {
             swal('Oops', 'Kode atau nama barang tidak boleh kosong', 'error');
@@ -354,7 +354,10 @@
     //function append items to table
     function appendItemsToTable() {
         var html = '';
-        $.each(items, function(index, value) {
+        var item_reverse = items
+        item_reverse.reverse()
+
+        $.each(item_reverse, function(index, value) {
             html += '<tr>';
             html += '<td>' + value.product_name + '</td>';
             html += '<td>' + formatRupiah(value.price.toString(), true) + '</td>';

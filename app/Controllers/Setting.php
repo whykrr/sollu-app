@@ -2,8 +2,9 @@
 
 namespace App\Controllers;
 
-use App\Controllers\BaseController;
+use Throwable;
 use App\Models\SettingModel;
+use App\Controllers\BaseController;
 
 class Setting extends BaseController
 {
@@ -47,5 +48,46 @@ class Setting extends BaseController
         $setting->updateBatch($saveData, 'id');
 
         return redirect()->to('/setting');
+    }
+
+    public function update()
+    {
+        $seeder = \Config\Database::seeder();
+        $migrate = \Config\Services::migrations();
+
+        try {
+            $migrate->latest();
+        } catch (Throwable $e) {
+            // Do something with the error here...
+        }
+        $seeder->call('ResetPermissions');
+
+        return redirect()->to('/setting');
+    }
+
+    public function test_git()
+    {
+        exec('cd ' . ROOTPATH . '; git pull', $result);
+        echo "<pre>";
+        foreach ($result as $line) {
+            echo $line . "<br>";
+        }
+        echo "</pre>";
+    }
+
+    private function deleteAll($dir)
+    {
+        foreach (glob($dir . '/*') as $file) {
+            if (is_dir($file)) {
+                $this->deleteAll($file);
+            } else {
+                echo $file;
+                unlink($file);
+            }
+        }
+        // check directory
+        // if (is_dir($dir)) {
+        //     rmdir($dir);
+        // }
     }
 }

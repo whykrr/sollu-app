@@ -36,6 +36,7 @@
                 </div>
             </form>
         <?php endforeach; ?>
+        <a href="<?= base_url('/setting/update') ?>" class="btn btn-primary btn-block">Update</a>
     </div>
 </div>
 <?= $this->endSection('main'); ?>

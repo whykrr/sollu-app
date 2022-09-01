@@ -33,6 +33,15 @@
         "submenu": []
     },
     {
+        "name": "Pelanggan",
+        "slug": "user",
+        "link": "user",
+        "icon": "c-icon cil-user",
+        "group_access": ["superadmin", "owner", "admin", "user"],
+        "app_type": ["complex", "simple"],
+        "submenu": []
+    },
+    {
         "name": "Inventori",
         "slug": "inventory",
         "link": "inventory",
@@ -41,18 +50,28 @@
         "app_type": ["complex", "simple"],
         "submenu": [
             {
+                "name": "Supplier",
+                "slug": "supplier",
+                "link": "supplier"
+            },
+            {
                 "name": "Stok",
                 "slug": "stock",
                 "link": "stock"
             },
             {
                 "name": "Pembelian Stok",
-                "slug": "stock-purchase",
+                "slug": "st-purchase",
                 "link": "stock_purchase"
             },
             {
+                "name": "Stok Terbuang",
+                "slug": "st-spoil",
+                "link": "stock_spoil"
+            },
+            {
                 "name": "Stok Keluar",
-                "slug": "stock-out",
+                "slug": "st-out",
                 "link": "stock_out"
             }
         ]

@@ -19,7 +19,7 @@ class Stock_purchase extends BaseController
      */
     public function index()
     {
-        $data['sidebar_active'] = 'inventory-stock-purchase';
+        $data['sidebar_active'] = 'inventory-st-purchase';
         $isp = new InvoiceStockPurchaseModel();
 
         $filter_year = $isp->getAvailableYear();
@@ -38,7 +38,7 @@ class Stock_purchase extends BaseController
      */
     public function form()
     {
-        $data['sidebar_active'] = 'inventory-stock-purchase';
+        $data['sidebar_active'] = 'inventory-st-purchase';
         return view('inventory/stock_purchase/form', $data);
     }
 

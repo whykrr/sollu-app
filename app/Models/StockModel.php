@@ -83,7 +83,7 @@ class StockModel extends Model
         // INFO - Get data stock
         $builder = $this->db->table($this->table);
         $builder->whereIn('product_id', $product_ids);
-        $builder->where('stock_in <> stock_out');
+        $builder->where('stock_in > stock_out');
         $builder->orderBy('created_at', 'ASC');
         $stocks = $builder->get()->getResultArray();
 

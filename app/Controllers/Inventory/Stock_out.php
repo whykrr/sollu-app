@@ -14,7 +14,7 @@ class Stock_out extends Cashier
      */
     public function index()
     {
-        $data['sidebar_active'] = 'inventory-stock-out';
+        $data['sidebar_active'] = 'inventory-st-out';
         $sales = new InvoiceStockSalesModel();
 
         $filter_year = $sales->getAvailableYear();
@@ -35,7 +35,7 @@ class Stock_out extends Cashier
      */
     public function form()
     {
-        $data['sidebar_active'] = 'inventory-stock-out';
+        $data['sidebar_active'] = 'inventory-st-out';
         return view('inventory/stock_out/form', $data);
     }
 

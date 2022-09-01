@@ -4,11 +4,11 @@
 <div class="container-fluid">
     <div class="fade-in">
         <div class="row">
-            <?php if ($with_log == 1) : ?>
-                <div class="col-md-12">
-                    <button class="btn btn-info mb-2" id="add-cashier-panel">
-                        Tambah Transaksi
-                    </button>
+            <div class="col-md-12">
+                <button class="btn btn-info mb-2" id="add-cashier-panel">
+                    Tambah Transaksi
+                </button>
+                <?php if ($with_log == 1) : ?>
                     <button id="open_cashier" data-toggle="modal" data-target="#modalSide" data-page="cashier/start_cashier" style="display: none;"></button>
                     <button class="btn btn-danger mb-2 float-right" data-toggle="modal" data-target="#modalSide" data-page="cashier/end_cashier">
                         <span>Tutup Kasir</span>
@@ -16,8 +16,9 @@
 
                     <input type="hidden" id="cashier_log_id" value="<?= $cashier_log_id ?>">
                     <input type="hidden" id="with_log" value="<?= $with_log ?>">
-                </div>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
+
             <div class="col-md-12">
                 <div class="nav-tabs-boxed" style="border: none;">
                     <ul class="nav nav-tabs" role="tablist" id="tab-cashier-panel">
@@ -27,14 +28,13 @@
                     </ul>
                     <div class="tab-content p-0" style="border: none;" id="tab-content-cashier-panel">
                         <div class="tab-pane active" id="tr1" role="tabpanel">
-                            <iframe src="<?= base_url('cashier/panel') ?>" width="100%" style="border: none;"></iframe>
+                            <iframe src="<?= base_url('cashier/panel') ?>" width="100%" height="90%" style="border: none;"></iframe>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 <?= $this->endSection('main'); ?>
 <?= $this->section('js'); ?>
@@ -105,9 +105,10 @@
     $('iframe').on('load', function() {
         // get content height
         var contentHeight = $(this).contents().find('body').height();
-        panelHeight = contentHeight;
+        panelHeight = $(document).height() * (75 / 100);
+        // alert(panelHeight);
         // set iframe height
-        $(this).height(contentHeight);
+        $(this).height(panelHeight);
     });
 </script>
 <?= $this->endSection('js'); ?>

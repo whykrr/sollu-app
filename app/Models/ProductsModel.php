@@ -198,7 +198,7 @@ class ProductsModel extends Model
             ->join('units', 'units.id = products.unit_id', 'left')
             ->like('products.name', $keyword, 'both')
             ->orLike('products.code', $keyword, 'both')
-            ->findAll();
+            ->findAll(20);
 
         $remapData = [];
         foreach ($data as $row) {
