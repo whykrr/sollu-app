@@ -59,13 +59,21 @@ class Setting extends BaseController
             mkdir(ROOTPATH . 'update-log', 0777, true);
         }
 
+        // update composer
+        exec('cd ' . ROOTPATH . '; composer update', $result_composer);
+
         $date_update = date('ymdhis');
         // create file on update directory
         $file = fopen(ROOTPATH . 'update-log/update-' . $date_update . '.txt', 'w');
         fwrite($file,  "Update on " . date('Y-m-d H:i:s') . PHP_EOL);
-        fwrite($file,  "-- Pulling file --" . date('Y-m-d H:i:s') . PHP_EOL);
+        fwrite($file,  "-- Pulling file --" . PHP_EOL);
         foreach ($result as $line) {
             fwrite($file, $line . PHP_EOL);
+        }
+
+        fwrite($file,  "-- Composer Install --" . PHP_EOL);
+        foreach ($result_composer as $line_c) {
+            fwrite($file, $line_c . PHP_EOL);
         }
 
         $seeder = \Config\Database::seeder();
@@ -89,21 +97,35 @@ class Setting extends BaseController
         fwrite($file, "ResetPermissions" . PHP_EOL);
         $seeder->call('ResetPermissions');
 
+        fwrite($file, PHP_EOL . "-- Copy Asset --" . PHP_EOL);
+        $this->copyDirectory(ROOTPATH . 'public/assets', FCPATH . 'assets');
+        fwrite($file, "Copy Folder Asset Successfuly" . PHP_EOL);
+        $this->copyDirectory(ROOTPATH . 'public/css', FCPATH . 'css');
+        fwrite($file, "Copy Folder CSS Successfuly" . PHP_EOL);
+        $this->copyDirectory(ROOTPATH . 'public/js', FCPATH . 'js');
+        fwrite($file, "Copy Folder JS Successfuly" . PHP_EOL);
+
         fclose($file);
 
         return redirect()->to('/setting');
     }
 
-    private function deleteAll($dir)
+    // copy and replace all file in directory
+    public function copyDirectory($src, $dst)
     {
-        foreach (glob($dir . '/*') as $file) {
-            if (is_dir($file)) {
-                $this->deleteAll($file);
-            } else {
-                echo $file;
-                unlink($file);
+        $dir = opendir($src);
+        @mkdir($dst);
+        while (false !== ($file = readdir($dir))) {
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir($src . '/' . $file)) {
+                    $this->copyDirectory($src . '/' . $file, $dst . '/' . $file);
+                    continue;
+                } else {
+                    copy($src . '/' . $file, $dst . '/' . $file);
+                }
             }
         }
+        closedir($dir);
     }
 
     public function cek_root()
