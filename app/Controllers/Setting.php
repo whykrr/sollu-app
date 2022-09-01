@@ -104,9 +104,5 @@ class Setting extends BaseController
                 unlink($file);
             }
         }
-        // check directory
-        // if (is_dir($dir)) {
-        //     rmdir($dir);
-        // }
     }
 }
