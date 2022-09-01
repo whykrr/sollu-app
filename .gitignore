@@ -130,3 +130,4 @@ vendor/
 .env
 public/harga-eceran.xlsx
 public/harga-gudang.xlsx
+update-log/
