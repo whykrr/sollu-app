@@ -52,27 +52,51 @@ class Setting extends BaseController
 
     public function update()
     {
+        exec('cd ' . ROOTPATH . '; git pull;', $result);
+
+        // check dir update-log exist or not
+        if (!file_exists(ROOTPATH . 'update-log')) {
+            mkdir(ROOTPATH . 'update-log', 0777, true);
+        }
+
+        $date_update = date('ymdhis');
+        // create file on update directory
+        $file = fopen(ROOTPATH . 'update-log/update-' . $date_update . '.txt', 'w');
+        fwrite($file,  "Update on " . date('Y-m-d H:i:s') . PHP_EOL);
+        fwrite($file,  "-- Pulling file --" . date('Y-m-d H:i:s') . PHP_EOL);
+        foreach ($result as $line) {
+            fwrite($file, $line . PHP_EOL);
+        }
+
+        // exec('php spark migrate', $result_migrate);
+        // fwrite($file, PHP_EOL . "-- Run Latest Migration --" . PHP_EOL);
+        // foreach ($result_migrate as $line) {
+        //     fwrite($file, $line . PHP_EOL);
+        // }
         $seeder = \Config\Database::seeder();
         $migrate = \Config\Services::migrations();
+        $db = \Config\Database::connect();
 
         try {
+            fwrite($file, PHP_EOL . "-- Migrate Executed Migration --" . PHP_EOL);
             $migrate->latest();
+            // get data from table migration
+            $migrates = $db->table('migrations')->get()->getResultArray();
+            foreach ($migrates as $m) {
+                fwrite($file, $m['class'] . PHP_EOL);
+            }
         } catch (Throwable $e) {
-            // Do something with the error here...
+            // throw $th;
+            fwrite($file, PHP_EOL . "-- Migrate Error --" . PHP_EOL);
+            fwrite($file, $e->getMessage() . PHP_EOL);
         }
+        fwrite($file, PHP_EOL . "-- Run DB Seed --" . PHP_EOL);
+        fwrite($file, "ResetPermissions" . PHP_EOL);
         $seeder->call('ResetPermissions');
 
-        return redirect()->to('/setting');
-    }
+        fclose($file);
 
-    public function test_git()
-    {
-        exec('cd ' . ROOTPATH . '; git pull', $result);
-        echo "<pre>";
-        foreach ($result as $line) {
-            echo $line . "<br>";
-        }
-        echo "</pre>";
+        return redirect()->to('/setting');
     }
 
     private function deleteAll($dir)
