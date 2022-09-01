@@ -105,4 +105,9 @@ class Setting extends BaseController
             }
         }
     }
+
+    public function cek_root()
+    {
+        echo FCPATH;
+    }
 }
