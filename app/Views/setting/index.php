@@ -40,3 +40,31 @@
     </div>
 </div>
 <?= $this->endSection('main'); ?>
+<?php
+$session = session();
+if ($session->getFlashdata('update-error')) {
+?>
+    <?= $this->section('script'); ?>
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: '<?= $session->getFlashdata('update-error') ?>'
+        })
+    </script>
+    <?= $this->endSection('script'); ?>
+<?php
+} else if ($session->getFlashdata('update-success')) {
+?>
+    <?= $this->section('script'); ?>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: '<?= $session->getFlashdata('update-success') ?>'
+        })
+    </script>
+    <?= $this->endSection('script'); ?>
+<?php
+}
+?>

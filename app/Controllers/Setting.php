@@ -54,6 +54,11 @@ class Setting extends BaseController
     {
         exec('cd ' . ROOTPATH . '; git pull', $result);
 
+        // check if git pull success
+        if (strpos($result[0], 'Already up to date.') !== false) {
+            return redirect()->to('/setting')->with('update-error', 'Already up to date.');
+        }
+
         // check dir update-log exist or not
         if (!file_exists(ROOTPATH . 'update-log')) {
             mkdir(ROOTPATH . 'update-log', 0777, true);
@@ -107,7 +112,8 @@ class Setting extends BaseController
 
         fclose($file);
 
-        return redirect()->to('/setting');
+        //redirect with data
+        return redirect()->to('/setting')->with('update-success', 'Update Successfuly');
     }
 
     // copy and replace all file in directory
@@ -126,10 +132,5 @@ class Setting extends BaseController
             }
         }
         closedir($dir);
-    }
-
-    public function cek_root()
-    {
-        echo FCPATH;
     }
 }
