@@ -172,6 +172,51 @@ class Cashier extends BaseController
         return $this->respond($json, 200);
     }
 
+    public function print_end_cashier($id)
+    {
+        $setting = new SettingModel();
+        $cl = new CashierLogModel();
+
+        $data = $cl->find($id);
+
+        $dept = $setting->find('outlet')['value'];
+        $max_char = $setting->find('printer_max_length')['value'];
+
+        // Create template for print
+        $receipt = "";
+        $receipt .= receipt_align("LAPORAN PENJUALAN", "center", $max_char) . "\n";
+        $receipt .= receipt_separator('-', $max_char);
+        $receipt .= receipt_align("TANGGAL", "left", 12);
+        $receipt .= receipt_align(": " . date("d/m/Y"), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("JAM TUTUP", "left", 12);
+        $receipt .= receipt_align(": " . $data['end_time'], "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("KASIR", "left", 12);
+        $receipt .= receipt_align(": " . user()->name, "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("DEPT", "left", 12);
+        $receipt .= receipt_align(": $dept", "left", $max_char - 12) . "\n";
+        $receipt .= receipt_separator('-', $max_char);
+        $receipt .= receipt_align("Saldo Awal", "left", 12);
+        $receipt .= receipt_align(": " . intval(@$post['begining_balance']), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("Jml Trans", "left", 12);
+        $receipt .= receipt_align(": " . intval(@$post['total_transaction']), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("Total", "left", 12);
+        $receipt .= receipt_align(": " . intval(@$post['total_sales']), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("Tunai", "left", 12);
+        $receipt .= receipt_align(": " . intval(@$post['total_sales']), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("Transfer", "left", 12);
+        $receipt .= receipt_align(': 0', "left", $max_char - 12) . "\n";
+        $receipt .= receipt_align("Saldo Akhir", "left", 12);
+        $receipt .= receipt_align(": " . intval(@$post['ending_balance']), "left", $max_char - 12) . "\n";
+        $receipt .= receipt_separator('-', $max_char);
+        // $receipt .= receipt_separator($max_char);
+        // $receipt .= receipt_align("RETUR PENJUALAN", "left", 12) . receipt_align(': 0', 'right', $max_char - 12) . "\n";
+        // $receipt .= receipt_align("Total", "left", 12) . receipt_align(': 0', 'right', $max_char - 12) . "\n";
+        // $receipt .= receipt_separator($max_char);
+
+        // Print
+        $this->_print_receipt($receipt);
+    }
+
     /**
      * Save data transaction
      */
