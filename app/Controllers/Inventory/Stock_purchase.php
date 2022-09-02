@@ -118,6 +118,7 @@ class Stock_purchase extends BaseController
         //remap financial
         $financialData = [
             'account_id' => '1-1',
+            'source' => 'purchase_stock',
             'type' => 'out',
             'amount' => $data['total'],
             'description' => 'Pembelian stok ' . $data['invoice_no'],

@@ -3,6 +3,7 @@
 <?= $this->section('breadcrumb'); ?>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb my-0 ms-2">
+        <li class="breadcrumb-item"><span>Inventory</span></li>
         <li class="breadcrumb-item active"><span>Supplier</span></li>
     </ol>
 </nav>

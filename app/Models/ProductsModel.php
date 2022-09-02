@@ -18,6 +18,7 @@ class ProductsModel extends Model
         'code',
         'barcode',
         'name',
+        'stock',
         'category_id',
         'unit_id',
         'stock_min',

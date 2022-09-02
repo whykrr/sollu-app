@@ -89,6 +89,16 @@ class Datatables
             'numbering' => true,
             'action_button' => 'detailStock',
         ],
+        'stock_spoil' => [
+            'col_title' => 'Tanggal,Nama,Jumlah,Catatan',
+            'col_data' => 'date,product_name,qty,note',
+            'helpers' => [
+                'date' => ['formatDateSimple', '{date}'],
+                'qty' => ['formatStock', '{qty}|{unit_name}'],
+            ],
+            'numbering' => true,
+            'action_button' => 'delete',
+        ],
         'stock_out' => [
             'col_title' => 'Tanggal,Kode,Keterangan,Total',
             'col_data' => 'date,invoice_no,note,grand_total',
@@ -181,6 +191,7 @@ class Datatables
         'supplier' => 'App\Models\SupplierModel',
         'stock' => 'App\Models\ProductsModel',
         'stock_purchase' => 'App\Models\InvoiceStockPurchaseModel',
+        'stock_spoil' => 'App\Models\StockSpoilModel',
         'stock_out' => 'App\Models\InvoiceStockSalesMoveModel',
         'sales' => 'App\Models\InvoiceStockSalesModel',
         'finance_income' => 'App\Models\FinancialIncomeModel',

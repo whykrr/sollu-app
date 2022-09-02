@@ -70,6 +70,7 @@ class Credit extends BaseController
         $financialData = [
             'account_id' => '11-2',
             'reference_id' => $data['account_receivable_id'],
+            'source' => 'account_receivable',
             'type' => 'in',
             'amount' => $data['amount'],
             'description' => 'Pembayaran piutang',

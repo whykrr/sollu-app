@@ -17,6 +17,7 @@ class FinancialModel extends Model
     protected $allowedFields        = [
         'account_id',
         'reference_id',
+        'source',
         'type',
         'amount',
         'description',

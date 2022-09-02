@@ -111,6 +111,7 @@ $("body").on("click", ".ajax-del", function () {
         customer: "customer/delete",
         supplier: "inventory/supplier/delete",
         sales: "cashier/delete",
+        stock_spoil: "inventory/stock_spoil/delete",
     };
 
     source = $(this).data("source");

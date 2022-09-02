@@ -14,6 +14,7 @@ class Setting extends BaseController
 
         $sesion = session();
 
+        // hard load if update success
         if ($sesion->getFlashdata('update-success')) {
             header("Cache-Control: no-cache, must-revalidate");
             header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
@@ -74,7 +75,7 @@ class Setting extends BaseController
         }
 
         // update composer
-        exec('cd ' . ROOTPATH . '; composer update', $result_composer);
+        exec('cd ' . ROOTPATH . '; composer install', $result_composer);
 
         $date_update = date('ymdhis');
         // create file on update directory
