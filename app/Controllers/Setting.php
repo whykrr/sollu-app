@@ -65,9 +65,12 @@ class Setting extends BaseController
         $rootPath = ROOTPATH;
         $fcPath = ROOTPATH;
 
-        // change format to unix
-        $rootPath = str_replace('\\', '/', $rootPath);
-        $fcPath = str_replace('\\', '/', $fcPath);
+        // check if os windows
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $rootPath = str_replace('\\', '/', $rootPath);
+            $fcPath = str_replace('\\', '/', $fcPath);
+        }
+
 
         exec('cd ' . $rootPath . ' && git pull', $result);
 
@@ -122,9 +125,9 @@ class Setting extends BaseController
         fwrite($file, PHP_EOL . "-- Copy Asset --" . PHP_EOL);
         $this->copyDirectory($rootPath . 'public/assets', $fcPath . 'assets');
         fwrite($file, "Copy Folder Asset Successfuly" . PHP_EOL);
-        $this->copyDirectory($rootPath . 'public/css', $fcPath . 'css');
+        $this->copyDirectory($rootPath . 'public/css', FCPATH . 'css');
         fwrite($file, "Copy Folder CSS Successfuly" . PHP_EOL);
-        $this->copyDirectory($rootPath . 'public/js', $fcPath . 'js');
+        $this->copyDirectory($rootPath . 'public/js', FCPATH . 'js');
         fwrite($file, "Copy Folder JS Successfuly" . PHP_EOL);
 
         fclose($file);
