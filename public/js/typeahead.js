@@ -39,7 +39,7 @@
         this.listen();
         this.showHintOnFocus =
             typeof this.options.showHintOnFocus == "boolean" ||
-            this.options.showHintOnFocus === "all"
+                this.options.showHintOnFocus === "all"
                 ? this.options.showHintOnFocus
                 : false;
         this.afterSelect = this.options.afterSelect;
