@@ -67,7 +67,7 @@ class Setting extends BaseController
 
         // check if os windows
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            $rootPath = str_replace('\\', '/', $rootPath);
+            echo $rootPath = str_replace('\\', '/', $rootPath);
             $fcPath = str_replace('\\', '/', $fcPath);
         }
 
