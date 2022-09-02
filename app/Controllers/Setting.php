@@ -62,7 +62,7 @@ class Setting extends BaseController
 
     public function update()
     {
-        exec('cd ' . ROOTPATH . '; git pull', $result);
+        exec('cd ' . ROOTPATH . ' && git pull', $result);
 
         // check if git pull success
         if (strpos($result[0], 'Already up to date.') !== false) {
@@ -75,7 +75,7 @@ class Setting extends BaseController
         }
 
         // update composer
-        exec('cd ' . ROOTPATH . '; composer install', $result_composer);
+        exec('cd ' . ROOTPATH . ' && composer install', $result_composer);
 
         $date_update = date('ymdhis');
         // create file on update directory
