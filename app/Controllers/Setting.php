@@ -70,6 +70,7 @@ class Setting extends BaseController
             echo $rootPath = str_replace('\\', '/', $rootPath);
             $fcPath = str_replace('\\', '/', $fcPath);
         }
+        die;
 
         exec('cd ' . $rootPath . ' && git pull', $result);
 
