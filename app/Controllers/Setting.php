@@ -10,6 +10,9 @@ class Setting extends BaseController
 {
     public function index()
     {
+        // remove cached file
+        header("Cache-Control: no-cache, must-revalidate");
+
         $setting = new SettingModel();
 
         $data['sidebar_active'] = 'setting';
