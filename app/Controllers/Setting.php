@@ -72,9 +72,6 @@ class Setting extends BaseController
         }
 
         exec('cd ' . $rootPath . ' && git pull', $result);
-        echo 'cd ' . $rootPath . ' && git pull';
-        die;
-
 
         // check if git pull success
         if (strpos($result[0], 'Already up to date.') !== false) {
