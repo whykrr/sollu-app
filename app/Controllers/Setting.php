@@ -63,7 +63,8 @@ class Setting extends BaseController
     public function update()
     {
         exec('cd ' . ROOTPATH . ' && git pull', $result);
-
+        print_r($result);
+        die;
         // check if git pull success
         if (strpos($result[0], 'Already up to date.') !== false) {
             return redirect()->to('/setting')->with('update-error', 'Already up to date.');
