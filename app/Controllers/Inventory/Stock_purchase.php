@@ -5,6 +5,7 @@ namespace App\Controllers\Inventory;
 use App\Models\StockModel;
 use App\Controllers\Export;
 use App\Models\ProductsModel;
+use App\Models\SupplierModel;
 use App\Libraries\TableFilter;
 use App\Models\FinancialModel;
 use App\Models\StockPurchaseModel;
@@ -71,6 +72,7 @@ class Stock_purchase extends BaseController
         $stock_purchase = new StockPurchaseModel();
         $invoice_stock_purchase = new InvoiceStockPurchaseModel();
         $financial = new FinancialModel();
+        $supplier = new SupplierModel();
 
         // check invoice no if empty change to invoice_no_generate
         if ($data['invoice_no'] == "") {
@@ -80,6 +82,7 @@ class Stock_purchase extends BaseController
         // remap invoice
         $invoiceData = [
             'invoice_no' => $data['invoice_no'],
+            'supplier_id' => $supplier->addIfNotExist($data['supplier_id'], $data['supplier']),
             'supplier' => $data['supplier'],
             'date' => $data['date'],
             'total' => $data['total'],

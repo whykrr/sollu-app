@@ -52,4 +52,17 @@ class SupplierModel extends Model
     protected $afterFind            = [];
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
+
+    // add supplier if id is null
+    public function addIfNotExist($id, $name)
+    {
+        if ($id == null) {
+            $this->insert([
+                'name' => $name,
+            ]);
+            return $this->getInsertID();
+        } else {
+            return $id;
+        }
+    }
 }

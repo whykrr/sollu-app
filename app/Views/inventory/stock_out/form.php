@@ -124,6 +124,7 @@
     });
 
     $('#product-display').typeahead({
+        items: 15,
         source: function(query, result) {
             $.ajax({
                 url: "<?= base_url('masterdata/product/autocomplete') ?>",

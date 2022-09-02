@@ -2,17 +2,18 @@
 
 namespace App\Controllers;
 
-use App\Controllers\BaseController;
-use App\Models\ProductsModel;
 use App\Models\StockModel;
-use App\Models\FinancialModel;
-use App\Models\StockSalesModel;
-use App\Models\InvoiceStockSalesModel;
-use App\Models\AccountReceivableModel;
-use App\Models\CashierLogModel;
-use App\Models\SettingModel;
-use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
+use App\Models\SettingModel;
+use App\Models\CustomerModel;
+use App\Models\ProductsModel;
+use App\Models\FinancialModel;
+use App\Models\CashierLogModel;
+use App\Models\StockSalesModel;
+use App\Controllers\BaseController;
+use App\Models\AccountReceivableModel;
+use App\Models\InvoiceStockSalesModel;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 
 class Cashier extends BaseController
 {
@@ -234,6 +235,7 @@ class Cashier extends BaseController
         $stockSales = new StockSalesModel();
         $invoice = new InvoiceStockSalesModel();
         $product = new ProductsModel();
+        $customer = new CustomerModel();
 
         // Remapping data invoice_stock_sales
         $invoiceData = [
@@ -246,6 +248,7 @@ class Cashier extends BaseController
             'payment_type' => $data['payment_type'],
             'pay' => $data['pay'],
             'return' => $data['return'],
+            'customer_id' => $customer->addIfNotExist($data['customer_id'], $data['customer']),
             'customer' => $data['customer'],
         ];
 
@@ -581,20 +584,18 @@ class Cashier extends BaseController
         $printerCutter = $setting->find('printer_cutter')['value'];
 
         if (!empty($printerName)) {
-            if (!empty($printerName)) {
-                $connector = new WindowsPrintConnector($printerName);
-                $printer = new Printer($connector);
-                $printer->text($text);
-                $printer->feed(4);
+            $connector = new WindowsPrintConnector($printerName);
+            $printer = new Printer($connector);
+            $printer->text($text);
+            $printer->feed(4);
 
-                if ($printerCutter == 1) {
-                    $printer->cut();
-                }
-
-                // open cash drawer
-                $printer->pulse();
-                $printer->close();
+            if ($printerCutter == 1) {
+                $printer->cut();
             }
+
+            // open cash drawer
+            $printer->pulse();
+            $printer->close();
         }
     }
 

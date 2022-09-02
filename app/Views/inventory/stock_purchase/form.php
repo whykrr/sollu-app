@@ -31,7 +31,8 @@
                         </div>
                         <div class="form-group">
                             <label for="supplier">Supplier</label>
-                            <input type="text" name="supplier" class="form-control" id="supplier" placeholder="PT. Maju Jaya">
+                            <input type="hidden" name="supplier_id" class="form-control" id="supplier_id">
+                            <input type="text" name="supplier" class="form-control" id="supplier" placeholder="PT. Maju Jaya" autocomplete="off">
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
@@ -133,7 +134,35 @@
         $('#product-display').focus();
     });
 
+    $('#supplier').typeahead({
+        // add class form-control
+        classNames: {
+            input: 'form-control',
+        },
+        source: function(query, result) {
+            $.ajax({
+                url: "<?= base_url('inventory/supplier/autocomplete') ?>",
+                data: 'q=' + query,
+                dataType: "json",
+                type: "GET",
+                success: function(data) {
+                    $('#supplier_id').val('');
+                    result($.map(data, function(item) {
+                        return item;
+                    }));
+                }
+            });
+        },
+        items: 10,
+        autoSelect: true,
+        afterSelect: function(item) {
+            $('#supplier_id').val(item.id);
+            $('#supplier').val(item.name);
+        }
+    });
+
     $('#product-display').typeahead({
+        items: 15,
         source: function(query, result) {
             $.ajax({
                 url: "<?= base_url('masterdata/product/autocomplete') ?>",
@@ -147,6 +176,7 @@
                 }
             });
         },
+        fitToElement: false,
         autoSelect: true,
         afterSelect: function(item) {
             $('#product_id').val(item.id);

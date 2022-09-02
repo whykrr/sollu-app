@@ -19,6 +19,7 @@ class InvoiceStockSalesModel extends Model
         'invoice_no',
         'type',
         'cashier_log_id',
+        'custommer_id',
         'customer',
         'date',
         'total',

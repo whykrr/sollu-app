@@ -121,7 +121,8 @@
                             <div class="form-group row">
                                 <label for="customer" class="col-md-5 col-form-label font-weight-bold">Nama Pelanggan</label>
                                 <div class="col-md-7">
-                                    <input type="text" class="form-control" id="customer">
+                                    <input type="hidden" class="form-control" id="customer_id">
+                                    <input type="text" class="form-control" id="customer" autocomplete="off">
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -136,7 +137,7 @@
                             <div class="form-group row type-credit d-none">
                                 <label for="duedate" class="col-md-5 col-form-label font-weight-bold">Jatuh Tempo</label>
                                 <div class="col-md-7">
-                                    <input type="date" class="form-control" id="duedate">
+                                    <input type="date" class="form-control" id="duedate" autocomplete="off">
                                 </div>
                             </div>
                         <?php else : ?>
@@ -219,9 +220,9 @@
             $('#cash').focus();
         }
     });
-
     $('#product-display').typeahead({
         highlight: true,
+        items: 15,
         source: function(query, result) {
             $.ajax({
                 url: "<?= base_url('masterdata/product/autocomplete') ?>",
@@ -244,6 +245,30 @@
             $('#stock').val(parseInt(item.stock));
             $('#qty').focus();
             $('#qty').val("");
+        }
+    });
+
+    $(document).find('#customer').typeahead({
+        highlight: true,
+        items: 15,
+        source: function(query, result) {
+            $.ajax({
+                url: "<?= base_url('customer/autocomplete') ?>",
+                data: 'q=' + query,
+                dataType: "json",
+                type: "GET",
+                success: function(data) {
+                    $('#customer_id').val("");
+                    result($.map(data, function(item) {
+                        return item;
+                    }));
+                }
+            });
+        },
+        autoSelect: true,
+        afterSelect: function(item) {
+            $('#customer_id').val(item.id);
+            $('#customer').val(item.name);
         }
     });
 
@@ -498,6 +523,7 @@
             'cashier_log_id': $('#cashier_log_id').val(),
             'date': $('#transaction_date').val(),
             'user_id': $('#user_id').val(),
+            'customer_id': $('#customer_id').val(),
             'customer': $('#customer').val(),
             'items': items,
             'total': $('#total-input').val(),

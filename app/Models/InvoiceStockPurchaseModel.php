@@ -17,6 +17,7 @@ class InvoiceStockPurchaseModel extends Model
     protected $allowedFields        = [
         'id',
         'invoice_no',
+        'supplier_id',
         'supplier',
         'date',
         'total',
