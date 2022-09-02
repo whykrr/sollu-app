@@ -44,27 +44,27 @@
 $session = session();
 if ($session->getFlashdata('update-error')) {
 ?>
-    <?= $this->section('script'); ?>
+    <?= $this->section('js'); ?>
     <script>
-        Swal.fire({
+        swal({
             icon: 'error',
             title: 'Oops...',
             text: '<?= $session->getFlashdata('update-error') ?>'
         })
     </script>
-    <?= $this->endSection('script'); ?>
+    <?= $this->endSection('js'); ?>
 <?php
 } else if ($session->getFlashdata('update-success')) {
 ?>
-    <?= $this->section('script'); ?>
+    <?= $this->section('js'); ?>
     <script>
-        Swal.fire({
+        swal({
             icon: 'success',
             title: 'Success',
             text: '<?= $session->getFlashdata('update-success') ?>'
         })
     </script>
-    <?= $this->endSection('script'); ?>
+    <?= $this->endSection('js'); ?>
 <?php
 }
 ?>
