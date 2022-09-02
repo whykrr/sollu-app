@@ -72,7 +72,7 @@ class Setting extends BaseController
         }
 
         exec('cd ' . $rootPath . ' && git pull', $result);
-        print_r($result);
+        echo 'cd ' . $rootPath . ' && git pull';
         die;
 
 
