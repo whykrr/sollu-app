@@ -63,7 +63,7 @@ class Setting extends BaseController
     public function update()
     {
         exec('cd ' . ROOTPATH . ' && git pull', $result);
-        print_r($result);
+        print_r(ROOTPATH);
         die;
         // check if git pull success
         if (strpos($result[0], 'Already up to date.') !== false) {
