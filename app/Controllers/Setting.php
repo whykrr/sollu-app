@@ -71,7 +71,6 @@ class Setting extends BaseController
             $fcPath = str_replace('\\', '/', $fcPath);
         }
 
-
         exec('cd ' . $rootPath . ' && git pull', $result);
 
         // check if git pull success
