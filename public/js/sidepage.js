@@ -7,6 +7,7 @@ const sidePage = {
     user: "user/form",
     customer: "customer/form",
     supplier: "inventory/supplier/form",
+    supplier2: "inventory/supplier/form",
 };
 $("#modalSide").modal({ backdrop: "static", show: false });
 $("#modalSide").on("shown.coreui.modal", function (e) {

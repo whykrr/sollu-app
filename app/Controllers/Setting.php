@@ -10,8 +10,14 @@ class Setting extends BaseController
 {
     public function index()
     {
-        // remove cached file
-        header("Cache-Control: no-cache, must-revalidate");
+        // reset all cache
+
+        $sesion = session();
+
+        if ($sesion->getFlashdata('update-success')) {
+            header("Cache-Control: no-cache, must-revalidate");
+            header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+        }
 
         $setting = new SettingModel();
 
