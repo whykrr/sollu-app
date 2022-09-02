@@ -5,6 +5,8 @@ const sidePage = {
     product_category: "masterdata/product_category/form",
     product: "masterdata/product/form",
     user: "user/form",
+    customer: "customer/form",
+    supplier: "inventory/supplier/form",
 };
 $("#modalSide").modal({ backdrop: "static", show: false });
 $("#modalSide").on("shown.coreui.modal", function (e) {

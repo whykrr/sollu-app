@@ -79,8 +79,8 @@ $("body").on("submit", ".ajax", function (e) {
 
                     form.find("#place_" + key).prepend(
                         '<div class="alert alert-danger clone-feedback">' +
-                            data +
-                            "</div>"
+                        data +
+                        "</div>"
                     );
                 });
             },
@@ -108,6 +108,8 @@ $("body").on("click", ".ajax-del", function () {
         product_category: "masterdata/product_category/delete",
         product: "masterdata/product/delete",
         user: "user/delete",
+        customer: "customer/delete",
+        supplier: "inventory/supplier/delete",
         sales: "cashier/delete",
     };
 

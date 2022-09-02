@@ -34,8 +34,8 @@
     },
     {
         "name": "Pelanggan",
-        "slug": "user",
-        "link": "user",
+        "slug": "customer",
+        "link": "customer",
         "icon": "c-icon cil-user",
         "group_access": ["superadmin", "owner", "admin", "user"],
         "app_type": ["complex", "simple"],

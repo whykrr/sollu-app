@@ -68,6 +68,18 @@ class Datatables
             'numbering' => true,
             'action_button' => 'edit,delete',
         ],
+        'customer' => [
+            'col_title' => 'Nama,Alamat,Telepon',
+            'col_data' => 'name,address,phone',
+            'numbering' => true,
+            'action_button' => 'edit,delete',
+        ],
+        'supplier' => [
+            'col_title' => 'Nama,Alamat,Telepon',
+            'col_data' => 'name,address,phone',
+            'numbering' => true,
+            'action_button' => 'edit,delete',
+        ],
         'stock' => [
             'col_title' => 'Kode,Nama,Kategori,Stok',
             'col_data' => 'code,name,category_name,stock',
@@ -165,6 +177,8 @@ class Datatables
         'product_category' => 'App\Models\ProductCategoriesModel',
         'product' => 'App\Models\ProductsModel',
         'user' => 'App\Models\UserExtensionModel',
+        'customer' => 'App\Models\CustomerModel',
+        'supplier' => 'App\Models\SupplierModel',
         'stock' => 'App\Models\ProductsModel',
         'stock_purchase' => 'App\Models\InvoiceStockPurchaseModel',
         'stock_out' => 'App\Models\InvoiceStockSalesMoveModel',

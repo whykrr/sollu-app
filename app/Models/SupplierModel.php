@@ -14,7 +14,11 @@ class SupplierModel extends Model
     protected $returnType           = 'array';
     protected $useSoftDeletes       = false;
     protected $protectFields        = true;
-    protected $allowedFields        = [];
+    protected $allowedFields        = [
+        'name',
+        'address',
+        'phone',
+    ];
 
     // Dates
     protected $useTimestamps        = false;
@@ -24,8 +28,17 @@ class SupplierModel extends Model
     protected $deletedField         = 'deleted_at';
 
     // Validation
-    protected $validationRules      = [];
-    protected $validationMessages   = [];
+    protected $validationRules      = [
+        'name' => [
+            'label' => 'Nama Supplier',
+            'rules' => 'required',
+        ],
+    ];
+    protected $validationMessages   = [
+        'name' => [
+            'required' => '{field} harus diisi',
+        ],
+    ];
     protected $skipValidation       = false;
     protected $cleanValidationRules = true;
 
