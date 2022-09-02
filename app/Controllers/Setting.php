@@ -62,25 +62,31 @@ class Setting extends BaseController
 
     public function update()
     {
-        exec('cd ' . ROOTPATH . ' && git pull', $result);
-        print_r(ROOTPATH);
-        die;
+        $rootPath = ROOTPATH;
+        $fcPath = ROOTPATH;
+
+        // change format to unix
+        $rootPath = str_replace('\\', '/', $rootPath);
+        $fcPath = str_replace('\\', '/', $fcPath);
+
+        exec('cd ' . $rootPath . ' && git pull', $result);
+
         // check if git pull success
         if (strpos($result[0], 'Already up to date.') !== false) {
             return redirect()->to('/setting')->with('update-error', 'Already up to date.');
         }
 
         // check dir update-log exist or not
-        if (!file_exists(ROOTPATH . 'update-log')) {
-            mkdir(ROOTPATH . 'update-log', 0777, true);
+        if (!file_exists($rootPath . 'update-log')) {
+            mkdir($rootPath . 'update-log', 0777, true);
         }
 
         // update composer
-        exec('cd ' . ROOTPATH . ' && composer install', $result_composer);
+        exec('cd ' . $rootPath . ' && composer install', $result_composer);
 
         $date_update = date('ymdhis');
         // create file on update directory
-        $file = fopen(ROOTPATH . 'update-log/update-' . $date_update . '.txt', 'w');
+        $file = fopen($rootPath . 'update-log/update-' . $date_update . '.txt', 'w');
         fwrite($file,  "Update on " . date('Y-m-d H:i:s') . PHP_EOL);
         fwrite($file,  "-- Pulling file --" . PHP_EOL);
         foreach ($result as $line) {
@@ -114,11 +120,11 @@ class Setting extends BaseController
         $seeder->call('ResetPermissions');
 
         fwrite($file, PHP_EOL . "-- Copy Asset --" . PHP_EOL);
-        $this->copyDirectory(ROOTPATH . 'public/assets', FCPATH . 'assets');
+        $this->copyDirectory($rootPath . 'public/assets', $fcPath . 'assets');
         fwrite($file, "Copy Folder Asset Successfuly" . PHP_EOL);
-        $this->copyDirectory(ROOTPATH . 'public/css', FCPATH . 'css');
+        $this->copyDirectory($rootPath . 'public/css', $fcPath . 'css');
         fwrite($file, "Copy Folder CSS Successfuly" . PHP_EOL);
-        $this->copyDirectory(ROOTPATH . 'public/js', FCPATH . 'js');
+        $this->copyDirectory($rootPath . 'public/js', $fcPath . 'js');
         fwrite($file, "Copy Folder JS Successfuly" . PHP_EOL);
 
         fclose($file);
