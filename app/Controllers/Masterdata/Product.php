@@ -176,7 +176,7 @@ class Product extends BaseController
         return Export::do($format, $data, $filename);
     }
 
-    public function migrate_product()
+    public function migrate_product($category_id)
     {
         $filename = $get = $this->request->getGet('file');
 
@@ -184,6 +184,8 @@ class Product extends BaseController
         $data = $this->_read_excel($filename);
         $unit = [];
         $units = [];
+        dd($data);
+
 
         foreach ($data as $key => $product) {
             if ($key == 0) {
@@ -220,7 +222,7 @@ class Product extends BaseController
                 'code' => $p[0],
                 'barcode' => $p[1],
                 'name' => $p[2],
-                'category_id' => 0,
+                'category_id' => $category_id,
                 'stock' => 0,
                 'stock_min' => 0,
                 'cogs' => $p[8],
