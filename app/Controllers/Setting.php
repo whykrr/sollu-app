@@ -155,8 +155,11 @@ class Setting extends BaseController
                 if (is_dir($src . '/' . $file)) {
                     $this->copyDirectory($src . '/' . $file, $dst . '/' . $file, $result);
                 } else {
-                    copy($src . '/' . $file, $dst . '/' . $file);
-                    $result[] = $dst . '/' . $file . 'status : copied';
+                    if (copy($src . '/' . $file, $dst . '/' . $file)) {
+                        $result[] = $dst . '/' . $file . 'status : copied';
+                    } else {
+                        $result[] = $dst . '/' . $file . 'status : failed';
+                    }
                 }
             }
         }
