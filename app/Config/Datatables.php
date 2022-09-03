@@ -110,8 +110,8 @@ class Datatables
             'action_button' => 'detailStockOut',
         ],
         'sales' => [
-            'col_title' => 'Tanggal,Invoice,Total',
-            'col_data' => 'date,invoice_no,grand_total',
+            'col_title' => 'Tanggal,Invoice,Pelanggan,Total',
+            'col_data' => 'date,invoice_no,customer,grand_total',
             'helpers' => [
                 'date' => ['formatDateSimple', '{date}'],
                 'grand_total' => ['formatIDR', '{grand_total}'],
@@ -120,10 +120,11 @@ class Datatables
             'action_button' => 'detailSales',
         ],
         'stock_purchase' => [
-            'col_title' => 'Nomor Invoice,Tanggal Pembelian,Supplier',
-            'col_data' => 'invoice_no,date,supplier',
+            'col_title' => 'Nomor Invoice,Tanggal Pembelian,Supplier,Total',
+            'col_data' => 'invoice_no,date,supplier,grand_total',
             'helpers' => [
                 'date' => ['formatDateSimple', '{date}'],
+                'grand_total' => ['formatIDR', '{grand_total}'],
             ],
             'numbering' => true,
             'action_button' => 'detailStockPurchase',

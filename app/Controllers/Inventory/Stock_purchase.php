@@ -22,6 +22,10 @@ class Stock_purchase extends BaseController
     {
         $data['sidebar_active'] = 'inventory-st-purchase';
         $isp = new InvoiceStockPurchaseModel();
+        $supplier = new SupplierModel();
+
+        // get data supplier
+        $data['supplier'] = $supplier->findAll();
 
         $filter_year = $isp->getAvailableYear();
         if (count($filter_year) == 0) {
@@ -275,27 +279,54 @@ class Stock_purchase extends BaseController
             $filename .= 'Tanggal ' . formatDateID($query['start_date']) . ' s/d ' . formatDateID($query['end_date']);
         }
 
-        $isp->select('*, DATE(date) as date_pur, IF(payment_type=0, "Cash", "Kredit") as dt');
+        $isp->select('isp.*, p.code as product_code, p.name as product_name, sp.qty, sp.cogs, sp.selling_price, u.name as unit_name, DATE(isp.date) as date_pur');
         if ($query['type_filter'] == 'daily') {
-            $isp->where('DATE(created_at)', $query['date']);
+            $isp->where('DATE(isp.created_at)', $query['date']);
         } elseif ($query['type_filter'] == 'range') {
-            $isp->where('DATE(created_at) >=', $query['start_date'])
-                ->where('DATE(created_at) <=', $query['end_date']);
+            $isp->where('DATE(isp.created_at) >=', $query['start_date'])
+                ->where('DATE(isp.created_at) <=', $query['end_date']);
         } elseif ($query['type_filter'] == 'monthly') {
-            $isp->where('MONTH(created_at)', $query['month'])
-                ->where('YEAR(created_at)', $query['year']);
+            $isp->where('MONTH(isp.created_at)', $query['month'])
+                ->where('YEAR(isp.created_at)', $query['year']);
         }
+        if (@$query['supplier'] != "") {
+            $isp->where('supplier_id', $query['supplier']);
+        }
+        $isp->join('stock_purchases sp', 'sp.invoice_id = isp.id');
+        $isp->join('products p', 'p.id = sp.product_id');
+        $isp->join('units u', 'u.id = p.unit_id');
         $data = $isp->findAll();
 
+        // reformat data
+        $data = array_map(function ($item) {
+            return [
+                'invoice_no' => $item['invoice_no'],
+                'date_pur' => formatDateSimple($item['date_pur']),
+                'supplier' => $item['supplier'],
+                'grand_total' => formatIDR($item['grand_total']),
+                'product_code' => $item['product_code'],
+                'product_name' => $item['product_name'],
+                'qty' => $item['qty'],
+                'unit_name' => $item['unit_name'],
+                'qty' => $item['qty'],
+                'cogs' => $item['cogs'],
+                'selling_price' => $item['selling_price'],
+            ];
+        }, $data);
+
         $format = [
-            ['label' => 'No', 'data' => 'increament'],
-            ['label' => 'Kode', 'data' => 'invoice_no'],
-            ['label' => 'Supplier', 'data' => 'supplier'],
-            ['label' => 'Tanggal Pembelian', 'data' => 'date_pur'],
-            ['label' => 'Total', 'data' => 'total'],
-            ['label' => 'Diskon', 'data' => 'discount'],
-            ['label' => 'Grand Total', 'data' => 'grand_total'],
-            ['label' => 'Pembayaran', 'data' => 'dt'],
+            'parent' => [
+                'marker' => 'invoice_no',
+                'format' => "{invoice_no}   Tanggal: {date_pur}   Supplier: {supplier}   Total: {grand_total}",
+            ],
+            'child' => [
+                ['label' => 'Kode', 'data' => 'product_code'],
+                ['label' => 'Nama', 'data' => 'product_name'],
+                ['label' => 'Qty', 'data' => 'qty'],
+                ['label' => 'Satuan', 'data' => 'unit_name'],
+                ['label' => 'Harga Beli', 'data' => 'cogs'],
+                ['label' => 'Harga Jual', 'data' => 'selling_price'],
+            ],
         ];
 
         return Export::do($format, $data, $filename);

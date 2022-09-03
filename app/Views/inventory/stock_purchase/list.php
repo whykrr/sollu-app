@@ -26,7 +26,20 @@
                     </div>
                 </div>
                 <?= startSearchForm('stock_purchase') ?>
-                <div class="row mb-2"><?= $filter_form ?></div>
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">Supplier</div>
+                            </div>
+                            <input type="text" class="form-control" id="supplier-search" autocomplete="off">
+                            <input type="hidden" name="supplier" id="supplier" class="form-filter">
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <?= $filter_form ?>
+                </div>
                 <?= endSearchForm() ?>
                 <div class="table-responsive">
                     <?= loadDatatables("stock_purchase") ?>
@@ -36,3 +49,34 @@
     </div>
 </div>
 <?= $this->endSection('main'); ?>
+<?= $this->section('js'); ?>
+<script>
+    $(document).find('#supplier-search').typeahead({
+        highlight: true,
+        items: 15,
+        source: function(query, result) {
+            $.ajax({
+                url: "<?= base_url('inventory/supplier/autocomplete') ?>",
+                data: 'q=' + query,
+                dataType: "json",
+                type: "GET",
+                success: function(data) {
+                    $('#supplier').val("");
+                    $('#supplier').trigger('change');
+                    result($.map(data, function(item) {
+                        return item;
+                    }));
+                }
+            });
+        },
+        autoSelect: true,
+        afterSelect: function(item) {
+            $('#supplier').val(item.id);
+            $('#supplier-search').val(item.name);
+
+            // trigger change
+            $('#supplier').trigger('change');
+        }
+    });
+</script>
+<?= $this->endSection('js'); ?>

@@ -19,7 +19,7 @@ class InvoiceStockSalesModel extends Model
         'invoice_no',
         'type',
         'cashier_log_id',
-        'custommer_id',
+        'customer_id',
         'customer',
         'date',
         'total',
@@ -93,7 +93,7 @@ class InvoiceStockSalesModel extends Model
         $where['end_date'] = @$args['end_date'] ?: date('Y-m-d');
         $where['date'] = @$args['date'] ?: date('Y-m-d');
 
-        $custom = $this->select('id, date, invoice_no, grand_total');
+        $custom = $this->select('id, date, invoice_no, customer, grand_total');
         $custom->where('type', 'sales');
         if ($type == 'monthly') {
             $custom->where('MONTH(date)', $where['month']);
@@ -103,6 +103,10 @@ class InvoiceStockSalesModel extends Model
         } else if ($type == 'range') {
             $custom->where('date >=', $where['start_date']);
             $custom->where('date <=', $where['end_date']);
+        }
+
+        if (@$args['customer'] != "") {
+            $custom->where('customer_id', $args['customer']);
         }
 
         $custom->orderBy('created_at', 'desc');

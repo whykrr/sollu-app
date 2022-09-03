@@ -10,6 +10,7 @@
         </div>
         <div class="col-md-6">
             <p><strong>Supplier :</strong> <br> <?= $data['supplier'] ?></p>
+            <p><strong>Total Pembelian :</strong> <br> <?= formatIDR($data['grand_total']) ?></p>
         </div>
     </div>
     <!-- card history stock -->

@@ -96,7 +96,7 @@ class InvoiceStockPurchaseModel extends Model
         $where['end_date'] = @$args['end_date'] ?: date('Y-m-d');
         $where['date'] = @$args['date'] ?: date('Y-m-d');
 
-        $custom = $this->select('id, date, invoice_no, grand_total');
+        $custom = $this->select('id, date, invoice_no, supplier, grand_total');
         if ($type == 'monthly') {
             $custom->where('MONTH(date)', $where['month']);
             $custom->where('YEAR(date)', $where['year']);
@@ -105,6 +105,10 @@ class InvoiceStockPurchaseModel extends Model
         } else if ($type == 'range') {
             $custom->where('date >=', $where['start_date']);
             $custom->where('date <=', $where['end_date']);
+        }
+
+        if (@$args['supplier'] != "") {
+            $custom->where('supplier_id', $args['supplier']);
         }
 
         $custom->orderBy('created_at', 'desc');
