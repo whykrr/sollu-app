@@ -89,6 +89,8 @@ class Setting extends BaseController
         $date_update = date('ymdhis');
         // create file on update directory
         $file = fopen($rootPath . 'update-log/update-' . $date_update . '.txt', 'w');
+        fwrite($file,  "ROOTPATH " . $rootPath . PHP_EOL);
+        fwrite($file,  "FCPATH " . $fcPath . PHP_EOL);
         fwrite($file,  "Update on " . date('Y-m-d H:i:s') . PHP_EOL);
         fwrite($file,  "-- Pulling file --" . PHP_EOL);
         foreach ($result as $line) {
