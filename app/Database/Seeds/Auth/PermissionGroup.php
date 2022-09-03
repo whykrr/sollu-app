@@ -104,7 +104,7 @@ class PermissionGroup extends Seeder
         $auth->addPermissionToGroup('report', 'warehouse');
         $auth->addPermissionToGroup('report-product', 'warehouse');
 
-        $auth->addPermissionToGroup('customer', 'user');
+        // $auth->addPermissionToGroup('customer', 'user');
         $auth->addPermissionToGroup('inventory', 'user');
         $auth->addPermissionToGroup('inventory-stock', 'user');
         $auth->addPermissionToGroup('inventory-st-out', 'user');
