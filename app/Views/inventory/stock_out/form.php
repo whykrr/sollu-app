@@ -28,16 +28,20 @@
                             <input type="text" class="form-control" id="code" value="<?= $code ?>">
                         </div>
                         <div class="form-group">
-                            <label for="note">Catatan</label>
-                            <textarea id="note" class="form-control"></textarea>
-                            <div class="invalid-feedback"></div>
-                            <div class="text-muted">Contoh (Diambil Toko Merakurak)</div>
+                            <label for="customer">Tujuan / Toko</label>
+                            <input type="hidden" class="form-control" id="customer_id">
+                            <input type="text" class="form-control" id="customer" autocomplete="off">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="date">Tanggal</label>
                             <input type="date" id="action_date" class="form-control" value="<?= date('Y-m-d') ?>">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="note">Catatan</label>
+                            <textarea id="note" class="form-control"></textarea>
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
@@ -56,6 +60,7 @@
                                 </div>
                                 <div class="form-group mb-1 ">
                                     <input type="hidden" class="form-control form-item" id="cogs">
+                                    <input type="hidden" class="form-control form-item" id="stock">
                                     <input type="hidden" class="form-control form-item" id="selling_price">
                                     <input type="hidden" id="unit">
 
@@ -123,6 +128,30 @@
         $('#product-display').focus();
     });
 
+    $(document).find('#customer').typeahead({
+        highlight: true,
+        items: 15,
+        source: function(query, result) {
+            $.ajax({
+                url: "<?= base_url('customer/autocomplete') ?>",
+                data: 'q=' + query,
+                dataType: "json",
+                type: "GET",
+                success: function(data) {
+                    $('#customer_id').val("");
+                    result($.map(data, function(item) {
+                        return item;
+                    }));
+                }
+            });
+        },
+        autoSelect: true,
+        afterSelect: function(item) {
+            $('#customer_id').val(item.id);
+            $('#customer').val(item.name);
+        }
+    });
+
     $('#product-display').typeahead({
         items: 15,
         source: function(query, result) {
@@ -142,6 +171,7 @@
         afterSelect: function(item) {
             $('#product_id').val(item.id);
             $('#cogs').val(parseInt(item.cogs));
+            $('#stock').val(parseInt(item.stock));
             $('#selling_price').val(parseInt(item.cogs));
             $('#qty').focus();
             $('#qty').val('');
@@ -178,6 +208,11 @@
             $('#qty').val(1)
         }
 
+        if (parseInt($('#stock').val()) < parseInt($('#qty').val())) {
+            notEnoughStock();
+            return false;
+        }
+
         // replace items if same product id
         var item_exist = false;
         $.each(items, function(index, value) {
@@ -206,6 +241,7 @@
         $('#product_id').val('');
         $('#product-display').val('');
         $('#cogs').val('');
+        $('#stock').val('');
         $('#selling_price').val('');
         $('#qty').val('');
         $('#unit').val('');
@@ -218,6 +254,11 @@
         appendItemsToTable();
         countTotal();
     });
+
+    function notEnoughStock() {
+        swal('Oops', 'Stok tidak cukup', 'error');
+        $('#product-display').focus();
+    }
 
     //function append items to table
     function appendItemsToTable() {
@@ -275,7 +316,8 @@
             'cashier_log_id': null,
             'date': $('#action_date').val(),
             'user_id': $('#user_id').val(),
-            'customer': null,
+            'customer_id': $('#customer_id').val(),
+            'customer': $('#customer').val(),
             'items': items,
             'total': $('#total').val(),
             'discount': 0,

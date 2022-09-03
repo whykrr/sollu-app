@@ -46,17 +46,16 @@ class Sales extends BaseController
         return view('sales/_detail', $data);
     }
 
-    public function export()
+    public function export($type = 'sales', $filename = 'Penjualan')
     {
         $query = $this->request->getGet();
-        $filename = 'Penjualan ';
 
         if ($query['type_filter'] == 'monthly') {
-            $filename .= 'Periode ' . formatMonthID($query['month']) . ' ' . $query['year'];
+            $filename .= ' Periode ' . formatMonthID($query['month']) . ' ' . $query['year'];
         } else if ($query['type_filter'] == 'daily') {
-            $filename .= 'Produk Tanggal ' . formatDateID($query['date']);
+            $filename .= ' Produk Tanggal ' . formatDateID($query['date']);
         } else if ($query['type_filter'] == 'range') {
-            $filename .= 'Tanggal ' . formatDateID($query['start_date']) . ' s/d ' . formatDateID($query['end_date']);
+            $filename .= ' Tanggal ' . formatDateID($query['start_date']) . ' s/d ' . formatDateID($query['end_date']);
         }
         $sales = new InvoiceStockSalesModel();
         $sales->select('invoice_stock_sales.*, 
@@ -85,7 +84,7 @@ class Sales extends BaseController
         $sales->join('stock_sales ss', 'ss.invoice_id = invoice_stock_sales.id');
         $sales->join('products p', 'p.id = ss.product_id');
         $sales->join('units u', 'u.id = p.unit_id');
-        $sales->where('type', 'sales');
+        $sales->where('type', $type);
         $data = $sales->findAll();
 
         // remap data

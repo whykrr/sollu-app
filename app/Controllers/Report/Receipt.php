@@ -152,7 +152,14 @@ class Receipt extends BaseController
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save("$name.xlsx");
 
-        return redirect()->to("$name.xlsx");
+        // download file and delete
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $name . '.xlsx"');
+
+        $writer->save('php://output');
+        unlink("$name.xlsx");
+
+        // return redirect()->to("$name.xlsx");
     }
 
     private function _getData($filter)
@@ -173,7 +180,8 @@ class Receipt extends BaseController
 
         $data = [];
         $getTotalSales = $invoiceStockSales
-            ->select('SUM(grand_total) as total_sales');
+            ->select('SUM(grand_total) as total_sales')
+            ->where('invoice_stock_sales.type', 'sales');
         if ($type == 'monthly') {
             $getTotalSales->where('MONTH(invoice_stock_sales.created_at)', $where['month'])
                 ->where('YEAR(invoice_stock_sales.created_at)', $where['year']);
@@ -186,15 +194,17 @@ class Receipt extends BaseController
         $data['getTotalSales'] = $getTotalSales->first();
 
         $getCogs = $stockSales
-            ->select('SUM(cogs*qty) as total_cogs');
+            ->select('SUM(cogs*qty) as total_cogs')
+            ->join('invoice_stock_sales', 'invoice_stock_sales.id = stock_sales.invoice_id')
+            ->where('invoice_stock_sales.type', 'sales');
         if ($type == 'monthly') {
-            $getCogs->where('MONTH(created_at)', $where['month'])
-                ->where('YEAR(created_at)', $where['year']);
+            $getCogs->where('MONTH(stock_sales.created_at)', $where['month'])
+                ->where('YEAR(stock_sales.created_at)', $where['year']);
         } else if ($type == 'daily') {
-            $getCogs->where('DATE(created_at)', $where['date']);
+            $getCogs->where('DATE(stock_sales.created_at)', $where['date']);
         } else if ($type == 'range') {
-            $getCogs->where('DATE(created_at) >=', $where['start_date'])
-                ->where('DATE(created_at) <=', $where['end_date']);
+            $getCogs->where('DATE(stock_sales.created_at) >=', $where['start_date'])
+                ->where('DATE(stock_sales.created_at) <=', $where['end_date']);
         }
         $data['getCogs'] = $getCogs->get()->getRowArray();
 

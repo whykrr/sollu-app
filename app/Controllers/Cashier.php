@@ -248,7 +248,7 @@ class Cashier extends BaseController
             'payment_type' => $data['payment_type'],
             'pay' => $data['pay'],
             'return' => $data['return'],
-            'customer_id' => $customer->addIfNotExist($data['customer_id'], $data['customer']),
+            'customer_id' => $customer->addIfNotExist(@$data['customer_id'], $data['customer']),
             'customer' => $data['customer'],
         ];
 

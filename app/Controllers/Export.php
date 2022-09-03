@@ -124,7 +124,14 @@ class Export extends BaseController
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save("$filename.xlsx");
 
-        return redirect()->to("$filename.xlsx");
+        // download file and delete
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+
+        $writer->save('php://output');
+        unlink("$filename.xlsx");
+
+        // return redirect()->to("$filename.xlsx");
     }
 
     /**

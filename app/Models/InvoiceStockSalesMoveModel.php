@@ -62,6 +62,10 @@ class InvoiceStockSalesMoveModel extends Model
             $custom->where('date <=', $where['end_date']);
         }
 
+        if (@$args['customer'] != "") {
+            $custom->where('customer_id', $args['customer']);
+        }
+
         $custom->orderBy('created_at', 'desc');
 
         return $custom;
