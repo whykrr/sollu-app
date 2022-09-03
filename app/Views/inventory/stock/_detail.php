@@ -14,6 +14,7 @@
             <p><strong>Stok :</strong> <br> <?= $product['stock'] . " " . $product['unit_name'] ?></p>
 
             <p><strong>Minimal Stok :</strong> <br> <?= $product['stock_min'] . " " . $product['unit_name'] ?></p>
+            <p><strong>Harga Jual :</strong> <br> <?= formatIDR($product['selling_price']) ?></p>
         </div>
     </div>
     <!-- card history stock -->
