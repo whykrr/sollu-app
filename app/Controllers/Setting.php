@@ -129,12 +129,12 @@ class Setting extends BaseController
             fwrite($file, $line_asset . PHP_EOL);
         }
 
-        $this->copyDirectory($rootPath . 'public/css', $fcPath . 'css', $result_css);
+        $this->copyDirectory($rootPath . 'public/css', FCPATH . 'css', $result_css);
         foreach ($result_css as $line_css) {
             fwrite($file, $line_css . PHP_EOL);
         }
 
-        $this->copyDirectory($rootPath . 'public/js', $fcPath . 'js', $result_js);
+        $this->copyDirectory($rootPath . 'public/js', FCPATH . 'js', $result_js);
         foreach ($result_js as $line_js) {
             fwrite($file, $line_js . PHP_EOL);
         }
