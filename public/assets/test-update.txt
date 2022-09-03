@@ -3,3 +3,4 @@ test asset 1
 test asset 2
 test asset 3
 test asset semanding
+test asset merakurak
