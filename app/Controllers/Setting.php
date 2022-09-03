@@ -142,7 +142,6 @@ class Setting extends BaseController
         fclose($file);
 
         //redirect with data
-        //redirect with data
         return redirect()->to('/setting')->with('update-success', 'Update Successfuly');
     }
 
