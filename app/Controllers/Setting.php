@@ -66,10 +66,10 @@ class Setting extends BaseController
         $fcPath = ROOTPATH;
 
         // check if os windows
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            $rootPath = str_replace('\\', '/', $rootPath);
-            $fcPath = str_replace('\\', '/', $fcPath);
-        }
+        // if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        //     $rootPath = str_replace('\\', '/', $rootPath);
+        //     $fcPath = str_replace('\\', '/', $fcPath);
+        // }
 
         exec('cd ' . $rootPath . ' && git pull', $result);
 
