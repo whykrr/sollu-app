@@ -124,17 +124,17 @@ class Setting extends BaseController
         $seeder->call('ResetPermissions');
 
         fwrite($file, PHP_EOL . "-- Copy Asset --" . PHP_EOL);
-        $this->copyDirectory($rootPath . 'public/assets', $fcPath . 'assets', $result_asset);
+        $this->copyDirectory($rootPath . 'public/assets', FCPATH . 'assets', $result_asset);
         foreach ($result_asset as $line_asset) {
             fwrite($file, $line_asset . PHP_EOL);
         }
 
-        $this->copyDirectory($rootPath . 'public/css', FCPATH . 'css', $result_css);
+        $this->copyDirectory($rootPath . 'public/css', $fcPath . 'css', $result_css);
         foreach ($result_css as $line_css) {
             fwrite($file, $line_css . PHP_EOL);
         }
 
-        $this->copyDirectory($rootPath . 'public/js', FCPATH . 'js', $result_js);
+        $this->copyDirectory($rootPath . 'public/js', $fcPath . 'js', $result_js);
         foreach ($result_js as $line_js) {
             fwrite($file, $line_js . PHP_EOL);
         }
@@ -156,9 +156,9 @@ class Setting extends BaseController
                     $this->copyDirectory($src . '/' . $file, $dst . '/' . $file, $result);
                 } else {
                     if (copy($src . '/' . $file, $dst . '/' . $file)) {
-                        $result[] = $dst . '/' . $file . 'status : copied';
+                        $result[] = $dst . '/' . $file . ' copied';
                     } else {
-                        $result[] = $dst . '/' . $file . 'status : failed';
+                        $result[] = $dst . '/' . $file . ' failed';
                     }
                 }
             }
