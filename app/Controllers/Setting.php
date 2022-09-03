@@ -124,12 +124,20 @@ class Setting extends BaseController
         $seeder->call('ResetPermissions');
 
         fwrite($file, PHP_EOL . "-- Copy Asset --" . PHP_EOL);
-        $this->copyDirectory($rootPath . 'public/assets', $fcPath . 'assets');
-        fwrite($file, "Copy Folder Asset Successfuly" . PHP_EOL);
-        $this->copyDirectory($rootPath . 'public/css', FCPATH . 'css');
-        fwrite($file, "Copy Folder CSS Successfuly" . PHP_EOL);
-        $this->copyDirectory($rootPath . 'public/js', FCPATH . 'js');
-        fwrite($file, "Copy Folder JS Successfuly" . PHP_EOL);
+        $this->copyDirectory($rootPath . 'public/assets', $fcPath . 'assets', $result_asset);
+        foreach ($result_asset as $line_asset) {
+            fwrite($file, $line_asset . PHP_EOL);
+        }
+
+        $this->copyDirectory($rootPath . 'public/css', FCPATH . 'css', $result_css);
+        foreach ($result_css as $line_css) {
+            fwrite($file, $line_css . PHP_EOL);
+        }
+
+        $this->copyDirectory($rootPath . 'public/js', FCPATH . 'js', $result_js);
+        foreach ($result_js as $line_js) {
+            fwrite($file, $line_js . PHP_EOL);
+        }
 
         fclose($file);
 
@@ -138,20 +146,21 @@ class Setting extends BaseController
     }
 
     // copy and replace all file in directory
-    public function copyDirectory($src, $dst)
+    public function copyDirectory($src, $dst, &$result = [])
     {
         $dir = opendir($src);
         @mkdir($dst);
         while (false !== ($file = readdir($dir))) {
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($src . '/' . $file)) {
-                    $this->copyDirectory($src . '/' . $file, $dst . '/' . $file);
-                    continue;
+                    $this->copyDirectory($src . '/' . $file, $dst . '/' . $file, $result);
                 } else {
                     copy($src . '/' . $file, $dst . '/' . $file);
+                    $result[] = $dst . '/' . $file . 'status : copied';
                 }
             }
         }
         closedir($dir);
+        return $result;
     }
 }
