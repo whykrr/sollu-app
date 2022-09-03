@@ -267,7 +267,7 @@ class Stock_purchase extends BaseController
     public function export()
     {
         $query = $this->request->getGet();
-        $isp = new InvoiceStockPurchaseModel();
+        $invoice = new InvoiceStockPurchaseModel();
 
         $filename = 'Pembelian Stok ';
 
@@ -279,23 +279,23 @@ class Stock_purchase extends BaseController
             $filename .= 'Tanggal ' . formatDateID($query['start_date']) . ' s/d ' . formatDateID($query['end_date']);
         }
 
-        $isp->select('isp.*, p.code as product_code, p.name as product_name, sp.qty, sp.cogs, sp.selling_price, u.name as unit_name, DATE(isp.date) as date_pur');
+        $invoice->select('invoice_stock_purchases.*, p.code as product_code, p.name as product_name, sp.qty, sp.cogs, sp.selling_price, u.name as unit_name, DATE(invoice_stock_purchases.date) as date_pur');
         if ($query['type_filter'] == 'daily') {
-            $isp->where('DATE(isp.created_at)', $query['date']);
+            $invoice->where('DATE(invoice_stock_purchases.created_at)', $query['date']);
         } elseif ($query['type_filter'] == 'range') {
-            $isp->where('DATE(isp.created_at) >=', $query['start_date'])
-                ->where('DATE(isp.created_at) <=', $query['end_date']);
+            $invoice->where('DATE(invoice_stock_purchases.created_at) >=', $query['start_date'])
+                ->where('DATE(invoice_stock_purchases.created_at) <=', $query['end_date']);
         } elseif ($query['type_filter'] == 'monthly') {
-            $isp->where('MONTH(isp.created_at)', $query['month'])
-                ->where('YEAR(isp.created_at)', $query['year']);
+            $invoice->where('MONTH(invoice_stock_purchases.created_at)', $query['month'])
+                ->where('YEAR(invoice_stock_purchases.created_at)', $query['year']);
         }
         if (@$query['supplier'] != "") {
-            $isp->where('supplier_id', $query['supplier']);
+            $invoice->where('supplier_id', $query['supplier']);
         }
-        $isp->join('stock_purchases sp', 'sp.invoice_id = isp.id');
-        $isp->join('products p', 'p.id = sp.product_id');
-        $isp->join('units u', 'u.id = p.unit_id');
-        $data = $isp->findAll();
+        $invoice->join('stock_purchases sp', 'sp.invoice_id = invoice_stock_purchases.id');
+        $invoice->join('products p', 'p.id = sp.product_id');
+        $invoice->join('units u', 'u.id = p.unit_id');
+        $data = $invoice->findAll();
 
         // reformat data
         $data = array_map(function ($item) {
