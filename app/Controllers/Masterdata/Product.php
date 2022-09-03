@@ -184,8 +184,6 @@ class Product extends BaseController
         $data = $this->_read_excel($filename);
         $unit = [];
         $units = [];
-        dd($data);
-
 
         foreach ($data as $key => $product) {
             if ($key == 0) {
