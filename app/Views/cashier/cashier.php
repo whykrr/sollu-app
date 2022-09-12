@@ -12,7 +12,9 @@
                     ?>
                     <div class="card-body p-2">
                         <input type="hidden" id="transaction_code" value="<?= $tr_code ?>">
-                        <input type="hidden" id="transaction_date" value="<?= $tr_date ?>">
+                        <?php if (!verifyPos('complex')) : ?>
+                            <input type="hidden" id="transaction_date" value="<?= $tr_date ?>">
+                        <?php endif; ?>
                         <input type="hidden" id="user_id" value="<?= user_id() ?>">
                         <input type="hidden" id="cashier_log_id" value="<?= $cashier_log_id ?>">
                         <input type="hidden" id="with_log" value="<?= $with_log ?>">
@@ -21,10 +23,17 @@
                                 <p class="mb-1"><strong>Nomor Transaksi</strong></p>
                                 <p class="mb-1"><?= $tr_code ?></p>
                             </div>
-                            <div class="col-md-4">
-                                <p class="mb-1"><strong>Tanggal</strong></p>
-                                <p class="mb-1"><?= formatDateID($tr_date) ?></p>
-                            </div>
+                            <?php if (verifyPos('complex')) : ?>
+                                <div class="col-md-4">
+                                    <p class="mb-1"><strong>Tanggal</strong></p>
+                                    <input class="form-control" type="date" name="transaction_date" value="<?= $tr_date ?>">
+                                </div>
+                            <?php else : ?>
+                                <div class="col-md-4">
+                                    <p class="mb-1"><strong>Tanggal</strong></p>
+                                    <p class="mb-1"><?= formatDateID($tr_date) ?></p>
+                                </div>
+                            <?php endif; ?>
                             <div class="col-md-4">
                                 <p class="mb-1"><strong>Kasir</strong></p>
                                 <p class="mb-1"><?= user()->name ?></p>

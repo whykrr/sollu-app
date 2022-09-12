@@ -74,11 +74,12 @@ class Export extends BaseController
                 // if marker is true
                 if ($marker) {
                     // replace {field} with value
+                    $value_parent = $parent['format'];
                     foreach ($value as $key => $val) {
-                        $parent['format'] = str_replace('{' . $key . '}', $val, $parent['format']);
+                        $value_parent = str_replace('{' . $key . '}', $val, $value_parent);
                     }
 
-                    $worksheet->mergeCells('A' . $row . ':' . $last_col . $row)->setCellValue('A' . $row, $parent['format']);
+                    $worksheet->mergeCells('A' . $row . ':' . $last_col . $row)->setCellValue('A' . $row, $value_parent);
                     $worksheet->getStyle('A' . $row . ':' . $last_col . $row)->getFont()->setBold(true);
                     // $worksheet->getStyle('A' . $row . ':' . $last_col . $row)->getAlignment()->setHorizontal('center');
 

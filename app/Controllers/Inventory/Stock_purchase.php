@@ -295,6 +295,7 @@ class Stock_purchase extends BaseController
         $invoice->join('stock_purchases sp', 'sp.invoice_id = invoice_stock_purchases.id');
         $invoice->join('products p', 'p.id = sp.product_id');
         $invoice->join('units u', 'u.id = p.unit_id');
+        $invoice->orderBy('invoice_stock_purchases.created_at', 'ASC');
         $data = $invoice->findAll();
 
         // reformat data
@@ -317,7 +318,7 @@ class Stock_purchase extends BaseController
         $format = [
             'parent' => [
                 'marker' => 'invoice_no',
-                'format' => "{invoice_no}   Tanggal: {date_pur}   Supplier: {supplier}   Total: {grand_total}",
+                'format' => "{invoice_no}   Tanggal: {date_pur}\nSupplier: {supplier}   Total: {grand_total}",
             ],
             'child' => [
                 ['label' => 'Kode', 'data' => 'product_code'],
