@@ -183,13 +183,13 @@ class Receipt extends BaseController
             ->select('SUM(grand_total) as total_sales')
             ->where('invoice_stock_sales.type', 'sales');
         if ($type == 'monthly') {
-            $getTotalSales->where('MONTH(invoice_stock_sales.created_at)', $where['month'])
-                ->where('YEAR(invoice_stock_sales.created_at)', $where['year']);
+            $getTotalSales->where('MONTH(invoice_stock_sales.date)', $where['month'])
+                ->where('YEAR(invoice_stock_sales.date)', $where['year']);
         } elseif ($type == 'daily') {
-            $getTotalSales->where('DATE(invoice_stock_sales.created_at)', $where['date']);
+            $getTotalSales->where('DATE(invoice_stock_sales.date)', $where['date']);
         } elseif ($type == 'range') {
-            $getTotalSales->where('DATE(invoice_stock_sales.created_at) >=', $where['start_date'])
-                ->where('DATE(invoice_stock_sales.created_at) <=', $where['end_date']);
+            $getTotalSales->where('DATE(invoice_stock_sales.date) >=', $where['start_date'])
+                ->where('DATE(invoice_stock_sales.date) <=', $where['end_date']);
         }
         $data['getTotalSales'] = $getTotalSales->first();
 
@@ -198,13 +198,13 @@ class Receipt extends BaseController
             ->join('invoice_stock_sales', 'invoice_stock_sales.id = stock_sales.invoice_id')
             ->where('invoice_stock_sales.type', 'sales');
         if ($type == 'monthly') {
-            $getCogs->where('MONTH(stock_sales.created_at)', $where['month'])
-                ->where('YEAR(stock_sales.created_at)', $where['year']);
+            $getCogs->where('MONTH(invoice_stock_sales.date)', $where['month'])
+                ->where('YEAR(invoice_stock_sales.date)', $where['year']);
         } else if ($type == 'daily') {
-            $getCogs->where('DATE(stock_sales.created_at)', $where['date']);
+            $getCogs->where('DATE(invoice_stock_sales.date)', $where['date']);
         } else if ($type == 'range') {
-            $getCogs->where('DATE(stock_sales.created_at) >=', $where['start_date'])
-                ->where('DATE(stock_sales.created_at) <=', $where['end_date']);
+            $getCogs->where('DATE(invoice_stock_sales.date) >=', $where['start_date'])
+                ->where('DATE(invoice_stock_sales.date) <=', $where['end_date']);
         }
         $data['getCogs'] = $getCogs->get()->getRowArray();
 
