@@ -13,7 +13,8 @@ class FinancialIncomeModel extends FinancialModel
     {
         $custom = $this->select('financials.*, financial_accounts.name as acc_name')
             ->join('financial_accounts', 'financial_accounts.id = financials.account_id')
-            ->where('financials.type', 'in');
+            ->where('financials.type', 'in')
+            ->orderBy('financials.created_at', 'DESC');
 
         return $custom;
     }
