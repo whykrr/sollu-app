@@ -108,7 +108,7 @@ class InvoiceStockSalesModel extends Model
         if (@$args['customer'] != "") {
             $custom->where('customer_id', $args['customer']);
         }
-
+        $custom->orderBy('date', 'desc');
         $custom->orderBy('created_at', 'desc');
 
         return $custom;
