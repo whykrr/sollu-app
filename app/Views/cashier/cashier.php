@@ -26,7 +26,7 @@
                             <?php if (verifyPos('complex')) : ?>
                                 <div class="col-md-4">
                                     <p class="mb-1"><strong>Tanggal</strong></p>
-                                    <input class="form-control" type="date" name="transaction_date" value="<?= $tr_date ?>">
+                                    <input class="form-control" type="date" id="transaction_date" value="<?= $tr_date ?>">
                                 </div>
                             <?php else : ?>
                                 <div class="col-md-4">
