@@ -99,10 +99,10 @@ class InvoiceStockSalesModel extends Model
             $custom->where('MONTH(date)', $where['month']);
             $custom->where('YEAR(date)', $where['year']);
         } elseif ($type == 'daily') {
-            $custom->where('date', $where['date']);
+            $custom->where('DATE(date)', $where['date']);
         } else if ($type == 'range') {
-            $custom->where('date >=', $where['start_date']);
-            $custom->where('date <=', $where['end_date']);
+            $custom->where('DATE(date) >=', $where['start_date']);
+            $custom->where('DATE(date) <=', $where['end_date']);
         }
 
         if (@$args['customer'] != "") {
