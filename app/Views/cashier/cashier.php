@@ -332,7 +332,7 @@
 
         // append to items
         if (!item_exist) {
-            items.push({
+            items.unshift({
                 product_id: $('#product_id').val(),
                 product_name: $('#product-display').val(),
                 cogs: $('#cogs').val(),
@@ -388,10 +388,8 @@
     //function append items to table
     function appendItemsToTable() {
         var html = '';
-        var item_reverse = items
-        item_reverse.reverse()
 
-        $.each(item_reverse, function(index, value) {
+        $.each(items, function(index, value) {
             html += '<tr>';
             html += '<td>' + value.product_name + '</td>';
             html += '<td>' + formatRupiah(value.price.toString(), true) + '</td>';

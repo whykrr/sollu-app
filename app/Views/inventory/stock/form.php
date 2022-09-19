@@ -234,7 +234,7 @@
         });
 
         if (!item_exist) {
-            items.push({
+            items.unshift({
                 product_id: $('#product_id').val(),
                 product_name: $('#product-display').val(),
                 cogs: $('#cogs').val(),
