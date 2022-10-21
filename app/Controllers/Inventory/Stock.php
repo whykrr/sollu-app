@@ -175,7 +175,7 @@ class Stock extends BaseController
             ->where('product_id', $id)
             ->where('stock_logs.datetime >=', $six_month_ago)
             ->orderBy('datetime', 'DESC')
-            ->orderBy('created_at', 'DESC')
+            ->orderBy('id', 'DESC')
             ->findAll();
 
         $history_stock = array_reverse($history_stock);
