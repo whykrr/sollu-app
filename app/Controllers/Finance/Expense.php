@@ -67,6 +67,8 @@ class Expense extends BaseController
             return $this->respond($json, 400);
         }
 
+        log_event("Input Pengeluaran", $data);
+
         $json = [
             "message" => 'Data berhasil disimpan',
         ];
@@ -82,7 +84,11 @@ class Expense extends BaseController
     {
         // delete data
         $expense = new FinancialModel();
+        $data = $expense->find($id);
         $expense->delete($id);
+
+        log_event("Hapus Pengeluaran", $data);
+
         $json = [
             "message" => 'Data berhasil dihapus',
         ];

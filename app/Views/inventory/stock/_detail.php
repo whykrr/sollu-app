@@ -28,20 +28,24 @@
                     <thead>
                         <tr>
                             <th>Keterangan</th>
+                            <th>Tanggal</th>
                             <th>Stok Masuk</th>
                             <th>Stok Keluar</th>
-                            <th>Harga Pokok</th>
-                            <th>Harga Jual</th>
+                            <th>Sisa Stok</th>
+                            <!-- <th>Harga Pokok</th>
+                            <th>Harga Jual</th> -->
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($history_stock as $key => $value) : ?>
                             <tr>
                                 <td><?= $value['description'] ?></td>
-                                <td><?= $value['stock_in'] . " " . $value['unit_name'] ?></td>
-                                <td><?= $value['stock_out'] . " " . $value['unit_name'] ?></td>
-                                <td><?= formatIDRHidden($value['cogs']) ?></td>
-                                <td><?= formatIDR($value['selling_price']) ?></td>
+                                <td><?= formatDateTimeSimple($value['datetime']) ?></td>
+                                <td><?= empty($value['stock_in']) ? "-" : $value['stock_in'] . " " . $value['unit_name'] ?></td>
+                                <td><?= empty($value['stock_out']) ? "-" : $value['stock_out'] . " " . $value['unit_name'] ?></td>
+                                <td><?= $value['balance'] . " " . $value['unit_name'] ?></td>
+                                <!-- <td><?= formatIDRHidden($value['cogs']) ?></td>
+                                <td><?= formatIDR($value['selling_price']) ?></td> -->
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

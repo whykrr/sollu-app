@@ -5,6 +5,7 @@ namespace App\Controllers\Inventory;
 use App\Models\StockModel;
 use App\Controllers\Export;
 use App\Models\ProductsModel;
+use App\Models\StockLogModel;
 use App\Models\SupplierModel;
 use App\Libraries\TableFilter;
 use App\Models\FinancialModel;
@@ -228,6 +229,16 @@ class Stock_purchase extends BaseController
             return $this->respond($json, 500);
         }
 
+        if (!StockLogModel::StockIN('Pembelian Stok ' . $data['invoice_no'], $stockData, $data['date'])) {
+            $db->transRollback();
+
+            $json = [
+                "message" => "error stock log insert",
+            ];
+
+            return $this->respond($json, 500);
+        }
+
         // transaction commit
         if ($db->transStatus() === FALSE) {
             $db->transRollback();
@@ -238,6 +249,9 @@ class Stock_purchase extends BaseController
             return $this->respond($json, 500);
         } else {
             $db->transCommit();
+
+            log_event('Transaksi Pembelian Stok', $data);
+
             $json = [
                 "message" => "success",
             ];

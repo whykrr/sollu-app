@@ -10,6 +10,7 @@ use App\Models\StockPurchaseModel;
 use App\Controllers\BaseController;
 use App\Models\ProductCategoriesModel;
 use App\Models\InvoiceStockPurchaseModel;
+use App\Models\StockLogModel;
 
 class Stock extends BaseController
 {
@@ -57,6 +58,8 @@ class Stock extends BaseController
             $items[$key]['qty'] = $item[3];
         }
 
+        $act = 'Tambah Stok Manual ' . $data['note'];
+
         // instace models
         $product = new ProductsModel();
         $stock = new StockModel();
@@ -69,7 +72,7 @@ class Stock extends BaseController
                 'stock_in' => $value['qty'],
                 'cogs' => $value['cogs'],
                 'selling_price' => $value['selling_price'],
-                'description' => 'Tambah Stok Manual pada ' . formatDateSimple($data['date']) . ' ' . $data['note'],
+                'description' => $act,
             ];
         }
 
@@ -88,7 +91,6 @@ class Stock extends BaseController
                 }
             }
         }
-
 
         // instance db
         $db = \Config\Database::connect();
@@ -112,9 +114,19 @@ class Stock extends BaseController
         if (!$product->updateStocks($product_data)) {
             $db->transRollback();
 
-            $error = implode(',', $product->errors());;
+            $error = implode(',', $product->errors());
             $json = [
                 "message" => $error,
+            ];
+
+            return $this->respond($json, 500);
+        }
+
+        if (!StockLogModel::StockIN($act, $stockData, $data['date'])) {
+            $db->transRollback();
+
+            $json = [
+                "message" => "error stock log insert",
             ];
 
             return $this->respond($json, 500);
@@ -130,6 +142,9 @@ class Stock extends BaseController
             return $this->respond($json, 500);
         } else {
             $db->transCommit();
+
+            log_event('Tambah Stok Manual', $data);
+
             $json = [
                 "message" => "success",
             ];
@@ -144,14 +159,41 @@ class Stock extends BaseController
     public function detail($id)
     {
         $stock = new StockModel();
+        $stockLog = new StockLogModel();
         $product = new ProductsModel();
         $data = [];
 
         // get product detail
         $data['product'] = $product->findDetail($id);
 
+        $six_month_ago = date('Y-m-d', strtotime('-6 months'));
+
         // get history stock
-        $data['history_stock'] = $stock->getHistory($id);
+        $history_stock = $stockLog->select('stock_logs.*, units.name as unit_name')
+            ->join('products', 'products.id = stock_logs.product_id')
+            ->join('units', 'units.id = products.unit_id')
+            ->where('product_id', $id)
+            ->where('stock_logs.datetime >=', $six_month_ago)
+            ->orderBy('datetime', 'DESC')
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
+
+        $history_stock = array_reverse($history_stock);
+
+        $balance = 0;
+        foreach ($history_stock as $key => $value) {
+            if (empty($value['stock_in'])) {
+                $balance -= $value['stock_out'];
+            } else {
+                $balance += $value['stock_in'];
+            }
+            $history_stock[$key]['balance'] = $balance;
+        }
+
+        $data['history_stock'] = array_reverse($history_stock);
+
+        // $data['history_stock'] = $stock->getHistory($id);
+
 
         return view('inventory/stock/_detail', $data);
     }
@@ -162,7 +204,7 @@ class Stock extends BaseController
     public function export()
     {
         $model = new ProductsModel();
-        $data = $model->findAllDetail();
+        $data = $model->findAllDetail(in_groups(['superadmin', 'admin', 'owner']));
 
         $filename = 'Laporan Stok ' . formatDateID(date('Y-m-d'));
 
@@ -173,9 +215,16 @@ class Stock extends BaseController
             ['label' => 'Nama', 'data' => 'name'],
             ['label' => 'Kategori', 'data' => 'category_name'],
             ['label' => 'Satuan', 'data' => 'unit_name'],
-            ['label' => 'Stok', 'data' => 'stock'],
-            ['label' => 'Keterangan', 'data' => 'description'],
+            ['label' => 'Stok', 'data' => 'stock']
         ];
+
+        if (in_groups(['superadmin', 'admin', 'owner'])) {
+            $format[] = ['label' => 'Harga Beli', 'data' => 'cogs'];
+            $format[] = ['label' => 'Harga Jual', 'data' => 'selling_price'];
+            $format[] = ['label' => 'Total Nilai', 'data' => 'total_cogs'];
+        }
+
+        $format[] = ['label' => 'Keterangan', 'data' => 'description'];
 
         return Export::do($format, $data, $filename);
     }

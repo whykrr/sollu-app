@@ -4,6 +4,7 @@ namespace App\Controllers\Inventory;
 
 use App\Models\StockModel;
 use App\Models\ProductsModel;
+use App\Models\StockLogModel;
 use App\Libraries\TableFilter;
 use App\Models\FinancialModel;
 use App\Models\StockSpoilModel;
@@ -135,7 +136,7 @@ class Stock_spoil extends BaseController
         }
 
         // update stock
-        if (!$stocks->updateStockFIFO($stock_data)) {
+        if (!$stocks->updateStockFIFO($stock_data, "Stok Terbuang ({$data['note']})")) {
             // rollback 
             $db->transRollback();
             $json = [
@@ -146,6 +147,8 @@ class Stock_spoil extends BaseController
         }
 
         $db->transCommit();
+
+        log_event($financial_data['description'], $data);
 
         $json = [
             "message" => 'Data berhasil disimpan',
@@ -184,6 +187,7 @@ class Stock_spoil extends BaseController
             'selling_price' => $stock['selling_price'],
             'description' => "Penambahan stok dari hapus stok terbuang",
         ];
+        $insert_stocks[] = $insert_stock;
 
         // trans begin
         $db = \Config\Database::connect();
@@ -233,8 +237,20 @@ class Stock_spoil extends BaseController
             return $this->respond($json, 400);
         }
 
+        if (!StockLogModel::StockIN('Hapus Stok Terbuang', $insert_stocks)) {
+            $db->transRollback();
+
+            $json = [
+                "message" => "error stock log insert",
+            ];
+
+            return $this->respond($json, 500);
+        }
+
         // commit
         $db->transCommit();
+
+        log_event("Hapus Stok Terbuang", $spoil);
 
         $json = [
             "message" => 'Data berhasil dihapus',

@@ -3,8 +3,13 @@
 namespace App\Controllers;
 
 use Throwable;
+use App\Models\StockModel;
 use App\Models\SettingModel;
+use App\Models\StockLogModel;
+use App\Models\StockSpoilModel;
 use App\Controllers\BaseController;
+use App\Models\InvoiceStockSalesModel;
+use App\Models\InvoiceStockPurchaseModel;
 
 class Setting extends BaseController
 {
@@ -165,5 +170,141 @@ class Setting extends BaseController
         }
         closedir($dir);
         return $result;
+    }
+
+    public function init_stock_log()
+    {
+        $stockLog = new StockLogModel();
+        $stock = new StockModel();
+        $invoiceStockPurchase = new InvoiceStockPurchaseModel();
+        $invoiceStockSales = new InvoiceStockSalesModel();
+        $spoil = new StockSpoilModel();
+
+        $stockLog->truncate();
+
+        //tambah stok manual
+        $tambahStokManual = $stock->like('description', 'Tambah Stok Manual', 'both')->findAll();
+
+        $stockLogStockManual = [];
+        foreach ($tambahStokManual as $key => $value) {
+            // remove specific string
+            $date_add = str_replace('Tambah Stok Manual pada ', '', $value['description']);
+
+            // get 10 digit from string
+            $date_add = str_replace('/', '-', substr($date_add, 0, 10));
+
+            $stockLogStockManual[] = [
+                'description' => "Tambah Stok Manual",
+                'product_id' => $value['product_id'],
+                'datetime' => date('Y-m-d H:i:s', strtotime($date_add)),
+                'stock_in' => $value['stock_in'],
+                'stock_out' => 0,
+                'cogs' => $value['cogs'],
+                'selling_price' => $value['selling_price'],
+            ];
+        }
+
+        $stockLog->insertBatch($stockLogStockManual);
+
+        // Hapus Penjualan
+        $tambahStokManual = $stock->like('description', 'Hapus Penjualan', 'both')->findAll();
+
+        $stockLogStockManual = [];
+        foreach ($tambahStokManual as $key => $value) {
+            $act = $value['description'];
+            if (strpos($value['description'], 'OUT') !== false) {
+                $act = str_replace('Pembelian', 'Stok Keluar', $value['description']);
+            }
+
+            $stockLogStockManual[] = [
+                'description' => $act,
+                'product_id' => $value['product_id'],
+                'datetime' => date("Y-m-d H:i:s", strtotime("$value[created_at] +1 minutes")),
+                'stock_in' => $value['stock_in'],
+                'stock_out' => 0,
+                'cogs' => $value['cogs'],
+                'selling_price' => $value['selling_price'],
+            ];
+
+            $stockLogStockManual[] = [
+                'description' => str_replace('Hapus ', '', $act),
+                'product_id' => $value['product_id'],
+                'datetime' => $value['created_at'],
+                'stock_in' => 0,
+                'stock_out' => $value['stock_in'],
+                'cogs' => $value['cogs'],
+                'selling_price' => $value['selling_price'],
+            ];
+        }
+
+        $stockLog->insertBatch($stockLogStockManual);
+
+        //Pembelian Stok
+        $invoiceStockPurchase = $invoiceStockPurchase
+            ->join('stock_purchases', 'stock_purchases.invoice_id = invoice_stock_purchases.id')
+            ->findAll();
+
+        $stockLogStockPurchase = [];
+        foreach ($invoiceStockPurchase as $key => $value) {
+            $stockLogStockPurchase[] = [
+                'description' => "Pembelian Stok $value[invoice_no]",
+                'product_id' => $value['product_id'],
+                'datetime' => $value['date'],
+                'stock_in' => $value['qty'],
+                'stock_out' => 0,
+                'cogs' => $value['cogs'],
+                'selling_price' => $value['selling_price'],
+            ];
+        }
+
+        // insert batch per 150 data
+        $stockLog->insertBatch($stockLogStockPurchase, null, 150);
+
+        //Penjualan Stok
+        $invoiceStockSales = $invoiceStockSales
+            ->join('stock_sales', 'stock_sales.invoice_id = invoice_stock_sales.id')
+            ->findAll();
+
+        $stockLogStockSales = [];
+        foreach ($invoiceStockSales as $key => $value) {
+            $stockLogStockSales[] = [
+                'description' => "Penjualan $value[invoice_no]",
+                'product_id' => $value['product_id'],
+                'datetime' => $value['date'],
+                'stock_in' => 0,
+                'stock_out' => $value['qty'],
+                'cogs' => $value['cogs'],
+                'selling_price' => $value['price'],
+            ];
+        }
+
+        // insert batch per 150 data
+        $stockLog->insertBatch($stockLogStockSales, null, 150);
+
+        // Stock Spoil
+        $spoil = $spoil
+            ->select('stock_spoil.*, products.selling_price')
+            ->join('products', 'products.id = stock_spoil.product_id')
+            ->findAll();
+
+        $stockLogSpoil = [];
+        foreach ($spoil as $key => $value) {
+            $stockLogSpoil[] = [
+                'description' => "Stok terbuang ({$value['note']})",
+                'product_id' => $value['product_id'],
+                'datetime' => $value['created_at'],
+                'stock_in' => 0,
+                'stock_out' => $value['qty'],
+                'cogs' => $value['cogs'],
+                'selling_price' => $value['selling_price'],
+            ];
+        }
+
+        return 'success';
+    }
+
+    public function test_date()
+    {
+        echo date("Y-m-d H:i:s", strtotime("23/09/2022"));
     }
 }

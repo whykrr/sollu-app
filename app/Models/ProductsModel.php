@@ -135,9 +135,14 @@ class ProductsModel extends Model
     /**
      * find all detail products
      */
-    public function findAllDetail()
+    public function findAllDetail($counting = false)
     {
-        $custom = $this->select('products.*, units.name as unit_name, pc.name as category_name')
+        $add_select = "";
+        if ($counting) {
+            $add_select = ", (products.stock * products.cogs) as total_cogs";
+        }
+
+        $custom = $this->select('products.*, units.name as unit_name, pc.name as category_name' . $add_select)
             ->join('product_categories pc', 'pc.id = products.category_id', 'left')
             ->join('units', 'units.id = products.unit_id', 'left')
             ->orderBy('products.code', 'asc')

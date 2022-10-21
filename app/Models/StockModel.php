@@ -75,7 +75,7 @@ class StockModel extends Model
     /**
      * SECTION - Update stock FIFO
      */
-    public function updateStockFIFO($items)
+    public function updateStockFIFO($items, $desc = '', $dated = null)
     {
         // convert items product id to array
         $product_ids = array_column($items, 'product_id');
@@ -85,7 +85,10 @@ class StockModel extends Model
         $builder->whereIn('product_id', $product_ids);
         $builder->where('stock_in > stock_out');
         $builder->orderBy('created_at', 'ASC');
-        $stocks = $builder->get()->getResultArray();
+        $stocks = $builder
+            ->select('stocks.*, products.selling_price as psp')
+            ->join('products', 'products.id = stocks.product_id')
+            ->get()->getResultArray();
 
         $updateBatch = [];
         $stockOuts = [];
@@ -128,8 +131,10 @@ class StockModel extends Model
 
                         array_push($stockOuts, [
                             'product_id' => $valueStock['product_id'],
+                            'stock_out' => $valueItem['qty'],
                             'qty' => $valueItem['qty'],
                             'cogs' => $valueStock['cogs'],
+                            'selling_price' => $valueStock['psp'],
                         ]);
                     }
                 }
@@ -147,6 +152,10 @@ class StockModel extends Model
 
         // INFO - Insert stock_out
         if (!$stockOut->insertBatch($stockOuts)) {
+            return false;
+        }
+
+        if (!StockLogModel::StockOUT($desc, $stockOuts, $dated)) {
             return false;
         }
 

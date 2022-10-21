@@ -89,7 +89,7 @@ class Stock_opname extends BaseController
 
         // update fifo if exist
         if (count($update_stock_fifo) > 0) {
-            $stock->updateStockFIFO($update_stock_fifo);
+            $stock->updateStockFIFO($update_stock_fifo, "Stock Opname");
         }
     }
 

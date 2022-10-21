@@ -86,7 +86,7 @@ if (!function_exists('formatDateSimple')) {
         // make sure date is Y-m-d
         $value = date('Y-m-d', strtotime($value));
 
-        return date('d/m/Y', strtotime($value));
+        return date('d-m-Y', strtotime($value));
     }
 }
 
@@ -102,7 +102,7 @@ if (!function_exists('formatDateTimeSimple')) {
         // make sure date is Y-m-d
         $value = date('Y-m-d H:i:s', strtotime($value));
 
-        return date('d/m/Y H:i:s', strtotime($value));
+        return date('d-m-Y H:i:s', strtotime($value));
     }
 }
 

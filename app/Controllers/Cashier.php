@@ -7,6 +7,7 @@ use Mike42\Escpos\Printer;
 use App\Models\SettingModel;
 use App\Models\CustomerModel;
 use App\Models\ProductsModel;
+use App\Models\StockLogModel;
 use App\Models\FinancialModel;
 use App\Models\CashierLogModel;
 use App\Models\StockSalesModel;
@@ -84,6 +85,8 @@ class Cashier extends BaseController
             return $this->respond($json, 400);
         }
 
+        log_event('Buka Kasir', $data);
+
         // Respond success
         $json = [
             "message" => 'Data berhasil disimpan',
@@ -102,6 +105,7 @@ class Cashier extends BaseController
         $data['data'] = $cl->getDataOpenToday();
         $data['total_transaction'] = $invoice->getSales('daily', date('Y-m-d'));
         $data['total_sales'] = $invoice->getIncome('daily', date('Y-m-d'));
+
         return view('cashier/_end', $data);
     }
 
@@ -127,6 +131,8 @@ class Cashier extends BaseController
 
         // Update data log
         $cl->save($data);
+
+        log_event('Tutup Kasir', $data);
 
         // Get data setting
         $dept = $setting->find('outlet')['value'];
@@ -237,6 +243,12 @@ class Cashier extends BaseController
         $product = new ProductsModel();
         $customer = new CustomerModel();
 
+        $act = "Penjualan";
+        // search OUT* on invoice no
+        if (strpos($data['invoice_no'], 'OUT') !== false) {
+            $act = "Stok Keluar";
+        }
+
         // Remapping data invoice_stock_sales
         $invoiceData = [
             'invoice_no' => $data['invoice_no'],
@@ -344,7 +356,7 @@ class Cashier extends BaseController
         }
 
         // Update stock
-        if (!$stock->updateStockFIFO($stockSalesData)) {
+        if (!$stock->updateStockFIFO($stockSalesData, $act . ' ' . $data['invoice_no'], $data['date'])) {
             // rollback 
             $db->transRollback();
 
@@ -417,6 +429,8 @@ class Cashier extends BaseController
             $this->_print_receipt($text);
         }
 
+        log_event($act, $data);
+
         $json['message'] = 'success';
         return $this->respond($json, 200);
     }
@@ -439,10 +453,19 @@ class Cashier extends BaseController
         $invoiceData = $invoice->where('id', $inv_id)->first();
 
         // Get Stock Sales
-        $stockSalesData = $stockSales->where('invoice_id', $inv_id)->findAll();
+        $stockSalesData = $stockSales
+            ->select('stock_sales.*, products.selling_price as psp')
+            ->join('products', 'products.id = stock_sales.product_id')
+            ->where('invoice_id', $inv_id)->findAll();
 
         // Get product updated
         $product_updated = $product->whereIn('id', array_column($stockSalesData, 'product_id'))->findAll();
+
+        $act = "Hapus Penjualan ";
+        // search OUT on invoice no exist
+        if (strpos($invoiceData['invoice_no'], 'OUT') !== false) {
+            $act = "Hapus Stok Keluar ";
+        }
 
         // Mapping data to update data product
         $updateProduct = [];
@@ -467,8 +490,8 @@ class Cashier extends BaseController
                 'product_id' => $itemSS['product_id'],
                 'stock_in' => $itemSS['qty'],
                 'cogs' => $itemSS['cogs'],
-                'selling_price' => $itemSS['price'],
-                'description' => 'Hapus Penjualan ' . $invoiceData['invoice_no'],
+                'selling_price' => $itemSS['psp'],
+                'description' => $act . $invoiceData['invoice_no'],
             ];
         }
 
@@ -543,6 +566,16 @@ class Cashier extends BaseController
             }
         }
 
+        if (!StockLogModel::StockIN($act . $invoiceData['invoice_no'], $addStock)) {
+            $db->transRollback();
+
+            $json = [
+                "message" => "error stock log insert",
+            ];
+
+            return $this->respond($json, 500);
+        }
+
         // check error
         if ($error != "") {
             $json['message'] = $error;
@@ -554,6 +587,10 @@ class Cashier extends BaseController
         // commit
         $db->transCommit();
 
+        log_event($act, [
+            'invoice' => $invoiceData,
+            'stock_sales' => $stockSalesData,
+        ]);
 
         $json['message'] = 'success';
         return $this->respond($json, 200);
