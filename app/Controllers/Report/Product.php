@@ -88,7 +88,7 @@ class Product extends BaseController
         } else if ($filter['type_filter'] == 'daily') {
             $filename = 'Laporan Penjualan Produk Tanggal ' . formatDateID($filter['date']);
         } else if ($filter['type_filter'] == 'range') {
-            $filename = 'Laporan Penjualan Produk Tanggal ' . formatDateID($filter['start_date']) . ' s/d ' . formatDateID($filter['end_date']);
+            $filename = 'Laporan Penjualan Produk Tanggal ' . formatDateID($filter['start_date']) . ' sd ' . formatDateID($filter['end_date']);
         }
 
         $format = [

@@ -94,7 +94,7 @@ class Receipt extends BaseController
         } elseif ($filter['type_filter'] == 'daily') {
             $name = 'Laporan Penjualan Tanggal ' . formatDateID($filter['date']);
         } elseif ($filter['type_filter'] == 'range') {
-            $name = 'Laporan Penjualan Periode ' . formatDateID($filter['start_date']) . ' s/d ' . formatDateID($filter['end_date']);
+            $name = 'Laporan Penjualan Periode ' . formatDateID($filter['start_date']) . ' sd ' . formatDateID($filter['end_date']);
         }
 
 

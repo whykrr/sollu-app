@@ -290,7 +290,7 @@ class Stock_purchase extends BaseController
         } else if ($query['type_filter'] == 'daily') {
             $filename .= 'Tanggal ' . formatDateID($query['date']);
         } else if ($query['type_filter'] == 'range') {
-            $filename .= 'Tanggal ' . formatDateID($query['start_date']) . ' s/d ' . formatDateID($query['end_date']);
+            $filename .= 'Tanggal ' . formatDateID($query['start_date']) . ' sd ' . formatDateID($query['end_date']);
         }
 
         $invoice->select('invoice_stock_purchases.*, p.code as product_code, p.name as product_name, sp.qty, sp.cogs, sp.selling_price, u.name as unit_name, DATE(invoice_stock_purchases.date) as date_pur');

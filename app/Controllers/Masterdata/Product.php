@@ -76,6 +76,10 @@ class Product extends BaseController
             return $this->respond($json, 400);
         }
 
+        if (@$data['id'] != null) {
+            log_event('Ubah Produk', $data);
+        }
+
         // respond success
         $json = [
             "message" => 'Data berhasil disimpan',
@@ -91,8 +95,12 @@ class Product extends BaseController
         // get model
         $model = new ProductsModel();
 
+        $product = $model->find($id);
+
         // delete data
         $model->delete($id);
+
+        log_event('Hapus Produk', $product);
 
         // respond success
         $json = [

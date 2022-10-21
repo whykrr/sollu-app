@@ -55,7 +55,7 @@ class Sales extends BaseController
         } else if ($query['type_filter'] == 'daily') {
             $filename .= ' Produk Tanggal ' . formatDateID($query['date']);
         } else if ($query['type_filter'] == 'range') {
-            $filename .= ' Tanggal ' . formatDateID($query['start_date']) . ' s/d ' . formatDateID($query['end_date']);
+            $filename .= ' Tanggal ' . formatDateID($query['start_date']) . ' sd ' . formatDateID($query['end_date']);
         }
         $sales = new InvoiceStockSalesModel();
         $sales->select('invoice_stock_sales.*, 
