@@ -69,13 +69,13 @@ class Sales extends BaseController
         DATE(invoice_stock_sales.date) as date_trans, 
         IF(invoice_stock_sales.payment_type=0, "Cash", "Kredit") as dt');
         if ($query['type_filter'] == 'daily') {
-            $sales->where('DATE(invoice_stock_sales.created_at)', $query['date']);
+            $sales->where('DATE(invoice_stock_sales.date)', $query['date']);
         } elseif ($query['type_filter'] == 'range') {
-            $sales->where('DATE(invoice_stock_sales.created_at) >=', $query['start_date'])
-                ->where('DATE(invoice_stock_sales.created_at) <=', $query['end_date']);
+            $sales->where('DATE(invoice_stock_sales.date) >=', $query['start_date'])
+                ->where('DATE(invoice_stock_sales.date) <=', $query['end_date']);
         } elseif ($query['type_filter'] == 'monthly') {
-            $sales->where('MONTH(invoice_stock_sales.created_at)', $query['month'])
-                ->where('YEAR(invoice_stock_sales.created_at)', $query['year']);
+            $sales->where('MONTH(invoice_stock_sales.date)', $query['month'])
+                ->where('YEAR(invoice_stock_sales.date)', $query['year']);
         }
 
         if (@$query['customer'] != "") {
