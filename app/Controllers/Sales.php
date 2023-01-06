@@ -85,7 +85,7 @@ class Sales extends BaseController
         $sales->join('products p', 'p.id = ss.product_id');
         $sales->join('units u', 'u.id = p.unit_id');
         $sales->where('type', $type);
-        $sales->orderBy('invoice_stock_sales.created_at', 'ASC');
+        $sales->orderBy('invoice_stock_sales.date', 'ASC');
         $data = $sales->findAll();
 
 
