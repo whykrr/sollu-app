@@ -10,6 +10,7 @@ use App\Models\StockSpoilModel;
 use App\Controllers\BaseController;
 use App\Models\InvoiceStockSalesModel;
 use App\Models\InvoiceStockPurchaseModel;
+use App\Models\ProductsModel;
 
 class Setting extends BaseController
 {
@@ -299,6 +300,34 @@ class Setting extends BaseController
                 'selling_price' => $value['selling_price'],
             ];
         }
+
+        return 'success';
+    }
+
+    public function init_stock_log_v2()
+    {
+        $stockLog = new StockLogModel();
+        $product = new ProductsModel();
+
+        $stockLog->truncate();
+
+        //tambah stok manual
+        $getProduct = $product->findAll();
+
+        $stockLogStockManual = [];
+        foreach ($getProduct as $key => $value) {
+            $stockLogStockManual[] = [
+                'description' => "Stok Awal",
+                'product_id' => $value['id'],
+                'datetime' => date('Y-m-d H:i:s'),
+                'stock_in' => $value['stock'],
+                'stock_out' => 0,
+                'cogs' => $value['cogs'],
+                'selling_price' => $value['selling_price'],
+            ];
+        }
+
+        $stockLog->insertBatch($stockLogStockManual);
 
         return 'success';
     }
