@@ -1,7 +1,22 @@
-<div class="modal-header">
-    <h4 class="modal-title">Detail Piutang</h4>
-</div>
-<div class="modal-body">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <base href="<?= base_url(); ?>/">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/style.css" rel="stylesheet">
+    <title>Print Piutang</title>
+</head>
+
+<style>
+    @page {
+        size: A4;
+    }
+</style>
+
+<body onload="window.print()" onafterprint="history.back();">
     <div class="row">
         <div class="col-md-6 mb-0">
             <p><strong>Invoice No :</strong> <br> <?= $data['invoice_no'] ?></p>
@@ -82,8 +97,6 @@
             </div>
         </div>
     </div>
-</div>
-<div class="modal-footer">
-    <button class="btn btn-danger" type="button" data-dismiss="modal">Close</button>
-    <a href="<?= base_url('debtcredit/credit/print/' . $data['id']) ?>" target="_blank" class="btn btn-primary">Print</a>
-</div>
+</body>
+
+</html>

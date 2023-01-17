@@ -147,4 +147,16 @@ class Credit extends BaseController
         $data = $account_receivable->getDetails($id);
         return view('debtcredit/credit/_detail', $data);
     }
+
+    /**
+     * show page print
+     */
+    public function print($id)
+    {
+        // instace models
+        $account_receivable = new AccountReceivableModel();
+
+        $data = $account_receivable->getDetails($id);
+        return view('debtcredit/credit/_print', $data);
+    }
 }
