@@ -129,13 +129,15 @@ class StockModel extends Model
                             $items[$keyItem]['qty'] = $remaining;
                         }
 
-                        array_push($stockOuts, [
-                            'product_id' => $valueStock['product_id'],
-                            'stock_out' => $valueItem['qty'],
-                            'qty' => $valueItem['qty'],
-                            'cogs' => $valueStock['cogs'],
-                            'selling_price' => $valueStock['psp'],
-                        ]);
+                        if (!in_array($valueStock['product_id'], $stockOuts)) {
+                            $stockOuts[$valueStock['product_id']] = [
+                                'product_id' => $valueStock['product_id'],
+                                'stock_out' => $valueItem['qty'],
+                                'qty' => $valueItem['qty'],
+                                'cogs' => 0,
+                                'selling_price' => 0,
+                            ];
+                        }
                     }
                 }
             }
