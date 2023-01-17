@@ -111,6 +111,7 @@ class InvoiceStockPurchaseModel extends Model
             $custom->where('supplier_id', $args['supplier']);
         }
 
+        $custom->orderBy('date', 'desc');
         $custom->orderBy('created_at', 'desc');
 
         return $custom;
