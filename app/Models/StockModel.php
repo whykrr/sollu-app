@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use CodeIgniter\Model;
-use App\Models\StockOutModel;
 
 class StockModel extends Model
 {
@@ -91,7 +90,7 @@ class StockModel extends Model
             ->get()->getResultArray();
 
         $updateBatch = [];
-        $stockOuts = [];
+        $stockLogs = [];
 
         // INFO - Update stock and get data to insert stock_out
         foreach ($stocks as $keyStock => $valueStock) {
@@ -129,8 +128,8 @@ class StockModel extends Model
                             $items[$keyItem]['qty'] = $remaining;
                         }
 
-                        if (!in_array($valueStock['product_id'], $stockOuts)) {
-                            $stockOuts[$valueStock['product_id']] = [
+                        if (!in_array($valueStock['product_id'], $stockLogs)) {
+                            $stockLogs[$valueStock['product_id']] = [
                                 'product_id' => $valueStock['product_id'],
                                 'stock_out' => $valueItem['qty'],
                                 'qty' => $valueItem['qty'],
@@ -149,15 +148,7 @@ class StockModel extends Model
             return false;
         }
 
-        // INFO - Instance StockOutModel
-        $stockOut = new StockOutModel();
-
-        // INFO - Insert stock_out
-        if (!$stockOut->insertBatch($stockOuts)) {
-            return false;
-        }
-
-        if (!StockLogModel::StockOUT($desc, $stockOuts, $dated)) {
+        if (!StockLogModel::StockOUT($desc, $stockLogs, $dated)) {
             return false;
         }
 

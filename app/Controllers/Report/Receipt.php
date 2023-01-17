@@ -5,9 +5,7 @@ namespace App\Controllers\Report;
 use App\Controllers\BaseController;
 use App\Models\InvoiceStockSalesModel;
 use App\Models\StockSalesModel;
-use App\Models\StockOutModel;
 use App\Models\FinancialModel;
-use App\Models\ProductsModel;
 use App\Libraries\TableFilter;
 
 
