@@ -85,5 +85,5 @@
 </div>
 <div class="modal-footer">
     <button class="btn btn-danger" type="button" data-dismiss="modal">Close</button>
-    <a href="<?= base_url('debtcredit/credit/print/' . $data['id']) ?>" target="_blank" class="btn btn-primary">Print</a>
+    <a href="<?= base_url('debtcredit/credit/print/' . $data['id']) ?>" class="btn btn-primary">Print</a>
 </div>
