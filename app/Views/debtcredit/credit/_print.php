@@ -17,19 +17,19 @@
 </style>
 
 <body onload="window.print()" onafterprint="history.back();">
-    <div class="row">
-        <div class="col-md-6 mb-0">
+    <center>
+        <h1>PIUTANG</h1>
+    </center>
+    <div class="row mx-0">
+        <div style="width: 50%;">
             <p><strong>Invoice No :</strong> <br> <?= $data['invoice_no'] ?></p>
-
             <p><strong>Tanggal Pembelian :</strong> <br> <?= formatDateID($data['date']) ?></p>
+            <p><strong>Sisa Piutang :</strong> <br> <?= formatIDR($data['amount'] - $data['pay_amount']) ?></p>
         </div>
-        <div class="col-md-6">
+        <div style="width: 50%;">
             <p><strong>Total Pembelian :</strong> <br> <?= formatIDR($data['amount']) ?></p>
 
             <p><strong>Pelanggan :</strong> <br> <?= $data['customer'] ?></p>
-        </div>
-        <div class="col-md-6">
-            <p><strong>Sisa Piutang :</strong> <br> <?= formatIDR($data['amount'] - $data['pay_amount']) ?></p>
         </div>
     </div>
     <!-- card history payment -->
