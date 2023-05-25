@@ -27,8 +27,6 @@
 </div>
 <div class="modal-footer">
     <button class="btn btn-danger" type="button" data-dismiss="modal">Close</button>
-    <a class="btn btn-success" href="<?= base_url("sales/exporttr?invoice=$data[invoice_no]") ?>">
-        <span>Export Data</span>
-    </a>
+    <a href="<?= base_url('sales/print/' . $data['id']) ?>" class="btn btn-primary">Print</a>
     <button class=" btn btn-warning float-right ajax-del" data-source="sales" key="<?= $data['id'] ?>" type="button">Hapus Transaksi</button>
 </div>

@@ -46,6 +46,18 @@ class Sales extends BaseController
         return view('sales/_detail', $data);
     }
 
+    public function print($id)
+    {
+        // get instance model
+        $sales = new InvoiceStockSalesModel();
+        $stock_sales = new StockSalesModel();
+
+        $data['data'] = $sales->getDetail($id);
+        $data['product'] = $stock_sales->getListSales($id);
+
+        return view('sales/_print', $data);
+    }
+
     public function export($type = 'sales', $filename = 'Penjualan')
     {
         $query = $this->request->getGet();
