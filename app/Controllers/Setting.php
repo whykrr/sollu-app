@@ -332,6 +332,34 @@ class Setting extends BaseController
         return 'success';
     }
 
+    public function init_stock_log_v3()
+    {
+        $stockLog = new StockLogModel();
+        $product = new ProductsModel();
+
+        $stockLog->truncate();
+
+        //tambah stok manual
+        $getProduct = $product->findAll();
+
+        $stockLogStockManual = [];
+        foreach ($getProduct as $key => $value) {
+            $stockLogStockManual[] = [
+                'description' => "Stok Awal",
+                'product_id' => $value['id'],
+                'datetime' => "2023-01-01 00:00:01",
+                'stock_in' => $value['stock'],
+                'stock_out' => 0,
+                'cogs' => $value['cogs'],
+                'selling_price' => $value['selling_price'],
+            ];
+        }
+
+        $stockLog->insertBatch($stockLogStockManual);
+
+        return 'success';
+    }
+
     public function test_date()
     {
         echo date("Y-m-d H:i:s", strtotime("23/09/2022"));
