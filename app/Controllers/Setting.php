@@ -197,7 +197,7 @@ class Setting extends BaseController
             $stockLogStockManual[] = [
                 'description' => "Tambah Stok Manual",
                 'product_id' => $value['product_id'],
-                'datetime' => date('Y-m-d H:i:s', strtotime($date_add)),
+                'datetime' => "2023-01-01 00:00:01",
                 'stock_in' => $value['stock_in'],
                 'stock_out' => 0,
                 'cogs' => $value['cogs'],
