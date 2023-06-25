@@ -178,9 +178,20 @@ class Stock extends BaseController
             ->orderBy('id', 'DESC')
             ->findAll();
 
-        $history_stock = array_reverse($history_stock);
+        // get history stock start point
+        $history_stock_sp = $stockLog->select('SUM(stock_in) - SUM(stock_out) as starting_point')
+            ->where('product_id', $id)
+            ->where('stock_logs.datetime <', $six_month_ago)
+            ->groupBy('product_id')
+            ->first();
 
-        $balance = 0;
+        $history_stock = array_reverse($history_stock);
+        if ($history_stock_sp) {
+            $balance = $history_stock_sp['starting_point'];
+        } else {
+            $balance = 0;
+        }
+
         foreach ($history_stock as $key => $value) {
             if (empty($value['stock_in'])) {
                 $balance -= $value['stock_out'];
