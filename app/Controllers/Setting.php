@@ -360,6 +360,26 @@ class Setting extends BaseController
         return 'success';
     }
 
+    public function init_stock_log_v4()
+    {
+        $stockLog = new StockLogModel();
+
+        //tambah stok manual
+        $getLogs = $stockLog->where("description", "Stok Awal")->findAll();
+
+        $stockLogStockUpdate = [];
+        foreach ($getLogs as $key => $value) {
+            $stockLogStockUpdate[] = [
+                'id' => $value['id'],
+                'datetime' => "2022-01-01 00:00:01"
+            ];
+        }
+
+        $stockLog->updateBatch($stockLogStockUpdate, 'id');
+
+        return 'success';
+    }
+
     public function test_date()
     {
         echo date("Y-m-d H:i:s", strtotime("23/09/2022"));
