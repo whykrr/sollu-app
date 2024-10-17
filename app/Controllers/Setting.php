@@ -380,6 +380,129 @@ class Setting extends BaseController
         return 'success';
     }
 
+    public function fix_stock_log_out()
+    {
+        ini_set('memory_limit', '10G');
+
+        $stockLog = new StockLogModel();
+        $invoiceStockSales = new InvoiceStockSalesModel();
+        $spoil = new StockSpoilModel();
+
+        $sqlContent = "";
+
+        // delete log out
+        $stockLog->where('stock_in', 0)->delete();
+
+        // delete log out hapus penjualan
+        $stockLog->like('description', 'Hapus Penjualan', 'both')->delete();
+
+        //Penjualan Stok
+        $invoiceStockSales = $invoiceStockSales
+            ->join('stock_sales', 'stock_sales.invoice_id = invoice_stock_sales.id')
+            ->findAll();
+
+        $sqlContent .= "-- INSERT STOCK SALES" . PHP_EOL;
+        $row = 0;
+        $sqlInsertValue = "";
+        foreach ($invoiceStockSales as $key => $value) {
+            $row++;
+
+            $sqlInsertValue .= PHP_EOL . "(" .
+                "'Penjualan $value[invoice_no]'," .
+                "'$value[product_id]'," .
+                "'$value[date]'," .
+                "0," .
+                "$value[qty]," .
+                "0," .
+                "0," .
+                "'$value[created_at]'" .
+                ")";
+
+            switch ($row) {
+                case 150:
+                    $row = 0;
+                    $sqlContent .= PHP_EOL . "INSERT INTO stock_logs (description, product_id, datetime, stock_in, stock_out, cogs, selling_price, created_at) VALUES $sqlInsertValue;";
+                    $sqlInsertValue = "";
+                    break;
+                default:
+                    $sqlInsertValue .= ",";
+                    break;
+            }
+        }
+
+        $sqlContent .= PHP_EOL . PHP_EOL . "-- INSERT STOCK SPOIL" . PHP_EOL;
+
+        // Stock Spoil
+        $spoil = $spoil
+            ->select('stock_spoil.*, products.selling_price')
+            ->join('products', 'products.id = stock_spoil.product_id')
+            ->findAll();
+
+        $row = 0;
+        $sqlInsertValue = "";
+        foreach ($spoil as $key => $value) {
+            $row++;
+
+            $sqlInsertValue .= PHP_EOL . "(" .
+                "'Stok terbuang ({$value['note']})'," .
+                "'$value[product_id]'," .
+                "'$value[date]'," .
+                "0," .
+                "$value[qty]," .
+                "0," .
+                "0," .
+                "'$value[date]'" .
+                ")";
+
+            switch ($row) {
+                case 150:
+                    $row = 0;
+                    $sqlContent .= PHP_EOL . "INSERT INTO stock_logs (description, product_id, datetime, stock_in, stock_out, cogs, selling_price, created_at) VALUES $sqlInsertValue;";
+                    $sqlInsertValue = "";
+                    break;
+                default:
+                    $sqlInsertValue .= ",";
+                    break;
+            }
+        }
+
+        $filename = "database_dump.sql";
+
+        // Set the headers to prompt the browser to download the file
+        header('Content-Type: application/sql');
+        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header('Content-Length: ' . strlen($sqlContent));
+
+        echo $sqlContent;
+    }
+
+    public function reset_stock_log()
+    {
+        $stockLog = new StockLogModel();
+        $product = new ProductsModel();
+
+        $stockLog->truncate();
+
+        $p = $product->where('stock !=', 0)->findAll();
+
+        $stock = [];
+        foreach ($p as $pi) {
+            $stock[] = [
+                'description' => "Stok Awal",
+                'product_id' => $pi['id'],
+                'datetime' => date('Y-m-d H:i:s'),
+                'stock_in' => $pi['stock'],
+                'stock_out' => 0,
+                'cogs' => 0,
+                'selling_price' => 0,
+            ];
+        }
+
+        $stockLog->insertBatch($stock, null, 150);
+
+        return 'success';
+    }
+
     public function test_date()
     {
         echo date("Y-m-d H:i:s", strtotime("23/09/2022"));

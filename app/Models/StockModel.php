@@ -92,6 +92,16 @@ class StockModel extends Model
         $updateBatch = [];
         $stockLogs = [];
 
+        foreach ($items as $keyItem => $valueItem) {
+            $stockLogs[] = [
+                'product_id' => $valueItem['product_id'],
+                'stock_out' => $valueItem['qty'],
+                'qty' => $valueItem['qty'],
+                'cogs' => 0,
+                'selling_price' => 0,
+            ];
+        }
+
         // INFO - Update stock and get data to insert stock_out
         foreach ($stocks as $keyStock => $valueStock) {
             // check if $items length is 0 and stop loop
@@ -126,16 +136,6 @@ class StockModel extends Model
 
                             // set remaining stock
                             $items[$keyItem]['qty'] = $remaining;
-                        }
-
-                        if (!in_array($valueStock['product_id'], $stockLogs)) {
-                            $stockLogs[$valueStock['product_id']] = [
-                                'product_id' => $valueStock['product_id'],
-                                'stock_out' => $valueItem['qty'],
-                                'qty' => $valueItem['qty'],
-                                'cogs' => 0,
-                                'selling_price' => 0,
-                            ];
                         }
                     }
                 }
