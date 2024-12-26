@@ -58,17 +58,18 @@ class Product extends BaseController
         $get_data = $products
             ->select('products.*, units.name as unit_name, SUM(stock_sales.qty) as total_sales')
             ->join('stock_sales', 'stock_sales.product_id = products.id', 'left')
+            ->join('invoice_stock_sales', 'stock_sales.invoice_id = invoice_stock_sales.id', 'left')
             ->join('units', 'units.id = products.unit_id', 'left')
             ->orderBy('total_sales', 'DESC')
             ->groupBy('products.id');
         if ($type == 'daily') {
-            $get_data->where('DATE(stock_sales.created_at)', $where['date']);
+            $get_data->where('DATE(invoice_stock_sales.date)', $where['date']);
         } elseif ($type == 'range') {
-            $get_data->where('DATE(stock_sales.created_at) >=', $where['start_date'])
-                ->where('DATE(stock_sales.created_at) <=', $where['end_date']);
+            $get_data->where('DATE(invoice_stock_sales.date) >=', $where['start_date'])
+                ->where('DATE(invoice_stock_sales.date) <=', $where['end_date']);
         } elseif ($type == 'monthly') {
-            $get_data->where('MONTH(stock_sales.created_at)', $where['month'])
-                ->where('YEAR(stock_sales.created_at)', $where['year']);
+            $get_data->where('MONTH(invoice_stock_sales.date)', $where['month'])
+                ->where('YEAR(invoice_stock_sales.date)', $where['year']);
         }
         $get_data = $get_data->findAll();
 
