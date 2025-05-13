@@ -1,0 +1,237 @@
+@import "@fortawesome/fontawesome-free/css/solid.css";
+@import url("https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        scale: 0.5;
+    }
+    to {
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+@keyframes appear-right {
+    from {
+        opacity: 0;
+        transform: translate(100px, 0px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(0px, 0px);
+    }
+}
+
+@keyframes appear-left {
+    from {
+        opacity: 0;
+        transform: translate(-100px, 0px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(0px, 0px);
+    }
+}
+
+.appear {
+    animation: appear linear;
+    animation-timeline: view();
+    animation-range: entry 0% cover 15%;
+}
+
+.appear-right {
+    animation: appear-right linear;
+    animation-timeline: view();
+    animation-range: entry 0% cover 15%;
+}
+
+.appear-left {
+    animation: appear-left linear;
+    animation-timeline: view();
+    animation-range: entry 0% cover 15%;
+}
+
+@layer base {
+    h1 {
+        @apply text-2xl;
+    }
+    h2 {
+        @apply text-xl;
+    }
+}
+
+@layer components {
+    .swiper {
+        position: relative;
+        z-index: 1; /* Ensures Swiper has a lower z-index than its overlays */
+    }
+
+    .swiper-slide {
+        z-index: 2; /* Ensures slides are visible */
+    }
+
+    .swiper-button-next,
+    .swiper-button-prev,
+    .swiper-pagination {
+        z-index: 10; /* Ensures navigation buttons and pagination are above slides */
+    }
+
+    .swiper-button-next,
+    .swiper-button-prev {
+        @apply text-web-main/50; /* Replace with your desired color */
+    }
+
+    /* Optional: Add hover effect */
+    .swiper-button-next:hover,
+    .swiper-button-prev:hover {
+        @apply text-web-main; /* Replace with your desired color */
+    }
+
+    /* Optional: Adjust size if needed */
+    .swiper-button-next,
+    .swiper-button-prev {
+        font-size: 24px; /* Adjust icon size */
+    }
+
+    /* Custom Inmput Style */
+    .form {
+        @apply rounded-md border
+        focus:ring-0
+        bg-light
+        border-gray-300
+        focus-within:border-main
+        py-1.5 overflow-hidden;
+    }
+    .form[type="file"] {
+        @apply outline-none py-0 focus-visible:ring-0 cursor-pointer file:mr-2 file:py-1.5 file:px-2 file:border-0 file:bg-gray-300  file:text-dark;
+    }
+    label + .form {
+        @apply block w-full;
+    }
+    .label-horizontal {
+        @apply py-1.5;
+    }
+
+    .form-sm {
+        @apply form !py-1 !text-sm;
+    }
+    .form-sm[type="file"] {
+        @apply !py-0 file:!py-1 file:!text-sm;
+    }
+    label + .form-sm {
+        @apply !text-sm;
+    }
+
+    .form-lg {
+        @apply form !py-2.5 !text-lg;
+    }
+    .form-lg[type="file"] {
+        @apply !py-0 file:!py-2.5 file:!text-lg;
+    }
+    label + .form-lg {
+        @apply !text-lg;
+    }
+
+    .form:disabled,
+    .form-sm:disabled,
+    .form-lg:disabled {
+        @apply text-gray-400;
+    }
+
+    .form-check {
+        @apply block min-h-6;
+    }
+    .form-check-input {
+        @apply form align-top w-4 h-4 mt-1;
+    }
+    .form-check-label {
+        @apply mx-1 select-none;
+    }
+
+    .form-group {
+        @apply flex rounded items-center bg-light border-1 focus-within:border-main py-0 overflow-hidden;
+    }
+
+    .form-group span,
+    .form-group label {
+        @apply text-gray-500 first:!ml-3 last:!mr-3;
+    }
+    .form-group .form,
+    .form-group .form-sm,
+    .form-group .form-lg {
+        @apply w-full !border-0;
+    }
+
+    .form-group-input {
+        @apply flex flex-row;
+    }
+    .form-group-input .form {
+        @apply rounded-none border-x-[0.5px] first:border-l last:border-r first:rounded-l last:rounded-r;
+    }
+
+    .form-group-btn {
+        @apply flex rounded items-center bg-light border-1 focus-within:border-main py-0 overflow-hidden;
+    }
+    .form-group-btn .btn {
+        @apply py-2.5 rounded-none;
+    }
+    .form-group-btn .form {
+        @apply w-full border-0;
+    }
+
+    .form-floating {
+        @apply relative;
+    }
+    .form-floating .form {
+        @apply w-full h-12 pt-5 placeholder-transparent;
+    }
+    .form-floating label {
+        @apply absolute left-2 -translate-y-1/2 text-xs top-3 transform transition-all duration-200 px-1;
+    }
+    .form-floating input:placeholder-shown ~ label {
+        @apply top-1/2 -translate-y-1/2 text-base text-gray-600;
+    }
+    .form-floating .form:focus ~ label {
+        @apply top-3 text-xs;
+    }
+
+    .form + .form-feedback,
+    .form-group + .form-feedback,
+    .form-group-input + .form-feedback,
+    .form-group-button + .form-feedback,
+    .form-floating + .form-feedback {
+        @apply hidden;
+    }
+
+    .is-valid,
+    .form-floating.is-valid .form {
+        @apply border-success focus:!border-success focus-within:!border-success;
+    }
+    .is-valid + .form-feedback {
+        @apply block text-success text-xs;
+    }
+
+    .is-invalid,
+    .form-floating.is-invalid .form {
+        @apply border-danger focus:!border-danger focus-within:!border-danger;
+    }
+    .is-invalid + .form-feedback {
+        @apply block text-danger text-xs;
+    }
+
+    /* SPINNER */
+    .spinner {
+        @apply w-10 h-10 border-4 border-web-main border-t-transparent rounded-full animate-spin;
+    }
+}
+
+@layer utilities {
+    .ql-editor {
+        @apply !p-0;
+    }
+}

@@ -1,0 +1,132 @@
+const id = {
+    "sidebar": {
+        "dashboard": "Dasbor",
+        "users": "Pengguna",
+        "languages": "Bahasa",
+        "contentTypes": "Kategori Konten",
+        "contents": "Konten",
+        "messages": "Pesan",
+        "settings": "Pengaturan"
+    },
+    "page": {
+        "user": "Pengguna",
+        "language": "Bahasa",
+        "contentType": "Kategori Konten",
+        "content": "Konten",
+        "message": "Pesan",
+        "setting": "Pengaturan"
+    },
+    "dashboard": {
+        "totalVisits": "Total Kunjungan Bulan Ini",
+        "totalVisitor": "Pengunjung Bulan Ini",
+        "unreadMessages": "Pesan Belum Dibaca",
+        "pageVisitorPerMonth": "Pengunjung Halaman Per Bulan",
+        "visitorPerMonth": "Pengunjung Per Bulan",
+        "top10": "10 Halaman Teratas yang Paling Banyak Dikunjungi dalam 6 Bulan Terakhir"
+    },
+    "action": {
+        "create": "Tambah",
+        "edit": "Ubah",
+        "detail": "Detail",
+        "delete": "Hapus",
+        "permanentDelete": "Hapus Permanen",
+        "restore": "Pulihkan",
+        "submit": "Simpan",
+        "sent": "Kirim",
+        "setDefault": 'Tetapkan Utama',
+        "addField": 'Tambahkan Bidang',
+    },
+    "link": {
+        "changePassword": "Ubah Kata Sandi",
+        "logout": "Keluar"
+    },
+    "filter": {
+        "from": "Dari",
+        "to": "s/d"
+    },
+    "table": {
+        "created": "Dibuat",
+        "lastUpdate": "Pembaruan Terakhir",
+        "showing": "Menampilkan",
+        "of": "dari",
+        "result": "hasil",
+        "subject": "Subjek",
+        "link": "Tautan",
+        "visits": "Kunjungan",
+        "visitors": "Pengunjung"
+    },
+    "status": {
+        "active": "Aktif",
+        "deleted": "Dihapus",
+        "all": "Semua",
+        "unread": "Belum Dibaca",
+        "read": "Dibaca",
+        "archive": "Arsip",
+        "replied": "Dijawab"
+    },
+    "form": {
+        "search": "Cari",
+        "select": "Pilih"
+    },
+    "field": {
+        "name": "Nama",
+        "title": 'Judul',
+        "role": "Akses",
+        "code": "Kode",
+        "description": "Deskripsi",
+        "haveParent": "Memiliki Induk",
+        "multipleRow": "Beberapa Baris",
+        "withMeta": "Dengan Meta",
+        "titleAlias": "Alias Judul",
+        "field": "Bidang",
+        "validation": "Validasi",
+        "text": "Teks",
+        "longText": "Teks Panjang",
+        "textEditor": "Editor Teks",
+        "number": "Nomor",
+        "date": "Tanggal",
+        "file": "Berkas",
+        "image": "Gambar",
+        "hyperlink": "Tautan",
+        "required": "Wajib",
+        "maxCharacters": "Karakter Maksimal",
+        "min": "Min",
+        "max": "Maks",
+        "maxFileSize": "Ukuran Berkas Maksimal",
+        "imageDimension": "Dimensi Gambar",
+        "width": "Lebar",
+        "height": "Tinggi",
+        "ratio": "Rasio",
+        "response": "Respons",
+        "address": "Alamat",
+        "logo": "Logo",
+        "icon": "Ikon",
+        "multiLanguage": "Multibahasa",
+        "socialMedia": "Media Sosial",
+        "link": "Tautan",
+        "whatsappNumber": "Nomor Whatsapp",
+        "system": "Sistem",
+        "language": "Bahasa",
+        "value": "Nilai",
+        "keyword": "Kata Kunci",
+        "oldPassword": "Kata Sandi Lama",
+        "newPassword": "Kata Sandi Baru",
+        "passwordConfirmation": "Konfirmasi Kata Sandi"
+    },
+    "message": {
+        "defaultFieldTitle": "Bidang default hanya berisi 'Judul'. Silakan tambahkan lebih banyak bidang jika diperlukan!",
+        "ratioFormat": "Rasio harus dalam format {value}",
+        "dimension": "Dimensi lebar dan tinggi harus {value}",
+        "imageReplace": "Mengedit berkas atau gambar akan menggantinya",
+    },
+    "modal": {
+        "deleteHeader": "Hapus Data?",
+        "deleteMsg": "Apakah anda yakin akan menghapus data ini?",
+        "action": {
+            "cancel": 'Batal',
+            "confirm": 'Konfirmasi',
+        }
+    }
+}
+
+export default id

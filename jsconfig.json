@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "jsx": "preserve",
+        "allowImportingTsExtensions": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "baseUrl": ".",
+        "paths": {
+            // "@web/*": [ "resources/js/web/*" ],
+            "@admin/*": [ "resources/js/admin/*" ]
+        }
+    },
+    "include": [
+        "resources/js/**/*" // Include all JavaScript files
+    ],
+    "exclude": [ "node_modules", "**/node_modules/*" ]
+}
