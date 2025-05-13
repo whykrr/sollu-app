@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 
-Route::get('/', function () {
-    return inertia('Index');
-})->middleware('track-visitor');
+Route::get('/login', [AuthController::class, 'index'])->name('login');
+
+Route::get('/', DashboardController::class)->name('main');

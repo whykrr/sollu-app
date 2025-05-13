@@ -7,10 +7,8 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                'resources/css/web.css',
-                'resources/js/web.js',
-                'resources/css/admin.css',
-                'resources/js/admin.js'
+                'resources/css/app.css',
+                'resources/js/app.js',
             ],
             refresh: true,
         }),
@@ -26,8 +24,7 @@ export default defineConfig({
     resolve: {
         alias: {
             'ziggy-js': path.resolve('vendor/tightenco/ziggy'),
-            '@admin': path.resolve(__dirname, 'resources/js/admin'),
-            '@web': path.resolve(__dirname, 'resources/js/web'),
+            '@': path.resolve(__dirname, 'resources/js'),
         }
     },
     // build: {

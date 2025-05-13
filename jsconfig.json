@@ -6,8 +6,7 @@
         "strictFunctionTypes": true,
         "baseUrl": ".",
         "paths": {
-            // "@web/*": [ "resources/js/web/*" ],
-            "@admin/*": [ "resources/js/admin/*" ]
+            "@/*": [ "resources/js/*" ]
         }
     },
     "include": [

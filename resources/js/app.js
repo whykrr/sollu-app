@@ -2,7 +2,6 @@ import { createApp, h } from 'vue'
 import { createInertiaApp } from '@inertiajs/vue3'
 import { ZiggyVue } from 'ziggy-js';
 import { Ziggy } from './ziggy.js';
-import "quill/dist/quill.snow.css";
 
 /* import the fontawesome core */
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -12,12 +11,13 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 /* import specific icons */
 import { fas } from '@fortawesome/free-solid-svg-icons'
-import { fab } from '@fortawesome/free-brands-svg-icons'
-import MainLayout from './web/Layout/MainLayout.vue';
-// import AdminBaseLayout from '@/Layout/AdminBaseLayout.vue';
+import AppLayout from '@/Layout/AppLayout.vue';
+import { createPinia } from 'pinia';
+import i18n from '@/i18n.js';
+import AccessHandle from '@/access-handle.js';
 
 /* add icons to the library */
-library.add(fas, fab)
+library.add(fas)
 
 createInertiaApp({
     progress: {
@@ -25,20 +25,20 @@ createInertiaApp({
         showSpinner: false
     },
     resolve: async (name) => {
-        const pages = import.meta.glob('./web/Pages/**/*.vue')
-        const page = await pages[`./web/Pages/${name}.vue`]()
-        page.default.layout ??= MainLayout
+        const pages = import.meta.glob('./Pages/**/*.vue')
+        const page = await pages[`./Pages/${name}.vue`]()
+        page.default.layout ??= AppLayout
         return page
-
-        // const pages = import.meta.glob('./web/Pages/**/*.vue', { eager: true })
-        // return pages[`./web/Pages/${name}.vue`]
     },
 
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .component('fa', FontAwesomeIcon)
             .use(plugin)
+            .use(i18n)
             .use(ZiggyVue, Ziggy)
+            .use(createPinia())
+            .use(AccessHandle)
             .mount(el)
     },
 })

@@ -11,22 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
         commands: __DIR__ . '/../routes/console.php',
-        health: '/up',
+        health: '/health',
         then: function () {
-            Route::middleware('admin')
-                ->prefix('administrator')
-                ->name('admin.')
-                ->group(base_path('routes/admin.php'));
+            // This is where you can add any additional middleware to the web routes.
+            // For example, you can add authentication or authorization middleware here.
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->alias([
-            'track-visitor' => TrackVisitor::class
-        ]);
         $middleware->web(append: [
-            HandleInertiaWebRequests::class
-        ]);
-        $middleware->group('admin', [
             \Illuminate\Cookie\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
@@ -38,8 +30,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         //app
-        $middleware->redirectGuestsTo(fn($request) => route('admin.login'));
-        $middleware->redirectUsersTo(fn($request) => route('admin.dashboard'));
+        $middleware->redirectGuestsTo(fn($request) => route('login'));
+        // $middleware->redirectUsersTo(fn($request) => route('admin.dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
