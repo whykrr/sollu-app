@@ -1,1 +1,1 @@
-## Sollu Dashboard Template
+## Sollu Dashboard
