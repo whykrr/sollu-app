@@ -29,8 +29,8 @@ class AppCached
                         $contentCache[$fv->content_field->key] = $fv->value;
                     }
                     $contentCache['meta'] = [
-                        'title' => $content->meta_title,
-                        'keyword' => $content->meta_keyword,
+                        'title'       => $content->meta_title,
+                        'keyword'     => $content->meta_keyword,
                         'description' => $content->meta_description,
                     ];
                     $contentsCache[] = $contentCache;
@@ -46,8 +46,8 @@ class AppCached
                     $contentCache[$fv->content_field->key] = $fv->value;
                 }
                 $contentCache['meta'] = [
-                    'title' => $type->content->meta_title,
-                    'keyword' => $type->content->meta_keyword,
+                    'title'       => $type->content->meta_title,
+                    'keyword'     => $type->content->meta_keyword,
                     'description' => $type->content->meta_description,
                 ];
                 Cache::forever("type.{$contentType->slug}", json_encode($contentCache));

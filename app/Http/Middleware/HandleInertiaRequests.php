@@ -5,8 +5,8 @@ namespace App\Http\Middleware;
 use App\Models\ContentType;
 use App\Models\Setting;
 use Cache;
-use Inertia\Middleware;
 use Illuminate\Http\Request;
+use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -42,34 +42,36 @@ class HandleInertiaRequests extends Middleware
         $contentType = Cache::get('content-sidebar', function () {
             $ct = ContentType::sidebar()->get()->toJson();
             Cache::forever('content-sidebar', $ct);
+
             return $ct;
         });
 
         $locale = Cache::get('system-locale', function () {
             $lang = Setting::find('system')->value['language'];
             Cache::forever('system-locale', $lang);
+
             return $lang;
         });
 
         $menuActiveContent = $request->routeIs('admin.contents.*')
-            ? "admin.contents." . ($request->route()->parameter('content_type')->parent_id ?? $request->route()->parameter('content_type')->id)
+            ? 'admin.contents.' . ($request->route()->parameter('content_type')->parent_id ?? $request->route()->parameter('content_type')->id)
             : null;
 
         return array_merge(parent::share($request), [
             // Synchronously...
-            'appName' => config('app.name'),
-            'locale' => $locale,
+            'appName'     => config('app.name'),
+            'locale'      => $locale,
             'breadcrumbs' => generateBreadcrumbs($request->route()->getName()),
-            'menuActive' => $menuActiveContent ?? $request->route()->getName(),
-            'flash' => [
+            'menuActive'  => $menuActiveContent ?? $request->route()->getName(),
+            'flash'       => [
                 'success' => $request->session()->get('success'),
-                'failed' => $request->session()->get('failed')
+                'failed'  => $request->session()->get('failed'),
             ],
             'request' => $request->getPayload(),
 
             // Lazily...
-            'auth' => fn() => $request->user()?->only('id', 'name', 'email', 'role'),
-            'contentSidebar' => fn() => json_decode((string) $contentType)
+            'auth'           => fn () => $request->user()?->only('id', 'name', 'email', 'role'),
+            'contentSidebar' => fn () => json_decode((string) $contentType),
         ]);
     }
 }

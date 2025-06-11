@@ -15,11 +15,11 @@ class ContentDisplay
     {
         $contents = [];
         foreach ($contentTypes as $contentType) {
-            $contents[$contentType->slug] =
-                $contentType->is_listed
+            $contents[$contentType->slug] = $contentType->is_listed
                 ? self::singleListed($contentType->load(['contents.field_values.content_field']))
                 : self::single($contentType->load(['content.field_values.content_field']));
         }
+
         return $contents;
     }
 
@@ -31,18 +31,19 @@ class ContentDisplay
     {
         $contentCache = [];
         if ($type && $type->content) {
-            $contentCache['title'] = $type->content->title;
-            $contentCache['slug'] = $type->content->slug;
+            $contentCache['title']      = $type->content->title;
+            $contentCache['slug']       = $type->content->slug;
             $contentCache['created_at'] = $type->content->created_at;
             foreach ($type->content->field_values as $fv) {
                 $contentCache[$fv->content_field->key] = $fv->value;
             }
             $contentCache['meta'] = [
-                'title' => $type->content->meta_title,
-                'keyword' => $type->content->meta_keyword,
+                'title'       => $type->content->meta_title,
+                'keyword'     => $type->content->meta_keyword,
                 'description' => $type->content->meta_description,
             ];
         }
+
         return $contentCache;
     }
 
@@ -55,20 +56,21 @@ class ContentDisplay
         $contentsCache = [];
         if ($type && count($type->contents) > 0) {
             foreach ($type->contents as $content) {
-                $contentCache['title'] = $content->title;
-                $contentCache['slug'] = $content->slug;
+                $contentCache['title']      = $content->title;
+                $contentCache['slug']       = $content->slug;
                 $contentCache['created_at'] = $content->created_at;
                 foreach ($content->field_values as $fv) {
                     $contentCache[$fv->content_field->key] = $fv->value;
                 }
                 $contentCache['meta'] = [
-                    'title' => $content->meta_title,
-                    'keyword' => $content->meta_keyword,
+                    'title'       => $content->meta_title,
+                    'keyword'     => $content->meta_keyword,
                     'description' => $content->meta_description,
                 ];
                 $contentsCache[] = $contentCache;
             }
         }
+
         return $contentsCache;
     }
 }

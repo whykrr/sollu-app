@@ -1,7 +1,7 @@
 <?php
 
 
-if (!function_exists('generateBreadcrumbs')) {
+if (! function_exists('generateBreadcrumbs')) {
     function generateBreadcrumbs($routeName)
     {
         $breadcrumbs = [

@@ -36,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
             // Log query yang dijalankan
             Log::channel('query_log')->info("Query executed: {$query->sql}", [
                 'bindings' => $query->bindings,
-                'time' => $query->time
+                'time'     => $query->time,
             ]);
         });
     }

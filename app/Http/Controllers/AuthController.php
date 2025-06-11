@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
 use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -16,18 +14,19 @@ class AuthController extends Controller
     }
     public function store(Request $request)
     {
-        if (!Auth::attempt(
+        if (! Auth::attempt(
             $request->validate([
-                'email' => ['required', 'email'],
+                'email'    => ['required', 'email'],
                 'password' => ['required'],
             ])
         )) {
             throw ValidationException::withMessages([
-                'email' => 'Authentication failed, please check your credentials!'
+                'email' => 'Authentication failed, please check your credentials!',
             ]);
         }
 
         $request->session()->regenerate();
+
         return redirect()->intended(route('admin.dashboard'));
     }
 

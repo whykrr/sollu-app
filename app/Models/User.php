@@ -5,16 +5,18 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use DateTimeInterface;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory;
+    use Notifiable;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -71,23 +73,21 @@ class User extends Authenticatable
         return $builder
             ->when(
                 $filters['search'] ?? false,
-                fn($builder, $value) =>
-                $builder->where(function ($nestedBuilder) use ($value) {
+                fn ($builder, $value) => $builder->where(function ($nestedBuilder) use ($value) {
                     $nestedBuilder->where('name', 'like', "%$value%")
                         ->orWhere('email', 'like', "%$value%");
                 })
             )
             ->when(
                 $filters['by'] ?? false,
-                fn($builder, $value) =>
-                !in_array($value, $this->sortable)
+                fn ($builder, $value) => ! in_array($value, $this->sortable)
                     ? $builder
                     : $builder->orderBy($value, $filters['order'] ?? 'desc'),
-                fn($builder) => $builder->orderBy('created_at', 'desc')
+                fn ($builder) => $builder->orderBy('created_at', 'desc')
             )
             ->when(
                 $filters['status'] ?? false,
-                fn($builder, $value) => ($value != 'deleted')
+                fn ($builder, $value) => ($value != 'deleted')
                     ? $builder
                     : $builder->onlyTrashed()
             );

@@ -17,17 +17,16 @@ class DatabaseSeeder extends Seeder
         // User::factory(1000)->create();
 
         User::factory()->create([
-            'name' => 'Sollu Teknologi Indonesia',
+            'name'  => 'Sollu Teknologi Indonesia',
             'email' => 'superadmin@sollu.id',
-            'role' => 'superadmin'
+            'role'  => 'superadmin',
         ]);
 
         collect([
             ['code' => 'id', 'name' => 'Bahasa Indonesia', 'is_default' => true],
             ['code' => 'en', 'name' => 'English'],
         ])->each(
-            fn($language) =>
-            Language::factory()->create($language)
+            fn ($language) => Language::factory()->create($language)
         );
     }
 }

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Setting;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class SettingSeeder extends Seeder
@@ -15,30 +14,30 @@ class SettingSeeder extends Seeder
     {
         $settings = [
             [
-                'key' => 'website',
+                'key'   => 'website',
                 'value' => [
-                    'name' => 'Sollu CMS',
-                    'address' => '',
-                    'logo' => '',
-                    'icon' => '',
-                    'multiple_language' => false
+                    'name'              => 'Sollu CMS',
+                    'address'           => '',
+                    'logo'              => '',
+                    'icon'              => '',
+                    'multiple_language' => false,
                 ],
             ],
             [
-                'key' => 'system',
+                'key'   => 'system',
                 'value' => [
                     'language' => 'id',
                 ],
             ],
             [
-                'key' => 'social_media',
+                'key'   => 'social_media',
                 'value' => [
-                    'facebook' => '',
+                    'facebook'  => '',
                     'instagram' => '',
-                    'x' => '',
-                    'youtube' => '',
-                    'tiktok' => '',
-                    'whatsapp' => '',
+                    'x'         => '',
+                    'youtube'   => '',
+                    'tiktok'    => '',
+                    'whatsapp'  => '',
                 ],
             ],
         ];
