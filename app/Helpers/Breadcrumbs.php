@@ -5,8 +5,8 @@ if (! function_exists('generateBreadcrumbs')) {
     function generateBreadcrumbs($routeName)
     {
         $breadcrumbs = [
-            'main' => [
-                ['label' => 'Dashboard', 'url' => route('main')],
+            'overview' => [
+                ['label' => 'Overview', 'url' => route('overview')],
             ],
 
             // 'users.index' => [
@@ -80,6 +80,6 @@ if (! function_exists('generateBreadcrumbs')) {
 
         $routeName = str_replace('admin.', '', $routeName);
 
-        return $breadcrumbs[$routeName] ?? $breadcrumbs['main'];
+        return $breadcrumbs[$routeName] ?? $breadcrumbs['overview'];
     }
 }

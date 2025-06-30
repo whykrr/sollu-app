@@ -2,33 +2,45 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use DateTimeInterface;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Model
 {
     use HasFactory;
     use Notifiable;
     use SoftDeletes;
-
+    use MustVerifyEmail;
+    use HasUuids;
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
+        'merchant_id',
         'name',
         'email',
         'password',
-        'role',
+        'pin',
         'photo',
+        'is_root_user',
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'is_root_user' => 'boolean',
     ];
 
     /**
@@ -38,12 +50,12 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'pin',
         'remember_token',
     ];
 
     protected $sortable = [
         'name',
-        'role',
         'created_at',
     ];
 
@@ -64,37 +76,23 @@ class User extends Authenticatable
         return $date->format('d/m/Y H.i');
     }
 
-    public function message_response(): HasMany|MessageResponse
+    /**
+     * Get the merchant that owns the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function merchant(): BelongsTo
     {
-        return $this->hasMany(MessageResponse::class);
-    }
-    public function scopeFilter(Builder $builder, array $filters): Builder
-    {
-        return $builder
-            ->when(
-                $filters['search'] ?? false,
-                fn ($builder, $value) => $builder->where(function ($nestedBuilder) use ($value) {
-                    $nestedBuilder->where('name', 'like', "%$value%")
-                        ->orWhere('email', 'like', "%$value%");
-                })
-            )
-            ->when(
-                $filters['by'] ?? false,
-                fn ($builder, $value) => ! in_array($value, $this->sortable)
-                    ? $builder
-                    : $builder->orderBy($value, $filters['order'] ?? 'desc'),
-                fn ($builder) => $builder->orderBy('created_at', 'desc')
-            )
-            ->when(
-                $filters['status'] ?? false,
-                fn ($builder, $value) => ($value != 'deleted')
-                    ? $builder
-                    : $builder->onlyTrashed()
-            );
+        return $this->belongsTo(Merchant::class);
     }
 
-    public function scopeClient(Builder $builder): Builder
+    /**
+     * The outlets that belong to the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function outlets(): BelongsToMany
     {
-        return $builder->where('role', '!=', 'superadmin');
+        return $this->belongsToMany(Outlet::class, 'outlet_user', 'user_id', 'outlet_id');
     }
 }

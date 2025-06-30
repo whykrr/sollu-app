@@ -153,6 +153,11 @@ export default {
 
 // Helper function to convert hex to rgba
 function hexToRgba(hex, alpha) {
+    if (typeof hex !== 'string' || !hex.startsWith('#') || hex.length !== 7) {
+        // Fallback, return original if not valid hex
+        return hex;
+    }
+
     let r = parseInt(hex.slice(1, 3), 16);
     let g = parseInt(hex.slice(3, 5), 16);
     let b = parseInt(hex.slice(5, 7), 16);

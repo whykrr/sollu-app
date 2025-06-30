@@ -18,20 +18,24 @@ $finder = Finder::create()
 return (new Config())
     ->setRiskyAllowed(true)
     ->setRules([
-        '@PSR12' => true,
-        'array_syntax' => ['syntax' => 'short'],
-        'binary_operator_spaces' => [
-            'default' => 'align_single_space_minimal',
+        '@PSR12'                          => true,
+        'array_syntax'                    => ['syntax' => 'short'],
+        'trim_array_spaces'               => true,
+        'whitespace_after_comma_in_array' => true,
+        'array_indentation'               => true,
+        'binary_operator_spaces'          => [
+            'default'   => 'align_single_space_minimal',
+            'operators' => ['=>' => 'align_single_space_minimal'],
         ],
         'blank_line_before_statement' => [
             'statements' => ['return'],
         ],
-        'ordered_imports' => ['sort_algorithm' => 'alpha'],
-        'no_unused_imports' => true,
-        'single_quote' => true,
+        'ordered_imports'                   => ['sort_algorithm' => 'alpha'],
+        'no_unused_imports'                 => true,
+        'single_quote'                      => true,
         'not_operator_with_successor_space' => true,
-        'trailing_comma_in_multiline' => ['elements' => ['arrays']],
-        'phpdoc_scalar' => true,
-        'phpdoc_align' => ['align' => 'left'],
+        'trailing_comma_in_multiline'       => ['elements' => ['arrays']],
+        'phpdoc_scalar'                     => true,
+        'phpdoc_align'                      => ['align' => 'left'],
     ])
     ->setFinder($finder);
