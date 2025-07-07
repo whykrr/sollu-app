@@ -34,14 +34,17 @@ class Merchant extends Model
     ];
 
     /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'already_free_trial' => 'boolean',
-        'settings'           => 'json',
-    ];
+    * Get the attributes that should be cast.
+    *
+     * @return array<string, string>
+    */
+    protected function casts(): array
+    {
+        return [
+            'already_free_trial' => 'boolean',
+            'settings'           => 'json',
+        ];
+    }
 
     /**
      * Get the industry that owns the Merchant

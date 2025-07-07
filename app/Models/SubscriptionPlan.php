@@ -26,6 +26,18 @@ class SubscriptionPlan extends Model
     ];
 
     /**
+    * Get the attributes that should be cast.
+    *
+     * @return array<string, string>
+    */
+    protected function casts(): array
+    {
+        return [
+            'is_trial' => 'boolean',
+        ];
+    }
+
+    /**
      * Get all of the transactions for the SubscriptionPlan
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

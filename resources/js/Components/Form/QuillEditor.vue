@@ -1,6 +1,6 @@
 <template>
     <div class="relative">
-        <div class="form rounded-t-none !overflow-visible" ref="editor"></div>
+        <div class="form rounded-t-none overflow-visible!" ref="editor"></div>
     </div>
 </template>
 <script setup>

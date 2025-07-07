@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\User\RegisterRequest;
 use App\Models\Merchant;
 use Carbon\Carbon;
-use Hash;
 use Illuminate\Support\Facades\DB;
 use Request;
 
@@ -30,26 +29,25 @@ class RegisterController extends Controller
                 'address'            => $request->address,
                 'already_free_trial' => true,
                 'merchant_type_id'   => $request->merchant_type_id,
-                'settings'           => '{}',
             ]);
 
-            $outlet = $merchant->outlets()->create([
+            $merchant->outlets()->create([
                 'name'           => $request->outlet_name,
                 'address'        => $request->address,
                 'status'         => 'active',
-                'expired_at'     => Carbon::now()->addDays(15),
+                'expired_at'     => Carbon::now()->addDays(15)->format('Y-m-d'),
                 'is_main_outlet' => true,
             ]);
 
             $user = $merchant->users()->create([
                 'name'         => $request->owner_name,
                 'email'        => $request->email,
-                'password'     => Hash::make($request->password),
+                'password'     => $request->password,
                 'is_root_user' => true,
             ]);
 
-            // assign user to outlet
-            $outlet->users()->attach($user->id);
+            // assign user role
+            $user->assignRole('owner');
 
             DB::commit();
         } catch (\Exception $e) {
@@ -57,6 +55,6 @@ class RegisterController extends Controller
             throw $e;
         }
 
-        return redirect()->route('register')->with('success', 'Registration successful. Please verify your email before logging in.');
+        return redirect()->route('login')->with('success', 'Registration successful. Please verify your email before logging in.');
     }
 }

@@ -21,32 +21,32 @@ class UserDataSeeder extends Seeder
         $fnb->users()->create([
             'name'              => $fnb->owner_name,
             'email'             => $fnb->email,
-            'password'          => encrypt('password'),
+            'password'          => 'password',
             'pin'               => '123456',
             'photo'             => null,
             'email_verified_at' => now(),
             'is_root_user'      => true,
-        ]);
+        ])->assignRole('owner');
 
         $retail->users()->create([
             'name'              => $retail->owner_name,
             'email'             => $retail->email,
-            'password'          => encrypt('password'),
+            'password'          => 'password',
             'pin'               => '123456',
             'photo'             => null,
             'email_verified_at' => now(),
             'is_root_user'      => true,
-        ]);
+        ])->assignRole('owner');
 
         $barber->users()->create([
             'name'              => $barber->owner_name,
             'email'             => $barber->email,
-            'password'          => encrypt('password'),
+            'password'          => 'password',
             'pin'               => '123456',
             'photo'             => null,
             'email_verified_at' => now(),
             'is_root_user'      => true,
-        ]);
+        ])->assignRole('owner');
 
     }
 }

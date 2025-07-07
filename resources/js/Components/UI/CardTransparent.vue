@@ -1,5 +1,5 @@
 <template>
-    <div class="card !bg-transparent rounded-none">
+    <div class="card bg-transparent! rounded-none">
         <div>
             <img
                 v-if="image"
@@ -8,7 +8,7 @@
                 class="block-inline w-full"
             />
         </div>
-        <div class="card-header !p-0">
+        <div class="card-header p-0!">
             <h2 class="text-2xl font-semibold">{{ title }}</h2>
             <div class="flex flex-row gap-2">
                 <slot name="buttons" />

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -14,11 +14,14 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'             => 'required|string|max:200',
-            'owner_name'       => 'required|string|max:200',
-            'outlet_name'      => 'required|string|max:200',
-            'email'            => 'required|email|unique:users,email',
-            'phone'            => 'required|regex:/^(0|\+62|62)[0-9]{9,13}$/',
+            'name'        => 'required|string|max:200',
+            'owner_name'  => 'required|string|max:200',
+            'outlet_name' => 'required|string|max:200',
+            'email'       => 'required|email|unique:users,email',
+            'phone'       => [
+                'required',
+                'regex:/^(0|\+62|62)[0-9]{7,13}$/',
+            ],
             'address'          => 'required',
             'merchant_type_id' => 'required',
             'password'         => 'required|confirmed|min:8',

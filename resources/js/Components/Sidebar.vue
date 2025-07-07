@@ -87,7 +87,7 @@
             <div class="p-2 relative">
                 <button
                     type="button"
-                    class="bg-gradient-to-r from-main to-secondary rounded-md p-2 cursor-pointer w-full"
+                    class="bg-linear-to-r from-main to-secondary rounded-md p-2 cursor-pointer w-full"
                     @click="toggleAccountDropdown"
                 >
                     <div class="flex flex-row gap-2 items-center text-white">

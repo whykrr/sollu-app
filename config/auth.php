@@ -36,9 +36,13 @@ return [
     */
 
     'guards' => [
-        'web' => [
+        'merchant' => [
             'driver'   => 'session',
             'provider' => 'users',
+        ],
+        'cockpit' => [
+            'driver'   => 'session',
+            'provider' => 'internal_users',
         ],
     ],
 
@@ -61,6 +65,11 @@ return [
 
     'providers' => [
         'users' => [
+            'driver' => 'eloquent',
+            'model'  => env('AUTH_MODEL', App\Models\User::class),
+        ],
+
+        'internal_users' => [
             'driver' => 'eloquent',
             'model'  => env('AUTH_MODEL', App\Models\User::class),
         ],
@@ -92,6 +101,13 @@ return [
 
     'passwords' => [
         'users' => [
+            'provider' => 'users',
+            'table'    => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire'   => 60,
+            'throttle' => 60,
+        ],
+
+        'internal_users' => [
             'provider' => 'users',
             'table'    => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire'   => 60,

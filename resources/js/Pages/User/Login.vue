@@ -1,6 +1,6 @@
 <template>
     <div
-        class="h-screen w-full grid grid-cols-12 gap-4 p-8 bg-radial-[at_50%_75%] from-main via-secondary to-secondary-lighter"
+        class="h-screen w-full grid grid-cols-12 gap-4 p-8 bg-radial-[at_25%_50%] from-light via-main-light to-main"
     >
         <div class="col-span-6 max-h-full min-h-full">
             <div
@@ -90,7 +90,7 @@
                     <div>
                         <button
                             type="submit"
-                            class="btn btn-main w-full !block"
+                            class="btn btn-main w-full block!"
                         >
                             Login
                         </button>

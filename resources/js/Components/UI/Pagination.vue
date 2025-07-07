@@ -10,7 +10,7 @@
         </div>
         <div
             class="flex flex-col items-end"
-            :class="{ '!items-center': perPage }"
+            :class="{ 'items-center!': perPage }"
         >
             <div class="inline-flex gap-1">
                 <Link

@@ -6,19 +6,23 @@ use DateTimeInterface;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Model
+class User extends Authenticatable
 {
+    use HasRoles;
     use HasFactory;
     use Notifiable;
     use SoftDeletes;
     use MustVerifyEmail;
     use HasUuids;
+    use SoftDeletes;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -32,15 +36,6 @@ class User extends Model
         'pin',
         'photo',
         'is_root_user',
-    ];
-
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'is_root_user' => 'boolean',
     ];
 
     /**
@@ -67,7 +62,8 @@ class User extends Model
     protected function casts(): array
     {
         return [
-            'password' => 'hashed',
+            'password'     => 'hashed',
+            'is_root_user' => 'boolean',
         ];
     }
 
@@ -79,7 +75,7 @@ class User extends Model
     /**
      * Get the merchant that owns the User
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Merchant
      */
     public function merchant(): BelongsTo
     {

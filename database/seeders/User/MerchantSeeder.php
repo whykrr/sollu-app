@@ -21,9 +21,6 @@ class MerchantSeeder extends Seeder
             'email'              => 'sollu.resto@email.com',
             'phone'              => '082132538886',
             'already_free_trial' => true,
-            'settings'           => [
-                'product' => true,
-            ],
         ]);
 
         $retail = $type->where('code', 'retail')->first();
@@ -33,9 +30,6 @@ class MerchantSeeder extends Seeder
             'email'              => 'sollu.store@email.com',
             'phone'              => '082132538887',
             'already_free_trial' => true,
-            'settings'           => [
-                'product' => true,
-            ],
         ]);
 
         $retail = $type->where('code', 'service')->first();
@@ -45,9 +39,6 @@ class MerchantSeeder extends Seeder
             'email'              => 'sollu.barber@email.com',
             'phone'              => '082132538888',
             'already_free_trial' => true,
-            'settings'           => [
-                'product' => true,
-            ],
         ]);
     }
 }

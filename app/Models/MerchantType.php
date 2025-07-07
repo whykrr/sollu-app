@@ -15,9 +15,18 @@ class MerchantType extends Model
         'code',
         'settings',
     ];
-    protected $casts = [
-        'settings' => 'object',
-    ];
+
+    /**
+    * Get the attributes that should be cast.
+    *
+     * @return array<string, string>
+    */
+    protected function casts(): array
+    {
+        return [
+            'settings' => 'object',
+        ];
+    }
 
     /**
      * Get all of the merchants for the Industry
