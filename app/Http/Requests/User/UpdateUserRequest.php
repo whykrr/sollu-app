@@ -13,7 +13,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()?->can('product.update');
+        return Auth::user()?->can('user.update');
     }
 
     /**
@@ -29,9 +29,9 @@ class UpdateUserRequest extends FormRequest
                 'required',
                 'email',
                 Rule::unique('users', 'email')->ignore($this->user)],
-            'role'           => 'required',
-            'merchant_ids'   => 'required|array',
-            'merchant_ids.*' => 'distinct|exists:merchants,id',
+            'role'         => 'required',
+            'outlet_ids'   => 'required|array',
+            'outlet_ids.*' => 'distinct|exists:outlets,id',
         ];
     }
 }

@@ -28,6 +28,16 @@ class UserDataSeeder extends Seeder
             'is_root_user'      => true,
         ])->assignRole('owner');
 
+        $fnb->users()->create([
+            'name'              => 'Manager Outlet',
+            'email'             => "manager.{$fnb->email}",
+            'password'          => 'password',
+            'pin'               => '123456',
+            'photo'             => null,
+            'email_verified_at' => now(),
+            'is_root_user'      => false,
+        ])->assignRole('manager');
+
         $retail->users()->create([
             'name'              => $retail->owner_name,
             'email'             => $retail->email,

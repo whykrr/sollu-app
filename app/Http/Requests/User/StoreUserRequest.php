@@ -12,7 +12,7 @@ class StoreUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()?->can('product.create');
+        return Auth::user()?->can('user.create');
     }
 
     /**
@@ -23,11 +23,11 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'           => 'required|max:200',
-            'email'          => 'required|email',
-            'role'           => 'required',
-            'merchant_ids'   => 'required|array',
-            'merchant_ids.*' => 'distinct|exists:merchants,id',
+            'name'         => 'required|max:200',
+            'email'        => 'required|email',
+            'role'         => 'required',
+            'outlet_ids'   => 'required|array',
+            'outlet_ids.*' => 'distinct|exists:outlets,id',
         ];
     }
 }

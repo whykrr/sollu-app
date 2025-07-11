@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Auth;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -27,37 +28,9 @@ class MerchantTest extends TestCase
         $response->assertSee('Register');
     }
 
-    public function test_user_can_login_with_valid_credentials(): void
-    {
-        $user = \App\Models\User::first();
-
-        $this->assertNotNull($user);
-
-        $response = $this->post('/login', [
-            'email'    => $user->email,
-            'password' => 'password',
-        ]);
-
-        $response->assertRedirect('/');
-        $this->assertNotNull(Auth::user());
-        $this->assertAuthenticatedAs($user, 'merchant');
-    }
-
-    public function test_user_cannot_login_with_invalid_credentials(): void
-    {
-        $user = \App\Models\User::first();
-
-        $response = $this->post('/login', [
-            'email'    => $user->email,
-            'password' => 'wrongPassword',
-        ]);
-
-        $response->assertSessionHasErrors('email');
-        $this->assertGuest();
-    }
-
     public function test_user_register(): void
     {
+        $this->seed(UserSeeder::class);
         $response = $this->post('/register', [
             'name'                  => 'PizzaHub',
             'owner_name'            => 'Samuel',
@@ -74,5 +47,36 @@ class MerchantTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'pizzahub.fnb@gmail.com',
         ]);
+    }
+
+    public function test_user_can_login_with_valid_credentials(): void
+    {
+        $this->seed(UserSeeder::class);
+        $user = \App\Models\User::first();
+
+        $this->assertNotNull($user);
+
+        $response = $this->post('/login', [
+            'email'    => $user->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect('/');
+        $this->assertNotNull(Auth::user());
+        $this->assertAuthenticatedAs($user, 'merchant');
+    }
+
+    public function test_user_cannot_login_with_invalid_credentials(): void
+    {
+        $this->seed(UserSeeder::class);
+        $user = \App\Models\User::first();
+
+        $response = $this->post('/login', [
+            'email'    => $user->email,
+            'password' => 'wrongPassword',
+        ]);
+
+        $response->assertSessionHasErrors('email');
+        $this->assertGuest();
     }
 }

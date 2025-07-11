@@ -63,6 +63,7 @@ class User extends Authenticatable
     {
         return [
             'password'     => 'hashed',
+            'pin'          => 'hashed',
             'is_root_user' => 'boolean',
         ];
     }

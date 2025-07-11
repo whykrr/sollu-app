@@ -9,6 +9,7 @@ use App\Models\User;
 use App\ResourceMessage;
 use Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Str;
 
@@ -44,8 +45,8 @@ class UserController extends Controller
         /**
          * @var User $findEmail
          */
-        $findEmail = User::whereEmail($request->email)->get();
-        if ($findEmail && $findEmail->merchant_id !== Auth::user()->merchant_id) {
+        $findEmail = User::whereEmail($request->email)->first();
+        if ($findEmail !== null && $findEmail->merchant_id !== Auth::user()->merchant_id) {
             throw ValidationException::withMessages([
                 'email_other_merchant' => 'Email already registered in other merchant!',
             ]);
@@ -60,7 +61,7 @@ class UserController extends Controller
             /**
              * @var \App\Models\User $user
              */
-            $user = Auth::user()->merchant()->users()->create([
+            $user = Auth::user()->merchant->users()->create([
                 'name'         => $request->name,
                 'email'        => $request->email,
                 'password'     => Str::random(10),
@@ -68,7 +69,7 @@ class UserController extends Controller
             ]);
 
             $user->assignRole($request->role);
-            $user->outlets()->attach($request->merchant_ids);
+            $user->outlets()->attach($request->outlet_ids);
 
             DB::commit();
         } catch (\Exception $e) {
@@ -97,13 +98,12 @@ class UserController extends Controller
         DB::beginTransaction();
 
         try {
-            /**
-             * @var \App\Models\User $user
-             */
-            $user = Auth::user()->merchant()->users()->update($request->validated());
+            $user->update($request->validated());
 
-            $user->assignRole($request->role);
-            $user->outlets()->sync($request->merchant_ids);
+            if (! $user->hasRole($request->role)) {
+                $user->syncRoles($request->role);
+            }
+            $user->outlets()->sync($request->outlet_ids);
 
             DB::commit();
         } catch (\Exception $e) {
@@ -111,7 +111,7 @@ class UserController extends Controller
             throw $e;
         }
 
-        return redirect()->route('users.edit')->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->route('users.index')->with('success', ResourceMessage::UPDATE_SUCCESS);
     }
 
     /**
@@ -119,6 +119,8 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        Gate::authorize('delete', $user);
+
         $user->deleteOrFail();
 
         return redirect()->route('users.index')->with('success', ResourceMessage::DELETE_SUCCESS);
@@ -129,7 +131,7 @@ class UserController extends Controller
      */
     public function restore(User $user)
     {
-        $user->deleteOrFail();
+        $user->restore();
 
         return redirect()->route('users.index')->with('success', ResourceMessage::RESTORE_SUCCESS);
     }
@@ -139,6 +141,8 @@ class UserController extends Controller
      */
     public function purge(User $user)
     {
+        Gate::authorize('forceDelete', $user);
+
         $user->forceDelete();
 
         return redirect()->route('users.index')->with('success', ResourceMessage::PURGE_SUCCESS);
