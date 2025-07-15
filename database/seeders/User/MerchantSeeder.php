@@ -14,31 +14,34 @@ class MerchantSeeder extends Seeder
     {
         $type = MerchantType::all();
 
-        $fnb = $type->where('code', 'fnb')->first();
-        $fnb->merchants()->create([
-            'name'               => 'Restoran Sollu',
+        $mart = $type->where('code', 'minimarket')->first();
+        $mart->merchants()->create([
+            'name'               => 'Sollu Mart',
             'owner_name'         => 'Wahyu Kristiawan',
-            'email'              => 'sollu.resto@email.com',
+            'email'              => 'sollu.mart@email.com',
             'phone'              => '082132538886',
             'already_free_trial' => true,
+            'settings'           => $mart->default_settings,
         ]);
 
-        $retail = $type->where('code', 'retail')->first();
-        $retail->merchants()->create([
-            'name'               => 'Sollu Store',
+        $merch = $type->where('code', 'fashion_store')->first();
+        $merch->merchants()->create([
+            'name'               => 'Sollu Merch Store',
             'owner_name'         => 'Wahyu Kristiawan',
-            'email'              => 'sollu.store@email.com',
+            'email'              => 'sollu.merch@email.com',
             'phone'              => '082132538887',
             'already_free_trial' => true,
+            'settings'           => $merch->default_settings,
         ]);
 
-        $retail = $type->where('code', 'service')->first();
-        $retail->merchants()->create([
-            'name'               => 'Sollu Barbershop',
+        $pets = $type->where('code', 'petshop')->first();
+        $pets->merchants()->create([
+            'name'               => 'Sollu Petshop',
             'owner_name'         => 'Wahyu Kristiawan',
-            'email'              => 'sollu.barber@email.com',
+            'email'              => 'sollu.pershop@email.com',
             'phone'              => '082132538888',
             'already_free_trial' => true,
+            'settings'           => $pets->default_settings,
         ]);
     }
 }

@@ -14,13 +14,13 @@ class UserDataSeeder extends Seeder
     {
         $merchant = Merchant::all();
 
-        $fnb    = $merchant->where('email', 'sollu.resto@email.com')->first();
-        $retail = $merchant->where('email', 'sollu.store@email.com')->first();
-        $barber = $merchant->where('email', 'sollu.barber@email.com')->first();
+        $mart  = $merchant->where('email', 'sollu.mart@email.com')->first();
+        $merch = $merchant->where('email', 'sollu.merch@email.com')->first();
+        $pets  = $merchant->where('email', 'sollu.pershop@email.com')->first();
 
-        $fnb->users()->create([
-            'name'              => $fnb->owner_name,
-            'email'             => $fnb->email,
+        $mart->users()->create([
+            'name'              => $mart->owner_name,
+            'email'             => $mart->email,
             'password'          => 'password',
             'pin'               => '123456',
             'photo'             => null,
@@ -28,9 +28,9 @@ class UserDataSeeder extends Seeder
             'is_root_user'      => true,
         ])->assignRole('owner');
 
-        $fnb->users()->create([
+        $mart->users()->create([
             'name'              => 'Manager Outlet',
-            'email'             => "manager.{$fnb->email}",
+            'email'             => "manager.{$mart->email}",
             'password'          => 'password',
             'pin'               => '123456',
             'photo'             => null,
@@ -38,9 +38,9 @@ class UserDataSeeder extends Seeder
             'is_root_user'      => false,
         ])->assignRole('manager');
 
-        $retail->users()->create([
-            'name'              => $retail->owner_name,
-            'email'             => $retail->email,
+        $merch->users()->create([
+            'name'              => $merch->owner_name,
+            'email'             => $merch->email,
             'password'          => 'password',
             'pin'               => '123456',
             'photo'             => null,
@@ -48,9 +48,9 @@ class UserDataSeeder extends Seeder
             'is_root_user'      => true,
         ])->assignRole('owner');
 
-        $barber->users()->create([
-            'name'              => $barber->owner_name,
-            'email'             => $barber->email,
+        $pets->users()->create([
+            'name'              => $pets->owner_name,
+            'email'             => $pets->email,
             'password'          => 'password',
             'pin'               => '123456',
             'photo'             => null,

@@ -3,6 +3,7 @@
 namespace Database\Seeders\User;
 
 use App\Models\MerchantType;
+use App\Settings\Settings;
 use Illuminate\Database\Seeder;
 
 class MerchantTypeSeeder extends Seeder
@@ -12,29 +13,52 @@ class MerchantTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        MerchantType::create([
-            'name'     => 'Restoran',
-            'code'     => 'fnb',
-            'settings' => [
-                'product' => true,
-                'service' => false,
-            ],
+        $merchantTypes = new MerchantType();
+        $merchantTypes->create([
+            'name' => 'Minimarket / Toko Konvensional',
+            'code' => 'minimarket',
+            'default_settings' => new Settings([
+                'product' => ['variant' => false],
+                'stock' => [
+                    'mode' => 'LIFO',
+                    'strict' => false,
+                    'batch_tracking' => true,
+                    'allow_batch_override' => false,
+                    'conversion' => true,
+                    'conversion_validate' => true,
+                ],
+            ])
         ]);
-        MerchantType::create([
-            'name'     => 'Toko Retail',
-            'code'     => 'retail',
-            'settings' => [
-                'product' => true,
-                'service' => false,
-            ],
+
+        $merchantTypes->create([
+            'name' => 'Toko Pakaian',
+            'code' => 'fashion_store',
+            'default_settings' => new Settings([
+                'product' => ['variant' => false],
+                'stock' => [
+                    'mode' => 'LIFO',
+                    'strict' => false,
+                    'batch_tracking' => true,
+                    'allow_batch_override' => false,
+                ],
+            ])
         ]);
-        MerchantType::create([
-            'name'     => 'Barbershop',
-            'code'     => 'service',
-            'settings' => [
-                'product' => true,
-                'service' => false,
-            ],
+
+        $merchantTypes->create([
+            'name' => 'Petshop',
+            'code' => 'petshop',
+            'default_settings' => new Settings([
+                'product' => ['variant' => false],
+                'stock' => [
+                    'mode' => 'LIFO',
+                    'strict' => false,
+                    'batch_tracking' => true,
+                    'allow_batch_override' => false,
+                    'conversion' => true,
+                    'conversion_validate' => true,
+                ],
+            ])
         ]);
+
     }
 }

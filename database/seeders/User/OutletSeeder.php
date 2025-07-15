@@ -14,28 +14,28 @@ class OutletSeeder extends Seeder
     {
         $merchant = Merchant::all();
 
-        $fnb    = $merchant->where('email', 'sollu.resto@email.com')->first();
-        $retail = $merchant->where('email', 'sollu.store@email.com')->first();
-        $barber = $merchant->where('email', 'sollu.barber@email.com')->first();
+        $mart  = $merchant->where('email', 'sollu.mart@email.com')->first();
+        $merch = $merchant->where('email', 'sollu.merch@email.com')->first();
+        $pets  = $merchant->where('email', 'sollu.pershop@email.com')->first();
 
-        $fnb->outlets()->create([
-            'name'           => 'Restoran Sollu',
+        $mart->outlets()->create([
+            'name'           => 'Sollu Mart Pusat',
             'address'        => '',
             'status'         => 'active',
             'expired_at'     => '2025-07-15',
             'is_main_outlet' => true,
         ]);
 
-        $retail->outlets()->createMany([
+        $merch->outlets()->createMany([
             [
-                'name'           => 'Sollu Store HQ',
+                'name'           => 'Store Ijen',
                 'address'        => '',
                 'status'         => 'active',
                 'expired_at'     => '2025-07-15',
                 'is_main_outlet' => true,
             ],
             [
-                'name'           => 'Sollu Store Soehat',
+                'name'           => 'Store Soehat',
                 'address'        => '',
                 'status'         => 'active',
                 'expired_at'     => '2025-07-15',
@@ -43,8 +43,8 @@ class OutletSeeder extends Seeder
             ],
         ]);
 
-        $barber->outlets()->create([
-            'name'           => 'Sollu Barbershop',
+        $pets->outlets()->create([
+            'name'           => 'Sollu Petshop',
             'address'        => '',
             'status'         => 'active',
             'expired_at'     => '2025-07-15',

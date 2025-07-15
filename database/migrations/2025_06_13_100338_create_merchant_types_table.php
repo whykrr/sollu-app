@@ -14,7 +14,7 @@ return new class () extends Migration {
             $table->tinyInteger('id')->unsigned()->autoIncrement();
             $table->string('name', 100);
             $table->string('code', 50);
-            $table->json('settings')->nullable();
+            $table->json('default_settings')->nullable();
             $table->timestamps();
         });
     }

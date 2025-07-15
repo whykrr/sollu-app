@@ -96,7 +96,7 @@ namespace App\Models{
  * @property int $id
  * @property string $name
  * @property string $code
- * @property object|null $settings
+ * @property mixed|null $default_settings
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Merchant> $merchants
@@ -107,9 +107,9 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType query()
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType whereCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|MerchantType whereDefaultSettings($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder|MerchantType whereSettings($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType whereUpdatedAt($value)
  */
 	class MerchantType extends \Eloquent {}
@@ -161,6 +161,40 @@ namespace App\Models{
  * 
  *
  * @property int $id
+ * @property string $merchant_id
+ * @property int|null $parent_id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $description
+ * @property int $level
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory query()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereLevel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereMerchantId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereParentId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory withoutTrashed()
+ */
+	class ProductCategory extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * 
+ *
+ * @property int $id
  * @property string $name
  * @property string|null $description
  * @property string $price
@@ -199,7 +233,7 @@ namespace App\Models{
  * @property string $email
  * @property string|null $email_verified_at
  * @property mixed $password
- * @property string|null $pin
+ * @property mixed|null $pin
  * @property string|null $photo
  * @property bool $is_root_user
  * @property string|null $remember_token
