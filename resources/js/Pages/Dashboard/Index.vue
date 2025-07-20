@@ -1,10 +1,32 @@
 <template>
     <CardTransparent title="Dashboard">
         <div
+            class="alert alert-warning mb-2"
+            v-if="auth.email_verified_at === null"
+        >
+            <strong>Verifikasi Email</strong>
+            <div class="flex justify-between items-center">
+                <span class="text-sm"
+                    >Cek email Anda untuk verifikasi sebelum menggunakan
+                    fitur.</span
+                >
+                <Link
+                    as="button"
+                    method="post"
+                    :href="route('verification.send')"
+                    class="btn btn-highlight-success btn-sm"
+                >
+                    <fa icon="fa-rotate-right left-0" />
+                    Kirim Ulang
+                </Link>
+            </div>
+        </div>
+
+        <div
             class="flex flex-col md:grid md:grid-cols-1 lg:grid-cols-3 gap-2 mb-4"
         >
             <Widget
-                :title="$t('dashboard.totalVisits')"
+                title="Total Kunjungan"
                 icon="fa-users"
                 class="bg-main dark:bg-main-light"
             >
@@ -12,7 +34,7 @@
             </Widget>
 
             <Widget
-                :title="$t('dashboard.totalVisitor')"
+                title="Total Pengunjung"
                 icon="fa-person"
                 class="bg-clay dark:bg-clay-light"
             >
@@ -20,7 +42,7 @@
             </Widget>
 
             <Widget
-                :title="$t('dashboard.unreadMessages')"
+                title="Pesan Belum Dibaca"
                 icon="fa-envelope"
                 class="bg-turquoise dark:bg-turquoise-light"
             >
@@ -30,10 +52,7 @@
 
         <div class="grid grid-flow-row lg:grid-cols-4 gap-4 mb-4">
             <div class="col-span-4 lg:col-span-2">
-                <Card
-                    :title="$t('dashboard.pageVisitorPerMonth')"
-                    class="shadow-md"
-                >
+                <Card title="Pengunjung Halaman" class="shadow-md">
                     <canvas id="chart-page"></canvas>
                 </Card>
             </div>
@@ -45,7 +64,7 @@
         </div>
 
         <div class="flex flex-col">
-            <Card :title="$t('dashboard.top10')" class="shadow-md">
+            <Card title="Halaman Top 10" class="shadow-md">
                 <ListView :data="pageMostVisits" />
             </Card>
         </div>
@@ -59,9 +78,9 @@ import Widget from "@/Components/UI/Widget.vue";
 import { onMounted, ref } from "vue";
 import { Chart } from "chart.js/auto";
 import CardTransparent from "@/Components/UI/CardTransparent.vue";
-import { useI18n } from "vue-i18n";
+import { Link, usePage } from "@inertiajs/vue3";
 
-const { t } = useI18n();
+const auth = usePage().props.auth;
 
 const props = defineProps({
     visits: Number,
@@ -95,7 +114,7 @@ props.visitorPerMonthPerPage.value.forEach((val, i) => {
     });
 });
 
-const labelChart2 = t("table.visitors");
+const labelChart2 = "Pengunjung";
 
 onMounted(() => {
     new Chart(document.getElementById("chart-page"), {

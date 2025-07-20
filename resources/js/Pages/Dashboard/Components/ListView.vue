@@ -4,8 +4,8 @@
             <thead class="text-left">
                 <tr>
                     <td>No</td>
-                    <td>{{ $t("table.link") }}</td>
-                    <td>{{ $t("table.visits") }}</td>
+                    <td>Tautan</td>
+                    <td>Kunjungan</td>
                 </tr>
             </thead>
             <tbody>

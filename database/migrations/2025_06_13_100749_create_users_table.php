@@ -15,6 +15,7 @@ return new class () extends Migration {
             $table->string('merchant_id', 36);
             $table->string('name', 200);
             $table->string('email', 200)->unique();
+            $table->string('phone', 20)->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('pin')->nullable();
@@ -32,7 +33,6 @@ return new class () extends Migration {
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
-            $table->dateTime('expires_at');
             $table->timestamp('created_at')->nullable();
         });
     }

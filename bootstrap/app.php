@@ -1,11 +1,12 @@
 <?php
 
-use App\Http\Middleware\TrackVisitor;
-use Illuminate\Foundation\Application;
 use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\HandleInertiaWebRequests;
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -26,13 +27,29 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             // \Illuminate\Session\Middleware\AuthenticateSession::class,
-            HandleInertiaRequests::class
+            HandleInertiaRequests::class,
         ]);
 
         //app
-        $middleware->redirectGuestsTo(fn($request) => route('login'));
+        $middleware->redirectGuestsTo(fn ($request) => route('login'));
         // $middleware->redirectUsersTo(fn($request) => route('admin.dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->renderable(function (ThrottleRequestsException $e, Request $request) {
+            $message = 'Terlalu banyak permintaan. Coba lagi nanti.';
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                ], 429);
+            }
+
+            // if page for guest
+            if ($request->is('login') || $request->is('register') || $request->is('forgot')) {
+                throw ValidationException::withMessages([
+                    'email' => $message,
+                ]);
+            }
+
+            return redirect()->back()->with('failed', $message);
+        });
     })->create();

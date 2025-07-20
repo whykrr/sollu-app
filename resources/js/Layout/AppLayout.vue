@@ -2,7 +2,7 @@
     <div class="flex h-screen bg-white">
         <div
             v-if="loading"
-            class="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50 z-50"
+            class="fixed inset-0 flex items-center justify-center bg-gray-100/50 z-50"
         >
             <div class="spinner"></div>
         </div>
@@ -26,11 +26,20 @@
             <Toast
                 v-if="flashSuccess"
                 icon="fa-check"
-                title="Success !"
+                title="Berhasil !"
                 class="bg-success"
                 @hide="clearMessage()"
             >
                 {{ flashSuccess }}
+            </Toast>
+            <Toast
+                v-if="flashFailed"
+                icon="fa-close"
+                title="Gagal !"
+                class="bg-danger"
+                @hide="clearMessageFailed()"
+            >
+                {{ flashFailed }}
             </Toast>
             <Modal
                 :class="{
@@ -47,7 +56,7 @@
                         class="btn btn-success"
                         @click="modalStore.closeModalDelete"
                     >
-                        {{ $t("modal.action.cancel") }}
+                        Batal
                     </button>
                     <Link
                         v-if="modalStore.delete.url"
@@ -57,7 +66,7 @@
                         as="button"
                         method="delete"
                     >
-                        {{ $t("modal.action.confirm") }}
+                        Ya
                     </Link>
                 </template>
             </Modal>
@@ -84,9 +93,13 @@ router.on("finish", () => (loading.value = false));
 const page = usePage();
 const modalStore = useModalStore();
 const flashSuccess = computed(() => page.props.flash.success);
+const flashFailed = computed(() => page.props.flash.failed);
 
 const clearMessage = () => {
     page.props.flash.success = null;
+};
+const clearMessageFailed = () => {
+    page.props.flash.failed = null;
 };
 
 i18n.global.locale.value = page.props.locale;

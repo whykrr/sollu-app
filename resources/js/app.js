@@ -13,7 +13,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { fas } from '@fortawesome/free-solid-svg-icons'
 import AppLayout from '@/Layout/AppLayout.vue';
 import { createPinia } from 'pinia';
-import i18n from '@/i18n.js';
 import AccessHandle from '@/access-handle.js';
 
 /* add icons to the library */
@@ -35,7 +34,6 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .component('fa', FontAwesomeIcon)
             .use(plugin)
-            .use(i18n)
             .use(ZiggyVue, Ziggy)
             .use(createPinia())
             .use(AccessHandle)

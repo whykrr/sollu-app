@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Database\Seeders\UserSeeder;
+use Database\Seeders\V1_0_Seeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,7 +17,7 @@ class UserTest extends TestCase
 
     public function test_create_user_merchant(): void
     {
-        $this->seed(UserSeeder::class);
+        $this->seed(V1_0_Seeder::class);
 
         /**
          * @var User $user
@@ -37,7 +37,7 @@ class UserTest extends TestCase
     }
     public function test_update_user_merchant(): void
     {
-        $this->seed(UserSeeder::class);
+        $this->seed(V1_0_Seeder::class);
 
         /**
          * @var User $user
@@ -60,7 +60,7 @@ class UserTest extends TestCase
 
     public function test_delete_user_merchant(): void
     {
-        $this->seed(UserSeeder::class);
+        $this->seed(V1_0_Seeder::class);
 
         /**
          * @var User $user
@@ -78,7 +78,7 @@ class UserTest extends TestCase
 
     public function test_restore_user_merchant(): void
     {
-        $this->seed(UserSeeder::class);
+        $this->seed(V1_0_Seeder::class);
 
         /**
          * @var User $user
@@ -98,7 +98,7 @@ class UserTest extends TestCase
 
     public function test_purge_user_merchant(): void
     {
-        $this->seed(UserSeeder::class);
+        $this->seed(V1_0_Seeder::class);
 
         /**
          * @var User $user

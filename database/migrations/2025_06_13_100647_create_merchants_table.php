@@ -16,7 +16,7 @@ return new class () extends Migration {
             $table->string('name', 200);
             $table->string('owner_name', 200);
             $table->string('email', 200)->unique();
-            $table->string('phone', 20)->unique();
+            $table->string('phone', 20);
             $table->text('address')->nullable();
             $table->text('logo_url')->nullable();
             $table->boolean('already_free_trial')->default(false);

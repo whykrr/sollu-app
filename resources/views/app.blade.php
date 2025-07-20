@@ -11,7 +11,7 @@
     @inertiaHead
 </head>
 
-<body class="bg-neutral-200 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200" style="margin: 0px">
+<body class="bg-neutral-200 text-neutral-800 " style="margin: 0px">
     @inertia
 </body>
 

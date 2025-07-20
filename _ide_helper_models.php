@@ -15,6 +15,7 @@ namespace App\Models{
 /**
  * 
  *
+ * @property-read Collection|User[] $users
  * @property string $id
  * @property string $slug
  * @property string $name
@@ -33,7 +34,6 @@ namespace App\Models{
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MerchantOutletSubscription> $subscriptions
  * @property-read int|null $subscriptions_count
  * @property-read \App\Models\MerchantType|null $type
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
  * @property-read int|null $users_count
  * @method static \Database\Factories\MerchantFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder|Merchant newModelQuery()
@@ -52,8 +52,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|Merchant whereSettings($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Merchant whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Merchant whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Merchant extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperMerchant {}
 }
 
 namespace App\Models{
@@ -85,22 +87,26 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantOutletSubscription whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantOutletSubscription whereSubscriptionPlansId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantOutletSubscription whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class MerchantOutletSubscription extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperMerchantOutletSubscription {}
 }
 
 namespace App\Models{
 /**
  * 
  *
+ * @property Collection|Merchant[] $merchants
+ * @property Collection|ProductCategory[] $productCategories
  * @property int $id
  * @property string $name
  * @property string $code
  * @property mixed|null $default_settings
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Merchant> $merchants
  * @property-read int|null $merchants_count
+ * @property-read int|null $product_categories_count
  * @method static \Database\Factories\MerchantTypeFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType newQuery()
@@ -111,8 +117,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantType whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class MerchantType extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperMerchantType {}
 }
 
 namespace App\Models{
@@ -152,8 +160,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|Outlet whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Outlet whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Outlet whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Outlet extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperOutlet {}
 }
 
 namespace App\Models{
@@ -161,7 +171,29 @@ namespace App\Models{
  * 
  *
  * @property int $id
- * @property string $merchant_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Product newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Product newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Product query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperProduct {}
+}
+
+namespace App\Models{
+/**
+ * 
+ *
+ * @property-read ProductCategory|null $parent
+ * @property-read Collection|ProductCategory[] $children
+ * @property-read Collection|MerchantType[] $merchantTypes
+ * @property int $id
+ * @property string|null $merchant_id
  * @property int|null $parent_id
  * @property string $name
  * @property string $slug
@@ -170,6 +202,9 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read int|null $children_count
+ * @property-read string $full_path
+ * @property-read int|null $merchant_types_count
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory onlyTrashed()
@@ -186,8 +221,29 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory withTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory withoutTrashed()
+ * @mixin \Eloquent
  */
-	class ProductCategory extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperProductCategory {}
+}
+
+namespace App\Models{
+/**
+ * 
+ *
+ * @property int $id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit query()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperProductUnit {}
 }
 
 namespace App\Models{
@@ -219,18 +275,22 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|SubscriptionPlan wherePrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SubscriptionPlan whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SubscriptionPlan whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class SubscriptionPlan extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperSubscriptionPlan {}
 }
 
 namespace App\Models{
 /**
  * 
  *
+ * @mixin HasRoles
  * @property string $id
  * @property string $merchant_id
  * @property string $name
  * @property string $email
+ * @property string|null $phone
  * @property string|null $email_verified_at
  * @property mixed $password
  * @property mixed|null $pin
@@ -265,6 +325,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|User whereMerchantId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User wherePassword($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User wherePhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User wherePhoto($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User wherePin($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereRememberToken($value)
@@ -273,7 +334,9 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder|User withoutRole($roles, $guard = null)
  * @method static \Illuminate\Database\Eloquent\Builder|User withoutTrashed()
+ * @mixin \Eloquent
  */
-	class User extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperUser {}
 }
 

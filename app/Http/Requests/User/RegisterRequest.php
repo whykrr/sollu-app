@@ -21,8 +21,8 @@ class RegisterRequest extends FormRequest
             'phone'       => [
                 'required',
                 'regex:/^(0|\+62|62)[0-9]{7,13}$/',
+                'unique:users,phone',
             ],
-            'address'          => 'required',
             'merchant_type_id' => 'required',
             'password'         => 'required|confirmed|min:8',
         ];

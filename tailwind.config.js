@@ -139,12 +139,12 @@ export default {
             const colors = theme('colors');
             for (const [colorName, shades] of Object.entries(colors)) {
                 // Only create classes for colors that have shades (not 'inherit', 'current', etc.)
-                if (typeof shades === 'object') {
+                if (typeof shades === 'object' && !Array.isArray(shades)) {
                     for (const [shade, colorValue] of Object.entries(shades)) {
-                        addComponents(addColorClasses(colorName, shade, colorValue));
+                        addComponents(addColorClasses(colorName, shade, colorValue, theme));
                     }
-                } else {
-                    addComponents(addColorClasses(colorName, null, shades));
+                } else if (typeof shades === 'string' && /^#|^rgba?\(/.test(shades)) {
+                    addComponents(addColorClasses(colorName, null, shades, theme));
                 }
             }
         }),
@@ -164,82 +164,88 @@ function hexToRgba(hex, alpha) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function addColorClasses(colorName, shade, colorValue) {
-    const colorClasses = {}
-    // BUTTON COLORS
-    let classBtn = `.btn-${colorName}`;
-    let classBtnOutline = `.btn-outline-${colorName}`;
-    let classBtnHighlight = `.btn-highlight-${colorName}`;
-    if (shade !== 'DEFAULT' && shade !== null) {
-        classBtn += `-${shade}`;
-        classBtnOutline += `-${shade}`;
-        classBtnHighlight += `-${shade}`;
-    }
-    colorClasses[classBtn] = {
+function addColorClasses(colorName, shade, colorValue, theme) {
+    const colorClasses = {};
+
+    const suffix = (shade && shade !== 'DEFAULT') ? `-${shade}` : '';
+    const btn = `.btn-${colorName}${suffix}`;
+    const btnOutline = `.btn-outline-${colorName}${suffix}`;
+    const btnHighlight = `.btn-highlight-${colorName}${suffix}`;
+    const badge = `.badge-${colorName}${suffix}`;
+    const alert = `.alert-${colorName}${suffix}`;
+
+    // BTN
+    colorClasses[btn] = {
         'background-color': colorValue,
         'color': '#ffffff',
-    };
-    colorClasses[classBtnOutline] = {
-        'border-width': '1px',
-        'border-color': colorValue + ' !important',
-        'color': colorValue,
+        '&:disabled': {
+            'background-color': '#e5e7eb', // gray-200
+            'color': '#9ca3af',            // gray-400
+            'cursor': 'not-allowed',
+        },
+        '&:disabled:hover': {
+            'background-color': '#e5e7eb',
+            'filter': 'none',
+        }
     };
 
-    colorClasses[classBtnHighlight] = {
+    // BTN OUTLINE
+    colorClasses[btnOutline] = {
+        'border-width': '1px',
+        'border-color': `${colorValue} !important`,
+        'color': colorValue,
+        'background-color': 'transparent',
+        '&:disabled': {
+            'border-color': '#D1D5DB', // gray-300
+            'color': '#9ca3af',        // gray-400
+            'cursor': 'not-allowed',
+        },
+        '&:disabled:hover': {
+            'background-color': 'transparent',
+            'filter': 'none',
+        }
+    };
+
+    // BTN HIGHLIGHT
+    colorClasses[btnHighlight] = {
         'background-color': hexToRgba(colorValue, 0.075),
         'color': colorValue,
+        '&:disabled': {
+            'background-color': theme('colors.gray.200'), // gray-200
+            'color': '#9ca3af',
+            'cursor': 'not-allowed',
+        },
+        '&:disabled:hover': {
+            'background-color': theme('colors.gray.200'),
+            'color': '#9ca3af',
+            'filter': 'none',
+        }
     };
 
-    colorClasses['button' + classBtnHighlight + ':hover, ' +
-        'a' + classBtnHighlight + ':hover, ' +
-        'button' + classBtnHighlight + '.active, ' +
-        'a' + classBtnHighlight + '.active'
-    ] = {
+    // Hover & active states
+    const hoverStyle = {
         'background-color': colorValue,
         'color': '#ffffff',
     };
 
-    colorClasses['button' + classBtnOutline + ':hover, ' +
-        'a' + classBtnOutline + ':hover, ' +
-        'button' + classBtnOutline + '.active, ' +
-        'a' + classBtnOutline + '.active'] = {
-        'background-color': colorValue,
-        'color': '#ffffff',
-    };
+    colorClasses[`button${btnOutline}:hover, a${btnOutline}:hover, button${btnOutline}.active, a${btnOutline}.active`] = hoverStyle;
+    colorClasses[`button${btnHighlight}:hover, a${btnHighlight}:hover, button${btnHighlight}.active, a${btnHighlight}.active`] = hoverStyle;
+    colorClasses[`.btn-check:checked + ${btnOutline}`] = hoverStyle;
+    colorClasses[`.btn-check:checked + ${btnHighlight}`] = hoverStyle;
 
-    colorClasses['.btn-check:checked + ' + classBtnOutline] = {
-        'background-color': colorValue,
-        'color': '#ffffff',
-    };
-
-    colorClasses['.btn-check:checked + ' + classBtnHighlight] = {
-        'background-color': colorValue,
-        'color': '#ffffff',
-    };
-
-
-    // BADGE COLORS
-    let classBadge = `.badge-${colorName}`;
-    if (shade !== 'DEFAULT' && shade !== null) {
-        classBadge += `-${shade}`;
-    }
-
-    colorClasses[classBadge] = {
+    // Badge
+    colorClasses[badge] = {
         'color': colorValue,
         'background-color': hexToRgba(colorValue, 0.1),
     };
 
-    // ALERT COLORS
-    let classAlert = `.alert-${colorName}`;
-    if (shade !== 'DEFAULT' && shade !== null) {
-        classAlert += `-${shade}`;
-    }
-
-    colorClasses[classAlert] = {
+    // Alert
+    colorClasses[alert] = {
         'color': colorValue,
         'border-color': colorValue,
         'background-color': hexToRgba(colorValue, 0.15),
     };
 
-    return colorClasses
+    return colorClasses;
 }
+

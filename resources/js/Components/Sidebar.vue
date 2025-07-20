@@ -1,7 +1,7 @@
 <template>
     <div class="hidden sm:flex w-64 md:w-72 h-screen z-30">
         <div
-            class="bg-neutral-lighter dark:bg-neutral-darker text-neutral-600 dark:text-neutral-400 w-full flex flex-col justify-between shadow"
+            class="bg-neutral-lighter text-neutral-600 w-full flex flex-col justify-between shadow"
         >
             <div class="p-4 pb-6">
                 <img
@@ -13,10 +13,10 @@
             <div class="flex-1 overflow-y-auto floating-scrollbar">
                 <nav class="flex flex-col gap-0.5 px-2 py-0">
                     <SidebarItem
-                        :to="route('main')"
+                        :to="route('overview')"
                         icon="fa-home"
-                        :name="$t('sidebar.dashboard')"
-                        :is-active="menuActive === 'main'"
+                        name="Dashboard"
+                        :is-active="menuActive === 'overview'"
                     />
 
                     <!-- <SidebarItem
@@ -99,8 +99,7 @@
                             />
                         </div>
                         <div class="grow text-left">
-                            <!-- {{ auth.name }} -->
-                            Sollu Teknologi Indonesia
+                             {{ auth.merchant }}
                         </div>
                         <fa
                             icon="fa-chevron-up"
@@ -132,12 +131,10 @@
                         </div>
                         <div class="grow">
                             <div class="font-semibold">
-                                <!-- {{ auth.name }} -->
-                                Wahyu Kristiawan
+                                 {{ auth.name }}
                             </div>
                             <div class="text-sm">
-                                <!-- {{ roleLabel[auth.role] }} -->
-                                Super Admin
+                                 {{ auth.role[0] }}
                             </div>
                         </div>
                     </div>
@@ -147,12 +144,12 @@
                             class="sidebar-item rounded-lg px-2 py-1"
                         >
                             <fa icon="fa-key"></fa>
-                            {{ $t("link.changePassword") }}
+                            Lupa Password
                         </Link>
-                        <a href="#" class="sidebar-item rounded-lg px-2 py-1">
+                        <Link :href="route('logout')" class="sidebar-item rounded-lg px-2 py-1" method="delete" as="button">
                             <fa icon="fa-right-from-bracket"></fa>
-                            {{ $t("link.logout") }}
-                        </a>
+                            keluar
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -182,11 +179,4 @@ watch(
         accountDropdown.value = false;
     }
 );
-
-const roleLabel = {
-    superadmin: "Super Admin",
-    admin: "Admin",
-    creator: "Creator",
-    viewer: "Viewer",
-};
 </script>

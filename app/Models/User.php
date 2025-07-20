@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPassword;
+use App\Notifications\VerifyEmailMerchant;
 use DateTimeInterface;
-use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,15 +17,19 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+/**
+ * @mixin HasRoles
+ * @mixin IdeHelperUser
+ */
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasRoles;
     use HasFactory;
     use Notifiable;
     use SoftDeletes;
-    use MustVerifyEmail;
     use HasUuids;
     use SoftDeletes;
+    use CanResetPassword;
 
     /**
      * The attributes that are mass assignable.
@@ -32,6 +40,7 @@ class User extends Authenticatable
         'merchant_id',
         'name',
         'email',
+        'phone',
         'password',
         'pin',
         'photo',
@@ -71,6 +80,21 @@ class User extends Authenticatable
     protected function serializeDate(DateTimeInterface $date): string
     {
         return $date->format('d/m/Y H.i');
+    }
+
+
+    /**
+     * @return void
+     * @throws BindingResolutionException
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new VerifyEmailMerchant());
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPassword($token));
     }
 
     /**

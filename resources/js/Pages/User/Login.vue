@@ -1,117 +1,118 @@
 <template>
-    <div
-        class="h-screen w-full grid grid-cols-12 gap-4 p-8 bg-radial-[at_25%_50%] from-light via-main-light to-main"
-    >
-        <div class="col-span-6 max-h-full min-h-full">
-            <div
-                class="rounded-lg w-full h-full overflow-hidden shadow-xl relative"
-            >
-                <a
-                    href="#"
-                    class="btn bg-gray-800/25 rounded-full text-white absolute right-4 top-4"
-                >
-                    Back to website <fa icon="fa-arrow-right" />
-                </a>
+    <form @submit.prevent="login">
+        <div class="flex flex-col gap-2 min-h-full justify-center">
+            <div>
                 <img
-                    class="h-full w-full object-cover"
-                    src="img/sollu-verse.png"
+                    class="h-[75px]"
+                    src="img/logo-fit-color.png"
                     alt="banner"
                 />
             </div>
-        </div>
-        <div class="col-span-6 mx-20">
-            <form @submit.prevent="login">
-                <div class="flex flex-col gap-8 min-h-full">
+            <div>
+                <div class="flex flex-col gap-1">
+                    <div class="text-2xl font-bold">Selamat Datang !</div>
                     <div>
-                        <img
-                            class="h-[75px]"
-                            src="img/logo-fit-white.png"
-                            alt="banner"
-                        />
+                        Login sekarang dan mulai kelola bisnismu dengan mudah.
                     </div>
-                    <div class="grow">
-                        <div class="flex flex-col gap-2">
-                            <div class="text-xl text-white">
-                                Login sekarang dan mulai kelola bisnismu dengan
-                                mudah.
-                            </div>
-                            <!-- <div>Sign In to your account</div> -->
-                            <div></div>
-                            <div>
-                                <div
-                                    class="form-floating"
-                                    :class="{
-                                        'is-invalid': form.errors.email,
-                                    }"
-                                >
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        placeholder="Email"
-                                        class="form bg-white/40"
-                                        v-model="form.email"
-                                    />
-                                    <label for="name">Email</label>
-                                </div>
-                                <span class="form-feedback">{{
-                                    form.errors.email
-                                }}</span>
-                            </div>
-                            <div>
-                                <div
-                                    class="form-floating"
-                                    :class="{
-                                        'is-invalid': form.errors.password,
-                                    }"
-                                >
-                                    <input
-                                        type="password"
-                                        id="name"
-                                        placeholder="Password"
-                                        class="form bg-white/40"
-                                        v-model="form.password"
-                                    />
-                                    <label for="name">Password</label>
-                                </div>
-                                <span class="form-feedback">{{
-                                    form.errors.password
-                                }}</span>
-                            </div>
-                            <div
-                                class="flex flex-row justify-end items-center mt-2"
-                            >
-                                <div class="text-blue-800 underline">
-                                    <Link href="#">Forget password</Link>
-                                </div>
-                            </div>
-                            <div class="text-lg"></div>
+                    <div class="alert alert-info mb-2" v-if="flashSuccess">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">{{ flashSuccess }}</span>
                         </div>
                     </div>
-                    <div>
-                        <button
-                            type="submit"
-                            class="btn btn-main w-full block!"
+                    <div class="mb-2">
+                        <div
+                            class="form-floating"
+                            :class="{
+                                'is-invalid': form.errors.email,
+                            }"
                         >
-                            Login
-                        </button>
+                            <input
+                                type="text"
+                                id="email"
+                                placeholder="Email"
+                                class="bg-white/40"
+                                v-model="form.email"
+                            />
+                            <label for="name">Email</label>
+                        </div>
+                        <span class="form-feedback">{{
+                            form.errors.email
+                        }}</span>
+                    </div>
+                    <div>
+                        <div
+                            class="form-floating"
+                            :class="{
+                                'is-invalid': form.errors.password,
+                            }"
+                        >
+                            <input
+                                type="password"
+                                id="password"
+                                placeholder="Kata Sandi"
+                                class="bg-white/40"
+                                v-model="form.password"
+                            />
+                            <label for="name">Kata Sandi</label>
+                        </div>
+                        <span class="form-feedback">{{
+                            form.errors.password
+                        }}</span>
+                    </div>
+                    <div
+                        class="flex flex-row justify-between items-center mt-2"
+                    >
+                        <div>
+                            <div class="form-check">
+                                <input
+                                    type="checkbox"
+                                    name="remember"
+                                    id="remember"
+                                    v-model="form.remember"
+                                />
+                                <label for="remember">Ingat Saya</label>
+                            </div>
+                        </div>
+                        <div class="text-blue-800 underline">
+                            <Link :href="route('forgot')">Lupa kata sandi</Link>
+                        </div>
                     </div>
                 </div>
-            </form>
+            </div>
+            <div>
+                <button
+                    type="submit"
+                    class="btn btn-main w-full block! text-lg"
+                >
+                    Login
+                </button>
+            </div>
+            <div class="text">
+                Belum punya akun ?
+                <Link :href="route('register')" class="underline text-blue-800"
+                    >Daftar sekarang</Link
+                >
+            </div>
         </div>
-    </div>
+    </form>
 </template>
 <script setup>
-import BlankLayout from "@/Layout/BlankLayout.vue";
-import { Link, useForm } from "@inertiajs/vue3";
+import { Link, useForm, usePage } from "@inertiajs/vue3";
+import AuthLayout from "@/Layout/AuthLayout.vue";
+import { computed } from "vue";
+
+const page = usePage();
+const flashSuccess = computed(() => page.props.flash.success);
 
 defineOptions({
-    layout: BlankLayout,
+    layout: AuthLayout,
 });
 
 const form = useForm({
     email: null,
     password: null,
+    remember: null,
 });
 
-const login = () => form.post(route("admin.login.attempt"));
+const login = () => form.post(route("login.attempt"));
 </script>

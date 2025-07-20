@@ -52,7 +52,13 @@ class HandleInertiaRequests extends Middleware
             'request' => $request->getPayload(),
 
             // Lazily...
-            'auth' => fn () => $request->user()?->only('id', 'name', 'email', 'role'),
+            'auth' => fn () => $request->user() ? array_merge(
+                $request->user()->only(['id', 'name', 'email', 'email_verified_at']),
+                [
+                    'role'     => $request->user()->roles->pluck('label'),
+                    'merchant' => optional($request->user()->merchant)->name,
+                ]
+            ) : null,
         ]);
     }
 }

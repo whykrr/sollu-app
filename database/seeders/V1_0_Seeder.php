@@ -2,16 +2,17 @@
 
 namespace Database\Seeders;
 
-use Database\Seeders\User\AttachSubscriptionSeeder;
-use Database\Seeders\User\MerchantSeeder;
-use Database\Seeders\User\MerchantTypeSeeder;
-use Database\Seeders\User\OutletSeeder;
-use Database\Seeders\User\RolePermissionSeeder;
-use Database\Seeders\User\SubscriptionPlanSeeder;
-use Database\Seeders\User\UserDataSeeder;
+use Database\Seeders\V1_0\AttachSubscriptionSeeder;
+use Database\Seeders\V1_0\MerchantSeeder;
+use Database\Seeders\V1_0\MerchantTypeSeeder;
+use Database\Seeders\V1_0\OutletSeeder;
+use Database\Seeders\V1_0\RetailCategorySeeder;
+use Database\Seeders\V1_0\RolePermissionSeeder;
+use Database\Seeders\V1_0\SubscriptionPlanSeeder;
+use Database\Seeders\V1_0\UserDataSeeder;
 use Illuminate\Database\Seeder;
 
-class UserSeeder extends Seeder
+class V1_0_Seeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -26,6 +27,7 @@ class UserSeeder extends Seeder
             UserDataSeeder::class,
             SubscriptionPlanSeeder::class,
             AttachSubscriptionSeeder::class,
+            RetailCategorySeeder::class,
         ]);
     }
 }

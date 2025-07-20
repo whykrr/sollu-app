@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use Auth;
-use Database\Seeders\UserSeeder;
+use Database\Seeders\V1_0_Seeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -30,7 +30,7 @@ class MerchantTest extends TestCase
 
     public function test_user_register(): void
     {
-        $this->seed(UserSeeder::class);
+        $this->seed(V1_0_Seeder::class);
         $response = $this->post('/register', [
             'name'                  => 'PizzaHub',
             'owner_name'            => 'Samuel',
@@ -51,7 +51,7 @@ class MerchantTest extends TestCase
 
     public function test_user_can_login_with_valid_credentials(): void
     {
-        $this->seed(UserSeeder::class);
+        $this->seed(V1_0_Seeder::class);
         $user = \App\Models\User::first();
 
         $this->assertNotNull($user);
@@ -68,7 +68,7 @@ class MerchantTest extends TestCase
 
     public function test_user_cannot_login_with_invalid_credentials(): void
     {
-        $this->seed(UserSeeder::class);
+        $this->seed(V1_0_Seeder::class);
         $user = \App\Models\User::first();
 
         $response = $this->post('/login', [
