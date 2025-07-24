@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\MerchantOwned;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,7 @@ class MerchantOutletSubscription extends Model
 {
     use HasFactory;
     use HasUuids;
+    use MerchantOwned;
 
     /**
      * The attributes that are mass assignable.
