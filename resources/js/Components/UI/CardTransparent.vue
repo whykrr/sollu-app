@@ -1,14 +1,9 @@
 <template>
     <div class="card bg-transparent! rounded-none">
-        <div>
-            <img
-                v-if="image"
-                :src="image"
-                alt="Card Image"
-                class="block-inline w-full"
-            />
+        <div v-if="image">
+            <img :src="image" alt="Card Image" class="block-inline w-full" />
         </div>
-        <div class="card-header p-0!">
+        <div v-if="hasTitleOrButtons" class="card-header p-0!">
             <h2 class="text-2xl font-semibold">{{ title }}</h2>
             <div class="flex flex-row gap-2">
                 <slot name="buttons" />
@@ -21,8 +16,14 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed, useSlots } from "vue";
+
+const props = defineProps({
     image: String,
     title: String,
 });
+
+// Cek slot
+const slots = useSlots();
+const hasTitleOrButtons = computed(() => props.title || slots.buttons);
 </script>

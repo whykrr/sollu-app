@@ -11,9 +11,9 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::create('merchant_outlet_subscriptions', function (Blueprint $table) {
-            $table->string('id', 36)->primary();
-            $table->string('merchant_id', 36);
-            $table->string('outlet_id', 36);
+            $table->uuid('id')->primary();
+            $table->uuid('merchant_id');
+            $table->uuid('outlet_id');
             $table->integer('subscription_plans_id')->unsigned();
             $table->date('start_date');
             $table->date('end_date')->nullable();

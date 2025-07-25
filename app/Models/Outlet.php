@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\MerchantOwned;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,9 @@ use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 /**
+ * @property-read Collection|Merchant $merchant
+ * @property-read Collection|MerchantOutletSubscription[] $merchant_subscriptions
+ * @property-read Collection|User[] $users
  * @mixin IdeHelperOutlet
  */
 class Outlet extends Model

@@ -11,8 +11,8 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::create('outlets', function (Blueprint $table) {
-            $table->string('id', 36)->primary();
-            $table->string('merchant_id', 36);
+            $table->uuid('id')->primary();
+            $table->uuid('merchant_id');
             $table->string('slug', 200);
             $table->string('name', 200);
             $table->text('address')->nullable();

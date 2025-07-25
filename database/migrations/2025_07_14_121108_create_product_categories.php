@@ -12,8 +12,8 @@ return new class () extends Migration {
     {
         Schema::create('product_categories', function (Blueprint $table) {
             $table->id()->unsigned();
-            $table->string('merchant_id', 36)->index()->nullable();
-            $table->bigInteger('parent_id')->index()->nullable();
+            $table->uuid('merchant_id')->nullable();
+            $table->bigInteger('parent_id')->nullable();
             $table->string('name', 100)->fulltext();
             $table->string('slug', 100)->index();
             $table->text('description')->nullable();

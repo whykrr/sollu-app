@@ -17,6 +17,51 @@
             >
                 <div>
                     <Breadcrumbs />
+                    <h2 class="text-2xl font-semibold">
+                        {{ pageStore.title }}
+                    </h2>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="nav-icon">
+                        <fa icon="fa-envelope" />
+                        <span></span>
+                    </div>
+                    <div class="nav-icon relative">
+                        <fa icon="fa-bell" />
+                        <span></span>
+                        <div
+                            class="absolute top-[45px] right-1/2 transform translate-x-1/2"
+                        >
+                            <div
+                                class="w-0 h-0 mx-auto border-x-8 border-x-transparent border-b-8 border-b-main/10 right-0"
+                            ></div>
+                            <ol
+                                class="bg-main/10 backdrop-blur-sm drop-shadow-2xl rounded-lg p-2 w-20"
+                            >
+                                <li>asd</li>
+                                <li>asd</li>
+                                <li>asd</li>
+                                <li>asd</li>
+                            </ol>
+                        </div>
+                    </div>
+                    <div class="nav-account bg-transparent text-slate-700 p-0">
+                        <img
+                            :src="
+                                'https://ui-avatars.com/api/?name=' +
+                                auth.merchant +
+                                '&size=40'
+                            "
+                            alt="Profile"
+                            class="rounded-full"
+                        />
+                        <div>
+                            <div class="text-lg font-bold">
+                                {{ auth.merchant }}
+                            </div>
+                            <div class="text-xs mb-1">Semua Outlet</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -86,11 +131,15 @@ import { computed, ref } from "vue";
 
 const loading = ref(false);
 
+import { usePageStore } from "@/store/page";
+const pageStore = usePageStore();
+
 // Event listener for Inertia start/finish
 router.on("start", () => (loading.value = true));
 router.on("finish", () => (loading.value = false));
 
 const page = usePage();
+const auth = computed(() => page.props.auth);
 const modalStore = useModalStore();
 const flashSuccess = computed(() => page.props.flash.success);
 const flashFailed = computed(() => page.props.flash.failed);

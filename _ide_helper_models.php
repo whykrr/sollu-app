@@ -31,6 +31,10 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Outlet> $outlets
  * @property-read int|null $outlets_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product\ProductVariation> $product_variations
+ * @property-read int|null $product_variations_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product\Product> $products
+ * @property-read int|null $products_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MerchantOutletSubscription> $subscriptions
  * @property-read int|null $subscriptions_count
  * @property-read \App\Models\MerchantType|null $type
@@ -166,18 +170,46 @@ namespace App\Models{
 	class IdeHelperOutlet {}
 }
 
-namespace App\Models{
+namespace App\Models\Product{
 /**
  * 
  *
- * @property int $id
+ * @package App\Models\Product
+ * @property-read Collection|Merchant $merchant
+ * @property-read Collection|ProductUnit $unit
+ * @property-read Collection|ProductCategory[] $categories
+ * @property-read Collection|ProductCombination[] $combinations
+ * @property-read Collection|ProductVariation[] $variations
+ * @property-read Collection|ProductVariationOptionValue[] $variation_values
+ * @property string $id
+ * @property string $merchant_id
+ * @property int $product_type_id
+ * @property string $name
+ * @property string $description
+ * @property string $base_price
+ * @property int $product_unit_id
+ * @property bool $is_active
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $deleted_at
+ * @property-read int|null $categories_count
+ * @property-read int|null $combinations_count
+ * @property-read \App\Models\Product\ProductType|null $type
+ * @property-read int|null $variation_values_count
+ * @property-read int|null $variations_count
  * @method static \Illuminate\Database\Eloquent\Builder|Product newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Product newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Product query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereBasePrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Product whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Product whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereMerchantId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereProductTypeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereProductUnitId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Product whereUpdatedAt($value)
  * @mixin \Eloquent
  */
@@ -185,7 +217,7 @@ namespace App\Models{
 	class IdeHelperProduct {}
 }
 
-namespace App\Models{
+namespace App\Models\Product{
 /**
  * 
  *
@@ -205,6 +237,8 @@ namespace App\Models{
  * @property-read int|null $children_count
  * @property-read string $full_path
  * @property-read int|null $merchant_types_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product\Product> $products
+ * @property-read int|null $products_count
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory onlyTrashed()
@@ -227,23 +261,197 @@ namespace App\Models{
 	class IdeHelperProductCategory {}
 }
 
-namespace App\Models{
+namespace App\Models\Product{
+/**
+ * 
+ *
+ * @property string $id
+ * @property string $product_id
+ * @property string $combination
+ * @property string $SKU
+ * @property string $barcode
+ * @property string $unique_string
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Product\Product $product
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination query()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination whereBarcode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination whereCombination($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination whereSKU($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination whereUniqueString($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperProductCombination {}
+}
+
+namespace App\Models\Product{
 /**
  * 
  *
  * @property int $id
+ * @property string $name
+ * @property string $description
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product\Product> $products
+ * @property-read int|null $products_count
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductType newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductType newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductType query()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductType whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductType whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductType whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductType whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductType whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperProductType {}
+}
+
+namespace App\Models\Product{
+/**
+ * 
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $symbol
+ * @property string|null $description
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product\Product> $products
+ * @property-read int|null $products_count
  * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit query()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit whereDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit whereSymbol($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit whereUpdatedAt($value)
  * @mixin \Eloquent
  */
 	#[\AllowDynamicProperties]
 	class IdeHelperProductUnit {}
+}
+
+namespace App\Models\Product{
+/**
+ * 
+ *
+ * @property int $id
+ * @property string|null $merchant_id
+ * @property string $name
+ * @property string $slug
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Merchant|null $merchant
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation query()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation whereMerchantId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperProductVariation {}
+}
+
+namespace App\Models\Product{
+/**
+ * 
+ *
+ * @property string $id
+ * @property string $product_id
+ * @property int $product_variation_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Product\ProductVariation $master
+ * @property-read \App\Models\Product\Product $product
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption query()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption whereProductVariationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperProductVariationOption {}
+}
+
+namespace App\Models\Product{
+/**
+ * 
+ *
+ * @property string $id
+ * @property string $product_id
+ * @property string $product_variation_option_id
+ * @property int $product_variation_value_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Product\ProductVariationValue $master
+ * @property-read \App\Models\Product\Product $product
+ * @property-read \App\Models\Product\ProductVariationOption $variant_option
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue query()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue whereProductVariationOptionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue whereProductVariationValueId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperProductVariationOptionValue {}
+}
+
+namespace App\Models\Product{
+/**
+ * 
+ *
+ * @property-read Collection|ProductVariationOptionValue[] $product_variation_option_values
+ * @property int $id
+ * @property int $product_variation_id
+ * @property string $name
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read int|null $product_variation_option_values_count
+ * @property-read \App\Models\Product\ProductVariation|null $variation
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue query()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue whereProductVariationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperProductVariationValue {}
 }
 
 namespace App\Models{

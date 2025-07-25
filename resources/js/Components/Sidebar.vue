@@ -1,5 +1,5 @@
 <template>
-    <div class="hidden sm:flex w-64 md:w-72 h-screen z-30">
+    <div class="hidden sm:flex w-52 md:w-64 h-screen z-30">
         <div
             class="bg-neutral-lighter text-neutral-600 w-full flex flex-col justify-between shadow"
         >
@@ -99,7 +99,7 @@
                             />
                         </div>
                         <div class="grow text-left">
-                             {{ auth.merchant }}
+                            {{ auth.name }}
                         </div>
                         <fa
                             icon="fa-chevron-up"
@@ -120,7 +120,7 @@
                     }"
                 >
                     <div
-                        class="flex flex-row gap-2 items-center border-b border-gray-200 mb-0.5"
+                        class="flex flex-row gap-2 pb-2 items-center border-b border-gray-200 mb-0.5"
                     >
                         <div>
                             <img
@@ -131,10 +131,10 @@
                         </div>
                         <div class="grow">
                             <div class="font-semibold">
-                                 {{ auth.name }}
+                                {{ auth.name }}
                             </div>
                             <div class="text-sm">
-                                 {{ auth.role[0] }}
+                                {{ auth.role[0] }}
                             </div>
                         </div>
                     </div>
@@ -143,12 +143,17 @@
                             href="#"
                             class="sidebar-item rounded-lg px-2 py-1"
                         >
-                            <fa icon="fa-key"></fa>
-                            Lupa Password
+                            <fa icon="fa-user"></fa>
+                            Akun Saya
                         </Link>
-                        <Link :href="route('logout')" class="sidebar-item rounded-lg px-2 py-1" method="delete" as="button">
+                        <Link
+                            :href="route('logout')"
+                            class="sidebar-item rounded-lg px-2 py-1"
+                            method="delete"
+                            as="button"
+                        >
                             <fa icon="fa-right-from-bracket"></fa>
-                            keluar
+                            Keluar
                         </Link>
                     </div>
                 </div>

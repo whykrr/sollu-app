@@ -11,8 +11,8 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::create('outlet_user', function (Blueprint $table) {
-            $table->string('outlet_id', 36);
-            $table->string('user_id', 36);
+            $table->uuid('outlet_id');
+            $table->uuid('user_id');
         });
 
         Schema::table('outlet_user', function (Blueprint $table) {

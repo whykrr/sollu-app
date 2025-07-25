@@ -1,5 +1,5 @@
 <template>
-    <CardTransparent title="Dashboard">
+    <CardTransparent>
         <div
             class="alert alert-warning mb-2"
             v-if="auth.email_verified_at === null"
@@ -68,6 +68,18 @@
                 <ListView :data="pageMostVisits" />
             </Card>
         </div>
+
+        <div class="flex flex-col">
+            <Card title="Halaman Top 10" class="shadow-md">
+                <ListView :data="pageMostVisits" />
+            </Card>
+        </div>
+
+        <div class="flex flex-col">
+            <Card title="Halaman Top 10" class="shadow-md">
+                <ListView :data="pageMostVisits" />
+            </Card>
+        </div>
     </CardTransparent>
 </template>
 
@@ -79,6 +91,10 @@ import { onMounted, ref } from "vue";
 import { Chart } from "chart.js/auto";
 import CardTransparent from "@/Components/UI/CardTransparent.vue";
 import { Link, usePage } from "@inertiajs/vue3";
+
+import { usePageStore } from "@/store/page";
+const pageStore = usePageStore();
+pageStore.title = "Overview";
 
 const auth = usePage().props.auth;
 

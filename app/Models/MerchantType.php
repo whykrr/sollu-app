@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\SettingsCast;
+use App\Models\Product\ProductCategory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

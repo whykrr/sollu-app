@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Product;
 
+use App\Models\MerchantType;
+use App\Traits\MerchantOwned;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +17,7 @@ use Spatie\Sluggable\SlugOptions;
 /**
  * @property-read ProductCategory|null $parent
  * @property-read Collection|ProductCategory[] $children
+ * @property-read Collection|Product[] $products
  * @property-read Collection|MerchantType[] $merchantTypes
  * @mixin IdeHelperProductCategory
  */
@@ -23,6 +26,7 @@ class ProductCategory extends Model
     use HasFactory;
     use SoftDeletes;
     use HasSlug;
+    use MerchantOwned;
 
     protected $fillable = [
         'merchant_id',
@@ -56,6 +60,16 @@ class ProductCategory extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'parent_id', 'id');
+    }
+
+    /**
+     * The products that belong to the ProductCategory
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'category__product');
     }
 
     /**

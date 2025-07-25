@@ -9,6 +9,7 @@ use DateTimeInterface;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,8 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
+ * @property-read Collection|Merchant $merchant
+ * @property-read Collection|Outlet[] $outlets
  * @mixin HasRoles
  * @mixin IdeHelperUser
  */

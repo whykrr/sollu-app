@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use App\Traits\MerchantOwned;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * @property-read Collection|SubscriptionPlan $subscription_plan
+ * @property-read Collection|Merchant $merchant
+ * @property-read Collection|Outlet $outlet
  * @mixin IdeHelperMerchantOutletSubscription
  */
 class MerchantOutletSubscription extends Model

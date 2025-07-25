@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Product\Product;
+use App\Models\Product\ProductVariation;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +14,12 @@ use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 /**
+ * @property-read Collection|MerchantType $type
+ * @property-read Collection|Outlet[] $outlets
  * @property-read Collection|User[] $users
+ * @property-read Collection|MerchantOutletSubscription $subscriptions
+ * @property-read Collection|ProductVariation[] $product_variations
+ * @property-read Collection|Product[] $products
  * @mixin IdeHelperMerchant
  */
 class Merchant extends Model
@@ -89,6 +96,26 @@ class Merchant extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(MerchantOutletSubscription::class);
+    }
+
+    /**
+     * Get all of the product_variations for the Merchant
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function product_variations(): HasMany
+    {
+        return $this->hasMany(ProductVariation::class);
+    }
+
+    /**
+     * Get all of the products for the Merchant
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
     }
 
     /**
