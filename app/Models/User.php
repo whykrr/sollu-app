@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Notifications\ResetPassword;
 use App\Notifications\VerifyEmailMerchant;
-use App\Traits\MerchantOwned;
 use DateTimeInterface;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -34,7 +33,6 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasUuids;
     use SoftDeletes;
     use CanResetPassword;
-    use MerchantOwned;
 
     /**
      * The attributes that are mass assignable.

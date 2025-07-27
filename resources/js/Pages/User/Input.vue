@@ -117,7 +117,7 @@
     </CardTransparent>
 </template>
 <script setup>
-import CardTransparent from "@/Components/UI/CardTransparent.vue";
+import CardTransparent from "@/Components/Cards/CardTransparent.vue";
 import { useModalStore } from "@/store/modal";
 import { Link, router, useForm } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";

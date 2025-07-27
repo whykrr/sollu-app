@@ -1,54 +1,59 @@
 <template>
     <form @submit.prevent="register">
-        <div class="flex flex-col gap-2 min-h-full justify-center">
-            <div>
-                <img
-                    class="h-[60px]"
-                    src="img/logo-fit-color.png"
-                    alt="banner"
-                />
+        <div class="flex flex-col gap-2 h-full">
+            <div class="">
+                <ol class="flex items-center w-full relative gap-2">
+                    <li v-for="(stepItem, index) in steps">
+                        <div
+                            class="h-1.5 w-20 rounded-full overflow-hidden bg-main/10"
+                        >
+                            <div
+                                class="h-full origin-left transition-transform duration-500"
+                                :class="{
+                                    'scale-x-100 bg-main':
+                                        currentStep >= index + 1,
+                                    'scale-x-0 bg-main':
+                                        currentStep < index + 1,
+                                }"
+                            ></div>
+                        </div>
+                    </li>
+                </ol>
+                <div class="flex-1 justify-start">
+                    <transition name="fade" mode="out-in">
+                        <div
+                            v-if="steps[currentStep - 1]"
+                            :key="currentStep"
+                            class="z-10 text-base text-gray-400 flex flex-row justify-start items-center gap-2 my-2"
+                        >
+                            <fa :icon="steps[currentStep - 1].icon" class="" />
+                            <span class="text-sm">{{
+                                steps[currentStep - 1].label
+                            }}</span>
+                        </div>
+                    </transition>
+                </div>
             </div>
-            <div>
-                <div class="flex flex-col gap-1">
-                    <div class="text-2xl font-bold">Halo !</div>
-                    <div>
-                        Daftar sekarang dan kelola bisnismu lebih mudah dan
-                        efisien bersama kami
-                    </div>
-                    <!-- <div>Sign In to your account</div> -->
-                    <div class="my-2">
-                        <ol class="flex items-center w-full relative">
-                            <li
-                                v-for="(stepItem, index) in steps"
-                                :key="index"
-                                class="relative flex items-center w-full justify-center"
+            <div class="flex-1">
+                <div class="flex flex-col gap-1 h-full justify-center">
+                    <div class="relative">
+                        <transition name="fade-slide" mode="out-in">
+                            <div
+                                v-if="steps[currentStep - 1]"
+                                :key="currentStep"
+                                class="space-y-1 mb-4"
                             >
-                                <div
-                                    v-if="index < steps.length - 1"
-                                    class="absolute top-1/2 left-[50%] w-full h-1 -translate-y-1/2"
-                                    :class="{
-                                        'bg-main': index < currentStep - 1,
-                                        'bg-main-lighter':
-                                            index >= currentStep - 1,
-                                    }"
-                                ></div>
-
-                                <span
-                                    class="z-10 flex items-center justify-center w-8 h-8 rounded-full lg:h-10 lg:w-10 shrink-0"
-                                    :class="{
-                                        'bg-main text-white':
-                                            currentStep >= index + 1,
-                                        'bg-main-lighter text-white':
-                                            currentStep < index + 1,
-                                    }"
-                                >
-                                    <fa :icon="stepItem.icon" />
-                                </span>
-                            </li>
-                        </ol>
+                                <div class="text-3xl font-semibold">
+                                    {{ steps[currentStep - 1].title }}
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    {{ steps[currentStep - 1].greetings }}
+                                </div>
+                            </div>
+                        </transition>
                     </div>
+
                     <div v-if="currentStep === 1">
-                        <div class="mb-1">Pilih jenis usahamu!</div>
                         <div class="flex flex-wrap gap-2">
                             <div v-for="type in merchant_types">
                                 <input
@@ -228,7 +233,7 @@
                 <div class="flex gap-2">
                     <button
                         type="button"
-                        class="btn btn-highlight-danger text-lg"
+                        class="btn btn-highlight-danger text-xl"
                         @click="prevStep"
                         :disabled="currentStep === 1"
                     >
@@ -237,7 +242,7 @@
                     <button
                         type="button"
                         v-if="currentStep < 3"
-                        class="btn btn-main w-full block! text-lg"
+                        class="btn btn-main block! px-12 text-xl"
                         @click="nextStep"
                         :disabled="currentStep === steps.length"
                     >
@@ -246,9 +251,9 @@
                     <button
                         v-else
                         type="submit"
-                        class="btn btn-main w-full block! text-lg"
+                        class="btn btn-main block! px-12 text-xl"
                     >
-                        Daftar
+                        Daftar Sekarang
                     </button>
                 </div>
             </div>
@@ -274,7 +279,27 @@ const props = defineProps({
 
 const currentStep = ref(1);
 
-const steps = [{ icon: "fa-store" }, { icon: "fa-user" }, { icon: "fa-lock" }];
+const steps = [
+    {
+        icon: "fa-store",
+        label: "Jenis Usaha",
+        title: "Halo,",
+        greetings: "Pilih jenis usaha kamu untuk menyesuaikan fitur.",
+    },
+    {
+        icon: "fa-user",
+        label: "Data Usaha",
+        title: "Lengkapi Data Usaha",
+        greetings:
+            "Cukup sedikit info bisnismu untuk mulai dengan sistem terbaik.",
+    },
+    {
+        icon: "fa-lock",
+        label: "Keamanan",
+        title: "Yuk, Amankan Akunmu",
+        greetings: "Lindungi akun dan data usahamu dengan kata sandi kuat.",
+    },
+];
 
 const nextStep = () => {
     if (currentStep.value < 3) currentStep.value++;

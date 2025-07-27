@@ -142,10 +142,10 @@
 
 <script setup>
 import Search from "@/Components/Form/Search.vue";
-import Card from "@/Components/UI/Card.vue";
-import Pagination from "@/Components/UI/Pagination.vue";
+import Card from "@/Components/Cards/Card.vue";
+import Pagination from "@/Components/Tables/Pagination.vue";
 import ListView from "@/Pages/Dashboard/Components/ListView.vue";
-import Widget from "@/Components/UI/Widget.vue";
+import Widget from "@/Components/Widgets/Widget.vue";
 import { onMounted, ref } from "vue";
 import DataViewSwitcher from "./Components/DataViewSwitcher.vue";
 import GridView from "./Components/GridView.vue";

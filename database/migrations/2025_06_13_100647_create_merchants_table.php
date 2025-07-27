@@ -26,7 +26,7 @@ return new class () extends Migration {
         });
 
         Schema::table('merchants', function (Blueprint $table) {
-            $table->foreign('merchant_type_id')->references('id')->on('merchant_types')->onDelete('cascade');
+            $table->foreign('merchant_type_id')->references('id')->on('merchant_types')->onDelete('restrict');
         });
     }
 

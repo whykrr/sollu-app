@@ -79,5 +79,5 @@
 </template>
 <script setup>
 import Switch from "@/Components/Form/Switch.vue";
-import Card from "@/Components/UI/Card.vue";
+import Card from "@/Components/Cards/Card.vue";
 </script>

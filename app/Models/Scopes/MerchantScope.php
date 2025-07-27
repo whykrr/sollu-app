@@ -14,7 +14,8 @@ class MerchantScope implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
-        if (Auth::guard('merchant')->check()) {
+        $user = Auth::guard('merchant')->user();
+        if ($user) {
             $builder->where($model->getTable() . 'merchant_id', Auth::user()->merchant_id);
         }
     }

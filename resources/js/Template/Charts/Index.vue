@@ -16,7 +16,7 @@
     </div>
 </template>
 <script setup>
-import Card from "@/Components/UI/Card.vue";
+import Card from "@/Components/Cards/Card.vue";
 import { Chart } from "chart.js/auto";
 import { onMounted } from "vue";
 

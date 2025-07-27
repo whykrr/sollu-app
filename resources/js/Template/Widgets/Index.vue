@@ -196,12 +196,12 @@
     </Card>
 </template>
 <script setup>
-import Card from "@/Components/UI/Card.vue";
-import Widget from "@/Components/UI/Widget.vue";
-import WidgetCard from "@/Components/UI/WidgetCard.vue";
-import WidgetChart from "@/Components/UI/WidgetChart.vue";
-import WidgetHighlight from "@/Components/UI/WidgetHighlight.vue";
-import WidgetProgress from "@/Components/UI/WidgetProgress.vue";
+import Card from "@/Components/Cards/Card.vue";
+import Widget from "@/Components/Widgets/Widget.vue";
+import WidgetCard from "@/Components/Widgets/WidgetCard.vue";
+import WidgetChart from "@/Components/Widgets/WidgetChart.vue";
+import WidgetHighlight from "@/Components/Widgets/WidgetHighlight.vue";
+import WidgetProgress from "@/Components/Widgets/WidgetProgress.vue";
 
 const labels = [
     "Jan",

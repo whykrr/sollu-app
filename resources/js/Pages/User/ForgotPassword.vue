@@ -1,19 +1,25 @@
 <template>
     <form @submit.prevent="forgot">
-        <div class="flex flex-col gap-2 min-h-full justify-center">
-            <div>
-                <img
-                    class="h-[75px]"
-                    src="img/logo-fit-color.png"
-                    alt="banner"
-                />
+        <div class="flex flex-col gap-2 h-full">
+            <div class="w-full max-w-md space-y-6">
+                <div>
+                    <img
+                        class="h-[60px]"
+                        src="img/logo-fit-color.png"
+                        alt="Logo"
+                    />
+                </div>
             </div>
-            <div>
-                <div class="flex flex-col gap-1">
-                    <div class="text-2xl font-bold">Lupa Kata Sandi</div>
-                    <div>
-                        Masukkan email Anda untuk Atur ulang kata sandimu
-                        sekarang dan lanjutkan bisnismu tanpa hambatan.
+            <div class="flex-1">
+                <div class="flex flex-col gap-1 justify-center h-full">
+                    <div class="space-y-1 mb-4">
+                        <div class="text-3xl font-semibold">
+                            Lupa Kata Sandi
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            Masukkan email Anda untuk Atur ulang kata sandimu
+                            sekarang dan lanjutkan bisnismu tanpa hambatan.
+                        </div>
                     </div>
                     <div class="alert alert-info mb-2" v-if="flashSuccess">
                         <div class="flex justify-between items-center">

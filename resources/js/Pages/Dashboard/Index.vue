@@ -68,28 +68,16 @@
                 <ListView :data="pageMostVisits" />
             </Card>
         </div>
-
-        <div class="flex flex-col">
-            <Card title="Halaman Top 10" class="shadow-md">
-                <ListView :data="pageMostVisits" />
-            </Card>
-        </div>
-
-        <div class="flex flex-col">
-            <Card title="Halaman Top 10" class="shadow-md">
-                <ListView :data="pageMostVisits" />
-            </Card>
-        </div>
     </CardTransparent>
 </template>
 
 <script setup>
-import Card from "@/Components/UI/Card.vue";
+import Card from "@/Components/Cards/Card.vue";
 import ListView from "@/Pages/Dashboard/Components/ListView.vue";
-import Widget from "@/Components/UI/Widget.vue";
+import Widget from "@/Components/Widgets/Widget.vue";
 import { onMounted, ref } from "vue";
 import { Chart } from "chart.js/auto";
-import CardTransparent from "@/Components/UI/CardTransparent.vue";
+import CardTransparent from "@/Components/Cards/CardTransparent.vue";
 import { Link, usePage } from "@inertiajs/vue3";
 
 import { usePageStore } from "@/store/page";

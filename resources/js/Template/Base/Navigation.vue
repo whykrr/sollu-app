@@ -131,7 +131,7 @@ import Tab from "@/Components/UI/Tab.vue";
 import TabContent from "@/Components/UI/TabContent.vue";
 import TabNav from "@/Components/UI/TabNav.vue";
 import TabVertical from "@/Components/UI/TabVertical.vue";
-import Card from "@/Components/UI/Card.vue";
+import Card from "@/Components/Cards/Card.vue";
 import { Link } from "@inertiajs/vue3";
 import { ref } from "vue";
 

@@ -223,5 +223,5 @@
     </div>
 </template>
 <script setup>
-import Card from "@/Components/UI/Card.vue";
+import Card from "@/Components/Cards/Card.vue";
 </script>

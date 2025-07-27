@@ -61,7 +61,7 @@
     </CardTransparent>
 </template>
 <script setup>
-import CardTransparent from "@/Components/UI/CardTransparent.vue";
+import CardTransparent from "@/Components/Cards/CardTransparent.vue";
 import { useForm } from "@inertiajs/vue3";
 
 const props = defineProps({

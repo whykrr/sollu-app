@@ -6,8 +6,8 @@
     >
         <fa v-if="icon" :icon="icon" class="w-[20px]"></fa>
         <div v-else class="w-[20px]"></div>
-        <div>
-            {{ name }}
+        <div class="text-sm">
+            {{ label }}
         </div>
     </Link>
 </template>
@@ -18,7 +18,7 @@ import { Link } from "@inertiajs/vue3";
 defineProps({
     to: String,
     icon: String,
-    name: String,
+    label: String,
     isActive: Boolean,
 });
 </script>

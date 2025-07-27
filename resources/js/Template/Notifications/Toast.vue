@@ -18,8 +18,8 @@
     </div>
 </template>
 <script setup>
-import Card from "@/Components/UI/Card.vue";
-import Toast from "@/Components/UI/Toast.vue";
+import Card from "@/Components/Cards/Card.vue";
+import Toast from "@/Components/Notifications/Toast.vue";
 import { ref } from "vue";
 
 const showToast = ref(false);

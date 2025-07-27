@@ -3,7 +3,6 @@
 namespace App\Models\Product;
 
 use App\Models\MerchantType;
-use App\Traits\MerchantOwned;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +25,6 @@ class ProductCategory extends Model
     use HasFactory;
     use SoftDeletes;
     use HasSlug;
-    use MerchantOwned;
 
     protected $fillable = [
         'merchant_id',
@@ -69,7 +67,7 @@ class ProductCategory extends Model
      */
     public function products(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class, 'category__product');
+        return $this->belongsToMany(Product::class, 'product_category_product');
     }
 
     /**

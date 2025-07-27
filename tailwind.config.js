@@ -52,7 +52,7 @@ export default {
                 },
                 neutral: {
                     light: '#F0F0F0',     // Light gray
-                    lighter: '#F9F9F9',   // Even lighter gray
+                    lighter: '#F5F5F5',   // Even lighter gray
                     DEFAULT: '#E0E0E0',   // Mid-tone gray
                     dark: '#3A3A3A',      // Dark gray
                     darker: '#1F1F1F',    // Even darker gray
@@ -167,12 +167,16 @@ function hexToRgba(hex, alpha) {
 function addColorClasses(colorName, shade, colorValue, theme) {
     const colorClasses = {};
 
+    const prefix = (colorName && colorName !== '__CSS_VALUES__') ? `-${colorName}` : '';
     const suffix = (shade && shade !== 'DEFAULT') ? `-${shade}` : '';
-    const btn = `.btn-${colorName}${suffix}`;
-    const btnOutline = `.btn-outline-${colorName}${suffix}`;
-    const btnHighlight = `.btn-highlight-${colorName}${suffix}`;
-    const badge = `.badge-${colorName}${suffix}`;
-    const alert = `.alert-${colorName}${suffix}`;
+    const btn = `.btn${prefix}${suffix}`;
+    const btnOutline = `.btn-outline${prefix}${suffix}`;
+    const btnHighlight = `.btn-highlight${prefix}${suffix}`;
+    const badge = `.badge${prefix}${suffix}`;
+    const alert = `.alert${prefix}${suffix}`;
+
+    console.log('Example:', btn, btnOutline, btnHighlight);
+
 
     // BTN
     colorClasses[btn] = {
@@ -242,7 +246,7 @@ function addColorClasses(colorName, shade, colorValue, theme) {
     // Alert
     colorClasses[alert] = {
         'color': colorValue,
-        'border-color': colorValue,
+        'border-color': hexToRgba(colorValue, 0.3),
         'background-color': hexToRgba(colorValue, 0.15),
     };
 

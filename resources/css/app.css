@@ -22,40 +22,54 @@
     }
 }
 
+@layer components {
+    .sidebar {
+        @apply overflow-y-auto text-neutral-600;
+    }
+
+    .sidebar .sidebar-container {
+        @apply flex flex-col gap-1 px-2 py-0;
+    }
+
+    .sidebar-container .sidebar-item {
+        @apply flex flex-row gap-2 items-center py-2 px-2 hover:bg-neutral-300/60 hover:text-neutral-900 cursor-pointer rounded-lg;
+    }
+
+    .sidebar-container .sidebar-item-expand {
+        @apply hover:bg-neutral-300/60 cursor-pointer;
+    }
+
+    .sidebar-container .sidebar-item-expand a.expand-toggle {
+        @apply flex rounded-lg flex-row gap-2 items-center py-2 px-2 w-full hover:text-neutral-900;
+    }
+
+    .sidebar-container
+        .sidebar-item-expand
+        .sidebar-expand-container
+        .sidebar-item {
+        @apply hover:bg-neutral-400/50 rounded-none last:rounded-b-lg;
+    }
+}
+
 @utility nav-icon {
-    @apply flex justify-center items-center rounded-full relative w-[40px] h-[40px] bg-main/10;
+    @apply flex justify-center items-center rounded-lg relative gap-1 h-8 min-w-8 hover:bg-neutral-300/60;
     & span {
-        @apply rounded-md text-xs p-1 bg-danger text-white absolute top-0 right-0;
-    }
-}
-
-@utility nav-account {
-    @apply flex flex-row items-center gap-2.5 p-[5px] px-3 bg-main rounded-lg text-white;
-}
-
-@utility sidebar-item {
-    /* Sidebar Style */
-    @apply flex flex-row gap-2 items-center py-2 px-3 hover:bg-main hover:text-light  cursor-pointer;
-    &.active {
-        @apply bg-main text-light;
-    }
-    .sidebar-item-expand & {
-        @apply hover:bg-main-dark  last:rounded-b-lg;
-    }
-    .sidebar-item-expand &.active {
-        @apply bg-main-dark hover:bg-main-lighter;
+        @apply rounded-md  p-1 bg-danger text-white absolute top-1.5 right-1.5 text-xs;
     }
 }
 
 @utility active {
     &.sidebar-item {
-        @apply bg-main text-light;
+        @apply bg-neutral-300/60 !text-neutral-900 font-medium;
     }
     &.sidebar-item-expand {
-        @apply bg-main text-light;
+        @apply bg-neutral-300/60;
+    }
+    &.sidebar-item-expand a.expand-toggle {
+        @apply text-neutral-900 font-medium;
     }
     .sidebar-item-expand &.sidebar-item {
-        @apply bg-main-dark hover:bg-main-lighter;
+        @apply bg-neutral-300 hover:bg-main-lighter;
     }
     .navigation ul &li {
         @apply items-center border-b-2 border-b-main text-main;
@@ -71,22 +85,6 @@
     }
     .tab-vertical .tab-content &.tab-pane {
         @apply block animate-fade-in;
-    }
-}
-
-@utility sidebar-item-expand {
-    @apply hover:bg-main hover:text-light;
-    &.active {
-        @apply bg-main text-light;
-    }
-    & button {
-        @apply flex rounded-lg flex-row gap-2 items-center py-2 px-3 w-full;
-    }
-    & .sidebar-item {
-        @apply hover:bg-main-dark last:rounded-b-lg;
-    }
-    & .sidebar-item.active {
-        @apply bg-main-dark hover:bg-main-lighter;
     }
 }
 
@@ -113,7 +111,7 @@
 }
 
 @utility card {
-    @apply bg-neutral-lighter rounded-lg;
+    @apply bg-white rounded-lg;
     &.card-outline {
         @apply bg-transparent border border-neutral-300;
     }
@@ -372,10 +370,10 @@
 }
 
 @utility form-check {
-    @apply block min-h-6;
+    @apply flex flex-wrap items-center min-h-6;
 
     & input {
-        @apply form align-top w-4 h-4 mt-1;
+        @apply form align-top w-4 h-4;
     }
 
     & input:checked {
@@ -842,6 +840,70 @@
         opacity: 1;
     }
 
+    .fade-enter-active,
+    .fade-leave-active {
+        transition: opacity 0.25s ease;
+    }
+    .fade-enter-from,
+    .fade-leave-to {
+        opacity: 0;
+    }
+    .fade-enter-to,
+    .fade-leave-from {
+        opacity: 1;
+    }
+
+    .fade-down-enter-active,
+    .fade-down-leave-active {
+        transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .fade-down-enter-from,
+    .fade-down-leave-to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    .fade-down-enter-to,
+    .fade-down-leave-from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .fade-up-enter-active,
+    .fade-up-leave-active {
+        transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .fade-up-enter-from,
+    .fade-up-leave-to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    .fade-up-enter-to,
+    .fade-up-leave-from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .slide-fade-enter-active,
+    .slide-fade-leave-active {
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .slide-fade-enter-from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    .slide-fade-enter-to {
+        transform: translateX(0%);
+        opacity: 1;
+    }
+    .slide-fade-leave-from {
+        transform: translateX(0%);
+        opacity: 1;
+    }
+    .slide-fade-leave-to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
     /* Styling Quill tooltip */
     .ql-tooltip {
         left: unset !important;
@@ -859,27 +921,27 @@
     }
 
     /* Floating scrollbar styles for WebKit browsers (Chrome, Safari, Edge) */
-    .floating-scrollbar::-webkit-scrollbar {
+    .sidebar::-webkit-scrollbar {
         width: 8px; /* Minimal width for a clean look */
     }
 
-    .floating-scrollbar::-webkit-scrollbar-track {
+    .sidebar::-webkit-scrollbar-track {
         background: transparent; /* Makes the track invisible */
     }
 
-    .floating-scrollbar::-webkit-scrollbar-thumb {
+    .sidebar::-webkit-scrollbar-thumb {
         background-color: #71809680; /* Thumb color */
         border-radius: 4px;
         border: 2px solid rgba(0, 0, 0, 0); /* Invisible border to create the floating effect */
         background-clip: padding-box; /* Keeps the thumb from filling the entire track */
     }
 
-    .floating-scrollbar::-webkit-scrollbar-thumb:hover {
+    .sidebar::-webkit-scrollbar-thumb:hover {
         background-color: #a0aec0; /* Lighter color when hovering */
     }
 
     /* Floating scrollbar styles for Firefox */
-    .floating-scrollbar {
+    .sidebar {
         scrollbar-width: thin; /* Thin scrollbar */
         scrollbar-color: #71809680 transparent; /* Thumb color and transparent track */
     }

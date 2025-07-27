@@ -1,18 +1,26 @@
 <template>
     <form @submit.prevent="login">
-        <div class="flex flex-col gap-2 min-h-full justify-center">
-            <div>
-                <img
-                    class="h-[75px]"
-                    src="img/logo-fit-color.png"
-                    alt="banner"
-                />
+        <div class="flex flex-col gap-2 h-full">
+            <div class="w-full max-w-md space-y-6">
+                <div>
+                    <img
+                        class="h-[60px]"
+                        src="img/logo-fit-color.png"
+                        alt="Logo"
+                    />
+                </div>
             </div>
-            <div>
-                <div class="flex flex-col gap-1">
-                    <div class="text-2xl font-bold">Selamat Datang !</div>
-                    <div>
-                        Login sekarang dan mulai kelola bisnismu dengan mudah.
+
+            <div class="flex-1">
+                <div class="flex flex-col gap-1 justify-center h-full">
+                    <div class="space-y-1 mb-4">
+                        <div class="text-3xl font-semibold">
+                            Halo, <br />Selamat Datang
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            Login sekarang dan mulai kelola bisnismu dengan
+                            mudah.
+                        </div>
                     </div>
                     <div class="alert alert-info mb-2" v-if="flashSuccess">
                         <div class="flex justify-between items-center">
@@ -59,11 +67,9 @@
                             form.errors.password
                         }}</span>
                     </div>
-                    <div
-                        class="flex flex-row justify-between items-center mt-2"
-                    >
+                    <div class="flex justify-between items-center text-sm mt-2">
                         <div>
-                            <div class="form-check">
+                            <div class="form-check items-center">
                                 <input
                                     type="checkbox"
                                     name="remember"
@@ -79,11 +85,8 @@
                     </div>
                 </div>
             </div>
-            <div>
-                <button
-                    type="submit"
-                    class="btn btn-main w-full block! text-lg"
-                >
+            <div class="mt-4">
+                <button type="submit" class="btn btn-main block! px-12 text-xl">
                     Login
                 </button>
             </div>

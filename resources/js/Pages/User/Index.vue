@@ -25,8 +25,8 @@
 </template>
 
 <script setup>
-import CardTransparent from "@/Components/UI/CardTransparent.vue";
-import Pagination from "@/Components/UI/Pagination.vue";
+import CardTransparent from "@/Components/Cards/CardTransparent.vue";
+import Pagination from "@/Components/Tables/Pagination.vue";
 import Table from "@/Pages/User/Components/Table.vue";
 import Filter from "@/Pages/User/Components/Filter.vue";
 import { Link } from "@inertiajs/vue3";

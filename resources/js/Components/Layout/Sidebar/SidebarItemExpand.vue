@@ -3,19 +3,19 @@
         class="sidebar-item-expand rounded-lg w-full"
         :class="{ active: isActive || isSubMenuOpen }"
     >
-        <button type="button" @click="toggleSubMenu">
+        <a class="expand-toggle" href="#" @click="toggleSubMenu">
             <fa :icon="icon" class="w-[20px]"></fa>
-            <div class="grow text-left">{{ name }}</div>
+            <div class="grow text-left text-sm">{{ label }}</div>
             <fa
                 icon="fa-chevron-down"
-                class="transition-transform duration-200"
+                class="transition-transform duration-200 text-sm"
                 :class="{ 'rotate-180': isSubMenuOpen }"
             />
-        </button>
+        </a>
 
         <!-- Animated Submenu -->
         <transition name="submenu">
-            <div v-if="isSubMenuOpen" class="gap-2">
+            <div v-if="isSubMenuOpen" class="sidebar-expand-container gap-2">
                 <slot></slot>
             </div>
         </transition>
@@ -28,7 +28,7 @@ import { ref, toRef, watch } from "vue";
 const props = defineProps({
     to: String,
     icon: String,
-    name: String,
+    label: String,
     isActive: Boolean,
 });
 

@@ -10,13 +10,15 @@ return new class () extends Migration {
      */
     public function up(): void
     {
-        Schema::create('category_product', function (Blueprint $table) {
-            $table->uuid('product_id');
+        Schema::create('product_category_product', function (Blueprint $table) {
             $table->bigInteger('product_category_id');
+            $table->uuid('product_id');
         });
 
-        Schema::table('category_product', function (Blueprint $table) {
+        Schema::table('product_category_product', function (Blueprint $table) {
             $table->primary(['product_id', 'product_category_id']);
+            $table->foreign('product_category_id')->references('id')->on('product_categories')->onDelete('cascade');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
     }
 

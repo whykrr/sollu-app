@@ -7,13 +7,15 @@
             <div class="spinner"></div>
         </div>
         <div
-            class="h-screen w-full grid grid-cols-12 gap-4 p-6 bg-radial-[at_25%_50%] from-light to-white"
+            class="h-screen w-full grid grid-cols-12 gap-4 p-4 bg-neutral-lighter"
         >
             <div class="col-span-6 max-h-full min-h-full">
                 <AuthBanner />
             </div>
-            <div class="col-span-6 mx-36">
-                <slot />
+            <div class="col-span-6">
+                <div class="bg-white rounded-lg px-28 py-12 h-full shadow-2xl">
+                    <slot />
+                </div>
             </div>
         </div>
     </div>

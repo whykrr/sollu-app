@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\MerchantOwned;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,7 +23,6 @@ class Outlet extends Model
     use HasFactory;
     use HasUuids;
     use HasSlug;
-    use MerchantOwned;
 
     /**
      * The attributes that are mass assignable.

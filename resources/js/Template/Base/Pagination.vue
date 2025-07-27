@@ -18,8 +18,8 @@
     </Card>
 </template>
 <script setup>
-import Card from "@/Components/UI/Card.vue";
-import Pagination from "@/Components/UI/Pagination.vue";
+import Card from "@/Components/Cards/Card.vue";
+import Pagination from "@/Components/Tables/Pagination.vue";
 
 defineProps({
     users: Object,
