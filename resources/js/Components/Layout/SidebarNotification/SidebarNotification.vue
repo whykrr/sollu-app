@@ -1,12 +1,10 @@
 <template>
-    <transition name="slide-fade">
+    <transition name="slide-fade" mode="in-out">
         <aside
             v-if="props.isOpen"
-            class="fixed right-0 h-screen z-50 shadow-2xl"
+            class="fixed -right-2 top-0 h-screen z-50 shadow-2xl bg-neutral-300/50 backdrop-blur-xl"
         >
-            <div
-                class="flex flex-col bg-neutral-300/50 backdrop-blur h-full p-2 w-100"
-            >
+            <div class="flex flex-col h-full p-2 w-100">
                 <div class="flex flex-row justify-between items-center">
                     <div class="font-semibold text-2xl">Notifikasi</div>
                     <div class="text-xs text-main underline">

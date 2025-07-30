@@ -1,27 +1,29 @@
 <template>
     <div class="relative" ref="dropdownRef">
-        <a
-            href="#"
-            class="flex flex-row items-center px-2 gap-1 h-8 min-w-8 text-slate-700 bg-white rounded-lg drop-shadow-sm shadow-neutral-100"
-            @click="togglePanel"
+        <div
+            class="bg-neutral-200 hover:p-1 hover:-m-1 rounded-full"
+            :class="{ 'p-1 -m-1': showPanel }"
         >
-            <div>
-                <div class="text-base font-medium">
-                    {{ auth.name }}
-                </div>
-            </div>
-            <img
-                :src="
-                    'https://ui-avatars.com/api/?name=' + auth.name + '&size=40'
-                "
-                alt="Profile"
-                class="rounded-full w-6 h-6"
-            />
-        </a>
+            <a
+                href="#"
+                class="text-slate-700 drop-shadow-lg shadow-neutral-100"
+                @click="togglePanel"
+            >
+                <img
+                    :src="
+                        'https://ui-avatars.com/api/?name=' +
+                        auth.name +
+                        '&size=40&background=fff'
+                    "
+                    alt="Profile"
+                    class="rounded-full w-9 h-9"
+                />
+            </a>
+        </div>
         <transition name="fade-down" mode="in-out">
             <div
                 v-if="showPanel"
-                class="absolute bg-gray-300/50 backdrop-blur-lg rounded-lg w-70 top-10 right-0 shadow-lg shadow-neutral-300 p-4"
+                class="absolute bg-gray-300/50 backdrop-blur-lg rounded-lg w-70 top-12 right-0 shadow-lg shadow-neutral-300 p-4"
             >
                 <div class="flex flex-col gap-2">
                     <div class="absolute right-4">

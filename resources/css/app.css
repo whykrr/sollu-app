@@ -52,9 +52,9 @@
 }
 
 @utility nav-icon {
-    @apply flex justify-center items-center rounded-lg relative gap-1 h-8 min-w-8 hover:bg-neutral-300/60;
+    @apply flex justify-center items-center text-xl rounded-lg relative gap-1 h-8 min-w-8 hover:bg-neutral-300/60;
     & span {
-        @apply rounded-md  p-1 bg-danger text-white absolute top-1.5 right-1.5 text-xs;
+        @apply rounded-md  p-1 bg-danger text-white absolute top-1 right-1 text-xs;
     }
 }
 

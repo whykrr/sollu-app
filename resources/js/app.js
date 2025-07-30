@@ -11,12 +11,14 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 /* import specific icons */
 import { fas } from '@fortawesome/free-solid-svg-icons'
+import { far } from '@fortawesome/free-regular-svg-icons'
 import AppLayout from '@/Layout/AppLayout.vue';
 import { createPinia } from 'pinia';
 import AccessHandle from '@/access-handle.js';
 
 /* add icons to the library */
 library.add(fas)
+library.add(far)
 
 createInertiaApp({
     progress: {
