@@ -20,4 +20,4 @@ yarn-error.log
 /.vscode
 /.zed
 public/vendor/telescope
-storage/framework/view/*
+storage/framework/views/*
