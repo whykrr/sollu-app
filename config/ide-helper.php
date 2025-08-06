@@ -184,7 +184,12 @@ return [
         'Session'  => ['Illuminate\Session\Store'],
     ],
 
-    'magic' => [],
+    'magic' => [
+        'Auth' => [
+            'user'                   => 'App\Models\User',
+            'guard("cockpit")->user' => 'App\Models\User',
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------

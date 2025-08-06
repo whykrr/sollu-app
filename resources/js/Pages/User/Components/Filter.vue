@@ -53,7 +53,7 @@ watch(
     filterForm,
     debounce(
         () =>
-            router.get(route("admin.users.index"), filterForm, {
+            router.get(route("dashboard.admin.users.index"), filterForm, {
                 preserveState: true,
                 preserveScroll: true,
             }),

@@ -67,7 +67,7 @@
                         class="btn btn-danger"
                         @click="
                             modalStore.openModalSoftDelete(
-                                route('admin.users.destroy', {
+                                route('dashboard.admin.users.destroy', {
                                     user: props.user.id,
                                 })
                             )
@@ -81,9 +81,12 @@
                         class="btn btn-danger"
                         @click="
                             modalStore.openModalDelete(
-                                route('admin.users.destroy.permanent', {
-                                    user: props.user.id,
-                                })
+                                route(
+                                    'dashboard.admin.users.destroy.permanent',
+                                    {
+                                        user: props.user.id,
+                                    }
+                                )
                             )
                         "
                     >
@@ -101,7 +104,7 @@
                     <Link
                         v-else
                         :href="
-                            route('admin.users.restore', {
+                            route('dashboard.admin.users.restore', {
                                 user: props.user.id,
                             })
                         "
@@ -140,9 +143,11 @@ const form = useForm({
 
 const submitData = () => {
     if (props.user) {
-        form.put(route("admin.users.update", { user: props.user.id }));
+        form.put(
+            route("dashboard.admin.users.update", { user: props.user.id })
+        );
     } else {
-        form.post(route("admin.users.store"));
+        form.post(route("dashboard.admin.users.store"));
     }
 };
 </script>

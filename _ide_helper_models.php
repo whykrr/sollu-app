@@ -15,7 +15,12 @@ namespace App\Models{
 /**
  * 
  *
+ * @property-read Collection|MerchantType $type
+ * @property-read Collection|Outlet[] $outlets
  * @property-read Collection|User[] $users
+ * @property-read Collection|MerchantOutletSubscription $subscriptions
+ * @property-read Collection|ProductVariation[] $product_variations
+ * @property-read Collection|Product[] $products
  * @property string $id
  * @property string $slug
  * @property string $name
@@ -29,15 +34,12 @@ namespace App\Models{
  * @property array|null $settings
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Outlet> $outlets
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
  * @property-read int|null $outlets_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product\ProductVariation> $product_variations
  * @property-read int|null $product_variations_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product\Product> $products
  * @property-read int|null $products_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MerchantOutletSubscription> $subscriptions
  * @property-read int|null $subscriptions_count
- * @property-read \App\Models\MerchantType|null $type
  * @property-read int|null $users_count
  * @method static \Database\Factories\MerchantFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder|Merchant newModelQuery()
@@ -66,6 +68,9 @@ namespace App\Models{
 /**
  * 
  *
+ * @property-read Collection|SubscriptionPlan $subscription_plan
+ * @property-read Collection|Merchant $merchant
+ * @property-read Collection|Outlet $outlet
  * @property string $id
  * @property string $merchant_id
  * @property string $outlet_id
@@ -75,9 +80,6 @@ namespace App\Models{
  * @property string $status options: payment, active, cancelled
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Merchant $merchant
- * @property-read \App\Models\Outlet $outlet
- * @property-read \App\Models\SubscriptionPlan|null $subscription_plan
  * @method static \Database\Factories\MerchantOutletSubscriptionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantOutletSubscription newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|MerchantOutletSubscription newQuery()
@@ -131,6 +133,9 @@ namespace App\Models{
 /**
  * 
  *
+ * @property-read Collection|Merchant $merchant
+ * @property-read Collection|MerchantOutletSubscription[] $merchant_subscriptions
+ * @property-read Collection|User[] $users
  * @property string $id
  * @property string $merchant_id
  * @property string $slug
@@ -143,10 +148,8 @@ namespace App\Models{
  * @property bool $is_main_outlet
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Merchant $merchant
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MerchantOutletSubscription> $subscription_plans
  * @property-read int|null $subscription_plans_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
  * @property-read int|null $users_count
  * @method static \Database\Factories\OutletFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder|Outlet newModelQuery()
@@ -176,6 +179,7 @@ namespace App\Models\Product{
  *
  * @package App\Models\Product
  * @property-read Collection|Merchant $merchant
+ * @property-read Collection|ProductType $type
  * @property-read Collection|ProductUnit $unit
  * @property-read Collection|ProductCategory[] $categories
  * @property-read Collection|ProductCombination[] $combinations
@@ -194,7 +198,6 @@ namespace App\Models\Product{
  * @property string|null $deleted_at
  * @property-read int|null $categories_count
  * @property-read int|null $combinations_count
- * @property-read \App\Models\Product\ProductType|null $type
  * @property-read int|null $variation_values_count
  * @property-read int|null $variations_count
  * @method static \Illuminate\Database\Eloquent\Builder|Product newModelQuery()
@@ -223,6 +226,7 @@ namespace App\Models\Product{
  *
  * @property-read ProductCategory|null $parent
  * @property-read Collection|ProductCategory[] $children
+ * @property-read Collection|Product[] $products
  * @property-read Collection|MerchantType[] $merchantTypes
  * @property int $id
  * @property string|null $merchant_id
@@ -237,7 +241,6 @@ namespace App\Models\Product{
  * @property-read int|null $children_count
  * @property-read string $full_path
  * @property-read int|null $merchant_types_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product\Product> $products
  * @property-read int|null $products_count
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory newQuery()
@@ -265,6 +268,7 @@ namespace App\Models\Product{
 /**
  * 
  *
+ * @property-read Collection|Product $product
  * @property string $id
  * @property string $product_id
  * @property string $combination
@@ -273,7 +277,6 @@ namespace App\Models\Product{
  * @property string $unique_string
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Product\Product $product
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCombination query()
@@ -295,12 +298,12 @@ namespace App\Models\Product{
 /**
  * 
  *
+ * @property-read Collection|Product[] $products
  * @property int $id
  * @property string $name
  * @property string $description
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product\Product> $products
  * @property-read int|null $products_count
  * @method static \Illuminate\Database\Eloquent\Builder|ProductType newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductType newQuery()
@@ -320,6 +323,7 @@ namespace App\Models\Product{
 /**
  * 
  *
+ * @property-read Collection|Product[] $products
  * @property int $id
  * @property string $name
  * @property string $symbol
@@ -327,7 +331,6 @@ namespace App\Models\Product{
  * @property bool $is_active
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product\Product> $products
  * @property-read int|null $products_count
  * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductUnit newQuery()
@@ -349,6 +352,7 @@ namespace App\Models\Product{
 /**
  * 
  *
+ * @property-read Collection|Merchant $merchant
  * @property int $id
  * @property string|null $merchant_id
  * @property string $name
@@ -356,7 +360,6 @@ namespace App\Models\Product{
  * @property bool $is_active
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Merchant|null $merchant
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariation query()
@@ -377,13 +380,13 @@ namespace App\Models\Product{
 /**
  * 
  *
+ * @property-read Collection|Product $product
+ * @property-read Collection|ProductVariation $master
  * @property string $id
  * @property string $product_id
  * @property int $product_variation_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Product\ProductVariation $master
- * @property-read \App\Models\Product\Product $product
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOption query()
@@ -402,15 +405,15 @@ namespace App\Models\Product{
 /**
  * 
  *
+ * @property-read Collection|Product $product
+ * @property-read Collection|ProductVariationOption $variant_option
+ * @property-read Collection|ProductVariationValue $master
  * @property string $id
  * @property string $product_id
  * @property string $product_variation_option_id
  * @property int $product_variation_value_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Product\ProductVariationValue $master
- * @property-read \App\Models\Product\Product $product
- * @property-read \App\Models\Product\ProductVariationOption $variant_option
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationOptionValue query()
@@ -430,6 +433,7 @@ namespace App\Models\Product{
 /**
  * 
  *
+ * @property-read Collection|ProductVariation $variation
  * @property-read Collection|ProductVariationOptionValue[] $product_variation_option_values
  * @property int $id
  * @property int $product_variation_id
@@ -438,7 +442,6 @@ namespace App\Models\Product{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read int|null $product_variation_option_values_count
- * @property-read \App\Models\Product\ProductVariation|null $variation
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductVariationValue query()
@@ -458,6 +461,7 @@ namespace App\Models{
 /**
  * 
  *
+ * @property-read Collection|MerchantOutletSubscription[] $transactions
  * @property int $id
  * @property string $name
  * @property string|null $description
@@ -468,7 +472,6 @@ namespace App\Models{
  * @property bool $is_trial indicates if the plan is free trial period
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MerchantOutletSubscription> $transactions
  * @property-read int|null $transactions_count
  * @method static \Illuminate\Database\Eloquent\Builder|SubscriptionPlan newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|SubscriptionPlan newQuery()
@@ -493,6 +496,8 @@ namespace App\Models{
 /**
  * 
  *
+ * @property-read Collection|Merchant $merchant
+ * @property-read Collection|Outlet[] $outlets
  * @mixin HasRoles
  * @property string $id
  * @property string $merchant_id
@@ -508,10 +513,8 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\Merchant $merchant
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Outlet> $outlets
  * @property-read int|null $outlets_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Permission> $permissions
  * @property-read int|null $permissions_count

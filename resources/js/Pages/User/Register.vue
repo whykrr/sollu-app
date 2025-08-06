@@ -259,7 +259,9 @@
             </div>
             <div class="text">
                 Sudah punya akun ?
-                <Link :href="route('login')" class="underline text-blue-800"
+                <Link
+                    :href="route('dashboard.login')"
+                    class="underline text-blue-800"
                     >Masuk</Link
                 >
             </div>
@@ -325,7 +327,7 @@ const form = useForm({
 });
 
 const register = () =>
-    form.post(route("register.store"), {
+    form.post(route("dashboard.register.store"), {
         onError: () => {
             nextTick(() => {
                 if (form.errors.merchant_type_id) {

@@ -17,7 +17,9 @@
                     class="text-nowrap"
                     :key="d.id"
                     @click="
-                        router.get(route('admin.users.edit', { user: d.id }))
+                        router.get(
+                            route('dashboard.admin.users.edit', { user: d.id })
+                        )
                     "
                 >
                     <td>{{ d.name }}</td>

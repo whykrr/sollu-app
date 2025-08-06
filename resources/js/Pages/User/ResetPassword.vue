@@ -72,7 +72,10 @@
                 </button>
             </div>
             <div class="text">
-                <Link :href="route('login')" class="underline text-blue-800">
+                <Link
+                    :href="route('dashboard.login')"
+                    class="underline text-blue-800"
+                >
                     <fa icon="fa-arrow-left" />
                     Kembali</Link
                 >
@@ -100,5 +103,5 @@ const form = useForm({
     password_confirmation: null,
 });
 
-const reset = () => form.post(route("password.reset.attempt"));
+const reset = () => form.post(route("dashboard.password.reset.attempt"));
 </script>

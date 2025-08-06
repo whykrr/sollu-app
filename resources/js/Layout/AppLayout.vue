@@ -14,7 +14,7 @@
         <div class="flex flex-col w-full">
             <TopBar />
             <main
-                class="flex-1 overflow-y-auto floating-scrollbar relative w-full bg-neutral-lighter p-4 pt-0"
+                class="flex-1 overflow-y-auto floating-scroll relative w-full bg-neutral-lighter p-4 pt-0"
             >
                 <slot></slot>
                 <Toast

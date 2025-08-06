@@ -2,7 +2,9 @@
     <nav aria-label="breadcrumb">
         <ol class="bg-transparent p-0 m-0 list-none text-sm">
             <li class="inline-block">
-                <Link :href="route('overview')"> <fa icon="fa-home"></fa></Link>
+                <Link :href="route('dashboard.overview')">
+                    <fa icon="fa-home"></fa
+                ></Link>
             </li>
             <li
                 v-for="(crumb, index) in breadcrumbs"

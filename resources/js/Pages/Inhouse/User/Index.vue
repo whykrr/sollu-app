@@ -3,7 +3,7 @@
         <CardTransparent :title="$t('sidebar.users')">
             <template #buttons>
                 <Link
-                    :href="route('admin.users.create')"
+                    :href="route('dashboard.admin.users.create')"
                     class="btn btn-main text-sm"
                 >
                     <fa icon="fa-plus" />

@@ -8,33 +8,22 @@
                 {{ pageStore.title }}
             </h2>
         </div>
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-2.5">
             <a
                 href="#"
                 class="nav-icon px-2 text-yellow-400 hover:bg-yellow-400/20"
                 title="Lihat Panduan"
             >
                 <fa icon="fa-lightbulb" />
-                <div class="text-sm">Lihat Panduan</div>
+                <div class="text-sm">Panduan</div>
             </a>
-            <a
-                href="#"
-                class="nav-icon"
-                title="Notifikasi"
-                @click="toggleNotification"
-            >
-                <fa icon="fa-regular fa-bell" />
-                <span />
-            </a>
-            <SidebarNotification
-                :is-open="showNotification"
-                @close="showNotification = false"
-            />
 
-            <a href="#" class="nav-icon" title="">
+            <TopBarNotification />
+
+            <!-- <a href="#" class="nav-icon" title="">
                 <fa icon="fa-regular fa-envelope" />
                 <span />
-            </a>
+            </a> -->
 
             <div class="w-px h-6 bg-gray-300"></div>
 
@@ -52,11 +41,7 @@ import { Link, usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
 import SidebarNotification from "@/Components/Layout/SidebarNotification/SidebarNotification.vue";
 import TopBarMerchant from "./TopBarMerchant.vue";
+import TopBarNotification from "./TopBarNotification.vue";
 
 const pageStore = usePageStore();
-const showNotification = ref(false);
-
-const toggleNotification = () => {
-    showNotification.value = !showNotification.value;
-};
 </script>

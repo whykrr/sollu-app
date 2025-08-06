@@ -18,7 +18,7 @@
                 <tr class="h-2"></tr>
                 <tr
                     v-for="i in data"
-                    @click="router.get(route('admin.base.tables'))"
+                    @click="router.get(route('dashboard.admin.base.tables'))"
                 >
                     <td class="font-bold">{{ i.name }}</td>
                     <td class="text-gray">{{ i.class }}</td>

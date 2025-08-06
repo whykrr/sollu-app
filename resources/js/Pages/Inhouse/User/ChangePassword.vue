@@ -76,7 +76,7 @@ const form = useForm({
 
 const submitData = () => {
     form.post(
-        route("admin.change_password.store", {
+        route("dashboard.admin.change_password.store", {
             user: props.user.id,
         })
     );

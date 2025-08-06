@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             // This is where you can add any additional middleware to the web routes.
             // For example, you can add authentication or authorization middleware here.
+            Route::domain('dashboard.sollu.test')
+                ->middleware(['web', 'dashboard'])
+                ->name('dashboard.')
+                ->group(base_path('routes/dashboard.php'));
+
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -27,11 +32,15 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             // \Illuminate\Session\Middleware\AuthenticateSession::class,
+            // HandleInertiaRequests::class,
+        ]);
+
+        $middleware->group('dashboard', [
             HandleInertiaRequests::class,
         ]);
 
         //app
-        $middleware->redirectGuestsTo(fn ($request) => route('login'));
+        $middleware->redirectGuestsTo(fn ($request) => route('dashboard.login'));
         // $middleware->redirectUsersTo(fn($request) => route('admin.dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
@@ -44,7 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             // if page for guest
-            if ($request->is('login') || $request->is('register') || $request->is('forgot')) {
+            if ($request->is('dashboard.login') || $request->is('dashboard.register') || $request->is('forgot')) {
                 throw ValidationException::withMessages([
                     'email' => $message,
                 ]);

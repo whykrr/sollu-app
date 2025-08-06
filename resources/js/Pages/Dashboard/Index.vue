@@ -13,7 +13,7 @@
                 <Link
                     as="button"
                     method="post"
-                    :href="route('verification.send')"
+                    :href="route('dashboard.verification.send')"
                     class="btn btn-highlight-success btn-sm"
                 >
                     <fa icon="fa-rotate-right left-0" />

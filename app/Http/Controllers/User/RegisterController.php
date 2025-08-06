@@ -7,8 +7,8 @@ use App\Http\Requests\User\RegisterRequest;
 use App\Models\Merchant;
 use App\Models\MerchantType;
 use App\Notifications\WelcomeUser;
-use Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Request;
 
@@ -66,8 +66,8 @@ class RegisterController extends Controller
         Auth::login($user);
 
         $user->sendEmailVerificationNotification();
-        $user->notify(new WelcomeUser($user));
+        $merchant->notify(new WelcomeUser($user));
 
-        return redirect()->route('login')->with('success', 'Pendaftaran Berhasil!, Cek email Anda untuk verifikasi');
+        return redirect()->route('dashboard.login')->with('success', 'Pendaftaran Berhasil!, Cek email Anda untuk verifikasi');
     }
 }

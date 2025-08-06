@@ -18,7 +18,7 @@ class WelcomeUser extends Notification
      */
     public function via($notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     /**
@@ -35,5 +35,13 @@ class WelcomeUser extends Notification
             ->action('Masuk ke Dashboard', route('overview'))
             ->line('Jika ada pertanyaan atau butuh bantuan, jangan ragu untuk menghubungi tim kami kapan saja.')
             ->salutation(new HtmlString('<strong>Salam hangat,<br>' . config('app.name') . '</strong>'));
+    }
+
+    public function toDatabase($notifiable)
+    {
+        return [
+            'title'   => 'Selamat Datang di Sollu App!',
+            'message' => 'Kami senang bisa mendampingi Anda dalam mengelola bisnis dengan lebih mudah, cepat, dan efisien. Akun Anda saat ini berada dalam masa percobaan gratis. Nikmati semua fitur premium tanpa batasan untuk merasakan manfaat maksimal dari Sollu.',
+        ];
     }
 }

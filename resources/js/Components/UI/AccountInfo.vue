@@ -63,9 +63,10 @@
                     Akun Saya
                 </Link>
                 <Link
-                    :href="route('logout')"
+                    :href="route('dashboard.logout')"
                     class="sidebar-item rounded-lg px-2 py-1"
                     method="delete"
+                    as="button"
                 >
                     <fa icon="fa-right-from-bracket"></fa>
                     Keluar

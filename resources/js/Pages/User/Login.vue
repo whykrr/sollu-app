@@ -80,7 +80,9 @@
                             </div>
                         </div>
                         <div class="text-blue-800 underline">
-                            <Link :href="route('forgot')">Lupa kata sandi</Link>
+                            <Link :href="route('dashboard.forgot')"
+                                >Lupa kata sandi</Link
+                            >
                         </div>
                     </div>
                 </div>
@@ -92,7 +94,9 @@
             </div>
             <div class="text">
                 Belum punya akun ?
-                <Link :href="route('register')" class="underline text-blue-800"
+                <Link
+                    :href="route('dashboard.register')"
+                    class="underline text-blue-800"
                     >Daftar sekarang</Link
                 >
             </div>
@@ -117,5 +121,5 @@ const form = useForm({
     remember: null,
 });
 
-const login = () => form.post(route("login.attempt"));
+const login = () => form.post(route("dashboard.login.attempt"));
 </script>

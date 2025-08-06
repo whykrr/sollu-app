@@ -57,7 +57,10 @@
                 </button>
             </div>
             <div class="text">
-                <Link :href="route('login')" class="underline text-blue-800">
+                <Link
+                    :href="route('dashboard.login')"
+                    class="underline text-blue-800"
+                >
                     <fa icon="fa-arrow-left" />
                     Kembali</Link
                 >
@@ -81,5 +84,5 @@ const form = useForm({
     email: null,
 });
 
-const forgot = () => form.post(route("forgot.email"));
+const forgot = () => form.post(route("dashboard.forgot.email"));
 </script>

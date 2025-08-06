@@ -19,18 +19,13 @@
             </div>
             <SidebarOutlet />
             <SidebarNav />
-            <AccountInfo />
+            <SidebarFooter />
         </div>
     </aside>
 </template>
 
 <script setup>
-import SidebarItem from "@/Components/Layout/Sidebar/SidebarItem.vue";
-import SidebarItemExpand from "@/Components/Layout/Sidebar/SidebarItemExpand.vue";
-import { Link, usePage } from "@inertiajs/vue3";
-import { computed, ref, watch, watchEffect } from "vue";
-import AccountInfo from "@/Components/UI/AccountInfo.vue";
-import SidebarIcon from "./SidebarNav.vue";
 import SidebarOutlet from "./SidebarOutlet.vue";
 import SidebarNav from "./SidebarNav.vue";
+import SidebarFooter from "./SidebarFooter.vue";
 </script>

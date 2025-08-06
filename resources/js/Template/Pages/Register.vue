@@ -48,7 +48,7 @@
             <div class="flex flex-row justify-between items-center mt-2">
                 <button class="btn btn-main">Create Account</button>
                 <div class="text-blue-800 underline">
-                    <Link :href="route('admin.pages.login')"
+                    <Link :href="route('dashboard.admin.pages.login')"
                         >Have an account</Link
                     >
                 </div>

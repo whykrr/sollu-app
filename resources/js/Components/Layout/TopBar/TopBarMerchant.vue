@@ -1,20 +1,25 @@
 <template>
     <div class="relative" ref="dropdownRef">
         <div
-            class="bg-neutral-200 hover:p-1 hover:-m-1 rounded-full"
+            class="bg-neutral-200/70 hover:p-1 hover:-m-1 rounded-full"
             :class="{ 'p-1 -m-1': showPanel }"
         >
             <a
                 href="#"
-                class="flex flex-row items-center gap-2 h-9 pl-1 pr-3 bg-white rounded-full drop-shadow"
+                class="flex flex-row items-center gap-2 h-9 pl-1 pr-3 bg-white/90 rounded-full drop-shadow"
                 @click="togglePanel"
             >
-                <img
+                <!-- <img
                     :src="'https://dummyimage.com/35x35'"
                     alt="Merchant"
                     class="rounded-full w-7 h-7"
-                />
-                <span class="font-medium">{{ auth.merchant }}</span>
+                /> -->
+                <div
+                    class="rounded-full w-7 h-7 flex items-center justify-center bg-secondary/20 text-secondary-dark text-[14px]"
+                >
+                    <fa icon="fa-shop" />
+                </div>
+                <span class="font-base">{{ auth.merchant }}</span>
             </a>
         </div>
         <transition name="fade-down" mode="in-out">

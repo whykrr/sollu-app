@@ -1,7 +1,7 @@
 <template>
     <div class="relative h-11" ref="dropdownRef">
         <div class="absolute w-full">
-            <div class="bg-white rounded-lg drop-shadow mx-2">
+            <div class="bg-white/90 rounded-lg drop-shadow mx-2">
                 <a
                     href="#"
                     class="flex flex-row items-center min-h-11 px-2 gap-1.5"
@@ -10,7 +10,7 @@
                     <div
                         class="flex items-center rounded-full text-sm bg-main/20 text-main h-[30px] w-[30px]"
                     >
-                        <fa icon="fa-shop" class="m-auto" />
+                        <fa icon="fa-map-marker-alt" class="m-auto" />
                     </div>
                     <div class="flex-1 font-medium text-sm truncate">
                         Semua Outlet

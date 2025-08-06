@@ -6,7 +6,7 @@ if (! function_exists('generateBreadcrumbs')) {
     {
         $breadcrumbs = [
             'overview' => [
-                ['label' => 'Overview', 'url' => route('overview')],
+                ['label' => 'Overview', 'url' => route('dashboard.overview')],
             ],
 
             // 'users.index' => [

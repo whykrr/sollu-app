@@ -64,5 +64,5 @@ const form = useForm({
     password: null,
 });
 
-const login = () => form.post(route("admin.login.attempt"));
+const login = () => form.post(route("dashboard.admin.login.attempt"));
 </script>

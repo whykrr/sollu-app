@@ -39,7 +39,7 @@ const page = usePage();
 const menuActive = computed(() => page.props.menuActive);
 const sidebars = [
     {
-        link: route("overview"),
+        link: route("dashboard.overview"),
         icon: "fa-chart-pie",
         label: "Ringkasan",
         activeRoute: "overview",

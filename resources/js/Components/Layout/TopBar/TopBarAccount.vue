@@ -1,7 +1,7 @@
 <template>
     <div class="relative" ref="dropdownRef">
         <div
-            class="bg-neutral-200 hover:p-1 hover:-m-1 rounded-full"
+            class="bg-neutral-200/70 hover:p-1 hover:-m-1 rounded-full"
             :class="{ 'p-1 -m-1': showPanel }"
         >
             <a
@@ -9,7 +9,12 @@
                 class="text-slate-700 drop-shadow-lg shadow-neutral-100"
                 @click="togglePanel"
             >
-                <img
+                <div
+                    class="rounded-full w-9 h-9 bg-white/90 flex items-center justify-center"
+                >
+                    {{ initials }}
+                </div>
+                <!-- <img
                     :src="
                         'https://ui-avatars.com/api/?name=' +
                         auth.name +
@@ -17,7 +22,7 @@
                     "
                     alt="Profile"
                     class="rounded-full w-9 h-9"
-                />
+                /> -->
             </a>
         </div>
         <transition name="fade-down" mode="in-out">
@@ -35,7 +40,12 @@
                         {{ auth.email }}
                     </div>
                     <div class="m-auto">
-                        <img
+                        <div
+                            class="rounded-full w-16 h-16 text-2xl bg-white flex items-center justify-center"
+                        >
+                            {{ initials }}
+                        </div>
+                        <!-- <img
                             :src="
                                 'https://ui-avatars.com/api/?name=' +
                                 auth.name +
@@ -43,7 +53,7 @@
                             "
                             alt="Profile"
                             class="rounded-full w-16 h-16"
-                        />
+                        /> -->
                     </div>
                     <div class="text-center text-xl">
                         {{ auth.name }}
@@ -52,9 +62,19 @@
                         <ol>
                             <li v-for="item in accountLinks">
                                 <Link
+                                    v-if="item.method == 'delete'"
+                                    :href="item.link"
+                                    class="flex items-center w-full gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm"
+                                    method="delete"
+                                    as="button"
+                                >
+                                    <fa :icon="item.icon"></fa>
+                                    {{ item.label }}
+                                </Link>
+                                <Link
+                                    v-else
                                     :href="item.link"
                                     class="flex items-center gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm"
-                                    :method="item.method"
                                 >
                                     <fa :icon="item.icon"></fa>
                                     {{ item.label }}
@@ -77,6 +97,16 @@ const auth = computed(() => page.props.auth);
 const showPanel = ref(false);
 const dropdownRef = ref(null);
 
+const initials = computed(() => {
+    const name = auth.value?.name || "";
+    return name
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase();
+});
+
 const togglePanel = () => {
     showPanel.value = !showPanel.value;
 };
@@ -96,12 +126,11 @@ const accountLinks = [
         label: "Ubah kata sandi",
         icon: "fa-key",
         link: "#",
-        method: "get",
     },
     {
         label: "Keluar",
         icon: "fa-right-from-bracket",
-        link: route("logout"),
+        link: route("dashboard.logout"),
         method: "delete",
     },
 ];
