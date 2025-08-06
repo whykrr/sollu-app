@@ -123,8 +123,8 @@ const accountLinks = [
         method: "get",
     },
     {
-        label: "Pengaturan",
-        icon: "fa-cogs",
+        label: "Pengaturan Bisnis",
+        icon: "fa-cog",
         link: "#",
         method: "get",
     },

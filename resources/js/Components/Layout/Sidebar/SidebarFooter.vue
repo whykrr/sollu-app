@@ -3,7 +3,7 @@
         <a
             href="#"
             target="_blank"
-            class="flex flex-row gap-2 items-center py-0 px-2 font-medium cursor-pointer rounded-lg text-neutral-600 hover:text-neutral-900"
+            class="flex flex-row gap-2 items-center py-0 px-2 cursor-pointer rounded-lg text-neutral-600 hover:text-neutral-900"
         >
             <fa icon="fa-circle-question" />
             <div class="text-sm">Pusat Bantuan</div>
@@ -14,7 +14,7 @@
         </a>
         <Link
             href="#"
-            class="flex flex-row gap-2 items-center py-0 px-2 font-medium cursor-pointer rounded-lg text-neutral-600 hover:text-neutral-900"
+            class="flex flex-row gap-2 items-center py-0 px-2 cursor-pointer rounded-lg text-neutral-600 hover:text-neutral-900"
         >
             <fa icon="fa-cog" />
             <div class="text-sm grow">Pengaturan</div>
