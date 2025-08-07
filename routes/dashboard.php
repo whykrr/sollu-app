@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\OverviewController;
-use App\Http\Controllers\User\ForgotPasswordController;
-use App\Http\Controllers\User\LoginController;
-use App\Http\Controllers\User\RegisterController;
-use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\Dashboard\EmployeeController;
+use App\Http\Controllers\Dashboard\OverviewController;
+use App\Http\Controllers\Dashboard\User\ForgotPasswordController;
+use App\Http\Controllers\Dashboard\User\LoginController;
+use App\Http\Controllers\Dashboard\User\RegisterController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -36,12 +36,14 @@ Route::middleware('auth:merchant')->group(function () {
     })->middleware(['throttle:6,5'])->name('verification.send');
 
     Route::get('/', OverviewController::class)->name('overview');
-    Route::resource('users', UserController::class)->except('show');
-    Route::put('users/{user}/restore', [UserController::class, 'restore'])
-             ->name('users.restore')
+
+    Route::resource('employees', EmployeeController::class)
+    ->except('show');
+    Route::put('employees/{employee}/restore', [EmployeeController::class, 'restore'])
+             ->name('employees.restore')
              ->withTrashed();
-    Route::delete('users/{user}/purge', [UserController::class, 'purge'])
-        ->name('users.purge')
+    Route::delete('employees/{employee}/purge', [EmployeeController::class, 'purge'])
+        ->name('employees.purge')
         ->withTrashed();
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');

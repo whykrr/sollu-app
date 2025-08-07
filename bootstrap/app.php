@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\HandleInertiaDashboardRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,7 +20,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->middleware(['web', 'dashboard'])
                 ->name('dashboard.')
                 ->group(base_path('routes/dashboard.php'));
-
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -36,12 +35,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->group('dashboard', [
-            HandleInertiaRequests::class,
+            HandleInertiaDashboardRequests::class,
         ]);
 
         //app
         $middleware->redirectGuestsTo(fn ($request) => route('dashboard.login'));
-        // $middleware->redirectUsersTo(fn($request) => route('admin.dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->renderable(function (ThrottleRequestsException $e, Request $request) {

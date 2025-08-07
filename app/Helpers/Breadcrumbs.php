@@ -9,6 +9,19 @@ if (! function_exists('generateBreadcrumbs')) {
                 ['label' => 'Overview', 'url' => route('dashboard.overview')],
             ],
 
+            'employees.index' => [
+                ['label' => 'Karyawan', 'url' => route('dashboard.employees.index')],
+            ],
+            'employees.create' => [
+                ['label' => 'Karyawan', 'url' => route('dashboard.employees.index')],
+                ['label' => 'Tambah Karyawan', 'url' => '#'],
+            ],
+            'employees.edit' => [
+                ['label' => 'Karyawan', 'url' => route('dashboard.employees.index')],
+                ['label' => 'Detail Karyawan', 'url' => '#'],
+            ],
+
+
             // 'users.index' => [
             //     ['label' => 'Users', 'url' => '#'],
             // ],
@@ -78,7 +91,7 @@ if (! function_exists('generateBreadcrumbs')) {
             // ],
         ];
 
-        $routeName = str_replace('admin.', '', $routeName);
+        $routeName = str_replace('dashboard.', '', $routeName);
 
         return $breadcrumbs[$routeName] ?? $breadcrumbs['overview'];
     }
