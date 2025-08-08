@@ -30,7 +30,7 @@
                 </div>
             </div>
             <div class="text-xs">
-                Masa uji coba gratis anda berakhir dalam
+                Masa uji coba gratis anda akan berakhir dalam
                 <span class="font-medium">15 hari</span>
             </div>
             <Link href="#" class="btn btn-outline-main btn-sm justify-center"

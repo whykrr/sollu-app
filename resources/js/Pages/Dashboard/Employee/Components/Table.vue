@@ -1,23 +1,30 @@
 <template>
-    <table class="table table-hovered w-full">
+    <table class="table table-hovered w-full text-sm">
         <thead class="sticky top-0 z-10 bg-white">
-            <tr>
-                <td>Nama</td>
+            <tr class="text-neutral-600">
+                <td
+                    class="flex flex-row items-center justify-between cursor-pointer hover:text-neutral-800"
+                >
+                    <span>Nama</span>
+                    <div class="">
+                        <fa icon="fa-sort" />
+                    </div>
+                </td>
                 <td>Email</td>
                 <td>Akses</td>
                 <td>Outlet</td>
                 <td>Terakhir Diubah</td>
+                <td width="1%"></td>
             </tr>
         </thead>
         <tbody>
-            <tr class="h-2"></tr>
             <tr
                 v-for="d in data"
                 class="text-nowrap"
                 :key="d.id"
                 @click="
                     router.get(
-                        route('dashboard.admin.users.edit', { user: d.id })
+                        route('dashboard.employees.show', { employee: d.id })
                     )
                 "
             >
@@ -32,24 +39,32 @@
                     <span class="space-x-0.5" v-if="d.outlets.length > 0">
                         <label
                             v-for="outlet in d.outlets"
-                            class="badge pill badge-info"
+                            class="badge pill text-sm badge-info"
                             >{{ outlet.name }}</label
                         >
                     </span>
                     <span v-else class="text-gray-400">
-                        <label class="badge pill badge-info"
+                        <label class="badge pill text-sm badge-success"
                             >Semua Outlet</label
                         >
                     </span>
                 </td>
                 <td>{{ d.updated_at }}</td>
+                <td>
+                    <button
+                        class="btn btn-highlight-info btn-sm"
+                        title="Lihat Detail"
+                    >
+                        <fa icon="fa-ellipsis-vertical" />
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5" class="text-center text-gray-400">
+                    No data found.
+                </td>
             </tr>
         </tbody>
-        <tr v-if="data.length == 0">
-            <td colspan="5" class="text-center text-gray-400">
-                No data found.
-            </td>
-        </tr>
     </table>
 </template>
 

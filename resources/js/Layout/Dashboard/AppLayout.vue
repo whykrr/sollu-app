@@ -1,5 +1,5 @@
 <template>
-    <div class="flex h-screen">
+    <div class="flex h-screen w-screen">
         <div
             v-if="loading"
             class="fixed inset-0 flex items-center justify-center bg-gray-100/50 z-50"
@@ -11,7 +11,9 @@
         <Sidebar />
 
         <!-- Main content -->
-        <div class="flex flex-col h-screen w-full">
+        <div
+            class="flex flex-col h-screen w-full md:min-w-[70%] lg:min-w-[80%]"
+        >
             <TopBar />
             <main
                 class="relative w-full h-full overflow-hidden bg-neutral-lighter px-4 py-2.5"

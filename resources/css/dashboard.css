@@ -236,49 +236,34 @@
 @utility table {
     @apply min-w-full border-separate border-spacing-x-0;
     & thead {
-        @apply font-bold mb-2;
+        @apply font-semibold mb-2;
     }
     & thead tr {
-        @apply bg-main/15;
+        @apply bg-main-light/10;
     }
     & thead tr td {
-        @apply px-2 py-3 first:rounded-l-md last:rounded-r-md;
-    }
-    & thead.small tr td {
-        @apply py-2!;
+        @apply px-3 py-2.5 border-b;
     }
     &.table-hovered tbody tr {
-        @apply hover:bg-slate-100 cursor-pointer;
+        @apply hover:bg-neutral-lighter cursor-pointer;
+    }
+    & tbody tr {
+        @apply even:bg-gray-50 odd:bg-white;
     }
     & tbody tr td {
-        @apply px-1 py-1.5 first:rounded-l-md last:rounded-r-md;
+        @apply px-1 py-1.5 border-b;
     }
     &.table-hovered tbody tr td {
-        @apply px-2 py-3 first:rounded-l-md last:rounded-r-md;
-    }
-    &.table-hovered tbody.small tr td {
-        @apply py-2!;
-    }
-}
-
-@utility small {
-    .table &thead tr td {
-        @apply py-2!;
-    }
-    .table.table-hovered &tbody tr td {
-        @apply py-2!;
+        @apply px-3 py-2.5;
     }
 }
 
 @utility table-hovered {
     &.table tbody tr {
-        @apply hover:bg-slate-100  cursor-pointer;
+        @apply hover:bg-neutral-lighter  cursor-pointer;
     }
     &.table tbody tr td {
-        @apply px-2 py-3 first:rounded-l-md last:rounded-r-md;
-    }
-    &.table tbody.small tr td {
-        @apply py-2!;
+        @apply px-3 py-2.5;
     }
 }
 
@@ -944,18 +929,6 @@
     .sidebar {
         scrollbar-width: thin; /* Thin scrollbar */
         scrollbar-color: #71809680 transparent; /* Thumb color and transparent track */
-    }
-
-    /* Floating scrollbar styles for WebKit browsers (Chrome, Safari, Edge) */
-    .floating-scroll {
-        /* Firefox */
-        scrollbar-width: thin; /* Thin scrollbar */
-        scrollbar-color: #71809680 transparent; /* Thumb and track color */
-
-        /* Ensure the container can scroll */
-        overflow: auto;
-        /* padding-right: 2px; */
-        /* margin-right: -12px; */
     }
 
     /* WebKit-based browsers (Chrome, Edge, Safari) */

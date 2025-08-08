@@ -205,5 +205,48 @@ const sidebars = [
             },
         ],
     },
+    {
+        link: "#",
+        icon: "fa-hashtag",
+        label: "Layout",
+        activeRoute: "layouts",
+        items: [
+            {
+                link: "#",
+                label: "Form",
+                activeRoute: "reports.products.",
+            },
+            {
+                link: "#",
+                label: "Card",
+                activeRoute: "reports.stocks.",
+            },
+            {
+                link: "#",
+                label: "Navigation & Tab",
+                activeRoute: "reports.stocks.",
+            },
+            {
+                link: "#",
+                label: "Buttons",
+                activeRoute: "reports.employees.",
+            },
+            {
+                link: "#",
+                label: "Charts",
+                activeRoute: "reports.return.",
+            },
+            {
+                link: "#",
+                label: "Notifications",
+                activeRoute: "reports.tax-discounts.",
+            },
+            {
+                link: "#",
+                label: "Widgets",
+                activeRoute: "reports.revenue.",
+            },
+        ],
+    },
 ];
 </script>

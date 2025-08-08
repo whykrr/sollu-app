@@ -38,7 +38,7 @@ Route::middleware('auth:merchant')->group(function () {
     Route::get('/', OverviewController::class)->name('overview');
 
     Route::resource('employees', EmployeeController::class)
-    ->except('show');
+    ->except('edit');
     Route::put('employees/{employee}/restore', [EmployeeController::class, 'restore'])
              ->name('employees.restore')
              ->withTrashed();

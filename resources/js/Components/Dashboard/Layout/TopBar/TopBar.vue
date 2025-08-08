@@ -5,7 +5,7 @@
         <div>
             <Breadcrumbs />
         </div>
-        <div class="flex items-center space-x-2.5">
+        <div class="relative flex items-center space-x-2.5">
             <Link
                 href="#"
                 class="nav-icon px-2 text-yellow-400 hover:bg-yellow-400/20"

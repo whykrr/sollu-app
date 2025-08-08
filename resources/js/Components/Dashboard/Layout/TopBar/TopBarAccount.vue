@@ -1,5 +1,5 @@
 <template>
-    <div class="relative" ref="dropdownRef">
+    <div ref="dropdownRef">
         <div
             class="bg-neutral-200/70 hover:p-1 hover:-m-1 rounded-full"
             :class="{ 'p-1 -m-1': showPanel }"

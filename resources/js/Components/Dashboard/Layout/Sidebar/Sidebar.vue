@@ -1,5 +1,5 @@
 <template>
-    <aside class="hidden sm:flex w-60 md:w-72 h-screen z-30">
+    <aside class="hidden sm:flex md:min-w-[30%] lg:min-w-[20%] h-screen z-30">
         <div
             class="flex flex-col justify-between bg-neutral-light w-full border-r shadow"
         >
