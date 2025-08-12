@@ -1,19 +1,34 @@
 <template>
     <div class="widget">
-        <div class="relative">
-            <div class="absolute opacity-50 -bottom-8 -left-8">
-                <fa class="size-20" :icon="icon" />
+        <div class="flex flex-row items-center gap-2">
+            <div>
+                <div class="widget-icon">
+                    <FontAwesomeIcon :icon="faBell" />
+                </div>
             </div>
+            <h2 class="font-medium">{{ title }}</h2>
         </div>
-        <div class="text-right text-gray-8">
-            <h2 class="text-lg font-semibold">{{ title }}</h2>
+        <div class="text-gray-8 font-bold">
             <slot></slot>
+        </div>
+        <div>
+            <div class="inline-flex space-x-1.5 items-center">
+                <FontAwesomeIcon
+                    :icon="faArrowUp"
+                    class="text-sm text-success"
+                />
+                <div class="text-xs text-gray-600">dari bulan lalu</div>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-defineProps({
+import { faArrowUp, faBell } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { computed, ref } from "vue";
+
+const props = defineProps({
     icon: String,
     title: String,
 });

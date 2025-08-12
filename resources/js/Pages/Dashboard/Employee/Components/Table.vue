@@ -7,7 +7,7 @@
                 >
                     <span>Nama</span>
                     <div class="">
-                        <fa icon="fa-sort" />
+                        <FontAwesomeIcon :icon="faSort" />
                     </div>
                 </td>
                 <td>Email</td>
@@ -55,7 +55,7 @@
                         class="btn btn-highlight-info btn-sm"
                         title="Lihat Detail"
                     >
-                        <fa icon="fa-ellipsis-vertical" />
+                        <FontAwesomeIcon :icon="faEllipsisVertical" />
                     </button>
                 </td>
             </tr>
@@ -69,6 +69,8 @@
 </template>
 
 <script setup>
+import { faEllipsisVertical, faSort } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { router } from "@inertiajs/vue3";
 
 const props = defineProps({

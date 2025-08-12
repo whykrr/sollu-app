@@ -10,15 +10,15 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 /* import specific icons */
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { far } from '@fortawesome/free-regular-svg-icons'
+// import { fas } from '@fortawesome/free-solid-svg-icons'
+// import { far } from '@fortawesome/free-regular-svg-icons'
 import AppLayout from '@/Layout/Dashboard/AppLayout.vue';
 import { createPinia } from 'pinia';
 import AccessHandle from '@/access-handle.js';
 
 /* add icons to the library */
-library.add(fas)
-library.add(far)
+// library.add(fas)
+// library.add(far)
 
 createInertiaApp({
     progress: {
@@ -34,7 +34,7 @@ createInertiaApp({
 
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
-            .component('fa', FontAwesomeIcon)
+            // .component('fa', FontAwesomeIcon)
             .use(plugin)
             .use(ZiggyVue, Ziggy)
             .use(createPinia())

@@ -3,7 +3,7 @@
         <ol class="bg-transparent p-0 m-0 list-none text-sm">
             <li class="inline-block">
                 <Link :href="route('dashboard.overview')">
-                    <fa icon="fa-home"></fa
+                    <FontAwesomeIcon :icon="faHome"></FontAwesomeIcon
                 ></Link>
             </li>
             <li
@@ -24,6 +24,8 @@
 </template>
 
 <script setup>
+import { faHome } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link, usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
 

@@ -11,7 +11,7 @@
                 class="nav-icon px-2 text-yellow-400 hover:bg-yellow-400/20"
                 title="Lihat Panduan"
             >
-                <fa icon="fa-lightbulb" />
+                <FontAwesomeIcon :icon="faLightbulb" />
                 <div class="text-sm">Panduan</div>
             </Link>
 
@@ -33,4 +33,6 @@ import { computed, ref } from "vue";
 import SidebarNotification from "@/Components/Dashboard/Layout/SidebarNotification/SidebarNotification.vue";
 import TopBarMerchant from "@/Components/Dashboard/Layout/TopBar/TopBarMerchant.vue";
 import TopBarNotification from "@/Components/Dashboard/Layout/TopBar/TopBarNotification.vue";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { faLightbulb } from "@fortawesome/free-solid-svg-icons";
 </script>

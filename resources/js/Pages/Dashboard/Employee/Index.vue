@@ -1,20 +1,20 @@
 <template>
     <Container>
-        <ContainerHeader>
-            <template #left>
+        <template #header>
+            <div>
                 <Filter :filters="filters" />
-            </template>
-            <template #right>
+            </div>
+            <div>
                 <Link
                     :href="route('dashboard.employees.create')"
                     class="btn btn-main text-sm"
                 >
-                    <fa icon="fa-plus" />
+                    <FontAwesomeIcon :icon="faPlus" />
                     Tambah Karyawan
                 </Link>
-            </template>
-        </ContainerHeader>
-        <ContainerBody class="bg-white rounded-md border">
+            </div>
+        </template>
+        <div class="bg-white rounded-md border">
             <Table
                 :headers="tableHeaders"
                 :data="users.data"
@@ -39,15 +39,15 @@
                     </span>
                 </template>
             </Table>
-        </ContainerBody>
-        <ContainerFooter>
+        </div>
+        <template #footer>
             <Pagination
                 :links="users.links"
                 :from="users.from"
                 :to="users.to"
                 :total="users.to"
             />
-        </ContainerFooter>
+        </template>
     </Container>
 </template>
 
@@ -55,11 +55,11 @@
 import Pagination from "@/Components/Dashboard/Tables/Pagination.vue";
 import Filter from "@/Pages/Dashboard/Employee/Components/Filter.vue";
 import { Link, router } from "@inertiajs/vue3";
-import Container from "@/Components/Dashboard/Container/Container.vue";
-import ContainerBody from "@/Components/Dashboard/Container/ContainerBody.vue";
-import ContainerHeader from "@/Components/Dashboard/Container/ContainerHeader.vue";
-import ContainerFooter from "@/Components/Dashboard/Container/ContainerFooter.vue";
+import Container from "@/Components/Dashboard/UI/Container.vue";
 import Table from "@/Components/Dashboard/Tables/Table.vue";
+import { template } from "lodash";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 defineProps({
     users: Object,

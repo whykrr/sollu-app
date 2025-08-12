@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import Modal from "./UI/Modal.vue";
+import Modal from "./Notifications/Modal.vue";
 
 const closeModal = () => {
     activeModal.value = null;

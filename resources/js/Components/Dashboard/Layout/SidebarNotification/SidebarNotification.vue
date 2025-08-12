@@ -14,7 +14,7 @@
                         class="text-lg mx-2 text-gray-600"
                         @click.prevent="closeNotification"
                     >
-                        <fa icon="fa-close" />
+                        <FontAwesomeIcon :icon="faClose" />
                     </a>
                 </span>
                 <div class="font-semibold text-2xl">Notifikasi</div>
@@ -45,49 +45,12 @@
                 >
                     <ol class="flex flex-col gap-1">
                         <li v-for="notification in notifications">
-                            <div
-                                class="relative bg-white px-3 py-3 hover:bg-main/10 rounded-lg"
-                            >
-                                <span
-                                    v-if="!notification.read_at"
-                                    class="absolute w-2 h-2 bg-danger top-2 left-2 rounded-full"
-                                ></span>
-                                <div class="flex flex-row gap-3">
-                                    <div>
-                                        <div
-                                            class="flex items-center justify-center rounded-full bg-neutral-300 h-10 w-10"
-                                        >
-                                            <fa icon="fa-shop" class="m-auto" />
-                                        </div>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <div class="text-sm">
-                                            <span class="font-semibold mr-1">
-                                                {{ notification.title }}
-                                            </span>
-                                            <span>
-                                                {{ notification.message }}
-                                            </span>
-                                            <div
-                                                class="text-xs text-neutral-400"
-                                            >
-                                                {{
-                                                    formatDateTime(
-                                                        notification.created_at
-                                                    )
-                                                }}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <button
-                                                class="btn btn-highlight-info btn-xs"
-                                            >
-                                                Lihat Detail
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <NotificationItem
+                                :read="notification.read_at ? 1 : 0"
+                                :title="notification.title"
+                                :message="notification.message"
+                                :timestamp="notification.created_at"
+                            />
                         </li>
                     </ol>
                 </div>
@@ -104,7 +67,7 @@
                         </div>
                         <div>
                             <button class="btn btn-info btn-sm">
-                                <fa icon="fa-list-check" />
+                                <FontAwesomeIcon :icon="faListCheck" />
                                 Tandai semua dibaca
                             </button>
                         </div>
@@ -115,12 +78,14 @@
     </transition>
 </template>
 <script setup>
-import { formatDateTime } from "@/helpers/Dashboard/time";
 import { icon } from "@fortawesome/fontawesome-svg-core";
 import { Link } from "@inertiajs/vue3";
 import NotificationFilter from "@/Components/Dashboard/Layout/SidebarNotification/NotificationFilter.vue";
 import { ref } from "vue";
 import { filter } from "lodash";
+import NotificationItem from "./NotificationItem.vue";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { faClose, faListCheck } from "@fortawesome/free-solid-svg-icons";
 
 const props = defineProps({
     isOpen: Boolean,

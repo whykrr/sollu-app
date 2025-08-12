@@ -38,6 +38,20 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Show the form for creating a new resource.
+     */
+    public function show(User $user)
+    {
+        $users = Auth::user()->merchant
+          ->users()->with(['roles:label', 'outlets'])
+          ->paginate(10);
+
+        return inertia('Dashboard/Employee/Index', [
+            'users' => $users,
+        ]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreUserRequest $request)

@@ -7,7 +7,7 @@
             }"
             @click="switchView(true)"
         >
-            <fa icon="fa-list" />
+            <FontAwesomeIcon :icon="faList" />
         </button>
         <button
             class="right"
@@ -16,12 +16,14 @@
             }"
             @click="switchView(false)"
         >
-            <fa icon="fa-border-all" />
+            <FontAwesomeIcon :icon="faBorderAll" />
         </button>
     </div>
 </template>
 
 <script setup>
+import { faBorderAll, faList } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { ref, defineEmits } from "vue";
 
 const isViewList = ref(true);

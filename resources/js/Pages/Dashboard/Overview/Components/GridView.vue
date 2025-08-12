@@ -16,11 +16,11 @@
                 </div>
                 <div class="flex flex-col gap-2">
                     <button class="btn btn-info text-sm">
-                        <fa icon="fa-search" />
+                        <FontAwesomeIcon :icon="faSearch" />
                         Details
                     </button>
                     <button class="btn btn-danger text-sm">
-                        <fa icon="fa-trash" />
+                        <FontAwesomeIcon :icon="faTrash" />
                         Delete
                     </button>
                 </div>
@@ -30,6 +30,8 @@
 </template>
 
 <script setup>
+import { faSearch, faTrash } from "@fortawesome/free-solid-svg-icons";
+
 const data = [
     {
         id: 1,

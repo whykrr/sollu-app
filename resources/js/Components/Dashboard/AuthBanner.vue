@@ -5,7 +5,7 @@
             class="btn bg-main/30 rounded-full text-white absolute right-4 top-4"
         >
             Kembali ke website
-            <fa icon="fa-arrow-right" />
+            <FontAwesomeIcon :icon="faArrowRight" />
         </a>
         <img
             class="h-full w-full object-cover"
@@ -14,4 +14,7 @@
         />
     </div>
 </template>
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+</script>

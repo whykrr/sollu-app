@@ -6,7 +6,7 @@
         >
             <a
                 href="#"
-                class="flex flex-row items-center gap-2 h-10 pl-1 pr-3 bg-white/90 rounded-full drop-shadow"
+                class="flex flex-row items-center gap-2 h-10 pl-1 pr-3 bg-white/90 rounded-full shadow-lg"
                 @click.prevent="togglePanel"
             >
                 <!-- <img
@@ -17,7 +17,7 @@
                 <div
                     class="rounded-full w-8 h-8 flex items-center justify-center bg-secondary/20 text-secondary-dark text-[16px]"
                 >
-                    <fa icon="fa-shop" />
+                    <FontAwesomeIcon :icon="faShop" />
                 </div>
                 <span class="font-base">{{ auth.merchant }}</span>
             </a>
@@ -30,7 +30,7 @@
                 <div class="flex flex-col gap-2">
                     <div class="absolute right-4">
                         <a href="#" @click.prevent="closePanel">
-                            <fa icon="close" />
+                            <FontAwesomeIcon :icon="faClose" />
                         </a>
                     </div>
                     <div class="text-center text-lg font-medium">
@@ -80,7 +80,7 @@
                                     class="flex items-center gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm"
                                     :method="item.method"
                                 >
-                                    <fa :icon="item.icon"></fa>
+                                    <FontAwesomeIcon :icon="item.icon" />
                                     {{ item.label }}
                                 </Link>
                             </li>
@@ -92,6 +92,13 @@
     </div>
 </template>
 <script setup>
+import {
+    faClose,
+    faCog,
+    faCreditCard,
+    faShop,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link, usePage } from "@inertiajs/vue3";
 import { method } from "lodash";
 import { computed, onBeforeMount, onMounted, ref } from "vue";
@@ -112,19 +119,19 @@ const closePanel = () => {
 const accountLinks = [
     {
         label: "Info Bisnis",
-        icon: "fa-shop",
+        icon: faShop,
         link: "#",
         method: "get",
     },
     {
         label: "Langganan & Tagihan",
-        icon: "fa-credit-card",
+        icon: faCreditCard,
         link: "#",
         method: "get",
     },
     {
         label: "Pengaturan Bisnis",
-        icon: "fa-cog",
+        icon: faCog,
         link: "#",
         method: "get",
     },

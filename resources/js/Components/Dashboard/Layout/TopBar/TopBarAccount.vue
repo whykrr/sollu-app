@@ -33,7 +33,7 @@
                 <div class="flex flex-col gap-2">
                     <div class="absolute right-4">
                         <a href="#" @click.prevent="closePanel">
-                            <fa icon="close" />
+                            <FontAwesomeIcon :icon="faClose" />
                         </a>
                     </div>
                     <div class="text-center text-sm font-medium">
@@ -68,7 +68,9 @@
                                     method="delete"
                                     as="button"
                                 >
-                                    <fa :icon="item.icon"></fa>
+                                    <FontAwesomeIcon
+                                        :icon="item.icon"
+                                    ></FontAwesomeIcon>
                                     {{ item.label }}
                                 </Link>
                                 <Link
@@ -76,7 +78,9 @@
                                     :href="item.link"
                                     class="flex items-center gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm"
                                 >
-                                    <fa :icon="item.icon"></fa>
+                                    <FontAwesomeIcon
+                                        :icon="item.icon"
+                                    ></FontAwesomeIcon>
                                     {{ item.label }}
                                 </Link>
                             </li>
@@ -88,6 +92,13 @@
     </div>
 </template>
 <script setup>
+import {
+    faClose,
+    faKey,
+    faRightFromBracket,
+    faUser,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link, usePage } from "@inertiajs/vue3";
 import { method } from "lodash";
 import { computed, onBeforeMount, onMounted, ref } from "vue";
@@ -118,18 +129,18 @@ const closePanel = () => {
 const accountLinks = [
     {
         label: "Info Akun",
-        icon: "fa-user",
+        icon: faUser,
         link: "#",
         method: "get",
     },
     {
         label: "Ubah kata sandi",
-        icon: "fa-key",
+        icon: faKey,
         link: "#",
     },
     {
         label: "Keluar",
-        icon: "fa-right-from-bracket",
+        icon: faRightFromBracket,
         link: route("dashboard.logout"),
         method: "delete",
     },

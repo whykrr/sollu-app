@@ -5,18 +5,21 @@
             target="_blank"
             class="flex flex-row gap-2 items-center py-0 px-2 cursor-pointer rounded-lg text-neutral-600 hover:text-neutral-900"
         >
-            <fa icon="fa-circle-question" />
+            <FontAwesomeIcon :icon="faCircleQuestion" />
             <div class="text-sm">Pusat Bantuan</div>
             <div class="flex-1"></div>
             <div>
-                <fa icon="fa-up-right-from-square" />
+                <FontAwesomeIcon
+                    :icon="faArrowUpFromBracket"
+                    class="text-[15px]"
+                />
             </div>
         </a>
         <Link
             href="#"
             class="flex flex-row gap-2 items-center py-0 px-2 cursor-pointer rounded-lg text-neutral-600 hover:text-neutral-900"
         >
-            <fa icon="fa-cog" />
+            <FontAwesomeIcon :icon="faCog" />
             <div class="text-sm grow">Pengaturan</div>
         </Link>
 
@@ -25,7 +28,7 @@
         >
             <div>
                 <div class="inline-block p-1.5 bg-info/20 rounded-md text-xs">
-                    <fa icon="fa-bolt" class="text-sm" />
+                    <FontAwesomeIcon :icon="faBolt" class="text-sm" />
                     Uji Coba Gratis
                 </div>
             </div>
@@ -41,5 +44,12 @@
 </template>
 
 <script setup>
+import {
+    faArrowUpFromBracket,
+    faBolt,
+    faCircleQuestion,
+    faCog,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link } from "@inertiajs/vue3";
 </script>

@@ -38,10 +38,6 @@ class HandleInertiaDashboardRequests extends Middleware
     public function share(Request $request): array
     {
 
-        $menuActiveContent = $request->routeIs('admin.contents.*')
-            ? 'admin.contents.' . ($request->route()->parameter('content_type')->parent_id ?? $request->route()->parameter('content_type')->id)
-            : null;
-
         $all_outlets = $request->user()
             ? Cache::remember(
                 "info:merchant:{$request->user()->merchant->id}:outlets",
@@ -54,7 +50,6 @@ class HandleInertiaDashboardRequests extends Middleware
             // Synchronously...
             'appName'     => config('app.name'),
             'breadcrumbs' => generateBreadcrumbs($request->route()->getName()),
-            'menuActive'  => $menuActiveContent ?? $request->route()->getName(),
             'flash'       => [
                 'success' => $request->session()->get('success'),
                 'failed'  => $request->session()->get('failed'),

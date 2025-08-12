@@ -4,24 +4,32 @@
             <template v-for="sidebar in sidebars">
                 <SidebarItem
                     v-if="!sidebar.items"
-                    :to="sidebar.link"
+                    :to="
+                        route().has('dashboard.' + sidebar.route)
+                            ? route('dashboard.' + sidebar.route)
+                            : '#'
+                    "
                     :icon="sidebar.icon"
                     :label="sidebar.label"
-                    :is-active="menuActive.includes(sidebar.activeRoute)"
+                    :active="isActive(sidebar)"
                 />
                 <SidebarItemExpand
                     v-else
-                    :to="sidebar.link"
+                    to="#"
                     :icon="sidebar.icon"
                     :label="sidebar.label"
-                    :is-active="menuActive.includes(sidebar.activeRoute)"
+                    :active="isActive(sidebar)"
                 >
-                    <template v-for="items in sidebar.items">
+                    <template v-for="item in sidebar.items">
                         <SidebarItem
-                            :to="items.link"
-                            :icon="items.icon"
-                            :label="items.label"
-                            :is-active="menuActive.includes(items.activeRoute)"
+                            :to="
+                                route().has('dashboard.' + item.route)
+                                    ? route('dashboard.' + item.route)
+                                    : '#'
+                            "
+                            :icon="item.icon"
+                            :label="item.label"
+                            :active="isActive(item)"
                         />
                     </template>
                 </SidebarItemExpand>
@@ -30,221 +38,252 @@
     </nav>
 </template>
 <script setup>
-import { usePage } from "@inertiajs/vue3";
-import { computed } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
+import { computed, ref } from "vue";
 import SidebarItemExpand from "./SidebarItemExpand.vue";
 import SidebarItem from "./SidebarItem.vue";
+import {
+    faBox,
+    faBoxes,
+    faCartShopping,
+    faChartLine,
+    faChartPie,
+    faHashtag,
+    faReceipt,
+    faUsers,
+    faUserTie,
+    faWallet,
+} from "@fortawesome/free-solid-svg-icons";
 
-const page = usePage();
-const menuActive = computed(() => page.props.menuActive);
+const activeMenu = computed(() => {
+    const _ = usePage().url;
+    return route().current();
+});
+
+const normalizeRoute = (name) => {
+    return name?.endsWith(".index") ? name.slice(0, -6) : name;
+};
+
+const isActive = (menu) => {
+    const current = normalizeRoute(activeMenu.value);
+
+    if (menu.items) {
+        return menu.items.some((child) =>
+            current.startsWith("dashboard." + normalizeRoute(child.route))
+        );
+    }
+
+    return current.startsWith("dashboard." + normalizeRoute(menu.route));
+};
+
 const sidebars = [
     {
-        link: route("dashboard.overview"),
-        icon: "fa-chart-pie",
+        route: "overview",
+        icon: faChartPie,
         label: "Ringkasan",
-        activeRoute: "overview",
+        activeRoute: "dashboard.overview",
     },
     {
-        link: "#",
-        icon: "fa-receipt",
+        route: "#",
+        icon: faReceipt,
         label: "Penjualan",
         activeRoute: "sales",
     },
     {
-        link: "#",
-        icon: "fa-box",
+        route: "#",
+        icon: faBox,
         label: "Produk",
         activeRoute: "products.",
         items: [
             {
-                link: "#",
+                route: "#",
                 label: "Satuan",
                 activeRoute: "products.units.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Kategori",
                 activeRoute: "products.categories.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Varian",
                 activeRoute: "products.variations.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Varian",
                 activeRoute: "products.variations.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Data Produk",
                 activeRoute: "products.products.",
             },
         ],
     },
     {
-        link: "#",
-        icon: "fa-boxes",
+        route: "#",
+        icon: faBoxes,
         label: "Inventori",
         activeRoute: "inventories.",
         items: [
             {
-                link: "#",
+                route: "#",
                 label: "Stok",
                 activeRoute: "inventories.stock.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Pemasok / Supplier",
                 activeRoute: "inventories.suppliers.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Pesanan Pembelian (PO)",
                 activeRoute: "inventories.po.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Stok Opname",
                 activeRoute: "inventories.stock-taking.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Stok Retur",
                 activeRoute: "inventories.return.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Mutasi Stok",
                 activeRoute: "inventories.transfers.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Konversi Stok",
                 activeRoute: "inventories.conversion.",
             },
         ],
     },
     {
-        link: "#",
-        icon: "fa-cart-shopping",
+        route: "#",
+        icon: faCartShopping,
         label: "Pesanan / Order",
         activeRoute: "orders",
     },
     {
-        link: "#",
-        icon: "fa-users",
+        route: "#",
+        icon: faUsers,
         label: "Pelanggan",
         activeRoute: "members",
     },
     {
-        link: route("dashboard.employees.index"),
-        icon: "fa-user-tie",
+        route: "employees.index",
+        icon: faUserTie,
         label: "Pegawai",
         activeRoute: "employees",
     },
     {
-        link: "#",
-        icon: "fa-wallet",
+        route: "#",
+        icon: faWallet,
         label: "Keuangan",
         activeRoute: "finance",
         items: [
             {
-                link: "#",
+                route: "#",
                 label: "Penjualan Harian",
                 activeRoute: "finance.daily-sales.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Pembayaran",
                 activeRoute: "finance.payments.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Pengembalian Dan Diskon",
                 activeRoute: "finance.refund-discount.",
             },
         ],
     },
     {
-        link: "#",
-        icon: "fa-chart-line",
+        route: "#",
+        icon: faChartLine,
         label: "Laporan",
         activeRoute: "reports",
         items: [
             {
-                link: "#",
+                route: "#",
                 label: "Penjualan Produk",
                 activeRoute: "reports.products.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Stok",
-                activeRoute: "reports.stocks.",
+                activeRoute: "template.form",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Pegawai",
                 activeRoute: "reports.employees.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Retur",
                 activeRoute: "reports.return.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Pajak & Diskon",
                 activeRoute: "reports.tax-discounts.",
             },
             {
-                link: "#",
+                route: "#",
                 label: "Omset",
                 activeRoute: "reports.revenue.",
             },
         ],
     },
     {
-        link: "#",
-        icon: "fa-hashtag",
-        label: "Layout",
-        activeRoute: "layouts",
+        route: "#",
+        icon: faHashtag,
+        label: "Template",
+        activeRoute: "template",
         items: [
             {
-                link: "#",
+                route: "template.form",
                 label: "Form",
-                activeRoute: "reports.products.",
+                activeRoute: "template.form",
             },
             {
-                link: "#",
+                route: "template.cards",
                 label: "Card",
-                activeRoute: "reports.stocks.",
+                activeRoute: "template.form",
             },
             {
-                link: "#",
+                route: "template.navigation",
                 label: "Navigation & Tab",
-                activeRoute: "reports.stocks.",
+                activeRoute: "template.navigation",
             },
             {
-                link: "#",
+                route: "template.buttons",
                 label: "Buttons",
-                activeRoute: "reports.employees.",
+                activeRoute: "template.buttons",
             },
             {
-                link: "#",
+                route: "template.charts",
                 label: "Charts",
-                activeRoute: "reports.return.",
+                activeRoute: "template.charts",
             },
             {
-                link: "#",
+                route: "template.notifications",
                 label: "Notifications",
-                activeRoute: "reports.tax-discounts.",
+                activeRoute: "template.notifications",
             },
             {
-                link: "#",
+                route: "template.widgets",
                 label: "Widgets",
-                activeRoute: "reports.revenue.",
+                activeRoute: "template.widgets",
             },
         ],
     },

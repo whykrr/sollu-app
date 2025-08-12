@@ -16,7 +16,7 @@
                     :href="route('dashboard.verification.send')"
                     class="btn btn-highlight-success btn-sm"
                 >
-                    <fa icon="fa-rotate-right left-0" />
+                    <FontAwesomeIcon :icon="faRotateRight" class="left-0" />
                     Kirim Ulang
                 </Link>
             </div>
@@ -27,7 +27,7 @@
         >
             <Widget
                 title="Total Kunjungan"
-                icon="fa-users"
+                :icon="faUsers"
                 class="bg-main dark:bg-main-light"
             >
                 <p class="text-md">{{ visits }}</p>
@@ -35,7 +35,7 @@
 
             <Widget
                 title="Total Pengunjung"
-                icon="fa-person"
+                :icon="faPerson"
                 class="bg-clay dark:bg-clay-light"
             >
                 <p class="text-md">{{ visitorThisMonth.visitors }}</p>
@@ -43,7 +43,7 @@
 
             <Widget
                 title="Pesan Belum Dibaca"
-                icon="fa-envelope"
+                :icon="faEnvelope"
                 class="bg-turquoise dark:bg-turquoise-light"
             >
                 <p class="text-md">{{ messageUnread }}</p>
@@ -72,13 +72,20 @@
 </template>
 
 <script setup>
-import Card from "@/Components/Dashboard/Cards/Card.vue";
+import Card from "@/Components/Dashboard/UI/Card.vue";
 import ListView from "@/Pages/Dashboard/Overview/Components/ListView.vue";
 import Widget from "@/Components/Dashboard/Widgets/Widget.vue";
 import { onMounted, ref } from "vue";
 import { Chart } from "chart.js/auto";
 import CardTransparent from "@/Components/Dashboard/Cards/CardTransparent.vue";
 import { Link, usePage } from "@inertiajs/vue3";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import {
+    faEnvelope,
+    faPerson,
+    faRotateRight,
+    faUsers,
+} from "@fortawesome/free-solid-svg-icons";
 
 const auth = usePage().props.auth;
 

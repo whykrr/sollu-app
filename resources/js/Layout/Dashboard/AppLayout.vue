@@ -22,7 +22,7 @@
             </main>
             <Toast
                 v-if="flashSuccess"
-                icon="fa-check"
+                :icon="faCheck"
                 title="Berhasil !"
                 class="bg-success"
                 @hide="clearMessage()"
@@ -31,7 +31,7 @@
             </Toast>
             <Toast
                 v-if="flashFailed"
-                icon="fa-close"
+                :icon="faClose"
                 title="Gagal !"
                 class="bg-danger"
                 @hide="clearMessageFailed()"
@@ -73,13 +73,14 @@
 
 <script setup>
 import Sidebar from "@/Components/Dashboard/Layout/Sidebar/Sidebar.vue";
-import Modal from "@/Components/Dashboard/UI/Modal.vue";
+import Modal from "@/Components/Dashboard/Notifications/Modal.vue";
 import Toast from "@/Components/Dashboard/Notifications/Toast.vue";
 import i18n from "@/i18n";
 import { useModalStore } from "@/store/Dashboard/modal";
 import { Link, router, usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
 import TopBar from "@/Components/Dashboard/Layout/TopBar/TopBar.vue";
+import { faCheck, faClose } from "@fortawesome/free-solid-svg-icons";
 
 // Event listener for Inertia start/finish
 router.on("start", () => (loading.value = true));

@@ -76,7 +76,7 @@
                     :href="route('dashboard.login')"
                     class="underline text-blue-800"
                 >
-                    <fa icon="fa-arrow-left" />
+                    <FontAwesomeIcon :icon="faArrowLeft" />
                     Kembali</Link
                 >
             </div>
@@ -86,6 +86,8 @@
 <script setup>
 import { Link, useForm, usePage } from "@inertiajs/vue3";
 import AuthLayout from "@/Layout/Dashboard/AuthLayout.vue";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
 const props = defineProps({
     token: String,

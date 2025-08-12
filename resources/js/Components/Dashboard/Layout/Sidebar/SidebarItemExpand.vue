@@ -1,21 +1,25 @@
 <template>
     <div
         class="sidebar-item-expand rounded-lg w-full"
-        :class="{ active: isActive || isSubMenuOpen }"
+        :class="{ active: active || isSubMenuOpen }"
+        ref="dropdownRef"
     >
         <a class="expand-toggle" href="#" @click.prevent="toggleSubMenu">
-            <fa :icon="icon" class="w-[20px]"></fa>
+            <FontAwesomeIcon :icon="icon" class="w-[20px]"></FontAwesomeIcon>
             <div class="grow text-left text-sm">{{ label }}</div>
-            <fa
-                icon="fa-chevron-down"
+            <FontAwesomeIcon
+                :icon="faChevronDown"
                 class="transition-transform duration-200 text-sm"
                 :class="{ 'rotate-180': isSubMenuOpen }"
             />
         </a>
 
         <!-- Animated Submenu -->
-        <transition name="submenu">
-            <div v-if="isSubMenuOpen" class="sidebar-expand-container gap-2">
+        <transition name="submenu" mode="out-in">
+            <div
+                v-if="active || isSubMenuOpen"
+                class="sidebar-expand-container gap-2"
+            >
                 <slot></slot>
             </div>
         </transition>
@@ -23,25 +27,40 @@
 </template>
 
 <script setup>
-import { ref, toRef, watch } from "vue";
+import {
+    faChevronCircleDown,
+    faChevronDown,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { onBeforeMount, onMounted, ref } from "vue";
 
 const props = defineProps({
     to: String,
     icon: String,
     label: String,
-    isActive: Boolean,
+    active: Boolean,
 });
 
-const isSubMenuOpen = toRef(props.isActive);
-
-watch(
-    () => props.isActive,
-    (newValue) => {
-        isSubMenuOpen.value = newValue;
-    }
-);
+const dropdownRef = ref(null);
+const isSubMenuOpen = ref(false);
 
 const toggleSubMenu = () => {
-    isSubMenuOpen.value = !isSubMenuOpen.value;
+    if (!props.active) {
+        isSubMenuOpen.value = !isSubMenuOpen.value;
+    }
 };
+
+const handleClickOutside = (event) => {
+    if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+        isSubMenuOpen.value = false;
+    }
+};
+
+onMounted(() => {
+    document.addEventListener("click", handleClickOutside);
+});
+
+onBeforeMount(() => {
+    document.removeEventListener("click", handleClickOutside);
+});
 </script>

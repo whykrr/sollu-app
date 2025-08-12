@@ -13,8 +13,8 @@
                         alt="Sollu"
                     />
                     <div class="text-sm cursor-pointer">
-                        <fa icon="fa-chevron-left" />
-                        <fa icon="fa-chevron-left" />
+                        <FontAwesomeIcon :icon="faChevronLeft" />
+                        <FontAwesomeIcon :icon="faChevronLeft" />
                     </div>
                 </div>
             </div>
@@ -29,4 +29,6 @@
 import SidebarOutlet from "./SidebarOutlet.vue";
 import SidebarNav from "./SidebarNav.vue";
 import SidebarFooter from "./SidebarFooter.vue";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 </script>

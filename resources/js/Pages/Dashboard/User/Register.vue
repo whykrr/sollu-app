@@ -26,7 +26,10 @@
                             :key="currentStep"
                             class="z-10 text-base text-gray-400 flex flex-row justify-start items-center gap-2 my-2"
                         >
-                            <fa :icon="steps[currentStep - 1].icon" class="" />
+                            <FontAwesomeIcon
+                                :icon="steps[currentStep - 1].icon"
+                                class=""
+                            />
                             <span class="text-sm">{{
                                 steps[currentStep - 1].label
                             }}</span>
@@ -58,7 +61,7 @@
                             <div v-for="type in merchant_types">
                                 <input
                                     type="radio"
-                                    class="btn-check peer"
+                                    class="form-check-btn peer"
                                     name="merchant_type_id"
                                     :id="'button' + type.id"
                                     v-model="form.merchant_type_id"
@@ -237,7 +240,7 @@
                         @click="prevStep"
                         :disabled="currentStep === 1"
                     >
-                        <fa icon="fa-arrow-left" />
+                        <FontAwesomeIcon :icon="faArrowLeft" />
                     </button>
                     <button
                         type="button"
@@ -272,8 +275,17 @@
 import BlankLayout from "@/Layout/Dashboard/BlankLayout.vue";
 import { Link, useForm } from "@inertiajs/vue3";
 import { nextTick, ref } from "vue";
-import { FontAwesomeIcon as Fa } from "@fortawesome/vue-fontawesome";
+import {
+    FontAwesomeIcon as Fa,
+    FontAwesomeIcon,
+} from "@fortawesome/vue-fontawesome";
 import AuthLayout from "@/Layout/Dashboard/AuthLayout.vue";
+import {
+    faArrowLeft,
+    faLock,
+    faStore,
+    faUser,
+} from "@fortawesome/free-solid-svg-icons";
 
 const props = defineProps({
     merchant_types: Array,
@@ -283,20 +295,20 @@ const currentStep = ref(1);
 
 const steps = [
     {
-        icon: "fa-store",
+        icon: faStore,
         label: "Jenis Usaha",
         title: "Halo,",
         greetings: "Pilih jenis usaha kamu untuk menyesuaikan fitur.",
     },
     {
-        icon: "fa-user",
+        icon: faUser,
         label: "Data Usaha",
         title: "Lengkapi Data Usaha",
         greetings:
             "Cukup sedikit info bisnismu untuk mulai dengan sistem terbaik.",
     },
     {
-        icon: "fa-lock",
+        icon: faLock,
         label: "Keamanan",
         title: "Yuk, Amankan Akunmu",
         greetings: "Lindungi akun dan data usahamu dengan kata sandi kuat.",

@@ -1,24 +1,41 @@
 <template>
-    <div class="widget-progress">
-        <div class="widget-header">{{ valueString }}</div>
-        <div>
-            <div class="widget-title">{{ title }}</div>
-            <div class="widget-bar">
-                <div class="widget-value" :style="widthProgress"></div>
+    <div class="widget">
+        <div class="flex flex-row items-center gap-2">
+            <div>
+                <div class="widget-icon">
+                    <FontAwesomeIcon class="text-base" :icon />
+                </div>
             </div>
-            <div class="widget-helper">{{ helperText }}</div>
+            <h2 class="font-medium">{{ title }}</h2>
+        </div>
+        <div class="text-gray-8 font-bold">
+            <slot></slot>
+        </div>
+        <div class="widget-bar">
+            <div class="widget-value" :style="widthProgress"></div>
+        </div>
+        <div>
+            <div class="inline-flex space-x-1.5 items-center">
+                <FontAwesomeIcon
+                    :icon="faArrowUp"
+                    class="text-sm text-success"
+                />
+                <div class="text-xs text-gray-600">dari bulan lalu</div>
+            </div>
         </div>
     </div>
 </template>
+
 <script setup>
+import { faArrowUp } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { computed, ref } from "vue";
 
 const props = defineProps({
+    icon: String,
     title: String,
-    valueString: String,
     value: Number,
     maxValue: Number,
-    helperText: String,
 });
 
 const widthProgress = computed(() => {

@@ -1,26 +1,25 @@
 <template>
-    <table class="table table-hovered w-full text-sm">
-        <thead class="sticky top-0 z-10 bg-white">
+    <table class="table table-hovered w-full">
+        <thead class="sticky top-0 z-5 bg-white">
             <tr class="text-neutral-600">
                 <td
                     v-for="head in headers"
                     @click="toggleSort(head)"
                     :key="head.key"
+                    class="select-none"
                 >
                     <div
                         class="flex flex-row items-center justify-between cursor-pointer hover:!text-neutral-800"
                     >
                         <span>{{ head.label }}</span>
                         <div v-if="head.sortable">
-                            <fa
+                            <FontAwesomeIcon
                                 :icon="
                                     sortKey === head.key
-                                        ? `fa-sort-${
-                                              sortOrder === 'asc'
-                                                  ? 'up'
-                                                  : 'down'
-                                          }`
-                                        : 'fa-sort'
+                                        ? sortOrder === 'asc'
+                                            ? faSortUp
+                                            : faSortDown
+                                        : faSort
                                 "
                                 :class="{
                                     'text-neutral-400/50 ':
@@ -49,7 +48,7 @@
                         class="btn btn-highlight-info btn-sm"
                         title="Lihat Detail"
                     >
-                        <fa icon="fa-ellipsis-vertical" />
+                        <FontAwesomeIcon :icon="faEllipsisVertical" />
                     </button>
                 </td>
             </tr>
@@ -67,6 +66,13 @@
 </template>
 
 <script setup>
+import {
+    faEllipsisVertical,
+    faSort,
+    faSortDown,
+    faSortUp,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { router } from "@inertiajs/vue3";
 import { head } from "lodash";
 import { ref } from "vue";

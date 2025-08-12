@@ -1,40 +1,40 @@
 <template>
-    <label class="inline-flex items-center cursor-pointer">
+    <div class="inline-flex items-center cursor-pointer select-none group">
         <input
             type="checkbox"
             :id
-            class="sr-only peer"
+            class="sr-only"
             :checked="modelValue"
             @change="updateValue($event.target.checked)"
         />
-        <span
-            class="w-8 h-5 flex items-center bg-gray-300 rounded p-1 transition-colors duration-300 ease-in-out peer-checked:bg-main group"
+        <label
+            :for="id"
+            class="w-8 h-5 flex items-center bg-gray-300 rounded-full p-1 transition-colors duration-300 ease-in-out group-has-checked:bg-main group/switch"
             :class="{
                 'w-6! h-4!': size === 'sm',
                 'w-10! h-6!': size === 'lg',
             }"
         >
             <span
-                class="bg-white w-3 h-3 rounded shadow-md transform transition-transform duration-300 ease-in-out peer-checked:group-[]:translate-x-3"
+                class="bg-white w-3 h-3 rounded-full shadow-md transform transition-transform duration-300 ease-in-out group-has-checked:translate-x-3"
                 :class="{
-                    'w-2.5! h-2.5! peer-checked:group-[]:!translate-x-1.5':
+                    'w-2.5! h-2.5! group-has-checked:!translate-x-1.5':
                         size === 'sm',
-                    'w-4! h-4! peer-checked:group-[]:!translate-x-4':
-                        size === 'lg',
+                    'w-4! h-4! group-has-checked:!translate-x-4': size === 'lg',
                 }"
             ></span>
-        </span>
+        </label>
 
         <label
             :for="id"
-            class="ml-2 text-gray-700 select-none"
+            class="ml-2 text-gray-700 cursor-pointer"
             :class="{
                 'text-sm': size === 'sm',
                 'text-lg': size === 'lg',
             }"
             >{{ labeling }}</label
         >
-    </label>
+    </div>
 </template>
 <script setup>
 defineProps({

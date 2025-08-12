@@ -2,9 +2,13 @@
     <Link
         :href="to"
         class="sidebar-item"
-        :class="{ active: isActive, 'rounded-lg': icon }"
+        :class="{ active: active, 'rounded-lg': icon }"
     >
-        <fa v-if="icon" :icon="icon" class="w-[20px]"></fa>
+        <FontAwesomeIcon
+            v-if="icon"
+            :icon="icon"
+            class="w-[20px]"
+        ></FontAwesomeIcon>
         <div v-else class="w-[20px]"></div>
         <div class="text-sm">
             {{ label }}
@@ -13,12 +17,13 @@
 </template>
 
 <script setup>
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link } from "@inertiajs/vue3";
 
 defineProps({
     to: String,
     icon: String,
     label: String,
-    isActive: Boolean,
+    active: Boolean,
 });
 </script>

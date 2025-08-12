@@ -207,12 +207,12 @@ function addColorClasses(colorName, shade, colorValue) {
         'color': '#ffffff',
     };
 
-    colorClasses['.btn-check:checked + ' + classBtnOutline] = {
+    colorClasses['.form-check-btn:checked + ' + classBtnOutline] = {
         'background-color': colorValue,
         'color': '#ffffff',
     };
 
-    colorClasses['.btn-check:checked + ' + classBtnHighlight] = {
+    colorClasses['.form-check-btn:checked + ' + classBtnHighlight] = {
         'background-color': colorValue,
         'color': '#ffffff',
     };

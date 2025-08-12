@@ -37,14 +37,40 @@ Route::middleware('auth:merchant')->group(function () {
 
     Route::get('/', OverviewController::class)->name('overview');
 
-    Route::resource('employees', EmployeeController::class)
-    ->except('edit');
-    Route::put('employees/{employee}/restore', [EmployeeController::class, 'restore'])
-             ->name('employees.restore')
-             ->withTrashed();
-    Route::delete('employees/{employee}/purge', [EmployeeController::class, 'purge'])
-        ->name('employees.purge')
-        ->withTrashed();
+    Route::resource('employees', EmployeeController::class)->except('edit');
+    Route::put('employees/{employee}/restore', [EmployeeController::class, 'restore'])->name('employees.restore')->withTrashed();
+    Route::delete('employees/{employee}/purge', [EmployeeController::class, 'purge'])->name('employees.purge')->withTrashed();
+
+    Route::prefix('template')->name('template.')->group(function () {
+        Route::get('/form', function () {
+            return inertia('Dashboard/Template/Form');
+        })->name('form');
+
+        Route::get('/cards', function () {
+            return inertia('Dashboard/Template/Cards');
+        })->name('cards');
+
+        Route::get('/navigation', function () {
+            return inertia('Dashboard/Template/Navigation');
+        })->name('navigation');
+
+        Route::get('/buttons', function () {
+            return inertia('Dashboard/Template/Buttons');
+        })->name('buttons');
+
+        Route::get('/charts', function () {
+            return inertia('Dashboard/Template/Charts');
+        })->name('charts');
+
+        Route::get('/notifications', function () {
+            return inertia('Dashboard/Template/Notifications');
+        })->name('notifications');
+
+        Route::get('/widgets', function () {
+            return inertia('Dashboard/Template/Widgets');
+        })->name('widgets');
+    });
+
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');
 });

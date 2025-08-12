@@ -10,14 +10,17 @@
                     <div
                         class="flex items-center rounded-full text-sm bg-main/20 text-main h-[30px] w-[30px]"
                     >
-                        <fa icon="fa-map-marker-alt" class="m-auto" />
+                        <FontAwesomeIcon
+                            :icon="faMapMarkerAlt"
+                            class="m-auto"
+                        />
                     </div>
                     <div class="flex-1 font-medium text-sm truncate">
                         Semua Outlet
                     </div>
                     <div class="text-[10px] flex flex-col -space-y-0.5">
-                        <fa icon="fa-chevron-up" />
-                        <fa icon="fa-chevron-down" />
+                        <FontAwesomeIcon :icon="faChevronUp" />
+                        <FontAwesomeIcon :icon="faChevronDown" />
                     </div>
                 </a>
                 <div
@@ -41,6 +44,13 @@
     </div>
 </template>
 <script setup>
+import {
+    faChevronDown,
+    faChevronUp,
+    faMapMarkedAlt,
+    faMapMarkerAlt,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link } from "@inertiajs/vue3";
 import { onBeforeMount, onMounted, ref } from "vue";
 

@@ -16,8 +16,8 @@
                 <div class="grow text-left">
                     {{ auth.name }}
                 </div>
-                <fa
-                    icon="fa-chevron-up"
+                <FontAwesomeIcon
+                    :icon="faChevronUp"
                     class="transition-transform duration-200"
                     :class="{ 'rotate-180': accountDropdown }"
                 />
@@ -59,7 +59,7 @@
             </div>
             <div class="flex flex-col gap-0.5 text-sm">
                 <Link href="#" class="sidebar-item rounded-lg px-2 py-1">
-                    <fa icon="fa-user"></fa>
+                    <FontAwesomeIcon :icon="faUser"></FontAwesomeIcon>
                     Akun Saya
                 </Link>
                 <Link
@@ -68,7 +68,9 @@
                     method="delete"
                     as="button"
                 >
-                    <fa icon="fa-right-from-bracket"></fa>
+                    <FontAwesomeIcon
+                        :icon="faRightFromBracket"
+                    ></FontAwesomeIcon>
                     Keluar
                 </Link>
             </div>
@@ -76,6 +78,12 @@
     </div>
 </template>
 <script setup>
+import {
+    faChevronUp,
+    faRightFromBracket,
+    faUser,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link, usePage } from "@inertiajs/vue3";
 import { computed, ref, watch } from "vue";
 

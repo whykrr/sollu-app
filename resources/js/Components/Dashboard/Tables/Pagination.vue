@@ -24,11 +24,14 @@
                     }"
                     :href="link.url != null ? link.url : '#'"
                 >
-                    <fa v-if="index === 0" icon="fa-angle-left"></fa>
-                    <fa
+                    <FontAwesomeIcon
+                        v-if="index === 0"
+                        :icon="faAngleLeft"
+                    ></FontAwesomeIcon>
+                    <FontAwesomeIcon
                         v-else-if="index === links.length - 1"
-                        icon="fa-angle-right"
-                    ></fa>
+                        :icon="faAngleRight"
+                    ></FontAwesomeIcon>
                     <span v-else>{{ link.label }}</span>
                 </Link>
             </div>
@@ -56,6 +59,8 @@
 </template>
 
 <script setup>
+import { faAngleLeft, faAngleRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link } from "@inertiajs/vue3";
 
 const props = defineProps({

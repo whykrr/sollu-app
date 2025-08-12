@@ -6,7 +6,7 @@
             title="Notifikasi"
             @click.prevent="toggleNotification"
         >
-            <fa icon="fa-regular fa-bell" />
+            <FontAwesomeIcon :icon="faBell" />
             <span />
         </a>
         <SidebarNotification
@@ -18,6 +18,8 @@
 <script setup>
 import { onBeforeMount, onMounted, ref } from "vue";
 import SidebarNotification from "../SidebarNotification/SidebarNotification.vue";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { faBell } from "@fortawesome/free-regular-svg-icons";
 
 const showNotification = ref(false);
 const panelRef = ref(null);

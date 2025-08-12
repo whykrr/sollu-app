@@ -3,7 +3,7 @@
         <div>
             <div class="form-group">
                 <label for="form_group">
-                    <fa icon="fa-search" />
+                    <FontAwesomeIcon :icon="faSearch" />
                 </label>
                 <input
                     type="text"
@@ -17,7 +17,7 @@
             <div class="flex flex-row gap-3 justify-end">
                 <div class="form-group">
                     <label for="form_group">
-                        <fa icon="fa-user" />
+                        <FontAwesomeIcon :icon="faUser" />
                     </label>
                     <select class="form-sm" v-model="filterForm.status">
                         <option value="active">Aktif</option>
@@ -30,6 +30,8 @@
 </template>
 
 <script setup>
+import { faSearch, faUser } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { router } from "@inertiajs/vue3";
 import { debounce } from "lodash";
 import { reactive, watch } from "vue";
