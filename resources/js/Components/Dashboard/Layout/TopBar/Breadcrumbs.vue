@@ -29,8 +29,7 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link, usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
 
-const page = usePage();
-const breadcrumbs = computed(() => page.props.breadcrumbs);
+const breadcrumbs = computed(() => usePage().props.app.breadcrumbs);
 const lastCrumbLabel = computed(() => {
     const items = breadcrumbs.value;
     return items.length > 0 ? items[items.length - 1].label : "";

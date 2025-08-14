@@ -1,11 +1,46 @@
 <template>
-    <div class="tab">
+    <div :class="{ tab: !vertical, 'tab-vertical': vertical }">
         <ul role="tablist">
-            <slot name="navigation" />
+            <li
+                v-for="(page, key) in pages"
+                role="presentation"
+                :class="{ active: key === activeTab }"
+                @click="toggleTab(key)"
+            >
+                <button class="tab-toggle" type="button" role="tab">
+                    <FontAwesomeIcon :icon="page.icon" />
+                    {{ page.label }}
+                    <span class="badge badge-main text-xs p-1!">20</span>
+                </button>
+                <span class="separator"></span>
+            </li>
         </ul>
         <div class="tab-content">
-            <slot></slot>
+            <div
+                v-for="(page, key) in pages"
+                class="tab-pane"
+                :class="{ active: key === activeTab }"
+                role="tabpanel"
+            >
+                <component v-if="key === activeTab" :is="page.page" />
+            </div>
+            <!-- <slot></slot> -->
         </div>
     </div>
 </template>
-<script setup></script>
+<script setup>
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { ref } from "vue";
+
+const activeTab = ref(0);
+
+const toggleTab = (key) => {
+    console.log(key);
+    activeTab.value = key;
+};
+
+defineProps({
+    pages: Array,
+    vertical: Boolean,
+});
+</script>

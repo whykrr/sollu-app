@@ -24,7 +24,7 @@
                 v-if="flashSuccess"
                 :icon="faCheck"
                 title="Berhasil !"
-                class="bg-success"
+                color="success"
                 @hide="clearMessage()"
             >
                 {{ flashSuccess }}
@@ -33,7 +33,7 @@
                 v-if="flashFailed"
                 :icon="faClose"
                 title="Gagal !"
-                class="bg-danger"
+                color="danger"
                 @hide="clearMessageFailed()"
             >
                 {{ flashFailed }}
@@ -83,21 +83,25 @@ import TopBar from "@/Components/Dashboard/Layout/TopBar/TopBar.vue";
 import { faCheck, faClose } from "@fortawesome/free-solid-svg-icons";
 
 // Event listener for Inertia start/finish
-router.on("start", () => (loading.value = true));
+router.on("start", (event) => {
+    const visit = event.detail.visit;
+    if (visit?.only?.includes("notifications")) return;
+
+    loading.value = true;
+});
 router.on("finish", () => (loading.value = false));
 
 const loading = ref(false);
-const page = usePage();
 const modalStore = useModalStore();
-const flashSuccess = computed(() => page.props.flash.success);
-const flashFailed = computed(() => page.props.flash.failed);
+const flashSuccess = computed(() => usePage().props.app.flash.success);
+const flashFailed = computed(() => usePage().props.app.flash.failed);
 
 const clearMessage = () => {
-    page.props.flash.success = null;
+    usePage().props.app.flash.success = null;
 };
 const clearMessageFailed = () => {
-    page.props.flash.failed = null;
+    usePage().props.app.flash.failed = null;
 };
 
-i18n.global.locale.value = page.props.locale;
+i18n.global.locale.value = usePage().props.locale;
 </script>

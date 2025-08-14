@@ -4,17 +4,17 @@
             <div class="flex flex-col gap-4">
                 <Card title="Basic">
                     <div class="grid grid-flow-row">
-                        <InputBasic
+                        <TextField
                             label="Example Input"
                             placeholder="Example..."
                             v-model="form.exampleInput"
                         />
-                        <TextareaBasic
+                        <TextareaField
                             label="Example Textarea"
                             placeholder="Example ..."
                             v-model="form.exampleTextarea"
                         />
-                        <SelectBasic
+                        <DropdownField
                             label="Example Select"
                             :options="[
                                 { value: 1, label: 'Satu' },
@@ -400,17 +400,17 @@
     </Container>
 </template>
 <script setup>
-import CardTransparent from "@/Components/Dashboard/Cards/CardTransparent.vue";
-import InputBasic from "@/Components/Dashboard/Form/InputBasic.vue";
-import SelectBasic from "@/Components/Dashboard/Form/SelectBasic.vue";
+import InputBasic from "@/Components/Dashboard/Form/TextField.vue";
 import Switch from "@/Components/Dashboard/Form/Switch.vue";
-import TextareaBasic from "@/Components/Dashboard/Form/TextareaBasic.vue";
-import Card from "@/Components/Dashboard/UI/Card.vue";
+import Card from "@/Components/Dashboard/UI/Card/Card.vue";
 import Container from "@/Components/Dashboard/UI/Container.vue";
 import { faArrowRight, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useForm } from "@inertiajs/vue3";
 import { ref } from "vue";
+import TextField from "@/Components/Dashboard/Form/TextField.vue";
+import TextareaField from "@/Components/Dashboard/Form/TextareaField.vue";
+import DropdownField from "@/Components/Dashboard/Form/DropdownField.vue";
 
 const form = useForm({
     exampleInput: "Test",

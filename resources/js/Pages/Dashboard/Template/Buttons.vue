@@ -130,7 +130,7 @@
     </Container>
 </template>
 <script setup>
-import Card from "@/Components/Dashboard/UI/Card.vue";
+import Card from "@/Components/Dashboard/UI/Card/Card.vue";
 import Container from "@/Components/Dashboard/UI/Container.vue";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";

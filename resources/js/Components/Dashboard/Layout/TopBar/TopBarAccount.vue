@@ -1,7 +1,7 @@
 <template>
     <div ref="dropdownRef">
         <div
-            class="bg-neutral-200/70 hover:p-1 hover:-m-1 rounded-full"
+            class="bg-neutral-200/70 hover:p-1 hover:-m-1 rounded-full transition-all duration-150 ease-in-out"
             :class="{ 'p-1 -m-1': showPanel }"
         >
             <a
@@ -64,7 +64,7 @@
                                 <Link
                                     v-if="item.method == 'delete'"
                                     :href="item.link"
-                                    class="flex items-center w-full gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm"
+                                    class="flex items-center w-full gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm transition-all duration-150 ease-in-out"
                                     method="delete"
                                     as="button"
                                 >
@@ -76,7 +76,7 @@
                                 <Link
                                     v-else
                                     :href="item.link"
-                                    class="flex items-center gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm"
+                                    class="flex items-center gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm transition-all duration-150 ease-in-out"
                                 >
                                     <FontAwesomeIcon
                                         :icon="item.icon"
@@ -103,8 +103,7 @@ import { Link, usePage } from "@inertiajs/vue3";
 import { method } from "lodash";
 import { computed, onBeforeMount, onMounted, ref } from "vue";
 
-const page = usePage();
-const auth = computed(() => page.props.auth);
+const auth = computed(() => usePage().props.auth);
 const showPanel = ref(false);
 const dropdownRef = ref(null);
 

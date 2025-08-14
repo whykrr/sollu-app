@@ -58,8 +58,8 @@
     </Container>
 </template>
 <script setup>
-import Card from "@/Components/Dashboard/UI/Card.vue";
-import CardFade from "@/Components/Dashboard/UI/CardFade.vue";
+import Card from "@/Components/Dashboard/UI/Card/Card.vue";
+import CardFade from "@/Components/Dashboard/UI/Card/CardFade.vue";
 import Container from "@/Components/Dashboard/UI/Container.vue";
 import { faBox, faPencil, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";

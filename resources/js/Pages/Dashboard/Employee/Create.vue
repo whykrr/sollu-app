@@ -1,4 +1,9 @@
 <template>
+    <Container>
+        <div class="bg-white rounded-lg p-2">
+            <Form />
+        </div>
+    </Container>
     <CardTransparent :title="pageTitle">
         <template #buttons>
             <span
@@ -12,7 +17,7 @@
             class="grid grid-cols-2 gap-x-4 gap-y-2 mb-0"
         >
             <div>
-                <label for="name">{{ $t("field.name") }}</label>
+                <label for="name">Name</label>
                 <input
                     type="text"
                     class="form"
@@ -40,7 +45,7 @@
                 <span class="form-feedback">{{ form.errors.email }}</span>
             </div>
             <div>
-                <label for="role">{{ $t("field.role") }}</label>
+                <label for="role">Role</label>
                 <select
                     id="role"
                     class="form"
@@ -49,9 +54,7 @@
                     }"
                     v-model="form.role"
                 >
-                    <option value="">
-                        {{ $t("form.select") }} {{ $t("field.role") }}
-                    </option>
+                    <option value="">--Pilih--</option>
                     <option value="admin">Admin</option>
                     <option value="editor">Editor</option>
                     <option value="viewer">Viewer</option>
@@ -73,7 +76,7 @@
                             )
                         "
                     >
-                        {{ $t("action.delete") }}
+                        Hapus
                     </button>
                     <button
                         v-else
@@ -90,7 +93,7 @@
                             )
                         "
                     >
-                        {{ $t("action.permanentDelete") }}
+                        Hapus Permanen
                     </button>
                 </div>
                 <div>
@@ -99,7 +102,7 @@
                         type="submit"
                         class="btn btn-main"
                     >
-                        {{ $t("action.submit") }}
+                        Simpan
                     </button>
                     <Link
                         v-else
@@ -112,7 +115,7 @@
                         method="put"
                         as="button"
                     >
-                        {{ $t("action.restore") }}
+                        Kembalikan
                     </Link>
                 </div>
             </div>
@@ -121,19 +124,15 @@
 </template>
 <script setup>
 import CardTransparent from "@/Components/Dashboard/Cards/CardTransparent.vue";
+import Container from "@/Components/Dashboard/UI/Container.vue";
 import { useModalStore } from "@/store/Dashboard/modal";
 import { Link, router, useForm } from "@inertiajs/vue3";
-import { useI18n } from "vue-i18n";
+import Form from "./Components/Form.vue";
 
 const modalStore = useModalStore();
 const props = defineProps({
     user: Object,
 });
-
-const { t } = useI18n();
-const pageTitle = !props.user
-    ? t("action.create") + " " + t("page.user")
-    : t("action.edit") + " " + t("page.user");
 
 const form = useForm({
     name: props.user?.name ?? null,

@@ -108,8 +108,7 @@ import { Link, useForm, usePage } from "@inertiajs/vue3";
 import AuthLayout from "@/Layout/Dashboard/AuthLayout.vue";
 import { computed } from "vue";
 
-const page = usePage();
-const flashSuccess = computed(() => page.props.flash.success);
+const flashSuccess = computed(() => usePage().props.app.flash.success);
 
 defineOptions({
     layout: AuthLayout,

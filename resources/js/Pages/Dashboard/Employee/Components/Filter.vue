@@ -1,35 +1,30 @@
 <template>
     <div class="flex flex-row gap-2">
         <div>
-            <div class="form-group">
-                <label for="form_group">
-                    <FontAwesomeIcon :icon="faSearch" />
-                </label>
-                <input
-                    type="text"
-                    placeholder="Cari"
-                    class="form-sm"
-                    v-model="filterForm.search"
-                />
-            </div>
+            <GroupTextIconField
+                :icon="faSearch"
+                v-model="filterForm.search"
+                class="sm"
+                placeholder="Cari"
+            />
         </div>
         <div class="col-span-2">
-            <div class="flex flex-row gap-3 justify-end">
-                <div class="form-group">
-                    <label for="form_group">
-                        <FontAwesomeIcon :icon="faUser" />
-                    </label>
-                    <select class="form-sm" v-model="filterForm.status">
-                        <option value="active">Aktif</option>
-                        <option value="deleted">Dihapus</option>
-                    </select>
-                </div>
-            </div>
+            <GroupDropdownIconField
+                :icon="faUser"
+                v-model="filterForm.status"
+                class="sm"
+                :options="[
+                    { value: 'active', label: 'Aktif' },
+                    { value: 'deleted', label: 'Dihapus' },
+                ]"
+            />
         </div>
     </div>
 </template>
 
 <script setup>
+import GroupDropdownIconField from "@/Components/Dashboard/Form/GroupDropdownIconField.vue";
+import GroupTextIconField from "@/Components/Dashboard/Form/GroupTextIconField.vue";
 import { faSearch, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { router } from "@inertiajs/vue3";

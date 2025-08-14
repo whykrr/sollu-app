@@ -75,8 +75,7 @@ import { computed } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
-const page = usePage();
-const flashSuccess = computed(() => page.props.flash.success);
+const flashSuccess = computed(() => usePage().props.app.flash.success);
 
 defineOptions({
     layout: AuthLayout,

@@ -1,7 +1,7 @@
 <template>
     <div ref="dropdownRef">
         <div
-            class="bg-neutral-200/70 hover:p-1 hover:-m-1 rounded-full"
+            class="bg-neutral-200/70 hover:p-1 hover:-m-1 rounded-full transition-all duration-150 ease-in-out"
             :class="{ 'p-1 -m-1': showPanel }"
         >
             <a
@@ -19,7 +19,7 @@
                 >
                     <FontAwesomeIcon :icon="faShop" />
                 </div>
-                <span class="font-base">{{ auth.merchant }}</span>
+                <span class="font-base">{{ auth.merchant.name }}</span>
             </a>
         </div>
         <transition name="fade-down" mode="in-out">
@@ -49,13 +49,13 @@
                             </div>
 
                             <div class="text-center text-xl">
-                                {{ auth.merchant }}
+                                {{ auth.merchant.name }}
                             </div>
                         </div>
                         <div class="grid grid-flow-row gap-1 text-sm">
                             <div class="flex flex-row justify-between">
                                 <div class="font-medium">Jenis Usaha</div>
-                                <div>Toko Konvensional</div>
+                                <div>{{ auth.merchant.type.name }}</div>
                             </div>
                             <div class="flex flex-row justify-between">
                                 <div class="font-medium">Langganan</div>
@@ -67,7 +67,9 @@
                             </div>
                             <div class="flex flex-row justify-between">
                                 <div class="font-medium">Jumlah Outlet</div>
-                                <div>2</div>
+                                <div>
+                                    {{ auth.merchant.outlets.length }} Outlet
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -77,7 +79,7 @@
                             <li v-for="item in accountLinks">
                                 <Link
                                     :href="item.link"
-                                    class="flex items-center gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm"
+                                    class="flex items-center gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm transition-all duration-150 ease-in-out"
                                     :method="item.method"
                                 >
                                     <FontAwesomeIcon :icon="item.icon" />

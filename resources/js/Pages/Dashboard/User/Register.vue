@@ -57,7 +57,7 @@
                     </div>
 
                     <div v-if="currentStep === 1">
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex flex-wrap gap-1">
                             <div v-for="type in merchant_types">
                                 <input
                                     type="radio"

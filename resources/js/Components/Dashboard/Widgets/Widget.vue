@@ -29,7 +29,7 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { computed, ref } from "vue";
 
 const props = defineProps({
-    icon: String,
+    icon: Object,
     title: String,
 });
 </script>

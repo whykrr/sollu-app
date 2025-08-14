@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         //app
         $middleware->redirectGuestsTo(fn ($request) => route('dashboard.login'));
+        $middleware->redirectUsersTo(fn ($request) => route('dashboard.overview'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->renderable(function (ThrottleRequestsException $e, Request $request) {

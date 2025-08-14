@@ -1,5 +1,7 @@
 <template>
-    <table class="table table-hovered w-full">
+    <table
+        class="table table-hovered w-full bg-white rounded-md border overflow-hidden"
+    >
         <thead class="sticky top-0 z-5 bg-white">
             <tr class="text-neutral-600">
                 <td

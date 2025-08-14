@@ -4200,6 +4200,16 @@ namespace Illuminate\Support\Facades {
                         return $instance->macroCall($method, $parameters);
         }
                     /**
+         * 
+         *
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param string $pattern
+         * @static 
+         */        public static function forgetPattern($pattern)
+        {
+                        return \Illuminate\Cache\Repository::forgetPattern($pattern);
+        }
+                    /**
          * Get a lock instance.
          *
          * @param string $name
@@ -19155,6 +19165,25 @@ namespace Illuminate\Testing {
          */        public static function inertiaPage()
         {
                         return \Illuminate\Testing\TestResponse::inertiaPage();
+        }
+            }
+    }
+
+namespace Illuminate\Cache {
+            /**
+     * 
+     *
+     * @mixin \Illuminate\Contracts\Cache\Store
+     */        class Repository {
+                    /**
+         * 
+         *
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param string $pattern
+         * @static 
+         */        public static function forgetPattern($pattern)
+        {
+                        return \Illuminate\Cache\Repository::forgetPattern($pattern);
         }
             }
     }

@@ -186,8 +186,9 @@ return [
 
     'magic' => [
         'Auth' => [
-            'user'                   => 'App\Models\User',
-            'guard("cockpit")->user' => 'App\Models\User',
+            'user' => 'App\Models\User::class',
+            'id'   => 'App\Models\User::id',
+            // 'guard("cockpit")->user' => 'App\Models\User',
         ],
     ],
 

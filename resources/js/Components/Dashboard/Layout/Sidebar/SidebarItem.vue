@@ -22,7 +22,7 @@ import { Link } from "@inertiajs/vue3";
 
 defineProps({
     to: String,
-    icon: String,
+    icon: Object,
     label: String,
     active: Boolean,
 });

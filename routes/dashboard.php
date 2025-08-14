@@ -1,11 +1,13 @@
 <?php
 
+use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Dashboard\EmployeeController;
 use App\Http\Controllers\Dashboard\OverviewController;
 use App\Http\Controllers\Dashboard\User\ForgotPasswordController;
 use App\Http\Controllers\Dashboard\User\LoginController;
 use App\Http\Controllers\Dashboard\User\RegisterController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +26,8 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth:merchant')->group(function () {
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+        /** @var <FormRequest> $request */
+        Cache::forget("auth:user:{$request->user()->id}");
         $request->fulfill();
 
         return redirect()->route('dashboard.overview')->with('success', 'Email berhasil di verifikasi!');
@@ -34,6 +38,19 @@ Route::middleware('auth:merchant')->group(function () {
 
         return back()->with('success', 'Link verifikasi telah dikirim ulang!');
     })->middleware(['throttle:6,5'])->name('verification.send');
+
+    Route::prefix('switch-outlet')->name('switch.')->group(function () {
+        Route::post('/all', function () {
+            SelectedOutlet::make()->all();
+
+            return back();
+        })->name('all');
+        Route::post('/{id}', function (Request $request, $id) {
+            SelectedOutlet::make()->change($id);
+
+            return back();
+        })->where('id', '[0-9a-fA-F\-]{36}')->name('outlet');
+    });
 
     Route::get('/', OverviewController::class)->name('overview');
 

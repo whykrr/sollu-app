@@ -25,18 +25,14 @@
         <div
             class="flex flex-col md:grid md:grid-cols-1 lg:grid-cols-3 gap-2 mb-4"
         >
-            <Widget
-                title="Total Kunjungan"
-                :icon="faUsers"
-                class="bg-main dark:bg-main-light"
-            >
+            <Widget title="Total Kunjungan" :icon="faUsers" class="widget-main">
                 <p class="text-md">{{ visits }}</p>
             </Widget>
 
             <Widget
                 title="Total Pengunjung"
                 :icon="faPerson"
-                class="bg-clay dark:bg-clay-light"
+                class="widget-main"
             >
                 <p class="text-md">{{ visitorThisMonth.visitors }}</p>
             </Widget>
@@ -44,7 +40,7 @@
             <Widget
                 title="Pesan Belum Dibaca"
                 :icon="faEnvelope"
-                class="bg-turquoise dark:bg-turquoise-light"
+                class="widget-main"
             >
                 <p class="text-md">{{ messageUnread }}</p>
             </Widget>
@@ -72,7 +68,7 @@
 </template>
 
 <script setup>
-import Card from "@/Components/Dashboard/UI/Card.vue";
+import Card from "@/Components/Dashboard/UI/Card/Card.vue";
 import ListView from "@/Pages/Dashboard/Overview/Components/ListView.vue";
 import Widget from "@/Components/Dashboard/Widgets/Widget.vue";
 import { onMounted, ref } from "vue";

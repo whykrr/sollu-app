@@ -1,7 +1,13 @@
 <template>
     <div class="relative h-11" ref="dropdownRef">
         <div class="absolute w-full">
-            <div class="bg-white/90 rounded-lg drop-shadow mx-2">
+            <div
+                class="bg-white rounded-lg transition-all duration-150 ease-in-out mx-2"
+                :class="{
+                    'hover:drop-shadow': outlets.length > 1,
+                    'drop-shadow': isOpen,
+                }"
+            >
                 <a
                     href="#"
                     class="flex flex-row items-center min-h-11 px-2 gap-1.5"
@@ -16,9 +22,13 @@
                         />
                     </div>
                     <div class="flex-1 font-medium text-sm truncate">
-                        Semua Outlet
+                        <span v-if="outlet">{{ outlet.name }}</span>
+                        <span v-else>Semua Outlet</span>
                     </div>
-                    <div class="text-[10px] flex flex-col -space-y-0.5">
+                    <div
+                        class="text-[10px] flex flex-col -space-y-0.5"
+                        :class="{ 'text-neutral-300': outlets.length === 1 }"
+                    >
                         <FontAwesomeIcon :icon="faChevronUp" />
                         <FontAwesomeIcon :icon="faChevronDown" />
                     </div>
@@ -29,11 +39,35 @@
                 >
                     <div class="text-sm">
                         <ol class="">
-                            <li v-for="outlet in outlets">
+                            <li>
                                 <Link
-                                    href="#"
-                                    class="hover:bg-neutral-light py-1.5 px-2 block"
-                                    >{{ outlet.name }}</Link
+                                    method="post"
+                                    :preserve-scroll="true"
+                                    :preserve-state="true"
+                                    as="button"
+                                    :href="route('dashboard.switch.all')"
+                                    class="hover:bg-neutral-light py-1.5 px-2 block w-full text-start"
+                                    :class="{ 'bg-neutral-light': !outlet }"
+                                    aria-disabled="true"
+                                    >Semua Outlet</Link
+                                >
+                            </li>
+                            <li v-for="o in outlets">
+                                <Link
+                                    method="post"
+                                    :preserve-scroll="true"
+                                    :preserve-state="true"
+                                    as="button"
+                                    :href="
+                                        route('dashboard.switch.outlet', {
+                                            id: o.id,
+                                        })
+                                    "
+                                    class="hover:bg-neutral-light py-1.5 px-2 w-full text-start"
+                                    :class="{
+                                        'bg-neutral-light': o.id === outlet?.id,
+                                    }"
+                                    >{{ o.name }}</Link
                                 >
                             </li>
                         </ol>
@@ -51,29 +85,18 @@ import {
     faMapMarkerAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { Link } from "@inertiajs/vue3";
-import { onBeforeMount, onMounted, ref } from "vue";
+import { Link, usePage } from "@inertiajs/vue3";
+import { computed, onBeforeMount, onMounted, ref } from "vue";
 
+const outlets = usePage().props.auth.outlets;
+const outlet = computed(() => usePage().props.outlet);
 const isOpen = ref(false);
 const dropdownRef = ref(null);
 
-const outlets = [
-    {
-        id: 1,
-        name: "Outlet Satu",
-    },
-    {
-        id: 1,
-        name: "Outlet Dua",
-    },
-    {
-        id: 1,
-        name: "Outlet Outlet 3",
-    },
-];
-
 const selectOutlet = () => {
-    isOpen.value = !isOpen.value;
+    if (outlets.length > 1) {
+        isOpen.value = !isOpen.value;
+    }
 };
 
 const handleClickOutside = (event) => {

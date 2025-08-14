@@ -23,19 +23,19 @@
                 >
                     <NotificationFilter
                         label="Semua"
-                        badge="10"
+                        :badge="10"
                         :active="filterActive === 'all'"
                         @click="toggleFilter('all')"
                     />
                     <NotificationFilter
                         label="Sistem"
-                        badge="0"
+                        :badge="0"
                         :active="filterActive === 'system'"
                         @click="toggleFilter('system')"
                     />
                     <NotificationFilter
                         label="Pesanan"
-                        badge="7"
+                        :badge="7"
                         :active="filterActive === 'order'"
                         @click="toggleFilter('order')"
                     />
@@ -43,16 +43,25 @@
                 <div
                     class="flex-1 overflow-y-auto floating-scroll bg-white rounded-lg p-2"
                 >
-                    <ol class="flex flex-col gap-1">
+                    <ol
+                        class="flex flex-col gap-1"
+                        v-if="notifications.length !== 0"
+                    >
                         <li v-for="notification in notifications">
                             <NotificationItem
-                                :read="notification.read_at ? 1 : 0"
-                                :title="notification.title"
-                                :message="notification.message"
+                                :read="notification.read_at ? true : false"
+                                :title="notification.data.title"
+                                :message="notification.data.message"
                                 :timestamp="notification.created_at"
                             />
                         </li>
                     </ol>
+                    <div
+                        v-if="notifications.length === 0"
+                        class="inline-flex h-full w-full items-center justify-center text-base text-neutral-400 select-none"
+                    >
+                        Tidak ada notifikasi
+                    </div>
                 </div>
                 <div>
                     <div class="flex flex-row justify-between items-center">
@@ -81,11 +90,12 @@
 import { icon } from "@fortawesome/fontawesome-svg-core";
 import { Link } from "@inertiajs/vue3";
 import NotificationFilter from "@/Components/Dashboard/Layout/SidebarNotification/NotificationFilter.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { filter } from "lodash";
 import NotificationItem from "./NotificationItem.vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { faClose, faListCheck } from "@fortawesome/free-solid-svg-icons";
+import { router } from "@inertiajs/vue3";
 
 const props = defineProps({
     isOpen: Boolean,
@@ -97,81 +107,33 @@ const toggleFilter = (type) => {
     filterActive.value = type;
 };
 
-const notifications = [
-    {
-        title: "Selamat Datang",
-        read_at: "2025",
-        created_at: "2025-07-30 12:30:000",
-        message:
-            "Kami senang bisa mendampingi anda dalam mengelola bisnis dengan lebih mudah, cepat, dan efisien.",
-    },
-    {
-        title: "haloo",
-        read_at: "2025",
-        created_at: "2025-07-29 14:26:000",
-        message: "kamu berada pada langganan gratis 15 hari.",
-    },
-    {
-        title: "Pesanan Diterima",
-        read_at: null,
-        created_at: "2025-07-28 18:49:000",
-        message: "Dengan nomor pesanan #123123123",
-    },
-    {
-        title: "Pesanan Diterima",
-        read_at: null,
-        created_at: "2025-07-28 18:49:000",
-        message: "Dengan nomor pesanan #123123123",
-    },
-    {
-        title: "Pesanan Diterima",
-        read_at: null,
-        created_at: "2025-07-28 18:49:000",
-        message: "Dengan nomor pesanan #123123123",
-    },
-    {
-        title: "Pesanan Diterima",
-        read_at: null,
-        created_at: "2025-07-28 18:49:000",
-        message: "Dengan nomor pesanan #123123123",
-    },
-    {
-        title: "Pesanan Diterima",
-        read_at: null,
-        created_at: "2025-07-28 18:49:000",
-        message: "Dengan nomor pesanan #123123123",
-    },
-    {
-        title: "Peringatan Stok",
-        read_at: null,
-        created_at: "2025-07-28 18:49:000",
-        message: "Stok produk Aqua 250ml anda menipis!",
-    },
-    {
-        title: "Pesanan Diterima",
-        read_at: null,
-        created_at: "2025-07-28 18:49:000",
-        message: "Dengan nomor pesanan #123123123",
-    },
-    {
-        title: "Pesanan Diterima",
-        read_at: null,
-        created_at: "2025-07-28 18:49:000",
-        message: "Dengan nomor pesanan #123123123",
-    },
-    {
-        title: "Pesanan Diterima",
-        read_at: null,
-        created_at: "2025-07-28 18:49:000",
-        message: "Dengan nomor pesanan #123123123",
-    },
-    {
-        title: "Pesanan Diterima",
-        read_at: null,
-        created_at: "2025-07-28 18:49:000",
-        message: "Dengan nomor pesanan #123123123",
-    },
-];
+const notificationsDefault = Object.freeze([
+    { data: { title: "" } },
+    { data: { title: "" } },
+    { data: { title: "" } },
+]);
+
+const notifications = ref(notificationsDefault);
+
+watch(
+    () => props.isOpen,
+    (val) => {
+        if (val) {
+            router.reload({
+                data: { filter: "asd", page: 1 },
+                only: ["notifications"],
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: (page) => {
+                    console.log(page);
+                    notifications.value = page.props.notifications;
+                },
+            });
+        } else {
+            notifications.value = notificationsDefault;
+        }
+    }
+);
 
 const emit = defineEmits(["close"]);
 

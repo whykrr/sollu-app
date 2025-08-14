@@ -74,9 +74,10 @@
 <script setup>
 import Modal from "@/Components/Dashboard/Notifications/Modal.vue";
 import Toast from "@/Components/Dashboard/Notifications/Toast.vue";
-import Card from "@/Components/Dashboard/UI/Card.vue";
+import Card from "@/Components/Dashboard/UI/Card/Card.vue";
 import Container from "@/Components/Dashboard/UI/Container.vue";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import { usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 
 const activeModal = ref(null);

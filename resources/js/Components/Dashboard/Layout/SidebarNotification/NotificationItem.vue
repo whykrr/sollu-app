@@ -1,18 +1,22 @@
 <template>
-    <div class="relative bg-white px-3 py-2 hover:bg-neutral-300/30 rounded-lg">
+    <div
+        class="relative bg-white px-3 py-2 hover:bg-neutral-300/30 rounded-lg"
+        :class="{ 'animate-pulse bg-neutral-300': !title }"
+    >
         <span
-            v-if="!read"
+            v-if="!read && title"
             class="absolute w-2 h-2 bg-danger top-2 left-2 rounded-full"
         ></span>
         <div class="flex flex-row gap-2">
             <div>
                 <div
                     class="flex items-center justify-center rounded-full bg-neutral-300 h-10 w-10"
+                    :class="{ 'text-neutral-300': !title }"
                 >
                     <FontAwesomeIcon :icon="faShop" class="m-auto" />
                 </div>
             </div>
-            <div class="space-y-1">
+            <div class="space-y-1" v-if="title">
                 <div class="text-sm">
                     <span class="font-semibold mr-1">
                         {{ title }}
@@ -29,6 +33,11 @@
                         Lihat Detail
                     </button>
                 </div>
+            </div>
+            <div class="space-y-1 w-full" v-else>
+                <div class="placeholder"></div>
+                <div class="placeholder"></div>
+                <div class="placeholder w-[25%]"></div>
             </div>
         </div>
     </div>

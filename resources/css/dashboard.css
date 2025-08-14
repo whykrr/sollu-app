@@ -116,7 +116,7 @@
 
 @utility sidebar-container {
     & .sidebar-item {
-        @apply flex flex-row gap-2 items-center py-2 px-2 hover:bg-neutral-300/60 hover:text-neutral-900 cursor-pointer rounded-lg font-medium;
+        @apply flex flex-row gap-2 items-center py-2 px-2 hover:bg-neutral-300/60 hover:text-neutral-900 cursor-pointer rounded-lg font-medium transition-all duration-150 ease-in-out;
     }
 
     & .sidebar-item-expand {
@@ -133,7 +133,8 @@
 }
 
 @utility nav-icon {
-    @apply flex justify-center items-center text-xl rounded-lg relative gap-1 h-8 min-w-8 hover:bg-neutral-300/60;
+    @apply flex justify-center items-center text-xl rounded-lg relative gap-1 h-8 min-w-8 hover:bg-neutral-300/60
+    transition-all duration-150 ease-in-out;
     & span {
         @apply rounded-md  p-1 bg-danger text-white absolute top-1 right-1 text-xs;
     }
@@ -155,15 +156,7 @@
         @apply bg-neutral-300 hover:bg-neutral-400/50;
     }
 
-    /* NAVIGATION */
-    .navigation ul &li {
-        @apply items-center border-b-2 border-b-main text-main;
-    }
-
     /* TAB */
-    .tab ul &li {
-        @apply items-center border-b-2 border-b-main text-main;
-    }
     .tab .tab-content &.tab-pane {
         @apply block animate-fade-in;
     }
@@ -172,13 +165,6 @@
     }
     .tab-vertical .tab-content &.tab-pane {
         @apply block animate-fade-in;
-    }
-}
-
-@utility dropdown-account {
-    @apply mt-2 p-2 left-4 bottom-[68px] border border-gray-200 bg-white absolute rounded-md drop-shadow-lg w-72 transition-all ease-in-out transform overflow-hidden translate-y-2 opacity-0 invisible;
-    &.show {
-        @apply translate-y-0 opacity-100 visible;
     }
 }
 
@@ -195,7 +181,8 @@
         @apply flex flex-row items-center border-b-1;
     }
     & ul li {
-        @apply items-center hover:border-b-2 hover:border-b-main hover:text-main;
+        @apply items-center hover:border-b-2 hover:border-b-main hover:text-main
+        transition-all duration-150 ease-in-out;
     }
     & ul li.active {
         @apply items-center border-b-2 border-b-main text-main;
@@ -205,14 +192,30 @@
 @utility tab {
     @apply flex flex-col gap-2;
     & ul {
-        @apply flex flex-row items-center border-b-1;
+        @apply flex flex-row items-center border-b;
     }
     & ul li {
-        @apply items-center hover:border-b-2 font-medium hover:border-b-main hover:text-main;
+        @apply relative font-medium
+        /* hover:border-b-[3px] hover:border-b-main hover:text-main
+        transition-all duration-150 ease-in-out; */;
     }
+    & ul li .tab-toggle {
+        @apply inline-flex gap-2 px-4 py-2 items-center;
+    }
+    & ul li .separator {
+        @apply absolute inset-0
+        hover:text-main
+        hover:border-b-[3px] hover:border-b-main
+        transition-all duration-150 ease-in-out;
+    }
+
     & ul li.active {
-        @apply items-center border-b-2 border-b-main text-main;
+        @apply text-main;
     }
+    & ul li.active .separator {
+        @apply border-b-[3px] border-b-main;
+    }
+
     & .tab-content .tab-pane {
         @apply hidden;
     }
@@ -221,46 +224,21 @@
     }
 }
 
-@utility tab-content {
-    .tab & .tab-pane {
-        @apply hidden;
-    }
-    .tab & .tab-pane.active {
-        @apply block animate-fade-in;
-    }
-    .tab-vertical & .tab-pane {
-        @apply hidden;
-    }
-    .tab-vertical & .tab-pane.active {
-        @apply block animate-fade-in;
-    }
-}
-
-@utility tab-pane {
-    .tab .tab-content & {
-        @apply hidden;
-    }
-    .tab .tab-content &.active {
-        @apply block animate-fade-in;
-    }
-    .tab-vertical .tab-content & {
-        @apply hidden;
-    }
-    .tab-vertical .tab-content &.active {
-        @apply block animate-fade-in;
-    }
-}
-
 @utility tab-vertical {
     @apply flex flex-row gap-2;
     & ul {
-        @apply grid grid-flow-row items-start min-w-[150px] border-r-1;
+        @apply grid grid-flow-row items-start min-w-[150px] border-r;
     }
     & ul li {
-        @apply items-center hover:border-r-2 font-medium hover:border-r-main hover:text-main;
+        @apply items-center font-medium
+        hover:border-r-[3px] hover:border-r-main
+        transition-all duration-150 ease-in-out;
+    }
+    & ul li .tab-toggle {
+        @apply inline-flex gap-2 pr-4 py-2 items-center;
     }
     & ul li.active {
-        @apply items-center border-r-2 border-r-main text-main;
+        @apply items-center border-r-[3px] border-r-main text-main;
     }
     & .tab-content .tab-pane {
         @apply hidden;
@@ -271,7 +249,7 @@
 }
 
 @utility placeholder {
-    @apply inline-block min-h-[20px] cursor-wait opacity-50 bg-neutral-400 mb-2;
+    @apply inline-block w-full min-h-[20px] cursor-wait opacity-50 bg-neutral-400 mb-2;
     &::before {
         box-sizing: border-box;
     }
@@ -281,17 +259,16 @@
 }
 
 @utility spinner {
-    /* SPINNER */
-    @apply w-10 h-10 border-4 border-main border-t-transparent rounded-full animate-spin;
+    @apply w-10 h-10 border-4 border-l-main border-b-main-light border-r-main-lighter border-t-transparent rounded-full animate-spin;
 }
 
 @utility table-responsive {
-    /* TABLES */
     @apply overflow-auto;
 }
 
 @utility table {
     @apply min-w-full border-separate border-spacing-x-0 text-sm;
+
     & thead {
         @apply font-semibold mb-2;
     }
@@ -302,7 +279,7 @@
         @apply px-3 py-2.5 border-b;
     }
     &.table-hovered tbody tr {
-        @apply hover:bg-neutral-lighter cursor-pointer;
+        @apply hover:bg-neutral-lighter cursor-pointer transition-all duration-150 ease-in-out;
     }
     & tbody tr {
         @apply even:bg-gray-50 odd:bg-white;
@@ -527,7 +504,8 @@ label:has(+ .form.lg) {
 
 @utility btn {
     /* Buttons Style */
-    @apply inline-flex text-base gap-1.5 items-center border border-transparent rounded-sm py-1.5 px-3 hover:brightness-110 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer;
+    @apply inline-flex text-base gap-1.5 items-center border border-transparent rounded-sm py-1.5 px-3 hover:brightness-110 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer
+    transition-all duration-150 ease-in-out;
 
     &.btn-outline-* {
         @apply disabled:bg-transparent disabled:border-gray-300 disabled:hover:brightness-100;

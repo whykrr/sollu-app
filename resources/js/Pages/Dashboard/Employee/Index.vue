@@ -14,7 +14,7 @@
                 </Link>
             </div>
         </template>
-        <div class="bg-white rounded-md border">
+        <div class="">
             <Table
                 :headers="tableHeaders"
                 :data="users.data"

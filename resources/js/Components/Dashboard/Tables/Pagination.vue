@@ -18,8 +18,7 @@
                     :id="link.id"
                     class="btn btn-sm rounded-full"
                     :class="{
-                        'btn-highlight-main dark:btn-highlight-main-lighter':
-                            link.url != null,
+                        'btn-highlight-main': link.url != null,
                         active: link.active,
                     }"
                     :href="link.url != null ? link.url : '#'"
@@ -71,5 +70,5 @@ const props = defineProps({
     perPage: Number,
 });
 
-const perPageLabel = [10, 20, 50, 100];
+const perPageLabel = [20, 50, 100];
 </script>

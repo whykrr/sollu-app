@@ -36,7 +36,7 @@ import { onBeforeMount, onMounted, ref } from "vue";
 
 const props = defineProps({
     to: String,
-    icon: String,
+    icon: Object,
     label: String,
     active: Boolean,
 });
