@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard\User;
 
 use App\Http\Controllers\Controller;
+use Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -34,10 +35,14 @@ class LoginController extends Controller
 
     public function destroy(Request $request)
     {
+        $id = Auth::id();
+
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        Cache::forgetPattern("auth:user:{$id}:*");
 
         return redirect()->route('dashboard.login');
     }

@@ -3,11 +3,13 @@
 namespace App\Providers;
 
 use App\Policies\CMSPolicy;
+use Cache;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\ServiceProvider;
 use RateLimiter;
 
@@ -18,6 +20,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app['auth']->provider('eloquent_redis', function ($app, array $config) {
+            return new \App\Auth\EloquentRedisUserProvider($app['hash'], $config['model']);
+        });
+
         if ($this->app->environment('local', 'development')) {
             $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);
         }
@@ -35,9 +41,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy('cms', CMSPolicy::class);
-
         RateLimiter::for('login', function (HttpRequest $request) {
             return Limit::perMinute(5, 5)->by($request->input('email') ?: $request->ip());
+        });
+
+        Cache::macro('forgetPattern', function (string $pattern) {
+            $keys = Redis::connection('cache')->keys($pattern);
+
+            foreach ($keys as $key) {
+                Cache::delete($key);
+            }
         });
 
         DB::listen(function ($query) {

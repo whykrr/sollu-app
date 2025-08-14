@@ -67,7 +67,7 @@ class Merchant extends Model
      */
     public function type(): BelongsTo
     {
-        return $this->belongsTo(MerchantType::class);
+        return $this->belongsTo(MerchantType::class, 'merchant_type_id');
     }
 
     /**

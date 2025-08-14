@@ -34,7 +34,7 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        return inertia('Dashboard/Employee/Input');
+        return inertia('Dashboard/Employee/Create');
     }
 
     /**
@@ -42,12 +42,8 @@ class EmployeeController extends Controller
      */
     public function show(User $user)
     {
-        $users = Auth::user()->merchant
-          ->users()->with(['roles:label', 'outlets'])
-          ->paginate(10);
-
-        return inertia('Dashboard/Employee/Index', [
-            'users' => $users,
+        return inertia('Dashboard/Employee/Show', [
+            'user' => $user,
         ]);
     }
 
@@ -93,7 +89,7 @@ class EmployeeController extends Controller
             throw $e;
         }
 
-        return redirect()->route('users.index')->with('success', ResourceMessage::CREATE_SUCCESS);
+        return redirect()->route('dashboard.employees.index')->with('success', ResourceMessage::CREATE_SUCCESS);
     }
 
     /**
@@ -101,7 +97,7 @@ class EmployeeController extends Controller
      */
     public function edit(User $user)
     {
-        return inertia('Dashboard/Employee/Form', [
+        return inertia('Dashboard/Employee/Show', [
             'user' => $user,
         ]);
     }

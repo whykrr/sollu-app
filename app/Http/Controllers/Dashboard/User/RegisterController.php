@@ -66,8 +66,8 @@ class RegisterController extends Controller
         Auth::login($user);
 
         $user->sendEmailVerificationNotification();
-        $merchant->notify(new WelcomeUser($user));
+        $user->notify(new WelcomeUser($user));
 
-        return redirect()->route('dashboard.login')->with('success', 'Pendaftaran Berhasil!, Cek email Anda untuk verifikasi');
+        return redirect()->route('dashboard.overview')->with('success', 'Pendaftaran Berhasil!, Cek email Anda untuk verifikasi');
     }
 }
