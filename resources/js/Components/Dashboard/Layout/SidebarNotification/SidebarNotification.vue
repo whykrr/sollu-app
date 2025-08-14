@@ -125,7 +125,6 @@ watch(
                 preserveState: true,
                 preserveScroll: true,
                 onSuccess: (page) => {
-                    console.log(page);
                     notifications.value = page.props.notifications;
                 },
             });

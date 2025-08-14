@@ -4,8 +4,8 @@ namespace App\Http\Middleware;
 
 use App\Helpers\SelectedOutlet;
 use App\Models\User;
-use Cache;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Middleware;
 
@@ -82,7 +82,7 @@ class HandleInertiaDashboardRequests extends Middleware
                     $outlets = $user->merchant->outlets->map(fn ($outlet) => $outlet->only('id', 'name'));
                 }
 
-                return[
+                return [
                     'role'     => $user->roles()->pluck('label', 'name')->toArray(),
                     'merchant' => $user->merchant->with(['outlets', 'type'])->first(),
                     'outlets'  => $outlets,

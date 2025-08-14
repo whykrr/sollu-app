@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Dashboard\User;
 
 use App\Http\Controllers\Controller;
-use Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller

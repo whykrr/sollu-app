@@ -35,7 +35,6 @@ import { ref } from "vue";
 const activeTab = ref(0);
 
 const toggleTab = (key) => {
-    console.log(key);
     activeTab.value = key;
 };
 

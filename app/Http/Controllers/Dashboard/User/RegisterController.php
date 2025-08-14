@@ -10,7 +10,7 @@ use App\Notifications\WelcomeUser;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Request;
+use Illuminate\Support\Facades\Request;
 
 class RegisterController extends Controller
 {
