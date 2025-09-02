@@ -10,6 +10,7 @@ use App\Notifications\NewEmployee;
 use App\ResourceMessage;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -128,10 +129,11 @@ class EmployeeController extends Controller
              * @var \App\Models\User $user
              */
             $user = Auth::user()->merchant->users()->create([
-                'name'         => $req['name'],
-                'email'        => $req['email'],
-                'password'     => $password_default,
-                'is_root_user' => false,
+                'name'              => $req['name'],
+                'email'             => $req['email'],
+                'password'          => $password_default,
+                'is_root_user'      => false,
+                'email_verified_at' => Carbon::now(),
             ]);
 
             $user->assignRole($req['role']);
