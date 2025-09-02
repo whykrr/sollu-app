@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Database\Seeders\V1_0\AttachSubscriptionSeeder;
 use Database\Seeders\V1_0\MerchantSeeder;
 use Database\Seeders\V1_0\MerchantTypeSeeder;
 use Database\Seeders\V1_0\OutletSeeder;
@@ -20,13 +19,13 @@ class V1_0_Seeder extends Seeder
     public function run(): void
     {
         $this->call([
+            SubscriptionPlanSeeder::class,
             MerchantTypeSeeder::class,
             MerchantSeeder::class,
             OutletSeeder::class,
             RolePermissionSeeder::class,
             UserDataSeeder::class,
             SubscriptionPlanSeeder::class,
-            AttachSubscriptionSeeder::class,
             RetailCategorySeeder::class,
         ]);
     }

@@ -10,15 +10,15 @@ if (! function_exists('generateBreadcrumbs')) {
             ],
 
             'employees.index' => [
-                ['label' => 'Karyawan', 'url' => route('dashboard.employees.index')],
+                ['label' => 'Pegawai', 'url' => route('dashboard.employees.index')],
             ],
             'employees.create' => [
-                ['label' => 'Karyawan', 'url' => route('dashboard.employees.index')],
-                ['label' => 'Tambah Karyawan', 'url' => '#'],
+                ['label' => 'Pegawai', 'url' => route('dashboard.employees.index')],
+                ['label' => 'Tambah Pegawai', 'url' => '#'],
             ],
-            'employees.edit' => [
-                ['label' => 'Karyawan', 'url' => route('dashboard.employees.index')],
-                ['label' => 'Detail Karyawan', 'url' => '#'],
+            'employees.show' => [
+                ['label' => 'Pegawai', 'url' => route('dashboard.employees.index')],
+                ['label' => 'Detail Pegawai', 'url' => '#'],
             ],
 
 

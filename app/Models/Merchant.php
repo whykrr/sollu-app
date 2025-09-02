@@ -44,14 +44,11 @@ class Merchant extends Model
         'logo_url',
         'already_free_trial',
         'merchant_type_id',
+        'expired_at',
+        'status',
         'settings',
     ];
 
-    /**
-    * Get the attributes that should be cast.
-    *
-     * @return array<string, string>
-    */
     protected function casts(): array
     {
         return [
@@ -60,11 +57,6 @@ class Merchant extends Model
         ];
     }
 
-    /**
-     * Get the industry that owns the Merchant
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
     public function type(): BelongsTo
     {
         return $this->belongsTo(MerchantType::class, 'merchant_type_id');
@@ -83,7 +75,7 @@ class Merchant extends Model
     /**
      * Get all of the users for the Merchant
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany|<Collection|User[]>
      */
     public function users(): HasMany
     {
@@ -95,9 +87,9 @@ class Merchant extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function subscriptions(): HasMany
+    public function plans(): HasMany
     {
-        return $this->hasMany(MerchantOutletSubscription::class);
+        return $this->hasMany(MerchantPlans::class);
     }
 
     /**

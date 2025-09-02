@@ -37,5 +37,6 @@ return (new Config())
         'trailing_comma_in_multiline'       => ['elements' => ['arrays']],
         'phpdoc_scalar'                     => true,
         'phpdoc_align'                      => ['align' => 'left'],
+        'method_chaining_indentation'       => true,
     ])
     ->setFinder($finder);

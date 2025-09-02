@@ -47,8 +47,8 @@ class SubscriptionPlan extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function transactions(): HasMany
+    public function merchant_plans(): HasMany
     {
-        return $this->hasMany(MerchantOutletSubscription::class);
+        return $this->hasMany(MerchantPlans::class);
     }
 }

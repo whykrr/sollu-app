@@ -3,6 +3,7 @@
 namespace Database\Seeders\V1_0;
 
 use App\Models\Merchant;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class UserDataSeeder extends Seeder
@@ -15,7 +16,7 @@ class UserDataSeeder extends Seeder
         $merchant = Merchant::all();
 
         $mart  = $merchant->where('email', 'sollu.mart@email.com')->first();
-        $merch = $merchant->where('email', 'sollu.merch@email.com')->first();
+        $cloth = $merchant->where('email', 'sollu.cloth@email.com')->first();
         $pets  = $merchant->where('email', 'sollu.pershop@email.com')->first();
 
         $mart->users()->create([
@@ -40,16 +41,24 @@ class UserDataSeeder extends Seeder
             'is_root_user'      => false,
         ])->assignRole('manager');
 
-        $merch->users()->create([
-            'name'              => $merch->owner_name,
-            'email'             => $merch->email,
-            'phone'             => $merch->phone,
+        $cloth->users()->create([
+            'name'              => $cloth->owner_name,
+            'email'             => $cloth->email,
+            'phone'             => $cloth->phone,
             'password'          => 'password',
             'pin'               => '123456',
             'photo'             => null,
             'email_verified_at' => now(),
             'is_root_user'      => true,
         ])->assignRole('owner');
+        $cloth_man = User::factory(1)->create([
+            'merchant_id' => $cloth->id,
+        ]);
+        $cloth_man->each(fn ($cloth_man) => $cloth_man->assignRole('manager'));
+        $cloth_users = User::factory(100)->create([
+            'merchant_id' => $cloth->id,
+        ]);
+        $cloth_users->each(fn ($cloth_users) => $cloth_users->assignRole('cashier'));
 
         $pets->users()->create([
             'name'              => $pets->owner_name,

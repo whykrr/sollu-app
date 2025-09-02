@@ -35,8 +35,7 @@ class Outlet extends Model
         'address',
         'latitude',
         'longitude',
-        'status',
-        'expired_at',
+        'is_active',
         'is_main_outlet',
     ];
 
@@ -55,9 +54,9 @@ class Outlet extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function subscription_plans(): HasMany
+    public function plans(): HasMany
     {
-        return $this->hasMany(MerchantOutletSubscription::class);
+        return $this->hasMany(MerchantPlans::class);
     }
 
     /**

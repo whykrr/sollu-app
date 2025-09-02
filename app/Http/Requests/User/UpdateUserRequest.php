@@ -6,6 +6,13 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
+/**
+ * Class UserUpdateRequest
+ *
+ * @package App\Http\Requests
+ *
+ * @property-read User $user  The bound user model from route model binding.
+ */
 class UpdateUserRequest extends FormRequest
 {
     /**
@@ -29,9 +36,10 @@ class UpdateUserRequest extends FormRequest
                 'required',
                 'email',
                 Rule::unique('users', 'email')->ignore($this->user)],
-            'role'         => 'required',
-            'outlet_ids'   => 'required|array',
-            'outlet_ids.*' => 'distinct|exists:outlets,id',
+            'phone'     => 'nullable|numeric',
+            'role'      => 'required',
+            'outlets'   => 'required|array',
+            'outlets.*' => 'distinct|exists:outlets,id',
         ];
     }
 }

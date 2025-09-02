@@ -11,10 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property-read Collection|SubscriptionPlan $subscription_plan
  * @property-read Collection|Merchant $merchant
- * @property-read Collection|Outlet $outlet
- * @mixin IdeHelperMerchantOutletSubscription
+ * @mixin IdeHelperMerchantPlans
  */
-class MerchantOutletSubscription extends Model
+class MerchantPlans extends Model
 {
     use HasFactory;
     use HasUuids;
@@ -26,11 +25,9 @@ class MerchantOutletSubscription extends Model
      */
     protected $fillable = [
         'merchant_id',
-        'outlet_id',
         'subscription_plans_id',
         'start_date',
         'end_date',
-        'status',
     ];
 
 
@@ -52,16 +49,6 @@ class MerchantOutletSubscription extends Model
     public function merchant(): BelongsTo
     {
         return $this->belongsTo(Merchant::class);
-    }
-
-    /**
-     * Get the outlet that owns the MerchantOutletSubscription
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function outlet(): BelongsTo
-    {
-        return $this->belongsTo(Outlet::class);
     }
 
 }

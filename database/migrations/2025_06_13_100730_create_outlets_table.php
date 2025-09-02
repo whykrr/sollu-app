@@ -18,8 +18,7 @@ return new class () extends Migration {
             $table->text('address')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
-            $table->string('status', 15)->default('active')->comment('options: active, grace, expired, inactive');
-            $table->date('expired_at')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->boolean('is_main_outlet')->default(false);
             $table->timestamps();
         });

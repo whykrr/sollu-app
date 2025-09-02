@@ -28,7 +28,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth:merchant')->group(function () {
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         /** @var <FormRequest> $request */
-        Cache::forget("auth:user:{$request->user()->id}");
+        Cache::forgetPattern("auth:user:{$request->user()->id}:*");
         $request->fulfill();
 
         return redirect()->route('dashboard.overview')->with('success', 'Email berhasil di verifikasi!');
@@ -55,9 +55,24 @@ Route::middleware('auth:merchant')->group(function () {
 
     Route::get('/', OverviewController::class)->name('overview');
 
-    Route::resource('employees', EmployeeController::class)->except('edit');
-    Route::put('employees/{employee}/restore', [EmployeeController::class, 'restore'])->name('employees.restore')->withTrashed();
-    Route::delete('employees/{employee}/purge', [EmployeeController::class, 'purge'])->name('employees.purge')->withTrashed();
+    Route::resource('employees', EmployeeController::class)
+        ->except(['edit', 'show'])
+        ->parameters([
+            'employees' => 'user',
+        ]);
+
+    Route::resource('employees', EmployeeController::class)
+        ->only('show')
+        ->parameters([
+            'employees' => 'user',
+        ])->withTrashed();
+
+    Route::put('employees/{user}/restore', [EmployeeController::class, 'restore'])
+        ->name('employees.restore')
+        ->withTrashed();
+    Route::delete('employees/{user}/purge', [EmployeeController::class, 'purge'])
+        ->name('employees.purge')
+        ->withTrashed();
 
     Route::prefix('template')->name('template.')->group(function () {
         Route::get('/form', function () {

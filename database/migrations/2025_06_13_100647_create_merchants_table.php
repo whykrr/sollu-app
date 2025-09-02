@@ -21,6 +21,8 @@ return new class () extends Migration {
             $table->text('logo_url')->nullable();
             $table->boolean('already_free_trial')->default(false);
             $table->tinyInteger('merchant_type_id')->unsigned();
+            $table->date('expired_at')->nullable();
+            $table->string('status', 15)->default('active')->comment('options: active, grace, expired, inactive');
             $table->json('settings')->nullable();
             $table->timestamps();
         });

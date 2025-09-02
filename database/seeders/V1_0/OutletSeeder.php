@@ -15,30 +15,24 @@ class OutletSeeder extends Seeder
         $merchant = Merchant::all();
 
         $mart  = $merchant->where('email', 'sollu.mart@email.com')->first();
-        $merch = $merchant->where('email', 'sollu.merch@email.com')->first();
+        $cloth = $merchant->where('email', 'sollu.cloth@email.com')->first();
         $pets  = $merchant->where('email', 'sollu.pershop@email.com')->first();
 
         $mart->outlets()->create([
             'name'           => 'Sollu Mart Pusat',
             'address'        => '',
-            'status'         => 'active',
-            'expired_at'     => '2025-07-15',
             'is_main_outlet' => true,
         ]);
 
-        $merch->outlets()->createMany([
+        $cloth->outlets()->createMany([
             [
                 'name'           => 'Store Ijen',
                 'address'        => '',
-                'status'         => 'active',
-                'expired_at'     => '2025-07-15',
                 'is_main_outlet' => true,
             ],
             [
                 'name'           => 'Store Soehat',
                 'address'        => '',
-                'status'         => 'active',
-                'expired_at'     => '2025-07-15',
                 'is_main_outlet' => false,
             ],
         ]);
@@ -46,8 +40,6 @@ class OutletSeeder extends Seeder
         $pets->outlets()->create([
             'name'           => 'Sollu Petshop',
             'address'        => '',
-            'status'         => 'active',
-            'expired_at'     => '2025-07-15',
             'is_main_outlet' => true,
         ]);
     }

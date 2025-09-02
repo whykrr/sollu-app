@@ -1,16 +1,17 @@
 <template>
     <div class="form-group has-text">
-        <label v-if="icon" :for="id" class="form-group-text">
+        <label v-if="icon" :for="$attrs.id" class="form-group-text">
             <FontAwesomeIcon :icon="icon" />
         </label>
 
         <select
             :value="modelValue"
+            class="pr-10"
             :class="['form', inputClass]"
             @change="$emit('update:modelValue', $event.target.value)"
             v-bind="$attrs"
         >
-            <option v-if="placeholder" disabled value="">
+            <option v-if="placeholder" value="">
                 {{ placeholder }}
             </option>
             <option

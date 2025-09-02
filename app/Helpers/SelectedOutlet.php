@@ -3,7 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\Outlet;
-use Cache;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @package App\Helpers

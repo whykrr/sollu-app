@@ -1,24 +1,11 @@
 import { createApp, h } from 'vue'
-import { createInertiaApp } from '@inertiajs/vue3'
+import { createInertiaApp, router } from '@inertiajs/vue3'
 import { ZiggyVue } from 'ziggy-js';
 import { Ziggy } from './ziggy.js';
 
-/* import the fontawesome core */
-import { library } from '@fortawesome/fontawesome-svg-core'
-
-/* import font awesome icon component */
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-
-/* import specific icons */
-// import { fas } from '@fortawesome/free-solid-svg-icons'
-// import { far } from '@fortawesome/free-regular-svg-icons'
 import AppLayout from '@/Layout/Dashboard/AppLayout.vue';
 import { createPinia } from 'pinia';
 import AccessHandle from '@/access-handle.js';
-
-/* add icons to the library */
-// library.add(fas)
-// library.add(far)
 
 createInertiaApp({
     progress: {

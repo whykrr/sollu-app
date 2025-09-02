@@ -4,10 +4,13 @@ namespace App\Models;
 
 use App\Notifications\ResetPassword;
 use App\Notifications\VerifyEmailMerchant;
+use App\Trait\SortableModel;
 use DateTimeInterface;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,6 +36,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasUuids;
     use SoftDeletes;
     use CanResetPassword;
+    use SortableModel;
 
     /**
      * The attributes that are mass assignable.
@@ -63,7 +67,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $sortable = [
         'name',
-        'created_at',
+        'email',
+        'updated_at',
     ];
 
     /**
@@ -118,5 +123,30 @@ class User extends Authenticatable implements MustVerifyEmail
     public function outlets(): BelongsToMany
     {
         return $this->belongsToMany(Outlet::class, 'outlet_user', 'user_id', 'outlet_id');
+    }
+
+    public function scopeFilters(Builder $builder, array $filters): Builder
+    {
+        return $builder->when(
+            $filters['search'] ?? false,
+            fn ($builder, $value) => $builder->where(function ($q) use ($value) {
+                $q->whereLike('name', "%{$value}%")->orWhereLike('email', "%{$value}%");
+            })
+        )->when(
+            $filters['outlet'] ?? false,
+            fn ($builder, $value) => $builder->whereHas('outlets', function (Builder $q) use ($value) {
+                $q->where('outlets.id', $value);
+            })
+        )->when(
+            $filters['role'] ?? false,
+            fn (EloquentBuilder $builder, $value) => $builder->whereHas('roles', function (Builder $q) use ($value) {
+                $q->where('roles.name', $value);
+            })
+        )->when(
+            $filters['status'] ?? false,
+            fn (EloquentBuilder $builder, $value) => ($value == 'archived')
+            ? $builder->onlyTrashed()
+            : $builder->withTrashed()
+        );
     }
 }

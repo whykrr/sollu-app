@@ -1,21 +1,40 @@
 <template>
-    <table
-        class="table table-hovered w-full bg-white rounded-md border overflow-hidden"
-    >
-        <thead class="sticky top-0 z-5 bg-white">
-            <tr class="text-neutral-600">
-                <td
+    <table class="table table-hovered min-w-full">
+        <thead class="">
+            <tr
+                class="text-neutral-700 select-none sticky top-0 left-0 z-auto overflow-hidden"
+            >
+                <th
                     v-for="head in headers"
                     @click="toggleSort(head)"
                     :key="head.key"
-                    class="select-none"
                 >
                     <div
-                        class="flex flex-row items-center justify-between cursor-pointer hover:!text-neutral-800"
+                        class="flex flex-row items-center gap-3 cursor-pointer hover:!text-neutral-800"
                     >
                         <span>{{ head.label }}</span>
-                        <div v-if="head.sortable">
+                        <div
+                            v-if="head.sortable"
+                            class="flex flex-col relative text-neutral-400/50"
+                        >
                             <FontAwesomeIcon
+                                :icon="faSortUp"
+                                :class="{
+                                    'text-neutral-700':
+                                        sortKey === head.key &&
+                                        sortOrder === 'asc',
+                                }"
+                            />
+                            <FontAwesomeIcon
+                                :icon="faSortDown"
+                                class="absolute"
+                                :class="{
+                                    'text-neutral-700':
+                                        sortKey === head.key &&
+                                        sortOrder === 'desc',
+                                }"
+                            />
+                            <!-- <FontAwesomeIcon
                                 :icon="
                                     sortKey === head.key
                                         ? sortOrder === 'asc'
@@ -27,11 +46,11 @@
                                     'text-neutral-400/50 ':
                                         sortKey !== head.key,
                                 }"
-                            />
+                            /> -->
                         </div>
                     </div>
-                </td>
-                <td width="1%"></td>
+                </th>
+                <th width="1%" class="sticky top-0 z-10"></th>
             </tr>
         </thead>
         <tbody>
@@ -46,12 +65,9 @@
                     <template v-else>{{ row[col.key] }}</template>
                 </td>
                 <td>
-                    <button
-                        class="btn btn-highlight-info btn-sm"
-                        title="Lihat Detail"
-                    >
+                    <span class="text-sm">
                         <FontAwesomeIcon :icon="faEllipsisVertical" />
-                    </button>
+                    </span>
                 </td>
             </tr>
             <tr>
@@ -88,11 +104,19 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    sort: {
+        type: String,
+        default: null,
+    },
+    sortDirection: {
+        type: String,
+        default: "asc",
+    },
 });
 
-const emit = defineEmits(["update:sort", "row-click"]);
-const sortKey = ref(null);
-const sortOrder = ref("asc");
+const emit = defineEmits(["row-click"]);
+const sortKey = ref(props.sort);
+const sortOrder = ref(props.sortDirection);
 
 function toggleSort(col) {
     if (!col.sortable) return;
@@ -104,7 +128,19 @@ function toggleSort(col) {
         sortOrder.value = "asc";
     }
 
-    emit("update:sort", { key: sortKey.value, order: sortOrder.value });
+    router.get(
+        window.location.pathname,
+        {
+            ...route().params,
+            page: 1,
+            sort: sortKey.value,
+            direction: sortOrder.value,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+        }
+    );
 }
 
 function handleRowClick(row) {

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\MerchantOutletSubscription>
  */
-class MerchantOutletSubscriptionFactory extends Factory
+class MerchantPlanFactory extends Factory
 {
     /**
      * Define the model's default state.

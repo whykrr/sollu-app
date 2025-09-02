@@ -2,7 +2,7 @@
     <div class="relative h-11" ref="dropdownRef">
         <div class="absolute w-full">
             <div
-                class="bg-white rounded-lg transition-all duration-150 ease-in-out mx-2"
+                class="bg-white rounded-lg transition-all duration-150 ease-in-out mx-2 border"
                 :class="{
                     'hover:drop-shadow': outlets.length > 1,
                     'drop-shadow': isOpen,

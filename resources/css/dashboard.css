@@ -270,19 +270,19 @@
     @apply min-w-full border-separate border-spacing-x-0 text-sm;
 
     & thead {
-        @apply font-semibold mb-2;
+        @apply mb-2;
     }
     & thead tr {
-        @apply bg-main-light/10;
+        @apply bg-neutral-100;
     }
-    & thead tr td {
-        @apply px-3 py-2.5 border-b;
+    & thead tr th {
+        @apply px-3 py-2.5 border-b-2 sticky top-0 z-auto font-semibold;
     }
     &.table-hovered tbody tr {
-        @apply hover:bg-neutral-lighter cursor-pointer transition-all duration-150 ease-in-out;
+        @apply hover:bg-neutral-200/50 cursor-pointer transition-all duration-150 ease-in-out;
     }
     & tbody tr {
-        @apply even:bg-gray-50 odd:bg-white;
+        @apply bg-transparent;
     }
     & tbody tr td {
         @apply px-1 py-1.5 border-b;
@@ -310,7 +310,7 @@
         file:-ml-3
         file:mr-3
         file:text-base
-        file:bg-gray-300
+        file:bg-gray-200
         file:text-neutral-800
 
         disabled:bg-gray-200
@@ -322,11 +322,15 @@
         focus:border-main/70;
 
     & + .form-feedback {
-        @apply hidden;
+        @apply hidden select-none;
     }
     /* SIZING */
     &.sm {
         @apply text-sm! file:text-sm;
+    }
+
+    &.sm .form-group-text {
+        @apply my-1;
     }
 
     &.lg {
@@ -344,7 +348,7 @@ label:has(+ .form.lg) {
 }
 
 @utility form-check {
-    @apply flex flex-wrap items-center gap-2;
+    @apply flex flex-wrap items-center gap-1;
 
     & input {
         @apply form align-top w-4 h-4 p-0 m-0 focus:ring-2 cursor-pointer;
@@ -414,7 +418,7 @@ label:has(+ .form.lg) {
     }
 
     & + .form-feedback {
-        @apply hidden;
+        @apply hidden select-none;
     }
 }
 
@@ -454,23 +458,23 @@ label:has(+ .form.lg) {
 
 @utility form-feedback {
     .form + & {
-        @apply hidden;
+        @apply hidden select-none;
     }
 
     .form-group + & {
-        @apply hidden;
+        @apply hidden select-none;
     }
 
     .form-group-input + & {
-        @apply hidden;
+        @apply hidden select-none;
     }
 
     .form-group-button + & {
-        @apply hidden;
+        @apply hidden select-none;
     }
 
     .form-floating + & {
-        @apply hidden;
+        @apply hidden select-none;
     }
     .is-valid + & {
         @apply block text-success text-xs;
@@ -503,10 +507,6 @@ label:has(+ .form.lg) {
 }
 
 @utility btn {
-    /* Buttons Style */
-    @apply inline-flex text-base gap-1.5 items-center border border-transparent rounded-sm py-1.5 px-3 hover:brightness-110 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer
-    transition-all duration-150 ease-in-out;
-
     &.btn-outline-* {
         @apply disabled:bg-transparent disabled:border-gray-300 disabled:hover:brightness-100;
     }
@@ -529,26 +529,6 @@ label:has(+ .form.lg) {
     }
     &.btn-lg {
         @apply text-lg py-2 px-4;
-    }
-}
-
-@utility link {
-    &.btn {
-        @apply underline;
-    }
-}
-
-@utility btn-group {
-    @apply inline-flex;
-    & .btn {
-        @apply rounded-none -ml-px first-of-type:rounded-l first-of-type:ml-0! last-of-type:rounded-r;
-    }
-}
-
-@utility btn-group-vertical {
-    @apply relative inline-flex flex-col;
-    & .btn {
-        @apply rounded-none -mt-px first-of-type:rounded-t first-of-type:mt-0! last-of-type:rounded-b;
     }
 }
 
@@ -640,6 +620,11 @@ label:has(+ .form.lg) {
 }
 
 @layer utilities {
+    .btn {
+        @apply inline-flex text-base gap-1.5 items-center border border-transparent rounded-sm py-1.5 px-3 hover:brightness-110 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer
+        transition-all duration-150 ease-in-out;
+    }
+
     /* Custom transition classes for submenu */
     .submenu-enter-active,
     .submenu-leave-active {

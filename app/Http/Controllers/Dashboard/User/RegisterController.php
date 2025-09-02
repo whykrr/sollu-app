@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\RegisterRequest;
 use App\Models\Merchant;
 use App\Models\MerchantType;
+use App\Models\SubscriptionPlan;
 use App\Notifications\WelcomeUser;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -30,19 +31,22 @@ class RegisterController extends Controller
         DB::beginTransaction();
 
         try {
+            $type = MerchantType::find($request->merchant_type_id);
+
             $merchant = Merchant::create([
                 'name'               => $request->name,
                 'owner_name'         => $request->owner_name,
                 'email'              => $request->email,
                 'phone'              => $request->phone,
                 'already_free_trial' => true,
+                'status'             => 'active',
+                'expired_at'         => Carbon::now()->addDays(15)->format('Y-m-d'),
                 'merchant_type_id'   => $request->merchant_type_id,
+                'settings'           => $type->default_settings,
             ]);
 
             $merchant->outlets()->create([
                 'name'           => $request->outlet_name,
-                'status'         => 'active',
-                'expired_at'     => Carbon::now()->addDays(15)->format('Y-m-d'),
                 'is_main_outlet' => true,
             ]);
 
@@ -52,6 +56,15 @@ class RegisterController extends Controller
                 'phone'        => $request->phone,
                 'password'     => $request->password,
                 'is_root_user' => true,
+            ]);
+
+            $plan = SubscriptionPlan::whereIsTrial(true)->first();
+
+            // create plan
+            $merchant->plans()->create([
+                'subscription_plans_id' => $plan->id,
+                'start_date'            => Carbon::now(),
+                'end_date'              => Carbon::now()->addDays($plan->duration),
             ]);
 
             // assign user role

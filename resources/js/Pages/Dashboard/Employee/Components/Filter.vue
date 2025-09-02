@@ -1,21 +1,44 @@
 <template>
-    <div class="flex flex-row gap-2">
+    <div class="flex flex-row items-center gap-2">
         <div>
             <GroupTextIconField
                 :icon="faSearch"
                 v-model="filterForm.search"
                 class="sm"
+                id="search"
                 placeholder="Cari"
             />
         </div>
-        <div class="col-span-2">
+        <div class="">
             <GroupDropdownIconField
-                :icon="faUser"
+                :icon="faMapMarkerAlt"
+                placeholder="Semua Outlet"
+                v-model="filterForm.outlet"
+                class="sm"
+                id="outlets"
+                :options="outlets"
+            />
+        </div>
+        <div class="">
+            <GroupDropdownIconField
+                :icon="faUserShield"
+                placeholder="Semua Peran"
+                v-model="filterForm.role"
+                class="sm"
+                id="roles"
+                :options="roles"
+            />
+        </div>
+        <div>
+            <GroupDropdownIconField
+                :icon="faDatabase"
+                placeholder="Aktif"
                 v-model="filterForm.status"
                 class="sm"
+                id="status"
                 :options="[
-                    { value: 'active', label: 'Aktif' },
-                    { value: 'deleted', label: 'Dihapus' },
+                    { value: 'archived', label: 'Arsip' },
+                    { value: 'all', label: 'Semua' },
                 ]"
             />
         </div>
@@ -25,31 +48,45 @@
 <script setup>
 import GroupDropdownIconField from "@/Components/Dashboard/Form/GroupDropdownIconField.vue";
 import GroupTextIconField from "@/Components/Dashboard/Form/GroupTextIconField.vue";
-import { faSearch, faUser } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { router } from "@inertiajs/vue3";
+import {
+    faDatabase,
+    faMapMarkerAlt,
+    faSearch,
+    faUserShield,
+} from "@fortawesome/free-solid-svg-icons";
+import { router, usePage } from "@inertiajs/vue3";
 import { debounce } from "lodash";
 import { reactive, watch } from "vue";
 
+const outlets = usePage().props.auth.outlets.map((store) => ({
+    value: store.id,
+    label: store.name,
+}));
+
 const props = defineProps({
     filters: Object,
+    roles: Object,
 });
 
 const filterForm = reactive({
     search: props.filters?.search ?? "",
-    order: props.filters?.order ?? "desc",
-    by: props.filters?.by ?? "created_at",
-    status: props.filters?.status ?? "active",
+    outlet: props.filters?.outlet ?? "",
+    role: props.filters?.role ?? "",
+    status: props.filters?.status ?? "",
 });
 
 watch(
     filterForm,
     debounce(
         () =>
-            router.get(route("dashboard.employees.index"), filterForm, {
-                preserveState: true,
-                preserveScroll: true,
-            }),
+            router.get(
+                route("dashboard.employees.index"),
+                { ...route().params, ...filterForm, page: 1 },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                }
+            ),
         500
     )
 );

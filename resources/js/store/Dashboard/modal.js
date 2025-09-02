@@ -1,10 +1,12 @@
 import i18n from '@/i18n';
 import { defineStore } from 'pinia';
 
-const HEADER_DELETE = 'Delete data'
-const HEADER_SOFT_DELETE = 'Move to trash'
-const MESSAGE_DELETE = 'Are you sure you want to delete this data?'
-const MESSAGE_SOFT_DELETE = 'This item will be archived on trash. You can restore it later if needed.'
+const HEADER_DELETE = 'Hapus Data'
+const HEADER_SOFT_DELETE = 'Pindahkan ke sampah'
+const HEADER_ARCHIVE = 'Pindahkan ke arsip'
+const MESSAGE_DELETE = 'Apakah anda yakin akan menghapus data ini?'
+const MESSAGE_SOFT_DELETE = 'Data ini akan dipindahkan ke sampah, data dapat dikembalikan jika diperlukan kembali.'
+const MESSAGE_ARCHIVE = 'Data ini akan dipindahkan ke arsip, data dapat dikembalikan jika diperlukan kembali.'
 
 
 export const useModalStore = defineStore('modal', {
@@ -20,14 +22,20 @@ export const useModalStore = defineStore('modal', {
         openModalDelete(url) {
             this.delete.isVisible = true;
             this.delete.url = url;
-            this.delete.header = i18n.global.t('modal.deleteHeader')
-            this.delete.msg = i18n.global.t('modal.deleteMsg')
+            this.delete.header = HEADER_DELETE
+            this.delete.msg = MESSAGE_DELETE
         },
         openModalSoftDelete(url) {
             this.delete.isVisible = true;
             this.delete.url = url;
             this.delete.header = HEADER_SOFT_DELETE
             this.delete.msg = MESSAGE_SOFT_DELETE
+        },
+        openModalArchive(url) {
+            this.delete.isVisible = true;
+            this.delete.url = url;
+            this.delete.header = HEADER_ARCHIVE
+            this.delete.msg = MESSAGE_ARCHIVE
         },
         closeModalDelete() {
             this.delete.isVisible = false;

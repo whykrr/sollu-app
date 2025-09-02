@@ -4,9 +4,9 @@ namespace App;
 
 enum ResourceMessage: string
 {
-    case CREATE_SUCCESS  = 'Data was created!';
-    case UPDATE_SUCCESS  = 'Data was updated!';
-    case DELETE_SUCCESS  = 'Data moved to trash!';
-    case RESTORE_SUCCESS = 'Data was restored!';
-    case PURGE_SUCCESS   = 'Data was permanently deleted!';
+    case CREATE_SUCCESS  = 'Data berhasil dibuat!';
+    case UPDATE_SUCCESS  = 'Data berhasil diperbarui!';
+    case DELETE_SUCCESS  = 'Data dipindah ke sampah!';
+    case RESTORE_SUCCESS = 'Data berhasil di kembalikan!';
+    case PURGE_SUCCESS   = 'Data berhasil di hapus!';
 }

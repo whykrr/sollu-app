@@ -3,7 +3,7 @@
         <label v-if="label" :for="$attrs.id">{{ label }}</label>
         <select
             :id
-            class="form"
+            class="form pr-10!"
             :class="[{ 'text-gray-500': modelValue === '' }]"
             :value="modelValue"
             @change="emit('update:modelValue', $event.target.value)"
@@ -19,7 +19,6 @@
 const props = defineProps({
     id: String,
     label: String,
-    feedback: String,
     modelValue: { type: String, default: "" },
     placeholder: String,
     options: {

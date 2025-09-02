@@ -81,6 +81,7 @@ import { Link, router, usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
 import TopBar from "@/Components/Dashboard/Layout/TopBar/TopBar.vue";
 import { faCheck, faClose } from "@fortawesome/free-solid-svg-icons";
+import { useCurrentUrlStore } from "@/store/Dashboard/currentUrlStore";
 
 // Event listener for Inertia start/finish
 router.on("start", (event) => {
