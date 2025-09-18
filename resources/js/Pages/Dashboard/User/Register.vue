@@ -132,12 +132,12 @@
                                 >
                                     <input
                                         type="text"
-                                        id="outlet_name"
-                                        placeholder="Nama Outlet"
+                                        id="owner_name"
+                                        placeholder="Nama Pemilik"
                                         class="bg-white/40"
                                         v-model="form.owner_name"
                                     />
-                                    <label for="outlet_name">Pemilik</label>
+                                    <label for="owner_name">Pemilik</label>
                                 </div>
                                 <span class="form-feedback">{{
                                     form.errors.owner_name

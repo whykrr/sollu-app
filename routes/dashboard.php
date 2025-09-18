@@ -1,7 +1,6 @@
 <?php
 
 use App\Helpers\SelectedOutlet;
-use App\Http\Controllers\Dashboard\EmployeeController;
 use App\Http\Controllers\Dashboard\OverviewController;
 use App\Http\Controllers\Dashboard\User\ForgotPasswordController;
 use App\Http\Controllers\Dashboard\User\LoginController;
@@ -55,55 +54,10 @@ Route::middleware('auth:merchant')->group(function () {
 
     Route::get('/', OverviewController::class)->name('overview');
 
-    Route::resource('employees', EmployeeController::class)
-        ->except(['edit', 'show'])
-        ->parameters([
-            'employees' => 'user',
-        ]);
-
-    Route::resource('employees', EmployeeController::class)
-        ->only('show')
-        ->parameters([
-            'employees' => 'user',
-        ])->withTrashed();
-
-    Route::put('employees/{user}/restore', [EmployeeController::class, 'restore'])
-        ->name('employees.restore')
-        ->withTrashed();
-    Route::delete('employees/{user}/purge', [EmployeeController::class, 'purge'])
-        ->name('employees.purge')
-        ->withTrashed();
-
-    Route::prefix('template')->name('template.')->group(function () {
-        Route::get('/form', function () {
-            return inertia('Dashboard/Template/Form');
-        })->name('form');
-
-        Route::get('/cards', function () {
-            return inertia('Dashboard/Template/Cards');
-        })->name('cards');
-
-        Route::get('/navigation', function () {
-            return inertia('Dashboard/Template/Navigation');
-        })->name('navigation');
-
-        Route::get('/buttons', function () {
-            return inertia('Dashboard/Template/Buttons');
-        })->name('buttons');
-
-        Route::get('/charts', function () {
-            return inertia('Dashboard/Template/Charts');
-        })->name('charts');
-
-        Route::get('/notifications', function () {
-            return inertia('Dashboard/Template/Notifications');
-        })->name('notifications');
-
-        Route::get('/widgets', function () {
-            return inertia('Dashboard/Template/Widgets');
-        })->name('widgets');
-    });
-
+    require __DIR__ .'/dashboard/products.php';
+    require __DIR__ .'/dashboard/employees.php';
+    require __DIR__ .'/dashboard/merchant.php';
+    require __DIR__ .'/dashboard/template.php';
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');
 });

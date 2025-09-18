@@ -1,5 +1,5 @@
 <template>
-    <CardTransparent>
+    <Container>
         <div
             class="alert alert-warning mb-2"
             v-if="auth.email_verified_at === null"
@@ -22,126 +22,70 @@
             </div>
         </div>
 
-        <div
-            class="flex flex-col md:grid md:grid-cols-1 lg:grid-cols-3 gap-2 mb-4"
-        >
-            <Widget title="Total Kunjungan" :icon="faUsers" class="widget-main">
-                <p class="text-md">{{ visits }}</p>
-            </Widget>
+        <TransactionSection
+            :total-sales="totalSales"
+            :total-transactions="totalTransactions"
+            :average-sales="averageSales"
+        />
 
-            <Widget
-                title="Total Pengunjung"
-                :icon="faPerson"
-                class="widget-main"
-            >
-                <p class="text-md">{{ visitorThisMonth.visitors }}</p>
-            </Widget>
-
-            <Widget
-                title="Pesan Belum Dibaca"
-                :icon="faEnvelope"
-                class="widget-main"
-            >
-                <p class="text-md">{{ messageUnread }}</p>
-            </Widget>
+        <div class="mb-2">
+            <SalesTrendChart :trend="salesTrend" />
         </div>
 
-        <div class="grid grid-flow-row lg:grid-cols-4 gap-4 mb-4">
-            <div class="col-span-4 lg:col-span-2">
-                <Card title="Pengunjung Halaman" class="shadow-md">
-                    <canvas id="chart-page"></canvas>
-                </Card>
+        <div class="grid grid-cols-3 gap-2">
+            <div class="col-span-2">
+                <TableMostSoldProduct :data="mostSoldProducts" />
             </div>
-            <div class="col-span-4 lg:col-span-2">
-                <Card title="Pengunjung Per Bulan" class="shadow-md">
-                    <canvas id="chart-visitor"></canvas>
-                </Card>
+            <div class="">
+                <div class="flex flex-col gap-2">
+                    <TableProductLowStock :data="lowStockProduct" />
+                    <TableProductNotSold :data="productNotSold" />
+                </div>
             </div>
         </div>
-
-        <div class="flex flex-col">
-            <Card title="Halaman Top 10" class="shadow-md">
-                <ListView :data="pageMostVisits" />
-            </Card>
-        </div>
-    </CardTransparent>
+    </Container>
 </template>
 
 <script setup>
-import Card from "@/Components/Dashboard/UI/Card/Card.vue";
-import ListView from "@/Pages/Dashboard/Overview/Components/ListView.vue";
-import Widget from "@/Components/Dashboard/Widgets/Widget.vue";
-import { onMounted, ref } from "vue";
-import { Chart } from "chart.js/auto";
-import CardTransparent from "@/Components/Dashboard/Cards/CardTransparent.vue";
-import { Link, usePage } from "@inertiajs/vue3";
+import { Link, useForm, usePage } from "@inertiajs/vue3";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import {
-    faEnvelope,
-    faPerson,
+    faCalendarDays,
+    faCalendarTimes,
+    faMapMarkerAlt,
     faRotateRight,
-    faUsers,
+    faUserShield,
 } from "@fortawesome/free-solid-svg-icons";
+import TransactionSection from "./Components/TransactionSection.vue";
+import Container from "@/Components/Dashboard/UI/Container.vue";
+import SalesTrendChart from "./Components/SalesTrendChart.vue";
+import TableMostSoldProduct from "./Components/TableMostSoldProduct.vue";
+import TableProductNotSold from "./Components/TableProductNotSold.vue";
+import TableProductLowStock from "./Components/TableProductLowStock.vue";
+import GroupDropdownIconField from "@/Components/Dashboard/Form/GroupDropdownIconField.vue";
 
 const auth = usePage().props.auth;
+const outlets = auth.outlets.map((store) => ({
+    value: store.id,
+    label: store.name,
+}));
 
 const props = defineProps({
-    visits: Number,
-    visitorThisMonth: Object,
-    messageUnread: Number,
-    visitorPerMonthPerPage: {
+    filters: Object,
+    totalSales: Object,
+    totalTransactions: Object,
+    averageSales: Object,
+    salesTrend: {
         label: Array,
         value: Array,
     },
-    visitorPerMonth: Object,
-    pageMostVisits: Object,
+    mostSoldProducts: Array,
+    lowStockProduct: Array,
+    productNotSold: Array,
 });
 
-const colorPaletteChartLine = [
-    "rgb(0 74 173)",
-    "rgb(93 224 230)",
-    "rgb(106 13 173)",
-    "rgb(255 111 145)",
-    "rgb(123 75 58)",
-];
-const datasetChart = [];
-
-props.visitorPerMonthPerPage.value.forEach((val, i) => {
-    datasetChart.push({
-        label: val.url,
-        data: val.value,
-        fill: false,
-        borderColor: colorPaletteChartLine[i],
-        backgroundColor: colorPaletteChartLine[i],
-        tension: 0.3,
-    });
-});
-
-const labelChart2 = "Pengunjung";
-
-onMounted(() => {
-    new Chart(document.getElementById("chart-page"), {
-        type: "line",
-        data: {
-            labels: props.visitorPerMonthPerPage.label,
-            datasets: datasetChart,
-        },
-    });
-    new Chart(document.getElementById("chart-visitor"), {
-        type: "line",
-        data: {
-            labels: props.visitorPerMonth.label,
-            datasets: [
-                {
-                    label: labelChart2,
-                    data: props.visitorPerMonth.value,
-                    fill: false,
-                    borderColor: "rgb(0 74 173)",
-                    backgroundColor: "rgb(0 74 173)",
-                    tension: 0.3,
-                },
-            ],
-        },
-    });
+const formFilters = useForm({
+    outlet: props.filters?.outlet ?? "",
+    type: props.filters?.type ?? "this_month",
 });
 </script>

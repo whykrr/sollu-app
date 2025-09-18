@@ -19,7 +19,7 @@
 
             <div class="w-px h-6 bg-gray-300"></div>
 
-            <TopBarMerchant />
+            <TopBarMerchant v-can="'merchant.*'" />
 
             <TopBarAccount />
         </div>

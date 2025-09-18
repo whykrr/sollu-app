@@ -1,5 +1,5 @@
 <template>
-    <div class="card shadow p-2 space-y-2">
+    <div class="card border p-2 space-y-2">
         <div v-if="image">
             <img
                 :src="image"

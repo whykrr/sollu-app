@@ -17,7 +17,7 @@ return new class () extends Migration {
             $table->string('name');
             $table->text('description');
             $table->decimal('base_price', 8, 2)->index();
-            $table->bigInteger('product_unit_id');
+            $table->bigInteger('unit_id');
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
             $table->softDeletes();
@@ -26,7 +26,7 @@ return new class () extends Migration {
         Schema::table('products', function (Blueprint $table) {
             $table->foreign('merchant_id')->references('id')->on('merchants')->onDelete('cascade');
             $table->foreign('product_type_id')->references('id')->on('product_types')->onDelete('restrict');
-            $table->foreign('product_unit_id')->references('id')->on('product_units')->onDelete('restrict');
+            $table->foreign('unit_id')->references('id')->on('units')->onDelete('restrict');
             $table->fullText(['name', 'description']);
         });
     }

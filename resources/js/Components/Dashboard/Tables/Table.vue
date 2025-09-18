@@ -7,7 +7,7 @@
                 <th
                     v-for="head in headers"
                     @click="toggleSort(head)"
-                    :key="head.key"
+                    :key="head.field"
                 >
                     <div
                         class="flex flex-row items-center gap-3 cursor-pointer hover:!text-neutral-800"
@@ -21,7 +21,7 @@
                                 :icon="faSortUp"
                                 :class="{
                                     'text-neutral-700':
-                                        sortKey === head.key &&
+                                        sortKey === head.field &&
                                         sortOrder === 'asc',
                                 }"
                             />
@@ -30,23 +30,10 @@
                                 class="absolute"
                                 :class="{
                                     'text-neutral-700':
-                                        sortKey === head.key &&
+                                        sortKey === head.field &&
                                         sortOrder === 'desc',
                                 }"
                             />
-                            <!-- <FontAwesomeIcon
-                                :icon="
-                                    sortKey === head.key
-                                        ? sortOrder === 'asc'
-                                            ? faSortUp
-                                            : faSortDown
-                                        : faSort
-                                "
-                                :class="{
-                                    'text-neutral-400/50 ':
-                                        sortKey !== head.key,
-                                }"
-                            /> -->
                         </div>
                     </div>
                 </th>
@@ -60,9 +47,9 @@
                 :key="row.id"
                 @click="handleRowClick(row)"
             >
-                <td v-for="col in headers" :key="col.key">
+                <td v-for="col in headers" :key="col.field">
                     <slot v-if="col.slot" :name="col.slot" :row="row" />
-                    <template v-else>{{ row[col.key] }}</template>
+                    <template v-else>{{ row[col.field] }}</template>
                 </td>
                 <td>
                     <span class="text-sm">
@@ -121,10 +108,10 @@ const sortOrder = ref(props.sortDirection);
 function toggleSort(col) {
     if (!col.sortable) return;
 
-    if (sortKey.value === col.key) {
+    if (sortKey.value === col.field) {
         sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
     } else {
-        sortKey.value = col.key;
+        sortKey.value = col.field;
         sortOrder.value = "asc";
     }
 

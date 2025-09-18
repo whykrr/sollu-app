@@ -20,7 +20,6 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 const props = defineProps({
     modelValue: { type: [String, Number], default: "" },
-    placeholder: { type: String, default: "" },
     icon: { type: [Array, Object], default: null },
     inputClass: { type: String, default: "" },
 });

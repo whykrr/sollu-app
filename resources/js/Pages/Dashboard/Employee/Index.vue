@@ -35,9 +35,14 @@
             <template #outlets="{ row }">
                 <span class="space-x-0.5" v-if="row.outlets.length > 0">
                     <label
-                        v-for="outlet in row.outlets"
+                        v-for="outlet in row.outlets.slice(0, 2)"
                         class="badge pill text-sm badge-info"
                         >{{ outlet.name }}</label
+                    >
+                    <label
+                        v-if="row.outlets.length > 2"
+                        class="badge pill text-sm badge-info"
+                        >+{{ row.outlets.length - 2 }} Lainnya</label
                     >
                 </span>
                 <span v-else class="text-gray-400">
@@ -76,18 +81,14 @@ defineProps({
 });
 
 const tableHeaders = [
-    { key: "name", label: "Nama", slot: "name", sortable: true },
-    { key: "email", label: "Email", sortable: true },
-    { key: "roles", label: "Peran", slot: "roles" },
-    { key: "outlets", label: "Outlet", slot: "outlets" },
-    { key: "updated_at", label: "Terakhir Diperbarui", sortable: true },
+    { field: "name", label: "Nama", slot: "name", sortable: true },
+    { field: "email", label: "Email", sortable: true },
+    { field: "roles", label: "Peran", slot: "roles" },
+    { field: "outlets", label: "Outlet", slot: "outlets" },
+    { field: "updated_at", label: "Terakhir Diperbarui", sortable: true },
 ];
 
 const goDetail = (row) => {
     router.get(route("dashboard.employees.show", { user: row.id }));
 };
-
-function handleSort({ key, order }) {
-    console.log("Sort:", key, order);
-}
 </script>

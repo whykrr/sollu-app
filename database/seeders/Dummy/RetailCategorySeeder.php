@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders\V1_0;
+namespace Database\Seeders\Dummy;
 
 use App\Models\Product\ProductCategory;
 use Illuminate\Database\Seeder;

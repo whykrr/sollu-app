@@ -1,15 +1,9 @@
 <template>
     <div class="flex flex-row items-center gap-2">
         <div>
-            <GroupTextIconField
-                :icon="faSearch"
-                v-model="filterForm.search"
-                class="sm"
-                id="search"
-                placeholder="Cari"
-            />
+            <FilterSearch v-model="filterForm.search" />
         </div>
-        <div class="">
+        <div v-if="outlets.length !== 1 && selectedOutlet === null">
             <GroupDropdownIconField
                 :icon="faMapMarkerAlt"
                 placeholder="Semua Outlet"
@@ -19,7 +13,7 @@
                 :options="outlets"
             />
         </div>
-        <div class="">
+        <div>
             <GroupDropdownIconField
                 :icon="faUserShield"
                 placeholder="Semua Peran"
@@ -30,38 +24,29 @@
             />
         </div>
         <div>
-            <GroupDropdownIconField
-                :icon="faDatabase"
-                placeholder="Aktif"
-                v-model="filterForm.status"
-                class="sm"
-                id="status"
-                :options="[
-                    { value: 'archived', label: 'Arsip' },
-                    { value: 'all', label: 'Semua' },
-                ]"
-            />
+            <FilterStatus v-model="filterForm.status" />
         </div>
     </div>
 </template>
 
 <script setup>
 import GroupDropdownIconField from "@/Components/Dashboard/Form/GroupDropdownIconField.vue";
-import GroupTextIconField from "@/Components/Dashboard/Form/GroupTextIconField.vue";
+import FilterSearch from "@/Components/Dashboard/UI/Filter/FilterSearch.vue";
+import FilterStatus from "@/Components/Dashboard/UI/Filter/FilterStatus.vue";
 import {
-    faDatabase,
     faMapMarkerAlt,
-    faSearch,
     faUserShield,
 } from "@fortawesome/free-solid-svg-icons";
 import { router, usePage } from "@inertiajs/vue3";
 import { debounce } from "lodash";
-import { reactive, watch } from "vue";
+import { computed, reactive, watch } from "vue";
 
 const outlets = usePage().props.auth.outlets.map((store) => ({
     value: store.id,
     label: store.name,
 }));
+
+const selectedOutlet = computed(() => usePage().props.selectedOutlet);
 
 const props = defineProps({
     filters: Object,

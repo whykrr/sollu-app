@@ -22,7 +22,9 @@
                         />
                     </div>
                     <div class="flex-1 font-medium text-sm truncate">
-                        <span v-if="outlet">{{ outlet.name }}</span>
+                        <span v-if="selectedOutlet">{{
+                            selectedOutlet.name
+                        }}</span>
                         <span v-else>Semua Outlet</span>
                     </div>
                     <div
@@ -47,7 +49,9 @@
                                     as="button"
                                     :href="route('dashboard.switch.all')"
                                     class="hover:bg-neutral-light py-1.5 px-2 block w-full text-start"
-                                    :class="{ 'bg-neutral-light': !outlet }"
+                                    :class="{
+                                        'bg-neutral-light': !selectedOutlet,
+                                    }"
                                     aria-disabled="true"
                                     >Semua Outlet</Link
                                 >
@@ -65,7 +69,8 @@
                                     "
                                     class="hover:bg-neutral-light py-1.5 px-2 w-full text-start"
                                     :class="{
-                                        'bg-neutral-light': o.id === outlet?.id,
+                                        'bg-neutral-light':
+                                            o.id === selectedOutlet?.id,
                                     }"
                                     >{{ o.name }}</Link
                                 >
@@ -89,7 +94,7 @@ import { Link, usePage } from "@inertiajs/vue3";
 import { computed, onBeforeMount, onMounted, ref } from "vue";
 
 const outlets = usePage().props.auth.outlets;
-const outlet = computed(() => usePage().props.outlet);
+const selectedOutlet = computed(() => usePage().props.selectedOutlet);
 const isOpen = ref(false);
 const dropdownRef = ref(null);
 

@@ -34,18 +34,31 @@
                         </a>
                     </div>
                     <div class="text-center text-lg font-medium">
-                        Informasi Bisnis
+                        Informasi Usaha
                     </div>
                     <div
                         class="bg-white rounded-xl overflow-hidden p-2 space-y-2"
                     >
                         <div class="flex flex-row gap-2 items-center">
                             <div>
-                                <img
-                                    :src="'https://dummyimage.com/200x100'"
-                                    alt="Profile"
-                                    class="rounded-lg w-auto h-16"
-                                />
+                                <div
+                                    class="w-20 aspect-square bg-secondary/30 rounded-lg"
+                                >
+                                    <div
+                                        v-if="!auth.merchant.logo"
+                                        class="flex w-full h-full items-center justify-center"
+                                    >
+                                        <FontAwesomeIcon
+                                            :icon="faShop"
+                                            class="text-secondary-dark text-[30px]"
+                                        />
+                                    </div>
+                                    <img
+                                        :src="auth.merchant.logo_url"
+                                        alt="Logo"
+                                        class="w-full h-full"
+                                    />
+                                </div>
                             </div>
 
                             <div class="text-center text-xl">
@@ -59,11 +72,15 @@
                             </div>
                             <div class="flex flex-row justify-between">
                                 <div class="font-medium">Langganan</div>
-                                <div>Free Trial</div>
+                                <div>
+                                    {{ auth.subscription.plan.name }}
+                                </div>
                             </div>
                             <div class="flex flex-row justify-between">
-                                <div class="font-medium">Masa Berlaku</div>
-                                <div>12 Januari 2026</div>
+                                <div class="font-medium">Aktif Sampai</div>
+                                <div>
+                                    {{ formatDateID(auth.merchant.expired_at) }}
+                                </div>
                             </div>
                             <div class="flex flex-row justify-between">
                                 <div class="font-medium">Jumlah Outlet</div>
@@ -94,6 +111,7 @@
     </div>
 </template>
 <script setup>
+import { formatDateID } from "@/helpers/Dashboard/date";
 import {
     faClose,
     faCog,
@@ -120,9 +138,9 @@ const closePanel = () => {
 
 const accountLinks = [
     {
-        label: "Info Bisnis",
+        label: "Info Usaha",
         icon: faShop,
-        link: "#",
+        link: route("dashboard.merchant.info.detail"),
         method: "get",
     },
     {
@@ -132,7 +150,7 @@ const accountLinks = [
         method: "get",
     },
     {
-        label: "Pengaturan Bisnis",
+        label: "Pengaturan Usaha",
         icon: faCog,
         link: "#",
         method: "get",

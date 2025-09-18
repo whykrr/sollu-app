@@ -16,7 +16,7 @@
         >
             <TopBar />
             <main
-                class="relative w-full h-full overflow-hidden bg-neutral-lighter px-4 py-2.5"
+                class="relative w-full h-full overflow-hidden bg-neutral-lighter px-2.5 py-2.5"
             >
                 <slot></slot>
             </main>

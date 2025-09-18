@@ -10,13 +10,18 @@ return new class () extends Migration {
      */
     public function up(): void
     {
-        Schema::create('product_units', function (Blueprint $table) {
+        Schema::create('units', function (Blueprint $table) {
             $table->id();
+            $table->uuid('merchant_id')->nullable();
             $table->string('name');
-            $table->string('symbol')->unique();
+            $table->string('symbol');
             $table->string('description')->nullable();
-            $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
+        });
+
+        Schema::table('units', function (Blueprint $table) {
+            $table->foreign('merchant_id')->references('id')->on('merchants')->onDelete('set null');
         });
     }
 
@@ -25,6 +30,6 @@ return new class () extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_units');
+        Schema::dropIfExists('units');
     }
 };

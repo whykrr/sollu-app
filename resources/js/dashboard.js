@@ -21,7 +21,6 @@ createInertiaApp({
 
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
-            // .component('fa', FontAwesomeIcon)
             .use(plugin)
             .use(ZiggyVue, Ziggy)
             .use(createPinia())

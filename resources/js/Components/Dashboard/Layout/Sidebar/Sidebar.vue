@@ -7,18 +7,20 @@
                 <div
                     class="flex flex-row justify-between items-center px-4 h-16"
                 >
-                    <img
-                        src="storage/img/logo-fit-color.png"
-                        class="w-22"
-                        alt="Sollu"
-                    />
+                    <Link :href="route('dashboard.overview')">
+                        <img
+                            src="storage/img/logo-fit-color.png"
+                            class="w-22"
+                            alt="Sollu"
+                        />
+                    </Link>
                     <div class="text-sm cursor-pointer">
                         <FontAwesomeIcon :icon="faChevronLeft" />
                         <FontAwesomeIcon :icon="faChevronLeft" />
                     </div>
                 </div>
             </div>
-            <SidebarOutlet class="mb-2" />
+            <SidebarOutlet v-if="page === 'main'" class="mb-2" />
             <SidebarNav class="mb-2" />
             <SidebarFooter />
         </div>
@@ -31,4 +33,11 @@ import SidebarNav from "./SidebarNav.vue";
 import SidebarFooter from "./SidebarFooter.vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
+import { computed } from "vue";
+import { Link, usePage } from "@inertiajs/vue3";
+
+const page = computed(() => {
+    const url = usePage().url;
+    return url.startsWith("/merchant") ? "settings" : "main";
+});
 </script>

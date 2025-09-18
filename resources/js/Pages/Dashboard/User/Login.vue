@@ -41,7 +41,7 @@
                                 class="bg-white/40"
                                 v-model="form.email"
                             />
-                            <label for="name">Email</label>
+                            <label for="email">Email</label>
                         </div>
                         <span class="form-feedback">{{
                             form.errors.email
@@ -61,7 +61,7 @@
                                 class="bg-white/40"
                                 v-model="form.password"
                             />
-                            <label for="name">Kata Sandi</label>
+                            <label for="password">Kata Sandi</label>
                         </div>
                         <span class="form-feedback">{{
                             form.errors.password

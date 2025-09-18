@@ -32,6 +32,7 @@
         "quill": "^2.0.3",
         "swiper": "^11.2.6",
         "tailwindcss": "^4.1.11",
+        "vue-advanced-cropper": "^2.8.9",
         "vue-i18n": "^11.0.1"
     }
 }

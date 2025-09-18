@@ -10,7 +10,7 @@ return new class () extends Migration {
      */
     public function up(): void
     {
-        Schema::create('merchant_plans', function (Blueprint $table) {
+        Schema::create('merchant_subscriptions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('merchant_id');
             $table->integer('subscription_plans_id')->unsigned();
@@ -20,7 +20,7 @@ return new class () extends Migration {
             $table->timestamps();
         });
 
-        Schema::table('merchant_plans', function (Blueprint $table) {
+        Schema::table('merchant_subscriptions', function (Blueprint $table) {
             $table->foreign('merchant_id')->references('id')->on('merchants')->onDelete('cascade');
             $table->foreign('subscription_plans_id')->references('id')->on('subscription_plans')->onDelete('restrict');
         });
@@ -31,6 +31,6 @@ return new class () extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('merchant_plans');
+        Schema::dropIfExists('merchant_subscriptions');
     }
 };

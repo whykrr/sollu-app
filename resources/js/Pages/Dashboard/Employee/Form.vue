@@ -1,6 +1,6 @@
 <template>
     <Container>
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-3 gap-2 min-h-full">
             <div class="col-span-2 bg-white rounded-lg p-2 space-y-1">
                 <div class="font-semibold">Detail</div>
                 <div>
@@ -53,7 +53,10 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg p-2 space-y-1">
+                <div
+                    v-if="!selectedOutlet"
+                    class="bg-white rounded-lg p-2 space-y-1"
+                >
                     <div class="font-semibold">Outlet</div>
                     <div class="flex flex-wrap gap-1">
                         <CheckboxButtonField
@@ -73,52 +76,26 @@
             <div class="flex justify-between">
                 <div class="inline-flex gap-2">
                     <!-- <ButtonBack /> -->
-                    <button
-                        v-if="
-                            user?.roles[0].name != 'owner' &&
-                            user?.deleted_at === null
-                        "
-                        class="btn btn-warning btn-sm"
-                        @click="
-                            modal.openModalArchive(
-                                route('dashboard.employees.destroy', {
-                                    user: user.id,
-                                })
-                            )
-                        "
-                        aria-label="Hapus"
-                    >
-                        <FontAwesomeIcon :icon="faArchive" /> Arsipkan
-                    </button>
 
-                    <Link
-                        as="button"
-                        method="PUT"
-                        v-if="user && user?.deleted_at !== null"
-                        class="btn btn-success btn-sm"
-                        :href="
+                    <ButtonGroupArchive
+                        v-if="user"
+                        :data="user"
+                        :url-archive="
+                            route('dashboard.employees.destroy', {
+                                user: user.id,
+                            })
+                        "
+                        :url-restore="
                             route('dashboard.employees.restore', {
                                 user: user.id,
                             })
                         "
-                    >
-                        <FontAwesomeIcon :icon="faArrowsRotate" />
-                    </Link>
-
-                    <button
-                        method="delete"
-                        v-if="user && user?.deleted_at != null"
-                        class="btn btn-danger btn-sm"
-                        @click="
-                            modal.openModalDelete(
-                                route('dashboard.employees.purge', {
-                                    user: user.id,
-                                })
-                            )
+                        :url-delete="
+                            route('dashboard.employees.purge', {
+                                user: user.id,
+                            })
                         "
-                    >
-                        <FontAwesomeIcon :icon="faTrash" /> Hapus
-                    </button>
+                    />
                 </div>
                 <button
                     v-if="!user || user?.deleted_at === null"
@@ -134,32 +111,23 @@
 </template>
 <script setup>
 import Container from "@/Components/Dashboard/UI/Container.vue";
-import { useModalStore } from "@/store/Dashboard/modal";
-import { Link, router, useForm, usePage } from "@inertiajs/vue3";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import {
-    faArchive,
-    faArrowLeft,
-    faArrowsRotate,
-    faRecycle,
-    faTrash,
-    faXmark,
-} from "@fortawesome/free-solid-svg-icons";
+import { useForm, usePage } from "@inertiajs/vue3";
 import TextField from "@/Components/Dashboard/Form/TextField.vue";
 import EmailField from "@/Components/Dashboard/Form/EmailField.vue";
 import NumberField from "@/Components/Dashboard/Form/NumberField.vue";
-import RadioField from "@/Components/Dashboard/Form/RadioField.vue";
 import RadioButtonField from "@/Components/Dashboard/Form/RadioButtonField.vue";
-import CheckboxField from "@/Components/Dashboard/Form/CheckboxField.vue";
 import CheckboxButtonField from "@/Components/Dashboard/Form/CheckboxButtonField.vue";
-import ButtonBack from "@/Components/Dashboard/Button/ButtonBack.vue";
+import ButtonGroupArchive from "@/Components/Dashboard/Button/ButtonGroupArchive.vue";
+import { computed } from "vue";
+import TextareaField from "@/Components/Dashboard/Form/TextareaField.vue";
 
-const modal = useModalStore();
 const props = defineProps({
     returnTo: String,
     user: Object,
     roles: Array,
 });
+
+const selectedOutlet = computed(() => usePage().props.selectedOutlet);
 
 const outlets = usePage().props.auth.outlets.map((store) => ({
     value: store.id,
@@ -171,7 +139,11 @@ const form = useForm({
     email: props.user?.email ?? null,
     phone: props.user?.phone ?? null,
     role: props.user?.roles[0].name ?? "",
-    outlets: props.user?.outlets?.map((outlet) => outlet.id) ?? [],
+    outlets: props.user?.outlets
+        ? props.user?.outlets?.map((outlet) => outlet.id)
+        : selectedOutlet
+        ? [selectedOutlet.value?.id]
+        : [],
     return_url: props.returnTo,
 });
 

@@ -18,7 +18,7 @@ return new class () extends Migration {
             $table->string('email', 200)->unique();
             $table->string('phone', 20);
             $table->text('address')->nullable();
-            $table->text('logo_url')->nullable();
+            $table->text('logo')->nullable();
             $table->boolean('already_free_trial')->default(false);
             $table->tinyInteger('merchant_type_id')->unsigned();
             $table->date('expired_at')->nullable();

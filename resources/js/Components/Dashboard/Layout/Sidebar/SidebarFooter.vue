@@ -25,25 +25,46 @@
 
         <div
             class="flex flex-col gap-1.5 rounded-lg border border-neutral-300 p-2"
+            v-if="gapDaysFromNow(auth.merchant.expired_at) < 15"
         >
             <div>
-                <div class="inline-block p-1.5 bg-info/20 rounded-md text-xs">
+                <div
+                    class="inline-block p-1.5 bg-gradient-to-r from-main to-secondary-dark text-white rounded-md text-xs"
+                >
                     <FontAwesomeIcon :icon="faBolt" class="text-sm" />
-                    Uji Coba Gratis
+                    {{ auth.subscription.plan.name }}
                 </div>
             </div>
             <div class="text-xs">
-                Masa uji coba gratis anda akan berakhir dalam
-                <span class="font-medium">15 hari</span>
+                Masa
+                {{
+                    auth.subscription.plan.is_trial
+                        ? "uji coba gratis"
+                        : "langganan"
+                }}
+                anda akan berakhir dalam
+                <span class="font-medium"
+                    >{{ gapDaysFromNow(auth.merchant.expired_at) }} hari</span
+                >
             </div>
-            <Link href="#" class="btn btn-outline-main btn-sm justify-center"
+            <Link
+                v-if="auth.subscription.plan.is_trial"
+                :href="route('dashboard.merchant.billing.plans')"
+                class="btn btn-outline-main btn-sm justify-center"
                 >Langganan Sekarang</Link
+            >
+            <Link
+                v-else
+                :href="route('dashboard.merchant.billing.index')"
+                class="btn btn-outline-info btn-sm justify-center"
+                >Perpanjang Langganan</Link
             >
         </div>
     </div>
 </template>
 
 <script setup>
+import { gapDaysFromNow } from "@/helpers/Dashboard/date";
 import {
     faArrowUpFromBracket,
     faBolt,
@@ -51,5 +72,8 @@ import {
     faCog,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { Link } from "@inertiajs/vue3";
+import { Link, usePage } from "@inertiajs/vue3";
+import { computed } from "vue";
+
+const auth = computed(() => usePage().props.auth);
 </script>

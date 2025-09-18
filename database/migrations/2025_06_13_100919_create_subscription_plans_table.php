@@ -12,6 +12,7 @@ return new class () extends Migration {
     {
         Schema::create('subscription_plans', function (Blueprint $table) {
             $table->integer('id')->unsigned()->autoIncrement();
+            $table->string('code');
             $table->string('name');
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
@@ -19,6 +20,7 @@ return new class () extends Migration {
             $table->enum('status', ['draft', 'active', 'inactive'])->default('draft');
             $table->integer('duration')->unsigned()->default(30)->comment('duration in days');
             $table->boolean('is_trial')->default(false)->comment('indicates if the plan is free trial period');
+            $table->json('features')->nullable();
             $table->timestamps();
         });
     }
