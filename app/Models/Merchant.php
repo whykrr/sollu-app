@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
@@ -41,7 +42,7 @@ class Merchant extends Model
         'email',
         'phone',
         'address',
-        'logo_url',
+        'logo',
         'already_free_trial',
         'merchant_type_id',
         'expired_at',
@@ -55,6 +56,15 @@ class Merchant extends Model
             'already_free_trial' => 'boolean',
             'settings'           => 'json',
         ];
+    }
+
+    protected $appends = ['logo_url'];
+
+    public function getLogoUrlAttribute()
+    {
+        return $this->logo
+            ? Storage::url($this->logo)
+            : null;
     }
 
     public function type(): BelongsTo
@@ -87,9 +97,9 @@ class Merchant extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function plans(): HasMany
+    public function subscriptions(): HasMany
     {
-        return $this->hasMany(MerchantPlans::class);
+        return $this->hasMany(MerchantSubscriptions::class);
     }
 
     /**

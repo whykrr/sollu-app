@@ -15,7 +15,7 @@ use Illuminate\Support\Collection;
  * @package App\Models\Product
  * @property-read Collection|Merchant $merchant
  * @property-read Collection|ProductType $type
- * @property-read Collection|ProductUnit $unit
+ * @property-read Collection|Unit $unit
  * @property-read Collection|ProductCategory[] $categories
  * @property-read Collection|ProductCombination[] $combinations
  * @property-read Collection|ProductVariation[] $variations
@@ -78,7 +78,7 @@ class Product extends Model
      */
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(ProductUnit::class);
+        return $this->belongsTo(Unit::class);
     }
 
     /**

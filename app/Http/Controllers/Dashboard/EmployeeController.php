@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers\Dashboard;
 
+use App\Constants\AuthorizationMessage;
+use App\Constants\ResourceMessage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
 use App\Notifications\NewEmployee;
-use App\ResourceMessage;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role as ModelsRole;
@@ -23,20 +24,25 @@ class EmployeeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $req)
     {
-        $users = User::whereMerchantId($request->user()->merchant_id)
+        if (! $req->user()->can('user.view')) {
+            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
+        }
+
+        $users = User::currentMerchant()
             ->whereIsRootUser(false)
-            ->filters($request->only(['search', 'outlet', 'role', 'status']))
-            ->sortable($request->get('sort', 'updated_at'), $request->get('direction', 'desc'))
+            ->selectedOutlet($req->get('outlet'))
+            ->filters($req->only(['search', 'role', 'status']))
+            ->sortable($req->get('sort', 'updated_at'), $req->get('direction', 'desc'))
             ->with(['roles:label', 'outlets'])
-            ->paginate($request->get('perpage', 20))
-            ->appends($request->query());
+            ->paginate($req->get('perpage', 20))
+            ->appends($req->query());
 
 
         return inertia('Dashboard/Employee/Index', [
             'users'  => $users,
-            'params' => $request->all(),
+            'params' => $req->all(),
             'roles'  => ModelsRole::whereNot('name', 'owner')->get()->map(function ($row) {
                 return [
                     'value' => $row->name,
@@ -49,8 +55,12 @@ class EmployeeController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $req)
     {
+        if (! $req->user()->can('user.create')) {
+            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
+        }
+
         return inertia('Dashboard/Employee/Form', [
             'roles' => ModelsRole::whereNot('name', 'owner')
                 ->get()
@@ -66,8 +76,14 @@ class EmployeeController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function show(User $user)
+    public function show(Request $req, User $user)
     {
+        if (! $req->user()->can('user.update')) {
+            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
+        } elseif ($req->user()->id === $user->id) {
+            throw new AuthorizationException(AuthorizationMessage::EDIT_DATA_NOT_ALLOWED);
+        }
+
         return inertia('Dashboard/Employee/Form', [
             'returnTo' => url()->previous() != url()->current() ? url()->previous() : null,
             'user'     => $user->load(['roles:name', 'outlets:id']),
@@ -99,15 +115,15 @@ class EmployeeController extends Controller
 
         if ($result !== null && $result->merchant_id !== Auth::user()->merchant_id) {
             if ($result->email === $req['email']) {
-                throw ValidationException::withMessages(['email' => 'Sudah terdafar di merchant lain!']);
+                throw ValidationException::withMessages(['email' => 'Sudah terdaftar di merchant lain!']);
             } elseif (! empty($req['phone']) && $result->phone === $req['phone']) {
-                throw ValidationException::withMessages(['phone' => 'Sudah terdafar di merchant lain!']);
+                throw ValidationException::withMessages(['phone' => 'Sudah terdaftar di merchant lain!']);
             }
         } elseif ($result) {
             if ($result->email === $req['email']) {
-                throw ValidationException::withMessages(['email' => 'Sudah terdafar!']);
+                throw ValidationException::withMessages(['email' => 'Sudah terdaftar!']);
             } elseif (! empty($req['phone']) && $result->phone === $req['phone']) {
-                throw ValidationException::withMessages(['phone' => 'Sudah terdafar!']);
+                throw ValidationException::withMessages(['phone' => 'Sudah terdaftar!']);
             }
         }
     }
@@ -183,9 +199,13 @@ class EmployeeController extends Controller
     /**
      * Soft deletes the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(Request $req, User $user)
     {
-        Gate::authorize('delete', $user);
+        if (! $req->user()->can('user.delete')) {
+            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
+        } elseif ($req->user()->id === $user->id) {
+            throw new AuthorizationException(AuthorizationMessage::DELETE_DATA_NOT_ALLOWED);
+        }
 
         $user->deleteOrFail();
 
@@ -205,9 +225,13 @@ class EmployeeController extends Controller
     /**
      * Restore the specified resource to storage.
      */
-    public function purge(User $user)
+    public function purge(Request $req, User $user)
     {
-        Gate::authorize('forceDelete', $user);
+        if (! $req->user()->can('user.delete')) {
+            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
+        } elseif ($req->user()->id === $user->id) {
+            throw new AuthorizationException(AuthorizationMessage::DELETE_DATA_NOT_ALLOWED);
+        }
 
         $user->forceDelete();
 

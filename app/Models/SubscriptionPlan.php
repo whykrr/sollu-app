@@ -28,6 +28,7 @@ class SubscriptionPlan extends Model
         'status',
         'duration',
         'is_trial',
+        'features',
     ];
 
     /**
@@ -39,6 +40,7 @@ class SubscriptionPlan extends Model
     {
         return [
             'is_trial' => 'boolean',
+            'features' => 'json',
         ];
     }
 
@@ -47,8 +49,8 @@ class SubscriptionPlan extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function merchant_plans(): HasMany
+    public function merchant_subscriptions(): HasMany
     {
-        return $this->hasMany(MerchantPlans::class);
+        return $this->hasMany(MerchantSubscriptions::class);
     }
 }

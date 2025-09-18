@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\User;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Support\Facades\Auth;
 
-class StoreUserRequest extends FormRequest
+class StoreUserRequest extends BaseInertiaFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

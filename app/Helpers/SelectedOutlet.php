@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Cache;
  *
  * @property Outlet $cached
  * @property Outlet $change
+ *
+ * @method Outlet|null get()
  */
 class SelectedOutlet
 {
@@ -19,7 +21,7 @@ class SelectedOutlet
     public function __construct()
     {
         $this->user      = request()->user();
-        $this->cache_key = "auth:user:{$this->user?->id}:outlet";
+        $this->cache_key = "auth:user:{$this->user?->id}:selectedOutlet";
     }
 
     // static factory
@@ -34,10 +36,11 @@ class SelectedOutlet
             $this->cache_key,
             60 * 60,
             function () {
-                $outlet = $this->user->outlets()->first();
 
-                if ($this->user->merchant->outlets()->count() === 1) {
+                if ($this->user->outlets()->count() === 1) {
                     $outlet = $this->user->merchant->outlets()->first();
+                } else {
+                    $outlet = null;
                 }
 
                 return $outlet;
@@ -56,6 +59,11 @@ class SelectedOutlet
                 return Outlet::find($outlet_id);
             }
         );
+    }
+
+    public function get()
+    {
+        return Cache::get($this->cache_key, null);
     }
 
     public function all()

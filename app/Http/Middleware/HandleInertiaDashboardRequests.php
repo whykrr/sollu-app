@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Helpers\SelectedOutlet;
+use App\Helpers\SummaryUser;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -61,33 +62,13 @@ class HandleInertiaDashboardRequests extends Middleware
             'auth' => fn () => $request->user()
                 ? array_merge(
                     $request->user()->only(['id', 'name', 'email', 'email_verified_at']),
-                    $this->getCachedUserSummary($request->user()),
+                    SummaryUser::make()->cached(),
                     ['selected_outlet' => '']
                 ) : null,
 
             'notifications' => Inertia::lazy(fn () => $request->user()->notifications()->get()),
 
-            'outlet' => fn () => $request->user() ? SelectedOutlet::make()->cached() : null,
+            'selectedOutlet' => fn () => $request->user() ? SelectedOutlet::make()->cached() : null,
         ]);
-    }
-
-    private function getCachedUserSummary(User $user)
-    {
-        return Cache::remember(
-            "auth:user:{$user->id}:summary",
-            60 * 60,
-            function () use ($user) {
-                $outlets = $user->outlets->map(fn ($outlet) => $outlet->only('id', 'name'));
-                if (count($outlets) === 0) {
-                    $outlets = $user->merchant->outlets->map(fn ($outlet) => $outlet->only('id', 'name'));
-                }
-
-                return [
-                    'role'     => $user->roles()->pluck('label', 'name')->toArray(),
-                    'merchant' => $user->merchant->with(['outlets', 'type'])->first(),
-                    'outlets'  => $outlets,
-                ];
-            }
-        );
     }
 }

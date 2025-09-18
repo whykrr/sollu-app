@@ -2,12 +2,10 @@
 
 namespace App\Providers;
 
-use App\Policies\CMSPolicy;
 use Cache;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\ServiceProvider;
@@ -40,7 +38,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::policy('cms', CMSPolicy::class);
         RateLimiter::for('login', function (HttpRequest $request) {
             return Limit::perMinute(5, 5)->by($request->input('email') ?: $request->ip());
         });

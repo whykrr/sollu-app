@@ -9,6 +9,21 @@ if (! function_exists('generateBreadcrumbs')) {
                 ['label' => 'Overview', 'url' => route('dashboard.overview')],
             ],
 
+            'products.units.index' => [
+                ['label' => 'Produk', 'url' => '#'],
+                ['label' => 'Satuan', 'url' => route('dashboard.products.units.index')],
+            ],
+            'products.units.create' => [
+                ['label' => 'Produk', 'url' => '#'],
+                ['label' => 'Satuan', 'url' => route('dashboard.products.units.index')],
+                ['label' => 'Tambah Satuan', 'url' => '#'],
+            ],
+            'products.units.show' => [
+                ['label' => 'Produk', 'url' => '#'],
+                ['label' => 'Satuan', 'url' => route('dashboard.products.units.index')],
+                ['label' => 'Detail Satuan', 'url' => '#'],
+            ],
+
             'employees.index' => [
                 ['label' => 'Pegawai', 'url' => route('dashboard.employees.index')],
             ],
@@ -19,6 +34,29 @@ if (! function_exists('generateBreadcrumbs')) {
             'employees.show' => [
                 ['label' => 'Pegawai', 'url' => route('dashboard.employees.index')],
                 ['label' => 'Detail Pegawai', 'url' => '#'],
+            ],
+
+            'merchant.info.detail' => [
+                ['label' => 'Usaha', 'url' => '#'],
+                ['label' => 'Detail Usaha', 'url' => route('dashboard.merchant.info.detail')],
+            ],
+
+            'merchant.billing.index' => [
+                ['label' => 'Langganan & Tagihan', 'url' => '#'],
+                ['label' => 'Langganan', 'url' => route('dashboard.merchant.billing.index')],
+            ],
+
+            'merchant.billing.plans' => [
+                ['label' => 'Langganan & Tagihan', 'url' => '#'],
+                ['label' => 'Langganan', 'url' => route('dashboard.merchant.billing.index')],
+                ['label' => 'Pilih Langganan', 'url' => '#'],
+            ],
+
+            'merchant.billing.subscribe' => [
+                ['label' => 'Langganan & Tagihan', 'url' => '#'],
+                ['label' => 'Langganan', 'url' => route('dashboard.merchant.billing.index')],
+                ['label' => 'Pilih Langganan', 'url' => route('dashboard.merchant.billing.plans')],
+                ['label' => 'Detail Langganan', 'url' => '#'],
             ],
 
 

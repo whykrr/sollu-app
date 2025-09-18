@@ -13,65 +13,140 @@ class OverviewController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $firstDateSixMonthsAgo = Carbon::now()->subMonths(6)->startOfMonth()->toDateString();
-        $firstDateThisMonth    = Carbon::now()->startOfMonth()->toDateString();
-        $today                 = Carbon::now()->toDateString();
+        $firstDateThisMonth = Carbon::now()->startOfMonth()->toDateString();
+        $todayDate          = Carbon::now()->toDateString();
+
+        $getAllDates = function (string $start, string $end, string $format = 'Y-m-d') {
+            $dates    = [];
+            $current  = Carbon::parse($start);
+            $last     = Carbon::parse($end);
+            $interval = $current->diffInDays($last);
+
+            for ($i = 0; $i <= $interval; $i++) {
+                $dates[] = $current->format($format);
+                $current->addDay();
+            }
+
+            return $dates;
+        };
+
+        $getDummySalesTrend = function (string $start, string $end) {
+            $data     = [];
+            $current  = Carbon::parse($start);
+            $end      = Carbon::parse($end);
+            $interval = $current->diffInDays($end);
+
+            for ($i = 0; $i <= $interval; $i++) {
+                $data[] = rand(0, 1000000);
+                $current->addDay();
+            }
+
+            return $data;
+        };
+
+        $allDates = $getAllDates($firstDateThisMonth, $todayDate, 'd');
 
         return inertia(
             'Dashboard/Overview/Index',
             [
-
-                'visits'           => 0,
-                'visitorThisMonth' => [
-                    'date'     => '2025-05',
-                    'visitors' => 0,
+                'filters' => [
+                    'type'   => $request->get('type', 'month'),
+                    'outlet' => $request->get('outlet'),
                 ],
-                'messageUnread'          => 0,
-                'visitorPerMonthPerPage' => [
-                    'label' => [
-                        '2024-11',
-                        '2024-12',
-                        '2025-01',
-                        '2025-02',
-                        '2025-03',
-                        '2025-04',
-                    ],
+                'totalSales' => [
+                    'now'      => 980000,
+                    'previous' => 730000,
+                ],
+                'totalTransactions' => [
+                    'now'      => 176,
+                    'previous' => 112,
+                ],
+                'averageSales' => [
+                    'now'      => 87532,
+                    'previous' => 84165,
+                ],
+
+                'salesTrend' => [
+                    'label' => $getAllDates($firstDateThisMonth, $todayDate, 'd'),
                     'value' => [
                         [
-                            'url'   => 'http://sollu.id',
-                            'value' => [
-                                0,
-                                0,
-                                7,
-                                2,
-                                0,
-                                0,
-                            ],
+                            'title' => 'Bulan Ini',
+                            'data'  => $getDummySalesTrend($firstDateThisMonth, $todayDate),
+                        ],
+                        [
+                            'title' => 'Bulan Lalu',
+                            'data'  => $getDummySalesTrend($firstDateThisMonth, $todayDate),
                         ],
                     ],
                 ],
-                'visitorPerMonth' => [
+                'categorySalesTrend' => [
                     'label' => [
-                        '2024-11',
-                        '2024-12',
-                        '2025-01',
-                        '2025-02',
-                        '2025-03',
-                        '2025-04',
+                        'Atasan',
+                        'Bawahan',
+                        'Outer',
+                        'Aksesoris',
+                        'Sepatu',
                     ],
                     'value' => [
-                        0,
-                        0,
-                        7,
-                        2,
-                        0,
-                        0,
+                        170,
+                        380,
+                        780,
+                        80,
+                        90,
                     ],
                 ],
-                'pageMostVisits' => [
+
+                'mostSoldProducts' => [
                     [
-                        'url'    => 'http://sollu.test',
-                        'visits' => 9,
+                        'name'    => 'Product A',
+                        'total'   => 150,
+                        'revenue' => 1500000,
+                    ],
+                    [
+                        'name'    => 'Product B',
+                        'total'   => 120,
+                        'revenue' => 1500000,
+                    ],
+                    [
+                        'name'    => 'Product C',
+                        'total'   => 100,
+                        'revenue' => 1500000,
+                    ],
+                    [
+                        'name'    => 'Product D',
+                        'total'   => 80,
+                        'revenue' => 1500000,
+                    ],
+                    [
+                        'name'    => 'Product E',
+                        'total'   => 60,
+                        'revenue' => 1500000,
+                    ],
+                ],
+
+                'lowStockProduct' => [
+                    [
+                        'name'  => 'Product X',
+                        'stock' => 2,
+                    ],
+                    [
+                        'name'  => 'Product Y',
+                        'stock' => 3,
+                    ],
+                    [
+                        'name'  => 'Product Z',
+                        'stock' => 5,
+                    ],
+                ],
+                'productNotSold' => [
+                    [
+                        'name' => 'Product M',
+                    ],
+                    [
+                        'name' => 'Product N',
+                    ],
+                    [
+                        'name' => 'Product O',
                     ],
                 ],
             ]

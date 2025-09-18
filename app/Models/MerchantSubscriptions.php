@@ -11,9 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property-read Collection|SubscriptionPlan $subscription_plan
  * @property-read Collection|Merchant $merchant
- * @mixin IdeHelperMerchantPlans
+ * @mixin IdeHelperMerchantSubscriptions
  */
-class MerchantPlans extends Model
+class MerchantSubscriptions extends Model
 {
     use HasFactory;
     use HasUuids;
@@ -36,9 +36,9 @@ class MerchantPlans extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function subscription_plan(): BelongsTo
+    public function plan(): BelongsTo
     {
-        return $this->belongsTo(SubscriptionPlan::class);
+        return $this->belongsTo(SubscriptionPlan::class, 'subscription_plans_id');
     }
 
     /**
