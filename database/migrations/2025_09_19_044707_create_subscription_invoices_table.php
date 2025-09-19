@@ -12,8 +12,11 @@ return new class () extends Migration {
     {
         Schema::create('subscription_invoices', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->timestamps();
+            $table->string('no')->unique();
             $table->uuid('merchant_id');
             $table->integer('subscription_plan_id');
+            $table->text('note');
             $table->decimal('subtotal', 10, 2);
             $table->decimal('add_ons', 10, 2);
             $table->decimal('tax', 10, 2);
@@ -21,7 +24,6 @@ return new class () extends Migration {
             $table->decimal('total', 10, 2);
             $table->decimal('due_date', 10, 2);
             $table->enum('status', ['paid', 'unpaid']);
-            $table->timestamps();
         });
 
         Schema::table('subscription_invoices', function (Blueprint $table) {

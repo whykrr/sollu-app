@@ -12,10 +12,10 @@ return new class () extends Migration {
     {
         Schema::create('product_variation_option_values', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->timestamps();
             $table->uuid('product_id');
             $table->uuid('product_variation_option_id');
             $table->bigInteger('product_variation_value_id');
-            $table->timestamps();
         });
 
         Schema::table('product_variation_option_values', function (Blueprint $table) {

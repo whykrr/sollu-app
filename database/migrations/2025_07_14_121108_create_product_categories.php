@@ -12,14 +12,14 @@ return new class () extends Migration {
     {
         Schema::create('product_categories', function (Blueprint $table) {
             $table->id()->unsigned();
+            $table->timestamps();
+            $table->softDeletes();
             $table->uuid('merchant_id')->nullable();
             $table->bigInteger('parent_id')->nullable();
             $table->string('name', 100)->fulltext();
             $table->string('slug', 100)->index();
             $table->text('description')->nullable();
             $table->tinyInteger('level')->default(0);
-            $table->timestamps();
-            $table->softDeletes();
         });
 
         schema::table('product_categories', function (Blueprint $table) {

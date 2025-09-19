@@ -12,12 +12,12 @@ return new class () extends Migration {
     {
         Schema::create('merchant_subscriptions', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->timestamps();
             $table->uuid('merchant_id');
             $table->integer('subscription_plans_id')->unsigned();
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->boolean('is_active')->default(true)->index();
-            $table->timestamps();
         });
 
         Schema::table('merchant_subscriptions', function (Blueprint $table) {

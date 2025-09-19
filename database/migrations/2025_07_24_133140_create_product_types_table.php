@@ -12,9 +12,9 @@ return new class () extends Migration {
     {
         Schema::create('product_types', function (Blueprint $table) {
             $table->integer('id')->primary()->autoIncrement();
+            $table->timestamps();
             $table->string('name', 50);
             $table->text('description');
-            $table->timestamps();
         });
     }
 

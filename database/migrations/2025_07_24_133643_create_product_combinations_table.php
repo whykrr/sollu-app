@@ -12,12 +12,12 @@ return new class () extends Migration {
     {
         Schema::create('product_combinations', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->timestamps();
             $table->uuid('product_id');
             $table->text('combination');
             $table->string('SKU')->index();
             $table->string('barcode')->index();
             $table->text('unique_string')->index();
-            $table->timestamps();
         });
 
         Schema::table('product_combinations', function (Blueprint $table) {

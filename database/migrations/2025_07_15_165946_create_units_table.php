@@ -12,12 +12,12 @@ return new class () extends Migration {
     {
         Schema::create('units', function (Blueprint $table) {
             $table->id();
+            $table->timestamps();
+            $table->softDeletes();
             $table->uuid('merchant_id')->nullable();
             $table->string('name');
             $table->string('symbol');
             $table->string('description')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
         });
 
         Schema::table('units', function (Blueprint $table) {

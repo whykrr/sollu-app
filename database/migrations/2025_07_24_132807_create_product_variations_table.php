@@ -12,11 +12,11 @@ return new class () extends Migration {
     {
         Schema::create('product_variations', function (Blueprint $table) {
             $table->id();
+            $table->timestamps();
             $table->uuid('merchant_id')->nullable();
             $table->string('name', 100);
             $table->string('slug')->index();
             $table->boolean('is_active')->default(true);
-            $table->timestamps();
         });
 
 

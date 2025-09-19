@@ -12,11 +12,11 @@ return new class () extends Migration {
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->timestamps();
             $table->string('type');
             $table->uuidMorphs('notifiable');
             $table->json('data')->fulltext();
             $table->timestamp('read_at')->nullable();
-            $table->timestamps();
         });
     }
 

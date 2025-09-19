@@ -12,10 +12,10 @@ return new class () extends Migration {
     {
         Schema::create('product_variation_values', function (Blueprint $table) {
             $table->id();
+            $table->timestamps();
             $table->bigInteger('product_variation_id');
             $table->string('name', 100);
             $table->boolean('is_active');
-            $table->timestamps();
         });
 
         Schema::table('product_variation_values', function (Blueprint $table) {
