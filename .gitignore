@@ -21,3 +21,4 @@ yarn-error.log
 /.zed
 public/vendor/telescope
 storage/framework/views/*
+.php-cs-fixer.cache
