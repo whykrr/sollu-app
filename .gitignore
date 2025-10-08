@@ -22,3 +22,9 @@ yarn-error.log
 public/vendor/telescope
 storage/framework/views/*
 .php-cs-fixer.cache
+
+
+# Laravel IDE Helper files
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
