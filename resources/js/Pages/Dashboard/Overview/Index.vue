@@ -29,7 +29,7 @@
         />
 
         <div class="mb-2">
-            <SalesTrendChart :trend="salesTrend" />
+        <SalesTrendChart :trend="salesTrend" />
         </div>
 
         <div class="grid grid-cols-3 gap-2">

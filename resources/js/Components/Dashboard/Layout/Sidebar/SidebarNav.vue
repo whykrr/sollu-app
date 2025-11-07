@@ -1,15 +1,16 @@
 <template>
-    <nav class="flex-1 sidebar">
-        <div class="sidebar-container">
+    <nav class="sidebar-navigation">
+        <div class="navigation-list">
             <template v-for="sidebar in sidebars">
                 <div
+                    v-show="appStore.sidebar.show"
                     v-if="!sidebar.route"
-                    class="text-sm px-2 select-none mt-1.5 text-neutral-400 font-medium"
+                    class="nav=section"
                     v-can="sidebar.permissions"
                 >
                     {{ sidebar.label }}
                 </div>
-                <SidebarItem
+                <NavigationItem
                     v-else-if="!sidebar.items"
                     :to="
                         route().has('dashboard.' + sidebar.route)
@@ -21,7 +22,7 @@
                     :active="isActive(sidebar)"
                     v-can="sidebar.permissions"
                 />
-                <SidebarItemExpand
+                <NavigationDropdown
                     v-else
                     to="#"
                     :icon="sidebar.icon"
@@ -29,31 +30,36 @@
                     :active="isActive(sidebar)"
                     v-can="sidebar.permissions"
                 >
-                    <template v-for="item in sidebar.items">
-                        <SidebarItem
-                            :to="
-                                route().has('dashboard.' + item.route)
-                                    ? route('dashboard.' + item.route)
-                                    : '#'
-                            "
-                            :icon="item.icon"
-                            :label="item.label"
-                            :active="isActive(item)"
-                            v-can="sidebar.permissions"
-                        />
-                    </template>
-                </SidebarItemExpand>
+                    <Link
+                        v-for="submenu in sidebar.items"
+                        :href="
+                            route().has('dashboard.' + submenu.route)
+                                ? route('dashboard.' + submenu.route)
+                                : '#'
+                        "
+                        class="nav-dropdown-item"
+                        :class="{
+                            active: isActive(submenu),
+                        }"
+                        v-can="submenu.permissions"
+                    >
+                        {{ submenu.label }}
+                    </Link>
+                </NavigationDropdown>
             </template>
         </div>
     </nav>
 </template>
 <script setup>
-import { router, usePage } from "@inertiajs/vue3";
+import { Link, router, usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
-import SidebarItemExpand from "./SidebarItemExpand.vue";
-import SidebarItem from "./SidebarItem.vue";
+import NavigationDropdown from "./NavigationDropdown.vue";
+import NavigationItem from "./NavigationItem.vue";
 import { mainSidebars } from "@/helpers/Dashboard/Sidebar/main";
 import { settingSidebars } from "@/helpers/Dashboard/Sidebar/setting";
+import { useAppStore } from "@/store/Dashboard/app";
+
+const appStore = useAppStore();
 
 const activeMenu = computed(() => {
     const _ = usePage().url;

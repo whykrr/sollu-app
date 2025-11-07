@@ -28,6 +28,11 @@
                     >Belum Dibayar</label
                 >
                 <label
+                    v-if="row.status === 'payment'"
+                    class="badge pill text-sm badge-warning"
+                    >Proses Pembayaran</label
+                >
+                <label
                     v-else-if="row.status === 'paid'"
                     class="badge pill text-sm badge-success"
                     >Terbayar</label
@@ -56,7 +61,7 @@
 
 <script setup>
 import Pagination from "@/Components/Dashboard/Tables/Pagination.vue";
-import Filter from "@/Pages/Dashboard/Employee/Components/Filter.vue";
+import Filter from "@/Pages/Dashboard/Merchant/Invoice/Components/Filter.vue";
 import { Link, router } from "@inertiajs/vue3";
 import Container from "@/Components/Dashboard/UI/Container.vue";
 import Table from "@/Components/Dashboard/Tables/Table.vue";

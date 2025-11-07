@@ -59,6 +59,16 @@ if (! function_exists('generateBreadcrumbs')) {
                 ['label' => 'Detail Langganan', 'url' => '#'],
             ],
 
+            'merchant.invoices.index' => [
+                ['label' => 'Langganan & Tagihan', 'url' => '#'],
+                ['label' => 'Pembayaran', 'url' => '#'],
+            ],
+            'merchant.invoices.show' => [
+                ['label' => 'Langganan & Tagihan', 'url' => '#'],
+                ['label' => 'Pembayaran', 'url' => route('dashboard.merchant.invoices.index')],
+                ['label' => 'Tagihan', 'url' => '#'],
+            ],
+
 
             // 'users.index' => [
             //     ['label' => 'Users', 'url' => '#'],

@@ -1,11 +1,16 @@
 <template>
-    <aside class="hidden sm:flex md:min-w-[30%] lg:min-w-[20%] h-screen z-30">
-        <div
-            class="flex flex-col justify-between bg-neutral-light w-full border-r shadow"
-        >
+    <aside
+        class="sidebar"
+        :class="{
+            minimize: appStore.sidebar.minimize,
+            show: appStore.sidebar.show,
+        }"
+        ref="sidebarRef"
+    >
+        <div class="sidebar-container">
             <div>
                 <div
-                    class="flex flex-row justify-between items-center px-4 h-16"
+                    class="flex justify-between items-center px-2 min-h-16 relative"
                 >
                     <Link :href="route('dashboard.overview')">
                         <img
@@ -14,13 +19,33 @@
                             alt="Sollu"
                         />
                     </Link>
-                    <div class="text-sm cursor-pointer">
-                        <FontAwesomeIcon :icon="faChevronLeft" />
-                        <FontAwesomeIcon :icon="faChevronLeft" />
+                    <div
+                        @click="appStore.hide"
+                        class="block sm:hidden text-sm cursor-pointer"
+                    >
+                        <FontAwesomeIcon :icon="faClose" />
                     </div>
+
+                    <Transition name="spin" mode="out-in">
+                        <div
+                            v-if="!appStore.sidebar.minimize"
+                            @click="appStore.minimize()"
+                            class="hidden sm:block text-nowrap -space-x-1 p-2 hover:bg-neutral-300/60 rounded-lg transition-colors duration-150"
+                        >
+                            <FontAwesomeIcon :icon="faChevronLeft" />
+                            <FontAwesomeIcon :icon="faChevronLeft" />
+                        </div>
+                        <div
+                            @click="appStore.maximize()"
+                            v-else
+                            class="hidden sm:block p-2 hover:bg-neutral-300/60 rounded-lg transition-colors duration-150 group-[lock]:"
+                        >
+                            <FontAwesomeIcon :icon="faLock" />
+                        </div>
+                    </Transition>
                 </div>
             </div>
-            <SidebarOutlet v-if="page === 'main'" class="mb-2" />
+            <SidebarOutlet />
             <SidebarNav class="mb-2" />
             <SidebarFooter />
         </div>
@@ -32,12 +57,36 @@ import SidebarOutlet from "./SidebarOutlet.vue";
 import SidebarNav from "./SidebarNav.vue";
 import SidebarFooter from "./SidebarFooter.vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
-import { computed } from "vue";
-import { Link, usePage } from "@inertiajs/vue3";
+import {
+    faBars,
+    faChevronLeft,
+    faClose,
+    faLock,
+} from "@fortawesome/free-solid-svg-icons";
+import { computed, onBeforeMount, onMounted, ref, watch } from "vue";
+import { Link, router, usePage } from "@inertiajs/vue3";
+import { useAppStore } from "@/store/Dashboard/app";
 
 const page = computed(() => {
     const url = usePage().url;
     return url.startsWith("/merchant") ? "settings" : "main";
 });
+
+const appStore = useAppStore();
+
+// const handleClickOutside = (event) => {
+//     if (sidebarRef.value && !sidebarRef.value.contains(event.target)) {
+//         appStore.hide();
+//     }
+// };
+
+// onMounted(() => {
+//     document.addEventListener("click", handleClickOutside);
+// });
+
+// onBeforeMount(() => {
+//     document.removeEventListener("click", handleClickOutside);
+// });
+
+router.on("finish", () => appStore.hide());
 </script>

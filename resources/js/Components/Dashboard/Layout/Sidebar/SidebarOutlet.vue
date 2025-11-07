@@ -1,8 +1,8 @@
 <template>
-    <div class="relative h-11" ref="dropdownRef">
-        <div class="absolute w-full">
+    <div class="" ref="dropdownRef">
+        <div class="w-full">
             <div
-                class="bg-white rounded-lg transition-all duration-150 ease-in-out mx-2 border"
+                class="bg-white rounded-lg transition-all duration-150 ease-in-out mx-2 mt-0 mb-1 border"
                 :class="{
                     'hover:drop-shadow': outlets.length > 1,
                     'drop-shadow': isOpen,
@@ -47,6 +47,7 @@
                                     :preserve-scroll="true"
                                     :preserve-state="true"
                                     as="button"
+                                    @click="selectOutlet"
                                     :href="route('dashboard.switch.all')"
                                     class="hover:bg-neutral-light py-1.5 px-2 block w-full text-start"
                                     :class="{
@@ -61,6 +62,7 @@
                                     method="post"
                                     :preserve-scroll="true"
                                     :preserve-state="true"
+                                    @click="selectOutlet"
                                     as="button"
                                     :href="
                                         route('dashboard.switch.outlet', {

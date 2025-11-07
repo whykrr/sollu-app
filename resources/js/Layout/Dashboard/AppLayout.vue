@@ -11,12 +11,10 @@
         <Sidebar />
 
         <!-- Main content -->
-        <div
-            class="flex flex-col h-screen w-full md:min-w-[70%] lg:min-w-[80%]"
-        >
-            <TopBar />
+        <div class="grow flex flex-col h-screen overflow-hidden">
+            <Header />
             <main
-                class="relative w-full h-full overflow-hidden bg-neutral-lighter px-2.5 py-2.5"
+                class="flex-1 relative overflow-hidden px-2.5 py-2.5 bg-neutral-100 rounded-tl-lg"
             >
                 <slot></slot>
             </main>
@@ -76,10 +74,10 @@ import Sidebar from "@/Components/Dashboard/Layout/Sidebar/Sidebar.vue";
 import Modal from "@/Components/Dashboard/Notifications/Modal.vue";
 import Toast from "@/Components/Dashboard/Notifications/Toast.vue";
 import i18n from "@/i18n";
-import { useModalStore } from "@/store/Dashboard/modal";
+import { useModalStore } from "@/store/Dashboard/notification";
 import { Link, router, usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
-import TopBar from "@/Components/Dashboard/Layout/TopBar/TopBar.vue";
+import Header from "@/Components/Dashboard/Layout/Header/Header.vue";
 import { faCheck, faClose } from "@fortawesome/free-solid-svg-icons";
 import { useCurrentUrlStore } from "@/store/Dashboard/currentUrlStore";
 
@@ -87,6 +85,7 @@ import { useCurrentUrlStore } from "@/store/Dashboard/currentUrlStore";
 router.on("start", (event) => {
     const visit = event.detail.visit;
     if (visit?.only?.includes("notifications")) return;
+    if (visit?.only?.includes("merchantInfo")) return;
 
     loading.value = true;
 });

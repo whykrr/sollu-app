@@ -4,13 +4,9 @@
             class="bg-neutral-200/70 hover:p-1 hover:-m-1 rounded-full transition-all duration-150 ease-in-out"
             :class="{ 'p-1 -m-1': showPanel }"
         >
-            <a
-                href="#"
-                class="text-slate-700 drop-shadow-lg shadow-neutral-100"
-                @click.prevent="togglePanel"
-            >
+            <a href="#" class="text-slate-700" @click.prevent="togglePanel">
                 <div
-                    class="rounded-full w-10 h-10 bg-white/90 flex items-center justify-center"
+                    class="rounded-full w-10 h-10 bg-white/90 flex items-center justify-center border"
                 >
                     {{ initials }}
                 </div>
@@ -28,7 +24,7 @@
         <transition name="fade-down" mode="in-out">
             <div
                 v-if="showPanel"
-                class="absolute bg-gray-300/50 backdrop-blur-lg rounded-lg w-70 top-[48px] right-0 shadow-lg shadow-neutral-300 p-4"
+                class="absolute bg-gray-300/50 backdrop-blur-sm rounded-lg w-70 top-[48px] right-0 shadow-lg shadow-neutral-300 p-4"
             >
                 <div class="flex flex-col gap-2">
                     <div class="absolute right-4">

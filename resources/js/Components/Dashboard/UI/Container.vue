@@ -1,5 +1,8 @@
 <template>
     <div class="flex flex-col gap-2 h-full">
+        <div v-if="$slots.widgets">
+            <slot name="widgets" />
+        </div>
         <div
             v-if="$slots.header"
             class="flex flex-row justify-between gap-2 items-center"

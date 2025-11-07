@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Dashboard\Merchant\BillingController;
+use App\Http\Controllers\Dashboard\Merchant\InvoiceController;
 use App\Http\Controllers\Dashboard\Merchant\MerchantInfoController;
+use App\Http\Controllers\Dashboard\Merchant\OutletController;
 use App\Http\Controllers\Dashboard\Merchant\SubscribeController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,12 +18,26 @@ Route::prefix('merchant')
                 Route::post('/logo', [MerchantInfoController::class, 'saveLogo'])->name('detail.save.logo');
             });
 
+        Route::resource('outlets', OutletController::class)->except(['edit']);
+
         Route::prefix('billing')
             ->name('billing.')
             ->group(function () {
                 Route::get('/', [BillingController::class, 'index'])->name('index');
                 Route::get('/plans', [BillingController::class, 'plans'])->name('plans');
                 Route::get('/subscribe', [SubscribeController::class, 'index'])->name('subscribe');
+                Route::post('/subscribe', [SubscribeController::class, 'store'])->name('subscribe.store');
+            });
+
+        Route::prefix('invoices')
+            ->name('invoices.')
+            ->group(function () {
+                Route::get('/', [InvoiceController::class, 'index'])->name('index');
+                Route::get('/{code}', [InvoiceController::class, 'show'])->name('show');
+                Route::delete('/{code}/cancel', [InvoiceController::class, 'cancel'])->name('cancel');
+                Route::get('/{code}/finish', [InvoiceController::class, 'finish'])->name('finish');
+                Route::get('/{code}/error', [InvoiceController::class, 'error'])->name('error');
+                // Route::get('/subscribe', [InvoiceController::class, 'index'])->name('subscribe');
             });
 
     });

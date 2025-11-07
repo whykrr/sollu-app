@@ -1,5 +1,5 @@
 <template>
-    <nav aria-label="breadcrumb">
+    <nav aria-label="breadcrumb" class="hidden lg:block">
         <ol class="bg-transparent p-0 m-0 list-none text-sm">
             <li class="inline-block">
                 <Link :href="route('dashboard.overview')">

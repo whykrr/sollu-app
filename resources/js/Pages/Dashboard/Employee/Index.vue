@@ -7,7 +7,7 @@
             <div>
                 <Link
                     :href="route('dashboard.employees.create')"
-                    class="btn btn-outline-main btn-sm"
+                    class="btn btn-highlight-main btn-sm"
                 >
                     <FontAwesomeIcon :icon="faPlus" />
                     Pegawai
@@ -33,23 +33,18 @@
                 {{ row.roles[0].label }}
             </template>
             <template #outlets="{ row }">
-                <span class="space-x-0.5" v-if="row.outlets.length > 0">
+                <div class="space-x-0.5">
                     <label
                         v-for="outlet in row.outlets.slice(0, 2)"
-                        class="badge pill text-sm badge-info"
+                        class="badge text-sm badge-info text-nowrap"
                         >{{ outlet.name }}</label
                     >
                     <label
                         v-if="row.outlets.length > 2"
-                        class="badge pill text-sm badge-info"
+                        class="badge text-sm badge-info text-nowrap"
                         >+{{ row.outlets.length - 2 }} Lainnya</label
                     >
-                </span>
-                <span v-else class="text-gray-400">
-                    <label class="badge pill text-sm badge-success"
-                        >Semua Outlet</label
-                    >
-                </span>
+                </div>
             </template>
         </Table>
         <template #footer>
@@ -82,10 +77,20 @@ defineProps({
 
 const tableHeaders = [
     { field: "name", label: "Nama", slot: "name", sortable: true },
-    { field: "email", label: "Email", sortable: true },
+    {
+        field: "email",
+        label: "Email",
+        sortable: true,
+        show: "md",
+    },
     { field: "roles", label: "Peran", slot: "roles" },
-    { field: "outlets", label: "Outlet", slot: "outlets" },
-    { field: "updated_at", label: "Terakhir Diperbarui", sortable: true },
+    { field: "outlets", label: "Outlet", slot: "outlets", show: "lg" },
+    {
+        field: "updated_at",
+        label: "Terakhir Diperbarui",
+        sortable: true,
+        show: "md",
+    },
 ];
 
 const goDetail = (row) => {

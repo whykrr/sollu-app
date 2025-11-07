@@ -141,14 +141,14 @@
             </div>
         </div>
         <template #footer>
-            <div class="flex justify-end gap-2">
+            <div class="flex justify-between gap-2">
                 <Link
                     :href="route('dashboard.merchant.billing.plans')"
-                    class="btn btn-outline-danger btn-lg"
+                    class="btn btn-highlight-neutral-600"
                 >
-                    Batal
+                    Kembali
                 </Link>
-                <button class="btn btn-main btn-lg">
+                <button class="btn btn-main" @click="createInvoice">
                     Lanjutkan
                     <FontAwesomeIcon :icon="faArrowRight" />
                 </button>
@@ -181,13 +181,25 @@ const subtotal = computed(() => props.plan.price * props.outlets.length);
 const tax = computed(() => subtotal.value * (11 / 100));
 const total = computed(() => subtotal.value + tax.value);
 
+const getItems = props.outlets.map((outlet) => ({
+    outlet_id: outlet.id,
+    total: props.plan.price,
+}));
+
 const form = useForm({
     merchant_id: auth.merchant.id,
-    plan_id: props.plan.id,
+    subscription_plan_id: props.plan.id,
     subtotal: subtotal,
+    add_ons: 0,
     tax: tax,
     discount: 0,
     total: total,
-    note: "",
+    note: "Langganan Baru",
+    start_date: auth.merchant.expired_at,
+    period_end: addDays(auth.merchant.expired_at, props.plan.duration),
+    items: getItems,
 });
+
+const createInvoice = () =>
+    form.post(route("dashboard.merchant.billing.subscribe.store"));
 </script>

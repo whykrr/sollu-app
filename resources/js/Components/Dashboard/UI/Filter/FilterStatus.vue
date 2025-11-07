@@ -15,7 +15,8 @@
         <select
             id="filter_status"
             :value="modelValue"
-            class="form pr-10 sm"
+            class="form sm"
+            style="padding-right: 2.5rem !important"
             @change="$emit('update:modelValue', $event.target.value)"
         >
             <option value="">Aktif</option>

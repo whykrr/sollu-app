@@ -12,6 +12,8 @@ return new class () extends Migration {
     {
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->timestamps();
+            $table->softDeletes();
             $table->uuid('merchant_id');
             $table->string('name', 200);
             $table->string('email', 200)->unique();
@@ -22,8 +24,6 @@ return new class () extends Migration {
             $table->text('photo')->nullable();
             $table->boolean('is_root_user')->default(false);
             $table->rememberToken();
-            $table->timestamps();
-            $table->softDeletes();
         });
 
         Schema::table('users', function (Blueprint $table) {

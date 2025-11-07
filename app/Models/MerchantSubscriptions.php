@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Trait\HasMerchant;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,7 @@ class MerchantSubscriptions extends Model
 {
     use HasFactory;
     use HasUuids;
+    use HasMerchant;
 
     /**
      * The attributes that are mass assignable.
@@ -28,6 +30,7 @@ class MerchantSubscriptions extends Model
         'subscription_plans_id',
         'start_date',
         'end_date',
+        'is_active',
     ];
 
 

@@ -54,10 +54,18 @@ Route::middleware('auth:merchant')->group(function () {
 
     Route::get('/', OverviewController::class)->name('overview');
 
-    require __DIR__ .'/dashboard/products.php';
+        require __DIR__ . '/dashboard/categories.php';
+
+        require __DIR__ . '/dashboard/products.php';
     require __DIR__ .'/dashboard/employees.php';
     require __DIR__ .'/dashboard/merchant.php';
     require __DIR__ .'/dashboard/template.php';
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+
+    Route::get('/preview-mail', function () {
+        $invoice = \App\Models\SubscriptionInvoice::first(); // contoh data
+        // return new InvoiceMail($invoice);        // akan render Blade view email
+    });
 });

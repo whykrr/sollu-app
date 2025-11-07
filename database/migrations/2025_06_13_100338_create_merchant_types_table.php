@@ -12,10 +12,10 @@ return new class () extends Migration {
     {
         Schema::create('merchant_types', function (Blueprint $table) {
             $table->integer('id')->unsigned()->autoIncrement();
+            $table->timestamps();
             $table->string('name', 100);
             $table->string('code', 50);
             $table->json('default_settings')->nullable();
-            $table->timestamps();
         });
     }
 

@@ -38,15 +38,18 @@ class SummaryUser
             $this->cache_key,
             60 * 60,
             function () use ($user) {
-                $outlets = $user->outlets->map(fn ($outlet) => $outlet->only('id', 'name'));
+                $outlets = $user->outlets()->where('is_active', '=', true)->get()
+                    ->map(fn ($outlet) => $outlet->only('id', 'name'));
                 if (count($outlets) === 0) {
-                    $outlets = $user->merchant->outlets->map(fn ($outlet) => $outlet->only('id', 'name'));
+                    $outlets = $user->merchant->outlets()
+                        ->where('is_active', '=', true)->get()
+                        ->map(fn ($outlet) => $outlet->only('id', 'name'));
                 }
 
                 return [
                     'role'         => $user->roles()->pluck('label', 'name')->toArray(),
                     'permissions'  => $user->getAllPermissions()->pluck('name')->toArray(),
-                    'merchant'     => $user->merchant()->with(['outlets', 'type'])->first(),
+                    'merchant'     => $user->merchant,
                     'subscription' => $user->merchant->subscriptions()->with('plan')->latest()->first(),
                     'outlets'      => $outlets,
                 ];

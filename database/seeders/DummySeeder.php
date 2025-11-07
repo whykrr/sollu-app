@@ -15,9 +15,9 @@ class DummySeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            MiniMarketSeeder::class,
-            OnlineShopSeeder::class,
-            RetailCategorySeeder::class,
+            MasterCategorySeeder::class,
         ]);
+
+        // \App\Models\User::factory(10)->create();
     }
 }

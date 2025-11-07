@@ -23,10 +23,15 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             // This is where you can add any additional middleware to the web routes.
             // For example, you can add authentication or authorization middleware here.
-            Route::domain('dashboard.sollu.test')
+            Route::domain(config('domain.dashboard'))
                 ->middleware(['web', 'dashboard'])
                 ->name('dashboard.')
                 ->group(base_path('routes/dashboard.php'));
+
+            Route::domain(config('domain.api'))
+                ->middleware(['api'])
+                ->name('api.')
+                ->group(base_path('routes/api.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -46,7 +51,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         //app
-        $middleware->redirectGuestsTo(fn ($request) => route('dashboard.login'));
+        $middleware->redirectGuestsTo(function ($request) {
+            $host = $request->getHost();
+            if (str_starts_with($host, 'dashboard.')) {
+                return route('dashboard.login');
+            }
+
+            return route('home');
+        });
         $middleware->redirectUsersTo(fn ($request) => route('dashboard.overview'));
     })
     ->withExceptions(function (Exceptions $exceptions) {

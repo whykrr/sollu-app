@@ -28,7 +28,7 @@
                 <Card title="Form Size">
                     <div class="space-y-2">
                         <InputBasic
-                            size="sm"
+                            class="sm"
                             label="Example Small"
                             placeholder="Example..."
                         />
@@ -39,7 +39,7 @@
                         />
 
                         <InputBasic
-                            size="lg"
+                            class="lg"
                             label="Example Large"
                             placeholder="Example..."
                         />
@@ -47,13 +47,12 @@
                 </Card>
                 <Card title="Form Floating">
                     <div class="flex flex-col gap-2">
-                        <div class="form-floating sm">
+                        <div class="form-floating">
                             <input
                                 type="text"
                                 id="name"
                                 placeholder="asd"
                                 required
-                                class="form sm"
                             />
                             <label for="name">Name</label>
                         </div>
@@ -64,7 +63,6 @@
                                     id="name"
                                     placeholder="asd"
                                     required
-                                    class="form"
                                 />
                                 <label for="name">Name</label>
                             </div>
@@ -77,7 +75,6 @@
                                     id="name"
                                     placeholder="asd"
                                     required
-                                    class="form lg"
                                 />
                                 <label for="name">Name</label>
                             </div>
@@ -115,6 +112,21 @@
                     <div class="flex flex-row gap-2 items-end">
                         <InputBasic
                             placeholder="Name..."
+                            class="lg"
+                            label="Example Error"
+                        />
+                        <InputBasic
+                            label="Example Success"
+                            class="lg"
+                            placeholder="email@domain.com"
+                        />
+                        <div>
+                            <button class="btn btn-main btn-lg">Simpan</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-row gap-2 items-end pt-2">
+                        <InputBasic
+                            placeholder="Name..."
                             label="Example Error"
                         />
                         <InputBasic
@@ -128,12 +140,12 @@
                     <div class="flex flex-row gap-2 items-end pt-2">
                         <InputBasic
                             placeholder="Name..."
-                            size="sm"
+                            class="sm"
                             label="Example Error"
                         />
                         <InputBasic
                             label="Example Success"
-                            size="sm"
+                            class="sm"
                             placeholder="email@domain.com"
                         />
                         <div>

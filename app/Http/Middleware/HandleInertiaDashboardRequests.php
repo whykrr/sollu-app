@@ -4,9 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Helpers\SelectedOutlet;
 use App\Helpers\SummaryUser;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Middleware;
 
@@ -41,14 +39,6 @@ class HandleInertiaDashboardRequests extends Middleware
     public function share(Request $request): array
     {
 
-        // $all_outlets = $request->user()
-        //     ? Cache::remember(
-        //         "info:merchant:{$request->user()->merchant->id}:outlets",
-        //         60 * 60,
-        //         fn () => $request->user()->merchant->outlets->map(fn ($outlet) => $outlet->only(['id', 'name']))
-        //     )
-        //     : null;
-
         return array_merge(parent::share($request), [
             'app' => [
                 'name'        => config('app.name'),
@@ -56,6 +46,7 @@ class HandleInertiaDashboardRequests extends Middleware
                 'flash'       => [
                     'success' => $request->session()->get('success'),
                     'failed'  => $request->session()->get('failed'),
+                    'info'    => $request->session()->get('info'),
                 ],
             ],
 
@@ -67,6 +58,20 @@ class HandleInertiaDashboardRequests extends Middleware
                 ) : null,
 
             'notifications' => Inertia::lazy(fn () => $request->user()->notifications()->get()),
+            'merchantInfo'  => Inertia::lazy(function () use ($request) {
+                $merchant = $request->user()->merchant;
+
+                return [
+                    'subscription' => $merchant->subscriptions()
+                        ->where('is_active', '=', true)
+                        ->with('plan')
+                        ->latest()
+                    ->first(),
+                    'outlet_count' => $merchant->outlets()
+                        ->where('is_active', '=', true)->count(),
+                    'merchantType' => $merchant->type()->first()->name,
+                ];
+            }),
 
             'selectedOutlet' => fn () => $request->user() ? SelectedOutlet::make()->cached() : null,
         ]);

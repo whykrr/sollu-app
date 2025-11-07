@@ -3,6 +3,7 @@
 namespace App\Models\Product;
 
 use App\Models\Merchant;
+use App\Models\Unit;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

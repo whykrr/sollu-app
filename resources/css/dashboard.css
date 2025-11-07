@@ -1,7 +1,5 @@
 @import "@fortawesome/fontawesome-free/css/solid.css" layer(base);
-
 @import "tailwindcss";
-
 @config '../../tailwind.config.js';
 
 /*
@@ -104,199 +102,74 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentcolor);
     }
-}
 
-@utility sidebar {
-    @apply overflow-y-auto text-neutral-600;
-
-    & .sidebar-container {
-        @apply flex flex-col gap-0.5 px-2 py-0 select-none;
+    @font-face {
+        font-family: "Dosis Bold";
+        src: url("font/dosis-semibold.ttf") format("trueType");
     }
-}
-
-@utility sidebar-container {
-    & .sidebar-item {
-        @apply flex flex-row gap-2 items-center py-2 px-2 hover:bg-neutral-300/60 hover:text-neutral-900 cursor-pointer rounded-lg font-medium transition-all duration-150 ease-in-out;
+    @font-face {
+        font-family: "Dosis";
+        src: url("font/dosis-light.ttf") format("trueType");
     }
 
-    & .sidebar-item-expand {
-        @apply hover:bg-neutral-300/60 cursor-pointer;
+    /* Floating scrollbar styles for WebKit browsers (Chrome, Safari, Edge) */
+    .sidebar::-webkit-scrollbar {
+        width: 8px; /* Minimal width for a clean look */
     }
 
-    & .sidebar-item-expand a.expand-toggle {
-        @apply flex rounded-lg flex-row gap-2 items-center py-2 px-2 w-full hover:text-neutral-900 font-medium;
+    .sidebar::-webkit-scrollbar-track {
+        background: transparent; /* Makes the track invisible */
     }
 
-    & .sidebar-item-expand .sidebar-expand-container .sidebar-item {
-        @apply hover:bg-neutral-400/50 rounded-none last:rounded-b-lg;
-    }
-}
-
-@utility nav-icon {
-    @apply flex justify-center items-center text-xl rounded-lg relative gap-1 h-8 min-w-8 hover:bg-neutral-300/60
-    transition-all duration-150 ease-in-out;
-    & span {
-        @apply rounded-md  p-1 bg-danger text-white absolute top-1 right-1 text-xs;
-    }
-}
-
-/* Handle Active */
-@utility active {
-    /* SIDEBAR */
-    &.sidebar-item {
-        @apply bg-neutral-300/60 !text-neutral-900 font-medium;
-    }
-    &.sidebar-item-expand {
-        @apply bg-neutral-300/60;
-    }
-    &.sidebar-item-expand a.expand-toggle {
-        @apply text-neutral-900 font-medium;
-    }
-    .sidebar-item-expand &.sidebar-item {
-        @apply bg-neutral-300 hover:bg-neutral-400/50;
+    .sidebar::-webkit-scrollbar-thumb {
+        background-color: #71809680; /* Thumb color */
+        border-radius: 4px;
+        border: 2px solid rgba(0, 0, 0, 0); /* Invisible border to create the floating effect */
+        background-clip: padding-box; /* Keeps the thumb from filling the entire track */
     }
 
-    /* TAB */
-    .tab .tab-content &.tab-pane {
-        @apply block animate-fade-in;
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background-color: #a0aec0; /* Lighter color when hovering */
     }
-    .tab-vertical ul &li {
-        @apply items-center border-r-2 border-r-main text-main;
+
+    /* Floating scrollbar styles for Firefox */
+    .sidebar {
+        scrollbar-width: thin; /* Thin scrollbar */
+        scrollbar-color: #71809680 transparent; /* Thumb color and transparent track */
     }
-    .tab-vertical .tab-content &.tab-pane {
-        @apply block animate-fade-in;
+
+    /* WebKit-based browsers (Chrome, Edge, Safari) */
+    .floating-scroll::-webkit-scrollbar {
+        width: 8px;
+        height: 8px; /* Add for horizontal scrollbars */
+    }
+
+    .floating-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .floating-scroll::-webkit-scrollbar-thumb {
+        background-color: #71809680; /* Thumb color */
+        border-radius: 4px;
+        border: 2px solid transparent; /* Creates padding for the thumb */
+        background-clip: padding-box;
+    }
+
+    .floating-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: #a0aec0;
     }
 }
 
-@utility card {
-    @apply bg-white rounded-lg;
-    &.card-outline {
-        @apply bg-transparent border border-neutral-300;
-    }
-}
-
-@utility navigation {
-    @apply flex flex-col gap-2;
-    & ul {
-        @apply flex flex-row items-center border-b-1;
-    }
-    & ul li {
-        @apply items-center hover:border-b-2 hover:border-b-main hover:text-main
+@utility btn {
+    @apply inline-flex text-base gap-1 items-center border border-transparent rounded-sm py-1 px-2 hover:brightness-110 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer
         transition-all duration-150 ease-in-out;
-    }
-    & ul li.active {
-        @apply items-center border-b-2 border-b-main text-main;
-    }
-}
-
-@utility tab {
-    @apply flex flex-col gap-2;
-    & ul {
-        @apply flex flex-row items-center border-b;
-    }
-    & ul li {
-        @apply relative font-medium
-        /* hover:border-b-[3px] hover:border-b-main hover:text-main
-        transition-all duration-150 ease-in-out; */;
-    }
-    & ul li .tab-toggle {
-        @apply inline-flex gap-2 px-4 py-2 items-center;
-    }
-    & ul li .separator {
-        @apply absolute inset-0
-        hover:text-main
-        hover:border-b-[3px] hover:border-b-main
-        transition-all duration-150 ease-in-out;
-    }
-
-    & ul li.active {
-        @apply text-main;
-    }
-    & ul li.active .separator {
-        @apply border-b-[3px] border-b-main;
-    }
-
-    & .tab-content .tab-pane {
-        @apply hidden;
-    }
-    & .tab-content .tab-pane.active {
-        @apply block animate-fade-in;
-    }
-}
-
-@utility tab-vertical {
-    @apply flex flex-row gap-2;
-    & ul {
-        @apply grid grid-flow-row items-start min-w-[150px] border-r;
-    }
-    & ul li {
-        @apply items-center font-medium
-        hover:border-r-[3px] hover:border-r-main
-        transition-all duration-150 ease-in-out;
-    }
-    & ul li .tab-toggle {
-        @apply inline-flex gap-2 pr-4 py-2 items-center;
-    }
-    & ul li.active {
-        @apply items-center border-r-[3px] border-r-main text-main;
-    }
-    & .tab-content .tab-pane {
-        @apply hidden;
-    }
-    & .tab-content .tab-pane.active {
-        @apply block animate-fade-in;
-    }
-}
-
-@utility placeholder {
-    @apply inline-block w-full min-h-[20px] cursor-wait opacity-50 bg-neutral-400 mb-2;
-    &::before {
-        box-sizing: border-box;
-    }
-    &::after {
-        box-sizing: border-box;
-    }
-}
-
-@utility spinner {
-    @apply w-10 h-10 border-4 border-l-main border-b-main-light border-r-main-lighter border-t-transparent rounded-full animate-spin;
-}
-
-@utility table-responsive {
-    @apply overflow-auto;
-}
-
-@utility table {
-    @apply min-w-full border-separate border-spacing-x-0 text-sm;
-
-    & thead {
-        @apply mb-2;
-    }
-    & thead tr {
-        @apply bg-neutral-100;
-    }
-    & thead tr th {
-        @apply px-3 py-2.5 border-b-2 sticky top-0 z-auto font-semibold;
-    }
-    &.table-hovered tbody tr {
-        @apply hover:bg-neutral-200/50 cursor-pointer transition-all duration-150 ease-in-out;
-    }
-    & tbody tr {
-        @apply bg-transparent;
-    }
-    & tbody tr td {
-        @apply px-1 py-1.5 border-b;
-    }
-    &.table-hovered tbody tr td {
-        @apply px-3 py-2;
-    }
 }
 
 @utility form {
     @apply block
         w-full
-        py-1.5
-        px-3
+        py-1
+        px-2
         bg-white
         bg-clip-padding
         rounded
@@ -320,325 +193,22 @@
         focus:outline-0
         focus:ring-main/30
         focus:border-main/70;
-
-    & + .form-feedback {
-        @apply hidden select-none;
-    }
-    /* SIZING */
-    &.sm {
-        @apply text-sm! file:text-sm;
-    }
-
-    &.sm .form-group-text {
-        @apply my-1;
-    }
-
-    &.lg {
-        @apply text-lg! file:text-lg;
-    }
-}
-label:has(+ .form) {
-    @apply mb-1;
-}
-label:has(+ .form.sm) {
-    @apply text-sm;
-}
-label:has(+ .form.lg) {
-    @apply text-lg;
-}
-
-@utility form-check {
-    @apply flex flex-wrap items-center gap-1;
-
-    & input {
-        @apply form align-top w-4 h-4 p-0 m-0 focus:ring-2 cursor-pointer;
-    }
-
-    & input[type="radio"] {
-        @apply rounded-full;
-    }
-
-    & input:checked {
-        @apply bg-main;
-    }
-
-    & label {
-        @apply select-none cursor-pointer;
-    }
-
-    &.sm {
-        @apply text-sm!;
-    }
-    &.sm input {
-        @apply w-3 h-3;
-    }
-
-    &.lg {
-        @apply text-lg!;
-    }
-    &.lg input {
-        @apply w-5 h-5;
-    }
-}
-
-@utility form-check-btn {
-    @apply absolute pointer-events-none;
-    clip: rect(0, 0, 0, 0);
-
-    & + label {
-        @apply select-none;
-    }
-}
-
-@utility form-group {
-    @apply flex flex-row rounded-sm items-center bg-white
-        border border-gray-300
-        overflow-hidden
-        transition-shadow duration-150 ease-in-out
-
-        focus-within:ring-2
-        focus-within:outline-0
-        focus-within:ring-main/30
-        focus-within:border-main/70
-        focus-within:text-main;
-
-    & label.form-group-text {
-        @apply px-3 select-none mb-0! py-1.5 h-full text-base inline-flex;
-    }
-    &.has-text .form {
-        @apply first:pr-0 last:pl-0 focus:text-neutral-800;
-    }
-
-    & .btn {
-        @apply rounded-none h-full;
-    }
-
-    & .form {
-        @apply w-full ring-0 border-0 rounded-none;
-    }
-
-    & + .form-feedback {
-        @apply hidden select-none;
-    }
-}
-
-@utility form-floating {
-    @apply relative;
-    & input {
-        @apply form w-full pt-4 placeholder-transparent;
-    }
-    & label {
-        @apply absolute left-2 -translate-y-1/2 text-xs top-3 transform transition-all duration-200 px-1;
-    }
-    & input:placeholder-shown ~ label {
-        @apply top-1/2 -translate-y-1/2 text-base text-gray-600;
-    }
-    & input:focus ~ label {
-        @apply top-3 text-xs text-main;
-    }
-
-    & + input {
-        @apply hidden;
-    }
-
-    &.is-valid input {
-        @apply is-valid;
-    }
-    &.is-valid input:focus ~ label {
-        @apply text-success;
-    }
-
-    &.is-invalid input {
-        @apply is-invalid;
-    }
-    &.is-invalid input:focus ~ label {
-        @apply text-danger;
-    }
-}
-
-@utility form-feedback {
-    .form + & {
-        @apply hidden select-none;
-    }
-
-    .form-group + & {
-        @apply hidden select-none;
-    }
-
-    .form-group-input + & {
-        @apply hidden select-none;
-    }
-
-    .form-group-button + & {
-        @apply hidden select-none;
-    }
-
-    .form-floating + & {
-        @apply hidden select-none;
-    }
-    .is-valid + & {
-        @apply block text-success text-xs;
-    }
-    .is-invalid + & {
-        @apply block text-danger text-xs;
-    }
-}
-
-@utility is-valid {
-    @apply border-success focus:border-success! focus-within:border-success! focus-within:ring-success/30!;
-
-    & .form-floating .form {
-        @apply border-success focus:border-success! focus-within:border-success!;
-    }
-    & + .form-feedback {
-        @apply block text-success text-xs;
-    }
-}
-
-@utility is-invalid {
-    @apply border-danger focus:border-danger! focus-within:border-danger! focus-within:ring-danger/30!;
-
-    & .form-floating .form {
-        @apply border-danger focus:border-danger! focus-within:border-danger!;
-    }
-    & + .form-feedback {
-        @apply block text-danger text-xs;
-    }
-}
-
-@utility btn {
-    &.btn-outline-* {
-        @apply disabled:bg-transparent disabled:border-gray-300 disabled:hover:brightness-100;
-    }
-
-    &.link {
-        @apply underline;
-    }
-    .btn-group & {
-        @apply rounded-none -ml-px first-of-type:rounded-l first-of-type:ml-0! last-of-type:rounded-r;
-    }
-    .btn-group-vertical & {
-        @apply rounded-none -mt-px first-of-type:rounded-t first-of-type:mt-0! last-of-type:rounded-b;
-    }
-
-    &.btn-xs {
-        @apply text-xs px-1.5;
-    }
-    &.btn-sm {
-        @apply text-sm;
-    }
-    &.btn-lg {
-        @apply text-lg py-2 px-4;
-    }
-}
-
-@utility badge {
-    /* LABEL */
-    @apply px-2 py-1 rounded-lg text-center;
-    &.pill {
-        @apply rounded-full!;
-    }
-}
-
-@utility pill {
-    &.badge {
-        @apply rounded-full!;
-    }
-}
-
-@utility badge-doted {
-    @apply flex flex-row items-center gap-1 bg-transparent!;
-    &::before {
-        font-family: "Font Awesome 6 Free";
-        content: "\f111";
-        font-size: 10px;
-    }
-}
-
-@utility alert {
-    /* ALERT */
-    @apply block px-4 py-2 border rounded-lg;
-}
-
-@utility modal {
-    /* MODAL */
-    @apply invisible opacity-0 fixed inset-0 bg-gray-900/50 flex items-start p-14 justify-center z-50 transition-opacity duration-300 ease-out;
-    &.show {
-        @apply visible opacity-100;
-    }
-    & .modal-container {
-        @apply bg-white rounded-lg shadow-lg w-96 transition-all duration-300 ease-out transform;
-    }
-    & .modal-container {
-        @apply -translate-y-12 opacity-0;
-    }
-    &.show .modal-container {
-        @apply translate-y-0 opacity-100;
-    }
-
-    & .modal-container .modal-header {
-        @apply flex justify-between items-center border-b px-3 py-2;
-    }
-
-    & .modal-container .modal-body {
-        @apply p-4;
-    }
-
-    & .modal-container .modal-footer {
-        @apply flex justify-end border-t px-3 py-2;
-    }
-}
-
-@utility toast {
-    /* TOAST */
-    @apply fixed bottom-5 right-5 w-80 px-4 py-2.5 rounded shadow-lg transition-all duration-300 ease-out transform;
-    &.hide {
-        @apply translate-y-12 opacity-0;
-    }
-    &.show {
-        @apply translate-y-0 opacity-100;
-    }
-}
-@utility widget {
-    /* Widget Style */
-    @apply flex flex-col bg-white text-neutral-800 p-4 gap-1 rounded-lg border overflow-hidden;
-
-    & .widget-icon {
-        @apply flex w-8 h-8 items-center justify-center rounded-full;
-    }
-
-    & .widget-bar {
-        @apply w-full rounded-full h-1.5;
-    }
-    & .widget-bar .widget-value {
-        @apply h-1.5 rounded-full;
-    }
-
-    & .canvas {
-        @apply max-h-28;
-    }
 }
 
 @layer utilities {
-    .btn {
-        @apply inline-flex text-base gap-1.5 items-center border border-transparent rounded-sm py-1.5 px-3 hover:brightness-110 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer
-        transition-all duration-150 ease-in-out;
+    .spin-enter-active,
+    .spin-leave-active {
+        transition: all 0.15s ease;
     }
 
-    /* Custom transition classes for submenu */
-    .submenu-enter-active,
-    .submenu-leave-active {
-        transition: max-height 0.3s ease, opacity 0.3s ease;
-    }
-    .submenu-enter-from,
-    .submenu-leave-to {
-        max-height: 0;
+    .spin-enter-from {
         opacity: 0;
+        transform: rotate(-180deg) scale(0.8);
     }
-    .submenu-enter-to,
-    .submenu-leave-from {
-        max-height: 500px; /* or max-h-screen, depends on expected size */
-        opacity: 1;
+
+    .spin-leave-to {
+        opacity: 0;
+        transform: rotate(180deg) scale(0.8);
     }
 
     .fade-enter-active,
@@ -711,60 +281,578 @@ label:has(+ .form.lg) {
     }
 }
 
-@layer base {
-    @font-face {
-        font-family: "Dosis Bold";
-        src: url("font/dosis-semibold.ttf") format("trueType");
+@layer components {
+    @media (width < 40rem /* 640px "sm" */) {
+        .sidebar {
+            @apply fixed inset-y-0 left-0 top-0 z-30 transform transition-all duration-300 -translate-x-full w-full !max-h-full border overflow-hidden bg-white;
+
+            & .sidebar-container {
+                @apply flex flex-col w-full h-full;
+            }
+
+            &.show {
+                @apply translate-x-0;
+            }
+        }
     }
-    @font-face {
-        font-family: "Dosis";
-        src: url("font/dosis-light.ttf") format("trueType");
+    @media (width >= 40rem /* 640px */) {
+        .sidebar {
+            @apply static inset-auto flex left-0 z-30 bg-white w-full transform transition-all duration-300
+            sm:w-56 sm:translate-x-0
+            lg:w-64
+            xl:w-72;
+
+            & .sidebar-container {
+                @apply flex flex-col w-full;
+            }
+
+            &.minimize {
+                @apply !fixed !inset-y-0 left-0 !top-14 z-30 -translate-x-full !max-h-[80%] border !rounded-r-lg overflow-hidden shadow backdrop-blur-sm bg-white/50;
+
+                &.show {
+                    @apply translate-x-0;
+                }
+            }
+        }
     }
 
-    /* Floating scrollbar styles for WebKit browsers (Chrome, Safari, Edge) */
-    .sidebar::-webkit-scrollbar {
-        width: 8px; /* Minimal width for a clean look */
+    .sidebar-navigation {
+        @apply grow overflow-y-auto text-neutral-600;
+
+        & .navigation-list {
+            @apply flex flex-col gap-0.5 px-2 py-0 select-none;
+        }
     }
 
-    .sidebar::-webkit-scrollbar-track {
-        background: transparent; /* Makes the track invisible */
+    .navigation-list {
+        & .nav-section {
+            @apply text-sm px-2 select-none mt-1.5 text-neutral-400 font-medium;
+        }
+
+        & .nav-item {
+            @apply flex flex-row gap-1 items-center py-2 px-2 hover:bg-neutral-300/60 hover:text-neutral-900 cursor-pointer rounded-lg font-medium transition-all duration-150 ease-in-out;
+
+            &.active {
+                @apply bg-neutral-300/60 !text-neutral-900 font-medium pointer-events-none;
+            }
+        }
+
+        & .nav-item .nav-item-label {
+            @apply text-sm max-w-72 opacity-100 visible;
+        }
+
+        & .nav-dropdown {
+            @apply rounded-lg overflow-hidden;
+
+            & .nav-dropdown-list {
+                @apply flex flex-col transition-all duration-300 max-h-0 opacity-0 invisible ease-in-out;
+            }
+
+            & .nav-item-dropdown .nav-item-label {
+                @apply grow text-left text-sm;
+            }
+
+            &.active {
+                @apply bg-neutral-300/60;
+
+                & .nav-item-dropdown {
+                    @apply text-neutral-900 font-medium pointer-events-none;
+                }
+
+                & .nav-item-dropdown .nav-item-caret {
+                    @apply rotate-180;
+                }
+                & .nav-dropdown-list {
+                    @apply max-h-96 opacity-100 visible;
+                }
+            }
+
+            & .nav-dropdown-item {
+                @apply pl-8 pr-2 py-1.5 transition-all duration-150 ease-in-out text-sm hover:bg-neutral-400/50;
+
+                &.active {
+                    @apply bg-neutral-400/50 pointer-events-none;
+                }
+            }
+        }
+
+        & .nav-item-dropdown .nav-item-caret {
+            @apply transition-transform duration-300 text-sm;
+        }
+
+        & .nav-dropdown .nav-dropdown-item {
+            @apply pl-8 pr-2 py-1.5 transition-all duration-150 ease-in-out text-sm hover:bg-neutral-400/50;
+        }
     }
 
-    .sidebar::-webkit-scrollbar-thumb {
-        background-color: #71809680; /* Thumb color */
-        border-radius: 4px;
-        border: 2px solid rgba(0, 0, 0, 0); /* Invisible border to create the floating effect */
-        background-clip: padding-box; /* Keeps the thumb from filling the entire track */
+    .navigation-shrink {
+        @apply overflow-hidden;
+
+        &:hover {
+            @apply w-74 z-30 top-14 absolute bg-white border py-2 rounded-r-lg max-h-[80%];
+        }
+        &:hover .navigation-item .navigation-label {
+            @apply !block;
+        }
+        &:hover .navigation-item .navigation-caret {
+            @apply !block;
+        }
+
+        & .navigation-item .navigation-label {
+            @apply !hidden;
+        }
+        & .navigation-item .navigation-caret {
+            @apply !hidden;
+        }
+
+        &:hover .navigation-dropdown.active .navigation-submenu {
+            @apply max-h-96 opacity-100 visible;
+        }
+
+        /* & .navigation-item-expand .sidebar-dropdown {
+        @apply max-h-0 opacity-0 invisible;
+    } */
+
+        /* & .navigation-item-expand .sidebar-expand-container .navigation-item {
+        @apply max-w-0 opacity-0 invisible;
+    } */
     }
 
-    .sidebar::-webkit-scrollbar-thumb:hover {
-        background-color: #a0aec0; /* Lighter color when hovering */
+    .nav-icon {
+        @apply flex justify-center items-center text-xl rounded-lg relative gap-1 h-8 min-w-8 hover:bg-neutral-300/60
+    transition-all duration-150 ease-in-out;
+
+        & span {
+            @apply rounded-md  p-1 bg-danger text-white absolute top-1 right-1 text-xs;
+        }
     }
 
-    /* Floating scrollbar styles for Firefox */
-    .sidebar {
-        scrollbar-width: thin; /* Thin scrollbar */
-        scrollbar-color: #71809680 transparent; /* Thumb color and transparent track */
+    .active {
+        /* SIDEBAR */
+
+        /* TAB */
+        .tab .tab-content &.tab-pane {
+            @apply block animate-fade-in;
+        }
+        .tab-vertical ul &li {
+            @apply items-center border-r-2 border-r-main text-main;
+        }
+        .tab-vertical .tab-content &.tab-pane {
+            @apply block animate-fade-in;
+        }
     }
 
-    /* WebKit-based browsers (Chrome, Edge, Safari) */
-    .floating-scroll::-webkit-scrollbar {
-        width: 8px;
-        height: 8px; /* Add for horizontal scrollbars */
+    .card {
+        @apply bg-white rounded-lg;
+        &.card-outline {
+            @apply bg-transparent border border-neutral-300;
+        }
     }
 
-    .floating-scroll::-webkit-scrollbar-track {
-        background: transparent;
+    .navigation {
+        @apply flex flex-col gap-2;
+        & ul {
+            @apply flex flex-row items-center border-b-1;
+        }
+        & ul li {
+            @apply items-center hover:border-b-2 hover:border-b-main hover:text-main
+        transition-all duration-150 ease-in-out;
+        }
+        & ul li.active {
+            @apply items-center border-b-2 border-b-main text-main;
+        }
     }
 
-    .floating-scroll::-webkit-scrollbar-thumb {
-        background-color: #71809680; /* Thumb color */
-        border-radius: 4px;
-        border: 2px solid transparent; /* Creates padding for the thumb */
-        background-clip: padding-box;
+    .tab {
+        @apply flex flex-col gap-2;
+        & ul {
+            @apply flex flex-row items-center border-b;
+        }
+        & ul li {
+            @apply relative font-medium
+        /* hover:border-b-[3px] hover:border-b-main hover:text-main
+        transition-all duration-150 ease-in-out; */;
+        }
+        & ul li .tab-toggle {
+            @apply inline-flex gap-2 px-4 py-2 items-center;
+        }
+        & ul li .separator {
+            @apply absolute inset-0
+        hover:text-main
+        hover:border-b-[3px] hover:border-b-main
+        transition-all duration-150 ease-in-out;
+        }
+
+        & ul li.active {
+            @apply text-main;
+        }
+        & ul li.active .separator {
+            @apply border-b-[3px] border-b-main;
+        }
+
+        & .tab-content .tab-pane {
+            @apply hidden;
+        }
+        & .tab-content .tab-pane.active {
+            @apply block animate-fade-in;
+        }
     }
 
-    .floating-scroll::-webkit-scrollbar-thumb:hover {
-        background-color: #a0aec0;
+    .tab-vertical {
+        @apply flex flex-row gap-2;
+        & ul {
+            @apply grid grid-flow-row items-start min-w-[150px] border-r;
+        }
+        & ul li {
+            @apply items-center font-medium
+        hover:border-r-[3px] hover:border-r-main
+        transition-all duration-150 ease-in-out;
+        }
+        & ul li .tab-toggle {
+            @apply inline-flex gap-2 pr-4 py-2 items-center;
+        }
+        & ul li.active {
+            @apply items-center border-r-[3px] border-r-main text-main;
+        }
+        & .tab-content .tab-pane {
+            @apply hidden;
+        }
+        & .tab-content .tab-pane.active {
+            @apply block animate-fade-in;
+        }
+    }
+
+    .placeholder {
+        @apply inline-block w-full min-h-[20px] cursor-wait opacity-50 bg-neutral-400 mb-2 rounded-xs;
+        &::before {
+            box-sizing: border-box;
+        }
+        &::after {
+            box-sizing: border-box;
+        }
+    }
+
+    .spinner {
+        @apply w-10 h-10 border-4 border-l-main border-b-main-light border-r-main-lighter border-t-transparent rounded-full animate-spin;
+    }
+
+    .table-responsive {
+        @apply overflow-auto;
+    }
+
+    .table {
+        @apply min-w-full border-separate border-spacing-y-1 -mt-1 text-sm;
+
+        & thead {
+            @apply mb-0;
+        }
+        & thead tr {
+            @apply bg-white;
+        }
+        & thead tr th {
+            @apply px-3 py-2.5 sticky top-0 z-auto font-semibold first-of-type:rounded-l-sm last-of-type:rounded-r-sm text-nowrap bg-main/20;
+        }
+        &.table-hovered tbody tr {
+            @apply hover:bg-gray-50 cursor-pointer transition-all duration-150 ease-in-out;
+        }
+        & tbody tr {
+            @apply bg-white;
+        }
+        & tbody tr td {
+            @apply px-1 py-1.5 first-of-type:rounded-l-sm last-of-type:rounded-r-sm;
+        }
+        &.table-hovered tbody tr td {
+            @apply px-3 py-2;
+        }
+    }
+
+    .form {
+        & + .form-feedback {
+            @apply hidden select-none;
+        }
+        /* SIZING */
+        &.sm {
+            @apply text-sm! file:text-sm !py-0.5 !px-1;
+        }
+
+        &.sm .form-group-text {
+            @apply my-1;
+        }
+
+        &.lg {
+            @apply text-lg! file:text-lg !py-2 !px-4;
+        }
+    }
+    label:has(+ .form) {
+        @apply mb-1;
+    }
+    label:has(+ .form.sm) {
+        @apply !text-sm;
+    }
+    label:has(+ .form.lg) {
+        @apply !text-lg;
+    }
+
+    .form-check {
+        @apply flex flex-wrap items-center gap-1;
+
+        & input {
+            @apply form align-top w-4 h-4 p-0 m-0 focus:ring-2 cursor-pointer;
+        }
+
+        & input[type="radio"] {
+            @apply rounded-full;
+        }
+
+        & input:checked {
+            @apply bg-main;
+        }
+
+        & label {
+            @apply select-none cursor-pointer;
+        }
+
+        &.sm {
+            @apply !text-sm;
+        }
+        &.sm input {
+            @apply w-3 h-3;
+        }
+
+        &.lg {
+            @apply !text-lg;
+        }
+        &.lg input {
+            @apply w-5 h-5;
+        }
+    }
+
+    .form-check-btn {
+        @apply absolute pointer-events-none;
+        clip: rect(0, 0, 0, 0);
+
+        & + label {
+            @apply select-none;
+        }
+    }
+
+    .form-group {
+        @apply flex flex-row rounded-sm items-center bg-white
+        border border-gray-300
+        overflow-hidden
+        transition-shadow duration-150 ease-in-out
+
+        focus-within:ring-2
+        focus-within:outline-0
+        focus-within:ring-main/30
+        focus-within:border-main/70
+        focus-within:text-main;
+
+        & label.form-group-text {
+            @apply !px-2 select-none mb-0! py-1.5 h-full text-base inline-flex;
+        }
+        &.has-text .form {
+            @apply first:!pr-0 last:!pl-0 focus:text-neutral-800;
+        }
+
+        & .btn {
+            @apply rounded-none h-full;
+        }
+
+        & .form {
+            @apply w-full !ring-0 !border-0 rounded-none;
+        }
+
+        & + .form-feedback {
+            @apply hidden select-none;
+        }
+    }
+
+    .form-floating {
+        @apply relative;
+        & input {
+            @apply form w-full pt-4 placeholder-transparent;
+        }
+        & label {
+            @apply absolute left-1 -translate-y-1/2 text-xs top-3 transform transition-all duration-200 px-1;
+        }
+        & input:placeholder-shown ~ label {
+            @apply top-1/2 -translate-y-1/2 text-base text-gray-600;
+        }
+        & input:focus ~ label {
+            @apply top-3 text-xs text-main;
+        }
+
+        & + input {
+            @apply hidden;
+        }
+
+        &.is-valid input:focus ~ label {
+            @apply text-success;
+        }
+
+        &.is-invalid input:focus ~ label {
+            @apply text-danger;
+        }
+    }
+
+    .form-feedback {
+        .form + & {
+            @apply hidden select-none;
+        }
+
+        .form-group + & {
+            @apply hidden select-none;
+        }
+
+        .form-group-input + & {
+            @apply hidden select-none;
+        }
+
+        .form-group-button + & {
+            @apply hidden select-none;
+        }
+
+        .form-floating + & {
+            @apply hidden select-none;
+        }
+        .is-valid + & {
+            @apply block !text-success !text-xs;
+        }
+        .is-invalid + & {
+            @apply block !text-danger !text-xs;
+        }
+    }
+
+    .is-valid {
+        @apply !border-success focus:!border-success focus-within:!border-success focus-within:!ring-success/30;
+
+        &.form-floating input {
+            @apply !border-success focus:!border-success focus-within:!border-success focus-within:!ring-success/30;
+        }
+        & + .form-feedback {
+            @apply block text-success text-xs;
+        }
+    }
+
+    .is-invalid {
+        @apply !border-danger focus:!border-danger focus-within:!border-danger focus-within:!ring-danger/30;
+
+        &.form-floating input {
+            @apply !border-danger focus:!border-danger focus-within:!border-danger focus-within:!ring-danger/30;
+        }
+        & + .form-feedback {
+            @apply block text-danger text-xs;
+        }
+    }
+
+    .btn {
+        &.btn-outline-* {
+            @apply disabled:bg-transparent disabled:border-gray-300 disabled:hover:brightness-100;
+        }
+
+        &.link {
+            @apply underline;
+        }
+        .btn-group & {
+            @apply rounded-none -ml-px first-of-type:rounded-l first-of-type:ml-0! last-of-type:rounded-r;
+        }
+        .btn-group-vertical & {
+            @apply rounded-none -mt-px first-of-type:rounded-t first-of-type:mt-0! last-of-type:rounded-b;
+        }
+
+        &.btn-sm {
+            @apply !text-sm !py-0.5 !px-1;
+        }
+        &.btn-lg {
+            @apply !text-lg !py-2 !px-4;
+        }
+    }
+
+    .badge {
+        /* LABEL */
+        @apply px-2 py-1 rounded-lg text-center;
+        &.pill {
+            @apply rounded-full!;
+        }
+    }
+
+    .pill {
+        &.badge {
+            @apply rounded-full!;
+        }
+    }
+
+    .badge-doted {
+        @apply flex flex-row items-center gap-1 bg-transparent!;
+        &::before {
+            font-family: "Font Awesome 6 Free";
+            content: "\f111";
+            font-size: 10px;
+        }
+    }
+
+    .alert {
+        /* ALERT */
+        @apply block px-4 py-2 border rounded-lg;
+    }
+
+    .modal {
+        /* MODAL */
+        @apply invisible opacity-0 fixed inset-0 bg-gray-900/50 flex items-start p-14 justify-center z-50 transition-opacity duration-300 ease-out;
+        &.show {
+            @apply visible opacity-100;
+        }
+        & .modal-container {
+            @apply bg-white rounded-lg shadow-lg w-96 transition-all duration-300 ease-out transform;
+        }
+        & .modal-container {
+            @apply -translate-y-12 opacity-0;
+        }
+        &.show .modal-container {
+            @apply translate-y-0 opacity-100;
+        }
+
+        & .modal-container .modal-header {
+            @apply flex justify-between items-center border-b px-3 py-2;
+        }
+
+        & .modal-container .modal-body {
+            @apply p-4;
+        }
+
+        & .modal-container .modal-footer {
+            @apply flex justify-end border-t px-3 py-2;
+        }
+    }
+
+    .toast {
+        /* TOAST */
+        @apply fixed bottom-5 right-5 w-80 px-4 py-2.5 rounded shadow-lg transition-all duration-300 ease-out transform;
+        &.hide {
+            @apply translate-y-12 opacity-0;
+        }
+        &.show {
+            @apply translate-y-0 opacity-100;
+        }
+    }
+    .widget {
+        /* Widget Style */
+        @apply flex flex-col bg-white text-neutral-800 p-4 gap-1 rounded-lg border overflow-hidden;
+
+        & .widget-icon {
+            @apply flex w-8 h-8 items-center justify-center rounded-full;
+        }
+
+        & .widget-bar {
+            @apply w-full rounded-full h-1.5;
+        }
+        & .widget-bar .widget-value {
+            @apply h-1.5 rounded-full;
+        }
+
+        & .canvas {
+            @apply max-h-28;
+        }
     }
 }

@@ -7,7 +7,7 @@
             <div>
                 <Link
                     :href="route('dashboard.products.units.create')"
-                    class="btn btn-outline-main btn-sm"
+                    class="btn btn-highlight-main btn-sm"
                 >
                     <FontAwesomeIcon :icon="faPlus" />
                     Satuan

@@ -1,6 +1,25 @@
 <template>
     <Container>
         <div
+            v-if="invoice"
+            class="alert alert-warning inline-flex justify-between items-center w-full mb-2"
+        >
+            <div class="text-sm">
+                <div class="font-bold">
+                    Tagihan Anda masih menunggu pembayaran.
+                </div>
+                Silakan lakukan pembayaran atau batalkan untuk mengganti paket
+                langganan.
+            </div>
+            <div>
+                <Link
+                    :href="route('dashboard.merchant.invoices.index')"
+                    class="btn btn-main btn-sm"
+                    >Bayar Tagihan</Link
+                >
+            </div>
+        </div>
+        <div
             class="inline-flex justify-between w-full mb-2 rounded-lg bg-white border p-2"
         >
             <div class="text-sm">
@@ -15,17 +34,39 @@
                 v-model="yearly"
             />
         </div>
+
         <div class="grid grid-flow-col gap-2">
             <div v-for="plan in plans">
-                <div class="card p-2 space-y-2 rounded-lg border">
-                    <div class="flex flex-col gap-1 pt-0">
+                <div
+                    class="p-2 space-y-2 rounded-lg border bg-white overflow-hidden"
+                    :class="{
+                        'border-main/50':
+                            subscription.subscription_plans_id === plan.id,
+                    }"
+                >
+                    <div class="flex flex-col gap-1 pt-0 h-full">
                         <div class="space-y-2">
-                            <div class="font-semibold text-3xl text-main">
-                                {{ plan.name }}
+                            <div
+                                class="bg-gradient-to-br from-main to-secondary-dark rounded-md p-2 text-white relative"
+                            >
+                                <div class="font-semibold text-3xl">
+                                    {{ plan.name }}
+                                </div>
+                                <div class="text-sm">
+                                    {{ plan.description }}
+                                </div>
+
+                                <div
+                                    v-if="
+                                        subscription.subscription_plans_id ===
+                                        plan.id
+                                    "
+                                    class="absolute p-2 right-0 bottom-0 rounded-l-md"
+                                >
+                                    <FontAwesomeIcon :icon="faCheckCircle" />
+                                </div>
                             </div>
-                            <div class="text-sm min-h-[150px]">
-                                {{ plan.description }}
-                            </div>
+
                             <div>
                                 <div class="font-medium text-2xl">
                                     {{ formatIDR(plan.price) }}
@@ -38,23 +79,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div
-                            class="flex flex-row gap-2 justify-between items-center"
-                        >
-                            <Link
-                                :href="
-                                    route(
-                                        'dashboard.merchant.billing.subscribe',
-                                        { plan: plan.id }
-                                    )
-                                "
-                                class="btn btn-main w-full justify-between"
-                            >
-                                Pilih Paket
-                                <FontAwesomeIcon :icon="faArrowRight" />
-                            </Link>
-                        </div>
-                        <div class="mt-2">
+                        <div class="flex-1 mt-2">
                             <ul class="space-y-1">
                                 <li v-for="feature in plan.features">
                                     <div class="inline-flex gap-2 items-start">
@@ -78,6 +103,32 @@
                                 </li>
                             </ul>
                         </div>
+                        <div class="mt-2">
+                            <Link
+                                disabled
+                                v-if="
+                                    !invoice &&
+                                    subscription.subscription_plans_id !==
+                                        plan.id
+                                "
+                                :href="
+                                    route(
+                                        'dashboard.merchant.billing.subscribe',
+                                        { plan: plan.id }
+                                    )
+                                "
+                                class="btn btn-neutral-800 w-full justify-between"
+                            >
+                                Pilih Paket
+                                <FontAwesomeIcon :icon="faArrowRight" />
+                            </Link>
+                            <div
+                                v-else
+                                class="bg-gradient-to-br from-main to-secondary-dark text-white text-center p-2 py-3 -m-2"
+                            >
+                                Paket Saat Ini
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -89,14 +140,20 @@ import Switch from "@/Components/Dashboard/Form/Switch.vue";
 import Modal from "@/Components/Dashboard/Notifications/Modal.vue";
 import Container from "@/Components/Dashboard/UI/Container.vue";
 import { formatIDR } from "@/helpers/Dashboard/currency-format";
-import { faArrowRight, faCheck } from "@fortawesome/free-solid-svg-icons";
+import {
+    faArrowRight,
+    faCheck,
+    faCheckCircle,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link, router } from "@inertiajs/vue3";
 import { ref, watch } from "vue";
 
 const props = defineProps({
+    subscription: Object,
     billing_cycle: String,
     plans: Array,
+    invoice: Object,
 });
 
 const yearly = ref(props.billing_cycle === "yearly" ? true : false);

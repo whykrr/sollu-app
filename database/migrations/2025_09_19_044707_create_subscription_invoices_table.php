@@ -13,17 +13,18 @@ return new class () extends Migration {
         Schema::create('subscription_invoices', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->timestamps();
-            $table->string('no')->unique();
+            $table->string('code')->unique();
             $table->uuid('merchant_id');
             $table->integer('subscription_plan_id');
-            $table->text('note');
+            $table->text('note')->nullable();
             $table->decimal('subtotal', 10, 2);
             $table->decimal('add_ons', 10, 2);
             $table->decimal('tax', 10, 2);
             $table->decimal('discount', 10, 2);
             $table->decimal('total', 10, 2);
-            $table->decimal('due_date', 10, 2);
-            $table->enum('status', ['paid', 'unpaid']);
+            $table->datetime('due_date');
+            $table->string('status', 15);
+            $table->date('period_end');
         });
 
         Schema::table('subscription_invoices', function (Blueprint $table) {

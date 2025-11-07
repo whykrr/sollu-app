@@ -1,22 +1,20 @@
 <template>
     <Link
         :href="to"
-        class="sidebar-item"
-        :class="{ active: active, 'rounded-lg': icon }"
+        class="nav-item"
+        :class="{
+            active: active,
+        }"
     >
-        <FontAwesomeIcon
-            v-if="icon"
-            :icon="icon"
-            class="w-[20px]"
-        ></FontAwesomeIcon>
-        <div v-else class="w-[20px]"></div>
-        <div class="text-sm">
+        <FontAwesomeIcon v-if="icon" :icon="icon" class="w-5"></FontAwesomeIcon>
+        <div class="nav-item-label">
             {{ label }}
         </div>
     </Link>
 </template>
 
 <script setup>
+import { useAppStore } from "@/store/Dashboard/app";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Link } from "@inertiajs/vue3";
 

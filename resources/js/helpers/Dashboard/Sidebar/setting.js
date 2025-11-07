@@ -13,7 +13,7 @@ export const settingSidebars = [
         activeRoute: "dashboard.merchant.info.detail",
     },
     {
-        route: "#",
+        route: "merchant.outlets.index",
         icon: faMapMarkerAlt,
         label: "Outlet",
         permissions: "merchant.info",
@@ -31,7 +31,7 @@ export const settingSidebars = [
         activeRoute: "sales",
     },
     {
-        route: "#",
+        route: "merchant.invoices.index",
         icon: faMoneyBills,
         label: "Pembayaran",
         permissions: "merchant.billing",

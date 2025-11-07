@@ -9,7 +9,16 @@
                             Tanggal :
                             {{ formatDateTimeID(invoice.created_at) }}
                         </div>
-                        <div>Metode Pembayaran : -</div>
+                        <div>
+                            Metode Pembayaran :
+                            <span v-if="payment && payment.payment_method"
+                                >{{ payment.payment_type.toUpperCase() }} -
+                                {{
+                                    getPaymentMethod(payment.payment_method)
+                                }}</span
+                            >
+                            <span v-else>-</span>
+                        </div>
                     </div>
                 </div>
                 <div class="mt-2">
@@ -17,6 +26,11 @@
                         v-if="invoice.status === 'unpaid'"
                         class="badge text-xl badge-warning"
                         >Belum Dibayar</label
+                    >
+                    <label
+                        v-else-if="invoice.status === 'payment'"
+                        class="badge text-xl badge-warning"
+                        >Proses Pembayaran</label
                     >
                     <label
                         v-else-if="invoice.status === 'paid'"
@@ -78,18 +92,22 @@
                     </div>
                 </div>
             </div>
+
+            <div v-if="payment" class="flex flex-col gap-1.5">
+                <div class="font-medium">Pembayaran</div>
+                <div class="flex flex-col text-sm gap-y-1">
+                    <div>
+                        <hr />
+                    </div>
+                    <div>ID : {{ payment?.order_id }}</div>
+                    <div>Transaction ID : {{ payment?.transaction_id }}</div>
+                    <div>Status : {{ payment.status }}</div>
+                </div>
+            </div>
         </div>
         <template #footer>
             <div class="flex justify-between gap-2">
                 <div>
-                    <div>
-                        <button class="btn btn-main">
-                            <FontAwesomeIcon :icon="faDownload" />
-                            Download Invoice
-                        </button>
-                    </div>
-                </div>
-                <div class="space-x-2">
                     <Link
                         v-if="invoice.status === 'unpaid'"
                         as="button"
@@ -99,12 +117,23 @@
                                 code: invoice.code,
                             })
                         "
-                        class="btn btn-outline-danger"
+                        class="btn btn-highlight-neutral-600"
                     >
                         Batalkan
                     </Link>
+                </div>
+                <div class="inline-flex space-x-2">
+                    <button class="btn btn-outline-main">
+                        <FontAwesomeIcon :icon="faDownload" />
+                        Download Invoice
+                    </button>
+
                     <button
-                        v-if="midtransToken && invoice.status === 'unpaid'"
+                        v-if="
+                            invoice.status === 'unpaid' &&
+                            (payment.status === 'request' ||
+                                payment.status === 'pending')
+                        "
                         class="btn btn-main"
                         @click="createPayment"
                     >
@@ -120,7 +149,7 @@
 import Container from "@/Components/Dashboard/UI/Container.vue";
 import { formatIDR } from "@/helpers/Dashboard/currency-format";
 import { formatDateID, formatDateTimeID } from "@/helpers/Dashboard/date";
-import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRight, faDownload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Head, Link, router } from "@inertiajs/vue3";
 import { onMounted } from "vue";
@@ -128,14 +157,32 @@ import { onMounted } from "vue";
 const props = defineProps({
     invoice: Object,
     midtransClientKey: String,
-    midtransToken: String,
+    payment: Object,
 });
+
+const getPaymentMethod = (value) => {
+    if (value === "qris") {
+        return "QRIS";
+    } else if (value === "credit_card") {
+        return "Kartu Kredit";
+    } else if (value === "gopay") {
+        return "Gopay";
+    } else if (value === "bank_transfer") {
+        return "Bank Transfer";
+    } else {
+        return "Lainnya";
+    }
+};
 
 const createPayment = () => {
     if (window.snap) {
-        window.snap.pay(props.midtransToken, {
+        window.snap.pay(props.payment.json_respond.token, {
             onSuccess: function (result) {
-                router.reload();
+                router.get(
+                    route("dashboard.merchant.invoices.finish", {
+                        code: props.invoice.code,
+                    })
+                );
             },
             onClose: function () {
                 alert("Anda menutup popup tanpa menyelesaikan pembayaran");

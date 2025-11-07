@@ -28,7 +28,7 @@
     </button>
 </template>
 <script setup>
-import { useModalStore } from "@/store/Dashboard/modal";
+import { useModalStore } from "@/store/Dashboard/notification";
 import {
     faArchive,
     faArrowsRotate,

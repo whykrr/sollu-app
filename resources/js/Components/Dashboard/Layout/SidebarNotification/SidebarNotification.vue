@@ -2,9 +2,11 @@
     <transition name="slide-fade" mode="in-out">
         <aside
             v-if="props.isOpen"
-            class="fixed right-0 top-0 h-screen z-50 shadow-2xl bg-neutral-300/50 backdrop-blur-lg"
+            class="fixed w-full sm:w-auto right-0 top-0 h-screen z-50 shadow-2xl bg-neutral-300/50 backdrop-blur-sm"
         >
-            <div class="flex flex-col h-full p-4 w-[30rem] relative gap-2.5">
+            <div
+                class="flex flex-col h-full p-4 w-full sm:w-[30rem] relative gap-2.5"
+            >
                 <span
                     class="text-xs text-main underline absolute right-2 top-4"
                 >

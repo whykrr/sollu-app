@@ -261,7 +261,7 @@ return [
         'cache' => [
             'values' => true, // collect cache values
         ],
-        'position' => 'bottom-right',
+        'position' => 'top-right',
     ],
 
     /*
@@ -316,7 +316,7 @@ return [
      | Switches between light and dark theme. If set to auto it will respect system preferences
      | Possible values: auto, light, dark
      */
-    'theme' => env('DEBUGBAR_THEME', 'auto'),
+    'theme' => env('DEBUGBAR_THEME', 'light'),
 
     /*
      |--------------------------------------------------------------------------

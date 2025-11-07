@@ -12,6 +12,7 @@ return new class () extends Migration {
     {
         Schema::create('merchants', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->timestamps();
             $table->string('slug', 200)->unique();
             $table->string('name', 200);
             $table->string('owner_name', 200);
@@ -24,7 +25,6 @@ return new class () extends Migration {
             $table->date('expired_at')->nullable();
             $table->string('status', 15)->default('active')->comment('options: active, grace, expired, inactive');
             $table->json('settings')->nullable();
-            $table->timestamps();
         });
 
         Schema::table('merchants', function (Blueprint $table) {

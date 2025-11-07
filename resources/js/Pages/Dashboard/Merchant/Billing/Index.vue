@@ -12,7 +12,7 @@
                 </div>
                 <div class="mt-2 flex flex-col px-4">
                     <div class="font-bold text-xl">
-                        {{ auth.subscription.plan.name }}
+                        {{ subscription.plan.name }}
                     </div>
                     <div class="flex gap-1 text-sm">
                         <div class="font-semibold">Tanggal Berakhir</div>
@@ -33,7 +33,7 @@
                     <div class="flex gap-1 text-sm">
                         <div class="font-semibold">Jumlah Outlet</div>
                         <div class="text-gray-600">
-                            {{ auth.merchant.outlets.length }} Outlet
+                            {{ auth.outlets.length }} Outlet
                         </div>
                     </div>
                     <div class="flex gap-1 text-sm">
@@ -46,65 +46,101 @@
                     <div class="space-x-2">
                         <Link
                             :href="route('dashboard.merchant.billing.plans')"
-                            v-if="auth.subscription.plan.is_trial"
+                            v-if="subscription.plan.is_trial"
                             class="btn btn-outline-main btn-sm"
                         >
                             Langganan Sekarang
                         </Link>
 
-                        <button
-                            v-if="auth.subscription.plan.is_trial === false"
+                        <Link
+                            v-if="subscription.plan.is_trial === false"
+                            :href="route('dashboard.merchant.billing.plans')"
                             class="btn btn-outline-info btn-sm"
                         >
                             Ubah Langganan
-                        </button>
+                        </Link>
 
                         <button
                             v-if="
                                 gapDaysFromNow(auth.merchant.expired_at) <=
-                                    10 &&
-                                auth.subscription.plan.is_trial === false
+                                    10 && subscription.plan.is_trial === false
                             "
+                            :href="route('dashboard.merchant.invoices.index')"
                             class="btn btn-outline-main btn-sm"
                         >
-                            Bayar Langganan Sekarang
+                            Bayar Tagihan
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white border rounded-md p-4">
-                <div class="font-bold text-xl">
-                    {{ auth.subscription.plan.name }}
-                </div>
-                <p class="text-sm">
-                    {{ auth.subscription.plan.description }}
-                </p>
-                <div
-                    class="font-semibold text-success"
-                    v-if="auth.subscription.plan.is_trial"
-                >
-                    Gratis
-                </div>
-                <div v-else class="font-semibold text-main">
-                    {{ formatIDR(auth.subscription.plan.price) }} per Outlet /
-                    {{
-                        auth.subscription.plan.billing_cycle === "monthly"
-                            ? "Bulan"
-                            : "Tahun"
-                    }}
+            <div class="space-x-2">
+                <div class="text font-semibold">Riwayat Langganan</div>
+                <div>
+                    <Table :headers="tableSetting" :data="subscriptions.data">
+                        <template #plan="{ row }">
+                            {{ row.plan.name }} ({{ row.plan.duration }} hari)
+                        </template>
+                        <template #created_at="{ row }">
+                            {{ formatDateTimeID(row.created_at) }}
+                        </template>
+                        <template #start_date="{ row }">
+                            {{ formatDateID(row.start_date) }}
+                        </template>
+                        <template #end_date="{ row }">
+                            {{ formatDateID(row.end_date) }}
+                        </template>
+                        <template #status="{ row }">
+                            <label
+                                v-if="row.is_active"
+                                class="badge pill text-sm badge-success"
+                                >Aktif</label
+                            >
+                            <label
+                                v-else
+                                class="badge pill text-sm badge-warning"
+                                >Tidak Aktif</label
+                            >
+                        </template>
+                    </Table>
                 </div>
             </div>
         </div>
+        <template #footer>
+            <Pagination
+                :links="subscriptions.links"
+                :from="subscriptions.from"
+                :to="subscriptions.to"
+                :total="subscriptions.total"
+                :per-page="subscriptions.per_page ?? 20"
+            />
+        </template>
     </Container>
 </template>
 
 <script setup>
+import Table from "@/Components/Dashboard/Tables/Table.vue";
 import Container from "@/Components/Dashboard/UI/Container.vue";
-import { formatIDR } from "@/helpers/Dashboard/currency-format";
-import { formatDateID, gapDaysFromNow } from "@/helpers/Dashboard/date";
+import {
+    formatDateID,
+    formatDateTimeID,
+    gapDaysFromNow,
+} from "@/helpers/Dashboard/date";
 import { Link, usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
+
+const props = defineProps({
+    subscription: Object,
+    subscriptions: Object,
+});
+
+const tableSetting = [
+    { field: "plan", label: "Langganan", slot: "plan" },
+    { field: "created_at", label: "Tanggal Dibuat", slot: "created_at" },
+    { field: "start_date", label: "Tanggal Mulai", slot: "start_date" },
+    { field: "end_date", label: "Tanggal Akhir", slot: "end_date" },
+    { field: "is_active", label: "Status", slot: "status" },
+];
 
 const page = usePage();
 const auth = computed(() => page.props.auth);

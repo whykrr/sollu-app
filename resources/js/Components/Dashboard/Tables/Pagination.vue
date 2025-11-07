@@ -1,6 +1,6 @@
 <template>
     <div class="grid grid-cols-3 gap-2 justify-stretch">
-        <div class="text-sm text-neutral-400 my-auto">
+        <div class="text-sm text-neutral-400 mt-auto">
             <span class="font-medium">{{ from }} - {{ to }}</span>
             dari
             <span class="font-medium">{{ total }}</span>

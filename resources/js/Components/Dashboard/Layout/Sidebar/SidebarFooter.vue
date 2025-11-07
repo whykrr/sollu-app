@@ -25,7 +25,7 @@
 
         <div
             class="flex flex-col gap-1.5 rounded-lg border border-neutral-300 p-2"
-            v-if="gapDaysFromNow(auth.merchant.expired_at) < 15"
+            v-if="gapDaysFromNow(auth.merchant.expired_at) > 15"
         >
             <div>
                 <div

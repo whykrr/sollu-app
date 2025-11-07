@@ -12,6 +12,15 @@ class SubscriptionPlanSeeder extends Seeder
      */
     public function run(): void
     {
+        $features = [
+            ['title' => 'Fitur Penjualan Lengkap', 'detail' => 'fitur lengkap dan lain lain'],
+            ['title' => 'Laporan Penjualan', 'detail' => 'laporan penjualan lengkap'],
+            ['title' => 'Manajemen Stok', 'detail' => 'manajemen stok mudah'],
+            ['title' => 'Multi Outlet', 'detail' => 'kelola banyak outlet'],
+            ['title' => 'Multi User', 'detail' => 'banyak user dalam 1 outlet'],
+            ['title' => 'Support 24/7', 'detail' => 'bantuan kapan saja'],
+        ];
+
         $plans = [
             [
                 'code'        => 'trial',
@@ -21,6 +30,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'status'      => 'active',
                 'duration'    => 15,
                 'is_trial'    => true,
+                'features'    => $features,
             ],
             [
                 'code'        => 'micro',
@@ -30,6 +40,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'status'      => 'active',
                 'duration'    => 30,
                 'is_trial'    => false,
+                'features'    => $features,
             ],
             [
                 'code'        => 'basic',
@@ -39,6 +50,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'status'      => 'active',
                 'duration'    => 30,
                 'is_trial'    => false,
+                'features'    => $features,
             ],
             [
                 'code'        => 'pro',
@@ -48,6 +60,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'status'      => 'active',
                 'duration'    => 30,
                 'is_trial'    => false,
+                'features'    => $features,
             ],
             [
                 'code'          => 'micro',
@@ -58,6 +71,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'status'        => 'active',
                 'duration'      => 365,
                 'is_trial'      => false,
+                'features'      => $features,
             ],
             [
                 'code'          => 'basic',
@@ -68,6 +82,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'status'        => 'active',
                 'duration'      => 365,
                 'is_trial'      => false,
+                'features'      => $features,
             ],
             [
                 'code'          => 'pro',
@@ -78,6 +93,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'status'        => 'active',
                 'duration'      => 365,
                 'is_trial'      => false,
+                'features'      => $features,
             ],
         ];
 

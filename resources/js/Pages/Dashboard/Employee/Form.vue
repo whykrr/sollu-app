@@ -7,7 +7,6 @@
                     <TextField
                         id="name"
                         label="Nama Lengkap"
-                        class="sm"
                         :class="{ 'is-invalid': form.errors.name }"
                         v-model="form.name"
                         :feedback="form.errors.name"
@@ -17,7 +16,6 @@
                     <EmailField
                         id="email"
                         label="Email"
-                        class="sm"
                         :class="{ 'is-invalid': form.errors.email }"
                         v-model="form.email"
                         :feedback="form.errors.email"
@@ -28,7 +26,6 @@
                     <NumberField
                         id="phone"
                         label="Telepon"
-                        class="sm"
                         :class="{ 'is-invalid': form.errors.phone }"
                         v-model="form.phone"
                         :feedback="form.errors.phone"
@@ -44,7 +41,7 @@
                             name="role"
                             :options="roles"
                             v-model="form.role"
-                            class="sm btn-sm"
+                            class="sm"
                             :feedback="form.errors.role"
                         />
                     </div>
@@ -101,7 +98,7 @@
                     v-if="!user || user?.deleted_at === null"
                     type="button"
                     @click="submitData"
-                    class="btn btn-success btn-sm"
+                    class="btn btn-success"
                 >
                     Simpan
                 </button>

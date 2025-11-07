@@ -6,10 +6,10 @@
 
         <select
             :value="modelValue"
-            class="pr-10"
             :class="['form', inputClass]"
             @change="$emit('update:modelValue', $event.target.value)"
             v-bind="$attrs"
+            style="padding-right: 2.5rem !important"
         >
             <option v-if="placeholder" value="">
                 {{ placeholder }}

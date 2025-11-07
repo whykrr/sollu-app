@@ -12,6 +12,7 @@ return new class () extends Migration {
     {
         Schema::create('outlets', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->timestamps();
             $table->uuid('merchant_id');
             $table->string('slug', 200);
             $table->string('name', 200);
@@ -20,7 +21,6 @@ return new class () extends Migration {
             $table->decimal('longitude', 10, 7)->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('is_main_outlet')->default(false);
-            $table->timestamps();
         });
 
         Schema::table('outlets', function (Blueprint $table) {

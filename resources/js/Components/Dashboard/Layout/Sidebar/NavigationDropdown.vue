@@ -1,36 +1,29 @@
 <template>
     <div
-        class="sidebar-item-expand rounded-lg w-full"
+        class="nav-dropdown"
         :class="{ active: active || isSubMenuOpen }"
         ref="dropdownRef"
     >
-        <a class="expand-toggle" href="#" @click.prevent="toggleSubMenu">
+        <a
+            href="#"
+            class="nav-item nav-item-dropdown"
+            @click.prevent="toggleSubMenu"
+        >
             <FontAwesomeIcon :icon="icon" class="w-[20px]"></FontAwesomeIcon>
-            <div class="grow text-left text-sm">{{ label }}</div>
-            <FontAwesomeIcon
-                :icon="faChevronDown"
-                class="transition-transform duration-200 text-sm"
-                :class="{ 'rotate-180': isSubMenuOpen }"
-            />
+            <div class="nav-item-label">{{ label }}</div>
+            <FontAwesomeIcon :icon="faChevronDown" class="nav-item-caret" />
         </a>
 
         <!-- Animated Submenu -->
-        <transition name="submenu" mode="out-in">
-            <div
-                v-if="active || isSubMenuOpen"
-                class="sidebar-expand-container gap-2"
-            >
-                <slot></slot>
-            </div>
-        </transition>
+
+        <div class="nav-dropdown-list">
+            <slot></slot>
+        </div>
     </div>
 </template>
 
 <script setup>
-import {
-    faChevronCircleDown,
-    faChevronDown,
-} from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { onBeforeMount, onMounted, ref } from "vue";
 
