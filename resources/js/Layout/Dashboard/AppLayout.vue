@@ -14,7 +14,7 @@
     <div class="grow flex flex-col h-screen overflow-hidden">
       <Header />
       <main
-        class="flex-1 relative overflow-hidden px-2.5 py-2.5 bg-neutral-100 rounded-tl-lg"
+        class="flex-1 relative overflow-hidden px-2.5 py-2.5 bg-slate-50 rounded-tl-lg"
       >
         <slot />
       </main>

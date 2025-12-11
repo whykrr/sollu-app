@@ -1,7 +1,7 @@
 <template>
     <aside
         ref="sidebarRef"
-        class="sidebar"
+        class="sidebar bg-white/80 backdrop-blur-md shadow-soft"
         :class="{
             minimize: appStore.sidebar.minimize,
             show: appStore.sidebar.show,
