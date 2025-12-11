@@ -1,13 +1,36 @@
 <template>
     <aside
         ref="sidebarRef"
-        class="sidebar bg-white/80 backdrop-blur-md shadow-soft"
+        class="sidebar bg-white/80 backdrop-blur-md"
         :class="{
             minimize: appStore.sidebar.minimize,
             show: appStore.sidebar.show,
         }"
+        aria-label="Main Sidebar"
+        :aria-expanded="appStore.sidebar.show"
     >
-        <div class="sidebar-container">
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition-opacity duration-300 ease-linear"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition-opacity duration-300 ease-linear"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div
+                    v-if="
+                        appStore.sidebar.show &&
+                        (appStore.sidebar.minimize || isMobile)
+                    "
+                    class="fixed inset-0 bg-black/20 backdrop-blur-sm z-20"
+                    @click="appStore.hide()"
+                    aria-hidden="true"
+                />
+            </Transition>
+        </Teleport>
+
+        <div class="sidebar-container relative z-30">
             <div>
                 <div
                     class="flex justify-between items-center px-2 min-h-16 relative"
@@ -66,6 +89,23 @@ import { Link, router } from '@inertiajs/vue3';
 import { useAppStore } from '@/store/Dashboard/app';
 
 const appStore = useAppStore();
+
+import { onMounted, onUnmounted, ref } from 'vue';
+
+const isMobile = ref(false);
+
+const checkMobile = () => {
+    isMobile.value = window.innerWidth < 640; // sm breakpoint
+};
+
+onMounted(() => {
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', checkMobile);
+});
 
 router.on('finish', () => appStore.hide());
 </script>

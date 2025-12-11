@@ -1,12 +1,12 @@
 <template>
-    <div ref="dropdownRef">
+    <div ref="dropdownRef" class="relative">
         <div
             class="bg-neutral-200/70 hover:p-1 hover:-m-1 rounded-full transition-all duration-150 ease-in-out"
             :class="{ 'p-1 -m-1': showPanel }"
         >
             <a href="#" class="text-slate-700" @click.prevent="togglePanel">
                 <div
-                    class="rounded-full w-10 h-10 bg-white/90 flex items-center justify-center border"
+                    class="rounded-full w-10 h-10 bg-white flex items-center justify-center border border-neutral-200"
                 >
                     {{ initials }}
                 </div>
@@ -24,7 +24,7 @@
         <transition name="fade-down" mode="in-out">
             <div
                 v-if="showPanel"
-                class="absolute bg-gray-300/50 backdrop-blur-sm rounded-lg w-70 top-[48px] right-0 shadow-lg shadow-neutral-300 p-4"
+                class="absolute z-50 bg-neutral-200 border border-neutral-300 rounded-xl w-70 top-[48px] right-0 shadow-xl p-4"
             >
                 <div class="flex flex-col gap-2">
                     <div class="absolute right-4">
@@ -37,7 +37,7 @@
                     </div>
                     <div class="m-auto">
                         <div
-                            class="rounded-full w-16 h-16 text-2xl bg-white flex items-center justify-center"
+                            class="rounded-full w-16 h-16 text-2xl bg-neutral-50 flex items-center justify-center border border-neutral-100"
                         >
                             {{ initials }}
                         </div>
@@ -54,7 +54,9 @@
                     <div class="text-center text-xl">
                         {{ auth.name }}
                     </div>
-                    <div class="bg-white rounded-xl overflow-hidden">
+                    <div
+                        class="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-100"
+                    >
                         <ol>
                             <li
                                 v-for="(item, index) in accountLinks"

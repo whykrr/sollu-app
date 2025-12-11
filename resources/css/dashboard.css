@@ -1,5 +1,5 @@
-@import "@fortawesome/fontawesome-free/css/solid.css" layer(base);
-@import "tailwindcss";
+@import '@fortawesome/fontawesome-free/css/solid.css' layer(base);
+@import 'tailwindcss';
 @config '../../tailwind.config.js';
 
 /*
@@ -12,86 +12,89 @@
 */
 
 @theme {
-    --color-dark: #222222;
-    --color-light: #f0f0f0;
+    --color-dark: #0f172a; /* Slate 900 */
+    --color-light: #f8fafc; /* Slate 50 */
 
-    --color-main: #004aad;
-    --color-main-light: #3372d1;
-    --color-main-lighter: #6697e4;
-    --color-main-dark: #003080;
-    --color-main-darker: #002060;
+    /* Main: Rich Royal Blue */
+    --color-main: #2563eb;
+    --color-main-light: #60a5fa;
+    --color-main-lighter: #93c5fd;
+    --color-main-dark: #1e40af;
+    --color-main-darker: #1e3a8a;
 
-    --color-secondary: #5de0e6;
-    --color-secondary-light: #8aedef;
-    --color-secondary-lighter: #b6f4f8;
-    --color-secondary-dark: #36aeb2;
-    --color-secondary-darker: #22888d;
+    /* Secondary: Deep Indigo (Creates a rich, modern gradient with Royal Blue) */
+    --color-secondary: #4f46e5;
+    --color-secondary-light: #818cf8;
+    --color-secondary-lighter: #a5b4fc;
+    --color-secondary-dark: #4338ca;
+    --color-secondary-darker: #312e81;
 
-    --color-clay: #ad5b00;
-    --color-clay-light: #c97c33;
-    --color-clay-dark: #8b3e00;
-    --color-clay-muted: #f5a623;
+    /* Neutrals: Professional Slate */
+    --color-neutral-light: #f1f5f9;
+    --color-neutral-lighter: #f8fafc;
+    --color-neutral: #cbd5e1;
+    --color-neutral-dark: #475569;
+    --color-neutral-darker: #1e293b;
+    --color-neutral-muted: #94a3b8;
 
-    --color-teal: #0072ad;
-    --color-teal-light: #009ed1;
-    --color-teal-dark: #005b80;
-    --color-teal-muted: #4fd6db;
+    --color-clay: #ea580c; /* Orange-600 */
+    --color-clay-light: #fb923c;
+    --color-clay-dark: #9a3412;
+    --color-clay-muted: #fdba74;
 
-    --color-turquoise: #36c7c9;
-    --color-turquoise-light: #5edfe1;
-    --color-turquoise-dark: #28a0a2;
-    --color-turquoise-muted: #8be3e4;
+    --color-teal: #0284c7; /* Sky-600 */
+    --color-teal-light: #38bdf8;
+    --color-teal-dark: #0369a1;
+    --color-teal-muted: #7dd3fc;
 
-    --color-indigo: #002aad;
-    --color-indigo-light: #4c61d1;
-    --color-indigo-dark: #001b80;
-    --color-indigo-muted: #a7b2e0;
+    --color-turquoise: #14b8a6; /* Teal-500 alias */
+    --color-turquoise-light: #5eead4;
+    --color-turquoise-dark: #0f766e;
+    --color-turquoise-muted: #99f6e4;
 
-    --color-neutral-light: #f0f0f0;
-    --color-neutral-lighter: #f5f5f5;
-    --color-neutral: #e0e0e0;
-    --color-neutral-dark: #3a3a3a;
-    --color-neutral-darker: #1f1f1f;
-    --color-neutral-muted: #b0b0b0;
+    --color-indigo: #4f46e5; /* Indigo-600 */
+    --color-indigo-light: #818cf8;
+    --color-indigo-dark: #3730a3;
+    --color-indigo-muted: #a5b4fc;
 
-    --color-danger: #e63946;
-    --color-danger-light: #f28b90;
-    --color-danger-dark: #a52733;
-    --color-danger-muted: #ff6f61;
+    --color-danger: #ef4444;
+    --color-danger-light: #fca5a5;
+    --color-danger-dark: #b91c1c;
+    --color-danger-muted: #f87171;
 
-    --color-warning: #ffb703;
-    --color-warning-light: #ffcf66;
-    --color-warning-dark: #cc9302;
-    --color-warning-muted: #ffd54f;
+    --color-warning: #f59e0b;
+    --color-warning-light: #fcd34d;
+    --color-warning-dark: #b45309;
+    --color-warning-muted: #fbbf24;
 
-    --color-success: #2a9d8f;
-    --color-success-light: #63d1bb;
-    --color-success-dark: #1d6f64;
-    --color-success-muted: #b8e0d7;
+    --color-success: #10b981;
+    --color-success-light: #6ee7b7;
+    --color-success-dark: #047857;
+    --color-success-muted: #34d399;
 
-    --color-info: #219ebc;
-    --color-info-light: #6fd2e3;
-    --color-info-dark: #157182;
-    --color-info-muted: #b0e0e9;
+    --color-info: #0ea5e9;
+    --color-info-light: #7dd3fc;
+    --color-info-dark: #0369a1;
+    --color-info-muted: #38bdf8;
 
-    --color-purple: #6a0dad;
-    --color-purple-light: #a45bb5;
-    --color-purple-dark: #4b0082;
-    --color-purple-muted: #d6a7d9;
+    --color-purple: #9333ea;
+    --color-purple-light: #c084fc;
+    --color-purple-dark: #7e22ce;
+    --color-purple-muted: #a855f7;
 
-    --color-pink: #ff6f91;
-    --color-pink-light: #ff9eb1;
-    --color-pink-dark: #c04565;
-    --color-pink-muted: #f1a7c5;
+    --color-pink: #db2777;
+    --color-pink-light: #f472b6;
+    --color-pink-dark: #be185d;
+    --color-pink-muted: #e879f9;
 
-    --color-brown: #7b4b3a;
-    --color-brown-light: #a76d5b;
-    --color-brown-dark: #4a2c28;
-    --color-brown-muted: #c0b2a3;
+    --color-brown: #78350f;
+    --color-brown-light: #a94a1a;
+    --color-brown-dark: #451a03;
+    --color-brown-muted: #92400e;
 
-    --color-gray: #b0b0b0;
-    --color-gray-light: #d0d0d0;
-    --color-gray-dark: #7d7d7d;
+    --color-gray: #64748b;
+    --color-gray-light: #94a3b8;
+    --color-gray-dark: #334155;
 }
 
 @layer base {
@@ -104,12 +107,12 @@
     }
 
     @font-face {
-        font-family: "Dosis Bold";
-        src: url("font/dosis-semibold.ttf") format("trueType");
+        font-family: 'Dosis Bold';
+        src: url('font/dosis-semibold.ttf') format('trueType');
     }
     @font-face {
-        font-family: "Dosis";
-        src: url("font/dosis-light.ttf") format("trueType");
+        font-family: 'Dosis';
+        src: url('font/dosis-light.ttf') format('trueType');
     }
 
     /* Floating scrollbar styles for WebKit browsers (Chrome, Safari, Edge) */
@@ -282,7 +285,7 @@
 }
 
 @layer components {
-    @media (width < 40rem /* 640px "sm" */) {
+    @media (width < 40rem /* 640px 'sm' */) {
         .sidebar {
             @apply fixed inset-y-0 left-0 top-0 z-30 transform transition-all duration-300 -translate-x-full w-full !max-h-full border overflow-hidden bg-white;
 
@@ -449,6 +452,15 @@
         }
     }
 
+    /* WIDGETS */
+    .widget {
+        @apply flex flex-col justify-between p-4 bg-white rounded-lg border transition-all duration-200 h-full;
+    }
+
+    .widget-icon {
+        @apply flex items-center justify-center w-10 h-10 rounded-full text-lg;
+    }
+
     .navigation {
         @apply flex flex-col gap-2;
         & ul {
@@ -541,28 +553,25 @@
     }
 
     .table {
-        @apply min-w-full border-separate border-spacing-y-1 -mt-1 text-sm;
+        @apply min-w-full text-sm border-separate border-spacing-y-1;
 
         & thead {
             @apply mb-0;
         }
         & thead tr {
-            @apply bg-white;
+            @apply bg-transparent backdrop-blur-lg;
         }
         & thead tr th {
-            @apply px-3 py-2.5 sticky top-0 z-auto font-semibold first-of-type:rounded-l-sm last-of-type:rounded-r-sm text-nowrap bg-main/20;
-        }
-        &.table-hovered tbody tr {
-            @apply hover:bg-gray-50 cursor-pointer transition-all duration-150 ease-in-out;
+            @apply px-3 py-3 text-left font-semibold text-neutral-700 bg-main/10  first:rounded-l-lg last:rounded-r-lg;
         }
         & tbody tr {
-            @apply bg-white;
+            @apply bg-white transition-all duration-150 ease-in-out hover:bg-neutral-50;
         }
         & tbody tr td {
-            @apply px-1 py-1.5 first-of-type:rounded-l-sm last-of-type:rounded-r-sm;
+            @apply px-3 py-3 align-middle border-y border-neutral-200 first:border-l first:rounded-l-lg last:border-r last:rounded-r-lg;
         }
-        &.table-hovered tbody tr td {
-            @apply px-3 py-2;
+        &.table-hovered tbody tr {
+            @apply cursor-pointer;
         }
     }
 
@@ -600,7 +609,7 @@
             @apply form align-top w-4 h-4 p-0 m-0 focus:ring-2 cursor-pointer;
         }
 
-        & input[type="radio"] {
+        & input[type='radio'] {
             @apply rounded-full;
         }
 
@@ -786,8 +795,8 @@
     .badge-doted {
         @apply flex flex-row items-center gap-1 bg-transparent!;
         &::before {
-            font-family: "Font Awesome 6 Free";
-            content: "\f111";
+            font-family: 'Font Awesome 6 Free';
+            content: '\f111';
             font-size: 10px;
         }
     }
@@ -798,61 +807,31 @@
     }
 
     .modal {
-        /* MODAL */
-        @apply invisible opacity-0 fixed inset-0 bg-gray-900/50 flex items-start p-14 justify-center z-50 transition-opacity duration-300 ease-out;
+        @apply hidden fixed inset-0 z-50 overflow-y-auto;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent backdrop */
+
         &.show {
-            @apply visible opacity-100;
-        }
-        & .modal-container {
-            @apply bg-white rounded-lg shadow-lg w-96 transition-all duration-300 ease-out transform;
-        }
-        & .modal-container {
-            @apply -translate-y-12 opacity-0;
-        }
-        &.show .modal-container {
-            @apply translate-y-0 opacity-100;
+            @apply block;
         }
 
-        & .modal-container .modal-header {
-            @apply flex justify-between items-center border-b px-3 py-2;
+        & .modal-dialog {
+            @apply relative w-auto m-4 pointer-events-none;
         }
 
-        & .modal-container .modal-body {
-            @apply p-4;
+        & .modal-content {
+            @apply relative flex flex-col w-full pointer-events-auto bg-white border border-gray-300 rounded-lg shadow-lg;
         }
 
-        & .modal-container .modal-footer {
-            @apply flex justify-end border-t px-3 py-2;
-        }
-    }
-
-    .toast {
-        /* TOAST */
-        @apply fixed bottom-5 right-5 w-80 px-4 py-2.5 rounded shadow-lg transition-all duration-300 ease-out transform;
-        &.hide {
-            @apply translate-y-12 opacity-0;
-        }
-        &.show {
-            @apply translate-y-0 opacity-100;
-        }
-    }
-    .widget {
-        /* Widget Style */
-        @apply flex flex-col bg-white text-neutral-800 p-4 gap-1 rounded-lg border overflow-hidden;
-
-        & .widget-icon {
-            @apply flex w-8 h-8 items-center justify-center rounded-full;
+        & .modal-header {
+            @apply flex items-center justify-between p-4 border-b border-gray-200 rounded-t-lg;
         }
 
-        & .widget-bar {
-            @apply w-full rounded-full h-1.5;
-        }
-        & .widget-bar .widget-value {
-            @apply h-1.5 rounded-full;
+        & .modal-body {
+            @apply relative p-4;
         }
 
-        & .canvas {
-            @apply max-h-28;
+        & .modal-footer {
+            @apply flex items-center justify-end p-4 border-t border-gray-200 rounded-b-lg;
         }
     }
 }
