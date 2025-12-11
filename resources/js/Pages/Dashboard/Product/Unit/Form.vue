@@ -4,10 +4,10 @@
             <div>
                 <TextField
                     id="name"
+                    v-model="form.name"
                     label="Nama"
                     class="sm"
                     :class="{ 'is-invalid': form.errors.name }"
-                    v-model="form.name"
                     :feedback="form.errors.name"
                     :disabled="unit?.merchant_id === null"
                 />
@@ -15,10 +15,10 @@
             <div>
                 <TextField
                     id="symbol"
+                    v-model="form.symbol"
                     label="Simbol"
                     class="sm"
                     :class="{ 'is-invalid': form.errors.symbol }"
-                    v-model="form.symbol"
                     :feedback="form.errors.symbol"
                     :disabled="unit?.merchant_id === null"
                 />
@@ -26,10 +26,10 @@
             <div>
                 <TextareaField
                     id="description"
+                    v-model="form.description"
                     label="Keterangan"
                     class="sm"
                     :class="{ 'is-invalid': form.errors.description }"
-                    v-model="form.description"
                     :feedback="form.errors.description"
                     :disabled="unit?.merchant_id === null"
                 />
@@ -66,8 +66,8 @@
                         unit?.merchant_id !== null
                     "
                     type="button"
-                    @click="submitData"
                     class="btn btn-success btn-sm"
+                    @click="submitData"
                 >
                     Simpan
                 </button>
@@ -76,11 +76,11 @@
     </Container>
 </template>
 <script setup>
-import Container from "@/Components/Dashboard/UI/Container.vue";
-import { useForm, usePage } from "@inertiajs/vue3";
-import TextField from "@/Components/Dashboard/Form/TextField.vue";
-import ButtonGroupArchive from "@/Components/Dashboard/Button/ButtonGroupArchive.vue";
-import TextareaField from "@/Components/Dashboard/Form/TextareaField.vue";
+import Container from '@/Components/Dashboard/UI/Container.vue';
+import { useForm } from '@inertiajs/vue3';
+import TextField from '@/Components/Dashboard/Form/TextField.vue';
+import ButtonGroupArchive from '@/Components/Dashboard/Button/ButtonGroupArchive.vue';
+import TextareaField from '@/Components/Dashboard/Form/TextareaField.vue';
 
 const props = defineProps({
     returnTo: String,
@@ -97,10 +97,10 @@ const form = useForm({
 const submitData = () => {
     if (props.unit) {
         form.put(
-            route("dashboard.products.units.update", { unit: props.unit.id })
+            route('dashboard.products.units.update', { unit: props.unit.id })
         );
     } else {
-        form.post(route("dashboard.products.units.store"));
+        form.post(route('dashboard.products.units.store'));
     }
 };
 </script>

@@ -3,6 +3,7 @@
 namespace App\Models\Product;
 
 use App\Models\MerchantType;
+use App\Trait\HasMerchant;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +26,7 @@ class ProductCategory extends Model
     use HasFactory;
     use SoftDeletes;
     use HasSlug;
+    use HasMerchant;
 
     protected $fillable = [
         'merchant_id',

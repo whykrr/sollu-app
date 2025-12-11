@@ -56,7 +56,10 @@
                     </div>
                     <div class="bg-white rounded-xl overflow-hidden">
                         <ol>
-                            <li v-for="item in accountLinks">
+                            <li
+                                v-for="(item, index) in accountLinks"
+                                :key="index"
+                            >
                                 <Link
                                     v-if="item.method == 'delete'"
                                     :href="item.link"
@@ -64,9 +67,7 @@
                                     method="delete"
                                     as="button"
                                 >
-                                    <FontAwesomeIcon
-                                        :icon="item.icon"
-                                    ></FontAwesomeIcon>
+                                    <FontAwesomeIcon :icon="item.icon" />
                                     {{ item.label }}
                                 </Link>
                                 <Link
@@ -74,9 +75,7 @@
                                     :href="item.link"
                                     class="flex items-center gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm transition-all duration-150 ease-in-out"
                                 >
-                                    <FontAwesomeIcon
-                                        :icon="item.icon"
-                                    ></FontAwesomeIcon>
+                                    <FontAwesomeIcon :icon="item.icon" />
                                     {{ item.label }}
                                 </Link>
                             </li>
@@ -93,22 +92,21 @@ import {
     faKey,
     faRightFromBracket,
     faUser,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { Link, usePage } from "@inertiajs/vue3";
-import { method } from "lodash";
-import { computed, onBeforeMount, onMounted, ref } from "vue";
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed, onBeforeMount, onMounted, ref } from 'vue';
 
 const auth = computed(() => usePage().props.auth);
 const showPanel = ref(false);
 const dropdownRef = ref(null);
 
 const initials = computed(() => {
-    const name = auth.value?.name || "";
+    const name = auth.value?.name || '';
     return name
-        .split(" ")
+        .split(' ')
         .map((word) => word[0])
-        .join("")
+        .join('')
         .substring(0, 2)
         .toUpperCase();
 });
@@ -123,21 +121,21 @@ const closePanel = () => {
 
 const accountLinks = [
     {
-        label: "Info Akun",
+        label: 'Info Akun',
         icon: faUser,
-        link: "#",
-        method: "get",
+        link: '#',
+        method: 'get',
     },
     {
-        label: "Ubah kata sandi",
+        label: 'Ubah kata sandi',
         icon: faKey,
-        link: "#",
+        link: '#',
     },
     {
-        label: "Keluar",
+        label: 'Keluar',
         icon: faRightFromBracket,
-        link: route("dashboard.logout"),
-        method: "delete",
+        link: route('dashboard.logout'),
+        method: 'delete',
     },
 ];
 
@@ -148,10 +146,10 @@ const handleClickOutside = (event) => {
 };
 
 onMounted(() => {
-    document.addEventListener("click", handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
 });
 
 onBeforeMount(() => {
-    document.removeEventListener("click", handleClickOutside);
+    document.removeEventListener('click', handleClickOutside);
 });
 </script>

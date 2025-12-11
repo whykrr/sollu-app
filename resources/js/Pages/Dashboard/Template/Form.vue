@@ -5,23 +5,23 @@
                 <Card title="Basic">
                     <div class="grid grid-flow-row">
                         <TextField
+                            v-model="form.exampleInput"
                             label="Example Input"
                             placeholder="Example..."
-                            v-model="form.exampleInput"
                         />
                         <TextareaField
+                            v-model="form.exampleTextarea"
                             label="Example Textarea"
                             placeholder="Example ..."
-                            v-model="form.exampleTextarea"
                         />
                         <DropdownField
+                            v-model="form.exampleSelect"
                             label="Example Select"
                             :options="[
                                 { value: 1, label: 'Satu' },
                                 { value: 2, label: 'Dua' },
                                 { value: 3, label: 'Tiga' },
                             ]"
-                            v-model="form.exampleSelect"
                         />
                     </div>
                 </Card>
@@ -49,8 +49,8 @@
                     <div class="flex flex-col gap-2">
                         <div class="form-floating">
                             <input
-                                type="text"
                                 id="name"
+                                type="text"
                                 placeholder="asd"
                                 required
                             />
@@ -59,8 +59,8 @@
                         <div>
                             <div class="form-floating is-invalid">
                                 <input
-                                    type="text"
                                     id="name"
+                                    type="text"
                                     placeholder="asd"
                                     required
                                 />
@@ -71,8 +71,8 @@
                         <div>
                             <div class="form-floating is-valid">
                                 <input
-                                    type="text"
                                     id="name"
+                                    type="text"
                                     placeholder="asd"
                                     required
                                 />
@@ -84,14 +84,14 @@
                 </Card>
                 <Card title="Property Form">
                     <InputBasic
+                        v-model="form.exampleInput"
                         label="Disabled"
                         disabled
-                        v-model="form.exampleInput"
                     />
                     <InputBasic
+                        v-model="form.exampleInput"
                         label="Readonly"
                         readonly
-                        v-model="form.exampleInput"
                     />
                 </Card>
 
@@ -162,9 +162,9 @@
                                 >Input File Small</label
                             >
                             <input
+                                id="example_file_sm"
                                 type="file"
                                 class="form sm"
-                                id="example_file_sm"
                                 readonly
                                 placeholder="Example..."
                             />
@@ -172,9 +172,9 @@
                         <div>
                             <label for="example_file">Input File Regular</label>
                             <input
+                                id="example_file"
                                 type="file"
                                 class="form"
-                                id="example_file"
                                 readonly
                                 placeholder="Example..."
                             />
@@ -184,10 +184,10 @@
                 <Card title="Input Radio">
                     <div class="form-check">
                         <input
+                            id="radio_default"
                             name="radio_default"
                             type="radio"
                             class="form-check-input"
-                            id="radio_default"
                         />
                         <label for="radio_default" class="form-check-label"
                             >Radio Default</label
@@ -195,10 +195,10 @@
                     </div>
                     <div class="form-check">
                         <input
+                            id="radio_default2"
                             name="radio_default"
                             type="radio"
                             class="form-check-input"
-                            id="radio_default2"
                             checked
                         />
                         <label for="radio_default2" class="form-check-label"
@@ -209,10 +209,10 @@
                     <div class="flex flex-row gap-2">
                         <div>
                             <input
+                                id="button_radio1"
                                 type="radio"
                                 class="form-check-btn peer"
                                 name="button_radio"
-                                id="button_radio1"
                             />
                             <label
                                 class="btn btn-outline-main"
@@ -223,10 +223,10 @@
 
                         <div>
                             <input
+                                id="button_radio2"
                                 type="radio"
                                 class="form-check-btn peer"
                                 name="button_radio"
-                                id="button_radio2"
                                 checked
                             />
                             <label
@@ -243,10 +243,10 @@
                         <div>
                             <div class="form-check">
                                 <input
+                                    id="checkbox_default"
                                     name="checkbox_default"
                                     type="checkbox"
                                     class="form-check-input"
-                                    id="checkbox_default"
                                 />
                                 <label
                                     for="checkbox_default"
@@ -256,10 +256,10 @@
                             </div>
                             <div class="form-check">
                                 <input
+                                    id="checkbox_default2"
                                     name="checkbox_default"
                                     type="checkbox"
                                     class="form-check-input"
-                                    id="checkbox_default2"
                                     checked
                                 />
                                 <label
@@ -276,10 +276,10 @@
                             <div class="flex flex-row gap-2">
                                 <div>
                                     <input
+                                        id="button_check1"
                                         type="checkbox"
                                         class="form-check-btn peer"
                                         name="button_checkbox"
-                                        id="button_check1"
                                     />
                                     <label
                                         class="btn btn-highlight-main"
@@ -290,10 +290,10 @@
 
                                 <div>
                                     <input
+                                        id="button_checkbox2"
                                         type="checkbox"
                                         class="form-check-btn peer"
                                         name="button_checkbox"
-                                        id="button_checkbox2"
                                         checked
                                     />
                                     <label
@@ -327,8 +327,8 @@
                                     <FontAwesomeIcon :icon="faSearch" />
                                 </label>
                                 <input
-                                    type="text"
                                     id="form_group"
+                                    type="text"
                                     class="form"
                                 />
                             </div>
@@ -396,12 +396,13 @@
                             <label for="form_group_btn">Group Button</label>
                             <div class="form-group">
                                 <button class="btn btn-main">
-                                    <FontAwesomeIcon :icon="faSearch" /> Cari
+                                    <FontAwesomeIcon :icon="faSearch" />
+                                    Cari
                                 </button>
                                 <input
+                                    id="form_group_btn"
                                     type="text"
                                     class="form"
-                                    id="form_group_btn"
                                 />
                             </div>
                         </div>
@@ -412,21 +413,21 @@
     </Container>
 </template>
 <script setup>
-import InputBasic from "@/Components/Dashboard/Form/TextField.vue";
-import Switch from "@/Components/Dashboard/Form/Switch.vue";
-import Card from "@/Components/Dashboard/UI/Card/Card.vue";
-import Container from "@/Components/Dashboard/UI/Container.vue";
-import { faArrowRight, faSearch } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { useForm } from "@inertiajs/vue3";
-import { ref } from "vue";
-import TextField from "@/Components/Dashboard/Form/TextField.vue";
-import TextareaField from "@/Components/Dashboard/Form/TextareaField.vue";
-import DropdownField from "@/Components/Dashboard/Form/DropdownField.vue";
+import InputBasic from '@/Components/Dashboard/Form/TextField.vue';
+import Switch from '@/Components/Dashboard/Form/Switch.vue';
+import Card from '@/Components/Dashboard/UI/Card/Card.vue';
+import Container from '@/Components/Dashboard/UI/Container.vue';
+import { faArrowRight, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import TextField from '@/Components/Dashboard/Form/TextField.vue';
+import TextareaField from '@/Components/Dashboard/Form/TextareaField.vue';
+import DropdownField from '@/Components/Dashboard/Form/DropdownField.vue';
 
 const form = useForm({
-    exampleInput: "Test",
-    exampleTextarea: "",
-    exampleSelect: "",
+    exampleInput: 'Test',
+    exampleTextarea: '',
+    exampleSelect: '',
 });
 </script>

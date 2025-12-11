@@ -1,16 +1,16 @@
 import { createApp, h } from 'vue'
 import { createInertiaApp, router } from '@inertiajs/vue3'
-import { ZiggyVue } from 'ziggy-js';
-import { Ziggy } from './ziggy.js';
+import { ZiggyVue } from 'ziggy-js'
+import { Ziggy } from './ziggy.js'
 
-import AppLayout from '@/Layout/Dashboard/AppLayout.vue';
-import { createPinia } from 'pinia';
-import AccessHandle from '@/access-handle.js';
+import AppLayout from '@/Layout/Dashboard/AppLayout.vue'
+import { createPinia } from 'pinia'
+import AccessHandle from '@/access-handle.js'
 
 createInertiaApp({
     progress: {
-        color: "#004AAD",
-        showSpinner: false
+        color: '#004AAD',
+        showSpinner: false,
     },
     resolve: async (name) => {
         const pages = import.meta.glob('./Pages/**/*.vue')

@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+import { defineStore } from 'pinia'
 
 export const useCurrentUrlStore = defineStore('history', {
     state: () => ({
@@ -9,4 +9,4 @@ export const useCurrentUrlStore = defineStore('history', {
             this.url = newUrl
         },
     },
-});
+})

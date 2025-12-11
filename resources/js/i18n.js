@@ -1,6 +1,6 @@
-import { createI18n } from 'vue-i18n';
-import id from '@/lang/Dashboard/id';
-import en from '@/lang/Dashboard/en';
+import { createI18n } from 'vue-i18n'
+import id from '@/lang/Dashboard/id'
+import en from '@/lang/Dashboard/en'
 
 // Create an I18n instance
 const i18n = createI18n({
@@ -11,6 +11,6 @@ const i18n = createI18n({
         en: en,
         id: id,
     }, // Translation messages
-});
+})
 
-export default i18n;
+export default i18n

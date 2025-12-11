@@ -15,5 +15,10 @@ Route::prefix('products')
             ->name('units.purge')
             ->withTrashed();
 
-        Route::resource('categories', ProductCategoryController::class);
+        Route::delete('categories/{category}/force', [ProductCategoryController::class, 'forceDelete'])
+            ->name('categories.force-delete');
+
+        Route::resource('categories', ProductCategoryController::class)->parameters([
+            'categories' => 'category',
+        ]);
     });

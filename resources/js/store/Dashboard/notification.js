@@ -1,5 +1,5 @@
-import i18n from '@/i18n';
-import { defineStore } from 'pinia';
+import i18n from '@/i18n'
+import { defineStore } from 'pinia'
 
 const HEADER_DELETE = 'Hapus Data'
 const HEADER_SOFT_DELETE = 'Pindahkan ke sampah'
@@ -15,33 +15,33 @@ export const useModalStore = defineStore('modal', {
             isVisible: false,
             url: null,
             header: null,
-            msg: null
+            msg: null,
         },
     }),
     actions: {
         openModalDelete(url) {
-            this.delete.isVisible = true;
-            this.delete.url = url;
+            this.delete.isVisible = true
+            this.delete.url = url
             this.delete.header = HEADER_DELETE
             this.delete.msg = MESSAGE_DELETE
         },
         openModalSoftDelete(url) {
-            this.delete.isVisible = true;
-            this.delete.url = url;
+            this.delete.isVisible = true
+            this.delete.url = url
             this.delete.header = HEADER_SOFT_DELETE
             this.delete.msg = MESSAGE_SOFT_DELETE
         },
         openModalArchive(url) {
-            this.delete.isVisible = true;
-            this.delete.url = url;
+            this.delete.isVisible = true
+            this.delete.url = url
             this.delete.header = HEADER_ARCHIVE
             this.delete.msg = MESSAGE_ARCHIVE
         },
         closeModalDelete() {
-            this.delete.isVisible = false;
-            this.delete.url = null;
-            this.delete.header = null;
-            this.delete.msg = null;
+            this.delete.isVisible = false
+            this.delete.url = null
+            this.delete.header = null
+            this.delete.msg = null
         },
     },
-});
+})

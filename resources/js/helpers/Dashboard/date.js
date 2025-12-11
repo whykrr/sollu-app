@@ -1,79 +1,79 @@
 export function formatDateID(dateInput) {
     const bulanIndo = [
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-    ];
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    ]
 
-    const tanggal = new Date(dateInput);
-    const hari = tanggal.getDate();
-    const bulan = bulanIndo[tanggal.getMonth()];
-    const tahun = tanggal.getFullYear();
+    const tanggal = new Date(dateInput)
+    const hari = tanggal.getDate()
+    const bulan = bulanIndo[tanggal.getMonth()]
+    const tahun = tanggal.getFullYear()
 
-    return `${hari} ${bulan} ${tahun}`;
+    return `${hari} ${bulan} ${tahun}`
 }
 
 export function formatDateTimeID(dateInput) {
     const bulanIndo = [
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-    ];
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    ]
 
-    const tanggal = new Date(dateInput);
-    const hari = tanggal.getDate();
-    const bulan = bulanIndo[tanggal.getMonth()];
-    const tahun = tanggal.getFullYear();
+    const tanggal = new Date(dateInput)
+    const hari = tanggal.getDate()
+    const bulan = bulanIndo[tanggal.getMonth()]
+    const tahun = tanggal.getFullYear()
 
-    const jam = String(tanggal.getHours()).padStart(2, "0");
-    const menit = String(tanggal.getMinutes()).padStart(2, "0");
+    const jam = String(tanggal.getHours()).padStart(2, '0')
+    const menit = String(tanggal.getMinutes()).padStart(2, '0')
 
-    return `${hari} ${bulan} ${tahun} ${jam}:${menit}`;
+    return `${hari} ${bulan} ${tahun} ${jam}:${menit}`
 }
 
 export function formatDateCompleteID(dateInput) {
     const hariIndo = [
-        "Minggu", "Senin", "Selasa", "Rabu",
-        "Kamis", "Jumat", "Sabtu"
-    ];
+        'Minggu', 'Senin', 'Selasa', 'Rabu',
+        'Kamis', 'Jumat', 'Sabtu',
+    ]
     const bulanIndo = [
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-    ];
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    ]
 
-    const tanggal = new Date(dateInput);
-    const hari = tanggal.getDate();
-    const bulan = bulanIndo[tanggal.getMonth()];
-    const tahun = tanggal.getFullYear();
-    const hariNama = hariIndo[tanggal.getDay()];
+    const tanggal = new Date(dateInput)
+    const hari = tanggal.getDate()
+    const bulan = bulanIndo[tanggal.getMonth()]
+    const tahun = tanggal.getFullYear()
+    const hariNama = hariIndo[tanggal.getDay()]
 
-    return `${hariNama}, ${hari} ${bulan} ${tahun}`;
+    return `${hariNama}, ${hari} ${bulan} ${tahun}`
 }
 
 export function gapDaysFromNow(expiredDate) {
-    const expired = new Date(expiredDate);
-    const today = new Date();
+    const expired = new Date(expiredDate)
+    const today = new Date()
 
     // Samakan ke tanggal saja (tanpa jam)
     const todayOnly = new Date(
         today.getFullYear(),
         today.getMonth(),
-        today.getDate()
-    );
+        today.getDate(),
+    )
     const expiredOnly = new Date(
         expired.getFullYear(),
         expired.getMonth(),
-        expired.getDate()
-    );
+        expired.getDate(),
+    )
 
-    const diffTime = expiredOnly - todayOnly;
-    const sisaHari = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffTime = expiredOnly - todayOnly
+    const sisaHari = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-    return sisaHari > 0 ? sisaHari : 0;
+    return sisaHari > 0 ? sisaHari : 0
 };
 
 // function addDays(date, days)
 export function addDays(date, days) {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
+    const result = new Date(date)
+    result.setDate(result.getDate() + days)
+    return result
 }
 

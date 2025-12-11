@@ -5,14 +5,14 @@
             type="email"
             class="form"
             :value="modelValue"
-            @input="emit('update:modelValue', $event.target.value)"
             v-bind="$attrs"
+            @input="emit('update:modelValue', $event.target.value)"
         />
         <span v-if="feedback" class="form-feedback">{{ feedback }}</span>
     </div>
 </template>
 <script setup>
-const props = defineProps({
+const { label, feedback, modelValue } = defineProps({
     label: String,
     feedback: String,
     modelValue: String,

@@ -12,6 +12,10 @@
         "@vitejs/plugin-vue": "^5.2.4",
         "autoprefixer": "^10.4.20",
         "axios": "^1.7.4",
+        "eslint": "^9.39.1",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-vue": "^10.5.1",
+        "globals": "^16.5.0",
         "laravel-vite-plugin": "^1.0.6",
         "postcss": "^8.4.47",
         "vite": "^6.3.5"
