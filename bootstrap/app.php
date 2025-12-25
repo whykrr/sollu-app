@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Middleware\HandleInertiaDashboardRequests;
+use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
@@ -10,7 +10,6 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -18,20 +17,12 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         health: '/health',
         then: function () {
             // This is where you can add any additional middleware to the web routes.
             // For example, you can add authentication or authorization middleware here.
-            Route::domain(config('domain.dashboard'))
-                ->middleware(['web', 'dashboard'])
-                ->name('dashboard.')
-                ->group(base_path('routes/dashboard.php'));
-
-            Route::domain(config('domain.api'))
-                ->middleware(['api'])
-                ->name('api.')
-                ->group(base_path('routes/api.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -44,22 +35,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             // \Illuminate\Session\Middleware\AuthenticateSession::class,
             // HandleInertiaRequests::class,
+            HandleInertiaRequests::class,
         ]);
 
-        $middleware->group('dashboard', [
-            HandleInertiaDashboardRequests::class,
-        ]);
-
-        //app
-        $middleware->redirectGuestsTo(function ($request) {
-            $host = $request->getHost();
-            if (str_starts_with($host, 'dashboard.')) {
-                return route('dashboard.login');
-            }
-
-            return route('home');
-        });
-        $middleware->redirectUsersTo(fn ($request) => route('dashboard.overview'));
+        $middleware->redirectUsersTo(fn ($request) => route('overview'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->report(function (Throwable $e) {
@@ -116,7 +95,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             // if page for guest
-            if ($request->is('dashboard.login') || $request->is('dashboard.register') || $request->is('forgot')) {
+            if ($request->is('login') || $request->is('register') || $request->is('forgot')) {
                 throw ValidationException::withMessages([
                     'email' => $message,
                 ]);

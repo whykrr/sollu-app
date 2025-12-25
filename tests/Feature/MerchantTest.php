@@ -16,7 +16,7 @@ class MerchantTest extends TestCase
      */
     public function test_login_page_is_accessible(): void
     {
-        $response = $this->get('http://dashboard.sollu.test/login');
+        $response = $this->get('http://sollu.test/login');
         $response->assertStatus(200);
         $response->assertSee('Login');
     }

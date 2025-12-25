@@ -1,6 +1,6 @@
 import { createI18n } from 'vue-i18n'
-import id from '@/lang/Dashboard/id'
-import en from '@/lang/Dashboard/en'
+import id from '@/Lang/id'
+import en from '@/Lang/en'
 
 // Create an I18n instance
 const i18n = createI18n({

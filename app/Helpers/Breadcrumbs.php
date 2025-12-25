@@ -6,56 +6,56 @@ if (! function_exists('generateBreadcrumbs')) {
     {
         $breadcrumbs = [
             'overview' => [
-                ['label' => 'Overview', 'url' => route('dashboard.overview')],
+                ['label' => 'Overview', 'url' => route('overview')],
             ],
 
             'products.units.index' => [
                 ['label' => 'Produk', 'url' => '#'],
-                ['label' => 'Satuan', 'url' => route('dashboard.products.units.index')],
+                ['label' => 'Satuan', 'url' => route('products.units.index')],
             ],
             'products.units.create' => [
                 ['label' => 'Produk', 'url' => '#'],
-                ['label' => 'Satuan', 'url' => route('dashboard.products.units.index')],
+                ['label' => 'Satuan', 'url' => route('products.units.index')],
                 ['label' => 'Tambah Satuan', 'url' => '#'],
             ],
             'products.units.show' => [
                 ['label' => 'Produk', 'url' => '#'],
-                ['label' => 'Satuan', 'url' => route('dashboard.products.units.index')],
+                ['label' => 'Satuan', 'url' => route('products.units.index')],
                 ['label' => 'Detail Satuan', 'url' => '#'],
             ],
 
             'employees.index' => [
-                ['label' => 'Pegawai', 'url' => route('dashboard.employees.index')],
+                ['label' => 'Pegawai', 'url' => route('employees.index')],
             ],
             'employees.create' => [
-                ['label' => 'Pegawai', 'url' => route('dashboard.employees.index')],
+                ['label' => 'Pegawai', 'url' => route('employees.index')],
                 ['label' => 'Tambah Pegawai', 'url' => '#'],
             ],
             'employees.show' => [
-                ['label' => 'Pegawai', 'url' => route('dashboard.employees.index')],
+                ['label' => 'Pegawai', 'url' => route('employees.index')],
                 ['label' => 'Detail Pegawai', 'url' => '#'],
             ],
 
             'merchant.info.detail' => [
                 ['label' => 'Usaha', 'url' => '#'],
-                ['label' => 'Detail Usaha', 'url' => route('dashboard.merchant.info.detail')],
+                ['label' => 'Detail Usaha', 'url' => route('merchant.info.detail')],
             ],
 
             'merchant.billing.index' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('dashboard.merchant.billing.index')],
+                ['label' => 'Langganan', 'url' => route('merchant.billing.index')],
             ],
 
             'merchant.billing.plans' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('dashboard.merchant.billing.index')],
+                ['label' => 'Langganan', 'url' => route('merchant.billing.index')],
                 ['label' => 'Pilih Langganan', 'url' => '#'],
             ],
 
             'merchant.billing.subscribe' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('dashboard.merchant.billing.index')],
-                ['label' => 'Pilih Langganan', 'url' => route('dashboard.merchant.billing.plans')],
+                ['label' => 'Langganan', 'url' => route('merchant.billing.index')],
+                ['label' => 'Pilih Langganan', 'url' => route('merchant.billing.plans')],
                 ['label' => 'Detail Langganan', 'url' => '#'],
             ],
 
@@ -65,7 +65,7 @@ if (! function_exists('generateBreadcrumbs')) {
             ],
             'merchant.invoices.show' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Pembayaran', 'url' => route('dashboard.merchant.invoices.index')],
+                ['label' => 'Pembayaran', 'url' => route('merchant.invoices.index')],
                 ['label' => 'Tagihan', 'url' => '#'],
             ],
 
@@ -139,7 +139,7 @@ if (! function_exists('generateBreadcrumbs')) {
             // ],
         ];
 
-        $routeName = str_replace('dashboard.', '', $routeName);
+        $routeName = str_replace('', '', $routeName);
 
         return $breadcrumbs[$routeName] ?? $breadcrumbs['overview'];
     }

@@ -42,6 +42,6 @@ class NewEmployee extends Notification
                 'user'            => $notifiable,
                 'defaultPassword' => $this->password,
             ])
-            ->action('Login Sekarang', route('dashboard.login'));
+            ->action('Login Sekarang', route('login'));
     }
 }

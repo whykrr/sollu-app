@@ -17,7 +17,7 @@ class RedirectGuestCockpit
     public function handle(Request $request, Closure $next): Response
     {
         if (! Auth::guard('cockpit')->check()) {
-            return redirect()->route('dashboard.login'); // redirect sesuai guard
+            return redirect()->route('login'); // redirect sesuai guard
         }
 
         return $next($request);

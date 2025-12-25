@@ -40,7 +40,7 @@ class VerifyEmailMerchant extends NotificationsVerifyEmail
     protected function verificationUrl($notifiable)
     {
         return URL::temporarySignedRoute(
-            'dashboard.verification.verify',
+            'verification.verify',
             Carbon::now()->addMinutes(60),
             [
                 'id'   => $notifiable->getKey(),

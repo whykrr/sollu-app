@@ -32,7 +32,7 @@ class WelcomeUser extends Notification
             ->line('Terima kasih telah mendaftar di Sollu App.')
             ->line('Kami senang bisa mendampingi Anda dalam mengelola bisnis dengan lebih mudah, cepat, dan efisien.')
             ->line('Akun Anda saat ini berada dalam masa percobaan gratis. Nikmati semua fitur premium tanpa batasan untuk merasakan manfaat maksimal dari Sollu.')
-            ->action('Masuk ke Dashboard', route('dashboard.overview'))
+            ->action('Masuk ke Dashboard', route('overview'))
             ->line('Jika ada pertanyaan atau butuh bantuan, jangan ragu untuk menghubungi tim kami kapan saja.')
             ->salutation(new HtmlString('<strong>Salam hangat,<br>' . config('app.name') . '</strong>'));
     }
