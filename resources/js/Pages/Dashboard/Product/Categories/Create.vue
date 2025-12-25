@@ -1,6 +1,6 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
-import AppLayout from '@/Layout/Dashboard/AppLayout.vue';
+import Container from '@/Components/Dashboard/UI/Container.vue';
 import CategoryForm from './Partials/CategoryForm.vue';
 
 const props = defineProps({
@@ -13,32 +13,26 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('products.categories.store'));
+    form.post(route('dashboard.products.categories.store'));
 };
 </script>
 
 <template>
     <Head title="Tambah Kategori" />
 
-    <AppLayout>
+    <Container>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 Tambah Kategori Baru
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                    <div class="p-6">
-                        <CategoryForm
-                            :form="form"
-                            :categories="availableCategories"
-                            @submit="submit"
-                        />
-                    </div>
-                </div>
-            </div>
+        <div class="bg-white rounded-lg p-6 border border-neutral-200">
+            <CategoryForm
+                :form="form"
+                :categories="availableCategories"
+                @submit="submit"
+            />
         </div>
-    </AppLayout>
+    </Container>
 </template>

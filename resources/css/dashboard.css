@@ -15,46 +15,46 @@
     --color-dark: #0f172a; /* Slate 900 */
     --color-light: #f8fafc; /* Slate 50 */
 
-    /* Main: Rich Royal Blue */
-    --color-main: #2563eb;
-    --color-main-light: #60a5fa;
-    --color-main-lighter: #93c5fd;
-    --color-main-dark: #1e40af;
-    --color-main-darker: #1e3a8a;
+    /* Main: Navy Blue (Elegant & Deep) */
+    --color-main: #1e40af;
+    --color-main-light: #3b82f6;
+    --color-main-lighter: #60a5fa;
+    --color-main-dark: #1e3a8a;
+    --color-main-darker: #172554;
 
-    /* Secondary: Deep Indigo (Creates a rich, modern gradient with Royal Blue) */
-    --color-secondary: #4f46e5;
-    --color-secondary-light: #818cf8;
-    --color-secondary-lighter: #a5b4fc;
-    --color-secondary-dark: #4338ca;
-    --color-secondary-darker: #312e81;
+    /* Secondary: Turquoise (Bright, Elegant Gradient with Navy) */
+    --color-secondary: #06b6d4;
+    --color-secondary-light: #67e8f9;
+    --color-secondary-lighter: #a5f3fc;
+    --color-secondary-dark: #0891b2;
+    --color-secondary-darker: #0e7490;
 
     /* Neutrals: Professional Slate */
-    --color-neutral-light: #f1f5f9;
-    --color-neutral-lighter: #f8fafc;
+    --color-neutral-light: #f8fafc;
+    --color-neutral-lighter: #ffffff;
     --color-neutral: #cbd5e1;
     --color-neutral-dark: #475569;
     --color-neutral-darker: #1e293b;
     --color-neutral-muted: #94a3b8;
 
-    --color-clay: #ea580c; /* Orange-600 */
+    --color-clay: #f97316; /* Orange-500 */
     --color-clay-light: #fb923c;
-    --color-clay-dark: #9a3412;
+    --color-clay-dark: #ea580c;
     --color-clay-muted: #fdba74;
 
-    --color-teal: #0284c7; /* Sky-600 */
+    --color-teal: #0ea5e9; /* Sky-500 */
     --color-teal-light: #38bdf8;
-    --color-teal-dark: #0369a1;
+    --color-teal-dark: #0284c7;
     --color-teal-muted: #7dd3fc;
 
-    --color-turquoise: #14b8a6; /* Teal-500 alias */
+    --color-turquoise: #14b8a6; /* Teal-500 */
     --color-turquoise-light: #5eead4;
     --color-turquoise-dark: #0f766e;
     --color-turquoise-muted: #99f6e4;
 
-    --color-indigo: #4f46e5; /* Indigo-600 */
+    --color-indigo: #6366f1; /* Indigo-500 */
     --color-indigo-light: #818cf8;
-    --color-indigo-dark: #3730a3;
+    --color-indigo-dark: #4f46e5;
     --color-indigo-muted: #a5b4fc;
 
     --color-danger: #ef4444;
@@ -77,15 +77,15 @@
     --color-info-dark: #0369a1;
     --color-info-muted: #38bdf8;
 
-    --color-purple: #9333ea;
+    --color-purple: #a855f7;
     --color-purple-light: #c084fc;
-    --color-purple-dark: #7e22ce;
-    --color-purple-muted: #a855f7;
+    --color-purple-dark: #9333ea;
+    --color-purple-muted: #d8b4fe;
 
-    --color-pink: #db2777;
+    --color-pink: #ec4899;
     --color-pink-light: #f472b6;
-    --color-pink-dark: #be185d;
-    --color-pink-muted: #e879f9;
+    --color-pink-dark: #db2777;
+    --color-pink-muted: #f9a8d4;
 
     --color-brown: #78350f;
     --color-brown-light: #a94a1a;
@@ -138,13 +138,13 @@
     /* Floating scrollbar styles for Firefox */
     .sidebar {
         scrollbar-width: thin; /* Thin scrollbar */
-        scrollbar-color: #71809680 transparent; /* Thumb color and transparent track */
+        scrollbar-color: var(--color-gray-300) transparent; /* Thumb color and transparent track */
     }
 
     /* WebKit-based browsers (Chrome, Edge, Safari) */
     .floating-scroll::-webkit-scrollbar {
-        width: 8px;
-        height: 8px; /* Add for horizontal scrollbars */
+        width: 6px;
+        height: 6px; /* Add for horizontal scrollbars */
     }
 
     .floating-scroll::-webkit-scrollbar-track {
@@ -152,50 +152,53 @@
     }
 
     .floating-scroll::-webkit-scrollbar-thumb {
-        background-color: #71809680; /* Thumb color */
+        background-color: var(--color-gray-300); /* Thumb color */
         border-radius: 4px;
         border: 2px solid transparent; /* Creates padding for the thumb */
         background-clip: padding-box;
     }
 
     .floating-scroll::-webkit-scrollbar-thumb:hover {
-        background-color: #a0aec0;
+        background-color: var(--color-gray-400);
     }
 }
 
 @utility btn {
-    @apply inline-flex text-base gap-1 items-center border border-transparent rounded-sm py-1 px-2 hover:brightness-110 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer
-        transition-all duration-150 ease-in-out;
+    @apply inline-flex text-sm font-medium gap-2 items-center border border-transparent rounded-lg py-2 px-4 hover:brightness-110 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer
+        transition-all duration-200 ease-in-out;
 }
 
 @utility form {
     @apply block
         w-full
-        py-1
-        px-2
+        py-2
+        px-3
+        text-sm
         bg-white
         bg-clip-padding
-        rounded
+        rounded-lg
         border
-        border-gray-300
-        transition-shadow duration-150 ease-in-out
+        border-gray-200
+        transition-all duration-200 ease-in-out
 
-        file:py-1.5
-        file:px-3
-        file:-my-1.5
+        file:py-2
+        file:px-4
+        file:-my-2
         file:-ml-3
         file:mr-3
-        file:text-base
-        file:bg-gray-200
-        file:text-neutral-800
+        file:text-sm
+        file:bg-gray-50
+        file:text-neutral-700
+        file:font-medium
 
-        disabled:bg-gray-200
+        disabled:bg-gray-50
+        disabled:text-gray-500
         disabled:cursor-not-allowed
 
-        focus:ring-2
+        focus:ring-4
         focus:outline-0
-        focus:ring-main/30
-        focus:border-main/70;
+        focus:ring-main/10
+        focus:border-main;
 }
 
 @layer utilities {
@@ -300,7 +303,7 @@
     }
     @media (width >= 40rem /* 640px */) {
         .sidebar {
-            @apply static inset-auto flex left-0 z-30 bg-white w-full transform transition-all duration-300
+            @apply static inset-auto flex shrink-0 left-0 z-30 bg-white w-full transform transition-all duration-300
             sm:w-56 sm:translate-x-0
             lg:w-64
             xl:w-72;
@@ -333,10 +336,10 @@
         }
 
         & .nav-item {
-            @apply flex flex-row gap-1 items-center py-2 px-2 hover:bg-neutral-300/60 hover:text-neutral-900 cursor-pointer rounded-lg font-medium transition-all duration-150 ease-in-out;
+            @apply flex flex-row gap-2 items-center py-2.5 px-3 hover:bg-main/5 hover:text-main cursor-pointer rounded-lg text-neutral-600 font-medium transition-all duration-200 ease-in-out;
 
             &.active {
-                @apply bg-neutral-300/60 !text-neutral-900 font-medium pointer-events-none;
+                @apply bg-main/10 !text-main font-semibold pointer-events-none;
             }
         }
 
@@ -345,10 +348,10 @@
         }
 
         & .nav-dropdown {
-            @apply rounded-lg overflow-hidden;
+            @apply rounded-lg overflow-hidden transition-all duration-200;
 
             & .nav-dropdown-list {
-                @apply flex flex-col transition-all duration-300 max-h-0 opacity-0 invisible ease-in-out;
+                @apply flex flex-col transition-all duration-300 max-h-0 opacity-0 invisible ease-in-out bg-neutral-100;
             }
 
             & .nav-item-dropdown .nav-item-label {
@@ -356,14 +359,14 @@
             }
 
             &.active {
-                @apply bg-neutral-300/60;
+                @apply bg-neutral-50;
 
                 & .nav-item-dropdown {
-                    @apply text-neutral-900 font-medium pointer-events-none;
+                    @apply text-main font-medium;
                 }
 
                 & .nav-item-dropdown .nav-item-caret {
-                    @apply rotate-180;
+                    @apply rotate-180 text-main;
                 }
                 & .nav-dropdown-list {
                     @apply max-h-96 opacity-100 visible;
@@ -371,20 +374,20 @@
             }
 
             & .nav-dropdown-item {
-                @apply pl-8 pr-2 py-1.5 transition-all duration-150 ease-in-out text-sm hover:bg-neutral-400/50;
+                @apply pl-10 pr-3 py-2 transition-all duration-200 ease-in-out text-sm text-neutral-500 hover:text-main hover:bg-main/5;
 
                 &.active {
-                    @apply bg-neutral-400/50 pointer-events-none;
+                    @apply text-main font-medium bg-main/5 pointer-events-none;
                 }
             }
         }
 
         & .nav-item-dropdown .nav-item-caret {
-            @apply transition-transform duration-300 text-sm;
+            @apply transition-transform duration-300 text-xs text-neutral-400;
         }
 
         & .nav-dropdown .nav-dropdown-item {
-            @apply pl-8 pr-2 py-1.5 transition-all duration-150 ease-in-out text-sm hover:bg-neutral-400/50;
+            @apply pl-10 pr-3 py-2 transition-all duration-200 ease-in-out text-sm text-neutral-500 hover:text-main hover:bg-main/5;
         }
     }
 
@@ -568,7 +571,7 @@
             @apply bg-white transition-all duration-150 ease-in-out hover:bg-neutral-50;
         }
         & tbody tr td {
-            @apply px-3 py-3 align-middle border-y border-neutral-200 first:border-l first:rounded-l-lg last:border-r last:rounded-r-lg;
+            @apply px-3 py-2 align-middle border-y border-neutral-200 first:border-l first:rounded-l-lg last:border-r last:rounded-r-lg;
         }
         &.table-hovered tbody tr {
             @apply cursor-pointer;
@@ -581,7 +584,7 @@
         }
         /* SIZING */
         &.sm {
-            @apply text-sm! file:text-sm !py-0.5 !px-1;
+            @apply text-xs! file:text-xs !py-1.5 !px-2.5;
         }
 
         &.sm .form-group-text {
@@ -589,17 +592,17 @@
         }
 
         &.lg {
-            @apply text-lg! file:text-lg !py-2 !px-4;
+            @apply text-base! file:text-base !py-3 !px-5;
         }
     }
     label:has(+ .form) {
-        @apply mb-1;
+        @apply mb-1.5 text-sm font-medium text-neutral-700;
     }
     label:has(+ .form.sm) {
-        @apply !text-sm;
+        @apply !text-xs;
     }
     label:has(+ .form.lg) {
-        @apply !text-lg;
+        @apply !text-base;
     }
 
     .form-check {
@@ -622,17 +625,17 @@
         }
 
         &.sm {
-            @apply !text-sm;
+            @apply !text-xs;
         }
         &.sm input {
-            @apply w-3 h-3;
+            @apply w-3.5 h-3.5;
         }
 
         &.lg {
-            @apply !text-lg;
+            @apply !text-base;
         }
         &.lg input {
-            @apply w-5 h-5;
+            @apply w-6 h-6;
         }
     }
 
@@ -646,30 +649,33 @@
     }
 
     .form-group {
-        @apply flex flex-row rounded-sm items-center bg-white
-        border border-gray-300
+        @apply flex flex-row rounded-lg items-center bg-white
+        border border-gray-200
         overflow-hidden
-        transition-shadow duration-150 ease-in-out
+        transition-all duration-200 ease-in-out
 
-        focus-within:ring-2
+        focus-within:ring-4
         focus-within:outline-0
-        focus-within:ring-main/30
-        focus-within:border-main/70
-        focus-within:text-main;
+        focus-within:ring-main/10
+        focus-within:border-main;
 
         & label.form-group-text {
-            @apply !px-2 select-none mb-0! py-1.5 h-full text-base inline-flex;
+            @apply !px-3 select-none mb-0! py-2 h-full text-sm font-medium text-neutral-600 bg-gray-50 border-r border-gray-200 inline-flex items-center;
         }
         &.has-text .form {
             @apply first:!pr-0 last:!pl-0 focus:text-neutral-800;
         }
 
         & .btn {
-            @apply rounded-none h-full;
+            @apply rounded-none h-full shadow-none border-0 border-l border-gray-200;
+        }
+
+        & .btn:first-child {
+            @apply border-l-0 border-r border-gray-200;
         }
 
         & .form {
-            @apply w-full !ring-0 !border-0 rounded-none;
+            @apply w-full !ring-0 !border-0 rounded-none shadow-none;
         }
 
         & + .form-feedback {
@@ -771,10 +777,10 @@
         }
 
         &.btn-sm {
-            @apply !text-sm !py-0.5 !px-1;
+            @apply !text-xs !py-1.5 !px-2.5;
         }
         &.btn-lg {
-            @apply !text-lg !py-2 !px-4;
+            @apply !text-base !py-3 !px-6;
         }
     }
 

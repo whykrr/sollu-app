@@ -1,12 +1,9 @@
 <template>
     <div ref="dropdownRef">
-        <div
-            class="bg-neutral-200/70 hover:p-1 hover:-m-1 rounded-full transition-all duration-150 ease-in-out hidden sm:block"
-            :class="{ 'p-1 -m-1': showPanel }"
-        >
+        <div class="hidden sm:block">
             <a
                 href="#"
-                class="flex flex-row items-center gap-2 h-10 pl-1 pr-3 bg-white rounded-full border border-neutral-200"
+                class="flex flex-row items-center gap-2 h-10 pl-1 pr-3 bg-white hover:bg-neutral-50 rounded-full border border-neutral-200 transition-colors duration-150 ease-in-out"
                 @click.prevent="togglePanel"
             >
                 <!-- <img
@@ -28,72 +25,96 @@
         <transition name="fade-down" mode="in-out">
             <div
                 v-if="showPanel"
-                class="absolute z-50 bg-neutral-200 border border-neutral-300 rounded-xl w-96 top-[48px] -right-0 shadow-xl p-4"
+                class="absolute z-50 bg-white border border-neutral-100 rounded-xl w-96 top-[48px] -right-0 shadow-2xl ring-1 ring-black/5 p-4"
             >
                 <div class="flex flex-col gap-2">
-                    <div class="absolute right-4">
-                        <a href="#" @click.prevent="closePanel">
+                    <div class="absolute right-4 top-4">
+                        <a
+                            href="#"
+                            @click.prevent="closePanel"
+                            class="text-neutral-400 hover:text-neutral-600 transition-colors"
+                        >
                             <FontAwesomeIcon :icon="faClose" />
                         </a>
                     </div>
-                    <div class="text-center text-lg font-medium">
+                    <div
+                        class="text-center text-lg font-medium text-neutral-800"
+                    >
                         Informasi Usaha
                     </div>
                     <div
-                        class="bg-neutral-50 border border-neutral-100 rounded-xl overflow-hidden p-2 space-y-2"
+                        class="bg-neutral-50 border border-neutral-100 rounded-xl overflow-hidden p-3 space-y-3"
                     >
-                        <div class="flex flex-row gap-2 items-center">
+                        <div class="flex flex-row gap-3 items-center">
                             <div>
                                 <div
-                                    class="w-20 aspect-square bg-secondary/10 border border-secondary/20 rounded-lg"
+                                    class="w-16 h-16 aspect-square bg-white border border-neutral-200 rounded-lg overflow-hidden p-1"
                                 >
                                     <div
                                         v-if="!auth.merchant.logo"
-                                        class="flex w-full h-full items-center justify-center"
+                                        class="flex w-full h-full items-center justify-center bg-secondary/5 rounded"
                                     >
                                         <FontAwesomeIcon
                                             :icon="faShop"
-                                            class="text-secondary-dark text-[30px]"
+                                            class="text-secondary text-xl"
                                         />
                                     </div>
                                     <img
                                         v-else
                                         :src="auth.merchant.logo_url"
                                         alt="Logo"
-                                        class="w-full h-full"
+                                        class="w-full h-full object-contain rounded"
                                     />
                                 </div>
                             </div>
 
-                            <div class="text-center text-xl">
+                            <div
+                                class="text-lg font-medium text-neutral-800 leading-tight"
+                            >
                                 {{ auth.merchant.name }}
                             </div>
                         </div>
+                        <div class="h-px bg-neutral-200 w-full" />
                         <div
                             v-if="!merchantInfo"
-                            class="grid grid-flow-row gap-1 animate-pulse"
+                            class="grid grid-flow-row gap-2 animate-pulse"
                         >
-                            <div class="placeholder w-[50%] mb-0" />
-                            <div class="placeholder w-[75%] mb-0" />
-                            <div class="placeholder w-[75%] mb-0" />
-                            <div class="placeholder w-[75%] mb-0" />
+                            <div class="placeholder w-[50%] mb-0 h-4" />
+                            <div class="placeholder w-[75%] mb-0 h-4" />
+                            <div class="placeholder w-[75%] mb-0 h-4" />
+                            <div class="placeholder w-[75%] mb-0 h-4" />
                         </div>
-                        <div v-else class="grid grid-flow-row gap-1 text-sm">
-                            <div class="flex flex-row justify-between">
-                                <div class="font-medium">Jenis Usaha</div>
-                                <div>
+                        <div
+                            v-else
+                            class="grid grid-flow-row gap-2 text-sm text-neutral-600"
+                        >
+                            <div
+                                class="flex flex-row justify-between items-center"
+                            >
+                                <div class="font-medium text-neutral-500">
+                                    Jenis Usaha
+                                </div>
+                                <div class="font-medium text-neutral-800">
                                     {{ merchantInfo.merchantType }}
                                 </div>
                             </div>
-                            <div class="flex flex-row justify-between">
-                                <div class="font-medium">Langganan</div>
-                                <div>
+                            <div
+                                class="flex flex-row justify-between items-center"
+                            >
+                                <div class="font-medium text-neutral-500">
+                                    Langganan
+                                </div>
+                                <div class="font-medium text-neutral-800">
                                     {{ merchantInfo.subscription.plan.name }}
                                 </div>
                             </div>
-                            <div class="flex flex-row justify-between">
-                                <div class="font-medium">Aktif Sampai</div>
-                                <div>
+                            <div
+                                class="flex flex-row justify-between items-center"
+                            >
+                                <div class="font-medium text-neutral-500">
+                                    Aktif Sampai
+                                </div>
+                                <div class="font-medium text-neutral-800">
                                     {{
                                         formatDateID(
                                             merchantInfo.subscription.end_date
@@ -101,27 +122,38 @@
                                     }}
                                 </div>
                             </div>
-                            <div class="flex flex-row justify-between">
-                                <div class="font-medium">Jumlah Outlet</div>
-                                <div>
+                            <div
+                                class="flex flex-row justify-between items-center"
+                            >
+                                <div class="font-medium text-neutral-500">
+                                    Jumlah Outlet
+                                </div>
+                                <div class="font-medium text-neutral-800">
                                     {{ merchantInfo.outlet_count }} Outlet
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-xl overflow-hidden">
+                    <div
+                        class="bg-neutral-50 border border-neutral-100 rounded-xl overflow-hidden mt-1"
+                    >
                         <ol>
                             <li
                                 v-for="(item, index) in merchantLinks"
                                 :key="index"
+                                class="border-b border-neutral-100 last:border-0"
                             >
                                 <Link
                                     :href="item.link"
-                                    class="flex items-center gap-2 px-3 py-2 hover:bg-neutral-200/50 text-sm transition-all duration-150 ease-in-out"
+                                    class="flex items-center gap-3 px-4 py-2.5 hover:bg-white text-sm text-neutral-700 font-medium transition-all duration-150 ease-in-out group"
                                     :method="item.method"
                                 >
-                                    <FontAwesomeIcon :icon="item.icon" />
+                                    <div
+                                        class="w-6 flex justify-center text-neutral-400 group-hover:text-main transition-colors"
+                                    >
+                                        <FontAwesomeIcon :icon="item.icon" />
+                                    </div>
                                     {{ item.label }}
                                 </Link>
                             </li>

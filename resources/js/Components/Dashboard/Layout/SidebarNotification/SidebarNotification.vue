@@ -2,7 +2,7 @@
     <transition name="slide-fade" mode="in-out">
         <aside
             v-if="props.isOpen"
-            class="fixed w-full sm:w-auto right-0 top-0 h-screen z-50 shadow-2xl bg-neutral-200 border-l border-neutral-300"
+            class="fixed w-full sm:w-auto right-0 top-0 h-screen z-50 shadow-2xl bg-gray-200 border-l border-gray-200"
         >
             <div
                 class="flex flex-col h-full p-4 w-full sm:w-[30rem] relative gap-2.5"
@@ -21,7 +21,7 @@
                 </span>
                 <div class="font-semibold text-2xl">Notifikasi</div>
                 <div
-                    class="grid grid-cols-3 gap-0.5 bg-neutral-100 rounded-lg p-0.5 shadow-inner"
+                    class="grid grid-cols-3 gap-0.5 bg-gray-300 rounded-lg p-0.5 shadow-inner"
                 >
                     <NotificationFilter
                         label="Semua"

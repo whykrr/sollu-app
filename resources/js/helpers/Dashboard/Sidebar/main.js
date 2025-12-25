@@ -42,12 +42,6 @@ export const mainSidebars = [
             },
             {
                 route: '#',
-                label: 'Varian',
-                permissions: [],
-                activeRoute: 'products.variations.',
-            },
-            {
-                route: '#',
                 label: 'Data Produk',
                 permissions: [],
                 activeRoute: 'products.products.',

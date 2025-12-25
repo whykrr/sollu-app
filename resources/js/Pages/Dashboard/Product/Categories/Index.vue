@@ -1,132 +1,97 @@
 <template>
-    <Head title="Manajemen Kategori" />
+  <Head title="Manajemen Kategori" />
 
-    <AppLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Manajemen Kategori
-            </h2>
-        </template>
+  <Container>
+    <template #header>
+      <div>
+        <Filter :filters="filters" />
+      </div>
+      <div>
+        <Link
+          :href="
+            route(
+              'dashboard.products.categories.create'
+            )
+          "
+          class="btn btn-highlight-main btn-sm"
+        >
+          <FontAwesomeIcon :icon="faPlus" />
+          Kategori
+        </Link>
+      </div>
+    </template>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                    <div class="p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <div class="flex space-x-4">
-                                <input
-                                    v-model="search"
-                                    type="text"
-                                    placeholder="Cari..."
-                                    class="form-input rounded-md shadow-sm"
-                                />
-                                <select
-                                    v-model="status"
-                                    class="form-select rounded-md shadow-sm"
-                                >
-                                    <option value="">Semua Status</option>
-                                    <option value="active">Aktif</option>
-                                    <option value="inactive">
-                                        Tidak Aktif
-                                    </option>
-                                </select>
-                            </div>
-                            <Link
-                                :href="route('products.categories.create')"
-                                class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring focus:ring-gray-300 disabled:opacity-25 transition"
-                            >
-                                Tambah Kategori
-                            </Link>
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th
-                                            scope="col"
-                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        >
-                                            Nama
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        >
-                                            Status
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        >
-                                            Tipe
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            class="relative px-6 py-3"
-                                        >
-                                            <span class="sr-only">Aksi</span>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody
-                                    class="bg-white divide-y divide-gray-200"
-                                >
-                                    <template
-                                        v-for="category in categories.data"
-                                        :key="category.id"
-                                    >
-                                        <CategoryRow
-                                            :category="category"
-                                            :level="0"
-                                        />
-                                    </template>
-                                    <tr v-if="!categories.data.length">
-                                        <td
-                                            colspan="4"
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center"
-                                        >
-                                            Tidak ada data.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <Pagination class="mt-6" :links="categories.links" />
-                    </div>
-                </div>
-            </div>
-        </div>
-    </AppLayout>
+    <div>
+        <table class="table table-hovered min-w-full">
+            <thead class="">
+                <tr class="text-neutral-700 select-none sticky top-0 left-0 z-auto overflow-hidden">
+                    <th
+                        scope="col"
+                        class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                    >
+                        Nama
+                    </th>
+                    <th
+                        scope="col"
+                        class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                    >
+                        Status
+                    </th>
+                    <th
+                        scope="col"
+                        class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                    >
+                        Tipe
+                    </th>
+                    <th
+                        scope="col"
+                        class="relative px-6 py-3"
+                    >
+                        <span class="sr-only">Aksi</span>
+                    </th>
+                    <th width="1%" class="sticky top-0 z-10" />
+                </tr>
+            </thead>
+            <tbody
+                class="bg-white"
+            >
+                <template
+                    v-for="category in categories.data"
+                    :key="category.id"
+                >
+                    <CategoryRow
+                        :category="category"
+                        :level="0"
+                    />
+                </template>
+                <tr v-if="!categories.data.length">
+                    <td
+                        colspan="5"
+                        class="px-6 py-8 whitespace-nowrap text-sm text-gray-500 text-center"
+                    >
+                        Tidak ada data.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <template #footer>
+      <Pagination class="mt-6" :links="categories.links" />
+    </template>
+  </Container>
 </template>
-<script setup>
-import { ref, watch } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import throttle from 'lodash/throttle';
 
-// Assuming you have a layout component
+<script setup>
+import { Head, Link } from '@inertiajs/vue3';
+import Container from '@/Components/Dashboard/UI/Container.vue';
 import CategoryRow from './Partials/CategoryRow.vue';
 import Pagination from '@/Components/Dashboard/Tables/Pagination.vue';
+import Filter from '@/Pages/Dashboard/Product/Categories/Components/Filter.vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
-const props = defineProps({
+defineProps({
     categories: Object,
     filters: Object,
 });
-
-const search = ref(props.filters.search);
-const status = ref(props.filters.status);
-
-watch(
-    [search, status],
-    throttle(function ([searchVal, statusVal]) {
-        router.get(
-            route('products.categories.index'),
-            {
-                search: searchVal,
-                status: statusVal,
-            },
-            { preserveState: true, replace: true }
-        );
-    }, 300)
-);
 </script>
