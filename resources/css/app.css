@@ -689,7 +689,7 @@
             @apply form w-full pt-4 placeholder-transparent;
         }
         & label {
-            @apply absolute left-1 -translate-y-1/2 text-xs top-3 transform transition-all duration-200 px-1;
+            @apply absolute left-2 -translate-y-1/2 text-xs top-3 transform transition-all duration-200 px-1;
         }
         & input:placeholder-shown ~ label {
             @apply top-1/2 -translate-y-1/2 text-base text-gray-600;
