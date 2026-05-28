@@ -14,20 +14,35 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            'merchant.*'       => 'Management Merchant',
-            'merchant.info'    => 'Akses Informasi',
-            'merchant.billing' => 'Akses Langganan dan Tagihan',
-            'merchant.setting' => 'Akses Pengaturan',
-            'user.*'           => 'Management User',
+            'business.*'       => 'Business Management',
+            'business.info'    => 'Business Info',
+            'business.billing' => 'Business Billing',
+            'business.setting' => 'Business Setting',
+            'outlet.*'         => 'Outlet Management',
+            'outlet.view'      => 'View',
+            'outlet.create'    => 'Create',
+            'outlet.update'    => 'Update',
+            'outlet.delete'    => 'Delete',
+            'user.*'           => 'User Management',
             'user.view'        => 'View',
             'user.create'      => 'Create',
             'user.update'      => 'Update',
             'user.delete'      => 'Delete',
-            'product.*'        => 'Management Product',
+            'product.*'        => 'Product Management',
             'product.view'     => 'View',
             'product.create'   => 'Create',
             'product.update'   => 'Update',
             'product.delete'   => 'Delete',
+            'inventory.*'      => 'Inventory Management',
+            'inventory.view'   => 'View',
+            'inventory.create' => 'Create',
+            'inventory.update' => 'Update',
+            'inventory.delete' => 'Delete',
+            'promo.*'          => 'Promo Management',
+            'promo.view'       => 'View',
+            'promo.create'     => 'Create',
+            'promo.update'     => 'Update',
+            'promo.delete'     => 'Delete',
         ];
 
         foreach ($permissions as $perm => $label) {
@@ -36,39 +51,46 @@ class RolePermissionSeeder extends Seeder
 
         $roles = [
             'owner' => [
-                'label'      => 'Pemilik Bisnis',
+                'label'      => 'Business Owner',
                 'permission' => [
-                    'merchant.*',
+                    'business.*',
                     'user.*',
                     'product.*',
+                    'inventory.*',
+                    'promo.*',
                 ],
             ],
             'manager' => [
-                'label'      => 'Manajer',
+                'label'      => 'Manager',
                 'permission' => [
                     'user.*',
                     'product.*',
+                    'inventory.*',
+                    'promo.*',
                 ],
 
             ],
             'supervisor' => [
-                'label'      => 'Supervisi',
+                'label'      => 'Supervisor',
                 'permission' => [
                     'user.view',
                     'product.view',
                     'product.update',
+                    'inventory.view',
+                    'inventory.create',
+                    'inventory.update',
                 ],
 
             ],
             'cashier' => [
-                'label'      => 'Kasir',
+                'label'      => 'Cashier',
                 'permission' => [
                     'user.view',
                     'product.view',
                 ],
             ],
             'staff' => [
-                'label'      => 'Staf',
+                'label'      => 'Staff',
                 'permission' => [
                     'user.view',
                     'product.view',

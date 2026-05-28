@@ -14,7 +14,7 @@ return new class () extends Migration {
             $table->uuid('id')->primary();
             $table->timestamps();
             $table->softDeletes();
-            $table->uuid('merchant_id');
+            $table->uuid('business_id');
             $table->string('name', 200);
             $table->string('email', 200)->unique();
             $table->string('phone', 20)->unique()->nullable();
@@ -27,7 +27,7 @@ return new class () extends Migration {
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->foreign('merchant_id')->references('id')->on('merchants')->onDelete('cascade');
+            $table->foreign('business_id')->references('id')->on('businesses')->onDelete('cascade');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -43,6 +43,5 @@ return new class () extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
     }
 };

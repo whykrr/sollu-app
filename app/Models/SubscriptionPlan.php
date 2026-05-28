@@ -27,7 +27,6 @@ class SubscriptionPlan extends Model
         'billing_cycle',
         'status',
         'duration',
-        'is_trial',
         'features',
     ];
 
@@ -39,7 +38,6 @@ class SubscriptionPlan extends Model
     protected function casts(): array
     {
         return [
-            'is_trial' => 'boolean',
             'features' => 'json',
         ];
     }

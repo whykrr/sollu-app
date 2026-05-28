@@ -10,13 +10,12 @@ return new class () extends Migration {
      */
     public function up(): void
     {
-        Schema::create('notifications', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+        Schema::create('business_types', function (Blueprint $table) {
+            $table->integer('id')->unsigned()->autoIncrement();
             $table->timestamps();
-            $table->string('type');
-            $table->uuidMorphs('notifiable');
-            $table->json('data')->fulltext();
-            $table->timestamp('read_at')->nullable();
+            $table->string('code', 100)->unique();
+            $table->string('name', 100);
+            $table->boolean('is_visible')->default(true);
         });
     }
 
@@ -25,6 +24,6 @@ return new class () extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('notifications');
+        Schema::dropIfExists('business_types');
     }
 };

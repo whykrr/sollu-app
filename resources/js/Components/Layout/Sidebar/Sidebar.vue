@@ -37,8 +37,8 @@
                 >
                     <Link :href="route('overview')">
                         <img
-                            src="storage/img/logo-fit-color.png"
-                            class="w-22"
+                            src="img/logo-colored.png"
+                            class="h-8 w-auto"
                             alt="Sollu"
                         />
                     </Link>

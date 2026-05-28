@@ -14,8 +14,9 @@ use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 /**
- * @property-read Collection|Merchant $merchant
- * @property-read Collection|MerchantOutletSubscription[] $merchant_subscriptions
+ *
+ *
+ * @property-read Collection|Business $business
  * @property-read Collection|User[] $users
  * @mixin IdeHelperOutlet
  */
@@ -33,7 +34,7 @@ class Outlet extends Model
      * @var array
      */
     protected $fillable = [
-        'merchant_id',
+        'business_id',
         'name',
         'address',
         'latitude',
@@ -52,9 +53,9 @@ class Outlet extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function merchant(): BelongsTo
+    public function business(): BelongsTo
     {
-        return $this->belongsTo(Merchant::class);
+        return $this->belongsTo(Business::class);
     }
 
     /**

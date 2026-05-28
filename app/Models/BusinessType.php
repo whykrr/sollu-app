@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Casts\SettingsCast;
 use App\Models\Product\ProductCategory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,18 +10,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property Collection|Merchant[] $merchants
+ *
+ * @property Collection|Business[] $merchants
  * @property Collection|ProductCategory[] $productCategories
- * @mixin IdeHelperMerchantType
+ * @mixin \Eloquent
  */
-class MerchantType extends Model
+class BusinessType extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
         'code',
-        'default_settings',
+        'name',
+        'is_visible',
     ];
 
     /**
@@ -31,16 +31,16 @@ class MerchantType extends Model
     protected function casts(): array
     {
         return [
-            'default_settings' => SettingsCast::class,
+            'is_visible' => 'boolean',
         ];
     }
 
     /**
      * @return HasMany
      */
-    public function merchants(): HasMany
+    public function businesses(): HasMany
     {
-        return $this->hasMany(Merchant::class);
+        return $this->hasMany(Business::class);
     }
 
     /**

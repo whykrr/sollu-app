@@ -13,7 +13,7 @@ return new class () extends Migration {
         Schema::create('outlets', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->timestamps();
-            $table->uuid('merchant_id');
+            $table->uuid('business_id');
             $table->string('slug', 200);
             $table->string('name', 200);
             $table->text('address')->nullable();
@@ -21,10 +21,6 @@ return new class () extends Migration {
             $table->decimal('longitude', 10, 7)->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('is_main_outlet')->default(false);
-        });
-
-        Schema::table('outlets', function (Blueprint $table) {
-            $table->foreign('merchant_id')->references('id')->on('merchants')->onDelete('cascade');
         });
     }
 

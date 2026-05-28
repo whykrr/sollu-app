@@ -47,7 +47,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $fillable = [
-        'merchant_id',
+        'business_id',
         'name',
         'email',
         'phone',
@@ -112,11 +112,11 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the merchant that owns the User
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Merchant
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Business
      */
-    public function merchant(): BelongsTo
+    public function business(): BelongsTo
     {
-        return $this->belongsTo(Merchant::class);
+        return $this->belongsTo(Business::class);
     }
 
     /**

@@ -1,6 +1,6 @@
 <template>
     <div
-        class="flex flex-col sm:flex-row gap-4 items-center justify-between w-full p-2"
+        class="flex flex-col sm:flex-row gap-4 items-end justify-between w-full"
     >
         <!-- Summary Text -->
         <div class="text-sm text-neutral-500 order-2 sm:order-1">
@@ -15,13 +15,13 @@
         <!-- Pagination Links -->
         <div class="order-1 sm:order-2">
             <div
-                class="flex flex-wrap gap-1 items-center justify-center p-1 rounded-lg"
+                class="flex flex-wrap gap-1 items-center justify-center rounded-lg"
             >
                 <template v-for="(link, index) in links" :key="index">
                     <!-- Disabled Link -->
                     <div
                         v-if="link.url === null"
-                        class="flex items-center justify-center w-9 h-9 text-sm text-neutral-400 border border-transparent rounded-lg cursor-not-allowed select-none"
+                        class="flex items-center justify-center w-8 h-8 text-sm text-neutral-400 border border-transparent rounded-lg cursor-not-allowed select-none"
                     >
                         <span v-if="index === 0">
                             <FontAwesomeIcon :icon="faAngleLeft" />
@@ -61,7 +61,7 @@
         >
             <label
                 for="pagination_per_page"
-                class="text-sm font-medium text-neutral-500 whitespace-nowrap"
+                class="text-sm font-medium text-neutral-500 whitespace-nowrap mb-0"
             >
                 Tampilkan
             </label>
@@ -110,7 +110,7 @@ function changePerPage(event) {
         {
             preserveState: true,
             preserveScroll: true,
-        }
+        },
     );
 }
 </script>

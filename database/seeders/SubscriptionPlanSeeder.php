@@ -23,23 +23,12 @@ class SubscriptionPlanSeeder extends Seeder
 
         $plans = [
             [
-                'code'        => 'trial',
-                'name'        => 'Uji Coba Gratis',
-                'description' => 'langganan untuk trial',
-                'price'       => 0,
-                'status'      => 'active',
-                'duration'    => 15,
-                'is_trial'    => true,
-                'features'    => $features,
-            ],
-            [
                 'code'        => 'micro',
                 'name'        => 'Paket Mikro',
                 'description' => 'langganan untuk usaha mikro',
                 'price'       => 99000,
                 'status'      => 'active',
                 'duration'    => 30,
-                'is_trial'    => false,
                 'features'    => $features,
             ],
             [
@@ -49,7 +38,6 @@ class SubscriptionPlanSeeder extends Seeder
                 'price'       => 199000,
                 'status'      => 'active',
                 'duration'    => 30,
-                'is_trial'    => false,
                 'features'    => $features,
             ],
             [
@@ -59,7 +47,6 @@ class SubscriptionPlanSeeder extends Seeder
                 'price'       => 349000,
                 'status'      => 'active',
                 'duration'    => 30,
-                'is_trial'    => false,
                 'features'    => $features,
             ],
             [
@@ -70,7 +57,6 @@ class SubscriptionPlanSeeder extends Seeder
                 'billing_cycle' => 'yearly',
                 'status'        => 'active',
                 'duration'      => 365,
-                'is_trial'      => false,
                 'features'      => $features,
             ],
             [
@@ -81,7 +67,6 @@ class SubscriptionPlanSeeder extends Seeder
                 'billing_cycle' => 'yearly',
                 'status'        => 'active',
                 'duration'      => 365,
-                'is_trial'      => false,
                 'features'      => $features,
             ],
             [
@@ -92,7 +77,6 @@ class SubscriptionPlanSeeder extends Seeder
                 'billing_cycle' => 'yearly',
                 'status'        => 'active',
                 'duration'      => 365,
-                'is_trial'      => false,
                 'features'      => $features,
             ],
         ];

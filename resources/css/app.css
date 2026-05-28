@@ -232,7 +232,9 @@
 
     .fade-down-enter-active,
     .fade-down-leave-active {
-        transition: opacity 0.25s ease, transform 0.25s ease;
+        transition:
+            opacity 0.25s ease,
+            transform 0.25s ease;
     }
     .fade-down-enter-from,
     .fade-down-leave-to {
@@ -247,7 +249,9 @@
 
     .fade-up-enter-active,
     .fade-up-leave-active {
-        transition: opacity 0.25s ease, transform 0.25s ease;
+        transition:
+            opacity 0.25s ease,
+            transform 0.25s ease;
     }
     .fade-up-enter-from,
     .fade-up-leave-to {
@@ -262,7 +266,9 @@
 
     .slide-fade-enter-active,
     .slide-fade-leave-active {
-        transition: transform 0.3s ease, opacity 0.3s ease;
+        transition:
+            transform 0.3s ease,
+            opacity 0.3s ease;
     }
     .slide-fade-enter-from {
         transform: translateX(100%);
@@ -556,7 +562,7 @@
     }
 
     .table {
-        @apply min-w-full text-sm border-separate border-spacing-y-1;
+        @apply min-w-full text-sm border-separate border-spacing-y-1 -mt-1;
 
         & thead {
             @apply mb-0;
@@ -662,8 +668,9 @@
         & label.form-group-text {
             @apply !px-3 select-none mb-0! py-2 h-full text-sm font-medium text-neutral-600 bg-gray-50 border-r border-gray-200 inline-flex items-center;
         }
+
         &.has-text .form {
-            @apply first:!pr-0 last:!pl-0 focus:text-neutral-800;
+            @apply first:!pr-2 last:!pl-2 focus:text-neutral-800;
         }
 
         & .btn {

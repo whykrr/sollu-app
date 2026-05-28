@@ -4,8 +4,8 @@
             <div class="w-full max-w-md space-y-6">
                 <div>
                     <img
-                        class="h-[60px]"
-                        src="img/logo-fit-color.png"
+                        class="h-[40px]"
+                        src="img/logo-colored.png"
                         alt="Logo"
                     />
                 </div>

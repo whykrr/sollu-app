@@ -119,6 +119,7 @@
 </template>
 
 <script setup>
+import Pagination from '@/Components/Tables/Pagination.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Container from '@/Components/UI/Container.vue';
 import {

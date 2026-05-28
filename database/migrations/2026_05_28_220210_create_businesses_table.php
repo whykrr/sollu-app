@@ -10,7 +10,7 @@ return new class () extends Migration {
      */
     public function up(): void
     {
-        Schema::create('merchants', function (Blueprint $table) {
+        Schema::create('businesses', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->timestamps();
             $table->string('slug', 200)->unique();
@@ -20,15 +20,14 @@ return new class () extends Migration {
             $table->string('phone', 20);
             $table->text('address')->nullable();
             $table->text('logo')->nullable();
-            $table->boolean('already_free_trial')->default(false);
-            $table->tinyInteger('merchant_type_id')->unsigned();
-            $table->date('expired_at')->nullable();
-            $table->string('status', 15)->default('active')->comment('options: active, grace, expired, inactive');
+            $table->dateTime('trial_end_at');
+            $table->tinyInteger('business_type_id')->unsigned();
+            $table->string('status', 15)->default('active')->comment('options: trial, active, past_due, grace_period, expired, canceled, suspend');
             $table->json('settings')->nullable();
         });
 
-        Schema::table('merchants', function (Blueprint $table) {
-            $table->foreign('merchant_type_id')->references('id')->on('merchant_types')->onDelete('restrict');
+        Schema::table('businesses', function (Blueprint $table) {
+            $table->foreign('business_type_id')->references('id')->on('business_types')->onDelete('restrict');
         });
     }
 
@@ -37,6 +36,6 @@ return new class () extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('merchants');
+        Schema::dropIfExists('businesses');
     }
 };

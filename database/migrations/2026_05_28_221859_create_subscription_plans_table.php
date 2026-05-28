@@ -20,7 +20,6 @@ return new class () extends Migration {
             $table->enum('billing_cycle', ['monthly', 'yearly'])->default('monthly');
             $table->enum('status', ['draft', 'active', 'inactive'])->default('draft');
             $table->integer('duration')->unsigned()->default(30)->comment('duration in days');
-            $table->boolean('is_trial')->default(false)->comment('indicates if the plan is free trial period');
             $table->json('features')->nullable();
         });
     }

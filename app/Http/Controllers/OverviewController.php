@@ -53,16 +53,16 @@ class OverviewController extends Controller
                     'outlet' => $request->get('outlet'),
                 ],
                 'totalSales' => [
-                    'now'      => 980000,
-                    'previous' => 730000,
+                    'now'      => 1980000,
+                    'previous' => 1730000,
                 ],
                 'totalTransactions' => [
-                    'now'      => 176,
-                    'previous' => 112,
+                    'now'      => 35,
+                    'previous' => 46,
                 ],
                 'averageSales' => [
-                    'now'      => 87532,
-                    'previous' => 84165,
+                    'now'      => 187532,
+                    'previous' => 184165,
                 ],
 
                 'salesTrend' => [

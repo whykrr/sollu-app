@@ -16,15 +16,15 @@ use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 /**
- * @property-read Collection|MerchantType $type
+ *
+ * @property-read Collection|BusinessType $type
  * @property-read Collection|Outlet[] $outlets
  * @property-read Collection|User[] $users
- * @property-read Collection|MerchantOutletSubscription $subscriptions
  * @property-read Collection|ProductVariation[] $product_variations
  * @property-read Collection|Product[] $products
- * @mixin IdeHelperMerchant
+ * @mixin \Eloquent
  */
-class Merchant extends Model
+class Business extends Model
 {
     use HasFactory;
     use HasUuids;
@@ -43,9 +43,8 @@ class Merchant extends Model
         'phone',
         'address',
         'logo',
-        'already_free_trial',
-        'merchant_type_id',
-        'expired_at',
+        'trial_end_at',
+        'business_type_id',
         'status',
         'settings',
     ];
@@ -53,8 +52,7 @@ class Merchant extends Model
     protected function casts(): array
     {
         return [
-            'already_free_trial' => 'boolean',
-            'settings'           => 'json',
+            'settings' => 'json',
         ];
     }
 
@@ -69,7 +67,7 @@ class Merchant extends Model
 
     public function type(): BelongsTo
     {
-        return $this->belongsTo(MerchantType::class, 'merchant_type_id');
+        return $this->belongsTo(BusinessType::class, 'business_type_id');
     }
 
     /**
