@@ -36,36 +36,36 @@ if (! function_exists('generateBreadcrumbs')) {
                 ['label' => 'Detail Pegawai', 'url' => '#'],
             ],
 
-            'merchant.info.detail' => [
+            'business.info.detail' => [
                 ['label' => 'Usaha', 'url' => '#'],
-                ['label' => 'Detail Usaha', 'url' => route('merchant.info.detail')],
+                ['label' => 'Detail Usaha', 'url' => route('business.info.detail')],
             ],
 
-            'merchant.billing.index' => [
+            'business.billing.index' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('merchant.billing.index')],
+                ['label' => 'Langganan', 'url' => route('business.billing.index')],
             ],
 
-            'merchant.billing.plans' => [
+            'business.billing.plans' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('merchant.billing.index')],
+                ['label' => 'Langganan', 'url' => route('business.billing.index')],
                 ['label' => 'Pilih Langganan', 'url' => '#'],
             ],
 
-            'merchant.billing.subscribe' => [
+            'business.billing.subscribe' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('merchant.billing.index')],
-                ['label' => 'Pilih Langganan', 'url' => route('merchant.billing.plans')],
+                ['label' => 'Langganan', 'url' => route('business.billing.index')],
+                ['label' => 'Pilih Langganan', 'url' => route('business.billing.plans')],
                 ['label' => 'Detail Langganan', 'url' => '#'],
             ],
 
-            'merchant.invoices.index' => [
+            'business.invoices.index' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
                 ['label' => 'Pembayaran', 'url' => '#'],
             ],
-            'merchant.invoices.show' => [
+            'business.invoices.show' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Pembayaran', 'url' => route('merchant.invoices.index')],
+                ['label' => 'Pembayaran', 'url' => route('business.invoices.index')],
                 ['label' => 'Tagihan', 'url' => '#'],
             ],
 

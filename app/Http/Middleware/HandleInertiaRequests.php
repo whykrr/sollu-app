@@ -53,23 +53,23 @@ class HandleInertiaRequests extends Middleware
             'auth' => fn () => $request->user()
                 ? array_merge(
                     $request->user()->only(['id', 'name', 'email', 'email_verified_at']),
-                    SummaryUser::make()->cached(),
+                    (array) SummaryUser::make()->cached(),
                     ['selected_outlet' => '']
                 ) : null,
 
             'notifications' => Inertia::lazy(fn () => $request->user()->notifications()->get()),
-            'merchantInfo'  => Inertia::lazy(function () use ($request) {
-                $merchant = $request->user()->merchant;
+            'businessInfo'  => Inertia::lazy(function () use ($request) {
+                $business = $request->user()->business;
 
                 return [
-                    'subscription' => $merchant->subscriptions()
-                        ->where('is_active', '=', true)
-                        ->with('plan')
-                        ->latest()
-                        ->first(),
-                    'outlet_count' => $merchant->outlets()
+                    // 'subscription' => $business->subscriptions()
+                    //     ->where('is_active', '=', true)
+                    //     ->with('plan')
+                    //     ->latest()
+                    //     ->first(),
+                    'outlet_count' => $business->outlets()
                         ->where('is_active', '=', true)->count(),
-                    'merchantType' => $merchant->type()->first()->name,
+                    'businessType' => $business->type()->first()->name,
                 ];
             }),
 

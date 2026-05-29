@@ -58,24 +58,24 @@
 
                     <div v-if="currentStep === 1">
                         <div class="flex flex-wrap gap-1">
-                            <div v-for="type in merchant_types">
+                            <div v-for="type in business_types">
                                 <input
                                     :id="'button' + type.id"
-                                    v-model="form.merchant_type_id"
+                                    v-model="form.business_type_id"
                                     type="radio"
                                     class="form-check-btn peer"
-                                    name="merchant_type_id"
+                                    name="business_type_id"
                                     :value="type.id"
                                 />
                                 <label
-                                    class="btn btn-outline-main rounded-full"
+                                    class="btn btn-highlight-main text-slate-700 rounded-full"
                                     :for="'button' + type.id"
                                     >{{ type.name }}</label
                                 >
                             </div>
                         </div>
                         <span
-                            v-if="form.errors.merchant_type_id"
+                            v-if="form.errors.business_type_id"
                             class="text-danger text-sm"
                         >
                             Pilih salah satu jenis usaha!
@@ -286,7 +286,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 const props = defineProps({
-    merchant_types: Array,
+    business_types: Array,
 });
 
 const currentStep = ref(1);
@@ -331,7 +331,7 @@ const form = useForm({
     outlet_name: null,
     email: null,
     phone: null,
-    merchant_type_id: null,
+    business_type_id: null,
     password: null,
     password_confirmation: null,
 });
@@ -340,7 +340,7 @@ const register = () =>
     form.post(route('register.store'), {
         onError: () => {
             nextTick(() => {
-                if (form.errors.merchant_type_id) {
+                if (form.errors.business_type_id) {
                     currentStep.value = 1;
                 } else if (
                     form.errors.name ||

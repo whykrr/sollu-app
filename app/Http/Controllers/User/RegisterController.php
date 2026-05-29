@@ -4,12 +4,10 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\RegisterRequest;
-use App\Models\Merchant;
-use App\Models\MerchantType;
-use App\Models\SubscriptionPlan;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\User;
 use App\Notifications\WelcomeUser;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
@@ -18,12 +16,10 @@ class RegisterController extends Controller
 {
     public function index(Request $request)
     {
-        $merchantTypes = cache()->remember('merchant-types', (60 * 60), function () {
-            return MerchantType::all();
-        });
+        $businessTypes = BusinessType::where('is_visible', true)->get();
 
         return inertia('User/Register', [
-            'merchant_types' => $merchantTypes,
+            'business_types' => $businessTypes,
         ]);
 
     }
@@ -32,22 +28,20 @@ class RegisterController extends Controller
         DB::beginTransaction();
 
         try {
-            $type = MerchantType::find($request->merchant_type_id);
-            $plan = SubscriptionPlan::whereIsTrial(true)->first();
+            $type = BusinessType::find($request->business_type_id);
 
-            $merchant = Merchant::create([
-                'name'               => $request->name,
-                'owner_name'         => $request->owner_name,
-                'email'              => $request->email,
-                'phone'              => $request->phone,
-                'already_free_trial' => true,
-                'status'             => 'active',
-                'expired_at'         => Carbon::now()->addDays($plan->duration)->format('Y-m-d'),
-                'merchant_type_id'   => $request->merchant_type_id,
-                'settings'           => $type->default_settings,
+            $business = Business::create([
+                'name'             => $request->name,
+                'owner_name'       => $request->owner_name,
+                'email'            => $request->email,
+                'phone'            => $request->phone,
+                'status'           => 'active',
+                'business_type_id' => $request->business_type_id,
+                'settings'         => $type->default_settings,
+                'trial_end_at'     => now()->addDays(15),
             ]);
 
-            $outlet = $merchant->outlets()->create([
+            $outlet = $business->outlets()->create([
                 'name'           => $request->outlet_name,
                 'is_main_outlet' => true,
             ]);
@@ -55,19 +49,12 @@ class RegisterController extends Controller
             /**
              * @var User
              */
-            $user = $merchant->users()->create([
+            $user = $business->users()->create([
                 'name'         => $request->owner_name,
                 'email'        => $request->email,
                 'phone'        => $request->phone,
                 'password'     => $request->password,
                 'is_root_user' => true,
-            ]);
-
-            // create plan
-            $merchant->plans()->create([
-                'subscription_plans_id' => $plan->id,
-                'start_date'            => Carbon::now(),
-                'end_date'              => Carbon::now()->addDays($plan->duration)->format('Y-m-d'),
             ]);
 
             // assign user role

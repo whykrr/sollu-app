@@ -24,7 +24,7 @@
         </Link>
 
         <div
-            v-if="gapDaysFromNow(auth.merchant.expired_at) > 15"
+            v-if="gapDaysFromNow(auth.business.trial_end_at) > 15"
             class="flex flex-col gap-1.5 rounded-lg border border-neutral-300 p-2"
         >
             <div>
@@ -32,7 +32,7 @@
                     class="inline-block p-1.5 bg-gradient-to-r from-main to-secondary-dark text-white rounded-md text-xs"
                 >
                     <FontAwesomeIcon :icon="faBolt" class="text-sm" />
-                    {{ auth.subscription.plan.name }}
+                    {{ auth.subscription.plan.name ?? 'Uji Coba' }}
                 </div>
             </div>
             <div class="text-xs">
@@ -44,19 +44,19 @@
                 }}
                 anda akan berakhir dalam
                 <span class="font-medium"
-                    >{{ gapDaysFromNow(auth.merchant.expired_at) }} hari</span
+                    >{{ gapDaysFromNow(auth.business.trial_end_at) }} hari</span
                 >
             </div>
             <Link
                 v-if="auth.subscription.plan.is_trial"
-                :href="route('merchant.billing.plans')"
+                :href="route('business.billing.plans')"
                 class="btn btn-outline-main btn-sm justify-center"
             >
                 Langganan Sekarang
             </Link>
             <Link
                 v-else
-                :href="route('merchant.billing.index')"
+                :href="route('business.billing.index')"
                 class="btn btn-outline-info btn-sm justify-center"
             >
                 Perpanjang Langganan

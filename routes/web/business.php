@@ -7,8 +7,8 @@ use App\Http\Controllers\Merchant\OutletController;
 use App\Http\Controllers\Merchant\SubscribeController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('merchant')
-    ->name('merchant.')
+Route::prefix('business')
+    ->name('business.')
     ->group(function () {
         Route::prefix('info')
             ->name('info.')

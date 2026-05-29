@@ -38,7 +38,7 @@ class SelectedOutlet
             function () {
 
                 if ($this->user->outlets()->count() === 1) {
-                    $outlet = $this->user->merchant->outlets()->first();
+                    $outlet = $this->user->business->outlets()->first();
                 } else {
                     $outlet = null;
                 }

@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard'     => env('AUTH_GUARD', 'merchant'),
+        'guard'     => env('AUTH_GUARD', 'business'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
@@ -36,7 +36,7 @@ return [
     */
 
     'guards' => [
-        'merchant' => [
+        'business' => [
             'driver'   => 'session',
             'provider' => 'users',
         ],
@@ -69,7 +69,7 @@ return [
             'model'  => env('AUTH_MODEL', App\Models\User::class),
         ],
 
-        'internal_users' => [
+        'inhouse_users' => [
             'driver' => 'eloquent',
             'model'  => env('AUTH_MODEL', App\Models\User::class),
         ],

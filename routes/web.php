@@ -16,15 +16,15 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'store'])->name('login.attempt')->middleware('throttle:login');
 
     Route::get('/forgot', [ForgotPasswordController::class, 'index'])->name('forgot');
-    Route::post('/forgot', [ForgotPasswordController::class, 'sendEmailReset'])->name('forgot.email')->middleware('throttle:6,5');
+    Route::post('/forgot', [ForgotPasswordController::class, 'sendEmailReset'])->name('forgot.email')->middleware('throttle:5,5');
     Route::get('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.reset');
     Route::post('/reset-password', [ForgotPasswordController::class, 'doReset'])->name('password.reset.attempt');
 
     Route::get('/register', [RegisterController::class, 'index'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+    Route::post('/register', [RegisterController::class, 'store'])->name('register.store')->middleware('throttle:5,5');
 });
 
-Route::middleware('auth:merchant')->group(function () {
+Route::middleware('auth:business')->group(function () {
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         /** @var <FormRequest> $request */
         Cache::forgetPattern("auth:user:{$request->user()->id}:*");
@@ -56,7 +56,7 @@ Route::middleware('auth:merchant')->group(function () {
 
     require __DIR__ . '/web/products.php';
     require __DIR__ .'/web/employees.php';
-    require __DIR__ .'/web/merchant.php';
+    require __DIR__ .'/web/business.php';
     require __DIR__ .'/web/template.php';
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');

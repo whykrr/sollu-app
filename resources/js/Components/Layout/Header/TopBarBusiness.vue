@@ -17,7 +17,7 @@
                     <FontAwesomeIcon :icon="faShop" />
                 </div>
                 <span class="font-base hidden lg:inline">{{
-                    auth.merchant.name
+                    auth.business.name
                 }}</span>
                 <span class="font-base inline lg:hidden">{{ initials }}</span>
             </a>
@@ -51,7 +51,7 @@
                                     class="w-16 h-16 aspect-square bg-white border border-neutral-200 rounded-lg overflow-hidden p-1"
                                 >
                                     <div
-                                        v-if="!auth.merchant.logo"
+                                        v-if="!auth.business.logo"
                                         class="flex w-full h-full items-center justify-center bg-secondary/5 rounded"
                                     >
                                         <FontAwesomeIcon
@@ -61,7 +61,7 @@
                                     </div>
                                     <img
                                         v-else
-                                        :src="auth.merchant.logo_url"
+                                        :src="auth.business.logo_url"
                                         alt="Logo"
                                         class="w-full h-full object-contain rounded"
                                     />
@@ -71,12 +71,12 @@
                             <div
                                 class="text-lg font-medium text-neutral-800 leading-tight"
                             >
-                                {{ auth.merchant.name }}
+                                {{ auth.business.name }}
                             </div>
                         </div>
                         <div class="h-px bg-neutral-200 w-full" />
                         <div
-                            v-if="!merchantInfo"
+                            v-if="!businessInfo"
                             class="grid grid-flow-row gap-2 animate-pulse"
                         >
                             <div class="placeholder w-[50%] mb-0 h-4" />
@@ -95,7 +95,7 @@
                                     Jenis Usaha
                                 </div>
                                 <div class="font-medium text-neutral-800">
-                                    {{ merchantInfo.merchantType }}
+                                    {{ businessInfo.businessType }}
                                 </div>
                             </div>
                             <div
@@ -105,7 +105,8 @@
                                     Langganan
                                 </div>
                                 <div class="font-medium text-neutral-800">
-                                    {{ merchantInfo.subscription.plan.name }}
+                                    <!-- {{ businessInfo.subscription.plan.name }} -->
+                                    -
                                 </div>
                             </div>
                             <div
@@ -115,11 +116,12 @@
                                     Aktif Sampai
                                 </div>
                                 <div class="font-medium text-neutral-800">
-                                    {{
+                                    <!-- {{
                                         formatDateID(
-                                            merchantInfo.subscription.end_date
+                                            businessInfo.subscription.end_date,
                                         )
-                                    }}
+                                    }} -->
+                                    -
                                 </div>
                             </div>
                             <div
@@ -129,7 +131,8 @@
                                     Jumlah Outlet
                                 </div>
                                 <div class="font-medium text-neutral-800">
-                                    {{ merchantInfo.outlet_count }} Outlet
+                                    {{ businessInfo.outlet_count }}
+                                    Outlet
                                 </div>
                             </div>
                         </div>
@@ -140,7 +143,7 @@
                     >
                         <ol>
                             <li
-                                v-for="(item, index) in merchantLinks"
+                                v-for="(item, index) in businessLinks"
                                 :key="index"
                                 class="border-b border-neutral-100 last:border-0"
                             >
@@ -177,14 +180,14 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import { method } from 'lodash';
 import { computed, onBeforeMount, onMounted, ref, watch } from 'vue';
 
-const merchantInfo = ref(null);
+const businessInfo = ref(null);
 const page = usePage();
 const auth = computed(() => page.props.auth);
 const showPanel = ref(false);
 const dropdownRef = ref(null);
 
 const togglePanel = () => {
-    merchantInfo.value = null;
+    businessInfo.value = null;
     showPanel.value = !showPanel.value;
 };
 
@@ -193,7 +196,7 @@ const closePanel = () => {
 };
 
 const initials = computed(() => {
-    const name = page.props.auth.merchant.name || '';
+    const name = page.props.auth.business.name || '';
     return name
         .split(' ')
         .map((word) => word[0])
@@ -201,17 +204,17 @@ const initials = computed(() => {
         .toUpperCase();
 });
 
-const merchantLinks = [
+const businessLinks = [
     {
         label: 'Info Usaha',
         icon: faShop,
-        link: route('merchant.info.detail'),
+        link: route('business.info.detail'),
         method: 'get',
     },
     {
         label: 'Langganan & Tagihan',
         icon: faCreditCard,
-        link: route('merchant.billing.index'),
+        link: route('business.billing.index'),
         method: 'get',
     },
     {
@@ -233,15 +236,15 @@ watch(
     (val) => {
         if (val) {
             router.reload({
-                only: ['merchantInfo'],
+                only: ['businessInfo'],
                 preserveState: true,
                 preserveScroll: true,
                 onSuccess: (page) => {
-                    merchantInfo.value = page.props.merchantInfo;
+                    businessInfo.value = page.props.businessInfo;
                 },
             });
         }
-    }
+    },
 );
 
 onMounted(() => {

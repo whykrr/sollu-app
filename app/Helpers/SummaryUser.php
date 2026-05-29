@@ -41,17 +41,17 @@ class SummaryUser
                 $outlets = $user->outlets()->where('is_active', '=', true)->get()
                     ->map(fn ($outlet) => $outlet->only('id', 'name'));
                 if (count($outlets) === 0) {
-                    $outlets = $user->merchant->outlets()
+                    $outlets = $user->business->outlets()
                         ->where('is_active', '=', true)->get()
                         ->map(fn ($outlet) => $outlet->only('id', 'name'));
                 }
 
                 return [
-                    'role'         => $user->roles()->pluck('label', 'name')->toArray(),
-                    'permissions'  => $user->getAllPermissions()->pluck('name')->toArray(),
-                    'merchant'     => $user->merchant,
-                    'subscription' => $user->merchant->subscriptions()->with('plan')->latest()->first(),
-                    'outlets'      => $outlets,
+                    'role'        => $user->roles()->pluck('label', 'name')->toArray(),
+                    'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                    'business'    => $user->business,
+                    // 'subscription' => $user->business->subscriptions()->with('plan')->latest()->first(),
+                    'outlets' => $outlets,
                 ];
             }
         );

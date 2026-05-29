@@ -49,7 +49,7 @@
 
             <div class="w-px h-6 bg-gray-300" />
 
-            <TopBarMerchant v-can="'merchant.*'" />
+            <TopBarBusiness v-can="'business.*'" />
 
             <TopBarAccount />
         </div>
@@ -61,7 +61,7 @@ import TopBarAccount from '@/Components/Layout/Header/TopBarAccount.vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import SidebarNotification from '@/Components/Layout/SidebarNotification/SidebarNotification.vue';
-import TopBarMerchant from '@/Components/Layout/Header/TopBarMerchant.vue';
+import TopBarBusiness from '@/Components/Layout/Header/TopBarBusiness.vue';
 import TopBarNotification from '@/Components/Layout/Header/TopBarNotification.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
