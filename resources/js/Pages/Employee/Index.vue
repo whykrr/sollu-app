@@ -1,17 +1,20 @@
 <template>
     <Container>
         <template #header>
-            <div>
-                <Filter :filters="params" :roles />
-            </div>
-            <div>
-                <Link
-                    :href="route('employees.create')"
-                    class="btn btn-highlight-main btn-sm"
-                >
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Pegawai
-                </Link>
+            <div class="flex flex-row justify-between gap-2">
+                <div class="flex-1 border-r border-slate-200 pr-2">
+                    <Filter :filters="params" :roles />
+                </div>
+                <div>
+                    <button
+                        class="btn btn-highlight-main btn-sm"
+                        @click="showForm = true"
+                    >
+                        <FontAwesomeIcon :icon="faPlus" />
+                        Pegawai
+                    </button>
+                    <Form :show="showForm" :user :roles @close="closeForm" />
+                </div>
             </div>
         </template>
         <Table
@@ -19,14 +22,19 @@
             :data="users.data"
             :sort="params.sort ?? 'updated_at'"
             :sort-direction="params.direction ?? 'desc'"
-            @row-click="goDetail"
+            :action="true"
         >
             <template #name="{ row }">
                 {{ row.name }}
                 <span
-                    v-if="row.deleted_at !== null"
-                    class="badge badge-gray-800 text-xs"
+                    v-if="row.deleted_at"
+                    class="badge badge-neutral-500 p-1 text-xs"
                     >Arsip</span
+                >
+                <span
+                    v-if="row.is_root_user"
+                    class="badge badge-warning p-1 text-xs"
+                    >Root</span
                 >
             </template>
             <template #roles="{ row }">
@@ -46,6 +54,42 @@
                         >+{{ row.outlets.length - 2 }} Lainnya</label
                     >
                 </div>
+            </template>
+            <template #created_at="{ row }">
+                {{ formatDateTimeSimple(row.created_at) }}
+            </template>
+            <template #actions="{ row }">
+                <button
+                    v-if="!row.is_root_user && !row.deleted_at"
+                    class="btn btn-highlight-main btn-sm"
+                    title="Ubah"
+                    @click="getDetail(row.id)"
+                >
+                    <FontAwesomeIcon :icon="faPencil" />
+                </button>
+
+                <ButtonIconGroupArchive
+                    v-if="!row.is_root_user"
+                    :data="row"
+                    :url-delete="
+                        route('employees.delete', {
+                            user: row.id,
+                            ...props.params,
+                        })
+                    "
+                    :url-restore="
+                        route('employees.restore', {
+                            user: row.id,
+                            ...props.params,
+                        })
+                    "
+                    :url-destroy="
+                        route('employees.destroy', {
+                            user: row.id,
+                            ...props.params,
+                        })
+                    "
+                />
             </template>
         </Table>
         <template #footer>
@@ -68,33 +112,60 @@ import Container from '@/Components/UI/Container.vue';
 import Table from '@/Components/Tables/Table.vue';
 import { template } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPencil, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { formatDateTimeSimple } from '@/Composable/date';
+import { ref } from 'vue';
+import Form from '@/Pages/Employee/Components/Form.vue';
+import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue';
 
-defineProps({
+const props = defineProps({
     users: Object,
     params: Object,
     roles: Object,
+    user: Object,
 });
+
+const showForm = ref(false);
+
+if (props.user) {
+    showForm.value = true;
+}
 
 const tableHeaders = [
     { field: 'name', label: 'Nama', slot: 'name', sortable: true },
-    {
-        field: 'email',
-        label: 'Email',
-        sortable: true,
-        show: 'md',
-    },
     { field: 'roles', label: 'Peran', slot: 'roles' },
     { field: 'outlets', label: 'Outlet', slot: 'outlets', show: 'lg' },
     {
-        field: 'updated_at',
-        label: 'Terakhir Diperbarui',
+        field: 'created_at',
+        label: 'Dibuat',
         sortable: true,
-        show: 'md',
+        slot: 'created_at',
     },
 ];
 
-const goDetail = (row) => {
-    router.get(route('employees.show', { user: row.id }));
+const getDetail = (id) => {
+    router.visit(route('employees.show', { user: id, ...props.params }), {
+        only: ['user'],
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: (page) => {
+            showForm.value = true;
+        },
+    });
+};
+
+const closeForm = () => {
+    showForm.value = false;
+    if (props.user) {
+        router.get(
+            route('employees.index'),
+            { ...props.params },
+            {
+                only: ['user'],
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
+    }
 };
 </script>

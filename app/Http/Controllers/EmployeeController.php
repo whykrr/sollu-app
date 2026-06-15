@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Constants\AuthorizationMessage;
 use App\Constants\ResourceMessage;
+use App\Enum\RoleEnum;
+use App\Http\Requests\Employee\GetEmployeeRequest;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Models\Role as ModelsRole;
 use App\Models\User;
 use App\Notifications\NewEmployee;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -16,86 +17,39 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role as ModelsRole;
 
 class EmployeeController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $req)
+    public function index(GetEmployeeRequest $req, User $user = null)
     {
-        if (! $req->user()->can('user.view')) {
-            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
-        }
-
-        $users = User::currentMerchant()
-            ->whereIsRootUser(false)
+        $users = User::currentBusiness()
             ->selectedOutlet($req->get('outlet'))
-            ->filters($req->only(['search', 'role', 'status']))
-            ->sortable($req->get('sort', 'updated_at'), $req->get('direction', 'desc'))
-            ->with(['roles:label', 'outlets'])
-            ->paginate($req->get('perpage', 20))
+            ->filters($req->safe()->only(['search', 'role', 'is_deleted']))
+            ->sortable($req->validated('sort', 'created_at'), $req->validated('direction', 'desc'))
+            ->with(['roles', 'outlets'])
+            ->paginate($req->validated('perpage', 20))
             ->appends($req->query());
 
+        if ($user) {
+            $user->load(['roles:name', 'outlets:id']);
+        }
 
         return inertia('Employee/Index', [
             'users'  => $users,
-            'params' => $req->all(),
-            'roles'  => ModelsRole::whereNot('name', 'owner')->get()->map(function ($row) {
+            'params' => $req->validated(),
+            'roles'  => ModelsRole::get()->map(function ($row) {
                 return [
                     'value' => $row->name,
-                    'label' => $row->label,
+                    'label' => RoleEnum::tryFrom($row->name)?->label() ?? $row->name,
                 ];
             }),
+            'user' => $user,
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(Request $req)
-    {
-        if (! $req->user()->can('user.create')) {
-            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
-        }
-
-        return inertia('Employee/Form', [
-            'roles' => ModelsRole::whereNot('name', 'owner')
-                ->get()
-                ->map(function ($row) {
-                    return [
-                        'value' => $row->name,
-                        'label' => $row->label,
-                    ];
-                }),
-        ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function show(Request $req, User $user)
-    {
-        if (! $req->user()->can('user.update')) {
-            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
-        } elseif ($req->user()->id === $user->id) {
-            throw new AuthorizationException(AuthorizationMessage::EDIT_DATA_NOT_ALLOWED);
-        }
-
-        return inertia('Employee/Form', [
-            'returnTo' => url()->previous() != url()->current() ? url()->previous() : null,
-            'user'     => $user->load(['roles:name', 'outlets:id']),
-            'roles'    => ModelsRole::whereNot('name', 'owner')
-                ->get()
-                ->map(function ($row) {
-                    return [
-                        'value' => $row->name,
-                        'label' => $row->label,
-                    ];
-                }),
-        ]);
-    }
 
     protected function checkEmailPhone($req, ?User $user = null)
     {
@@ -143,9 +97,10 @@ class EmployeeController extends Controller
             /**
              * @var \App\Models\User $user
              */
-            $user = Auth::user()->merchant->users()->create([
+            $user = Auth::user()->business->users()->create([
                 'name'              => $req['name'],
                 'email'             => $req['email'],
+                'phone'             => $req['phone'],
                 'password'          => $password_default,
                 'is_root_user'      => false,
                 'email_verified_at' => Carbon::now(),
@@ -192,48 +147,36 @@ class EmployeeController extends Controller
             throw $e;
         }
 
-        return redirect()->to($request->input('return_url') ?? route('employees.index'))->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
     }
 
     /**
      * Soft deletes the specified resource from storage.
      */
-    public function destroy(Request $req, User $user)
+    public function delete(Request $req, User $user)
     {
-        if (! $req->user()->can('user.delete')) {
-            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
-        } elseif ($req->user()->id === $user->id) {
-            throw new AuthorizationException(AuthorizationMessage::DELETE_DATA_NOT_ALLOWED);
-        }
-
         $user->deleteOrFail();
 
-        return redirect()->route('employees.index')->with('success', ResourceMessage::DELETE_SUCCESS);
+        return redirect()->back()->with('success', ResourceMessage::DELETE_SUCCESS);
     }
 
     /**
      * Restore the specified resource to storage.
      */
-    public function restore(User $user)
+    public function restore(Request $req, User $user)
     {
         $user->restore();
 
-        return redirect()->route('employees.index')->with('success', ResourceMessage::RESTORE_SUCCESS);
+        return redirect()->back()->with('success', ResourceMessage::RESTORE_SUCCESS);
     }
 
     /**
      * Restore the specified resource to storage.
      */
-    public function purge(Request $req, User $user)
+    public function destroy(Request $req, User $user)
     {
-        if (! $req->user()->can('user.delete')) {
-            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
-        } elseif ($req->user()->id === $user->id) {
-            throw new AuthorizationException(AuthorizationMessage::DELETE_DATA_NOT_ALLOWED);
-        }
-
         $user->forceDelete();
 
-        return redirect()->route('employees.index')->with('success', ResourceMessage::PURGE_SUCCESS);
+        return redirect()->back()->with('success', ResourceMessage::PURGE_SUCCESS);
     }
 }

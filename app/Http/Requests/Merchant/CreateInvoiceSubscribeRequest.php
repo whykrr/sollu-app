@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Merchant;
+namespace App\Http\Requests\Settings;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;

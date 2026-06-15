@@ -68,7 +68,7 @@
                     </Transition>
                 </div>
             </div>
-            <SidebarOutlet />
+            <SidebarOutlet v-if="!isSetting" />
             <SidebarNav class="mb-2" />
             <SidebarFooter />
         </div>
@@ -85,12 +85,12 @@ import {
     faClose,
     faLock,
 } from '@fortawesome/free-solid-svg-icons';
-import { Link, router } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { useAppStore } from '@/store/app';
 
 const appStore = useAppStore();
 
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 const isMobile = ref(false);
 
@@ -108,4 +108,9 @@ onUnmounted(() => {
 });
 
 router.on('finish', () => appStore.hide());
+
+const isSetting = computed(() => {
+    const url = usePage().url;
+    return url.startsWith('/setting');
+});
 </script>

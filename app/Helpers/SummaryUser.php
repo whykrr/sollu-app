@@ -47,7 +47,10 @@ class SummaryUser
                 }
 
                 return [
-                    'role'        => $user->roles()->pluck('label', 'name')->toArray(),
+                    'role' => $user->roles->map(fn ($role) => [
+                        'name'  => $role->name,
+                        'label' => $role->label,
+                    ])->toArray(),
                     'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
                     'business'    => $user->business,
                     // 'subscription' => $user->business->subscriptions()->with('plan')->latest()->first(),

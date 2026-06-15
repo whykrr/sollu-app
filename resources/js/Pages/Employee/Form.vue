@@ -139,8 +139,8 @@ const form = useForm({
     outlets: props.user?.outlets
         ? props.user?.outlets?.map((outlet) => outlet.id)
         : selectedOutlet.value
-        ? [selectedOutlet.value?.id]
-        : [],
+          ? [selectedOutlet.value?.id]
+          : [],
     return_url: props.returnTo,
 });
 

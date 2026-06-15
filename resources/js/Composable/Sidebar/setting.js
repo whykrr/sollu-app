@@ -1,44 +1,48 @@
-import { faCog, faCreditCard, faGears, faHistory, faInfo, faMapMarkerAlt, faMarker, faMoneyBill, faMoneyBills, faReceipt, faShop, faUserShield, faWallet, faXmarkCircle } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faBoxes, faCashRegister, faCog, faCreditCard, faGears, faHistory, faHome, faInfo, faMapMarkerAlt, faMarker, faMoneyBill, faMoneyBills, faReceipt, faShop, faUser, faUserCircle, faUserShield, faWallet, faXmarkCircle } from '@fortawesome/free-solid-svg-icons'
 
 export const settingSidebars = [
     {
-        label: 'Usaha',
-        permissions: 'business.info',
+        route: 'overview',
+        icon: faArrowLeft,
+        label: 'Kembali',
     },
     {
-        route: 'business.info.detail',
+        label: 'Pengaturan',
+    },
+    {
+        route: 'settings.account.profile',
+        icon: faUserCircle,
+        label: 'Pusat Akun',
+        activeRoute: '',
+    },
+    {
+        label: 'Usaha & Langganan',
+        separator: true,
+    },
+    {
+        route: 'settings.business.detail',
         icon: faShop,
         label: 'Detail Usaha',
-        permissions: 'business.info',
-        activeRoute: 'business.info.detail',
+        permissions: 'business.view',
+        activeRoute: 'settings.business.detail',
     },
     {
-        route: 'business.outlets.index',
+        route: 'settings.outlets.index',
         icon: faMapMarkerAlt,
         label: 'Outlet',
-        permissions: 'business.info',
-        activeRoute: 'sales',
+        permissions: 'outlet.view',
+        activeRoute: 'settings.outlets',
     },
     {
-        label: 'Langganan & Tagihan',
-        permissions: 'business.billing',
-    },
-    {
-        route: 'business.billing.index',
+        route: 'settings.billing.index',
         icon: faCreditCard,
         label: 'Langganan',
         permissions: 'business.billing',
         activeRoute: 'sales',
     },
     {
-        route: 'business.invoices.index',
-        icon: faMoneyBills,
-        label: 'Pembayaran',
-        permissions: 'business.billing',
-        activeRoute: 'sales',
-    },
-    {
-        label: 'Pengaturan',
+        label: 'Pengaturan Umum',
+        separator: true,
     },
     {
         route: '#',
@@ -49,16 +53,31 @@ export const settingSidebars = [
     },
     {
         route: '#',
-        icon: faUserShield,
-        label: 'Hak Akses',
+        icon: faCashRegister,
+        label: 'Pengaturan Kasir',
         permissions: '',
         activeRoute: 'sales',
     },
     {
         route: '#',
         icon: faReceipt,
-        label: 'Pembayaran',
+        label: 'Nota',
         permissions: '',
         activeRoute: 'sales',
     },
+    {
+        route: '#',
+        icon: faBoxes,
+        label: 'Inventori',
+        permissions: '',
+        activeRoute: 'sales',
+    },
+    {
+        route: '#',
+        icon: faUserShield,
+        label: 'Hak Akses',
+        permissions: '',
+        activeRoute: 'sales',
+    },
+
 ]

@@ -5,7 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\MerchantType>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SettingsType>
  */
 class MerchantTypeFactory extends Factory
 {

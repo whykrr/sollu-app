@@ -10,6 +10,9 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+
+Route::get('/cockpit', fn () => Inertia::render('Cockpit/Index'))->name('cockpit.index');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'index'])->name('login');
@@ -54,9 +57,9 @@ Route::middleware('auth:business')->group(function () {
 
     Route::get('/', OverviewController::class)->name('overview');
 
-    require __DIR__ . '/web/products.php';
+    // require __DIR__ . '/web/products.php';
     require __DIR__ .'/web/employees.php';
-    require __DIR__ .'/web/business.php';
+    require __DIR__ .'/web/settings.php';
     require __DIR__ .'/web/template.php';
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');

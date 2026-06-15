@@ -64,7 +64,7 @@
                             class="w-20 aspect-square bg-secondary/30 rounded-lg"
                         >
                             <div
-                                v-if="!auth.merchant.logo"
+                                v-if="!auth.business.logo"
                                 class="flex w-full h-full items-center justify-center"
                             >
                                 <FontAwesomeIcon
@@ -74,7 +74,7 @@
                             </div>
                             <img
                                 v-else
-                                :src="auth.merchant.logo_url"
+                                :src="auth.business.logo_url"
                                 alt="Logo"
                                 class="w-full h-full"
                             />
@@ -82,7 +82,7 @@
                     </div>
 
                     <div class="text-center text-xl">
-                        {{ auth.merchant.name }}
+                        {{ auth.business.name }}
                     </div>
                 </div>
                 <div
@@ -264,7 +264,7 @@ watch(
                 },
             });
         }
-    }
+    },
 );
 
 onMounted(() => {

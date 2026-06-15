@@ -12,7 +12,7 @@ class WelcomeUser extends Notification
     use Queueable;
 
     /**
-     * Get the notification's delivery channels.
+ * Get the notification's delivery channels.
      *
      * @return array<int, string>
      */

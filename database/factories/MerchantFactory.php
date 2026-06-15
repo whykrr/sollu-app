@@ -2,11 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\MerchantType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Merchant>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Settings>
  */
 class MerchantFactory extends Factory
 {

@@ -1,11 +1,11 @@
 <template>
     <button
         v-if="data && data?.deleted_at === null"
-        class="btn btn-warning btn-sm"
+        class="btn btn-danger btn-sm"
         aria-label="Hapus"
-        @click="modal.openModalArchive(urlArchive)"
+        @click="modal.openModalSoftDelete(urlArchive)"
     >
-        <FontAwesomeIcon :icon="faArchive" /> Arsipkan
+        <FontAwesomeIcon :icon="faTrash" /> Hapus
     </button>
 
     <Link
@@ -15,7 +15,7 @@
         class="btn btn-success btn-sm"
         :href="urlRestore"
     >
-        <FontAwesomeIcon :icon="faArrowsRotate" />
+        <FontAwesomeIcon :icon="faArrowsRotate" /> Pulihkan
     </Link>
 
     <button
@@ -24,16 +24,12 @@
         class="btn btn-danger btn-sm"
         @click="modal.openModalDelete(urlDelete)"
     >
-        <FontAwesomeIcon :icon="faTrash" /> Hapus
+        <FontAwesomeIcon :icon="faTrash" /> Hapus Permanen
     </button>
 </template>
 <script setup>
 import { useModalStore } from '@/store/notification';
-import {
-    faArchive,
-    faArrowsRotate,
-    faTrash,
-} from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { Link } from '@inertiajs/vue3';
 

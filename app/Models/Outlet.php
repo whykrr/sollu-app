@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Trait\HasMerchant;
+use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -25,7 +25,7 @@ class Outlet extends Model
     use HasFactory;
     use HasUuids;
     use HasSlug;
-    use HasMerchant;
+    use HasBusiness;
     use SortableModel;
 
     /**
@@ -45,6 +45,7 @@ class Outlet extends Model
 
     protected $sortable = [
         'name',
+        'created_at',
         'updated_at',
     ];
 

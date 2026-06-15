@@ -3,12 +3,18 @@
         <div class="navigation-list">
             <template v-for="(sidebar, index) in sidebars" :key="index">
                 <div
-                    v-show="appStore.sidebar.show"
                     v-if="!sidebar.route"
                     v-can="sidebar.permissions"
-                    class="nav=section"
+                    class="nav-section"
                 >
-                    {{ sidebar.label }}
+                    <div v-if="sidebar.separator === true" class="py-0.5">
+                        <div class="w-full border-t pt-1 text-xs">
+                            {{ sidebar.label }}
+                        </div>
+                    </div>
+                    <div v-else class="py-0.5">
+                        {{ sidebar.label }}
+                    </div>
                 </div>
                 <NavigationItem
                     v-else-if="!sidebar.items"
@@ -74,7 +80,7 @@ const isActive = (menu) => {
 
     if (menu.items) {
         return menu.items.some((child) =>
-            current.startsWith('' + normalizeRoute(child.route))
+            current.startsWith('' + normalizeRoute(child.route)),
         );
     }
 
@@ -83,6 +89,6 @@ const isActive = (menu) => {
 
 const sidebars = computed(() => {
     const url = usePage().url;
-    return url.startsWith('/merchant') ? settingSidebars : mainSidebars;
+    return url.startsWith('/settings') ? settingSidebars : mainSidebars;
 });
 </script>

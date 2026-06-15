@@ -5,15 +5,17 @@
         <!-- Summary Text -->
         <div class="text-sm text-neutral-500 order-2 sm:order-1">
             Menampilkan
-            <span class="font-semibold text-neutral-800">{{ from }}</span>
-            sampai
-            <span class="font-semibold text-neutral-800">{{ to }}</span> dari
-            <span class="font-semibold text-neutral-800">{{ total }}</span>
-            hasil
+            <span v-if="from !== null && to !== null">
+                <span class="font-semibold">{{ from }}</span>
+                -
+                <span class="font-semibold">{{ to }}</span> dari
+            </span>
+            <span class="font-semibold">{{ total }}</span>
+            data
         </div>
 
         <!-- Pagination Links -->
-        <div class="order-1 sm:order-2">
+        <div v-if="links.length > 3" class="order-1 sm:order-2">
             <div
                 class="flex flex-wrap gap-1 items-center justify-center rounded-lg"
             >

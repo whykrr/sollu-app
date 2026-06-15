@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enum\PermissionEnum;
+use App\Enum\RoleEnum;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -13,95 +15,207 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $permissions = [
-            'business.*'       => 'Business Management',
-            'business.info'    => 'Business Info',
-            'business.billing' => 'Business Billing',
-            'business.setting' => 'Business Setting',
-            'outlet.*'         => 'Outlet Management',
-            'outlet.view'      => 'View',
-            'outlet.create'    => 'Create',
-            'outlet.update'    => 'Update',
-            'outlet.delete'    => 'Delete',
-            'user.*'           => 'User Management',
-            'user.view'        => 'View',
-            'user.create'      => 'Create',
-            'user.update'      => 'Update',
-            'user.delete'      => 'Delete',
-            'product.*'        => 'Product Management',
-            'product.view'     => 'View',
-            'product.create'   => 'Create',
-            'product.update'   => 'Update',
-            'product.delete'   => 'Delete',
-            'inventory.*'      => 'Inventory Management',
-            'inventory.view'   => 'View',
-            'inventory.create' => 'Create',
-            'inventory.update' => 'Update',
-            'inventory.delete' => 'Delete',
-            'promo.*'          => 'Promo Management',
-            'promo.view'       => 'View',
-            'promo.create'     => 'Create',
-            'promo.update'     => 'Update',
-            'promo.delete'     => 'Delete',
-        ];
 
-        foreach ($permissions as $perm => $label) {
-            Permission::create(['name' => $perm, 'label' => $label]);
+        /*
+        * Create Permissions
+        */
+        foreach (PermissionEnum::cases() as $permission) {
+            Permission::findOrCreate(
+                $permission->value,
+                'business'
+            );
         }
 
-        $roles = [
-            'owner' => [
-                'label'      => 'Business Owner',
-                'permission' => [
-                    'business.*',
-                    'user.*',
-                    'product.*',
-                    'inventory.*',
-                    'promo.*',
-                ],
-            ],
-            'manager' => [
-                'label'      => 'Manager',
-                'permission' => [
-                    'user.*',
-                    'product.*',
-                    'inventory.*',
-                    'promo.*',
-                ],
-
-            ],
-            'supervisor' => [
-                'label'      => 'Supervisor',
-                'permission' => [
-                    'user.view',
-                    'product.view',
-                    'product.update',
-                    'inventory.view',
-                    'inventory.create',
-                    'inventory.update',
-                ],
-
-            ],
-            'cashier' => [
-                'label'      => 'Cashier',
-                'permission' => [
-                    'user.view',
-                    'product.view',
-                ],
-            ],
-            'staff' => [
-                'label'      => 'Staff',
-                'permission' => [
-                    'user.view',
-                    'product.view',
-                ],
-
-            ],
-        ];
-
-        foreach ($roles as $role => $item) {
-            $role = Role::create(['name' => $role, 'label' => $item['label']]);
-            $role->givePermissionTo($item['permission']);
+        /*
+        * Create Roles
+        */
+        foreach (RoleEnum::cases() as $role) {
+            Role::findOrCreate(
+                $role->value,
+                'business'
+            );
         }
+
+        /*
+        * Owner
+        */
+        $owner = Role::findOrCreate(
+            RoleEnum::OWNER->value,
+            'business'
+        );
+
+        $owner->syncPermissions(PermissionEnum::values());
+
+        /*
+        * General Manager
+        */
+        $generalManager = Role::findOrCreate(
+            RoleEnum::GENERAL_MANAGER->value,
+            'business'
+        );
+
+        $generalManager->syncPermissions([
+            PermissionEnum::BUSINESS_VIEW->value,
+            PermissionEnum::OUTLET_ALL->value,
+            PermissionEnum::USER_ALL->value,
+            PermissionEnum::ROLE_VIEW->value,
+
+            PermissionEnum::TRANSACTION_ALL->value,
+
+            PermissionEnum::PRODUCT_ALL->value,
+            PermissionEnum::CATEGORY_ALL->value,
+
+            PermissionEnum::INVENTORY_ALL->value,
+
+            PermissionEnum::SUPPLIER_ALL->value,
+            PermissionEnum::PURCHASE_ORDER_ALL->value,
+
+            PermissionEnum::PROMO_ALL->value,
+            PermissionEnum::CUSTOMER_ALL->value,
+
+            PermissionEnum::REPORT_ALL->value,
+        ]);
+
+        /*
+        * Outlet Manager
+        */
+        $outletManager = Role::findOrCreate(
+            RoleEnum::OUTLET_MANAGER->value,
+            'business'
+        );
+
+        $outletManager->syncPermissions([
+            PermissionEnum::OUTLET_VIEW->value,
+
+            PermissionEnum::TRANSACTION_ALL->value,
+
+            PermissionEnum::PRODUCT_VIEW->value,
+            PermissionEnum::PRODUCT_UPDATE->value,
+
+            PermissionEnum::CATEGORY_VIEW->value,
+
+            PermissionEnum::INVENTORY_VIEW->value,
+            PermissionEnum::INVENTORY_ADJUST->value,
+            PermissionEnum::INVENTORY_TRANSFER->value,
+            PermissionEnum::INVENTORY_STOCK_OPNAME->value,
+
+            PermissionEnum::PROMO_VIEW->value,
+
+            PermissionEnum::CUSTOMER_VIEW->value,
+
+            PermissionEnum::REPORT_SALES->value,
+            PermissionEnum::REPORT_INVENTORY->value,
+            PermissionEnum::REPORT_SHIFT->value,
+            PermissionEnum::REPORT_PRODUCT->value,
+        ]);
+
+        /*
+        * Supervisor
+        */
+        $supervisor = Role::findOrCreate(
+            RoleEnum::SUPERVISOR->value,
+            'business'
+        );
+
+        $supervisor->syncPermissions([
+            PermissionEnum::TRANSACTION_VIEW->value,
+            PermissionEnum::TRANSACTION_CREATE->value,
+            PermissionEnum::TRANSACTION_HOLD->value,
+            PermissionEnum::TRANSACTION_REPRINT->value,
+
+            PermissionEnum::PRODUCT_VIEW->value,
+
+            PermissionEnum::INVENTORY_VIEW->value,
+
+            PermissionEnum::REPORT_SALES->value,
+        ]);
+
+        /*
+        * Cashier
+        */
+        $cashier = Role::findOrCreate(
+            RoleEnum::CASHIER->value,
+            'business'
+        );
+
+        $cashier->syncPermissions([
+            PermissionEnum::TRANSACTION_VIEW->value,
+            PermissionEnum::TRANSACTION_CREATE->value,
+            PermissionEnum::TRANSACTION_HOLD->value,
+            PermissionEnum::TRANSACTION_REPRINT->value,
+
+            PermissionEnum::PRODUCT_VIEW->value,
+
+            PermissionEnum::CUSTOMER_VIEW->value,
+            PermissionEnum::CUSTOMER_CREATE->value,
+        ]);
+
+        /*
+        * Barista
+        */
+        $barista = Role::findOrCreate(
+            RoleEnum::BARISTA->value,
+            'business'
+        );
+
+        $barista->syncPermissions([
+            PermissionEnum::TRANSACTION_VIEW->value,
+
+            PermissionEnum::PRODUCT_VIEW->value,
+        ]);
+
+        /*
+        * Kitchen
+        */
+
+        $kitchen = Role::findOrCreate(
+            RoleEnum::KITCHEN->value,
+            'business'
+        );
+
+        $kitchen->syncPermissions([
+            PermissionEnum::TRANSACTION_VIEW->value,
+
+            PermissionEnum::PRODUCT_VIEW->value,
+        ]);
+
+        /*
+        * Waiter
+        */
+        $waiter = Role::findOrCreate(
+            RoleEnum::WAITER->value,
+            'business'
+        );
+
+        $waiter->syncPermissions([
+            PermissionEnum::TRANSACTION_VIEW->value,
+            PermissionEnum::TRANSACTION_CREATE->value,
+
+            PermissionEnum::PRODUCT_VIEW->value,
+
+            PermissionEnum::CUSTOMER_VIEW->value,
+        ]);
+
+        /*
+        * Inventory Admin
+        */
+        $inventoryAdmin = Role::findOrCreate(
+            RoleEnum::INVENTORY_ADMIN->value,
+            'business'
+        );
+
+        $inventoryAdmin->syncPermissions([
+            PermissionEnum::PRODUCT_VIEW->value,
+
+            PermissionEnum::CATEGORY_VIEW->value,
+
+            PermissionEnum::INVENTORY_ALL->value,
+
+            PermissionEnum::SUPPLIER_ALL->value,
+
+            PermissionEnum::PURCHASE_ORDER_ALL->value,
+
+            PermissionEnum::REPORT_INVENTORY->value,
+        ]);
     }
 }

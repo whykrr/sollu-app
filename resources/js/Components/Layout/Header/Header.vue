@@ -24,7 +24,7 @@
                 />
             </div>
         </div>
-        <div>
+        <div class="sm:hidden">
             <div
                 class="sm:hidden inline-flex justify-center items-center w-10 h-10 border rounded"
                 @click="appStore.show"

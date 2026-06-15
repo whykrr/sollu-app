@@ -12,10 +12,14 @@
     </div>
 </template>
 <script setup>
+defineOptions({
+    inheritAttrs: false,
+});
+
 const { label, feedback, modelValue } = defineProps({
     label: String,
     feedback: String,
     modelValue: String,
 });
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(['update:modelValue']);
 </script>

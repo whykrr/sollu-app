@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use App\Notifications\ResetPassword;
-use App\Notifications\VerifyEmailMerchant;
-use App\Trait\HasMerchant;
+use App\Notifications\VerifyEmailBusiness;
+use App\Trait\HasBusiness;
 use App\Trait\HasOutlet;
 use App\Trait\SortableModel;
-use DateTimeInterface;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -23,7 +22,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
- * @property-read Collection|Merchant $merchant
+ * @property-read Collection|Business $business
  * @property-read Collection|Outlet[] $outlets
  * @mixin HasRoles
  * @mixin IdeHelperUser
@@ -38,7 +37,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use SoftDeletes;
     use CanResetPassword;
     use SortableModel;
-    use HasMerchant;
+    use HasBusiness;
     use HasOutlet;
 
     /**
@@ -72,7 +71,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $sortable = [
         'name',
         'email',
-        'updated_at',
+        'created_at',
     ];
 
     /**
@@ -89,19 +88,13 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    protected function serializeDate(DateTimeInterface $date): string
-    {
-        return $date->format('d/m/Y H.i');
-    }
-
-
     /**
      * @return void
      * @throws BindingResolutionException
      */
     public function sendEmailVerificationNotification()
     {
-        $this->notify(new VerifyEmailMerchant());
+        $this->notify(new VerifyEmailBusiness());
     }
 
     public function sendPasswordResetNotification($token)
@@ -110,7 +103,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the merchant that owns the User
+     * Get the business that owns the User
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Business
      */
@@ -142,10 +135,8 @@ class User extends Authenticatable implements MustVerifyEmail
                 $q->where('roles.name', $value);
             })
         )->when(
-            $filters['status'] ?? false,
-            fn (Builder $builder, $value) => ($value == 'archived')
-            ? $builder->onlyTrashed()
-            : $builder->withTrashed()
+            $filters['is_deleted'] ?? false,
+            fn (Builder $builder, $value) => $builder->withTrashed()
         );
     }
 }

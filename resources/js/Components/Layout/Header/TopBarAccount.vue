@@ -82,6 +82,7 @@
                                     v-else
                                     :href="item.link"
                                     class="flex items-center gap-3 px-4 py-2.5 hover:bg-white text-sm text-neutral-700 font-medium transition-all duration-150 ease-in-out group"
+                                    @click="showPanel = !showPanel"
                                 >
                                     <div
                                         class="w-5 flex justify-center text-neutral-400 group-hover:text-main transition-colors"
@@ -133,15 +134,9 @@ const closePanel = () => {
 
 const accountLinks = [
     {
-        label: 'Info Akun',
+        label: 'Pusat Akun',
         icon: faUser,
-        link: '#',
-        method: 'get',
-    },
-    {
-        label: 'Ubah kata sandi',
-        icon: faKey,
-        link: '#',
+        link: route('settings.account.profile'),
     },
     {
         label: 'Keluar',

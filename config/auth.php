@@ -69,7 +69,7 @@ return [
             'model'  => env('AUTH_MODEL', App\Models\User::class),
         ],
 
-        'inhouse_users' => [
+        'internal_users' => [
             'driver' => 'eloquent',
             'model'  => env('AUTH_MODEL', App\Models\User::class),
         ],

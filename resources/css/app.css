@@ -338,7 +338,7 @@
 
     .navigation-list {
         & .nav-section {
-            @apply text-sm px-2 select-none mt-1.5 text-neutral-400 font-medium;
+            @apply text-sm select-none text-neutral-400 font-medium;
         }
 
         & .nav-item {
@@ -562,7 +562,7 @@
     }
 
     .table {
-        @apply min-w-full text-sm border-separate border-spacing-y-1 -mt-1;
+        @apply min-w-full text-sm border-separate border-spacing-y-0 -mt-0.5;
 
         & thead {
             @apply mb-0;
@@ -571,13 +571,13 @@
             @apply bg-transparent backdrop-blur-lg;
         }
         & thead tr th {
-            @apply px-3 py-3 text-left font-semibold text-neutral-700 bg-main/10  first:rounded-l-lg last:rounded-r-lg;
+            @apply px-3 py-3 text-left font-semibold text-neutral-700 bg-slate-200  first:rounded-l-lg last:rounded-r-lg;
         }
         & tbody tr {
-            @apply bg-white transition-all duration-150 ease-in-out hover:bg-neutral-50;
+            @apply transition-all duration-150 ease-in-out hover:bg-white first:pt-2;
         }
         & tbody tr td {
-            @apply px-3 py-2 align-middle border-y border-neutral-200 first:border-l first:rounded-l-lg last:border-r last:rounded-r-lg;
+            @apply px-3 py-2 align-middle border-neutral-200 border-t;
         }
         &.table-hovered tbody tr {
             @apply cursor-pointer;
@@ -609,6 +609,10 @@
     }
     label:has(+ .form.lg) {
         @apply !text-base;
+    }
+
+    .label {
+        @apply mb-1.5 text-sm font-medium text-neutral-700;
     }
 
     .form-check {
@@ -666,11 +670,11 @@
         focus-within:border-main;
 
         & label.form-group-text {
-            @apply !px-3 select-none mb-0! py-2 h-full text-sm font-medium text-neutral-600 bg-gray-50 border-r border-gray-200 inline-flex items-center;
+            @apply !px-2.5 select-none mb-0! py-2 h-full text-sm font-medium text-neutral-600 bg-gray-50 border-r border-gray-200 inline-flex items-center;
         }
 
         &.has-text .form {
-            @apply first:!pr-2 last:!pl-2 focus:text-neutral-800;
+            @apply first:!pr-2 last:!pl-2 focus:text-neutral-800 focus:ring-0;
         }
 
         & .btn {
@@ -784,7 +788,7 @@
         }
 
         &.btn-sm {
-            @apply !text-xs !py-1.5 !px-2.5;
+            @apply !text-xs !py-1.5 !px-2;
         }
         &.btn-lg {
             @apply !text-base !py-3 !px-6;
@@ -820,7 +824,7 @@
     }
 
     .modal {
-        @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+        @apply fixed inset-0 z-50 flex justify-center p-3 pt-12;
 
         background-color: rgba(0, 0, 0, 0.5);
 
@@ -841,6 +845,14 @@
             transition:
                 transform 0.25s ease,
                 opacity 0.25s ease;
+        }
+        & .modal-dialog.side {
+            transform: translateX(100%);
+            opacity: 0;
+
+            transition:
+                transform 0.5s ease,
+                opacity 0.5s ease;
         }
 
         & .modal-content {

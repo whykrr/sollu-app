@@ -151,6 +151,7 @@
                                     :href="item.link"
                                     class="flex items-center gap-3 px-4 py-2.5 hover:bg-white text-sm text-neutral-700 font-medium transition-all duration-150 ease-in-out group"
                                     :method="item.method"
+                                    @click="showPanel = !showPanel"
                                 >
                                     <div
                                         class="w-6 flex justify-center text-neutral-400 group-hover:text-main transition-colors"
@@ -208,13 +209,13 @@ const businessLinks = [
     {
         label: 'Info Usaha',
         icon: faShop,
-        link: route('business.info.detail'),
+        link: route('settings.business.detail'),
         method: 'get',
     },
     {
         label: 'Langganan & Tagihan',
         icon: faCreditCard,
-        link: route('business.billing.index'),
+        link: route('settings.billing.index'),
         method: 'get',
     },
     {

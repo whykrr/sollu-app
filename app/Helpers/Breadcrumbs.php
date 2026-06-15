@@ -9,21 +9,6 @@ if (! function_exists('generateBreadcrumbs')) {
                 ['label' => 'Overview', 'url' => route('overview')],
             ],
 
-            'products.units.index' => [
-                ['label' => 'Produk', 'url' => '#'],
-                ['label' => 'Satuan', 'url' => route('products.units.index')],
-            ],
-            'products.units.create' => [
-                ['label' => 'Produk', 'url' => '#'],
-                ['label' => 'Satuan', 'url' => route('products.units.index')],
-                ['label' => 'Tambah Satuan', 'url' => '#'],
-            ],
-            'products.units.show' => [
-                ['label' => 'Produk', 'url' => '#'],
-                ['label' => 'Satuan', 'url' => route('products.units.index')],
-                ['label' => 'Detail Satuan', 'url' => '#'],
-            ],
-
             'employees.index' => [
                 ['label' => 'Pegawai', 'url' => route('employees.index')],
             ],
@@ -36,36 +21,53 @@ if (! function_exists('generateBreadcrumbs')) {
                 ['label' => 'Detail Pegawai', 'url' => '#'],
             ],
 
-            'business.info.detail' => [
-                ['label' => 'Usaha', 'url' => '#'],
-                ['label' => 'Detail Usaha', 'url' => route('business.info.detail')],
+
+            'settings.account.profile' => [
+                ['label' => 'Pengaturan', 'url' => '#'],
+                ['label' => 'Pusat Akun', 'url' => route('settings.account.profile')],
             ],
 
-            'business.billing.index' => [
-                ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('business.billing.index')],
+            'settings.business.detail' => [
+                ['label' => 'Pengaturan', 'url' => '#'],
+                ['label' => 'Detail Usaha', 'url' => route('settings.business.detail')],
             ],
 
-            'business.billing.plans' => [
+            'settings.outlets.index' => [
+                ['label' => 'Pengaturan', 'url' => '#'],
+                ['label' => 'Outlet', 'url' => route('settings.outlets.index')],
+            ],
+
+            'settings.outlets.show' => [
+                ['label' => 'Pengaturan', 'url' => '#'],
+                ['label' => 'Outlet', 'url' => route('settings.outlets.index')],
+                ['label' => 'Detail Outlet', 'url' => '#'],
+            ],
+
+
+            'settings.billing.index' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('business.billing.index')],
+                ['label' => 'Langganan', 'url' => route('settings.billing.index')],
+            ],
+
+            'settings.billing.plans' => [
+                ['label' => 'Langganan & Tagihan', 'url' => '#'],
+                ['label' => 'Langganan', 'url' => route('settings.billing.index')],
                 ['label' => 'Pilih Langganan', 'url' => '#'],
             ],
 
-            'business.billing.subscribe' => [
+            'settings.billing.subscribe' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('business.billing.index')],
-                ['label' => 'Pilih Langganan', 'url' => route('business.billing.plans')],
+                ['label' => 'Langganan', 'url' => route('settings.billing.index')],
                 ['label' => 'Detail Langganan', 'url' => '#'],
             ],
 
-            'business.invoices.index' => [
+            'settings.invoices.index' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
                 ['label' => 'Pembayaran', 'url' => '#'],
             ],
-            'business.invoices.show' => [
+            'settings.invoices.show' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Pembayaran', 'url' => route('business.invoices.index')],
+                ['label' => 'Pembayaran', 'url' => route('settings.invoices.index')],
                 ['label' => 'Tagihan', 'url' => '#'],
             ],
 

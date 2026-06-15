@@ -4,7 +4,7 @@
 Email anda telah berhasil didaftarkan, berikut adalah detail akun Anda:
 
 **Nama:** {{ $user->name }}  
-**Merchant:** {{ $user->merchant->name }}  
+**Merchant:** {{ $user->business->name }}  
 **Email:** {{ $user->email }}  
 **Password:** {{ $defaultPassword }}
 
