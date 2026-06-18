@@ -69,6 +69,16 @@ class Outlet extends Model
         return $this->belongsToMany(User::class, 'outlet_user', 'user_id', 'outlet_id');
     }
 
+    /**
+     * Get the subscription outlets
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function subscriptionOutlets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SubscriptionOutlet::class);
+    }
+
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()

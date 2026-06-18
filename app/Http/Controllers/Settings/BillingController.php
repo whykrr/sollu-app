@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Constants\AuthorizationMessage;
-use App\Enum\SubscriptionInvoice\Status;
 use App\Http\Controllers\Controller;
-use App\Models\SubscriptionInvoice;
+use App\Models\Invoice;
 use App\Models\SubscriptionPlan;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -15,49 +14,79 @@ class BillingController extends Controller
 {
     public function index(Request $req)
     {
-        if (! $req->user()->can('merchant.billing')) {
+        if (! $req->user()->can('business.billing')) {
             throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
         }
 
-        $subscriptions = MerchantSubscriptions::currentMerchant()
-            ->with(['plan'])
+        $business = $req->user()->business;
+
+        $invoices = $business->invoices()
+            ->with(['items'])
             ->latest();
 
+        $activeSubscription = $business->subscriptions()->with('plan')->where('status', 'active')->first();
+
         return inertia('Settings/Billing/Index', [
-            'subscription'  => $subscriptions->first(),
-            'subscriptions' => $subscriptions->paginate($req->get('perpage', 20))
-            ,
+            'subscription'  => $activeSubscription,
+            'invoices'      => $invoices->paginate($req->get('perpage', 20)),
         ]);
     }
 
     public function plans(Request $req)
     {
-        if (! $req->user()->can('merchant.billing')) {
+        if (! $req->user()->can('business.billing')) {
             throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
         }
 
-        $subscription = $req->user()->merchant->subscriptions()
-            ->where('is_active', '=', true)
+        $business     = $req->user()->business;
+        $subscription = $business->subscriptions()
+            ->where('status', 'active')
+            ->with(['plan'])
             ->latest()
             ->first();
 
-        $cycle = $subscription->plan->billing_cycle;
+        $invoice = Invoice::where('business_id', $business->id)
+            ->where('status', 'open')
+            ->where('due_date', '>', Carbon::now())
+            ->first();
 
-        $invoice = SubscriptionInvoice::whereStatus(Status::Unpaid)
-            ->where('due_date', '>', Carbon::now()->format('Y-m-d'))->first();
-
-        $billing_cycle = $req->get('billing_cycle', $cycle);
-
-        $plans = SubscriptionPlan::where('is_trial', false)
-            ->where('billing_cycle', $billing_cycle)
-            ->orderBy('price', 'asc')
-            ->get();
+        $plans = SubscriptionPlan::orderBy('price_per_outlet', 'asc')->get();
 
         return inertia('Settings/Billing/Plans', [
             'subscription'  => $subscription,
             'plans'         => $plans,
-            'billing_cycle' => $billing_cycle,
             'invoice'       => $invoice,
+        ]);
+    }
+
+    public function checkout(Request $req, $plan_id)
+    {
+        if (! $req->user()->can('business.billing')) {
+            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
+        }
+
+        $business     = $req->user()->business;
+        $subscription = $business->subscriptions()
+            ->where('status', 'active')
+            ->with(['plan'])
+            ->latest()
+            ->first();
+
+        $invoice = Invoice::where('business_id', $business->id)
+            ->where('status', 'open')
+            ->where('due_date', '>', Carbon::now())
+            ->first();
+
+        if ($invoice) {
+            return redirect()->route('settings.billing.plans')
+                ->with('error', 'Anda masih memiliki tagihan yang belum dibayar.');
+        }
+
+        $plan = SubscriptionPlan::findOrFail($plan_id);
+
+        return inertia('Settings/Billing/Checkout', [
+            'subscription' => $subscription,
+            'plan'         => $plan,
         ]);
     }
 }

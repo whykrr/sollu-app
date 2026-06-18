@@ -51,10 +51,10 @@ class SummaryUser
                         'name'  => $role->name,
                         'label' => $role->label,
                     ])->toArray(),
-                    'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
-                    'business'    => $user->business,
-                    // 'subscription' => $user->business->subscriptions()->with('plan')->latest()->first(),
-                    'outlets' => $outlets,
+                    'permissions'  => $user->getAllPermissions()->pluck('name')->toArray(),
+                    'business'     => $user->business,
+                    'subscription' => $user->business->subscriptions()->with('plan')->latest()->first(),
+                    'outlets'      => $outlets,
                 ];
             }
         );

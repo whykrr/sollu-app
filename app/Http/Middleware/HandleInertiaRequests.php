@@ -17,7 +17,12 @@ class HandleInertiaRequests extends Middleware
      *
      * @var string
      */
-    protected $rootView = 'app';
+    public function rootView(Request $request): string
+    {
+        return $request->routeIs('cockpit.*')
+            ? 'cockpit'
+            : 'app';
+    }
 
     /**
      * Determines the current asset version.
@@ -38,42 +43,60 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-
-        return array_merge(parent::share($request), [
-            'app' => [
-                'name'        => config('app.name'),
-                'breadcrumbs' => generateBreadcrumbs($request->route()->getName()),
-                'flash'       => [
-                    'success' => $request->session()->get('success'),
-                    'failed'  => $request->session()->get('failed'),
-                    'info'    => $request->session()->get('info'),
+        if ($request->routeIs('cockpit.*')) {
+            return array_merge(parent::share($request), [
+                'app' => [
+                    'name'        => config('app.name'),
+                    'breadcrumbs' => generateBreadcrumbs($request->route()->getName()),
+                    'flash'       => [
+                        'success' => $request->session()->get('success'),
+                        'failed'  => $request->session()->get('failed'),
+                        'info'    => $request->session()->get('info'),
+                    ],
                 ],
-            ],
+                'auth' => fn () => $request->user()
+                    ? array_merge(
+                        $request->user()->only(['id', 'name', 'email', 'email_verified_at']),
+                    ) : null,
+            ]);
+        } else {
+            return array_merge(parent::share($request), [
+                'app' => [
+                    'name'        => config('app.name'),
+                    'breadcrumbs' => generateBreadcrumbs($request->route()->getName()),
+                    'flash'       => [
+                        'success' => $request->session()->get('success'),
+                        'failed'  => $request->session()->get('failed'),
+                        'info'    => $request->session()->get('info'),
+                    ],
+                ],
 
-            'auth' => fn () => $request->user()
-                ? array_merge(
-                    $request->user()->only(['id', 'name', 'email', 'email_verified_at']),
-                    (array) SummaryUser::make()->cached(),
-                    ['selected_outlet' => '']
-                ) : null,
+                'auth' => fn () => $request->user()
+                    ? array_merge(
+                        $request->user()->only(['id', 'name', 'email', 'email_verified_at']),
+                        (array) SummaryUser::make()->cached(),
+                        ['selected_outlet' => '']
+                    ) : null,
 
-            'notifications' => Inertia::lazy(fn () => $request->user()->notifications()->get()),
-            'businessInfo'  => Inertia::lazy(function () use ($request) {
-                $business = $request->user()->business;
+                'notifications' => Inertia::lazy(fn () => $request->user()->notifications()->get()),
+                'businessInfo'  => Inertia::lazy(function () use ($request) {
+                    $business = $request->user()->business;
 
-                return [
-                    // 'subscription' => $business->subscriptions()
-                    //     ->where('is_active', '=', true)
-                    //     ->with('plan')
-                    //     ->latest()
-                    //     ->first(),
-                    'outlet_count' => $business->outlets()
-                        ->where('is_active', '=', true)->count(),
-                    'businessType' => $business->type()->first()->name,
-                ];
-            }),
+                    return [
+                        // 'subscription' => $business->subscriptions()
+                        //     ->where('is_active', '=', true)
+                        //     ->with('plan')
+                        //     ->latest()
+                        //     ->first(),
+                        'outlet_count' => $business->outlets()
+                            ->where('is_active', '=', true)->count(),
+                        'businessType' => $business->type()->first()->name,
+                    ];
+                }),
 
-            'selectedOutlet' => fn () => $request->user() ? SelectedOutlet::make()->cached() : null,
-        ]);
+                'selectedOutlet' => fn () => $request->user() ? SelectedOutlet::make()->cached() : null,
+            ]);
+        }
+
     }
 }

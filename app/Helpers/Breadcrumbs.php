@@ -61,13 +61,9 @@ if (! function_exists('generateBreadcrumbs')) {
                 ['label' => 'Detail Langganan', 'url' => '#'],
             ],
 
-            'settings.invoices.index' => [
+            'settings.billing.invoices.show' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Pembayaran', 'url' => '#'],
-            ],
-            'settings.invoices.show' => [
-                ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Pembayaran', 'url' => route('settings.invoices.index')],
+                ['label' => 'Pembayaran', 'url' => route('settings.billing.index')],
                 ['label' => 'Tagihan', 'url' => '#'],
             ],
 

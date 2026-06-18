@@ -25,6 +25,8 @@ class BusinessType extends Model
         'is_visible',
     ];
 
+    public $timestamps = false;
+
     /**
      * @return array<string, string>
      */

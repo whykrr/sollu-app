@@ -97,7 +97,27 @@ class Business extends Model
      */
     public function subscriptions(): HasMany
     {
-        return $this->hasMany(MerchantSubscriptions::class);
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get all of the invoices for the Merchant
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Get all of the billing logs for the Merchant
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function billingLogs(): HasMany
+    {
+        return $this->hasMany(BillingLog::class);
     }
 
     /**
