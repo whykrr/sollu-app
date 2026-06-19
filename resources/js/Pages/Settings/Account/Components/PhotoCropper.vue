@@ -153,6 +153,16 @@ const cropImage = () => {
 const editImage = () => {
     image.value = preview.value;
 };
+
+/*
+|--------------------------------------------------------------------------
+| Remove Image / Cancel Crop
+|--------------------------------------------------------------------------
+*/
+
+const removeImage = () => {
+    image.value = null;
+};
 </script>
 
 <template>

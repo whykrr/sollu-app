@@ -1,126 +1,137 @@
 <template>
     <Container>
-        <div class="flex flex-row gap-4 min-h-full justify-center">
-            <div
-                class="w-[50%] flex h-full flex-col rounded-lg border bg-white p-4"
-            >
-                <!-- Header -->
-                <div class="mb-4 flex items-start justify-between">
-                    <div>
-                        <h2 class="text-xl font-semibold text-slate-800">
-                            Informasi Usaha
-                        </h2>
-
-                        <p class="text-sm text-slate-500">
-                            Kelola identitas dan informasi utama usaha Anda
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Form -->
-                <div class="space-y-2">
-                    <!-- Business Name -->
-                    <div class="space-y-0">
-                        <TextField
-                            v-model="business.name"
-                            label="Nama Usaha"
-                            placeholder="Contoh: Sollu Coffee"
-                            :class="{
-                                'is-invalid': business.errors.name,
-                            }"
-                            :feedback="business.errors.name"
-                        />
-
-                        <p class="text-xs leading-relaxed text-slate-400">
-                            Nama usaha akan tampil pada struk, invoice, laporan,
-                            dan halaman pelanggan.
-                        </p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-start p-1">
+            <!-- Left Column: Form -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Informasi Usaha Card -->
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6">
+                    <!-- Header -->
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                        <div class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main">
+                            <FontAwesomeIcon :icon="faBriefcase" class="text-lg" />
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-slate-800 leading-tight">
+                                Informasi Usaha
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Kelola identitas dan informasi utama usaha Anda
+                            </p>
+                        </div>
                     </div>
 
-                    <!-- Email -->
-                    <div class="space-y-0">
-                        <EmailField
-                            v-model="business.email"
-                            label="Email Usaha"
-                            placeholder="business@email.com"
-                            :class="{
-                                'is-invalid': business.errors.email,
-                            }"
-                            :feedback="business.errors.email"
-                        />
+                    <!-- Form -->
+                    <div class="space-y-4">
+                        <!-- Business Name -->
+                        <div>
+                            <TextField
+                                v-model="business.name"
+                                label="Nama Usaha"
+                                placeholder="Contoh: Sollu Coffee"
+                                :class="{
+                                    'is-invalid': business.errors.name,
+                                }"
+                                :feedback="business.errors.name"
+                            />
+                            <p class="text-xs leading-relaxed text-slate-400 mt-1.5">
+                                Nama usaha akan tampil pada struk, invoice, laporan, dan halaman pelanggan.
+                            </p>
+                        </div>
 
-                        <p class="text-xs leading-relaxed text-slate-400">
-                            Digunakan untuk notifikasi sistem, invoice, dan
-                            informasi tagihan.
-                        </p>
+                        <!-- Email -->
+                        <div>
+                            <EmailField
+                                v-model="business.email"
+                                label="Email Usaha"
+                                placeholder="business@email.com"
+                                :class="{
+                                    'is-invalid': business.errors.email,
+                                }"
+                                :feedback="business.errors.email"
+                            />
+                            <p class="text-xs leading-relaxed text-slate-400 mt-1.5">
+                                Digunakan untuk notifikasi sistem, invoice, dan informasi tagihan.
+                            </p>
+                        </div>
+
+                        <!-- Owner -->
+                        <div>
+                            <TextField
+                                v-model="business.owner_name"
+                                label="Nama Pemilik"
+                                placeholder="Nama pemilik usaha"
+                                :class="{
+                                    'is-invalid': business.errors.owner_name,
+                                }"
+                                :feedback="business.errors.owner_name"
+                            />
+                        </div>
+
+                        <!-- Phone -->
+                        <div>
+                            <NumberField
+                                v-model="business.phone"
+                                label="Nomor Telepon"
+                                placeholder="Contoh: 081234567890"
+                                :class="{
+                                    'is-invalid': business.errors.phone,
+                                }"
+                                :feedback="business.errors.phone"
+                            />
+                        </div>
+
+                        <!-- Address -->
+                        <div>
+                            <TextareaField
+                                id="address"
+                                v-model="business.address"
+                                label="Alamat Usaha"
+                                placeholder="Masukkan alamat usaha lengkap"
+                                rows="4"
+                                :class="{
+                                    'is-invalid': business.errors.address,
+                                }"
+                                :feedback="business.errors.address"
+                            />
+                            <p class="text-xs leading-relaxed text-slate-400 mt-1.5">
+                                Alamat dapat digunakan untuk kebutuhan invoice, pengiriman, dan profil usaha.
+                            </p>
+                        </div>
                     </div>
 
-                    <!-- Owner -->
-                    <div class="space-y-0">
-                        <TextField
-                            v-model="business.owner_name"
-                            label="Nama Pemilik"
-                            placeholder="Nama pemilik usaha"
-                            :class="{
-                                'is-invalid': business.errors.owner_name,
-                            }"
-                            :feedback="business.errors.owner_name"
-                        />
+                    <!-- Footer Action -->
+                    <div class="border-t border-slate-100 pt-5 mt-6 flex justify-end">
+                        <button
+                            class="btn btn-success px-6 justify-center rounded-lg w-full sm:w-auto"
+                            :disabled="business.processing"
+                            @click="saveDetail"
+                        >
+                            <FontAwesomeIcon v-if="business.processing" :icon="faSpinner" class="animate-spin" />
+                            <span>{{ business.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}</span>
+                        </button>
                     </div>
-
-                    <!-- Phone -->
-                    <div class="space-y-0">
-                        <NumberField
-                            v-model="business.phone"
-                            label="Nomor Telepon"
-                            placeholder="08xxxxxxxxxx"
-                            :class="{
-                                'is-invalid': business.errors.phone,
-                            }"
-                            :feedback="business.errors.phone"
-                        />
-                    </div>
-
-                    <!-- Address -->
-                    <div class="space-y-0">
-                        <TextareaField
-                            id="address"
-                            v-model="business.address"
-                            label="Alamat Usaha"
-                            placeholder="Masukkan alamat usaha lengkap"
-                            rows="4"
-                            :class="{
-                                'is-invalid': business.errors.address,
-                            }"
-                            :feedback="business.errors.address"
-                        />
-
-                        <p class="text-xs leading-relaxed text-slate-400">
-                            Alamat dapat digunakan untuk kebutuhan invoice,
-                            pengiriman, dan profil usaha.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Footer Action -->
-                <div class="border-slate-100 pt-5">
-                    <button
-                        class="btn btn-success w-full justify-center rounded-lg"
-                        :disabled="business.processing"
-                        @click="saveDetail"
-                    >
-                        <span v-if="business.processing"> Menyimpan... </span>
-
-                        <span v-else> Simpan Perubahan </span>
-                    </button>
                 </div>
             </div>
-            <div class="w-80">
-                <div
-                    class="bg-white rounded-lg p-4 space-y-2 border sticky top-0"
-                >
-                    <div class="font-semibold text-lg">Logo Usaha</div>
-                    <div class="p-0 relative">
+
+            <!-- Right Column: Logo -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 sticky top-4">
+                    <!-- Header -->
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                        <div class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main">
+                            <FontAwesomeIcon :icon="faImage" class="text-lg" />
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-slate-800 leading-tight">
+                                Logo Usaha
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Perbarui logo resmi usaha Anda
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center p-0 relative">
                         <LogoCropper
                             @action="saveLogo"
                             :url="auth.business.logo_url"
@@ -129,32 +140,27 @@
                 </div>
             </div>
         </div>
-        <Modal
-            title="Upload Logo"
-            :class="{ show: showModalUploadLogo }"
-            @close="showModalUploadLogo = false"
-        >
-            <LogoCropper @action="saveLogo" />
-        </Modal>
     </Container>
 </template>
+
 <script setup>
+import { computed } from 'vue';
+import { useForm, usePage } from '@inertiajs/vue3';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import {
+    faBriefcase,
+    faImage,
+    faSpinner,
+} from '@fortawesome/free-solid-svg-icons';
+
+import Container from '@/Components/UI/Container.vue';
+import TextField from '@/Components/Form/TextField.vue';
 import EmailField from '@/Components/Form/EmailField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import Container from '@/Components/UI/Container.vue';
-import { faCamera, faPencil } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { useForm, usePage } from '@inertiajs/vue3';
-import Modal from '@/Components/Notifications/Modal.vue';
-import 'vue-advanced-cropper/dist/style.css';
 import LogoCropper from './Components/LogoCropper.vue';
-import { computed, ref } from 'vue';
 
 const auth = computed(() => usePage().props.auth);
-
-const showModalUploadLogo = ref(false);
 
 const props = defineProps({
     business: Object,
@@ -186,9 +192,6 @@ const saveLogo = (logo) => {
         preserveState: true,
         preserveScroll: true,
         forceFormData: true,
-        onSuccess: () => {
-            showModalUploadLogo.value = false;
-        },
     });
 };
 </script>

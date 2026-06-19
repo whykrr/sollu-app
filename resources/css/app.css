@@ -571,13 +571,29 @@
             @apply bg-transparent backdrop-blur-lg;
         }
         & thead tr th {
-            @apply px-3 py-3 text-left font-semibold text-neutral-700 bg-slate-200  first:rounded-l-lg last:rounded-r-lg;
+            @apply px-3 py-3 text-left font-semibold text-neutral-700 bg-slate-200 first:rounded-l-lg last:rounded-r-lg;
         }
         & tbody tr {
-            @apply transition-all duration-150 ease-in-out hover:bg-white first:pt-2;
+            @apply transition-all duration-150 ease-in-out first:pt-2;
+
+            &:hover {
+                background-color: transparent !important;
+            }
+
+            &:hover td {
+                @apply bg-white border-t-transparent;
+            }
+
+            &:hover td:first-child {
+                @apply rounded-l-lg;
+            }
+
+            &:hover td:last-child {
+                @apply rounded-r-lg;
+            }
         }
         & tbody tr td {
-            @apply px-3 py-2 align-middle border-neutral-200 border-t;
+            @apply px-3 py-2 align-middle border-neutral-200 border-t transition-all duration-150 ease-in-out;
         }
         &.table-hovered tbody tr {
             @apply cursor-pointer;
@@ -788,7 +804,7 @@
         }
 
         &.btn-sm {
-            @apply !text-xs !py-1.5 !px-2;
+            @apply !text-xs !py-1.5 !px-2 !gap-1;
         }
         &.btn-lg {
             @apply !text-base !py-3 !px-6;

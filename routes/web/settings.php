@@ -1,9 +1,7 @@
 <?php
 
 use App\Http\Controllers\Settings\AccountController;
-use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\Settings\BusinessInfoController;
-use App\Http\Controllers\Settings\InvoiceController;
 use App\Http\Controllers\Settings\OutletController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,7 +26,7 @@ Route::prefix('settings')
                 Route::post('/logo', [BusinessInfoController::class, 'saveLogo'])->name('detail.save.logo');
             });
 
-        Route::prefix('outlets')
+            Route::prefix('outlets')
             ->name('outlets.')
             ->group(function () {
                 Route::get('/', [OutletController::class, 'index'])->name('index');
@@ -39,24 +37,36 @@ Route::prefix('settings')
                 Route::delete('/{outlet}', [OutletController::class, 'disabled'])->name('disabled');
             });
 
+        Route::middleware(['can:' . \App\Enum\PermissionEnum::BUSINESS_BILLING->value])->group(function () {
+            Route::prefix('billing')
+                ->name('billing.')
+                ->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Settings\BillingController::class, 'index'])->name('index');
+                    Route::get('/plans', [\App\Http\Controllers\Settings\BillingController::class, 'plans'])->name('plans');
+                    Route::get('/checkout/{plan_id}', [\App\Http\Controllers\Settings\BillingController::class, 'checkout'])->name('checkout');
 
-        Route::prefix('billing')
-            ->name('billing.')
-            ->group(function () {
-                Route::get('/', [BillingController::class, 'index'])->name('index');
-                Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
-                Route::get('/{id}', [InvoiceController::class, 'index`'])->name('show');
-            });
+                    Route::prefix('invoices')
+                        ->name('invoices.')
+                        ->group(function () {
+                            Route::get('/{invoice_number}', [\App\Http\Controllers\Settings\InvoiceController::class, 'show'])->name('show');
+                            Route::get('/{invoice_number}/download', [\App\Http\Controllers\Settings\InvoiceController::class, 'download'])->name('download');
+                            Route::get('/{invoice_number}/finish', [\App\Http\Controllers\Settings\InvoiceController::class, 'finish'])->name('finish');
+                            Route::get('/{invoice_number}/error', [\App\Http\Controllers\Settings\InvoiceController::class, 'error'])->name('error');
+                            Route::delete('/{invoice_number}/cancel', [\App\Http\Controllers\Settings\InvoiceController::class, 'cancel'])->name('cancel');
+                            Route::post('/{invoice_number}/change-method', [\App\Http\Controllers\Settings\InvoiceController::class, 'changeMethod'])->name('change-method');
+                            Route::post('/{invoice_number}/upload-proof', [\App\Http\Controllers\Settings\InvoiceController::class, 'uploadProof'])->name('upload-proof');
+                        });
+                });
+        });
 
-        Route::prefix('invoices')
-            ->name('invoices.')
-            ->group(function () {
-                Route::get('/', [InvoiceController::class, 'index'])->name('index');
-                Route::get('/{code}', [InvoiceController::class, 'show'])->name('show');
-                Route::delete('/{code}/cancel', [InvoiceController::class, 'cancel'])->name('cancel');
-                Route::get('/{code}/finish', [InvoiceController::class, 'finish'])->name('finish');
-                Route::get('/{code}/error', [InvoiceController::class, 'error'])->name('error');
-                // Route::get('/subscribe', [InvoiceController::class, 'index'])->name('subscribe');
-            });
+        Route::middleware(['can:' . \App\Enum\PermissionEnum::BUSINESS_SUBSCRIPTION->value])->group(function () {
+            Route::prefix('subscriptions')
+                ->name('subscriptions.')
+                ->group(function () {
+                    Route::post('/subscribe', [\App\Http\Controllers\Settings\SubscriptionController::class, 'subscribe'])->name('subscribe');
+                    Route::post('/change-plan', [\App\Http\Controllers\Settings\SubscriptionController::class, 'changePlan'])->name('change-plan');
+                    Route::delete('/cancel', [\App\Http\Controllers\Settings\SubscriptionController::class, 'cancel'])->name('cancel');
+                });
+        });
 
     });

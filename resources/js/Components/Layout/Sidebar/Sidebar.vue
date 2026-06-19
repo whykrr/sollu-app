@@ -70,7 +70,7 @@
             </div>
             <SidebarOutlet v-if="!isSetting" />
             <SidebarNav class="mb-2" />
-            <SidebarFooter />
+            <SidebarFooter :is-setting />
         </div>
     </aside>
 </template>
@@ -111,6 +111,6 @@ router.on('finish', () => appStore.hide());
 
 const isSetting = computed(() => {
     const url = usePage().url;
-    return url.startsWith('/setting');
+    return url.startsWith('/settings');
 });
 </script>

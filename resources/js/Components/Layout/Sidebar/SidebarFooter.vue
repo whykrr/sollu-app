@@ -16,6 +16,7 @@
             </div>
         </a>
         <Link
+            v-if="!isSetting"
             href="#"
             class="flex flex-row gap-2 items-center py-0 px-2 cursor-pointer rounded-lg text-neutral-600 hover:text-neutral-900"
         >
@@ -24,7 +25,7 @@
         </Link>
 
         <div
-            v-if="gapDaysFromNow(auth.business.trial_end_at) > 15"
+            v-if="gapDaysFromNow(business.created_at) < 15"
             class="flex flex-col gap-1.5 rounded-lg border border-neutral-300 p-2"
         >
             <div>
@@ -32,31 +33,27 @@
                     class="inline-block p-1.5 bg-gradient-to-r from-main to-secondary-dark text-white rounded-md text-xs"
                 >
                     <FontAwesomeIcon :icon="faBolt" class="text-sm" />
-                    {{ auth.subscription.plan.name ?? 'Uji Coba' }}
+                    {{ subscription.plan.name ?? 'Masa Uji Coba' }}
                 </div>
             </div>
             <div class="text-xs">
                 Masa
-                {{
-                    auth.subscription.plan.is_trial
-                        ? 'uji coba gratis'
-                        : 'langganan'
-                }}
+                {{ subscription ? 'langganan' : 'uji coba gratis' }}
                 anda akan berakhir dalam
                 <span class="font-medium"
-                    >{{ gapDaysFromNow(auth.business.trial_end_at) }} hari</span
+                    >{{ gapDaysFromNow(business.trial_end_at) }} hari</span
                 >
             </div>
             <Link
-                v-if="auth.subscription.plan.is_trial"
-                :href="route('business.billing.plans')"
+                v-if="!subscription"
+                :href="route('settings.billing.plans')"
                 class="btn btn-outline-main btn-sm justify-center"
             >
                 Langganan Sekarang
             </Link>
             <Link
                 v-else
-                :href="route('business.billing.index')"
+                :href="route('settings.billing.index')"
                 class="btn btn-outline-info btn-sm justify-center"
             >
                 Perpanjang Langganan
@@ -67,6 +64,7 @@
 
 <script setup>
 import { gapDaysFromNow } from '@/Composable/date';
+import { useAuth } from '@/Composable/useAuth';
 import {
     faArrowUpFromBracket,
     faBolt,
@@ -75,7 +73,11 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
-const auth = computed(() => usePage().props.auth);
+const { business, subscription } = useAuth();
+console.log(gapDaysFromNow(business.value.trial_end_at));
+console.log(business.value.trial_end_at);
+defineProps({
+    isSetting: Boolean,
+});
 </script>

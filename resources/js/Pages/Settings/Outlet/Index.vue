@@ -1,22 +1,17 @@
 <template>
     <Container>
-        <!-- <template #widgets>
-            <Widgets />
-        </template> -->
-
         <template #header>
-            <div class="flex flex-row justify-between gap-2">
-                <div class="flex-1 border-r border-slate-200 pr-2">
-                    <Filter :filters="params" :roles />
+            <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full">
+                <div class="flex-1">
+                    <Filter :filters="params" />
                 </div>
-                <div>
+                <div class="flex justify-end">
                     <button
-                        class="btn btn-highlight-main btn-sm"
+                        class="btn btn-main btn-sm px-4 py-2 shadow-xs rounded-lg w-full sm:w-auto justify-center"
                         @click="showForm = true"
-                        cli
                     >
                         <FontAwesomeIcon :icon="faPlus" />
-                        Outlet
+                        <span>Tambah Outlet</span>
                     </button>
                     <Form :show="showForm" :outlet @close="showForm = false" />
                 </div>
@@ -31,13 +26,15 @@
             :action="true"
         >
             <template #name="{ row }">
-                {{ row.name }}
-                <span
-                    class="badge badge-info text-sm whitespace-nowrap"
-                    v-if="row.is_main_outlet"
-                >
-                    Outlet Utama
-                </span>
+                <div class="flex items-center gap-2">
+                    <span class="font-medium text-slate-800">{{ row.name }}</span>
+                    <span
+                        class="badge badge-info text-xs font-semibold whitespace-nowrap"
+                        v-if="row.is_main_outlet"
+                    >
+                        Outlet Utama
+                    </span>
+                </div>
             </template>
             <template #created_at="{ row }">
                 {{ formatDateTimeSimple(row.created_at) }}
@@ -45,49 +42,49 @@
             <template #status="{ row }">
                 <label
                     v-if="row.is_active"
-                    class="badge pill text-sm badge-success"
-                    >Aktif</label
+                    class="badge pill text-xs badge-success font-semibold px-2.5 py-0.5 inline-flex items-center gap-1"
                 >
+                    <span class="size-1.5 rounded-full bg-white animate-pulse"></span>
+                    Aktif
+                </label>
                 <label
                     v-else
-                    class="badge pill text-sm badge-danger whitespace-nowrap"
-                    >Tidak Aktif</label
+                    class="badge pill text-xs badge-danger font-semibold px-2.5 py-0.5 inline-flex items-center gap-1"
                 >
+                    <span class="size-1.5 rounded-full bg-white/60"></span>
+                    Tidak Aktif
+                </label>
             </template>
             <template #actions="{ row }">
-                <button
-                    class="btn btn-highlight-main btn-sm"
-                    title="Ubah"
-                    @click="getDetail(row.id)"
-                >
-                    <FontAwesomeIcon :icon="faPencil" />
-                </button>
-
-                <span v-if="!row.is_main_outlet">
+                <div class="flex items-center gap-1.5">
                     <button
-                        v-if="row.is_active"
-                        class="btn btn-highlight-danger btn-sm"
-                        title="Non Aktifkan"
-                        @click="disabledOutlet(row.id)"
+                        class="btn btn-highlight-main btn-sm rounded-lg"
+                        title="Ubah Outlet"
+                        @click="getDetail(row.id)"
                     >
-                        <FontAwesomeIcon :icon="faToggleOff" />
+                        <FontAwesomeIcon :icon="faPencil" />
                     </button>
 
-                    <button
-                        v-else="row.is_active"
-                        class="btn btn-highlight-success btn-sm"
-                        title="Aktifkan"
-                        @click="enabledOutlet(row.id)"
-                    >
-                        <FontAwesomeIcon :icon="faToggleOn" />
-                    </button>
-                </span>
-                <!-- <button
-                    class="btn btn-highlight-danger btn-sm"
-                    title="Pengaturan"
-                >
-                    <FontAwesomeIcon :icon="faCog" />
-                </button> -->
+                    <span v-if="!row.is_main_outlet">
+                        <button
+                            v-if="row.is_active"
+                            class="btn btn-highlight-danger btn-sm rounded-lg"
+                            title="Nonaktifkan Outlet"
+                            @click="disabledOutlet(row.id)"
+                        >
+                            <FontAwesomeIcon :icon="faToggleOff" />
+                        </button>
+
+                        <button
+                            v-else
+                            class="btn btn-highlight-success btn-sm rounded-lg"
+                            title="Aktifkan Outlet"
+                            @click="enabledOutlet(row.id)"
+                        >
+                            <FontAwesomeIcon :icon="faToggleOn" />
+                        </button>
+                    </span>
+                </div>
             </template>
         </Table>
         <template #footer>
@@ -101,31 +98,27 @@
         </template>
     </Container>
 </template>
+
 <script setup>
-import Pagination from '@/Components/Tables/Pagination.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Container from '@/Components/UI/Container.vue';
-import { formatDateTimeID, formatDateTimeSimple } from '@/Composable/date';
-import Filter from './Components/Filter.vue';
+import { ref } from 'vue';
+import { router } from '@inertiajs/vue3';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
-    faCog,
-    faEyeSlash,
     faPencil,
     faPlus,
     faToggleOff,
     faToggleOn,
 } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { router, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import Form from './Components/Form.vue';
-import { useModalStore } from '@/store/notification.js';
-import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue';
 
-const modal = useModalStore();
+import Container from '@/Components/UI/Container.vue';
+import Table from '@/Components/Tables/Table.vue';
+import Pagination from '@/Components/Tables/Pagination.vue';
+import Filter from './Components/Filter.vue';
+import Form from './Components/Form.vue';
+import { formatDateTimeSimple } from '@/Composable/date';
 
 const props = defineProps({
-    outlets: Array,
+    outlets: Object,
     params: Object,
     outlet: Object,
 });
@@ -137,7 +130,7 @@ if (props.outlet) {
 }
 
 const tableSetting = [
-    { field: 'name', label: 'Name', sortable: true, slot: 'name' },
+    { field: 'name', label: 'Nama', sortable: true, slot: 'name' },
     { field: 'address', label: 'Alamat' },
     { field: 'is_active', label: 'Status', slot: 'status' },
     {
@@ -147,18 +140,6 @@ const tableSetting = [
         sortable: true,
     },
 ];
-
-const auth = usePage().props.auth;
-
-const addOutlet = () => {
-    if (auth.subscription.plan.code === 'trial') {
-        modalTrial.value = true;
-    } else if (auth.subscription.plan.code === 'micro' && auth.outlet) {
-        modalTrial.value = true;
-    } else {
-        router.visit(route('merchant.outlets.create'));
-    }
-};
 
 const getDetail = (id) => {
     router.visit(route('settings.outlets.show', { outlet: id }), {
@@ -178,6 +159,7 @@ const disabledOutlet = (id) => {
         preserveScroll: true,
     });
 };
+
 const enabledOutlet = (id) => {
     router.put(
         route('settings.outlets.enabled', { outlet: id }),

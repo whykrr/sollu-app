@@ -14,7 +14,7 @@
         <div class="grow flex flex-col h-screen overflow-hidden">
             <Header />
             <main
-                class="flex-1 relative overflow-hidden px-2.5 py-2.5 bg-slate-50 border border-slate-200"
+                class="flex-1 relative overflow-hidden p-4 bg-slate-50 border border-slate-200"
                 :class="{
                     'rounded-tl-lg': !appStore.sidebar.minimize,
                 }"

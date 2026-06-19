@@ -1,6 +1,6 @@
 <template>
     <nav aria-label="breadcrumb" class="hidden lg:block">
-        <ol class="bg-transparent p-0 m-0 list-none text-sm">
+        <ol class="bg-transparent p-0 m-0 list-none text-base font-medium">
             <li class="inline-block">
                 <Link :href="route('overview')">
                     <FontAwesomeIcon :icon="faHome" />
@@ -18,9 +18,6 @@
             </li>
         </ol>
     </nav>
-    <div class="text-xl font-medium">
-        {{ lastCrumbLabel }}
-    </div>
 </template>
 
 <script setup>

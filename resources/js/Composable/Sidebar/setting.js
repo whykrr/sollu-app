@@ -36,7 +36,7 @@ export const settingSidebars = [
     {
         route: 'settings.billing.index',
         icon: faCreditCard,
-        label: 'Langganan',
+        label: 'Langganan & Tagihan',
         permissions: 'business.billing',
         activeRoute: 'sales',
     },

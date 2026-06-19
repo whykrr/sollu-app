@@ -38,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
 
+
         $middleware->redirectUsersTo(fn ($request) => route('overview'));
     })
     ->withExceptions(function (Exceptions $exceptions) {

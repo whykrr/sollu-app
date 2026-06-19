@@ -28,7 +28,6 @@ storage/framework/views/*
 _ide_helper.php
 _ide_helper_models.php
 .phpstorm.meta.php
-app/Http/Controllers/Settings/BillingController.php
 database/migrations_old/2025_06_13_101809_create_merchant_plans_table.php
 database/migrations_old/2025_07_14_121108_create_product_categories.php
 database/migrations_old/2025_07_15_165946_create_units_table.php

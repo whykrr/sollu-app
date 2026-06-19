@@ -12,8 +12,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/cockpit', fn () => Inertia::render('Cockpit/Index'))->name('cockpit.index');
-
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'index'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->name('login.attempt')->middleware('throttle:login');
@@ -26,6 +24,36 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'index'])->name('register');
     Route::post('/register', [RegisterController::class, 'store'])->name('register.store')->middleware('throttle:5,5');
 });
+
+Route::prefix('cockpit')
+    ->name('cockpit.')
+    ->group(function () {
+        Route::middleware('guest:cockpit')->group(function () {
+            Route::get('/login', [\App\Http\Controllers\Cockpit\AuthenticationController::class, 'index'])->name('login');
+            Route::post('/login', [\App\Http\Controllers\Cockpit\AuthenticationController::class, 'store'])->name('login.attempt');
+        });
+
+        Route::middleware('auth:cockpit')->group(function () {
+            Route::delete('/logout', [\App\Http\Controllers\Cockpit\AuthenticationController::class, 'destroy'])->name('logout');
+            
+            Route::get('/', [\App\Http\Controllers\Cockpit\DashboardController::class, 'index'])->name('dashboard');
+            
+            Route::get('/business', [\App\Http\Controllers\Cockpit\BusinessController::class, 'index'])->name('merchants.index');
+            Route::post('/business/{id}/toggle-status', [\App\Http\Controllers\Cockpit\BusinessController::class, 'toggleStatus'])->name('merchants.toggle-status');
+            Route::get('/business/{id}', [\App\Http\Controllers\Cockpit\BusinessController::class, 'show'])->name('merchants.show');
+            
+            Route::get('/subscriptions', [\App\Http\Controllers\Cockpit\SubscriptionController::class, 'index'])->name('subscriptions.index');
+            Route::get('/subscriptions/{id}', [\App\Http\Controllers\Cockpit\SubscriptionController::class, 'show'])->name('subscriptions.show');
+            
+            Route::get('/invoices', [\App\Http\Controllers\Cockpit\InvoiceController::class, 'index'])->name('invoices.index');
+            
+            Route::get('/uoms', [\App\Http\Controllers\Cockpit\UomController::class, 'index'])->name('uoms.index');
+            
+            Route::get('/config', [\App\Http\Controllers\Cockpit\ConfigController::class, 'index'])->name('config.index');
+            
+            Route::get('/audit', [\App\Http\Controllers\Cockpit\AuditController::class, 'index'])->name('audit.index');
+        });
+    });
 
 Route::middleware('auth:business')->group(function () {
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {

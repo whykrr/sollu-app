@@ -246,7 +246,7 @@ const editImage = () => {
             </div>
 
             <!-- Cropper -->
-            <div class="overflow-hidden rounded-3xl border bg-white shadow-sm">
+            <div class="overflow-hidden rounded-3xl border bg-white">
                 <!-- Empty -->
                 <div
                     v-if="!image"

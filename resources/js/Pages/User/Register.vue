@@ -57,23 +57,12 @@
                     </div>
 
                     <div v-if="currentStep === 1">
-                        <div class="flex flex-wrap gap-1">
-                            <div v-for="type in business_types">
-                                <input
-                                    :id="'button' + type.id"
-                                    v-model="form.business_type_id"
-                                    type="radio"
-                                    class="form-check-btn peer"
-                                    name="business_type_id"
-                                    :value="type.id"
-                                />
-                                <label
-                                    class="btn btn-highlight-main text-slate-700 rounded-full"
-                                    :for="'button' + type.id"
-                                    >{{ type.name }}</label
-                                >
-                            </div>
-                        </div>
+                        <RadioButtonField
+                            v-model="form.business_type_id"
+                            name="business_type"
+                            :options="business_types"
+                            class="sm"
+                        />
                         <span
                             v-if="form.errors.business_type_id"
                             class="text-danger text-sm"
@@ -284,6 +273,7 @@ import {
     faStore,
     faUser,
 } from '@fortawesome/free-solid-svg-icons';
+import RadioButtonField from '@/Components/Form/RadioButtonField.vue';
 
 const props = defineProps({
     business_types: Array,

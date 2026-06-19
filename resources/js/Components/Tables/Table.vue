@@ -1,7 +1,7 @@
 <template>
     <div>
         <table class="table table-hovered min-w-full">
-            <thead class="">
+            <thead>
                 <tr
                     class="text-neutral-700 select-none sticky top-0 left-0 z-auto overflow-hidden"
                 >
@@ -12,29 +12,22 @@
                         @click="toggleSort(head)"
                     >
                         <div
-                            class="flex flex-row items-center gap-3 cursor-pointer hover:!text-neutral-800"
+                            class="flex flex-row items-center gap-2 cursor-pointer hover:text-neutral-900 transition-colors duration-150"
                         >
                             <span>{{ head.label }}</span>
                             <div
                                 v-if="head.sortable"
-                                class="flex flex-col relative text-neutral-400/50"
+                                class="inline-flex items-center text-xs ml-0.5"
                             >
                                 <FontAwesomeIcon
-                                    :icon="faSortUp"
-                                    :class="{
-                                        'text-neutral-700':
-                                            sortKey === head.field &&
-                                            sortOrder === 'asc',
-                                    }"
+                                    v-if="sortKey !== head.field"
+                                    :icon="faSort"
+                                    class="text-neutral-400/50 transition-colors duration-150"
                                 />
                                 <FontAwesomeIcon
-                                    :icon="faSortDown"
-                                    class="absolute"
-                                    :class="{
-                                        'text-neutral-700':
-                                            sortKey === head.field &&
-                                            sortOrder === 'desc',
-                                    }"
+                                    v-else
+                                    :icon="sortOrder === 'asc' ? faSortUp : faSortDown"
+                                    class="text-neutral-800 transition-colors duration-150"
                                 />
                             </div>
                         </div>
@@ -43,33 +36,34 @@
                 </tr>
             </thead>
             <tbody>
-                <tr
-                    v-for="row in data"
-                    :key="row.id"
-                    @click="handleRowClick(row)"
-                >
-                    <td
-                        v-for="col in headers"
-                        :key="col.field"
-                        :class="getResponsiveClass(col.show)"
+                <template v-if="data.length > 0">
+                    <tr
+                        v-for="row in data"
+                        :key="row.id"
+                        @click="handleRowClick(row)"
                     >
-                        <slot v-if="col.slot" :name="col.slot" :row="row" />
-                        <template v-else>{{ row[col.field] }}</template>
-                    </td>
-                    <td>
-                        <span class="text-sm" v-if="!action">
-                            <FontAwesomeIcon :icon="faEllipsis" />
-                        </span>
-                        <div class="flex gap-1" v-else>
-                            <slot name="actions" :row="row"></slot>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
+                        <td
+                            v-for="col in headers"
+                            :key="col.field"
+                            :class="getResponsiveClass(col.show)"
+                        >
+                            <slot v-if="col.slot" :name="col.slot" :row="row" />
+                            <template v-else>{{ row[col.field] }}</template>
+                        </td>
+                        <td>
+                            <span class="text-sm" v-if="!action">
+                                <FontAwesomeIcon :icon="faEllipsis" />
+                            </span>
+                            <div class="flex gap-1" v-else>
+                                <slot name="actions" :row="row"></slot>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+                <tr v-else>
                     <td
-                        v-if="data.length === 0"
                         :colspan="headers.length + 1"
-                        class="text-center text-gray-400 border-0 bg-slate-50"
+                        class="text-center text-neutral-400 border-0 bg-slate-50/50 py-6"
                     >
                         data tidak ditemukan.
                     </td>
@@ -90,7 +84,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { router } from '@inertiajs/vue3';
-import { head } from 'lodash';
 import { ref } from 'vue';
 import Card from '../UI/Card/Card.vue';
 import TextField from '../Form/TextField.vue';

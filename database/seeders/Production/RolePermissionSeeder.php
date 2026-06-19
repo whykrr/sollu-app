@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Production;
 
 use App\Enum\PermissionEnum;
 use App\Enum\RoleEnum;

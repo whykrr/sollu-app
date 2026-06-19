@@ -19,15 +19,15 @@
                 class="btn"
                 :class="[
                     {
-                        'btn-outline-main': modelValue === opt.value,
-                        'btn-outline-neutral-400': modelValue !== opt.value,
+                        'btn-outline-main': modelValue == opt.value,
+                        'btn-outline-neutral-400': modelValue != opt.value,
                     },
                     $attrs.class,
                 ]"
                 :for="$attrs.name + idx"
             >
                 <FontAwesomeIcon
-                    v-if="modelValue === opt.value"
+                    v-if="modelValue == opt.value"
                     :icon="faCircleCheck"
                 />
                 <FontAwesomeIcon v-else :icon="faCircle" />
@@ -43,7 +43,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 const props = defineProps({
     label: String,
     options: Array,
-    modelValue: String,
+    modelValue: String | Number,
 });
 const emit = defineEmits(['update:modelValue']);
 </script>

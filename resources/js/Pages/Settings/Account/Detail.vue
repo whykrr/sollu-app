@@ -1,31 +1,33 @@
 <template>
     <Container>
-        <div class="flex flex-row gap-4 min-h-full justify-center">
-            <div class="w-[50%] space-y-4">
-                <div
-                    class="flex w-full flex-col rounded-lg border bg-white p-4"
-                >
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-start p-1">
+            <!-- Left Column: Forms -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Profil Akun Card -->
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6">
                     <!-- Header -->
-                    <div class="mb-4 flex items-start justify-between">
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                        <div class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main">
+                            <FontAwesomeIcon :icon="faUser" class="text-lg" />
+                        </div>
                         <div>
-                            <h2 class="text-xl font-semibold text-slate-800">
+                            <h2 class="text-lg font-semibold text-slate-800 leading-tight">
                                 Profil Akun
                             </h2>
-
-                            <p class="text-sm text-slate-500">
-                                Kelola identitas dan informasi akun anda
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Kelola identitas dan informasi akun Anda
                             </p>
                         </div>
                     </div>
 
                     <!-- Form -->
-                    <div class="space-y-2">
-                        <!-- Business Name -->
-                        <div class="space-y-0">
+                    <div class="space-y-4">
+                        <!-- Name -->
+                        <div>
                             <TextField
                                 v-model="formProfile.name"
-                                label="Nama"
-                                placeholder="Contoh: Sollu Coffee"
+                                label="Nama Lengkap"
+                                placeholder="Masukkan nama lengkap Anda"
                                 :class="{
                                     'is-invalid': formProfile.errors.name,
                                 }"
@@ -34,29 +36,29 @@
                         </div>
 
                         <!-- Email -->
-                        <div class="space-y-0">
+                        <div>
                             <EmailField
                                 v-model="formProfile.email"
                                 label="Email"
-                                placeholder="business@email.com"
+                                placeholder="email@anda.com"
                                 :class="{
                                     'is-invalid': formProfile.errors.email,
                                 }"
                                 :feedback="formProfile.errors.email"
                                 disabled
                             />
-
-                            <p class="text-xs leading-relaxed text-slate-400">
-                                Digunakan untuk masuk aplikasi dan notifikasi,
+                            <p class="text-xs leading-relaxed text-slate-400 mt-1.5 flex items-start gap-1.5">
+                                <FontAwesomeIcon :icon="faInfoCircle" class="text-slate-400 mt-0.5" />
+                                <span>Email utama digunakan untuk masuk ke aplikasi dan tidak dapat diubah.</span>
                             </p>
                         </div>
 
                         <!-- Phone -->
-                        <div class="space-y-0">
+                        <div>
                             <NumberField
                                 v-model="formProfile.phone"
                                 label="Nomor Telepon"
-                                placeholder="08xxxxxxxxxx"
+                                placeholder="Contoh: 081234567890"
                                 :class="{
                                     'is-invalid': formProfile.errors.phone,
                                 }"
@@ -66,48 +68,46 @@
                     </div>
 
                     <!-- Footer Action -->
-                    <div class="border-slate-100 pt-5">
+                    <div class="border-t border-slate-100 pt-5 mt-6 flex justify-end">
                         <button
-                            class="btn btn-success w-full justify-center rounded-lg"
+                            class="btn btn-success px-6 justify-center rounded-lg w-full sm:w-auto"
                             :disabled="formProfile.processing"
                             @click="saveDetail"
                         >
-                            <span v-if="formProfile.processing">
-                                Menyimpan...
-                            </span>
-
-                            <span v-else> Simpan Perubahan </span>
+                            <FontAwesomeIcon v-if="formProfile.processing" :icon="faSpinner" class="animate-spin" />
+                            <span>{{ formProfile.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Ganti Password -->
-                <div
-                    class="flex w-full flex-col rounded-lg border bg-white p-4"
-                >
+                <!-- Ganti Password Card -->
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6">
                     <!-- Header -->
-                    <div class="mb-4 flex items-start justify-between">
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                        <div class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main">
+                            <FontAwesomeIcon :icon="faLock" class="text-lg" />
+                        </div>
                         <div>
-                            <h2 class="text-xl font-semibold text-slate-800">
+                            <h2 class="text-lg font-semibold text-slate-800 leading-tight">
                                 Ubah Kata Sandi
                             </h2>
-
-                            <p class="text-sm text-slate-500">
-                                Kelola kata sandi akun anda
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Amankan akun Anda dengan memperbarui kata sandi secara berkala
                             </p>
                         </div>
                     </div>
 
-                    <div class="space-y-2">
+                    <!-- Form -->
+                    <div class="space-y-4">
                         <!-- Old Password -->
-                        <div class="space-y-0">
+                        <div>
                             <PasswordField
                                 v-model="formChangePassword.current_password"
                                 label="Kata Sandi Lama"
+                                placeholder="Masukkan kata sandi lama Anda"
                                 :class="{
                                     'is-invalid':
-                                        formChangePassword.errors
-                                            .current_password,
+                                        formChangePassword.errors.current_password,
                                 }"
                                 :feedback="
                                     formChangePassword.errors.current_password
@@ -116,10 +116,11 @@
                         </div>
 
                         <!-- New Password -->
-                        <div class="space-y-0">
+                        <div>
                             <PasswordField
                                 v-model="formChangePassword.new_password"
                                 label="Kata Sandi Baru"
+                                placeholder="Masukkan kata sandi baru (min. 8 karakter)"
                                 :class="{
                                     'is-invalid':
                                         formChangePassword.errors.new_password,
@@ -131,47 +132,57 @@
                         </div>
 
                         <!-- New Password Confirm-->
-                        <div class="space-y-0">
+                        <div>
                             <PasswordField
                                 v-model="
                                     formChangePassword.new_password_confirmation
                                 "
                                 label="Konfirmasi Kata Sandi Baru"
+                                placeholder="Masukkan kembali kata sandi baru Anda"
                                 :class="{
                                     'is-invalid':
-                                        formChangePassword.errors
-                                            .new_password_confirmation,
+                                        formChangePassword.errors.new_password_confirmation,
                                 }"
                                 :feedback="
-                                    formChangePassword.errors
-                                        .new_password_confirmation
+                                    formChangePassword.errors.new_password_confirmation
                                 "
                             />
                         </div>
                     </div>
 
                     <!-- Footer Action -->
-                    <div class="border-slate-100 pt-5">
+                    <div class="border-t border-slate-100 pt-5 mt-6 flex justify-end">
                         <button
-                            class="btn btn-success w-full justify-center rounded-lg"
-                            :disabled="changePassword.processing"
+                            class="btn btn-success px-6 justify-center rounded-lg w-full sm:w-auto"
+                            :disabled="formChangePassword.processing"
                             @click="changePassword"
                         >
-                            <span v-if="changePassword.processing">
-                                Menyimpan...
-                            </span>
-
-                            <span v-else> Simpan Kata Sandi </span>
+                            <FontAwesomeIcon v-if="formChangePassword.processing" :icon="faSpinner" class="animate-spin" />
+                            <span>{{ formChangePassword.processing ? 'Menyimpan...' : 'Simpan Kata Sandi' }}</span>
                         </button>
                     </div>
                 </div>
             </div>
-            <div class="w-80">
-                <div
-                    class="bg-white rounded-lg p-4 space-y-2 border sticky top-0"
-                >
-                    <div class="font-semibold text-lg">Foto Profil</div>
-                    <div class="p-0 relative">
+
+            <!-- Right Column: Profile Picture -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 sticky top-4">
+                    <!-- Header -->
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                        <div class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main">
+                            <FontAwesomeIcon :icon="faImage" class="text-lg" />
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-slate-800 leading-tight">
+                                Foto Profil
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Perbarui foto profil akun Anda
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center p-0 relative">
                         <PhotoCropper
                             @action="savePhoto"
                             :url="profile.photo"
@@ -180,29 +191,27 @@
                 </div>
             </div>
         </div>
-        <Modal
-            title="Upload Logo"
-            :class="{ show: showModalUploadLogo }"
-            @close="showModalUploadLogo = false"
-        >
-            <LogoCropper @action="saveLogo" />
-        </Modal>
     </Container>
 </template>
+
 <script setup>
+import { computed } from 'vue';
+import { useForm, usePage } from '@inertiajs/vue3';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import {
+    faUser,
+    faLock,
+    faImage,
+    faSpinner,
+    faInfoCircle,
+} from '@fortawesome/free-solid-svg-icons';
+
+import Container from '@/Components/UI/Container.vue';
+import TextField from '@/Components/Form/TextField.vue';
 import EmailField from '@/Components/Form/EmailField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import Container from '@/Components/UI/Container.vue';
-import { faCamera, faPencil } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { useForm, usePage } from '@inertiajs/vue3';
-import Modal from '@/Components/Notifications/Modal.vue';
-import 'vue-advanced-cropper/dist/style.css';
-import { computed, ref } from 'vue';
-import PhotoCropper from './Components/PhotoCropper.vue';
 import PasswordField from '@/Components/Form/PasswordField.vue';
+import PhotoCropper from './Components/PhotoCropper.vue';
 
 const auth = computed(() => usePage().props.auth);
 

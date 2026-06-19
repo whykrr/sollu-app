@@ -22,7 +22,7 @@ return new class () extends Migration {
             $table->text('logo')->nullable();
             $table->dateTime('trial_end_at');
             $table->tinyInteger('business_type_id')->unsigned();
-            $table->string('status', 15)->default('active')->comment('options: trial, active, past_due, grace_period, expired, canceled, suspend');
+            $table->string('status', 15)->default('active')->comment('options: active, suspend');
             $table->json('settings')->nullable();
         });
 
