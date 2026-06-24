@@ -26,6 +26,10 @@ class UpdateOutletRequest extends FormRequest
         return [
             'name'    => ['required', 'string', 'max:255', Rule::unique('outlets')->ignore($this->outlet->id)->where('business_id', Auth::user()->business_id)],
             'address' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'timezone' => ['nullable', 'string', 'max:50'],
+            'currency_code' => ['nullable', 'string', 'max:3'],
         ];
     }
 }

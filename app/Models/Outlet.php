@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
@@ -27,6 +29,7 @@ class Outlet extends Model
     use HasSlug;
     use HasBusiness;
     use SortableModel;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -41,6 +44,11 @@ class Outlet extends Model
         'longitude',
         'is_active',
         'is_main_outlet',
+        'phone',
+        'email',
+        'timezone',
+        'currency_code',
+        'logo_url',
     ];
 
     protected $sortable = [
@@ -48,6 +56,14 @@ class Outlet extends Model
         'created_at',
         'updated_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_active'      => 'boolean',
+            'is_main_outlet' => 'boolean',
+        ];
+    }
 
     /**
      * Get the merchant that owns the Outlet
@@ -74,9 +90,29 @@ class Outlet extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function subscriptionOutlets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function subscriptionOutlets(): HasMany
     {
         return $this->hasMany(SubscriptionOutlet::class);
+    }
+
+    public function settings(): HasMany
+    {
+        return $this->hasMany(OutletSetting::class);
+    }
+
+    public function operationalHours(): HasMany
+    {
+        return $this->hasMany(OutletOperationalHour::class);
+    }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(OutletDevice::class);
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(OutletAuditLog::class);
     }
 
     public function getSlugOptions(): SlugOptions
@@ -85,6 +121,5 @@ class Outlet extends Model
             ->generateSlugsFrom('name')
             ->saveSlugsTo('slug');
     }
-
 
 }

@@ -35,6 +35,17 @@ Route::prefix('settings')
                 Route::put('/{outlet}', [OutletController::class, 'update'])->name('update');
                 Route::put('/{outlet}/enabled', [OutletController::class, 'enabled'])->name('enabled');
                 Route::delete('/{outlet}', [OutletController::class, 'disabled'])->name('disabled');
+                Route::delete('/{outlet}/destroy', [OutletController::class, 'destroy'])->name('destroy');
+                Route::put('/{outlet}/restore', [OutletController::class, 'restore'])->name('restore');
+
+                Route::prefix('{outlet}')->group(function () {
+                    Route::put('settings', [\App\Http\Controllers\Settings\OutletSettingController::class, 'update'])->name('settings.update');
+                    Route::put('operational-hours', [\App\Http\Controllers\Settings\OutletOperationalHourController::class, 'update'])->name('operational-hours.update');
+                    
+                    Route::post('devices', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'store'])->name('devices.store');
+                    Route::put('devices/{device}', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'update'])->name('devices.update');
+                    Route::delete('devices/{device}', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'destroy'])->name('devices.destroy');
+                });
             });
 
         Route::middleware(['can:' . \App\Enum\PermissionEnum::BUSINESS_BILLING->value])->group(function () {

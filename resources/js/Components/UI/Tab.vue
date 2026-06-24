@@ -9,9 +9,9 @@
         @click="toggleTab(key)"
       >
         <button class="tab-toggle" type="button" role="tab">
-          <FontAwesomeIcon :icon="page.icon" />
+          <FontAwesomeIcon :icon="page.icon" v-if="page.icon" />
           {{ page.label }}
-          <span class="badge badge-main text-xs p-1!">20</span>
+          <span class="badge badge-main text-xs p-1!" v-if="page.badge">{{ page.badge }}</span>
         </button>
         <span class="separator" />
       </li>
@@ -24,7 +24,7 @@
         :class="{ active: key === activeTab }"
         role="tabpanel"
       >
-        <component :is="page.page" v-if="key === activeTab" />
+        <component :is="page.page" v-bind="page.props || {}" v-if="key === activeTab" />
       </div>
       <!-- <slot></slot> -->
     </div>

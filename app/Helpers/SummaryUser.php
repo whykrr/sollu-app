@@ -38,14 +38,6 @@ class SummaryUser
             $this->cache_key,
             60 * 60,
             function () use ($user) {
-                $outlets = $user->outlets()->where('is_active', '=', true)->get()
-                    ->map(fn ($outlet) => $outlet->only('id', 'name'));
-                if (count($outlets) === 0) {
-                    $outlets = $user->business->outlets()
-                        ->where('is_active', '=', true)->get()
-                        ->map(fn ($outlet) => $outlet->only('id', 'name'));
-                }
-
                 return [
                     'role' => $user->roles->map(fn ($role) => [
                         'name'  => $role->name,
@@ -54,7 +46,9 @@ class SummaryUser
                     'permissions'  => $user->getAllPermissions()->pluck('name')->toArray(),
                     'business'     => $user->business,
                     'subscription' => $user->business->subscriptions()->with('plan')->latest()->first(),
-                    'outlets'      => $outlets,
+                    'outlets'      => $user->outlets()->where('is_active', '=', true)
+                        ->get()
+                        ->map(fn ($outlet) => $outlet->only('id', 'name')),
                 ];
             }
         );

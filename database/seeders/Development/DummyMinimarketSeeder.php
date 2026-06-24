@@ -51,12 +51,13 @@ class DummyMinimarketSeeder extends Seeder
         $user = $business->users()->updateOrCreate(
             ['email' => 'sollu.mart@email.com'],
             [
-                'name'     => $business->owner_name,
-                'email'    => $business->email,
-                'password' => 'password',
-                'phone'    => $business->phone,
-                'pin'      => '123456',
-                'photo'    => null,
+                'name'         => $business->owner_name,
+                'email'        => $business->email,
+                'password'     => 'password',
+                'phone'        => $business->phone,
+                'pin'          => '123456',
+                'photo'        => null,
+                'is_root_user' => true,
             ]
         );
 

@@ -44,6 +44,7 @@ const props = defineProps({
     label: String,
     options: Array,
     modelValue: String | Number,
+    feedback: String,
 });
 const emit = defineEmits(['update:modelValue']);
 </script>

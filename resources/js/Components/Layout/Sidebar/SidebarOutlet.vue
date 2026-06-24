@@ -1,120 +1,141 @@
 <template>
-    <div ref="dropdownRef" class="">
+    <div ref="dropdownRef" class="relative px-2 mb-2 w-full">
         <div class="w-full">
-            <div
-                class="bg-white rounded-lg transition-all duration-150 ease-in-out mx-2 mt-0 mb-1 border"
+            <button
+                type="button"
+                class="flex w-full items-center justify-between px-3 py-2.5 bg-white border border-slate-200 rounded-xl hover:border-main/50 hover:bg-slate-50 transition-all duration-200 ease-in-out group focus:outline-none focus:ring-2 focus:ring-main/20"
                 :class="{
-                    'hover:drop-shadow': outlets.length > 1,
-                    'drop-shadow': isOpen,
+                    'ring-2 ring-main/20 border-main/50': isOpen,
+                    'cursor-pointer': outlets.length > 1,
+                    'cursor-default': outlets.length <= 1,
                 }"
+                @click.prevent="selectOutlet"
+                :aria-expanded="isOpen"
             >
-                <a
-                    href="#"
-                    class="flex flex-row items-center min-h-11 px-2 gap-1.5"
-                    @click.prevent="selectOutlet"
-                >
+                <div class="flex items-center gap-3 overflow-hidden">
                     <div
-                        class="flex items-center rounded-full text-sm bg-main/20 text-main h-[30px] w-[30px]"
+                        class="flex-shrink-0 flex items-center justify-center rounded-lg bg-main/10 text-main h-8 w-8 group-hover:scale-105 transition-transform duration-200"
                     >
                         <FontAwesomeIcon
                             :icon="faMapMarkerAlt"
-                            class="m-auto"
+                            class="text-sm"
                         />
                     </div>
-                    <div class="flex-1 font-medium text-sm truncate">
-                        <span v-if="selectedOutlet">{{
-                            selectedOutlet.name
-                        }}</span>
-                        <span v-else>Semua Outlet</span>
-                    </div>
-                    <div
-                        class="text-[10px] flex flex-col -space-y-0.5"
-                        :class="{ 'text-neutral-300': outlets.length === 1 }"
-                    >
-                        <FontAwesomeIcon :icon="faChevronUp" />
-                        <FontAwesomeIcon :icon="faChevronDown" />
-                    </div>
-                </a>
-                <div
-                    class="top-8 w-full rounded-b-lg bg-white overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-top"
-                    :class="
-                        isOpen
-                            ? 'max-h-60 opacity-100 scale-y-100'
-                            : 'max-h-0 opacity-0 scale-y-95'
-                    "
-                >
-                    <div
-                        class="text-sm max-h-60 overflow-y-auto floating-scroll"
-                    >
-                        <ol class="">
-                            <li>
-                                <div
-                                    :ref="
-                                        (el) => {
-                                            if (!selectedOutlet)
-                                                activeItemRef = el;
-                                        }
-                                    "
-                                >
-                                    <Link
-                                        method="post"
-                                        :preserve-scroll="true"
-                                        :preserve-state="true"
-                                        as="button"
-                                        :href="route('switch.all')"
-                                        class="hover:bg-neutral-light py-2 px-3 block w-full text-start transition-colors duration-200"
-                                        :class="{
-                                            'bg-neutral-light font-medium text-main':
-                                                !selectedOutlet,
-                                            'text-neutral-600': selectedOutlet,
-                                        }"
-                                        aria-disabled="true"
-                                        @click="selectOutlet"
-                                    >
-                                        Semua Outlet
-                                    </Link>
-                                </div>
-                            </li>
-                            <li v-for="(o, index) in outlets" :key="index">
-                                <div
-                                    :ref="
-                                        (el) => {
-                                            if (o.id === selectedOutlet?.id)
-                                                activeItemRef = el;
-                                        }
-                                    "
-                                >
-                                    <Link
-                                        method="post"
-                                        :preserve-scroll="true"
-                                        :preserve-state="true"
-                                        as="button"
-                                        :href="
-                                            route('switch.outlet', {
-                                                id: o.id,
-                                            })
-                                        "
-                                        class="hover:bg-neutral-light py-2 px-3 w-full text-start block transition-colors duration-200"
-                                        :class="{
-                                            'bg-neutral-light font-medium text-main':
-                                                o.id === selectedOutlet?.id,
-                                            'text-neutral-600':
-                                                o.id !== selectedOutlet?.id,
-                                        }"
-                                        @click="selectOutlet"
-                                    >
-                                        {{ o.name }}
-                                    </Link>
-                                </div>
-                            </li>
-                        </ol>
+                    <div class="flex flex-col text-left truncate">
+                        <span
+                            class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-0.5"
+                            >Outlet Aktif</span
+                        >
+                        <span
+                            class="font-medium text-sm text-slate-800 truncate leading-none"
+                        >
+                            {{
+                                selectedOutlet
+                                    ? selectedOutlet.name
+                                    : 'Semua Outlet'
+                            }}
+                        </span>
                     </div>
                 </div>
-            </div>
+                <div
+                    v-if="outlets.length > 1"
+                    class="flex flex-col text-slate-400 group-hover:text-main transition-colors duration-200"
+                >
+                    <FontAwesomeIcon
+                        :icon="faChevronDown"
+                        class="text-xs transition-transform duration-300"
+                        :class="{ 'rotate-180': isOpen }"
+                    />
+                </div>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <transition
+                enter-active-class="transition duration-200 ease-out"
+                enter-from-class="transform scale-95 opacity-0"
+                enter-to-class="transform scale-100 opacity-100"
+                leave-active-class="transition duration-75 ease-in"
+                leave-from-class="transform scale-100 opacity-100"
+                leave-to-class="transform scale-95 opacity-0"
+            >
+                <div
+                    v-if="isOpen"
+                    class="absolute z-50 left-3 right-3 mt-2 bg-white rounded-xl shadow-xl ring-1 ring-black/5 overflow-hidden origin-top"
+                >
+                    <div class="p-1.5 max-h-60 overflow-y-auto floating-scroll">
+                        <!-- Semua Outlet Option -->
+                        <div
+                            :ref="
+                                (el) => {
+                                    if (!selectedOutlet) activeItemRef = el;
+                                }
+                            "
+                            class="mb-1"
+                        >
+                            <Link
+                                method="post"
+                                :preserve-scroll="true"
+                                :preserve-state="true"
+                                as="button"
+                                :href="route('switch.all')"
+                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150"
+                                :class="{
+                                    'bg-main/10 text-main font-semibold':
+                                        !selectedOutlet,
+                                    'text-slate-600 hover:bg-slate-100':
+                                        selectedOutlet,
+                                }"
+                                @click="isOpen = false"
+                            >
+                                <span>Semua Outlet</span>
+                                <div
+                                    v-if="!selectedOutlet"
+                                    class="w-2 h-2 rounded-full bg-main"
+                                ></div>
+                            </Link>
+                        </div>
+
+                        <!-- Outlet Options -->
+                        <div
+                            v-for="o in outlets"
+                            :key="o.id"
+                            :ref="
+                                (el) => {
+                                    if (o.id === selectedOutlet?.id)
+                                        activeItemRef = el;
+                                }
+                            "
+                        >
+                            <Link
+                                method="post"
+                                :preserve-scroll="true"
+                                :preserve-state="true"
+                                as="button"
+                                :href="route('switch.outlet', { id: o.id })"
+                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150"
+                                :class="{
+                                    'bg-main/10 text-main font-semibold':
+                                        o.id === selectedOutlet?.id,
+                                    'text-slate-600 hover:bg-slate-100':
+                                        o.id !== selectedOutlet?.id,
+                                }"
+                                @click="isOpen = false"
+                            >
+                                <span class="truncate pr-2">{{ o.name }}</span>
+                                <div
+                                    v-if="o.id === selectedOutlet?.id"
+                                    class="w-2 h-2 rounded-full bg-main flex-shrink-0"
+                                ></div>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </transition>
         </div>
     </div>
 </template>
 <script setup>
+import { useAuth } from '@/Composable/useAuth';
 import {
     faChevronDown,
     faChevronUp,
@@ -123,16 +144,23 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, onBeforeMount, onMounted, ref, watch } from 'vue';
+import {
+    computed,
+    nextTick,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    watch,
+} from 'vue';
 
-const outlets = usePage().props.auth.outlets;
+const { outlets } = useAuth();
 const selectedOutlet = computed(() => usePage().props.selectedOutlet);
 const isOpen = ref(false);
 const dropdownRef = ref(null);
 const activeItemRef = ref(null);
 
 const selectOutlet = () => {
-    if (outlets.length > 1) {
+    if (outlets.value.length > 1) {
         isOpen.value = !isOpen.value;
     }
 };
@@ -160,7 +188,7 @@ onMounted(() => {
     document.addEventListener('click', handleClickOutside);
 });
 
-onBeforeMount(() => {
+onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside);
 });
 </script>

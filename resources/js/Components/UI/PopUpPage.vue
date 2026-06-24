@@ -1,6 +1,4 @@
 <script setup>
-import { size } from 'lodash';
-
 const props = defineProps({
     title: String,
     subTitle: {
@@ -23,17 +21,15 @@ const closePage = () => {
         <div
             class="modal-dialog side h-[100%]"
             :class="{
-                'max-w-md': size === 'sm',
-                'max-w-lg': size === 'md',
-                'max-w-2xl': size === 'lg',
-                'max-w-4xl': size === 'xl',
+                'max-w-md': size == 'sm',
+                'max-w-lg': size == 'md',
+                'max-w-2xl': size == 'lg',
+                'max-w-4xl': size == 'xl',
             }"
         >
             <div class="modal-content h-full flex flex-col">
                 <!-- Modal Header -->
-                <div
-                    class="modal-header border-b-0 shrink-0 sticky top-0 bg-white z-10 p-4"
-                >
+                <div class="modal-header border-b-0 shrink-0 sticky top-0 p-4">
                     <div class="font-bold">
                         <span class="text-xl"
                             >{{ title }}

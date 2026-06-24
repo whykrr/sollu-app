@@ -288,6 +288,16 @@ gunakan best practice inertia dalam pengambilan data untuk component sub halaman
 
 ---
 
+### 2. Gunakan property feedback pada form.
+
+selalu gunakan property feedback saat penggunaan component Form
+
+```html
+feedback="form.errors.name"
+```
+
+---
+
 ## Tailwind Rules
 
 ### Utamakan utility class.

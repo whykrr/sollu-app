@@ -33,7 +33,7 @@
         <div class="sidebar-container relative z-30">
             <div>
                 <div
-                    class="flex justify-between items-center px-2 min-h-16 relative"
+                    class="flex justify-between items-center px-2 min-h-14 relative"
                 >
                     <Link :href="route('overview')">
                         <img

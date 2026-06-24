@@ -50,6 +50,7 @@ const props = defineProps({
     label: String,
     options: Array,
     modelValue: Array,
+    feedback: String,
 });
 const emit = defineEmits(['update:modelValue']);
 

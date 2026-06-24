@@ -568,7 +568,6 @@ Jangan hard delete outlet karena:
 
 - General
 - Settings
-- Employees
 - Devices
 - Operational Hours
 - Billing

@@ -22,7 +22,7 @@ defineOptions({
     inheritAttrs: false,
 });
 
-const { id, label, modelValue, placeholder, options } = defineProps({
+const { id, label, modelValue, placeholder, options, feedback } = defineProps({
     id: String,
     label: String,
     modelValue: { type: String, default: '' },
@@ -31,6 +31,7 @@ const { id, label, modelValue, placeholder, options } = defineProps({
         type: Array,
         default: () => [], // format: [{ value: '1', label: 'Satu' }]
     },
+    feedback: String,
 });
 
 const emit = defineEmits(['update:modelValue']);

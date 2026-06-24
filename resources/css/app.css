@@ -202,6 +202,16 @@
 }
 
 @layer utilities {
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@layer utilities {
     .spin-enter-active,
     .spin-leave-active {
         transition: all 0.15s ease;
@@ -485,9 +495,14 @@
     }
 
     .tab {
-        @apply flex flex-col gap-2;
+        @apply flex flex-col gap-2 overflow-hidden;
         & ul {
-            @apply flex flex-row items-center border-b;
+            @apply flex flex-row items-center border-b overflow-x-auto overflow-y-hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            &::-webkit-scrollbar {
+                display: none;
+            }
         }
         & ul li {
             @apply relative font-medium
@@ -495,7 +510,7 @@
         transition-all duration-150 ease-in-out; */;
         }
         & ul li .tab-toggle {
-            @apply inline-flex gap-2 px-4 py-2 items-center;
+            @apply inline-flex gap-2 px-4 py-2 items-center whitespace-nowrap;
         }
         & ul li .separator {
             @apply absolute inset-0

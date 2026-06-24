@@ -141,6 +141,24 @@ class Business extends Model
     }
 
     /**
+     * Get the maximum number of outlets allowed for this business.
+     *
+     * @return int
+     */
+    public function maxOutletsAllowed(): int
+    {
+        $activeSubscription = $this->subscriptions()
+            ->where('status', 'active')
+            ->first();
+
+        if (!$activeSubscription || !$activeSubscription->plan) {
+            return 1;
+        }
+
+        return $activeSubscription->plan->max_outlet ?? 1;
+    }
+
+    /**
      * @inheritDoc
      */
     public function getSlugOptions(): SlugOptions
