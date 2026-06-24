@@ -64,7 +64,12 @@ class OutletController extends Controller
      */
     public function store(CreateOutletRequest $req)
     {
-        $this->createOutletService->execute($req->validated(), $req->user());
+        $result = $this->createOutletService->execute($req->validated(), $req->user());
+
+        if (!empty($result['invoice'])) {
+            return redirect()->route('settings.billing.invoices.show', $result['invoice']->invoice_number)
+                ->with('success', 'Outlet berhasil dibuat. Silakan selesaikan pembayaran tagihan prorasi untuk mengaktifkan outlet.');
+        }
 
         return redirect()->back()->with('success', ResourceMessage::CREATE_SUCCESS);
     }

@@ -12,8 +12,50 @@ class ManageOutletStatusService
 {
     public function toggleStatus(Outlet $outlet, bool $isActive, User $user): Outlet
     {
+        if ($isActive) {
+            // Find if there is an unpaid invoice for this outlet
+            $unpaidInvoice = \App\Models\Invoice::where('business_id', $outlet->business_id)
+                ->where('status', '!=', 'paid')
+                ->whereHas('items', function ($query) use ($outlet) {
+                    $query->where('item_type', 'outlet_addition')
+                        ->where('metadata->outlet_id', $outlet->id);
+                })
+                ->first();
+
+            if ($unpaidInvoice) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'unpaid_invoice_number' => $unpaidInvoice->invoice_number,
+                    'unpaid_invoice_url' => route('settings.billing.invoices.show', $unpaidInvoice->invoice_number),
+                    'error' => ['Outlet tidak dapat diaktifkan karena ada tagihan penambahan outlet yang belum dibayar.'],
+                ]);
+            }
+        }
+
         $outlet->is_active = $isActive;
         $outlet->save();
+
+        // Sync with subscription_outlets table
+        $subscription = $outlet->business->subscriptions()
+            ->where('status', 'active')
+            ->first();
+
+        if ($subscription) {
+            if ($isActive) {
+                $subscription->subscriptionOutlets()->updateOrCreate([
+                    'outlet_id' => $outlet->id,
+                    'deactivated_at' => null,
+                ], [
+                    'activated_at' => \Carbon\Carbon::now(),
+                ]);
+            } else {
+                $subscription->subscriptionOutlets()
+                    ->where('outlet_id', $outlet->id)
+                    ->whereNull('deactivated_at')
+                    ->update([
+                        'deactivated_at' => \Carbon\Carbon::now(),
+                    ]);
+            }
+        }
 
         SummaryUser::cacheDelete();
 

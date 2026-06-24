@@ -41,7 +41,7 @@ class InvoiceController extends Controller
                 'item_details' => [
                     [
                         'id'       => $invoice->id, // Simplified for now
-                        'price'    => $invoice->total_amount,
+                        'price'    => (int) $invoice->total_amount,
                         'quantity' => 1,
                         'name'     => 'Subscription Billing',
                     ],
@@ -136,22 +136,47 @@ class InvoiceController extends Controller
             ->with('success', 'Bukti transfer berhasil diunggah. Tim kami akan segera melakukan verifikasi.');
     }
 
-    public function cancel(Request $req, $invoice_number)
+    public function cancel(Request $req, $invoice_number, \App\Services\Outlet\ManageOutletStatusService $manageStatusService)
     {
         $business = $req->user()->business;
-        Invoice::where('invoice_number', $invoice_number)->where('business_id', $business->id)->update([
+        $invoice = Invoice::where('invoice_number', $invoice_number)
+            ->where('business_id', $business->id)
+            ->firstOrFail();
+
+        $invoice->update([
             'status' => 'void',
         ]);
 
-        $subscription = $business->subscriptions()->latest()->first();
-        if ($subscription) {
-            $subscription->update([
-                'status' => 'canceled',
-                'canceled_at' => \Carbon\Carbon::now(),
-            ]);
+        $isOutletAddition = false;
+
+        // Find associated outlet to delete
+        $outletAdditionItem = $invoice->items()->where('item_type', 'outlet_addition')->first();
+        if ($outletAdditionItem && isset($outletAdditionItem->metadata['outlet_id'])) {
+            $isOutletAddition = true;
+            $outletId = $outletAdditionItem->metadata['outlet_id'];
+            $outlet = \App\Models\Outlet::where('id', $outletId)
+                ->where('business_id', $business->id)
+                ->first();
+
+            if ($outlet) {
+                $manageStatusService->delete($outlet, $req->user());
+            }
         }
 
-        return redirect()->route('settings.billing.index')->with('success', 'Tagihan berhasil dibatalakan');
+        // Only cancel the main subscription if this is NOT a prorated outlet addition invoice
+        if (!$isOutletAddition) {
+            $subscription = $business->subscriptions()->latest()->first();
+            if ($subscription) {
+                $subscription->update([
+                    'status' => 'canceled',
+                    'canceled_at' => \Carbon\Carbon::now(),
+                ]);
+            }
+        }
+
+        return redirect()->route('settings.billing.index')->with('success', $isOutletAddition 
+            ? 'Tagihan berhasil dibatalkan dan outlet terkait telah dihapus.' 
+            : 'Tagihan berhasil dibatalkan.');
     }
 
     public function error(Request $req, $invoice_number)

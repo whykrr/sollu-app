@@ -72,6 +72,13 @@
                         <p class="font-medium text-slate-800 mt-1 whitespace-pre-wrap">{{ formOutlet.address || '-' }}</p>
                     </div>
                 </div>
+                <div v-if="hasActiveSubscription" class="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm flex gap-3 items-start mb-4 border border-amber-200">
+                    <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5 text-amber-600" />
+                    <div>
+                        <p class="font-semibold mb-1">Tagihan Prorasi Akan Diterbitkan</p>
+                        <p class="text-xs">Karena Anda memiliki paket langganan aktif, pembuatan outlet baru ini akan menghasilkan invoice penyesuaian (prorasi). Anda perlu melunasi tagihan tersebut agar outlet ini dapat diaktifkan.</p>
+                    </div>
+                </div>
                 <div class="bg-blue-50 text-blue-700 p-4 rounded-xl text-sm flex gap-3 items-start">
                     <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5" />
                     <p>Setelah outlet dibuat, Anda dapat mengkonfigurasi pengaturan tambahan seperti karyawan, jam operasional, dan perangkat di halaman detail outlet.</p>
@@ -112,8 +119,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faInfoCircle, faCheck } from '@fortawesome/free-solid-svg-icons';
 
@@ -126,6 +133,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
+
+const page = usePage();
+const hasActiveSubscription = computed(() => {
+    return !!(page.props.subscription && page.props.subscription.status === 'active');
+});
 
 const step = ref(1);
 

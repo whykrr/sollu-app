@@ -59,6 +59,47 @@
                             </div>
                         </template>
                     </PopUpPage>
+
+                    <!-- Modal Tagihan Penambahan Outlet Belum Dibayar -->
+                    <PopUpPage
+                        v-if="showUnpaidModal"
+                        title="Pembayaran Tertunda"
+                        size="sm"
+                        class="show"
+                        @close="showUnpaidModal = false"
+                    >
+                        <div class="flex flex-col items-center text-center p-5 space-y-4">
+                            <div class="flex size-16 items-center justify-center rounded-full bg-red-50 text-red-500">
+                                <FontAwesomeIcon :icon="faCreditCard" class="text-3xl" />
+                            </div>
+                            <div class="space-y-2">
+                                <h3 class="text-lg font-bold text-slate-800">Pembayaran Diperlukan</h3>
+                                <p class="text-sm text-slate-500">
+                                    Outlet tidak dapat diaktifkan karena invoice penambahan outlet (<strong>{{ unpaidInvoice.number }}</strong>) belum dilunasi.
+                                </p>
+                                <p class="text-xs text-slate-400">
+                                    Silakan selesaikan pembayaran tagihan prorasi terlebih dahulu untuk mengaktifkan outlet ini.
+                                </p>
+                            </div>
+                        </div>
+                        <template #footer>
+                            <div class="flex gap-2 w-full">
+                                <button
+                                    class="btn btn-secondary flex-1 justify-center"
+                                    @click="showUnpaidModal = false"
+                                >
+                                    Batal
+                                </button>
+                                <Link
+                                    :href="unpaidInvoice.url"
+                                    class="btn btn-main flex-1 justify-center text-center"
+                                    as="button"
+                                >
+                                    Bayar Sekarang
+                                </Link>
+                            </div>
+                        </template>
+                    </PopUpPage>
                 </div>
             </div>
         </template>
@@ -154,6 +195,7 @@ import {
     faToggleOff,
     faToggleOn,
     faExclamationTriangle,
+    faCreditCard,
 } from '@fortawesome/free-solid-svg-icons';
 
 import Container from '@/Components/UI/Container.vue';
@@ -175,6 +217,8 @@ const props = defineProps({
 
 const showForm = ref(false);
 const showUpgradeModal = ref(false);
+const showUnpaidModal = ref(false);
+const unpaidInvoice = ref({ number: '', url: '' });
 
 if (props.outlet) {
     showForm.value = true;
@@ -224,9 +268,18 @@ const enabledOutlet = (id) => {
         route('settings.outlets.enabled', { outlet: id }),
         {},
         {
-            only: ['outlets'],
+            only: ['outlets', 'errors'],
             preserveState: true,
             preserveScroll: true,
+            onError: (errors) => {
+                if (errors.unpaid_invoice_number) {
+                    unpaidInvoice.value = {
+                        number: errors.unpaid_invoice_number,
+                        url: errors.unpaid_invoice_url,
+                    };
+                    showUnpaidModal.value = true;
+                }
+            }
         },
     );
 };

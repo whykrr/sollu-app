@@ -560,19 +560,13 @@
         <template #footer>
             <div class="flex justify-between gap-4">
                 <div>
-                    <Link
+                    <button
                         v-if="invoice.status === 'open'"
-                        as="button"
-                        method="DELETE"
-                        :href="
-                            route('settings.billing.invoices.cancel', {
-                                invoice_number: invoice.invoice_number,
-                            })
-                        "
                         class="btn btn-outline-danger"
+                        @click="confirmCancelInvoice"
                     >
                         Batalkan Tagihan
-                    </Link>
+                    </button>
                 </div>
                 <div class="inline-flex space-x-3">
                     <a
@@ -604,9 +598,51 @@
                 </div>
             </div>
         </template>
+
+        <!-- Modal Konfirmasi Batalkan Tagihan -->
+        <PopUpPage
+            v-if="showCancelConfirmation"
+            title="Batalkan Tagihan"
+            size="sm"
+            class="show"
+            @close="showCancelConfirmation = false"
+        >
+            <div class="flex flex-col items-center text-center p-5 space-y-4">
+                <div class="flex size-16 items-center justify-center rounded-full bg-red-50 text-red-500">
+                    <FontAwesomeIcon :icon="faExclamationTriangle" class="text-3xl" />
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-lg font-bold text-slate-800">Batalkan Tagihan Ini?</h3>
+                    <p class="text-sm text-slate-500">
+                        Apakah Anda yakin ingin membatalkan tagihan ini? Tindakan ini tidak dapat dibatalkan.
+                    </p>
+                    <p v-if="associatedOutletName" class="text-xs text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200 mt-3 font-medium">
+                        Perhatian: Membatalkan tagihan ini secara otomatis akan menghapus outlet <strong>{{ associatedOutletName }}</strong> yang baru dibuat secara permanen.
+                    </p>
+                </div>
+            </div>
+            <template #footer>
+                <div class="flex gap-2 w-full">
+                    <button
+                        class="btn btn-secondary flex-1 justify-center"
+                        @click="showCancelConfirmation = false"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        class="btn btn-danger flex-1 justify-center"
+                        @click="cancelInvoice"
+                    >
+                        Ya, Batalkan
+                    </button>
+                </div>
+            </template>
+        </PopUpPage>
     </Container>
 </template>
 <script setup>
+import { onMounted, ref, computed } from 'vue';
+import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import Container from '@/Components/UI/Container.vue';
 import { formatIDR } from '@/Composable/currency-format';
 import {
@@ -628,7 +664,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { onMounted } from 'vue';
 
 const props = defineProps({
     invoice: Object,
@@ -636,6 +671,26 @@ const props = defineProps({
     payment: Object,
     manualValidation: Object,
 });
+
+const showCancelConfirmation = ref(false);
+
+const associatedOutletName = computed(() => {
+    const item = props.invoice.items.find(item => item.item_type === 'outlet_addition');
+    return item?.metadata?.outlet_name || '';
+});
+
+const confirmCancelInvoice = () => {
+    showCancelConfirmation.value = true;
+};
+
+const cancelInvoice = () => {
+    showCancelConfirmation.value = false;
+    router.delete(
+        route('settings.billing.invoices.cancel', {
+            invoice_number: props.invoice.invoice_number,
+        })
+    );
+};
 
 const formUpload = useForm({
     payment_proof: null,

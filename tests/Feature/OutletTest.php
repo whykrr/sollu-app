@@ -220,4 +220,242 @@ class OutletTest extends TestCase
         // Confirm first outlet is still soft deleted
         $this->assertSoftDeleted('outlets', ['id' => $firstOutlet->id]);
     }
+
+    public function test_creating_outlet_generates_prorated_invoice_when_business_is_subscribed()
+    {
+        $user = User::first();
+        $business = $user->business;
+
+        // Give the business an active subscription plan with a limit of 5 outlets
+        $plan = \App\Models\SubscriptionPlan::create([
+            'code' => 'plan-standard-test',
+            'name' => 'Standard Plan Test',
+            'price_per_outlet' => 50000,
+            'max_outlet' => 5,
+            'yearly_discount_percent' => 0,
+        ]);
+        \App\Models\Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'started_at' => now(),
+            'expired_at' => now()->addDays(30),
+        ]);
+
+        $response = $this->actingAs($user)->post('/settings/outlets', [
+            'name' => 'Subscribed Outlet',
+            'address' => 'Jakarta',
+        ]);
+
+        // It should redirect to show invoice details page
+        $invoice = \App\Models\Invoice::where('business_id', $business->id)->latest()->first();
+        $this->assertNotNull($invoice);
+        $response->assertRedirect('/settings/billing/invoices/' . $invoice->invoice_number);
+
+        // Verify invoice details
+        $this->assertEquals('open', $invoice->status);
+        $this->assertTrue($invoice->total_amount > 0);
+
+        $item = $invoice->items()->first();
+        $this->assertEquals('outlet_addition', $item->item_type);
+        
+        $outlet = Outlet::where('name', 'Subscribed Outlet')->first();
+        $this->assertEquals($outlet->id, $item->metadata['outlet_id']);
+    }
+
+    public function test_outlet_cannot_be_activated_if_prorated_invoice_is_unpaid()
+    {
+        $user = User::first();
+        $business = $user->business;
+
+        $plan = \App\Models\SubscriptionPlan::create([
+            'code' => 'plan-unpaid-test',
+            'name' => 'Unpaid Plan Test',
+            'price_per_outlet' => 50000,
+            'max_outlet' => 5,
+            'yearly_discount_percent' => 0,
+        ]);
+        \App\Models\Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'started_at' => now(),
+            'expired_at' => now()->addDays(30),
+        ]);
+
+        // Creating outlet generates unpaid invoice
+        $this->actingAs($user)->post('/settings/outlets', [
+            'name' => 'Unpaid Outlet',
+            'address' => 'Jakarta',
+        ]);
+
+        $outlet = Outlet::where('name', 'Unpaid Outlet')->first();
+        $this->assertFalse($outlet->is_active);
+
+        // Trying to activate should fail because the invoice is unpaid
+        $response = $this->actingAs($user)->put('/settings/outlets/' . $outlet->id . '/enabled');
+        $response->assertSessionHasErrors(['unpaid_invoice_number']);
+
+        $outlet->refresh();
+        $this->assertFalse($outlet->is_active);
+    }
+
+    public function test_outlet_can_be_activated_once_prorated_invoice_is_paid()
+    {
+        $user = User::first();
+        $business = $user->business;
+
+        $plan = \App\Models\SubscriptionPlan::create([
+            'code' => 'plan-paid-test',
+            'name' => 'Paid Plan Test',
+            'price_per_outlet' => 50000,
+            'max_outlet' => 5,
+            'yearly_discount_percent' => 0,
+        ]);
+        $subscription = \App\Models\Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'started_at' => now(),
+            'expired_at' => now()->addDays(30),
+        ]);
+
+        // Creating outlet generates unpaid invoice
+        $this->actingAs($user)->post('/settings/outlets', [
+            'name' => 'Paid Outlet',
+            'address' => 'Jakarta',
+        ]);
+
+        $outlet = Outlet::where('name', 'Paid Outlet')->first();
+        $this->assertFalse($outlet->is_active);
+
+        // Pay the invoice
+        $invoice = \App\Models\Invoice::where('business_id', $business->id)->latest()->first();
+        $invoice->update([
+            'status' => 'paid',
+            'paid_at' => now(),
+        ]);
+
+        // Activating should succeed
+        $response = $this->actingAs($user)->put('/settings/outlets/' . $outlet->id . '/enabled');
+        $response->assertRedirect();
+
+        $outlet->refresh();
+        $this->assertTrue($outlet->is_active);
+
+        // Assert subscription_outlets table records active status
+        $this->assertDatabaseHas('subscription_outlets', [
+            'subscription_id' => $subscription->id,
+            'outlet_id' => $outlet->id,
+            'deactivated_at' => null,
+        ]);
+    }
+
+    public function test_cancelling_prorated_invoice_deletes_associated_outlet()
+    {
+        $user = User::first();
+        $business = $user->business;
+
+        $plan = \App\Models\SubscriptionPlan::create([
+            'code' => 'plan-cancel-test',
+            'name' => 'Cancel Plan Test',
+            'price_per_outlet' => 50000,
+            'max_outlet' => 5,
+            'yearly_discount_percent' => 0,
+        ]);
+        \App\Models\Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'started_at' => now(),
+            'expired_at' => now()->addDays(30),
+        ]);
+
+        // Creating outlet generates unpaid invoice
+        $this->actingAs($user)->post('/settings/outlets', [
+            'name' => 'To Be Cancelled Outlet',
+            'address' => 'Jakarta',
+        ]);
+
+        $outlet = Outlet::where('name', 'To Be Cancelled Outlet')->first();
+        $this->assertNotNull($outlet);
+        $this->assertFalse($outlet->is_active);
+
+        $invoice = \App\Models\Invoice::where('business_id', $business->id)->latest()->first();
+        $this->assertNotNull($invoice);
+        $this->assertEquals('open', $invoice->status);
+
+        // Cancel the invoice
+        $response = $this->actingAs($user)->delete('/settings/billing/invoices/' . $invoice->invoice_number . '/cancel');
+        $response->assertRedirect();
+
+        // Verify invoice is status 'void'
+        $invoice->refresh();
+        $this->assertEquals('void', $invoice->status);
+
+        // Verify outlet is deleted
+        $this->assertSoftDeleted('outlets', [
+            'id' => $outlet->id,
+        ]);
+
+        // Verify business subscription remains active
+        $activeSubscription = $business->subscriptions()->where('status', 'active')->first();
+        $this->assertNotNull($activeSubscription);
+    }
+
+    public function test_cancelling_main_subscription_invoice_cancels_subscription()
+    {
+        $user = User::first();
+        $business = $user->business;
+
+        $plan = \App\Models\SubscriptionPlan::create([
+            'code' => 'plan-main-cancel-test',
+            'name' => 'Main Plan Cancel Test',
+            'price_per_outlet' => 50000,
+            'max_outlet' => 5,
+            'yearly_discount_percent' => 0,
+        ]);
+        $subscription = \App\Models\Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'started_at' => now(),
+            'expired_at' => now()->addDays(30),
+        ]);
+
+        // Generate a main subscription invoice (recurring plan)
+        $invoice = \App\Models\Invoice::create([
+            'business_id' => $business->id,
+            'invoice_number' => 'INV-MAIN-' . \Illuminate\Support\Str::random(6),
+            'status' => 'open',
+            'subtotal' => 50000,
+            'tax_amount' => 0,
+            'total_amount' => 50000,
+            'due_date' => now()->addDays(7),
+        ]);
+        $invoice->items()->create([
+            'item_type' => 'recurring_plan',
+            'description' => 'Main subscription plan billing',
+            'quantity' => 1,
+            'unit_price' => 50000,
+            'subtotal' => 50000,
+        ]);
+
+        // Cancel the invoice
+        $response = $this->actingAs($user)->delete('/settings/billing/invoices/' . $invoice->invoice_number . '/cancel');
+        $response->assertRedirect();
+
+        // Verify invoice is status 'void'
+        $invoice->refresh();
+        $this->assertEquals('void', $invoice->status);
+
+        // Verify business subscription is canceled
+        $subscription->refresh();
+        $this->assertEquals('canceled', $subscription->status);
+    }
 }
