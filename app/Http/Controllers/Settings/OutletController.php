@@ -18,14 +18,15 @@ class OutletController extends Controller
         protected CreateOutletService $createOutletService,
         protected UpdateOutletService $updateOutletService,
         protected ManageOutletStatusService $manageStatusService
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $req, Outlet $outlet = null)
     {
-        $outlets = Outlet::currentBusiness()
+        $outlets = fn () => Outlet::currentBusiness()
             ->sortable($req->get('sort', 'created_at'), $req->get('direction', 'asc'))
             ->paginate($req->get('perpage', 20))
             ->appends($req->query());
@@ -35,24 +36,24 @@ class OutletController extends Controller
                 'settings',
                 'operationalHours',
                 'devices',
-                'auditLogs' => fn($q) => $q->with('user')->latest()->take(50),
+                'auditLogs' => fn ($q) => $q->with('user')->latest()->take(50),
             ]);
         }
 
-        $business = $req->user()->business;
-        $maxOutlets = $business->maxOutletsAllowed();
+        $business            = $req->user()->business;
+        $maxOutlets          = $business->maxOutletsAllowed();
         $currentOutletsCount = $business->outlets()->count();
-        $subscription = $business->subscriptions()->with('plan')->where('status', 'active')->first();
-        $isTrial = $business->trial_end_at ? \Carbon\Carbon::parse($business->trial_end_at)->isFuture() : false;
+        $subscription        = $business->subscriptions()->with('plan')->where('status', 'active')->first();
+        $isTrial             = $business->trial_end_at ? \Carbon\Carbon::parse($business->trial_end_at)->isFuture() : false;
 
         return inertia('Settings/Outlet/Index', [
             'outlets' => $outlets,
             'params'  => $req->all(),
-            'outlet'  => $outlet,
+            'outlet'  => fn () => $outlet,
             'limit'   => [
-                'max' => $maxOutlets,
-                'current' => $currentOutletsCount,
-                'reached' => $currentOutletsCount >= $maxOutlets,
+                'max'      => $maxOutlets,
+                'current'  => $currentOutletsCount,
+                'reached'  => $currentOutletsCount >= $maxOutlets,
                 'is_trial' => $isTrial,
             ],
             'subscription' => $subscription,
@@ -66,7 +67,7 @@ class OutletController extends Controller
     {
         $result = $this->createOutletService->execute($req->validated(), $req->user());
 
-        if (!empty($result['invoice'])) {
+        if (! empty($result['invoice'])) {
             return redirect()->route('settings.billing.invoices.show', $result['invoice']->invoice_number)
                 ->with('success', 'Outlet berhasil dibuat. Silakan selesaikan pembayaran tagihan prorasi untuk mengaktifkan outlet.');
         }
