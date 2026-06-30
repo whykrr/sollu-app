@@ -35,22 +35,22 @@ Route::prefix('cockpit')
 
         Route::middleware('auth:cockpit')->group(function () {
             Route::delete('/logout', [\App\Http\Controllers\Cockpit\AuthenticationController::class, 'destroy'])->name('logout');
-            
+
             Route::get('/', [\App\Http\Controllers\Cockpit\DashboardController::class, 'index'])->name('dashboard');
-            
+
             Route::get('/business', [\App\Http\Controllers\Cockpit\BusinessController::class, 'index'])->name('merchants.index');
             Route::post('/business/{id}/toggle-status', [\App\Http\Controllers\Cockpit\BusinessController::class, 'toggleStatus'])->name('merchants.toggle-status');
             Route::get('/business/{id}', [\App\Http\Controllers\Cockpit\BusinessController::class, 'show'])->name('merchants.show');
-            
+
             Route::get('/subscriptions', [\App\Http\Controllers\Cockpit\SubscriptionController::class, 'index'])->name('subscriptions.index');
             Route::get('/subscriptions/{id}', [\App\Http\Controllers\Cockpit\SubscriptionController::class, 'show'])->name('subscriptions.show');
-            
+
             Route::get('/invoices', [\App\Http\Controllers\Cockpit\InvoiceController::class, 'index'])->name('invoices.index');
-            
+
             Route::get('/uoms', [\App\Http\Controllers\Cockpit\UomController::class, 'index'])->name('uoms.index');
-            
+
             Route::get('/config', [\App\Http\Controllers\Cockpit\ConfigController::class, 'index'])->name('config.index');
-            
+
             Route::get('/audit', [\App\Http\Controllers\Cockpit\AuditController::class, 'index'])->name('audit.index');
         });
     });
@@ -85,7 +85,7 @@ Route::middleware('auth:business')->group(function () {
 
     Route::get('/', OverviewController::class)->name('overview');
 
-    // require __DIR__ . '/web/products.php';
+    require __DIR__ . '/web/masters.php';
     require __DIR__ .'/web/employees.php';
     require __DIR__ .'/web/settings.php';
     require __DIR__ .'/web/template.php';
