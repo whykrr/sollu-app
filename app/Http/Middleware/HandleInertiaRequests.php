@@ -82,15 +82,36 @@ class HandleInertiaRequests extends Middleware
                 'businessInfo'  => Inertia::lazy(function () use ($request) {
                     $business = $request->user()->business;
 
+                    $subscription = $business->subscriptions()
+                        ->where('status', 'active')
+                        ->with('plan:id,name')
+                        ->latest()
+                        ->first();
+                        
+                    $isTrial = $business->trial_end_at ? \Carbon\Carbon::parse($business->trial_end_at)->isFuture() : false;
+
+                    if ($subscription) {
+                        $planData = [
+                            'plan'       => ['name' => $subscription->plan->name ?? 'Default Plan'],
+                            'expired_at' => $subscription->expired_at,
+                        ];
+                    } elseif ($isTrial) {
+                        $planData = [
+                            'plan'       => ['name' => 'Trial Plan'],
+                            'expired_at' => $business->trial_end_at,
+                        ];
+                    } else {
+                        $planData = [
+                            'plan'       => ['name' => 'Free Plan'],
+                            'expired_at' => null,
+                        ];
+                    }
+
                     return [
-                        // 'subscription' => $business->subscriptions()
-                        //     ->where('is_active', '=', true)
-                        //     ->with('plan')
-                        //     ->latest()
-                        //     ->first(),
+                        'subscription' => $planData,
                         'outlet_count' => $business->outlets()
-                            ->where('is_active', '=', true)->count(),
-                        'businessType' => $business->type()->first()->name,
+                            ->where('is_active', true)->count(),
+                        'businessType' => $business->type()->first()->name ?? 'Unknown',
                     ];
                 }),
 

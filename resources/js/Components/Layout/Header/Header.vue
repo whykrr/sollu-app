@@ -35,19 +35,10 @@
         <div class="grow">
             <Breadcrumbs />
         </div>
-        <div class="hidden relative sm:flex items-center space-x-2.5">
-            <!-- <Link
-                href="#"
-                class="nav-icon px-2 text-yellow-400 hover:bg-yellow-400/20"
-                title="Lihat Panduan"
-            >
-                <FontAwesomeIcon :icon="faLightbulb" />
-                <div class="text-sm">Panduan</div>
-            </Link> -->
-
+        <div class="flex items-center space-x-2.5">
             <TopBarNotification />
 
-            <div class="w-px h-6 bg-gray-300" />
+            <div class="hidden sm:block w-px h-6 bg-gray-300" />
 
             <TopBarBusiness v-can="'business.*'" />
 
@@ -58,17 +49,12 @@
 <script setup>
 import Breadcrumbs from '@/Components/Layout/Header/Breadcrumbs.vue';
 import TopBarAccount from '@/Components/Layout/Header/TopBarAccount.vue';
-import { Link, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
-import SidebarNotification from '@/Components/Layout/SidebarNotification/SidebarNotification.vue';
 import TopBarBusiness from '@/Components/Layout/Header/TopBarBusiness.vue';
 import TopBarNotification from '@/Components/Layout/Header/TopBarNotification.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
     faBars,
-    faChevronRight,
     faClose,
-    faLightbulb,
 } from '@fortawesome/free-solid-svg-icons';
 import { useAppStore } from '@/store/app';
 

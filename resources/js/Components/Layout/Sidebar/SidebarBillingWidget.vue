@@ -1,7 +1,7 @@
 <template>
     <div
         v-if="shouldShowWidget"
-        class="flex flex-col gap-2 rounded-xl border border-neutral-200/60 bg-slate-50/50 p-2.5 shadow-sm"
+        class="flex flex-col gap-2 mt-2 rounded-xl border border-neutral-200/60 bg-slate-50/50 p-2.5 shadow-sm"
     >
         <div>
             <div
@@ -51,12 +51,12 @@ const shouldShowWidget = computed(() => {
     if (!subscription.value) {
         return true;
     }
-    
+
     // Jika ada subscription, tampilkan hanya jika sisa hari kurang dari 15
     if (subscription.value.expired_at) {
         return gapDaysFromNow(subscription.value.expired_at) < 15;
     }
-    
+
     return false;
 });
 
@@ -64,11 +64,11 @@ const daysLeft = computed(() => {
     if (subscription.value && subscription.value.expired_at) {
         return gapDaysFromNow(subscription.value.expired_at);
     }
-    
+
     if (business.value && business.value.trial_end_at) {
         return gapDaysFromNow(business.value.trial_end_at);
     }
-    
+
     return 0;
 });
 </script>

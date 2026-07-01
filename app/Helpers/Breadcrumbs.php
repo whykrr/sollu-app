@@ -4,140 +4,76 @@
 if (! function_exists('generateBreadcrumbs')) {
     function generateBreadcrumbs($routeName)
     {
+        // Define base URLs for reusability
+        $overviewUrl = route('overview');
+        $employeesIndexUrl = route('employees.index');
+        $settingsOutletsUrl = route('settings.outlets.index');
+        $settingsBillingUrl = route('settings.billing.index');
+        $settingsAccountProfileUrl = route('settings.account.profile');
+        $settingsBusinessDetailUrl = route('settings.business.detail');
+
         $breadcrumbs = [
             'overview' => [
-                ['label' => 'Overview', 'url' => route('overview')],
+                ['label' => 'Overview', 'url' => $overviewUrl],
             ],
 
+            // Employees Module
             'employees.index' => [
-                ['label' => 'Pegawai', 'url' => route('employees.index')],
+                ['label' => 'Pegawai', 'url' => $employeesIndexUrl],
             ],
             'employees.create' => [
-                ['label' => 'Pegawai', 'url' => route('employees.index')],
+                ['label' => 'Pegawai', 'url' => $employeesIndexUrl],
                 ['label' => 'Tambah Pegawai', 'url' => '#'],
             ],
             'employees.show' => [
-                ['label' => 'Pegawai', 'url' => route('employees.index')],
+                ['label' => 'Pegawai', 'url' => $employeesIndexUrl],
                 ['label' => 'Detail Pegawai', 'url' => '#'],
             ],
 
-
+            // Settings Module - Account
             'settings.account.profile' => [
                 ['label' => 'Pengaturan', 'url' => '#'],
-                ['label' => 'Pusat Akun', 'url' => route('settings.account.profile')],
+                ['label' => 'Pusat Akun', 'url' => $settingsAccountProfileUrl],
             ],
 
+            // Settings Module - Business
             'settings.business.detail' => [
                 ['label' => 'Pengaturan', 'url' => '#'],
-                ['label' => 'Detail Usaha', 'url' => route('settings.business.detail')],
+                ['label' => 'Detail Usaha', 'url' => $settingsBusinessDetailUrl],
             ],
 
+            // Settings Module - Outlets
             'settings.outlets.index' => [
                 ['label' => 'Pengaturan', 'url' => '#'],
-                ['label' => 'Outlet', 'url' => route('settings.outlets.index')],
+                ['label' => 'Outlet', 'url' => $settingsOutletsUrl],
             ],
-
             'settings.outlets.show' => [
                 ['label' => 'Pengaturan', 'url' => '#'],
-                ['label' => 'Outlet', 'url' => route('settings.outlets.index')],
+                ['label' => 'Outlet', 'url' => $settingsOutletsUrl],
                 ['label' => 'Detail Outlet', 'url' => '#'],
             ],
 
-
+            // Settings Module - Billing
             'settings.billing.index' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('settings.billing.index')],
+                ['label' => 'Langganan', 'url' => $settingsBillingUrl],
             ],
-
             'settings.billing.plans' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('settings.billing.index')],
+                ['label' => 'Langganan', 'url' => $settingsBillingUrl],
                 ['label' => 'Pilih Langganan', 'url' => '#'],
             ],
-
             'settings.billing.subscribe' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Langganan', 'url' => route('settings.billing.index')],
+                ['label' => 'Langganan', 'url' => $settingsBillingUrl],
                 ['label' => 'Detail Langganan', 'url' => '#'],
             ],
-
             'settings.billing.invoices.show' => [
                 ['label' => 'Langganan & Tagihan', 'url' => '#'],
-                ['label' => 'Pembayaran', 'url' => route('settings.billing.index')],
+                ['label' => 'Pembayaran', 'url' => $settingsBillingUrl],
                 ['label' => 'Tagihan', 'url' => '#'],
             ],
-
-
-            // 'users.index' => [
-            //     ['label' => 'Users', 'url' => '#'],
-            // ],
-            // 'users.create' => [
-            //     ['label' => 'Users', 'url' => route('admin.users.index')],
-            //     ['label' => 'Add User', 'url' => '#'],
-            // ],
-            // 'users.edit' => [
-            //     ['label' => 'Users', 'url' => route('admin.users.index')],
-            //     ['label' => 'Detail User', 'url' => '#'],
-            // ],
-
-            // 'languages.index' => [
-            //     ['label' => 'Languages', 'url' => '#'],
-            // ],
-            // 'languages.create' => [
-            //     ['label' => 'Languages', 'url' => route('admin.languages.index')],
-            //     ['label' => 'Add Language', 'url' => '#'],
-            // ],
-            // 'languages.edit' => [
-            //     ['label' => 'Languages', 'url' => route('admin.languages.index')],
-            //     ['label' => 'Add Language', 'url' => '#'],
-            // ],
-
-            // 'content-types.index' => [
-            //     ['label' => 'Content Type', 'url' => '#'],
-            // ],
-            // 'content-types.create' => [
-            //     ['label' => 'Content Type', 'url' => route('admin.content-types.index')],
-            //     ['label' => 'Add Content Type', 'url' => '#'],
-            // ],
-            // 'content-types.edit' => [
-            //     ['label' => 'Content Type', 'url' => route('admin.content-types.index')],
-            //     ['label' => 'Detail Content Type', 'url' => '#'],
-            // ],
-
-            // 'contents.index' => [
-            //     ['label' => 'Content', 'url' => '#'],
-            // ],
-
-            // 'contents.listed' => [
-            //     ['label' => 'Content', 'url' => '#'],
-            // ],
-
-            // 'contents.create' => [
-            //     ['label' => 'Content', 'url' => '#'],
-            //     ['label' => 'Create Content', 'url' => '#'],
-            // ],
-
-            // 'contents.edit' => [
-            //     ['label' => 'Content', 'url' => '#'],
-            //     ['label' => 'Edit Content', 'url' => '#'],
-            // ],
-
-            // 'message.index' => [
-            //     ['label' => 'Inbox', 'url' => '#'],
-            // ],
-
-
-            // 'message.show' => [
-            //     ['label' => 'Inbox', 'url' => route('admin.message.index')],
-            //     ['label' => 'Detail Message', 'url' => '#'],
-            // ],
-
-            // 'settings.index' => [
-            //     ['label' => 'Settings', 'url' => '#'],
-            // ],
         ];
-
-        $routeName = str_replace('', '', $routeName);
 
         return $breadcrumbs[$routeName] ?? $breadcrumbs['overview'];
     }

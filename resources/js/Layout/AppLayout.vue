@@ -128,7 +128,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 router.on('start', (event) => {
     const visit = event.detail.visit;
     if (visit?.only?.includes('notifications')) return;
-    if (visit?.only?.includes('merchantInfo')) return;
+    if (visit?.only?.includes('businessInfo')) return;
 
     loading.value = true;
 });

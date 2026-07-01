@@ -1,5 +1,5 @@
 <template>
-    <div ref="dropdownRef">
+    <div ref="dropdownRef" class="relative">
         <div class="hidden sm:block">
             <a
                 href="#"
@@ -25,7 +25,7 @@
         <transition name="fade-down" mode="in-out">
             <div
                 v-if="showPanel"
-                class="absolute z-50 bg-white border border-neutral-100 rounded-xl w-96 top-[48px] -right-0 shadow-2xl ring-1 ring-black/5 p-4"
+                class="absolute z-50 bg-white border border-neutral-100 rounded-xl w-[calc(100vw-2rem)] sm:w-96 top-[48px] right-0 sm:-right-0 shadow-xl ring-1 ring-black/5 p-4 origin-top-right"
             >
                 <div class="flex flex-col gap-2">
                     <div class="absolute right-4 top-4">
@@ -105,8 +105,7 @@
                                     Langganan
                                 </div>
                                 <div class="font-medium text-neutral-800">
-                                    <!-- {{ businessInfo.subscription.plan.name }} -->
-                                    -
+                                    {{ businessInfo.subscription.plan.name }}
                                 </div>
                             </div>
                             <div
@@ -116,12 +115,12 @@
                                     Aktif Sampai
                                 </div>
                                 <div class="font-medium text-neutral-800">
-                                    <!-- {{
-                                        formatDateID(
-                                            businessInfo.subscription.end_date,
-                                        )
-                                    }} -->
-                                    -
+                                    <template v-if="businessInfo.subscription.expired_at">
+                                        {{ formatDateID(businessInfo.subscription.expired_at) }}
+                                    </template>
+                                    <template v-else>
+                                        Selamanya
+                                    </template>
                                 </div>
                             </div>
                             <div
@@ -151,7 +150,7 @@
                                     :href="item.link"
                                     class="flex items-center gap-3 px-4 py-2.5 hover:bg-white text-sm text-neutral-700 font-medium transition-all duration-150 ease-in-out group"
                                     :method="item.method"
-                                    @click="showPanel = !showPanel"
+                                    @click="closePanel"
                                 >
                                     <div
                                         class="w-6 flex justify-center text-neutral-400 group-hover:text-main transition-colors"
@@ -181,19 +180,16 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import { method } from 'lodash';
 import { computed, onBeforeMount, onMounted, ref, watch } from 'vue';
 
+import { useDropdown } from '@/Composable/useDropdown';
+
 const businessInfo = ref(null);
 const page = usePage();
 const auth = computed(() => page.props.auth);
-const showPanel = ref(false);
-const dropdownRef = ref(null);
+const { isOpen: showPanel, toggle, close: closePanel, dropdownRef } = useDropdown();
 
 const togglePanel = () => {
     businessInfo.value = null;
-    showPanel.value = !showPanel.value;
-};
-
-const closePanel = () => {
-    showPanel.value = false;
+    toggle();
 };
 
 const initials = computed(() => {
@@ -226,12 +222,6 @@ const businessLinks = [
     },
 ];
 
-const handleClickOutside = (event) => {
-    if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
-        showPanel.value = false;
-    }
-};
-
 watch(
     () => showPanel.value,
     (val) => {
@@ -247,12 +237,4 @@ watch(
         }
     },
 );
-
-onMounted(() => {
-    document.addEventListener('click', handleClickOutside);
-});
-
-onBeforeMount(() => {
-    document.removeEventListener('click', handleClickOutside);
-});
 </script>
