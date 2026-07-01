@@ -2,20 +2,23 @@ import { faBox, faBoxes, faCartShopping, faChartLine, faChartPie, faHashtag, faR
 
 export const mainSidebars = [
     {
+        type: 'item',
         route: 'overview',
         icon: faChartPie,
         label: 'Ringkasan',
-        permissions: '',
+        permissions: [],
         activeRoute: 'overview',
     },
     {
+        type: 'item',
         route: '#',
         icon: faReceipt,
         label: 'Penjualan',
-        permissions: '',
+        permissions: [],
         activeRoute: 'sales',
     },
     {
+        type: 'dropdown',
         route: '#',
         icon: faBox,
         label: 'Master Produk',
@@ -23,24 +26,28 @@ export const mainSidebars = [
         activeRoute: 'masters.',
         items: [
             {
+                type: 'item',
                 route: 'products.categories.index',
                 label: 'Kategori',
                 permissions: [],
                 activeRoute: 'masters.categories.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Produk Jual',
                 permissions: [],
                 activeRoute: 'masters.products.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Varian',
                 permissions: [],
                 activeRoute: 'masters.variations.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Opsi Tambahan',
                 permissions: [],
@@ -49,6 +56,7 @@ export const mainSidebars = [
         ],
     },
     {
+        type: 'dropdown',
         route: '#',
         icon: faBoxes,
         label: 'Inventori',
@@ -56,42 +64,49 @@ export const mainSidebars = [
         activeRoute: 'inventories.',
         items: [
             {
+                type: 'item',
                 route: '#',
                 label: 'Stok',
                 permissions: [],
                 activeRoute: 'inventories.stock.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Pemasok / Supplier',
                 permissions: [],
                 activeRoute: 'inventories.suppliers.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Pesanan Pembelian (PO)',
                 permissions: [],
                 activeRoute: 'inventories.po.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Stok Opname',
                 permissions: [],
                 activeRoute: 'inventories.stock-taking.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Stok Retur',
                 permissions: [],
                 activeRoute: 'inventories.return.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Mutasi Stok',
                 permissions: [],
                 activeRoute: 'inventories.transfers.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Konversi Stok',
                 permissions: [],
@@ -100,6 +115,7 @@ export const mainSidebars = [
         ],
     },
     {
+        type: 'item',
         route: '#',
         icon: faCartShopping,
         label: 'Pesanan / Order',
@@ -107,6 +123,7 @@ export const mainSidebars = [
         activeRoute: 'orders',
     },
     {
+        type: 'item',
         route: '#',
         icon: faUsers,
         label: 'Pelanggan',
@@ -114,6 +131,7 @@ export const mainSidebars = [
         activeRoute: 'members',
     },
     {
+        type: 'item',
         route: 'employees.index',
         icon: faUserTie,
         label: 'Pegawai',
@@ -121,6 +139,7 @@ export const mainSidebars = [
         activeRoute: 'employees',
     },
     {
+        type: 'dropdown',
         route: '#',
         icon: faWallet,
         label: 'Keuangan',
@@ -128,18 +147,21 @@ export const mainSidebars = [
         activeRoute: 'finance',
         items: [
             {
+                type: 'item',
                 route: '#',
                 label: 'Penjualan Harian',
                 permissions: [],
                 activeRoute: 'finance.daily-sales.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Pembayaran',
                 permissions: [],
                 activeRoute: 'finance.payments.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Pengembalian Dan Diskon',
                 permissions: [],
@@ -148,6 +170,7 @@ export const mainSidebars = [
         ],
     },
     {
+        type: 'dropdown',
         route: '#',
         icon: faChartLine,
         label: 'Laporan',
@@ -155,36 +178,42 @@ export const mainSidebars = [
         activeRoute: 'reports',
         items: [
             {
+                type: 'item',
                 route: '#',
                 label: 'Penjualan Produk',
                 permissions: [],
                 activeRoute: 'reports.products.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Stok',
                 permissions: [],
-                activeRoute: 'template.form',
+                activeRoute: 'reports.stock.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Pegawai',
                 permissions: [],
                 activeRoute: 'reports.employees.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Retur',
                 permissions: [],
                 activeRoute: 'reports.return.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Pajak & Diskon',
                 permissions: [],
                 activeRoute: 'reports.tax-discounts.',
             },
             {
+                type: 'item',
                 route: '#',
                 label: 'Omset',
                 permissions: [],
@@ -193,6 +222,7 @@ export const mainSidebars = [
         ],
     },
     {
+        type: 'dropdown',
         route: '#',
         icon: faHashtag,
         label: 'Template',
@@ -200,42 +230,49 @@ export const mainSidebars = [
         activeRoute: 'template',
         items: [
             {
+                type: 'item',
                 route: 'template.form',
                 label: 'Form',
                 permissions: [],
                 activeRoute: 'template.form',
             },
             {
+                type: 'item',
                 route: 'template.cards',
                 label: 'Card',
                 permissions: [],
-                activeRoute: 'template.form',
+                activeRoute: 'template.cards',
             },
             {
+                type: 'item',
                 route: 'template.navigation',
                 label: 'Navigation & Tab',
                 permissions: [],
                 activeRoute: 'template.navigation',
             },
             {
+                type: 'item',
                 route: 'template.buttons',
                 label: 'Buttons',
                 permissions: [],
                 activeRoute: 'template.buttons',
             },
             {
+                type: 'item',
                 route: 'template.charts',
                 label: 'Charts',
                 permissions: [],
                 activeRoute: 'template.charts',
             },
             {
+                type: 'item',
                 route: 'template.notifications',
                 label: 'Notifications',
                 permissions: [],
                 activeRoute: 'template.notifications',
             },
             {
+                type: 'item',
                 route: 'template.widgets',
                 label: 'Widgets',
                 permissions: [],

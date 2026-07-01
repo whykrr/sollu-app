@@ -14,7 +14,6 @@
 </template>
 
 <script setup>
-import { useAppStore } from '@/store/app';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { Link } from '@inertiajs/vue3';
 

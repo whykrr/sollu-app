@@ -1,82 +1,68 @@
 <template>
-    <div class="px-2 relative space-y-2 pb-2">
+    <div class="px-2 relative space-y-1 pb-3">
         <a
             href="#"
             target="_blank"
-            class="flex flex-row gap-2 items-center py-0 px-2 cursor-pointer rounded-lg text-neutral-600 hover:text-neutral-900"
+            class="flex items-center gap-3 py-2 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
         >
-            <FontAwesomeIcon :icon="faCircleQuestion" />
-            <div class="text-sm">Pusat Bantuan</div>
+            <FontAwesomeIcon
+                :icon="faCircleQuestion"
+                class="w-5 text-center text-slate-600 group-hover:text-slate-700 transition-colors"
+            />
+            <div class="text-sm font-medium">Pusat Bantuan</div>
             <div class="flex-1" />
-            <div>
-                <FontAwesomeIcon
-                    :icon="faArrowUpFromBracket"
-                    class="text-[15px]"
-                />
-            </div>
+            <FontAwesomeIcon
+                :icon="faArrowUpFromBracket"
+                class="text-[11px] opacity-0 group-hover:opacity-100 transition-opacity"
+            />
         </a>
+
         <Link
             v-if="!isSetting"
-            href="#"
-            class="flex flex-row gap-2 items-center py-0 px-2 cursor-pointer rounded-lg text-neutral-600 hover:text-neutral-900"
+            :href="route('settings.account.profile')"
+            class="flex items-center gap-3 py-2 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
         >
-            <FontAwesomeIcon :icon="faCog" />
-            <div class="text-sm grow">Pengaturan</div>
+            <FontAwesomeIcon
+                :icon="faCog"
+                class="w-5 text-center text-slate-600 group-hover:text-slate-700 transition-colors"
+            />
+            <div class="text-sm font-medium grow">Pengaturan</div>
+        </Link>
+        <Link
+            v-else
+            :href="route('overview')"
+            class="flex items-center gap-3 py-2 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
+        >
+            <FontAwesomeIcon
+                :icon="faArrowLeft"
+                class="w-5 text-center text-slate-600 group-hover:text-slate-700 transition-colors"
+            />
+            <div class="text-sm font-medium grow">Kembali</div>
+            <div class="flex-1" />
+            <FontAwesomeIcon
+                :icon="faHome"
+                class="text-[11px] opacity-0 group-hover:opacity-100 transition-opacity"
+            />
         </Link>
 
-        <div
-            v-if="gapDaysFromNow(business.created_at) < 15"
-            class="flex flex-col gap-1.5 rounded-lg border border-neutral-300 p-2"
-        >
-            <div>
-                <div
-                    class="inline-block p-1.5 bg-gradient-to-r from-main to-secondary-dark text-white rounded-md text-xs"
-                >
-                    <FontAwesomeIcon :icon="faBolt" class="text-sm" />
-                    {{ subscription.plan.name ?? 'Masa Uji Coba' }}
-                </div>
-            </div>
-            <div class="text-xs">
-                Masa
-                {{ subscription ? 'langganan' : 'uji coba gratis' }}
-                anda akan berakhir dalam
-                <span class="font-medium"
-                    >{{ gapDaysFromNow(business.trial_end_at) }} hari</span
-                >
-            </div>
-            <Link
-                v-if="!subscription"
-                :href="route('settings.billing.plans')"
-                class="btn btn-outline-main btn-sm justify-center"
-            >
-                Langganan Sekarang
-            </Link>
-            <Link
-                v-else
-                :href="route('settings.billing.index')"
-                class="btn btn-outline-info btn-sm justify-center"
-            >
-                Perpanjang Langganan
-            </Link>
+        <div>
+            <SidebarBillingWidget />
         </div>
     </div>
 </template>
 
 <script setup>
-import { gapDaysFromNow } from '@/Composable/date';
-import { useAuth } from '@/Composable/useAuth';
+import { Link } from '@inertiajs/vue3';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
-    faArrowUpFromBracket,
-    faBolt,
     faCircleQuestion,
     faCog,
+    faArrowUpFromBracket,
+    faArrowLeft,
+    faHome,
 } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { Link, usePage } from '@inertiajs/vue3';
+import SidebarBillingWidget from './SidebarBillingWidget.vue';
 
-const { business, subscription } = useAuth();
-console.log(gapDaysFromNow(business.value.trial_end_at));
-console.log(business.value.trial_end_at);
 defineProps({
     isSetting: Boolean,
 });

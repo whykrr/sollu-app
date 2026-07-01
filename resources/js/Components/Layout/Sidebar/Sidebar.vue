@@ -31,67 +31,25 @@
         </Teleport>
 
         <div class="sidebar-container relative z-30">
-            <div>
-                <div
-                    class="flex justify-between items-center px-2 min-h-14 relative"
-                >
-                    <Link :href="route('overview')">
-                        <img
-                            src="img/logo-colored.png"
-                            class="h-8 w-auto"
-                            alt="Sollu"
-                        />
-                    </Link>
-                    <div
-                        class="block sm:hidden text-sm cursor-pointer"
-                        @click="appStore.hide"
-                    >
-                        <FontAwesomeIcon :icon="faClose" />
-                    </div>
-
-                    <Transition name="spin" mode="out-in">
-                        <div
-                            v-if="!appStore.sidebar.minimize"
-                            class="hidden sm:block text-nowrap -space-x-1 p-2 hover:bg-neutral-300/60 rounded-lg transition-colors duration-150"
-                            @click="appStore.minimize()"
-                        >
-                            <FontAwesomeIcon :icon="faChevronLeft" />
-                            <FontAwesomeIcon :icon="faChevronLeft" />
-                        </div>
-                        <div
-                            v-else
-                            class="hidden sm:block p-2 hover:bg-neutral-300/60 rounded-lg transition-colors duration-150 group-[lock]:"
-                            @click="appStore.maximize()"
-                        >
-                            <FontAwesomeIcon :icon="faLock" />
-                        </div>
-                    </Transition>
-                </div>
-            </div>
+            <SidebarHeader />
             <SidebarOutlet v-if="!isSetting" />
             <SidebarNav class="mb-2" />
-            <SidebarFooter :is-setting />
+            <SidebarFooter :is-setting="isSetting" />
         </div>
     </aside>
 </template>
 
 <script setup>
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
+import { useAppStore } from '@/store/app';
+
+import SidebarHeader from './SidebarHeader.vue';
 import SidebarOutlet from './SidebarOutlet.vue';
 import SidebarNav from './SidebarNav.vue';
 import SidebarFooter from './SidebarFooter.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faChevronLeft,
-    faClose,
-    faLock,
-} from '@fortawesome/free-solid-svg-icons';
-import { Link, router, usePage } from '@inertiajs/vue3';
-import { useAppStore } from '@/store/app';
 
 const appStore = useAppStore();
-
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-
 const isMobile = ref(false);
 
 const checkMobile = () => {
