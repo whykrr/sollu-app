@@ -1,9 +1,9 @@
 <template>
-    <div class="px-2 relative space-y-1 pb-3">
+    <div class="px-2 relative space-y-0 pb-3">
         <a
             href="#"
             target="_blank"
-            class="flex items-center gap-3 py-2 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
+            class="flex items-center gap-2 py-1.5 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
         >
             <FontAwesomeIcon
                 :icon="faCircleQuestion"
@@ -20,7 +20,7 @@
         <Link
             v-if="!isSetting"
             :href="route('settings.account.profile')"
-            class="flex items-center gap-3 py-2 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
+            class="flex items-center gap-2 py-1.5 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
         >
             <FontAwesomeIcon
                 :icon="faCog"
@@ -31,7 +31,7 @@
         <Link
             v-else
             :href="route('overview')"
-            class="flex items-center gap-3 py-2 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
+            class="flex items-center gap-2 py-1.5 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
         >
             <FontAwesomeIcon
                 :icon="faArrowLeft"
