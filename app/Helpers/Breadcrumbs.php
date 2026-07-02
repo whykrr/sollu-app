@@ -5,12 +5,15 @@ if (! function_exists('generateBreadcrumbs')) {
     function generateBreadcrumbs($routeName)
     {
         // Define base URLs for reusability
-        $overviewUrl = route('overview');
-        $employeesIndexUrl = route('employees.index');
-        $settingsOutletsUrl = route('settings.outlets.index');
-        $settingsBillingUrl = route('settings.billing.index');
+        $overviewUrl               = route('overview');
+        $employeesIndexUrl         = route('employees.index');
+        $settingsOutletsUrl        = route('settings.outlets.index');
+        $settingsBillingUrl        = route('settings.billing.index');
         $settingsAccountProfileUrl = route('settings.account.profile');
         $settingsBusinessDetailUrl = route('settings.business.detail');
+        $masterCategoriesUrl       = route('master.categories.index');
+        $masterModifiersUrl        = route('master.modifiers.index');
+        $masterProductsUrl         = route('master.products.index');
 
         $breadcrumbs = [
             'overview' => [
@@ -21,6 +24,31 @@ if (! function_exists('generateBreadcrumbs')) {
             'employees.index' => [
                 ['label' => 'Pegawai', 'url' => $employeesIndexUrl],
             ],
+
+            // Master Product Module
+            'master.categories.index' => [
+                ['label' => 'Master Produk', 'url' => '#'],
+                ['label' => 'Kategori Produk', 'url' => $masterCategoriesUrl],
+            ],
+            'master.modifiers.index' => [
+                ['label' => 'Master Produk', 'url' => '#'],
+                ['label' => 'Opsi Tambahan', 'url' => $masterModifiersUrl],
+            ],
+            'master.products.index' => [
+                ['label' => 'Master Produk', 'url' => '#'],
+                ['label' => 'Produk Jual', 'url' => $masterProductsUrl],
+            ],
+            'master.products.create' => [
+                ['label' => 'Master Produk', 'url' => '#'],
+                ['label' => 'Produk Jual', 'url' => $masterProductsUrl],
+                ['label' => 'Buat Produk Baru', 'url' => '#'],
+            ],
+            'master.products.edit' => [
+                ['label' => 'Master Produk', 'url' => '#'],
+                ['label' => 'Produk Jual', 'url' => $masterProductsUrl],
+                ['label' => 'Edit Produk', 'url' => '#'],
+            ],
+
             'employees.create' => [
                 ['label' => 'Pegawai', 'url' => $employeesIndexUrl],
                 ['label' => 'Tambah Pegawai', 'url' => '#'],
