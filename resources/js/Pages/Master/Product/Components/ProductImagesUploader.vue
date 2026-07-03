@@ -3,12 +3,8 @@
         <!-- Drag & Drop Dropzone (Visible if empty) -->
         <div 
             v-if="modelValue.length === 0"
-            class="relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300 text-center cursor-pointer p-8"
-            :class="[
-                dragging 
-                    ? 'border-primary bg-primary/5 scale-[1.01]' 
-                    : 'border-slate-300 hover:border-primary hover:bg-neutral-50'
-            ]"
+            class="uploader-dropzone p-8 text-center"
+            :class="{ 'border-primary bg-primary/5 scale-[1.01]': dragging }"
             @dragover.prevent="dragging = true"
             @dragleave.prevent="dragging = false"
             @drop.prevent="onDrop"
@@ -93,12 +89,8 @@
                     @dragover.prevent="dragging = true"
                     @dragleave.prevent="dragging = false"
                     @drop.prevent="onDrop"
-                    class="border-2 border-dashed rounded-xl cursor-pointer flex flex-col items-center justify-center aspect-square transition"
-                    :class="[
-                        dragging 
-                            ? 'border-primary bg-primary/5 scale-[1.01]' 
-                            : 'border-slate-300 hover:border-primary hover:bg-neutral-50 text-slate-400 hover:text-slate-600'
-                    ]"
+                    class="uploader-dropzone aspect-square text-slate-400 hover:text-slate-600"
+                    :class="{ 'border-primary bg-primary/5 scale-[1.01]': dragging }"
                 >
                     <FontAwesomeIcon :icon="faPlus" class="text-lg mb-1" />
                     <span class="text-xs font-semibold">Tambah Foto</span>
@@ -117,12 +109,12 @@
         <div v-if="error" class="mt-1 text-sm text-red-500">{{ error }}</div>
 
         <!-- Cropper Modal Overlay -->
-        <div v-if="showCropper" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div class="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border flex flex-col max-h-[90vh]">
+        <div v-if="showCropper" class="overlay-backdrop">
+            <div class="overlay-modal max-w-lg max-h-[90vh]">
                 <!-- Header -->
-                <div class="flex justify-between items-center p-4 border-b">
-                    <h3 class="font-bold text-slate-800 text-base">Potong Gambar</h3>
-                    <button type="button" @click="closeCropper" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">✖</button>
+                <div class="overlay-header">
+                    <h3 class="overlay-title">Potong Gambar</h3>
+                    <button type="button" @click="closeCropper" class="overlay-close">✖</button>
                 </div>
                 <!-- Body -->
                 <div class="p-4 flex-1 overflow-hidden bg-slate-900 min-h-[300px]">
@@ -141,7 +133,7 @@
                     </div>
                 </div>
                 <!-- Footer -->
-                <div class="flex justify-end gap-2 p-4 border-t bg-slate-50">
+                <div class="overlay-footer">
                     <button type="button" class="btn btn-outline-main btn-sm rounded-lg" @click="closeCropper">Batal</button>
                     <button type="button" class="btn btn-highlight-main btn-sm rounded-lg" @click="crop">Potong & Simpan</button>
                 </div>

@@ -4,7 +4,7 @@
             <h2 class="text-xl font-bold">Data Produk</h2>
             <div class="flex flex-row justify-between gap-2">
                 <div class="flex-1 border-r border-slate-200 pr-2">
-                    <ProductFilter filters :categories />
+                    <ProductFilter :filters="filters" :categories="categories" />
                 </div>
                 <div>
                     <button
