@@ -36,16 +36,16 @@ if (! function_exists('generateBreadcrumbs')) {
             ],
             'master.products.index' => [
                 ['label' => 'Master Produk', 'url' => '#'],
-                ['label' => 'Produk Jual', 'url' => $masterProductsUrl],
+                ['label' => 'Produk', 'url' => $masterProductsUrl],
             ],
             'master.products.create' => [
                 ['label' => 'Master Produk', 'url' => '#'],
-                ['label' => 'Produk Jual', 'url' => $masterProductsUrl],
+                ['label' => 'Produk', 'url' => $masterProductsUrl],
                 ['label' => 'Buat Produk Baru', 'url' => '#'],
             ],
             'master.products.edit' => [
                 ['label' => 'Master Produk', 'url' => '#'],
-                ['label' => 'Produk Jual', 'url' => $masterProductsUrl],
+                ['label' => 'Produk', 'url' => $masterProductsUrl],
                 ['label' => 'Edit Produk', 'url' => '#'],
             ],
 

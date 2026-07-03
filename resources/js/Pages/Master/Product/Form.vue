@@ -1,213 +1,87 @@
 <template>
     <Container>
         <template #header>
+            <h2 class="text-xl font-bold">
+                <span v-if="!isEdit">Membuat</span>
+                Data Produk
+                <span v-if="!isEdit">Baru</span>
+                <span v-if="isEdit" class="text-slate-400"
+                    >#{{ product.code }}</span
+                >
+            </h2>
             <div class="flex items-center gap-2 border-b pb-2">
                 <template v-for="(step, index) in steps" :key="index">
-                    <div 
+                    <div
                         v-if="isStepVisible(step.id)"
                         class="flex items-center cursor-pointer text-sm"
                         @click="currentStep = index"
-                        :class="{'text-primary font-bold': currentStep === index, 'text-slate-400': currentStep !== index}"
+                        :class="{
+                            'text-primary font-bold': currentStep === index,
+                            'text-slate-400': currentStep !== index,
+                        }"
                     >
-                        <div class="w-6 h-6 rounded-full flex items-center justify-center border mr-1 text-xs" 
-                            :class="currentStep === index ? 'border-primary bg-primary-100 text-primary' : 'border-slate-300'">
+                        <div
+                            class="w-6 h-6 rounded-full flex items-center justify-center border mr-1 text-xs"
+                            :class="
+                                currentStep === index
+                                    ? 'border-primary bg-primary-100 text-primary'
+                                    : 'border-slate-300'
+                            "
+                        >
                             {{ index + 1 }}
                         </div>
                         <span>{{ step.label }}</span>
-                        <span v-if="index < steps.length - 1" class="mx-2 text-slate-300">/</span>
+                        <span
+                            v-if="index < steps.length - 1"
+                            class="mx-2 text-slate-300"
+                            >/</span
+                        >
                     </div>
                 </template>
             </div>
         </template>
 
-        <form @submit.prevent="submit" class="bg-white rounded-lg p-4 space-y-4">
-            <!-- Step 1: Basic Info -->
-            <div v-show="steps[currentStep].id === 'basic'" class="space-y-3">
-                <div class="font-semibold text-lg border-b pb-1">Informasi Dasar</div>
-                <div class="grid grid-cols-2 gap-3">
-                    <TextField v-model="form.name" label="Nama Produk" :class="{ 'is-invalid': form.errors.name }" :feedback="form.errors.name" required />
-                    <TextField v-model="form.code" label="Kode / SKU (Opsional)" :class="{ 'is-invalid': form.errors.code }" :feedback="form.errors.code" />
-                    <div class="col-span-2">
-                        <DropdownField 
-                            v-model="form.product_category_id" 
-                            :options="categoryOptions" 
-                            label="Kategori" 
-                            :class="{ 'is-invalid': form.errors.product_category_id }"
-                            :feedback="form.errors.product_category_id"
-                        />
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi</label>
-                        <textarea v-model="form.description" class="form w-full border-slate-300 rounded-md" rows="3"></textarea>
-                    </div>
-                    <div class="col-span-2 flex gap-4 mt-2">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="is_show" v-model="form.is_show" class="rounded text-primary"> 
-                            <label for="is_show" class="text-sm">Tampilkan di POS</label>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="sellable" v-model="form.sellable" class="rounded text-primary"> 
-                            <label for="sellable" class="text-sm">Dapat Dijual</label>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="purchasable" v-model="form.purchasable" class="rounded text-primary"> 
-                            <label for="purchasable" class="text-sm">Dapat Dibeli (PO)</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 2: Type Selection -->
-            <div v-show="steps[currentStep].id === 'type'" class="space-y-3">
-                <div class="font-semibold text-lg border-b pb-1">Tipe Produk</div>
-                <div class="grid grid-cols-3 gap-3">
-                    <div @click="form.product_type = 'basic'" class="border rounded-lg p-3 cursor-pointer text-center hover:border-primary transition" :class="{'border-primary bg-slate-50': form.product_type === 'basic'}">
-                        <div class="font-bold mb-1">Produk Fisik (Basic)</div>
-                        <div class="text-xs text-slate-500">Barang fisik yang dikelola stoknya (seperti Kopi, Makanan).</div>
-                    </div>
-                    <div @click="form.product_type = 'service'" class="border rounded-lg p-3 cursor-pointer text-center hover:border-primary transition" :class="{'border-primary bg-slate-50': form.product_type === 'service'}">
-                        <div class="font-bold mb-1">Layanan (Service)</div>
-                        <div class="text-xs text-slate-500">Produk tak berwujud, tanpa stok (seperti Ongkir, Jasa).</div>
-                    </div>
-                    <div @click="form.product_type = 'bundle'" class="border rounded-lg p-3 cursor-pointer text-center hover:border-primary transition" :class="{'border-primary bg-slate-50': form.product_type === 'bundle'}">
-                        <div class="font-bold mb-1">Paket (Bundle)</div>
-                        <div class="text-xs text-slate-500">Kombinasi dari beberapa produk fisik atau layanan.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 3: Feature Flags -->
-            <div v-show="steps[currentStep].id === 'flags'" class="space-y-3">
-                <div class="font-semibold text-lg border-b pb-1">Pengaturan Lanjutan</div>
-                <div class="space-y-2">
-                    <div v-if="form.product_type === 'basic'" class="flex items-center justify-between border p-3 rounded-lg">
-                        <div>
-                            <div class="font-bold text-sm">Memiliki Varian</div>
-                            <div class="text-xs text-slate-500">Produk ini memiliki pilihan varian seperti ukuran (S, M, L).</div>
-                        </div>
-                        <input type="checkbox" v-model="form.has_variant" class="rounded h-5 w-5 text-primary">
-                    </div>
-
-                    <div v-if="form.product_type !== 'bundle'" class="flex items-center justify-between border p-3 rounded-lg">
-                        <div>
-                            <div class="font-bold text-sm">Memiliki Modifier (Opsi Tambahan)</div>
-                            <div class="text-xs text-slate-500">Bisa menambahkan topping atau instruksi khusus.</div>
-                        </div>
-                        <input type="checkbox" v-model="form.has_modifier" class="rounded h-5 w-5 text-primary">
-                    </div>
-
-                    <div v-if="form.product_type === 'basic'" class="flex items-center justify-between border p-3 rounded-lg">
-                        <div>
-                            <div class="font-bold text-sm">Memiliki Resep</div>
-                            <div class="text-xs text-slate-500">Stok dipotong berdasarkan bahan baku pembentuk.</div>
-                        </div>
-                        <input type="checkbox" v-model="form.has_recipe" class="rounded h-5 w-5 text-primary">
-                    </div>
-
-                    <div v-if="form.product_type === 'basic' && !form.has_recipe" class="flex items-center justify-between border p-3 rounded-lg">
-                        <div>
-                            <div class="font-bold text-sm">Lacak Inventori (Stok)</div>
-                            <div class="text-xs text-slate-500">Lacak stok masuk dan keluar untuk produk ini.</div>
-                        </div>
-                        <input type="checkbox" v-model="form.track_inventory" class="rounded h-5 w-5 text-primary">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Conditional Steps -->
-            <div v-show="steps[currentStep].id === 'variant'" class="space-y-3">
-                <div class="font-semibold text-lg border-b pb-1">Setup Varian</div>
-                <p class="text-xs text-slate-500">Tambahkan grup varian dan opsinya, sistem akan meng-generate kombinasi SKU secara otomatis.</p>
-                <div class="text-danger text-sm">Form detail varian akan diintegrasikan lebih lanjut berdasarkan aturan UI progressive.</div>
-            </div>
-
-            <div v-show="steps[currentStep].id === 'recipe'" class="space-y-3">
-                <div class="font-semibold text-lg border-b pb-1">Setup Resep</div>
-                <p class="text-xs text-slate-500">Tentukan bahan baku yang digunakan untuk produk ini.</p>
-                <div class="text-danger text-sm">Form detail resep diintegrasikan disini.</div>
-            </div>
-
-            <div v-show="steps[currentStep].id === 'bundle'" class="space-y-3">
-                <div class="font-semibold text-lg border-b pb-1">Setup Paket (Bundle)</div>
-                <p class="text-xs text-slate-500">Pilih produk-produk yang masuk ke dalam paket ini.</p>
-                <div class="text-danger text-sm">Form pemilihan item bundle diintegrasikan disini.</div>
-            </div>
-
-            <div v-show="steps[currentStep].id === 'modifier'" class="space-y-3">
-                <div class="font-semibold text-lg border-b pb-1">Pilih Modifier</div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div v-for="mod in modifierGroups" :key="mod.id" class="flex items-center gap-2 border p-3 rounded-lg">
-                        <input type="checkbox" :id="'mod-' + mod.id" :value="mod.id" v-model="selectedModifiers" class="rounded text-primary">
-                        <label :for="'mod-' + mod.id" class="text-sm cursor-pointer">{{ mod.name }} ({{ mod.selection_type }})</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step Pricing -->
-            <div v-show="steps[currentStep].id === 'pricing'" class="space-y-3">
-                <div class="font-semibold text-lg border-b pb-1">Setup Harga</div>
-                <div class="mb-4 border p-3 rounded-lg bg-slate-50">
-                    <NumberField v-model="form.base_price" label="Harga Dasar (Berlaku untuk semua outlet jika tidak ditimpa)" :class="{ 'is-invalid': form.errors.base_price }" :feedback="form.errors.base_price" required />
-                </div>
-                
-                <h3 class="font-bold text-sm">Timpa Harga per Outlet (Opsional)</h3>
-                <div class="space-y-2">
-                    <div v-for="outlet in outlets" :key="outlet.id" class="flex items-center gap-3">
-                        <div class="w-1/3 text-sm font-medium text-slate-600">{{ outlet.name }}</div>
-                        <div class="w-2/3">
-                            <NumberField v-model="outletPriceMap[outlet.id]" placeholder="Biarkan kosong untuk pakai harga dasar" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step Outlet -->
-            <div v-show="steps[currentStep].id === 'outlet'" class="space-y-3">
-                <div class="font-semibold text-lg border-b pb-1">Distribusi Outlet</div>
-                <table class="w-full text-left border rounded-lg overflow-hidden">
-                    <thead>
-                        <tr class="bg-slate-50">
-                            <th class="p-2 border-b text-sm font-semibold text-slate-700">Outlet</th>
-                            <th class="p-2 border-b text-sm font-semibold text-slate-700 text-center">Tersedia</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="outlet in outlets" :key="outlet.id" class="hover:bg-slate-50/50">
-                            <td class="p-2 border-b text-sm">{{ outlet.name }}</td>
-                            <td class="p-2 border-b text-center">
-                                <input type="checkbox" v-model="outletStatusMap[outlet.id]" class="rounded h-5 w-5 text-primary">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <form
+            @submit.prevent="submit"
+            class="bg-white rounded-lg p-4 space-y-4"
+        >
+            <!-- Step Components -->
+            <StepBasicInfo v-show="steps[currentStep].id === 'basic'" />
+            <StepTypeSelection v-show="steps[currentStep].id === 'type'" />
+            <StepFeatureFlags v-show="steps[currentStep].id === 'flags'" />
+            <StepVariantSetup v-show="steps[currentStep].id === 'variant'" />
+            <StepRecipeSetup v-show="steps[currentStep].id === 'recipe'" />
+            <StepBundleSetup v-show="steps[currentStep].id === 'bundle'" />
+            <StepModifierSetup v-show="steps[currentStep].id === 'modifier'" />
+            <StepPricing v-show="steps[currentStep].id === 'pricing'" />
+            <StepOutlet v-show="steps[currentStep].id === 'outlet'" />
         </form>
 
         <template #footer>
             <div class="flex justify-between">
-                <button 
-                    type="button" 
-                    class="btn btn-secondary" 
-                    @click="prevStep" 
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    @click="prevStep"
                     :disabled="currentStep === 0"
                 >
                     <FontAwesomeIcon :icon="faArrowLeft" class="mr-1" />
                     Kembali
                 </button>
                 <div class="flex gap-2">
-                    <button 
-                        v-if="currentStep < steps.length - 1" 
-                        type="button" 
-                        class="btn btn-highlight-main" 
+                    <button
+                        v-if="currentStep < steps.length - 1"
+                        type="button"
+                        class="btn btn-highlight-main"
                         @click="nextStep"
                     >
                         Lanjut
                         <FontAwesomeIcon :icon="faArrowRight" class="ml-1" />
                     </button>
-                    <button 
-                        v-else 
-                        type="button" 
-                        class="btn btn-success" 
+                    <button
+                        v-else
+                        type="button"
+                        class="btn btn-success"
                         :disabled="form.processing"
                         @click="submit"
                     >
@@ -221,14 +95,26 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { useForm } from '@inertiajs/vue3'
-import Container from '@/Components/UI/Container.vue'
-import TextField from '@/Components/Form/TextField.vue'
-import DropdownField from '@/Components/Form/DropdownField.vue'
-import NumberField from '@/Components/Form/NumberField.vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faArrowLeft, faArrowRight, faSave } from '@fortawesome/free-solid-svg-icons'
+import { ref, computed, watch, provide } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import Container from '@/Components/UI/Container.vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import {
+    faArrowLeft,
+    faArrowRight,
+    faSave,
+} from '@fortawesome/free-solid-svg-icons';
+
+// Steps Components
+import StepBasicInfo from './Components/StepBasicInfo.vue';
+import StepTypeSelection from './Components/StepTypeSelection.vue';
+import StepFeatureFlags from './Components/StepFeatureFlags.vue';
+import StepVariantSetup from './Components/StepVariantSetup.vue';
+import StepRecipeSetup from './Components/StepRecipeSetup.vue';
+import StepBundleSetup from './Components/StepBundleSetup.vue';
+import StepModifierSetup from './Components/StepModifierSetup.vue';
+import StepPricing from './Components/StepPricing.vue';
+import StepOutlet from './Components/StepOutlet.vue';
 
 const props = defineProps({
     product: Object,
@@ -237,11 +123,9 @@ const props = defineProps({
     modifierGroups: Array,
     inventoryItems: Array,
     products: Array,
-})
+});
 
-const isEdit = computed(() => !!props.product)
-
-const categoryOptions = computed(() => props.categories.map(c => ({ label: c.name, value: c.id })))
+const isEdit = computed(() => !!props.product);
 
 const form = useForm({
     name: props.product?.name || '',
@@ -256,7 +140,7 @@ const form = useForm({
     has_modifier: props.product?.has_modifier ?? false,
     has_recipe: props.product?.has_recipe ?? false,
     track_inventory: props.product?.track_inventory ?? false,
-    base_price: 0,
+    base_price: '',
     outlet_prices: [],
     outlets: [],
     variants: [],
@@ -264,38 +148,251 @@ const form = useForm({
     recipes: [],
     bundle_items: [],
     modifier_groups: [],
-    stock: 0, 
-})
+    stock: '0',
+    purchase_price: '0',
+    stock_description: '',
+    images: props.product?.images || [],
+});
 
 if (isEdit.value && props.product.prices) {
-    const bp = props.product.prices.find(p => !p.outlet_id && !p.inventory_item_id)
-    if (bp) form.base_price = bp.amount
+    const bp = props.product.prices.find(
+        (p) => !p.outlet_id && !p.inventory_item_id,
+    );
+    if (bp) form.base_price = String(bp.amount);
 }
 
-const outletPriceMap = ref({})
-const outletStatusMap = ref({})
-const selectedModifiers = ref([])
+const outletPriceMap = ref({});
+const outletStatusMap = ref({});
+const selectedModifiers = ref([]);
+const variantOutletPriceMap = ref({});
+const customizeVariantPrices = ref(false);
+const customizeOutletPrices = ref(false);
+
+const getComboKey = (comboOptions) => {
+    return Object.keys(comboOptions)
+        .sort()
+        .map((k) => `${k}:${comboOptions[k]}`)
+        .join('|');
+};
+
+const generateCombinations = (groups) => {
+    const activeGroups = groups.filter(
+        (g) =>
+            g.name.trim() !== '' && g.options.some((o) => o.name.trim() !== ''),
+    );
+    if (activeGroups.length === 0) return [];
+
+    const results = [];
+    const helper = (groupIndex, currentCombo) => {
+        if (groupIndex === activeGroups.length) {
+            results.push(currentCombo);
+            return;
+        }
+
+        const group = activeGroups[groupIndex];
+        group.options.forEach((opt) => {
+            if (opt.name.trim() !== '') {
+                helper(groupIndex + 1, {
+                    ...currentCombo,
+                    [group.name]: opt.name,
+                });
+            }
+        });
+    };
+
+    helper(0, {});
+    return results;
+};
+
+const generateSku = (comboOptions) => {
+    const baseCode = form.code || form.name.substring(0, 3).toUpperCase();
+    const suffix = Object.values(comboOptions)
+        .map((v) => v.toUpperCase().replace(/\s+/g, ''))
+        .join('-');
+    return `${baseCode}-${suffix}`;
+};
+
+const updateCombinations = () => {
+    const newCombos = generateCombinations(form.variants);
+
+    const existingMap = {};
+    form.variant_combinations.forEach((combo) => {
+        existingMap[getComboKey(combo.options)] = combo;
+    });
+
+    form.variant_combinations = newCombos.map((options) => {
+        const key = getComboKey(options);
+        const existing = existingMap[key];
+
+        if (!variantOutletPriceMap.value[key]) {
+            variantOutletPriceMap.value[key] = {};
+        }
+
+        return {
+            options: options,
+            sku: existing ? existing.sku : generateSku(options),
+            barcode: existing ? existing.barcode : '',
+            price: existing ? String(existing.price) : String(form.base_price),
+            stock: existing ? String(existing.stock) : '0',
+            purchase_price: existing ? String(existing.purchase_price) : '0',
+            stock_description: existing ? existing.stock_description : '',
+        };
+    });
+};
+
+const autoGenerateAllSkus = () => {
+    form.variant_combinations.forEach((combo) => {
+        combo.sku = generateSku(combo.options);
+    });
+};
 
 if (isEdit.value) {
-    props.outlets.forEach(o => {
-        const p = props.product.prices.find(pr => pr.outlet_id === o.id)
-        if (p) outletPriceMap.value[o.id] = p.amount
-        
-        const out = props.product.outlets.find(out => out.id === o.id)
-        outletStatusMap.value[o.id] = out ? out.pivot.is_enabled : true
-    })
-    
+    let hasCustomOutletPrices = false;
+    props.outlets.forEach((o) => {
+        const p = props.product.prices.find(
+            (pr) => pr.outlet_id === o.id && !pr.inventory_item_id,
+        );
+        if (p) {
+            outletPriceMap.value[o.id] = p.amount;
+            hasCustomOutletPrices = true;
+        }
+
+        const out = props.product.outlets.find((out) => out.id === o.id);
+        outletStatusMap.value[o.id] = out ? out.pivot.is_enabled : true;
+    });
+
+    if (hasCustomOutletPrices) {
+        customizeOutletPrices.value = true;
+    }
+
     if (props.product.modifier_groups) {
-        selectedModifiers.value = props.product.modifier_groups.map(m => m.id)
+        selectedModifiers.value = props.product.modifier_groups.map(
+            (m) => m.id,
+        );
+    }
+
+    // Load existing variants
+    if (
+        props.product.variant_groups &&
+        props.product.variant_groups.length > 0
+    ) {
+        form.variants = props.product.variant_groups.map((vg) => ({
+            name: vg.name,
+            options: vg.options.map((opt) => ({ name: opt.name })),
+        }));
+
+        if (props.product.inventory_items) {
+            const variantItems = props.product.inventory_items.filter(
+                (item) => item.item_type === 'variant_sku',
+            );
+            if (variantItems.length > 0) {
+                let hasCustomPrices = false;
+                form.variant_combinations = variantItems.map((invItem) => {
+                    const combinationOptions = {};
+                    invItem.variant_group_options.forEach((opt) => {
+                        const vg = props.product.variant_groups.find(
+                            (g) => g.id === opt.variant_group_id,
+                        );
+                        const gName = vg ? vg.name : '';
+                        if (gName) {
+                            combinationOptions[gName] = opt.name;
+                        }
+                    });
+
+                    const priceObj = props.product.prices.find(
+                        (p) =>
+                            p.inventory_item_id === invItem.id && !p.outlet_id,
+                    );
+                    const price = priceObj ? priceObj.amount : form.base_price;
+                    if (
+                        priceObj &&
+                        Number(priceObj.amount) !== Number(form.base_price)
+                    ) {
+                        hasCustomPrices = true;
+                    }
+
+                    const comboKey = getComboKey(combinationOptions);
+                    variantOutletPriceMap.value[comboKey] = {};
+
+                    props.outlets.forEach((outlet) => {
+                        const op = props.product.prices.find(
+                            (p) =>
+                                p.inventory_item_id === invItem.id &&
+                                p.outlet_id === outlet.id,
+                        );
+                        if (op) {
+                            variantOutletPriceMap.value[comboKey][outlet.id] =
+                                op.amount;
+                            hasCustomPrices = true;
+                        }
+                    });
+
+                    return {
+                        options: combinationOptions,
+                        sku: invItem.sku || '',
+                        barcode: invItem.barcode || '',
+                        price: String(price),
+                        stock: String(Math.round(Number(invItem.current_stock))),
+                    };
+                });
+
+                if (hasCustomPrices) {
+                    customizeVariantPrices.value = true;
+                }
+            }
+        }
+    } else {
+        form.variants = [{ name: '', options: [{ name: '' }] }];
     }
 } else {
-    props.outlets.forEach(o => {
-        outletStatusMap.value[o.id] = true
-    })
+    props.outlets.forEach((o) => {
+        outletStatusMap.value[o.id] = true;
+    });
+
+    form.variants = [{ name: '', options: [{ name: '' }] }];
 }
 
+// Provide states and helpers to Step subcomponents
+provide('productForm', form);
+provide('isEdit', isEdit);
+provide('categories', props.categories);
+provide('outlets', props.outlets);
+provide('modifierGroups', props.modifierGroups);
+provide('inventoryItems', props.inventoryItems);
+provide('products', props.products);
+
+provide('outletPriceMap', outletPriceMap);
+provide('outletStatusMap', outletStatusMap);
+provide('selectedModifiers', selectedModifiers);
+provide('variantOutletPriceMap', variantOutletPriceMap);
+provide('customizeVariantPrices', customizeVariantPrices);
+provide('customizeOutletPrices', customizeOutletPrices);
+provide('getComboKey', getComboKey);
+provide('autoGenerateAllSkus', autoGenerateAllSkus);
+
+// Watch variants deeply to update combinations
+watch(
+    () => form.variants,
+    () => {
+        updateCombinations();
+    },
+    { deep: true },
+);
+
+// Update combination prices if base price changes (unless already manually customized)
+watch(
+    () => form.base_price,
+    (newVal) => {
+        form.variant_combinations.forEach((combo) => {
+            if (!combo.price || combo.price == 0) {
+                combo.price = newVal;
+            }
+        });
+    },
+);
+
 const allSteps = [
-    { id: 'basic', label: 'Basic Info' },
+    { id: 'basic', label: 'Informasi Dasar' },
     { id: 'type', label: 'Tipe Produk' },
     { id: 'flags', label: 'Pengaturan' },
     { id: 'variant', label: 'Setup Varian' },
@@ -304,67 +401,116 @@ const allSteps = [
     { id: 'modifier', label: 'Modifier' },
     { id: 'pricing', label: 'Harga' },
     { id: 'outlet', label: 'Outlet' },
-]
+];
 
-watch(() => form.product_type, (newType) => {
-    if (newType === 'service') {
-        form.track_inventory = false
-        form.has_variant = false
-        form.has_recipe = false
-    } else if (newType === 'bundle') {
-        form.track_inventory = false
-        form.has_variant = false
-        form.has_modifier = false
-        form.has_recipe = false
-    }
-})
+watch(
+    () => form.product_type,
+    (newType) => {
+        if (newType === 'service') {
+            form.track_inventory = false;
+            form.has_variant = false;
+            form.has_recipe = false;
+        } else if (newType === 'bundle') {
+            form.track_inventory = false;
+            form.has_variant = false;
+            form.has_modifier = false;
+            form.has_recipe = false;
+        }
+    },
+);
 
-const currentStep = ref(0)
+const currentStep = ref(0);
 
 const isStepVisible = (id) => {
-    if (id === 'variant') return form.product_type === 'basic' && form.has_variant;
-    if (id === 'recipe') return form.product_type === 'basic' && form.has_recipe;
+    if (id === 'variant')
+        return form.product_type === 'basic' && form.has_variant;
+    if (id === 'recipe')
+        return form.product_type === 'basic' && form.has_recipe;
     if (id === 'bundle') return form.product_type === 'bundle';
     if (id === 'modifier') return form.has_modifier;
     return true;
-}
+};
 
 const steps = computed(() => {
-    return allSteps.filter(s => isStepVisible(s.id))
-})
+    return allSteps.filter((s) => isStepVisible(s.id));
+});
 
 const nextStep = () => {
     if (currentStep.value < steps.value.length - 1) {
-        currentStep.value++
+        currentStep.value++;
     }
-}
+};
 
 const prevStep = () => {
     if (currentStep.value > 0) {
-        currentStep.value--
+        currentStep.value--;
     }
-}
+};
 
 const submit = () => {
-    form.outlet_prices = Object.keys(outletPriceMap.value)
-        .filter(k => outletPriceMap.value[k])
-        .map(k => ({ outlet_id: k, amount: outletPriceMap.value[k] }))
-        
-    form.outlets = Object.keys(outletStatusMap.value)
-        .map(k => ({ outlet_id: k, is_enabled: outletStatusMap.value[k], is_available: outletStatusMap.value[k] }))
-        
-    form.modifier_groups = selectedModifiers.value.map(id => ({ modifier_group_id: id }))
+    if (!form.has_variant) {
+        if (customizeOutletPrices.value) {
+            form.outlet_prices = Object.keys(outletPriceMap.value)
+                .filter((k) => outletPriceMap.value[k])
+                .map((k) => ({
+                    outlet_id: k,
+                    amount: outletPriceMap.value[k],
+                }));
+        } else {
+            form.outlet_prices = [];
+        }
+
+        form.variants = [];
+        form.variant_combinations = [];
+    } else {
+        form.outlet_prices = [];
+        if (customizeVariantPrices.value) {
+            form.variant_combinations.forEach((combo) => {
+                const key = getComboKey(combo.options);
+                const map = variantOutletPriceMap.value[key] || {};
+                combo.outlet_prices = Object.keys(map)
+                    .filter(
+                        (oId) =>
+                            map[oId] !== undefined &&
+                            map[oId] !== null &&
+                            map[oId] !== '',
+                    )
+                    .map((oId) => ({
+                        outlet_id: oId,
+                        amount: map[oId],
+                    }));
+            });
+        } else {
+            form.variant_combinations.forEach((combo) => {
+                combo.price = form.base_price;
+                combo.outlet_prices = [];
+            });
+        }
+    }
+
+    form.outlets = Object.keys(outletStatusMap.value).map((k) => ({
+        outlet_id: k,
+        is_enabled: outletStatusMap.value[k],
+        is_available: outletStatusMap.value[k],
+    }));
+
+    form.modifier_groups = selectedModifiers.value.map((id) => ({
+        modifier_group_id: id,
+    }));
 
     if (isEdit.value) {
-        form.put(route('master.products.update', props.product.id), {
+        form.transform((data) => ({
+            ...data,
+            _method: 'PUT',
+        })).post(route('master.products.update', props.product.id), {
             preserveState: true,
-            preserveScroll: true
-        })
+            preserveScroll: true,
+        });
     } else {
         form.post(route('master.products.store'), {
             preserveState: true,
-            preserveScroll: true
-        })
+            preserveScroll: true,
+        });
     }
-}
+};
 </script>

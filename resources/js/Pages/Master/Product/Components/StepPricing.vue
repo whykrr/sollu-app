@@ -1,126 +1,107 @@
 <template>
     <div class="space-y-4">
-        <div>
-            <h3 class="text-lg font-medium text-neutral-900 mb-1">Pengaturan Harga</h3>
-            <p class="text-sm text-neutral-500 mb-4">Tentukan harga jual produk. Anda juga bisa mengatur harga berbeda untuk setiap varian atau outlet.</p>
-            
-            <div class="max-w-xs mb-6">
-                <NumberField 
-                    v-model="form.base_price"
-                    label="Harga Dasar (Rp)"
-                    placeholder="0"
-                />
+        <div class="font-semibold text-lg border-b pb-1">
+            Setup Harga
+        </div>
+        <div class="mb-4 border p-3 rounded-lg bg-slate-50">
+            <NumberField
+                v-model="form.base_price"
+                label="Harga Dasar Produk"
+                :class="{ 'is-invalid': form.errors.base_price }"
+                :feedback="form.errors.base_price"
+                required
+            />
+        </div>
+
+        <!-- Non-Variant Pricing -->
+        <div v-if="!form.has_variant" class="space-y-3">
+            <label class="flex items-center gap-2 border p-3 rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100 transition">
+                <input type="checkbox" v-model="customizeOutletPrices" class="rounded text-primary cursor-pointer">
+                <span class="text-sm font-semibold text-slate-700">Atur harga berbeda per outlet</span>
+            </label>
+
+            <div v-if="customizeOutletPrices" class="space-y-2 border p-3 rounded-lg bg-slate-50">
+                <h3 class="font-bold text-sm text-slate-700 mb-2">
+                    Timpa Harga per Outlet (Opsional)
+                </h3>
+                <div
+                    v-for="outlet in outlets"
+                    :key="outlet.id"
+                    class="flex items-center gap-3"
+                >
+                    <div class="w-1/3 text-sm font-medium text-slate-600">
+                        {{ outlet.name }}
+                    </div>
+                    <div class="w-2/3">
+                        <NumberField
+                            v-model="outletPriceMap[outlet.id]"
+                            placeholder="Biarkan kosong untuk pakai harga dasar"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Initial Stock Setup (only on create & if track_inventory = true) -->
+            <div v-if="form.track_inventory && !isEdit" class="border p-3 rounded-lg bg-neutral-50 space-y-3 mt-4">
+                <h3 class="font-bold text-sm text-neutral-700">Setup Stok Awal</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <NumberField v-model="form.stock" label="Stok Awal" placeholder="0" />
+                    <NumberField v-model="form.purchase_price" label="Harga Beli Stok Awal" placeholder="0" />
+                    <div class="col-span-2">
+                        <TextField v-model="form.stock_description" label="Keterangan / Berita Acara Stok Awal" placeholder="Contoh: Stok Awal Opening Toko" />
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Harga Varian -->
-        <div v-if="form.product_type === 'variant' && combinations.length > 0">
-            <h4 class="text-md font-medium text-neutral-900 mb-2">Harga per Varian</h4>
-            <div class="overflow-hidden rounded-lg border border-neutral-200">
-                <Table :headers="variantHeaders" :data="combinations">
-                    <template #name="{ row }">
-                        <span class="text-sm text-neutral-900">{{ row.name }}</span>
-                    </template>
-                    <template #price="{ row }">
-                        <input 
-                            type="number" 
-                            v-model="row.price" 
-                            class="block w-full rounded-lg border-neutral-300 focus:border-main focus:ring-main sm:text-sm"
-                        />
-                    </template>
-                </Table>
-            </div>
-        </div>
+        <!-- Variant Pricing -->
+        <div v-else class="space-y-4">
+            <label class="flex items-center gap-2 border p-3 rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100 transition">
+                <input type="checkbox" v-model="customizeVariantPrices" class="rounded text-primary cursor-pointer">
+                <span class="text-sm font-semibold text-slate-700">Atur harga berbeda per varian & outlet</span>
+            </label>
 
-        <!-- Harga Outlet -->
-        <div>
-            <h4 class="text-md font-medium text-neutral-900 mb-2 mt-4">Harga Khusus Outlet</h4>
-            <p class="text-sm text-neutral-500 mb-3">Kosongkan jika harga di outlet sama dengan Harga Dasar.</p>
-            <div class="overflow-hidden rounded-lg border border-neutral-200">
-                <Table :headers="outletHeaders" :data="form.outlet_prices">
-                    <template #name="{ row }">
-                        <span class="text-sm text-neutral-900">{{ row.name }}</span>
-                    </template>
-                    <template #price="{ row }">
-                        <input 
-                            type="number" 
-                            v-model="row.price" 
-                            placeholder="Ikut harga dasar"
-                            class="block w-full rounded-lg border-neutral-300 focus:border-main focus:ring-main sm:text-sm"
-                        />
-                    </template>
-                </Table>
+            <div v-if="customizeVariantPrices" class="space-y-4">
+                <h3 class="font-bold text-sm text-slate-700">Harga Detail per Varian & Outlet</h3>
+                <div v-for="(combo, cIdx) in form.variant_combinations" :key="cIdx" class="border p-3 rounded-lg bg-slate-50 space-y-3">
+                    <div class="font-bold text-sm border-b pb-1 text-primary">
+                        Varian: {{ Object.values(combo.options).join(' / ') }}
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="col-span-1">
+                            <NumberField v-model="combo.price" label="Harga Dasar Varian" required />
+                        </div>
+                        <div class="col-span-2 space-y-2">
+                            <label class="block text-sm font-medium text-slate-700">Harga per Outlet (Opsional)</label>
+                            <div v-for="outlet in outlets" :key="outlet.id" class="flex items-center gap-2">
+                                <span class="w-1/3 text-xs text-slate-600 font-medium">{{ outlet.name }}</span>
+                                <div class="w-2/3">
+                                    <NumberField 
+                                        v-model="variantOutletPriceMap[getComboKey(combo.options)][outlet.id]" 
+                                        placeholder="Gunakan harga dasar varian"
+                                        size="sm"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { inject, computed } from 'vue';
-import NumberField from '@/Components/Form/NumberField.vue';
-import Table from '@/Components/Tables/Table.vue';
+import { inject } from 'vue'
+import NumberField from '@/Components/Form/NumberField.vue'
+import TextField from '@/Components/Form/TextField.vue'
 
-const form = inject('productForm');
-
-// Dummy outlets
-const outlets = [
-    { id: 1, name: 'Outlet Utama Jakarta' },
-    { id: 2, name: 'Cabang Bandung' },
-];
-
-// Generate combinations just like in StepVariantSetup
-const combinations = computed(() => {
-    if (form.product_type !== 'variant' || form.variants.length === 0) return [];
-    
-    const validGroups = form.variants.filter(g => g.name && g.options.length > 0);
-    if (validGroups.length === 0) return [];
-
-    let combos = validGroups[0].options.map(opt => ({ name: opt }));
-
-    for (let i = 1; i < validGroups.length; i++) {
-        const currentOptions = validGroups[i].options;
-        const newCombos = [];
-        
-        for (const combo of combos) {
-            for (const opt of currentOptions) {
-                newCombos.push({ name: `${combo.name} - ${opt}` });
-            }
-        }
-        combos = newCombos;
-    }
-
-    // Initialize variant_prices if not matching
-    if (form.variant_prices.length !== combos.length) {
-        form.variant_prices = combos.map((c, idx) => {
-            const existing = form.variant_prices.find(vp => vp.name === c.name);
-            return {
-                id: idx.toString(),
-                name: c.name,
-                price: existing ? existing.price : form.base_price,
-            };
-        });
-    }
-
-    return form.variant_prices;
-});
-
-// Initialize outlet prices
-if (form.outlet_prices.length === 0) {
-    form.outlet_prices = outlets.map(o => ({
-        id: o.id.toString(),
-        outlet_id: o.id,
-        name: o.name,
-        price: null // null means use base price
-    }));
-}
-
-const variantHeaders = [
-    { field: 'name', label: 'Varian', slot: 'name' },
-    { field: 'price', label: 'Harga (Rp)', slot: 'price' },
-];
-
-const outletHeaders = [
-    { field: 'name', label: 'Outlet', slot: 'name' },
-    { field: 'price', label: 'Harga (Rp)', slot: 'price' },
-];
+const form = inject('productForm')
+const isEdit = inject('isEdit')
+const outlets = inject('outlets')
+const outletPriceMap = inject('outletPriceMap')
+const variantOutletPriceMap = inject('variantOutletPriceMap')
+const customizeVariantPrices = inject('customizeVariantPrices')
+const customizeOutletPrices = inject('customizeOutletPrices')
+const getComboKey = inject('getComboKey')
 </script>

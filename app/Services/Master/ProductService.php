@@ -119,6 +119,8 @@ class ProductService
                             'barcode' => $combo['barcode'] ?? null,
                             'track_inventory' => $product->track_inventory,
                             'stock' => $combo['stock'] ?? 0,
+                            'purchase_price' => $combo['purchase_price'] ?? null,
+                            'description' => $combo['stock_description'] ?? null,
                             'options' => $optIds,
                         ]);
 
@@ -128,6 +130,16 @@ class ProductService
                                 'inventory_item_id' => $invItem->id,
                                 'amount' => $combo['price'],
                             ]);
+                        }
+
+                        if (!empty($combo['outlet_prices'])) {
+                            foreach ($combo['outlet_prices'] as $op) {
+                                $product->prices()->create([
+                                    'outlet_id' => $op['outlet_id'],
+                                    'inventory_item_id' => $invItem->id,
+                                    'amount' => $op['amount'],
+                                ]);
+                            }
                         }
                     }
                 }
@@ -140,6 +152,8 @@ class ProductService
                     'barcode' => null,
                     'track_inventory' => $product->track_inventory,
                     'stock' => $data['stock'] ?? 0,
+                    'purchase_price' => $data['purchase_price'] ?? null,
+                    'description' => $data['stock_description'] ?? null,
                 ]);
             }
 
@@ -164,6 +178,11 @@ class ProductService
             if ($product->has_modifier && !empty($data['modifier_groups'])) {
                 $modIds = array_column($data['modifier_groups'], 'modifier_group_id');
                 $product->modifierGroups()->sync($modIds);
+            }
+
+            // Multiple Images
+            if (isset($data['images'])) {
+                $this->processProductImages($product, $data['images']);
             }
 
             $this->auditLogService->log($product->business_id, 'product', $product->id, 'created', null, $product->toArray());
@@ -288,6 +307,8 @@ class ProductService
                                 'barcode' => $combo['barcode'] ?? null,
                                 'track_inventory' => $product->track_inventory,
                                 'stock' => $combo['stock'] ?? 0,
+                                'purchase_price' => $combo['purchase_price'] ?? null,
+                                'description' => $combo['stock_description'] ?? null,
                                 'options' => $optIds,
                             ]);
                         } else {
@@ -308,6 +329,17 @@ class ProductService
                                     'amount' => $combo['price'],
                                 ]
                             );
+                        }
+
+                        $product->prices()->where('inventory_item_id', $invItem->id)->whereNotNull('outlet_id')->delete();
+                        if (!empty($combo['outlet_prices'])) {
+                            foreach ($combo['outlet_prices'] as $op) {
+                                $product->prices()->create([
+                                    'outlet_id' => $op['outlet_id'],
+                                    'inventory_item_id' => $invItem->id,
+                                    'amount' => $op['amount'],
+                                ]);
+                            }
                         }
                     }
                 }
@@ -345,9 +377,51 @@ class ProductService
                 $product->bundleItems()->delete();
             }
 
+            // Multiple Images Update
+            if (isset($data['images'])) {
+                $this->processProductImages($product, $data['images']);
+            }
+
             $this->auditLogService->log($product->business_id, 'product', $product->id, 'updated', $before, $product->fresh()->toArray());
 
             return $product;
         });
+    }
+
+    private function processProductImages(Product $product, array $images)
+    {
+        $product->images()->delete();
+
+        $firstImageUrl = null;
+
+        foreach ($images as $idx => $img) {
+            $imageUrl = $img['image_url'] ?? null;
+            
+            // Check if there is an uploaded file
+            if (isset($img['image_file']) && $img['image_file'] instanceof \Illuminate\Http\UploadedFile) {
+                $imageUrl = $img['image_file']->store('products');
+            } else {
+                // If it is already a stored path/URL, clean it up to store only relative path
+                $storagePrefix = '/storage/';
+                $parsed = parse_url($imageUrl, PHP_URL_PATH);
+                if ($parsed && strpos($parsed, $storagePrefix) !== false) {
+                    $imageUrl = substr($parsed, strpos($parsed, $storagePrefix) + strlen($storagePrefix));
+                }
+            }
+
+            $product->images()->create([
+                'image_url' => $imageUrl,
+                'sort_order' => $img['sort_order'] ?? $idx,
+            ]);
+
+            if ($idx === 0) {
+                $firstImageUrl = $imageUrl;
+            }
+        }
+
+        // Keep products.image_url updated with the cover image (first image)
+        $product->update([
+            'image_url' => $firstImageUrl,
+        ]);
     }
 }

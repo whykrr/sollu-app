@@ -21,30 +21,32 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $products = Product::with(['category', 'prices', 'outlets', 'inventoryItems'])
-            ->when($request->search, function ($q, $search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%");
-            })
-            ->when($request->product_type, function ($q, $type) {
-                $q->where('product_type', $type);
-            })
+        $products = Product::currentBusiness()
+            ->with(['category', 'prices', 'outlets', 'inventoryItems', 'images'])
+            ->filters($request->only(['search', 'category', 'outlet', 'is_deleted']))
             ->orderByDesc('created_at')
             ->paginate(15);
 
         return Inertia::render('Master/Product/Index', [
-            'products' => $products,
+            'products'   => $products,
+            'filters'    => $request->only(['search', 'category', 'outlet', 'is_deleted']),
+            'categories' => \App\Models\Master\ProductCategory::currentBusiness()->get()->map(function ($row) {
+                return [
+                    'value' => $row->id,
+                    'label' => $row->name,
+                ];
+            }),
         ]);
     }
 
     public function create()
     {
         return Inertia::render('Master/Product/Form', [
-            'categories'     => \App\Models\Master\ProductCategory::all(),
-            'outlets'        => \App\Models\Outlet::all(),
-            'modifierGroups' => \App\Models\Master\ModifierGroup::with('options')->get(),
-            'inventoryItems' => \App\Models\Master\InventoryItem::all(),
-            'products'       => Product::where('product_type', '!=', 'bundle')->get(), // for bundle components
+            'categories'     => \App\Models\Master\ProductCategory::currentBusiness()->get(),
+            'outlets'        => \App\Models\Outlet::currentBusiness()->active()->get(),
+            'modifierGroups' => \App\Models\Master\ModifierGroup::currentBusiness()->with('options')->get(),
+            'inventoryItems' => \App\Models\Master\InventoryItem::currentBusiness()->get(),
+            'products'       => Product::currentBusiness()->where('product_type', '!=', 'bundle')->get(), // for bundle components
         ]);
     }
 
@@ -52,7 +54,7 @@ class ProductController extends Controller
     {
         try {
             $data                = $request->validated();
-            $data['business_id'] = auth()->user()->business_id ?? \App\Models\Business::first()->id;
+            $data['business_id'] = auth()->user()->business_id;
 
             $this->productService->createProduct($data);
 
@@ -64,6 +66,10 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
+        if ($product->business_id !== (auth()->user()->business_id)) {
+            abort(403);
+        }
+
         $product->load([
             'category',
             'variantGroups.options',
@@ -72,21 +78,26 @@ class ProductController extends Controller
             'bundleItems',
             'prices',
             'outlets',
-            'inventoryItems',
+            'inventoryItems.variantGroupOptions',
+            'images',
         ]);
 
         return Inertia::render('Master/Product/Form', [
             'product'        => $product,
-            'categories'     => \App\Models\Master\ProductCategory::all(),
-            'outlets'        => \App\Models\Outlet::all(),
-            'modifierGroups' => \App\Models\Master\ModifierGroup::with('options')->get(),
-            'inventoryItems' => \App\Models\Master\InventoryItem::all(),
-            'products'       => Product::where('product_type', '!=', 'bundle')->get(),
+            'categories'     => \App\Models\Master\ProductCategory::currentBusiness()->get(),
+            'outlets'        => \App\Models\Outlet::currentBusiness()->active()->get(),
+            'modifierGroups' => \App\Models\Master\ModifierGroup::currentBusiness()->with('options')->get(),
+            'inventoryItems' => \App\Models\Master\InventoryItem::currentBusiness()->get(),
+            'products'       => Product::currentBusiness()->where('product_type', '!=', 'bundle')->get(),
         ]);
     }
 
     public function update(UpdateProductRequest $request, Product $product)
     {
+        if ($product->business_id !== (auth()->user()->business_id ?? \App\Models\Business::first()->id)) {
+            abort(403);
+        }
+
         try {
             $data = $request->validated();
             $this->productService->updateProduct($product, $data);
@@ -99,6 +110,10 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        if ($product->business_id !== (auth()->user()->business_id ?? \App\Models\Business::first()->id)) {
+            abort(403);
+        }
+
         $product->delete();
 
         return redirect()->back()->with('success', 'Produk diarsipkan.');

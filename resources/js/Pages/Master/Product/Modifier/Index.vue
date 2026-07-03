@@ -1,9 +1,14 @@
 <template>
     <Container>
         <template #header>
+            <h2 class="text-xl font-bold">Data Opsi Tambahan</h2>
             <div class="flex flex-row justify-between gap-2">
                 <div class="flex-1 border-r border-slate-200 pr-2">
-                    <FilterSearch v-model="search" />
+                    <div class="flex items-center gap-2">
+                        <div>
+                            <FilterSearch v-model="search" />
+                        </div>
+                    </div>
                 </div>
                 <div>
                     <button
@@ -62,7 +67,7 @@
             size="lg"
             @close="closeModal"
         >
-            <form @submit.prevent="submit" class="p-4">
+            <form @submit.prevent="submit">
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <TextField
                         v-model="form.name"

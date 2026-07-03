@@ -3,7 +3,7 @@
         <template #header>
             <div class="flex flex-row justify-between gap-2">
                 <div class="flex-1 flex items-center gap-2">
-                    <h2 class="text-xl font-bold">Kategori Produk</h2>
+                    <h2 class="text-xl font-bold">Data Kategori Produk</h2>
                 </div>
                 <div>
                     <button

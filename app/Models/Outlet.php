@@ -115,6 +115,11 @@ class Outlet extends Model
         return $this->hasMany(OutletAuditLog::class);
     }
 
+    public function scopeActive($query, bool $active = true)
+    {
+        return $query->where('is_active', $active);
+    }
+
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()

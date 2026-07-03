@@ -1,144 +1,216 @@
 <template>
     <div class="space-y-4">
-        <div>
-            <h3 class="text-lg font-medium text-neutral-900 mb-1">Setup Variant</h3>
-            <p class="text-sm text-neutral-500 mb-4">Tambahkan grup varian seperti Ukuran atau Warna beserta opsi-opsinya. Sistem akan otomatis membuat kombinasi produk.</p>
-            
-            <div class="space-y-3">
-                <div v-for="(group, gIndex) in form.variants" :key="group.id" class="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                    <div class="flex items-start justify-between mb-3">
-                        <div class="w-full max-w-sm">
-                            <TextField 
-                                v-model="group.name"
-                                label="Nama Grup Varian"
-                                placeholder="Contoh: Ukuran, Warna"
-                            />
-                        </div>
-                        <button type="button" class="text-danger hover:text-danger/80 p-2" @click="removeGroup(gIndex)">
-                            <FontAwesomeIcon :icon="faTrash" />
-                        </button>
-                    </div>
+        <div class="font-semibold text-lg border-b pb-1">Setup Varian</div>
 
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-neutral-700">Opsi Varian</label>
-                        <div class="flex flex-wrap gap-2 mb-2">
-                            <span v-for="(opt, oIndex) in group.options" :key="oIndex" class="inline-flex items-center rounded-full bg-white border border-neutral-300 px-3 py-1 text-sm">
-                                {{ opt }}
-                                <button type="button" class="ml-2 text-neutral-400 hover:text-neutral-600" @click="removeOption(gIndex, oIndex)">
-                                    <FontAwesomeIcon :icon="faTimes" />
+        <!-- Variant Groups List -->
+        <div class="space-y-3">
+            <div
+                v-for="(group, gIdx) in form.variants"
+                :key="gIdx"
+                class="border p-3 rounded-lg bg-slate-50 relative"
+            >
+                <button
+                    type="button"
+                    @click="deleteVariantGroup(gIdx)"
+                    class="absolute top-2 right-2 text-danger hover:text-red-700 text-sm"
+                    title="Hapus Grup Varian"
+                >
+                    <FontAwesomeIcon :icon="faTrash" />
+                </button>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-1">
+                        <TextField
+                            v-model="group.name"
+                            label="Nama Grup Varian"
+                            placeholder="Contoh: Ukuran, Warna"
+                            required
+                        />
+                    </div>
+                    <div class="col-span-2">
+                        <label
+                            class="block text-sm font-medium text-slate-700 mb-1"
+                            >Pilihan Opsi</label
+                        >
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <div
+                                v-for="(opt, oIdx) in group.options"
+                                :key="oIdx"
+                                class="flex items-center bg-white border rounded px-2 py-1 gap-1"
+                            >
+                                <input
+                                    v-model="opt.name"
+                                    type="text"
+                                    class="border-0 p-0 text-xs focus:ring-0 w-16"
+                                    placeholder="Nama Opsi"
+                                />
+                                <button
+                                    type="button"
+                                    @click="deleteVariantOption(gIdx, oIdx)"
+                                    class="text-neutral-400 hover:text-danger text-xs"
+                                >
+                                    ✖
                                 </button>
-                            </span>
-                        </div>
-                        
-                        <div class="flex gap-2 max-w-sm">
-                            <input 
-                                type="text" 
-                                v-model="group.newOption" 
-                                @keydown.enter.prevent="addOption(gIndex)"
-                                class="block w-full rounded-lg border-neutral-300 focus:border-main focus:ring-main sm:text-sm"
-                                placeholder="Ketik opsi lalu tekan Enter"
-                            />
-                            <button type="button" class="btn btn-secondary rounded-lg whitespace-nowrap" @click="addOption(gIndex)">
-                                Tambah
+                            </div>
+                            <button
+                                type="button"
+                                @click="addVariantOption(gIdx)"
+                                class="btn btn-outline-secondary btn-xs py-1 px-2 text-xs"
+                            >
+                                + Tambah Opsi
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-4">
-                <button type="button" class="btn btn-outline-main rounded-lg border-dashed w-full py-2" @click="addGroup">
-                    <FontAwesomeIcon :icon="faPlus" class="mr-2" />
-                    Tambah Grup Varian
-                </button>
-            </div>
+            <button
+                type="button"
+                @click="addVariantGroup"
+                class="btn btn-outline-primary btn-sm"
+            >
+                + Tambah Grup Varian
+            </button>
         </div>
 
-        <!-- Preview Kombinasi -->
-        <div v-if="combinations.length > 0" class="mt-6">
-            <h4 class="text-md font-medium text-neutral-900 mb-2">Preview Kombinasi ({{ combinations.length }} varian)</h4>
-            <div class="overflow-hidden rounded-lg border border-neutral-200">
-                <Table :headers="tableHeaders" :data="combinations">
-                    <template #name="{ row }">
-                        <span class="text-sm text-neutral-900 font-medium">{{ row.name }}</span>
-                    </template>
-                    <template #sku="{ row }">
-                        <span class="text-sm text-neutral-500 italic">Auto generate</span>
-                    </template>
-                </Table>
+        <!-- Combinations Preview Table -->
+        <div v-if="form.variant_combinations.length > 0" class="mt-4 space-y-2">
+            <div class="flex justify-between items-center border-b pb-1">
+                <div class="font-semibold text-md text-slate-700">
+                    Daftar Kombinasi Varian
+                </div>
+                <button
+                    type="button"
+                    @click="autoGenerateAllSkus"
+                    class="btn btn-outline-secondary btn-xs"
+                >
+                    Generate SKU Otomatis
+                </button>
             </div>
-            <p class="text-xs text-neutral-500 mt-2">Harga per varian dapat diatur pada langkah "Pengaturan Harga".</p>
+
+            <div class="overflow-x-auto border rounded-lg">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="bg-slate-50 border-b">
+                            <th class="p-2 font-semibold text-slate-600">
+                                Kombinasi
+                            </th>
+                            <th class="p-2 font-semibold text-slate-600 w-40">
+                                SKU
+                            </th>
+                            <th class="p-2 font-semibold text-slate-600 w-40">
+                                Barcode
+                            </th>
+                            <th
+                                v-if="form.track_inventory && !isEdit"
+                                class="p-2 font-semibold text-slate-600 w-24"
+                            >
+                                Stok Awal
+                            </th>
+                            <th
+                                v-if="form.track_inventory && !isEdit"
+                                class="p-2 font-semibold text-slate-600 w-36"
+                            >
+                                Harga Beli Stok Awal
+                            </th>
+                            <th
+                                v-if="form.track_inventory && !isEdit"
+                                class="p-2 font-semibold text-slate-600 w-48"
+                            >
+                                Keterangan Stok Awal
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="(combo, cIdx) in form.variant_combinations"
+                            :key="cIdx"
+                            class="border-b hover:bg-slate-50/50"
+                        >
+                            <td class="p-2 font-medium">
+                                {{ Object.values(combo.options).join(' / ') }}
+                            </td>
+                            <td class="p-2">
+                                <TextField
+                                    v-model="combo.sku"
+                                    type="text"
+                                    class="form-control py-1 text-xs"
+                                    placeholder="SKU"
+                                />
+                            </td>
+                            <td class="p-2">
+                                <TextField
+                                    v-model="combo.barcode"
+                                    type="text"
+                                    class="form-control py-1 text-xs"
+                                    placeholder="Barcode"
+                                />
+                            </td>
+                            <td
+                                v-if="form.track_inventory && !isEdit"
+                                class="p-2"
+                            >
+                                <NumberField
+                                    v-model="combo.stock"
+                                    class="form-control py-1 text-xs"
+                                    placeholder="Stok"
+                                />
+                            </td>
+                            <td
+                                v-if="form.track_inventory && !isEdit"
+                                class="p-2"
+                            >
+                                <NumberField
+                                    v-model="combo.purchase_price"
+                                    class="form-control py-1 text-xs"
+                                    placeholder="Harga Beli"
+                                />
+                            </td>
+                            <td
+                                v-if="form.track_inventory && !isEdit"
+                                class="p-2"
+                            >
+                                <TextField
+                                    v-model="combo.stock_description"
+                                    class="form-control py-1 text-xs"
+                                    placeholder="Keterangan / Berita Acara"
+                                />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { inject, computed } from 'vue';
+import { inject } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPlus, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import NumberField from '@/Components/Form/NumberField.vue';
 import TextField from '@/Components/Form/TextField.vue';
-import Table from '@/Components/Tables/Table.vue';
 
 const form = inject('productForm');
+const isEdit = inject('isEdit');
+const autoGenerateAllSkus = inject('autoGenerateAllSkus');
 
-const addGroup = () => {
+const addVariantGroup = () => {
     form.variants.push({
-        id: Date.now(),
         name: '',
-        options: [],
-        newOption: ''
+        options: [{ name: '' }],
     });
 };
 
-const removeGroup = (index) => {
-    form.variants.splice(index, 1);
+const deleteVariantGroup = (gIdx) => {
+    form.variants.splice(gIdx, 1);
 };
 
-const addOption = (groupIndex) => {
-    const group = form.variants[groupIndex];
-    if (group.newOption.trim() !== '') {
-        // Prevent duplicates
-        if (!group.options.includes(group.newOption.trim())) {
-            group.options.push(group.newOption.trim());
-        }
-        group.newOption = '';
-    }
+const addVariantOption = (gIdx) => {
+    form.variants[gIdx].options.push({ name: '' });
 };
 
-const removeOption = (groupIndex, optionIndex) => {
-    form.variants[groupIndex].options.splice(optionIndex, 1);
+const deleteVariantOption = (gIdx, oIdx) => {
+    form.variants[gIdx].options.splice(oIdx, 1);
 };
-
-// Generate combinations for preview
-const combinations = computed(() => {
-    if (form.variants.length === 0) return [];
-    
-    // Filter out groups without options
-    const validGroups = form.variants.filter(g => g.name && g.options.length > 0);
-    if (validGroups.length === 0) return [];
-
-    let combos = validGroups[0].options.map(opt => ({ id: Math.random().toString(), name: opt }));
-
-    for (let i = 1; i < validGroups.length; i++) {
-        const currentOptions = validGroups[i].options;
-        const newCombos = [];
-        
-        for (const combo of combos) {
-            for (const opt of currentOptions) {
-                newCombos.push({
-                    id: Math.random().toString(),
-                    name: `${combo.name} - ${opt}`
-                });
-            }
-        }
-        combos = newCombos;
-    }
-
-    return combos;
-});
-
-const tableHeaders = [
-    { field: 'name', label: 'Nama Kombinasi', slot: 'name' },
-    { field: 'sku', label: 'SKU Varian', slot: 'sku' },
-];
 </script>

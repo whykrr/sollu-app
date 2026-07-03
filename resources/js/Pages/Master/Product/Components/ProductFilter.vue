@@ -1,74 +1,111 @@
 <template>
-    <PopUpPage title="Filter Produk" size="sm" @close="$emit('close')">
-        <div class="p-3">
-            <div class="space-y-4">
-                <DropdownField
-                    v-model="form.category_id"
-                    label="Kategori"
-                    :options="categories"
-                />
-                
-                <DropdownField
-                    v-model="form.product_type"
-                    label="Tipe Produk"
-                    :options="[
-                        { value: 'simple', label: 'Simple' },
-                        { value: 'variant', label: 'Variant' },
-                        { value: 'recipe', label: 'Recipe (BOM)' },
-                        { value: 'bundle', label: 'Bundle / Paket' },
-                        { value: 'service', label: 'Layanan / Service' },
-                    ]"
-                />
-
-                <DropdownField
-                    v-model="form.status"
-                    label="Status"
-                    :options="[
-                        { value: 'active', label: 'Aktif' },
-                        { value: 'archived', label: 'Diarsipkan' },
-                    ]"
-                />
-            </div>
+    <div class="flex items-center gap-2">
+        <div>
+            <FilterSearch v-model="filterForm.search" />
         </div>
-
-        <template #footer>
-            <div class="flex justify-between w-full">
-                <button type="button" class="btn btn-outline-main btn-sm" @click="reset">
-                    Reset
-                </button>
-                <button type="button" class="btn btn-highlight-main btn-sm" @click="apply">
-                    Terapkan Filter
-                </button>
-            </div>
-        </template>
-    </PopUpPage>
+        <div v-if="outlets.length !== 1 && selectedOutlet === null">
+            <GroupDropdownIconField
+                id="outlets"
+                v-model="filterForm.outlet"
+                :icon="faMapMarkerAlt"
+                placeholder="Semua Outlet"
+                class="sm"
+                :options="outlets"
+            />
+        </div>
+        <div>
+            <GroupDropdownIconField
+                id="category"
+                v-model="filterForm.category"
+                :icon="faBox"
+                placeholder="Semua Kategori"
+                class="sm"
+                :options="categories"
+            />
+        </div>
+        <div v-if="hasFilter">
+            <button
+                class="btn btn-outline-danger btn-sm"
+                title="Reset filter"
+                @click="resetFilter"
+            >
+                <FontAwesomeIcon :icon="faClose" />
+            </button>
+        </div>
+        <div class="grow"></div>
+        <div>
+            <Switch
+                id="switch_regular"
+                name="switch_regular"
+                labeling="Tampilkan Arsip"
+                size="sm"
+                v-model="filterForm.is_deleted"
+            />
+        </div>
+    </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
+import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
+import Switch from '@/Components/Form/Switch.vue';
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
+import {
+    faBox,
+    faClose,
+    faMapMarkerAlt,
+    faUserShield,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { router, usePage } from '@inertiajs/vue3';
+import { debounce } from 'lodash';
+import { computed, reactive, watch } from 'vue';
 
-const emit = defineEmits(['close', 'apply']);
+const outlets = usePage().props.auth.outlets.map((store) => ({
+    value: store.id,
+    label: store.name,
+}));
 
-const categories = [
-    { value: 1, label: 'Makanan Utama' },
-    { value: 2, label: 'Minuman Dingin' },
-    { value: 3, label: 'Snack' },
-];
+const selectedOutlet = computed(() => usePage().props.selectedOutlet);
 
-const form = ref({
-    category_id: '',
-    product_type: '',
-    status: '',
+const props = defineProps({
+    filters: Object,
+    categories: Array,
 });
 
-const apply = () => {
-    emit('apply', form.value);
-    emit('close');
-};
+const filterForm = reactive({
+    search: props.filters?.search ?? '',
+    outlet: props.filters?.outlet ?? '',
+    category: props.filters?.category ?? '',
+    is_deleted: props.filters?.is_deleted ?? 0,
+});
 
-const reset = () => {
-    form.value = { category_id: '', product_type: '', status: '' };
+watch(
+    filterForm,
+    debounce(
+        () =>
+            router.get(
+                route('master.products.index'),
+                { ...route().params, ...filterForm, page: 1 },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                },
+            ),
+        500,
+    ),
+);
+
+const hasFilter = computed(() => {
+    return (
+        filterForm.search !== '' ||
+        filterForm.outlet !== '' ||
+        filterForm.category !== ''
+    );
+});
+
+const resetFilter = () => {
+    filterForm.search = '';
+    filterForm.outlet = '';
+    filterForm.category = '';
 };
 </script>

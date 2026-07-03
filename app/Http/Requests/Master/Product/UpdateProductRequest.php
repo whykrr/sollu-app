@@ -61,6 +61,12 @@ class UpdateProductRequest extends FormRequest
             'outlets.*.outlet_id'         => 'required|uuid|exists:outlets,id',
             'outlets.*.is_enabled'        => 'boolean',
             'outlets.*.is_available'      => 'boolean',
+
+            // Multiple images
+            'images'                      => 'nullable|array',
+            'images.*.image_url'          => 'required_without:images.*.image_file|nullable|string',
+            'images.*.image_file'         => 'required_without:images.*.image_url|nullable|file|image|max:2048',
+            'images.*.sort_order'         => 'nullable|integer',
         ];
 
         if ($this->product_type === 'basic') {
@@ -76,6 +82,9 @@ class UpdateProductRequest extends FormRequest
                 $rules['variant_combinations.*.barcode']       = 'nullable|string';
                 $rules['variant_combinations.*.price']         = 'nullable|numeric|min:0';
                 $rules['variant_combinations.*.stock']         = 'nullable|numeric|min:0';
+                $rules['variant_combinations.*.outlet_prices']             = 'nullable|array';
+                $rules['variant_combinations.*.outlet_prices.*.outlet_id'] = 'required|uuid|exists:outlets,id';
+                $rules['variant_combinations.*.outlet_prices.*.amount']    = 'required|numeric|min:0';
             }
 
             if ($this->has_recipe) {

@@ -1,64 +1,51 @@
 <template>
-    <div>
-        <h3 class="text-lg font-medium text-neutral-900 mb-1">Informasi Dasar</h3>
-        <p class="text-sm text-neutral-500 mb-4">Lengkapi informasi dasar mengenai produk Anda.</p>
-        
-        <div class="space-y-4 max-w-xl">
-            <!-- Image Cropper -->
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-neutral-700 mb-2">Foto Produk</label>
-                <ProductImageCropper
-                    v-model="form.image"
-                    :error="form.errors.image"
+    <div class="space-y-3">
+        <div class="font-semibold text-lg border-b pb-1">Informasi Dasar</div>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="col-span-2 mb-2">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Foto Produk</label>
+                <ProductImagesUploader v-model="form.images" :error="form.errors.images" />
+            </div>
+            <TextField v-model="form.name" label="Nama Produk" :class="{ 'is-invalid': form.errors.name }" :feedback="form.errors.name" required />
+            <TextField v-model="form.code" label="Kode / SKU (Opsional)" :class="{ 'is-invalid': form.errors.code }" :feedback="form.errors.code" />
+            <div class="col-span-2">
+                <DropdownField 
+                    v-model="form.product_category_id" 
+                    :options="categoryOptions" 
+                    label="Kategori" 
+                    :class="{ 'is-invalid': form.errors.product_category_id }"
+                    :feedback="form.errors.product_category_id"
                 />
             </div>
-
-            <!-- Form Fields -->
-            <TextField 
-                v-model="form.name"
-                label="Nama Produk *"
-                placeholder="Contoh: Kopi Susu Aren"
-                :feedback="form.errors.name"
-            />
-            
-            <TextField 
-                v-model="form.code"
-                label="Kode Produk / SKU"
-                placeholder="Contoh: KSA-01"
-                :feedback="form.errors.code"
-            />
-
-            <DropdownField
-                v-model="form.category_id"
-                label="Kategori *"
-                :options="categories"
-                :feedback="form.errors.category_id"
-            />
-
-            <div>
-                <label class="block text-sm font-medium text-neutral-700 mb-1">Deskripsi</label>
-                <textarea 
-                    v-model="form.description"
-                    rows="3"
-                    class="block w-full rounded-lg border-neutral-300 focus:border-main focus:ring-main sm:text-sm"
-                    placeholder="Tulis deskripsi produk di sini..."
-                ></textarea>
+            <div class="col-span-2">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi</label>
+                <textarea v-model="form.description" class="form w-full border-slate-300 rounded-md" rows="3"></textarea>
+            </div>
+            <div class="col-span-2 flex gap-4 mt-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" v-model="form.is_show" class="rounded text-primary cursor-pointer"> 
+                    <span class="text-sm">Tampilkan di POS</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" v-model="form.sellable" class="rounded text-primary cursor-pointer"> 
+                    <span class="text-sm">Dapat Dijual</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" v-model="form.purchasable" class="rounded text-primary cursor-pointer"> 
+                    <span class="text-sm">Dapat Dibeli (PO)</span>
+                </label>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { inject } from 'vue';
-import TextField from '@/Components/Form/TextField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import ProductImageCropper from './ProductImageCropper.vue';
+import { inject, computed } from 'vue'
+import TextField from '@/Components/Form/TextField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import ProductImagesUploader from './ProductImagesUploader.vue'
 
-const form = inject('productForm');
-
-const categories = [
-    { value: 1, label: 'Makanan Utama' },
-    { value: 2, label: 'Minuman Dingin' },
-    { value: 3, label: 'Snack' },
-];
+const form = inject('productForm')
+const categories = inject('categories')
+const categoryOptions = computed(() => categories.map(c => ({ label: c.name, value: c.id })))
 </script>

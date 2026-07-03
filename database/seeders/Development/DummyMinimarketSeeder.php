@@ -62,6 +62,6 @@ class DummyMinimarketSeeder extends Seeder
         );
 
         $user->assignRole('owner');
-        $user->outlets()->sync($outlet);
+        $user->outlets()->sync($business->outlets()->pluck('id')->toArray());
     }
 }

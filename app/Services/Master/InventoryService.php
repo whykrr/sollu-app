@@ -29,6 +29,8 @@ class InventoryService
                 'qty_change' => $data['stock'],
                 'stock_before' => 0,
                 'stock_after' => $data['stock'],
+                'purchase_price' => $data['purchase_price'] ?? null,
+                'description' => $data['description'] ?? 'Stok Awal Produk Baru',
                 'created_by' => auth()->id(),
             ]);
         }

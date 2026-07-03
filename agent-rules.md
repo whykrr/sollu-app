@@ -1,58 +1,57 @@
 # AI Development Rules
 
+## Tech Stack Reference
+- **Backend:** Laravel 11, PHP 8.3
+- **Frontend:** Vue 3 (Composition API), Inertia.js 1.2, Tailwind CSS v4
+- **Packages:** Pinia, Ziggy, Spatie Permission, FontAwesome 6
+
 ## General Rules
 
 ### Before Coding
-
-- Selalu baca file yang relevan secara **utuh** (bukan hanya potongan) sebelum melakukan perubahan.
-- Cek dependency/trait/service yang dipakai file tersebut.
-- Cek migration terbaru untuk struktur tabel yang terkait dengan task.
-- Cek apakah sudah ada helper/service/component serupa sebelum membuat yang baru.
-- Jangan mengubah kode yang tidak berhubungan dengan task.
-- Jangan melakukan refactor besar tanpa instruksi eksplisit.
-- Jangan menghapus fitur yang sudah ada kecuali diminta.
-- Jika menemukan ambiguity pada requirement, **tanyakan terlebih dahulu** — dilarang mengisi asumsi sendiri lalu langsung melanjutkan implementasi besar.
-- Utamakan mengikuti pola yang sudah ada pada project.
-- Hindari membuat dependency baru kecuali benar-benar diperlukan.
-- Hindari duplicate code.
+- Always read the relevant files **completely** (not just snippets) before making changes.
+- Check dependencies, traits, and services used by the file.
+- Check the latest migrations for table structures related to the task.
+- Check if similar helpers/services/components exist before creating new ones.
+- Do not modify code unrelated to the task.
+- Do not perform major refactoring without explicit instructions.
+- Do not remove existing features unless requested.
+- If requirements are ambiguous, **ask first** — never make your own assumptions and proceed with major implementations.
+- Prioritize following existing patterns in the project.
+- Avoid creating new dependencies unless absolutely necessary.
+- Avoid duplicate code.
 
 ### Verification Rules
-
-- Sebelum memanggil method/fungsi/trait yang sudah ada, **wajib baca definisinya terlebih dahulu**. Jangan asumsikan signature hanya dari nama.
-- Sebelum menggunakan kolom database, **wajib cek migration atau model terkait**. Jangan asumsi nama kolom (mis. `user_id` vs `created_by`).
-- Sebelum memanggil route, **wajib cek `routes/web.php` atau `routes/api.php`**. Jangan mengarang nama route.
-- Sebelum menggunakan package/library, **wajib cek `composer.json` atau `package.json`** apakah sudah terinstall dan versi berapa. Jangan asumsi package tersedia.
-- Jika tidak yakin suatu file/fungsi/kolom ada, AI wajib menyatakan "perlu verifikasi" dan membaca file terkait — bukan menebak lalu melanjutkan.
-- Dilarang membuat contoh response API, nama variabel env, atau nilai config yang belum dikonfirmasi ada di project (mis. `.env.example`, `config/*.php`).
+- Before calling existing methods/functions/traits, **you must read their definitions first**. Do not assume signatures from names.
+- Before using database columns, **you must check the migration or related model**. Do not assume column names (e.g., `user_id` vs `created_by`).
+- Before calling routes, **you must check `routes/web.php` or `routes/api.php`**. Do not invent route names.
+- Before using packages/libraries, **you must check `composer.json` or `package.json`** for installation and versions. Do not assume package availability.
+- If unsure if a file/function/column exists, explicitly state "needs verification" and read the related file — do not guess and proceed.
+- Do not create API response examples, env variable names, or config values that are not confirmed to exist in the project (e.g., `.env.example`, `config/*.php`).
 
 ### Referencing Existing Code
+- When mentioning "there is an existing pattern in the project", you **must include the file path and function/class name**.
+- Do not say "usually in Laravel..." or "generally in Vue..." without confirming if the project actually follows that pattern.
+- If a relevant pattern is not found, **explicitly state it** rather than making one up.
 
-- Saat menyebut "sudah ada pola X di project", AI **wajib menyertakan path file dan nama fungsi/class** yang menjadi rujukan.
-- Dilarang berkata "biasanya di Laravel..." atau "umumnya di Vue..." tanpa mengonfirmasi apakah project ini benar-benar mengikuti pola tersebut.
-- Jika AI tidak menemukan pola yang relevan di project, **wajib nyatakan itu secara eksplisit** daripada mengarang pola yang "terdengar masuk akal".
+### Security & Localization
+- Always validate all user inputs.
+- Do not trust client data.
+- Always use authorization checks.
+- Avoid raw SQL if ORM is available.
+- Do not hardcode secrets, tokens, API keys, or passwords.
+- Use environment variables for sensitive configurations.
+- **Language:** Code comments and rules should be in English, but **UI text and error messages must remain in Indonesian** (e.g., "Anda tidak memiliki akses.").
 
-### Version Awareness
-
-- Konfirmasi versi Laravel dan Vue yang dipakai project (cek `composer.json` / `package.json`) sebelum menggunakan syntax atau fitur tertentu.
-- Dilarang menggunakan fitur dari versi framework yang lebih baru dari yang terpasang di project.
-
-### Security
-
-- Selalu validasi seluruh input user.
-- Jangan mempercayai data dari client.
-- Selalu gunakan authorization check.
-- Hindari raw SQL jika ORM tersedia.
-- Jangan hardcode secret, token, API key, atau password.
-- Gunakan environment variable untuk konfigurasi sensitif.
+### Testing Pattern
+- **Always test the backend first** (e.g., verify services, controllers, database changes).
+- **Only after backend testing is successful, proceed to test the frontend.**
 
 ---
 
-# Backend Rules (Laravel)
+## Backend Rules (Laravel)
 
-## Architecture & Controllers
-
-Ikuti struktur:
-
+### Architecture & Controllers
+Follow this structure:
 ```text
 Controller
     ↓
@@ -63,146 +62,207 @@ Repository (optional)
 Model
 ```
 
-**Pola Controller:**
-Gunakan pola **hybrid**:
+**Controller Pattern:**
+Use a **hybrid** approach:
+1. **Resource-style (inline):** Use for simple CRUD operations without complex side-effects. Logic can be written directly in the controller.
+2. **Service-injected:** For complex business logic, use a _thin controller_. Controllers should only handle request validation, authorization, and responses. Inject Service classes via constructor (e.g., `CreateOutletService`).
 
-1. **Resource-style** (inline): Gunakan ini untuk operasi CRUD yang sederhana (tanpa side-effects yang rumit). Logika boleh ditulis langsung di dalam controller.
-2. **Service-injected**: Untuk logika bisnis yang kompleks, controller harus tipis (_thin controller_). Controller hanya menangani Request validation, Authorization, dan Response. Injeksi class Service melalui _constructor_ (misal: `CreateOutletService`).
-
-Jangan melakukan authorization hardcode:
-
+**Do not hardcode authorization:**
 ```php
-// Salah
+// Wrong
 if ($user->role == 'admin')
 ```
+Use Gates, Policies, Spatie Permissions, or inside Form Requests.
 
-Gunakan Gate, Policy, Permission (Spatie), atau di dalam Form Request.
+### Model Standards
+**Property/Method Ordering:**
+1. `use` Traits (one per line)
+2. `$fillable`
+3. `$hidden` (if exists)
+4. `$sortable` (if exists)
+5. `$appends` (if exists)
+6. `casts(): array`
+7. Custom notification methods (if exists)
+8. Relationships (BelongsTo → HasMany → BelongsToMany → HasOne)
+9. `scopeFilters()`
+10. Other scopes
+11. Custom methods/helpers
 
----
+**Trait Style:**
+- Each trait must be on a separate line for consistency.
+```php
+use HasRoles;
+use HasFactory;
+use HasUuids;
+```
 
-## Database
-
-### Model
-
-- **Urutan Trait:** Gunakan baris `use` terpisah untuk setiap trait. Urutkan dari: Third-party trait -> Framework trait -> App-specific trait.
-- **UUID:** Gunakan trait `HasUuids` untuk semua Primary Key.
-- Wajib menggunakan `casts()` method (Laravel 11 style) yang mereturn array.
-- Pastikan menyertakan relasi dengan PHPDoc (contoh: `/** @property-read Collection|Outlet[] $outlets */`).
-
-### Trait Patterns
-
-- Traits di `app/Trait` (seperti `HasBusiness`, `HasOutlet`, `SortableModel`) difokuskan untuk menambahkan **Eloquent scopes**.
-- Format deklarasi method di trait harus: `public function scopeNamaScope(Builder $query)`
-- Jangan menaruh deklarasi relationship di dalam Traits ini.
-- > **Verifikasi:** sebelum menggunakan trait di atas pada model baru, cek dulu apakah trait tersebut benar-benar ada di path tersebut dan cek method apa saja yang disediakannya - jangan asumsi.
-
-### Query
-
-- Gunakan model scope (`scopeFilters`) menggunakan `->when()` untuk merapikan kondisi query.
-- Gunakan Eloquent terlebih dahulu, hindari `DB::select(...)` kecuali memang diperlukan.
-- Hindari N+1 query. Selalu pertimbangkan eager loading (`->with()`).
-
----
-
-## Migration
-
-Rules:
-
-- Semua foreign key wajib menggunakan constraint.
-- Gunakan UUID, atau Auto Increment untuk primary key.
-- Selalu tambahkan index pada: foreign key, code, sku, slug, dan kolom pencarian.
-- > **Verifikasi:** sebelum menambahkan kolom baru pada migration, cek migration existing untuk tabel yang sama agar tidak terjadi duplikasi kolom atau konflik nama.
-
----
-
-## Service Layer
-
-Untuk operasi yang kompleks, logika bisnis wajib berada di Service.
-
-- Penamaan berorientasi aksi: `CreateOrderService`, `UpdateOutletService`.
-- Method utama adalah `execute(array $data, User $user)` (atau parameter serupa).
-- Selalu bungkus aksi di dalam `DB::transaction()` untuk menjamin integritas.
-
----
-
-## Form Request (Validation)
-
-- **Authorization:** `authorize()` harus mengembalikan pemanggilan permission string, misal: `return Auth::user()?->can('outlet.create');`
-- **Aturan Sejajar (Column-Aligned):** Format penulisan rules dalam array `=>` usahakan untuk disejajarkan (aligned) agar rapi terbaca.
-- Semua validasi form harus melalui Form Request, bukan memanggil `$request->validate()` di dalam controller.
-
----
-
-## API & Route
-
-### Route Patterns
-
-- Pendaftaran route harus rapi, dibungkus (grouped) menggunakan `prefix()`, `name()`, dan `group()`.
-- Nama route wajib mengikuti standar _dot-notation_ (`entity.action`, misal: `settings.outlets.index`).
-- Standar penamaan endpoint (termasuk untuk Soft Deletes):
-    - `DELETE /{model}` dipetakan ke `delete` (untuk _soft delete_)
-    - `PUT /{model}/restore` dipetakan ke `restore` (menggunakan `->withTrashed()`)
-    - `DELETE /{model}/destroy` dipetakan ke `destroy` (untuk _force delete_)
-
-### Response Format
-
-Gunakan format konsisten:
-
-```json
+**`casts()` Pattern:**
+- Use the method style (Laravel 11 standard).
+- Use column-aligned `=>` arrows for readability.
+```php
+protected function casts(): array
 {
-    "success": true,
-    "message": "Product created",
-    "data": {}
+    return [
+        'is_active' => 'boolean',
+    ];
 }
 ```
 
+**PHPDoc Annotations:**
+- Include relationship annotations using PHPDoc (e.g., `/** @property-read Collection|Outlet[] $outlets */`).
+
+**Relationship Patterns:**
+- Always specify return types: `public function business(): BelongsTo`.
+
+### Database & Migration
+- All foreign keys must use constraints.
+- Use UUID or Auto Increment for primary keys (UUID is standard, via `HasUuids`).
+- Always add indexes on foreign keys, code, sku, slug, and searchable columns.
+- > **Verification:** Before adding new columns, check existing migrations for the same table to avoid duplicate columns or naming conflicts.
+
+### Query Patterns
+- Use model scopes (`scopeFilters`) with `->when()` to organize query conditions.
+- Prioritize Eloquent, avoid `DB::select(...)` unless necessary.
+- Avoid N+1 queries. Always consider eager loading (`->with()`).
+
+### Service Layer
+For complex operations, business logic must reside in a Service.
+- **Naming:** Action-oriented (e.g., `CreateOrderService`, `UpdateOutletService`).
+- **Structure:** Placed in specific subdirectories based on domain (e.g., `app/Services/Outlet/`).
+- **Main method:** `execute(array $data, User $user)` (or similar parameters).
+- **Integrity:** Always wrap actions in `DB::transaction()`.
+- **Audit Logging:** Every mutation must create an audit log (e.g., using `OutletAuditLog` or `AuditLogService`).
+
+### Form Request
+**Naming Convention:**
+- `Get{Entity}Request` for index/list.
+- `Store{Entity}Request` for creation.
+- `Update{Entity}Request` for updates.
+
+**Base Class:**
+- Extend `BaseInertiaFormRequest` if authorization failure should redirect back with an Indonesian error message ("Anda tidak memiliki akses.").
+
+**Authorization (`authorize()`):**
+- Should return permission string checks (e.g., `return Auth::user()?->can('outlet.create');`).
+
+**Rules (`rules()`):**
+- **Column-Aligned:** Format rules in the array using aligned `=>` arrows for readability.
+- Use the array format for complex rules or Store/Update requests: `['required', 'string', 'max:255']`.
+- All form validation must go through Form Requests, not `$request->validate()` in the controller.
+
+### API & Route
+- Group routes using `prefix()`, `name()`, and `group()`.
+- Route names must follow dot-notation (`entity.action`, e.g., `settings.outlets.index`).
+- **Standard Endpoint Naming:**
+  - `DELETE /{model}` → `delete` (soft delete)
+  - `PUT /{model}/restore` → `restore` (using `->withTrashed()`)
+  - `DELETE /{model}/destroy` → `destroy` (force delete)
+
+### Logging & Seeder
+- **Logging:** Log only Errors, Integration failures, Payment failures, and Critical events. Do not spam logs.
+- **Seeder:** Must be idempotent. Use `updateOrCreate()` or `firstOrCreate()`. Avoid `create()` for master data.
+
 ---
 
-## Logging & Seeder
+## Frontend Rules (Vue 3 / Inertia)
 
-- **Logging:** Log hanya untuk Error, Integration failure, Payment failure, dan Critical event. Jangan spam log.
-- **Seeder:** Seeder harus idempotent. Gunakan `updateOrCreate()` atau `firstOrCreate()`. Hindari `create()` untuk master data.
+### Component Structure
+Use **Composition API** (`<script setup>`).
 
----
-
-# Frontend Rules (Vue 3 / Inertia)
-
-## Component Structure
-
-Urutan komposisi komponen:
-
+**Template vs Script Ordering:**
+- **Always use template-first ordering:**
 ```vue
-<template></template>
-<script setup></script>
+<template>...</template>
+<script setup>...</script>
 ```
 
-Gunakan **Composition API** (`<script setup>`).
+**Import Ordering:**
+```javascript
+// 1. Vue core
+import { ref, computed, watch, onMounted } from 'vue';
+// 2. Inertia / Router
+import { router, Link, useForm, usePage } from '@inertiajs/vue3';
+// 3. Third-party libraries
+import { debounce } from 'lodash';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faPlus, faPencil } from '@fortawesome/free-solid-svg-icons';
+// 4. Global Components (alias @/)
+import Container from '@/Components/UI/Container.vue';
+import Table from '@/Components/Tables/Table.vue';
+// 5. Composables
+import { formatDateTimeSimple } from '@/Composable/date';
+// 6. Stores (Pinia)
+import { useModalStore } from '@/store/notification';
+// 7. Local/Page Components (relative path)
+import Filter from './Components/Filter.vue';
+import Form from './Components/Form.vue';
+```
 
-### Component Responsibility
+**Script Setup Internal Ordering:**
+```javascript
+// 1. defineOptions (if any)
+// 2. defineProps
+// 3. defineEmits
+// 4. Store / Composable initialization
+// 5. Reactive state (ref, reactive)
+// 6. Computed properties
+// 7. Methods / Functions
+// 8. Watchers
+// 9. Lifecycle hooks (onMounted, etc.)
+```
 
-- Satu component satu tanggung jawab. Hindari component > 500 line.
-- Pisahkan menjadi `ProductForm.vue`, `ProductFilter.vue`, dll dibungkus pada folder `Components/` per page.
-- Pertimbangkan selalu penggunaan component global yang sudah ada di `resources/js/Components`.
-- > **Verifikasi:** sebelum membuat component baru, cek dulu isi folder `resources/js/Components` untuk memastikan component serupa belum ada.
+**Props Declaration Style:**
+- **Pattern A:** `defineProps({ user: Object })` (if props are NOT accessed in `<script>`)
+- **Pattern B:** `const props = defineProps({ user: Object })` (if props ARE accessed in `<script>`)
+- **Do not use destructuring** for props to maintain Vue 3 reactivity.
 
----
+### Page Architecture
+- One component, one responsibility. Keep components under 500 lines.
+- **Page Folders:** Place sub-components inside `Pages/{Module}/Components/` (e.g., `Filter.vue`, `Form.vue`, `Detail.vue`).
+- **Tabs:** Place tab components inside `Pages/{Module}/Tabs/` (e.g., `GeneralTab.vue`, `SettingsTab.vue`).
 
-## UI Consistency & Page Patterns
+### UI Consistency & Page Patterns
 
-### Standard List/Index Pattern
+**Inertia Workflow (Index + Show):**
+- The `index` and `show` routes often map to the same controller method.
+- The `show` route fetches detail data via partial reload (`only: ['user']`).
+- When closing a detail view, use `router.get` to reset the URL and clear the prop.
 
-Semua list view (halaman index) **wajib** menggunakan `<Container>` (dari `resources/js/Components/UI/Container.vue`) dengan struktur:
+**Standard List/Index Pattern:**
+All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
+- `<template #header>`: Contains `<Filter>` component and action buttons (Add).
+- **Default Slot**: Contains `<Table>` component with props `headers`, `data`, `sort`, `sort-direction`.
+- `<template #footer>`: Contains `<Pagination>`.
 
-- `<template #header>`: Berisi komponen `<Filter>` dan tombol penambahan (Action buttons).
-- **Slot Default**: Berisi komponen `<Table>` lengkap dengan prop bawaan seperti `headers`, `data`, `sort`, `sort-direction`.
-- `<template #footer>`: Berisi komponen `<Pagination>`.
+**Data Fetching & Inertia Routing:**
+- Form submissions (`form.post()`, `form.put()`) must always include `preserveState: true` and `preserveScroll: true`.
+- Transitioning or loading base details uses `router.visit()` with **partial reloads** (`only: ['prop_name']`).
+- For complex data loading in tabs, use API calls (Axios) to prevent page freeze. Register routes in `web.php`.
 
-### Form Fields & Validation Display Pattern
+**Filter Pattern:**
+- Use `reactive()` for state (not `useForm`).
+- Use `watch` with `debounce` (e.g., 500ms) for auto-submit.
+- When filter changes, always reset pagination to `page: 1`.
+- Merge parameters: `router.get(route('...'), { ...route().params, ...filterForm, page: 1 }, { preserveState: true, preserveScroll: true })`.
 
-- Input wajib menggunakan komponen kustom yang sudah disediakan (dengan akhiran `*Field.vue`), contoh: `TextField`, `EmailField`, `NumberField`, `RadioButtonField`, dll.
-- Inisialisasi state wajib menggunakan `useForm` dari `@inertiajs/vue3`.
-- Semua field wajib menerapkan gaya ini untuk deteksi error validasi:
+**Modal Form Lifecycle Pattern:**
+- Initialize `useForm` with null/empty default values.
+- Watch the data prop (`props.user`) with `{ immediate: true }`.
+- Inside the watcher, call `form.reset()` and then populate `form.field = data.field`.
+- On submit success (`onSuccess` callback), call `form.reset()` and emit `close`.
 
+**PopUpPage vs Modal Pattern:**
+- `PopUpPage.vue` (Side Panel): For edit/create forms or large entity details. Visibility is controlled via `:class="{ show: show }"`.
+- `Modal.vue` / `ModalDelete.vue` (Centered): Only for confirmation warnings or quick actions.
+
+**Tab Pattern:**
+- For complex details, wrap a `<Tab>` component inside a `PopUpPage`.
+- Define tabs as a computed array: `[{ label: 'General', icon: faCog, page: GeneralTab, props: { outlet } }]`.
+
+**Form Fields Pattern:**
+- Use custom components (e.g., `TextField`, `DropdownField`).
+- Init state with Inertia's `useForm`.
+- Validation error display:
 ```html
 <TextField
     id="name"
@@ -213,93 +273,80 @@ Semua list view (halaman index) **wajib** menggunakan `<Container>` (dari `resou
 />
 ```
 
-### PopUpPage vs Modal Pattern
+---
 
-- Gunakan `PopUpPage.vue` (Side Panel) untuk menampilkan form edit/create, atau menampilkan detail entitas berukuran besar.
-- Gunakan `Modal.vue` / `ModalDelete.vue` (Centered) hanya untuk peringatan konfirmasi atau aksi singkat.
-- **Detail Ber-Tab (Tabbed Detail):** Untuk halaman detail pengaturan yang kompleks (contoh: Settings Outlet), wajib menjadikan `PopUpPage` sebagai wrapper dari komponen `Tab`, lalu memisahkan isinya ke komponen-komponen terpisah di dalam folder `Tabs/` (seperti `GeneralTab.vue`, `DevicesTab.vue`).
+## CSS & Styling Rules
 
-### Data Fetching & Inertia Routing
+### Tailwind v4 & Custom Classes
+- The project uses **Tailwind CSS v4** (`@theme`, `@utility`).
+- **Color Tokens:** `--color-main`, `--color-secondary`, `--color-danger`, `--color-success`, `--color-warning`, `--color-info`.
+- Use a **hybrid approach**: Use custom classes for standard UI elements and Tailwind utilities for layouts and spacing.
+- Extract long Tailwind classes into custom classes in `resources/css/app.css` if they become too verbose.
+- Use spacing scale 4 (`gap-4`) for normal elements, scale 3 for main area padding, scale 2 for tight components.
 
-- Pengiriman data Form (`form.post()`, `form.put()`) selalu menyertakan `preserveState: true` dan `preserveScroll: true`.
-- Transisi atau memuat detail dasar menggunakan metode `router.visit()` dengan **partial reloads** (`only: ['nama_prop']`).
-- **PENGAMBILAN DATA KOMPLEKS:** Untuk pemuatan data yang besar / kompleks (khususnya untuk data dalam tab sub-halaman), gunakan API (seperti Axios) agar halaman tidak freeze. Route dari API ini harus tetap terdaftar dan mematuhi standardisasi pada `routes/web.php` (bukan di `api.php`). Gunakan komponen _Deferred_ dengan kelas `.placeholder` pada transisinya.
-
-### Filter Pattern
-
-- State filter dideklarasikan menggunakan `reactive()` (bukan `useForm`).
-- Terdapat `watch` dengan `debounce` (misal: 500ms) untuk auto-submit.
-- Saat state filter berubah, request pengajuan wajib mengatur ulang paginasi ke halaman pertama (`page: 1`).
+### Custom Class Inventory
+- **Buttons:** `btn`, `btn-main`, `btn-success`, `btn-danger`, `btn-outline-main`, `btn-sm`, `btn-xs`
+- **Forms:** `form`, `form-group`, `form-check`, `form-check-input`, `form-feedback`, `is-invalid`
+- **Cards:** `card`, `card-header`, `card-outline`
+- **Modals:** `modal`, `modal-dialog`, `modal-content`, `modal-header`, `modal-body`, `modal-footer`
+- **Tables:** `table`, `table-hovered`
+- **Badges:** `badge`, `badge-success`, `badge-danger`, `pill`
+- **Layouts:** `sidebar`, `nav-item`, `nav-dropdown`, `tab`, `floating-scroll`
 
 ---
 
-## CSS & Tailwind Rules
+## Component Reference
 
-### Hybrid Tailwind / Custom Class
+### UI Components (`@/Components/UI/`)
+- **Container.vue**: Main wrapper (`#header`, default, `#footer`, `#widgets`).
+- **PopUpPage.vue**: Side panel modal (`title`, `sub-title`, `size`, `#footer`).
+- **Tab.vue**: Tabbed navigation (`pages`, `vertical`).
+- **FilterSearch.vue**: Search input bound via `v-model`.
 
-- Anda wajib mengedepankan pola _hybrid_. Gunakan custom class bawaan project (seperti `btn`, `btn-main`, `btn-success`, `form`, `badge`, `badge-success`) untuk elemen-elemen UI standar aplikasi.
-- Gunakan Tailwind Utilities MURNI untuk layout dan pengaturan margin/padding (seperti `flex flex-col gap-3 items-center justify-between`).
-- Jika utility class Tailwind mulai terlihat **terlalu panjang**, ekstrak utilitas tersebut menjadi class custom pada `resources/css/app.css` (misal: `.card-header`).
-- Skala spacing (gap): Gunakan gap skala 4 (`gap-4 space-x-3`) untuk elemen wajar. Skala 3 untuk padding main area. Skala 2 untuk gap antar komponen bungkus.
+### Form Components (`@/Components/Form/`)
+- `TextField.vue`, `EmailField.vue`, `PasswordField.vue`, `NumberField.vue`, `TextareaField.vue`, `DropdownField.vue`, `CheckboxField.vue`, `RadioField.vue`, `Switch.vue`, `QuillEditor.vue`.
+- These use `defineOptions({ inheritAttrs: false })` and inherit attributes via `v-bind="$attrs"`. They emit `update:modelValue`.
 
----
-
-# What AI Must Never Do
-
-- Menghapus migration lama.
-- Mengubah database schema tanpa instruksi.
-- Mengubah permission yang sudah ada tanpa instruksi.
-- Menghapus audit trail atau soft delete.
-- Mengubah UUID menjadi auto increment.
-- Membuat breaking changes tanpa penjelasan.
-- Menggunakan package tambahan tanpa persetujuan.
-- **Mengklaim suatu fungsi/kolom/route ada tanpa mem verifikasi nya di kode.**
-- **Menulis kode yang memanggil API/service eksternal dengan asumsi format response tanpa mengecek dokumentasi atau kode yang sudah ada.**
-- **Menyatakan task "selesai dan teruji" tanpa benar-benar menjalankan atau menunjukkan bagaimana itu diverifikasi.**
-- **Membuat asumsi silent terhadap requirement yang ambigu — harus ditanyakan terlebih dahulu.**
+### Tables Components (`@/Components/Tables/`)
+- **Table.vue**: Data table (`headers`, `data`, `sort`, `sortDirection`, `action`). Custom slots supported via `col.slot`.
+- **Pagination.vue**: Paginator (`links`, `from`, `to`, `total`, `perPage`). Uses Inertia `<Link>`.
 
 ---
 
-# Definition of Done
-
-Sebelum menyatakan task selesai, AI wajib memastikan:
-
-- build vue menggunakan `npm run build` pastikan tidak ada error.
-- Semua fungsi/method yang dipanggil benar-benar ada (sudah diverifikasi, bukan diasumsikan).
-- Tidak ada import yang tidak terpakai atau tidak valid.
-- Migration/model/route yang di referensi kan sudah di cek keberadaannya.
-- Kode sudah dibaca ulang sekali untuk memastikan konsisten dengan pola project.
-- Jika ada bagian yang tidak bisa diverifikasi (mis. tidak ada akses ke DB atau environment), AI wajib menyebutkan ini secara eksplisit sebagai asumsi terbuka, bukan diam-diam melanjutkan.
-- Pastikan semua behavior pada frontend berjalan dengan baik
+## What AI Must Never Do
+- Delete old migrations.
+- Alter database schema without instruction.
+- Alter existing permissions without instruction.
+- Delete audit trails or soft deletes.
+- Change UUIDs to auto increment.
+- Make breaking changes without explanation.
+- Use additional packages without approval.
+- **Claim a function/column/route exists without verifying it in the code.**
+- **Write code calling external APIs/services assuming response formats without checking documentation or existing code.**
+- **State a task is "completed and tested" without actually running or showing how it was verified.**
+- **Make silent assumptions regarding ambiguous requirements — must ask first.**
 
 ---
 
-# Output Requirements
+## Definition of Done
+Before marking a task as complete, AI must ensure:
+- Backend has been fully tested and verified.
+- Frontend behavior runs properly (only tested after backend success).
+- Vue build using `npm run build` succeeds without errors.
+- All called functions/methods actually exist (verified, not assumed).
+- No unused or invalid imports.
+- Referenced migrations/models/routes have been checked for existence.
+- Code has been re-read to ensure consistency with project patterns.
+- If parts cannot be verified (e.g., no DB access), AI must explicitly state these open assumptions.
 
-Saat membuat kode, AI wajib menyampaikan:
+---
 
-1. **Summary** — ringkasan perubahan yang dilakukan.
-2. **Files Changed** — daftar file yang diubah/dibuat.
-3. **Reasoning** — alasan di balik perubahan.
-4. **Verification** — apa saja yang sudah di cek/diverifikasi sebelum menulis kode (mis. "sudah cek migration `xxx`, kolom `yyy` memang ada").
-5. **Potential Impact** — dampak potensial dari perubahan.
-6. **Testing Steps** — contoh langkah testing jika diperlukan.
-7. **Open Assumptions** — asumsi yang belum terverifikasi (jika ada), agar user bisa mengonfirmasi.
-
-Format:
-
-```text
-Summary
-Files Changed
-Reasoning
-Verification
-Potential Impact
-Testing Steps
-Open Assumptions
-```
-
-## Confidence Level
-
-- **HIGH:** file telah dibaca, dependency telah diverifikasi.
-- **MEDIUM:** sebagian dependency belum diverifikasi.
-- **LOW:** terdapat asumsi signifikan.
+## Output Requirements
+When producing code, AI must provide:
+1. **Summary** — summary of changes made.
+2. **Files Changed** — list of modified/created files.
+3. **Reasoning** — logic behind the changes.
+4. **Verification** — what was checked/verified before writing code.
+5. **Potential Impact** — potential impact of changes.
+6. **Testing Steps** — example testing steps if required.
+7. **Open Assumptions** — unverified assumptions (if any).

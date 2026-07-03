@@ -4,6 +4,7 @@ namespace App\Models\Master;
 
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -42,6 +43,15 @@ class Product extends Model
         'sellable'        => 'boolean',
         'purchasable'     => 'boolean',
     ];
+
+    protected $appends = [
+        'cover_image_url',
+    ];
+
+    public function getCoverImageUrlAttribute()
+    {
+        return $this->image_url ? \Illuminate\Support\Facades\Storage::url($this->image_url) : null;
+    }
 
     public function category()
     {
@@ -92,5 +102,37 @@ class Product extends Model
     public function inventoryItems()
     {
         return $this->hasMany(InventoryItem::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    public function scopeFilters(Builder $builder, array $filters): Builder
+    {
+        return $builder
+            ->when(
+                $filters['category'] ?? false,
+                fn ($builder, $value) => $builder->whereHas('category', function ($q) use ($value) {
+                    $q->where('id', $value)->orWhere('parent_id', $value);
+                })
+            )
+            ->when(
+                $filters['outlet'] ?? false,
+                fn ($builder, $value) => $builder->whereHas('outlets', function ($q) use ($value) {
+                    $q->where('outlet_id', $value);
+                })
+            )
+            ->when(
+                $filters['search'] ?? false,
+                fn ($builder, $value) => $builder->where(function ($q) use ($value) {
+                    $q->whereLike('name', "%{$value}%")->orWhereLike('code', "%{$value}%");
+                })
+            )->when(
+                $filters['is_deleted'] ?? false,
+                fn (Builder $builder, $value) => $builder->withTrashed()
+            );
+
     }
 }

@@ -29,7 +29,9 @@ const closePage = () => {
         >
             <div class="modal-content h-full flex flex-col">
                 <!-- Modal Header -->
-                <div class="modal-header border-b-0 shrink-0 sticky top-0 p-4">
+                <div
+                    class="modal-header border-b-0 shrink-0 sticky top-0 p-5 pb-2"
+                >
                     <div class="font-bold">
                         <span class="text-xl"
                             >{{ title }}

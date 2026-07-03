@@ -35,7 +35,7 @@ export const mainSidebars = [
             {
                 type: 'item',
                 route: 'master.products.index',
-                label: 'Produk Jual',
+                label: 'Produk',
                 permissions: [],
                 activeRoute: 'master.products.',
             },

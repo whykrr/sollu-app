@@ -22,12 +22,15 @@ class InventoryMovement extends Model
         'reference_id',
         'reference_type',
         'created_by',
+        'purchase_price',
+        'description',
     ];
 
     protected $casts = [
         'qty_change' => 'decimal:4',
         'stock_before' => 'decimal:4',
         'stock_after' => 'decimal:4',
+        'purchase_price' => 'decimal:2',
     ];
 
     public function inventoryItem()

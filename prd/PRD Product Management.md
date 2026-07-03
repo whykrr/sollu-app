@@ -493,7 +493,7 @@ Flow ini diakses saat merchant mengaktifkan flag **`has_variant = true`** pada s
              Kembali ke Main Flow (Step 5: Harga)
 ```
 
-> **UX Note**: Tampilkan preview tabel kombinasi secara real-time saat merchant menambahkan opsi. Merchant tidak perlu memahami konsep "inventory_item" — cukup isi nama & nilai variant.
+> **UX Note**: Tampilkan preview tabel kombinasi secara real-time saat merchant menambahkan opsi. Merchant tidak perlu memahami konsep "inventory_item" — cukup isi nama & nilai variant. Input stok awal, harga beli stok awal, dan keterangan berita acara hanya diisi saat pembuatan produk baru (`!isEdit`).
 
 #### 4.4.4 Lampirkan Modifier ke Produk
 

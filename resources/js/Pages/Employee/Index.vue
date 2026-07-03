@@ -1,6 +1,7 @@
 <template>
     <Container>
         <template #header>
+            <h2 class="text-xl font-bold">Data Pegawai</h2>
             <div class="flex flex-row justify-between gap-2">
                 <div class="flex-1 border-r border-slate-200 pr-2">
                     <Filter :filters="params" :roles />
