@@ -24,7 +24,7 @@
                 placeholder="-- Tidak Ada (Kategori Utama) --"
                 :feedback="form.errors.parent_id"
             />
-            
+
             <NumberField
                 v-model="form.sort_order"
                 label="Urutan (Opsional)"
@@ -95,14 +95,19 @@ watch(
             if (props.category) {
                 form.name = props.category.name;
                 form.parent_id = props.category.parent_id || '';
-                form.sort_order = props.category.sort_order !== null ? String(props.category.sort_order) : '';
+                form.sort_order =
+                    props.category.sort_order !== null
+                        ? String(props.category.sort_order)
+                        : '';
             } else {
                 form.name = '';
-                form.parent_id = props.parentCategory ? props.parentCategory.id : '';
+                form.parent_id = props.parentCategory
+                    ? props.parentCategory.id
+                    : '';
                 form.sort_order = '';
             }
         }
-    }
+    },
 );
 
 // Only root categories can be parents, and a category cannot be its own parent

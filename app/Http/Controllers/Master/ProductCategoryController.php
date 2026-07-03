@@ -9,7 +9,6 @@ use App\Http\Requests\Master\Category\UpdateCategoryRequest;
 use App\Models\Master\ProductCategory;
 use App\Services\Master\CategoryService;
 use Exception;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ProductCategoryController extends Controller
@@ -29,7 +28,7 @@ class ProductCategoryController extends Controller
         $categories = $this->categoryService->getTree();
 
         return Inertia::render('Master/Product/Category/Index', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -40,9 +39,10 @@ class ProductCategoryController extends Controller
     {
         try {
             $this->categoryService->create($request->validated());
+
             return redirect()->back()->with('success', 'Kategori berhasil ditambahkan.');
         } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->back()->with('failed', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -53,9 +53,10 @@ class ProductCategoryController extends Controller
     {
         try {
             $this->categoryService->update($category, $request->validated());
+
             return redirect()->back()->with('success', 'Kategori berhasil diperbarui.');
         } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->back()->with('failed', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -66,9 +67,10 @@ class ProductCategoryController extends Controller
     {
         try {
             $this->categoryService->delete($category);
+
             return redirect()->back()->with('success', 'Kategori berhasil dihapus.');
         } catch (Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->with('failed', $e->getMessage());
         }
     }
 
@@ -79,6 +81,7 @@ class ProductCategoryController extends Controller
     {
         try {
             $this->categoryService->reorder($request->validated()['categories']);
+
             return response()->json(['success' => true, 'message' => 'Urutan berhasil diperbarui.']);
         } catch (Exception $e) {
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 400);

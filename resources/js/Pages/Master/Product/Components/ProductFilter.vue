@@ -31,9 +31,6 @@
             >
                 <FontAwesomeIcon :icon="faClose" />
             </button>
-        </div>
-        <div class="grow"></div>
-        <div>
             <Switch
                 id="switch_regular"
                 name="switch_regular"
@@ -41,6 +38,13 @@
                 size="sm"
                 v-model="filterForm.is_deleted"
             />
+        </div>
+        <div class="grow"></div>
+        <div>
+            <button class="btn btn-sm btn-outline-info">
+                Filter
+                <FontAwesomeIcon :icon="faSliders" />
+            </button>
         </div>
     </div>
 </template>
@@ -53,6 +57,7 @@ import {
     faBox,
     faClose,
     faMapMarkerAlt,
+    faSliders,
     faUserShield,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     public function up(): void
     {
         Schema::create('product_categories', function (Blueprint $table) {
@@ -16,7 +15,7 @@ return new class extends Migration
             $table->integer('sort_order')->default(0);
             $table->timestamps();
             $table->softDeletes();
-            
+
             // $table->foreign('parent_id')->references('id')->on('product_categories')->onDelete('set null');
         });
 
@@ -25,13 +24,13 @@ return new class extends Migration
             $table->uuid('business_id');
             $table->uuid('product_category_id')->nullable();
             $table->enum('product_type', ['basic', 'service', 'bundle']);
-            
+
             // Feature flags
             $table->boolean('has_variant')->default(false);
             $table->boolean('has_modifier')->default(false);
             $table->boolean('has_recipe')->default(false);
             $table->boolean('track_inventory')->default(false);
-            
+
             $table->string('code')->nullable();
             $table->string('name');
             $table->text('description')->nullable();
@@ -40,7 +39,7 @@ return new class extends Migration
             $table->boolean('is_show')->default(true);
             $table->boolean('sellable')->default(true);
             $table->boolean('purchasable')->default(false);
-            
+
             $table->timestamps();
             $table->softDeletes();
         });

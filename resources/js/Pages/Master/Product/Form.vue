@@ -70,7 +70,7 @@
                 </button>
                 <div class="flex gap-2">
                     <button
-                        v-if="currentStep < steps.length - 1"
+                        v-if="currentStep < steps.length - 1 && !isEdit"
                         type="button"
                         class="btn btn-highlight-main"
                         @click="nextStep"
@@ -79,7 +79,7 @@
                         <FontAwesomeIcon :icon="faArrowRight" class="ml-1" />
                     </button>
                     <button
-                        v-else
+                        v-else-if="isEdit"
                         type="button"
                         class="btn btn-success"
                         :disabled="form.processing"
@@ -332,7 +332,9 @@ if (isEdit.value) {
                         sku: invItem.sku || '',
                         barcode: invItem.barcode || '',
                         price: String(price),
-                        stock: String(Math.round(Number(invItem.current_stock))),
+                        stock: String(
+                            Math.round(Number(invItem.current_stock)),
+                        ),
                     };
                 });
 
