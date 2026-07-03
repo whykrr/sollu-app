@@ -1,7 +1,7 @@
 <template>
     <Container>
         <template #header>
-            <h2 class="text-xl font-bold">
+            <h2 class="text-2xl font-bold">
                 <span v-if="!isEdit">Membuat</span>
                 Data Produk
                 <span v-if="!isEdit">Baru</span>

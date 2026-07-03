@@ -6,6 +6,16 @@
         </div>
 
         <!-- Filter Button -->
+        <div>
+            <button
+                type="button"
+                @click="openModal"
+                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
+            >
+                <span>Filter</span>
+                <FontAwesomeIcon :icon="faSliders" />
+            </button>
+        </div>
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
@@ -145,17 +155,6 @@
                     </button>
                 </div>
             </div>
-        </div>
-
-        <div>
-            <button
-                type="button"
-                @click="openModal"
-                class="btn btn-sm btn-outline-info flex items-center gap-1.5 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50 transition"
-            >
-                <span>Filter</span>
-                <FontAwesomeIcon :icon="faSliders" />
-            </button>
         </div>
     </div>
 </template>

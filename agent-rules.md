@@ -271,7 +271,7 @@ import Form from './Components/Form.vue';
 **Standard List/Index Pattern:**
 All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
 
-- `<template #header>`: Contains `<Filter>` component and action buttons (Add).
+- `<template #header>`: Contains `<ContainerHeader>` `<Filter>` component and action buttons (Add).
 - **Default Slot**: Contains `<Table>` component with props `headers`, `data`, `sort`, `sort-direction`.
 - `<template #footer>`: Contains `<Pagination>`.
 

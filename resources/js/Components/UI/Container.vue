@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-3 h-full">
+    <div class="flex flex-col gap-2 h-full">
         <div v-if="$slots.widgets">
             <slot name="widgets" />
         </div>

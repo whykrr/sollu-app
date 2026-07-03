@@ -1,108 +1,55 @@
 <template>
     <Container>
         <template #header>
-            <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full">
+            <ContainerHeader title="Data Outlet">
+                <button
+                    class="btn btn-main px-4 py-2 shadow-xs rounded-lg w-full sm:w-auto justify-center"
+                    @click="handleAddOutlet"
+                >
+                    <FontAwesomeIcon :icon="faPlus" />
+                    <span>Tambah Baru</span>
+                </button>
+            </ContainerHeader>
+            <div
+                class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full"
+            >
                 <div class="flex-1">
                     <Filter :filters="params" />
                 </div>
                 <div class="flex items-center justify-end gap-3">
-                    <div v-if="limit" class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border">
-                        Kuota Outlet: <span class="text-slate-800">{{ limit.current }}</span> / <span class="text-slate-800">{{ limit.max }}</span>
+                    <div
+                        v-if="limit"
+                        class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border"
+                    >
+                        Kuota Outlet:
+                        <span class="text-slate-800">{{ limit.current }}</span>
+                        / <span class="text-slate-800">{{ limit.max }}</span>
                     </div>
-                    <button
-                        class="btn btn-main btn-sm px-4 py-2 shadow-xs rounded-lg w-full sm:w-auto justify-center"
-                        @click="handleAddOutlet"
-                    >
-                        <FontAwesomeIcon :icon="faPlus" />
-                        <span>Tambah Outlet</span>
-                    </button>
-                    <Wizard :show="showForm && !outlet" @close="showForm = false" />
-                    <Detail :show="showForm && !!outlet" :outlet="outlet" @close="showForm = false" />
-
-                    <!-- Modal Upgrade Limit -->
-                    <PopUpPage
-                        v-if="showUpgradeModal"
-                        title="Batas Outlet Tercapai"
-                        size="sm"
-                        class="show"
-                        @close="showUpgradeModal = false"
-                    >
-                        <div class="flex flex-col items-center text-center p-5 space-y-4">
-                            <div class="flex size-16 items-center justify-center rounded-full bg-amber-50 text-amber-500">
-                                <FontAwesomeIcon :icon="faExclamationTriangle" class="text-3xl" />
-                            </div>
-                            <div class="space-y-2">
-                                <h3 class="text-lg font-bold text-slate-800">Kuota Outlet Terbatas</h3>
-                                <p class="text-sm text-slate-500">
-                                    Paket langganan Anda saat ini ({{ limit.is_trial ? 'Masa Trial' : (subscription?.plan?.name || 'Belum Berlangganan') }}) membatasi maksimal {{ limit.max }} outlet.
-                                </p>
-                                <p class="text-xs text-slate-400">
-                                    Silakan upgrade paket langganan Anda untuk menambahkan outlet baru.
-                                </p>
-                            </div>
-                        </div>
-                        <template #footer>
-                            <div class="flex gap-2 w-full">
-                                <button
-                                    class="btn btn-secondary flex-1 justify-center"
-                                    @click="showUpgradeModal = false"
-                                >
-                                    Batal
-                                </button>
-                                <Link
-                                    :href="route('settings.billing.plans')"
-                                    class="btn btn-main flex-1 justify-center text-center"
-                                    as="button"
-                                >
-                                    Upgrade Paket
-                                </Link>
-                            </div>
-                        </template>
-                    </PopUpPage>
-
-                    <!-- Modal Tagihan Penambahan Outlet Belum Dibayar -->
-                    <PopUpPage
-                        v-if="showUnpaidModal"
-                        title="Pembayaran Tertunda"
-                        size="sm"
-                        class="show"
-                        @close="showUnpaidModal = false"
-                    >
-                        <div class="flex flex-col items-center text-center p-5 space-y-4">
-                            <div class="flex size-16 items-center justify-center rounded-full bg-red-50 text-red-500">
-                                <FontAwesomeIcon :icon="faCreditCard" class="text-3xl" />
-                            </div>
-                            <div class="space-y-2">
-                                <h3 class="text-lg font-bold text-slate-800">Pembayaran Diperlukan</h3>
-                                <p class="text-sm text-slate-500">
-                                    Outlet tidak dapat diaktifkan karena invoice penambahan outlet (<strong>{{ unpaidInvoice.number }}</strong>) belum dilunasi.
-                                </p>
-                                <p class="text-xs text-slate-400">
-                                    Silakan selesaikan pembayaran tagihan prorasi terlebih dahulu untuk mengaktifkan outlet ini.
-                                </p>
-                            </div>
-                        </div>
-                        <template #footer>
-                            <div class="flex gap-2 w-full">
-                                <button
-                                    class="btn btn-secondary flex-1 justify-center"
-                                    @click="showUnpaidModal = false"
-                                >
-                                    Batal
-                                </button>
-                                <Link
-                                    :href="unpaidInvoice.url"
-                                    class="btn btn-main flex-1 justify-center text-center"
-                                    as="button"
-                                >
-                                    Bayar Sekarang
-                                </Link>
-                            </div>
-                        </template>
-                    </PopUpPage>
                 </div>
             </div>
         </template>
+
+        <Wizard :show="showForm && !outlet" @close="showForm = false" />
+        <Detail
+            :show="showForm && !!outlet"
+            :outlet="outlet"
+            @close="showForm = false"
+        />
+
+        <!-- Modal Upgrade Limit -->
+        <LimitUpgradeModal
+            :show="showUpgradeModal"
+            :limit="limit"
+            :subscription="subscription"
+            @close="showUpgradeModal = false"
+        />
+
+        <!-- Modal Tagihan Penambahan Outlet Belum Dibayar -->
+        <UnpaidInvoiceModal
+            :show="showUnpaidModal"
+            :unpaid-invoice="unpaidInvoice"
+            @close="showUnpaidModal = false"
+        />
 
         <Table
             :headers="tableSetting"
@@ -113,7 +60,9 @@
         >
             <template #name="{ row }">
                 <div class="flex items-center gap-2">
-                    <span class="font-medium text-slate-800">{{ row.name }}</span>
+                    <span class="font-medium text-slate-800">{{
+                        row.name
+                    }}</span>
                     <span
                         class="badge badge-info text-xs font-semibold whitespace-nowrap"
                         v-if="row.is_main_outlet"
@@ -130,7 +79,9 @@
                     v-if="row.is_active"
                     class="badge pill text-xs badge-success font-semibold px-2.5 py-0.5 inline-flex items-center gap-1"
                 >
-                    <span class="size-1.5 rounded-full bg-white animate-pulse"></span>
+                    <span
+                        class="size-1.5 rounded-full bg-white animate-pulse"
+                    ></span>
                     Aktif
                 </label>
                 <label
@@ -194,18 +145,18 @@ import {
     faPlus,
     faToggleOff,
     faToggleOn,
-    faExclamationTriangle,
-    faCreditCard,
 } from '@fortawesome/free-solid-svg-icons';
 
 import Container from '@/Components/UI/Container.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import Filter from './Components/Filter.vue';
 import Wizard from './Components/Wizard.vue';
 import Detail from './Components/Detail.vue';
+import LimitUpgradeModal from './Components/LimitUpgradeModal.vue';
+import UnpaidInvoiceModal from './Components/UnpaidInvoiceModal.vue';
 import { formatDateTimeSimple } from '@/Composable/date';
+import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
 
 const props = defineProps({
     outlets: Object,
@@ -279,7 +230,7 @@ const enabledOutlet = (id) => {
                     };
                     showUnpaidModal.value = true;
                 }
-            }
+            },
         },
     );
 };

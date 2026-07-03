@@ -1,23 +1,21 @@
 <template>
     <Container>
         <template #header>
-            <h2 class="text-xl font-bold">Data Produk</h2>
-            <div class="flex flex-row justify-between gap-2">
-                <div class="flex-1 border-r border-slate-200 pr-2">
-                    <ProductFilter :filters="filters" :categories="categories" />
-                </div>
-                <div>
-                    <button
-                        class="btn btn-highlight-main btn-sm"
-                        @click="router.visit(route('master.products.create'))"
-                    >
-                        <FontAwesomeIcon :icon="faPlus" />
-                        Produk
-                    </button>
-                </div>
-            </div>
+            <ContainerHeader title="Data Produk">
+                <button class="btn btn-secondary btn-sm">
+                    <FontAwesomeIcon :icon="faUpload" />
+                    Impor CSV
+                </button>
+                <button
+                    class="btn btn-highlight-main"
+                    @click="router.visit(route('master.products.create'))"
+                >
+                    <FontAwesomeIcon :icon="faPlus" />
+                    Tambah Baru
+                </button>
+            </ContainerHeader>
+            <ProductFilter :filters="filters" :categories="categories" />
         </template>
-
         <Table :headers="headers" :data="products.data" :action="true">
             <template #image="{ row }">
                 <img
@@ -87,16 +85,17 @@ import { router } from '@inertiajs/vue3';
 import Container from '@/Components/UI/Container.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
-import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
     faPlus,
     faPencil,
     faTrash,
     faImage,
+    faUpload,
 } from '@fortawesome/free-solid-svg-icons';
 import { debounce } from 'lodash';
 import ProductFilter from './Components/ProductFilter.vue';
+import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
 
 const props = defineProps({
     products: Object,

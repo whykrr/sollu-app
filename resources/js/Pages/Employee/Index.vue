@@ -1,23 +1,20 @@
 <template>
     <Container>
         <template #header>
-            <h2 class="text-xl font-bold">Data Pegawai</h2>
-            <div class="flex flex-row justify-between gap-2">
-                <div class="flex-1 border-r border-slate-200 pr-2">
-                    <Filter :filters="params" :roles />
-                </div>
-                <div>
-                    <button
-                        class="btn btn-highlight-main btn-sm"
-                        @click="showForm = true"
-                    >
-                        <FontAwesomeIcon :icon="faPlus" />
-                        Pegawai
-                    </button>
-                    <Form :show="showForm" :user :roles @close="closeForm" />
-                </div>
-            </div>
+            <ContainerHeader title="Data Pegawai">
+                <button class="btn btn-secondary btn-sm">
+                    <FontAwesomeIcon :icon="faUpload" />
+                    Impor CSV
+                </button>
+                <button class="btn btn-highlight-main" @click="showForm = true">
+                    <FontAwesomeIcon :icon="faPlus" />
+                    Tambah Baru
+                </button>
+            </ContainerHeader>
+            <Filter :filters="params" :roles="roles" />
         </template>
+        <Form :show="showForm" :user :roles @close="closeForm" />
+
         <Table
             :headers="tableHeaders"
             :data="users.data"
@@ -113,11 +110,12 @@ import Container from '@/Components/UI/Container.vue';
 import Table from '@/Components/Tables/Table.vue';
 import { template } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPencil, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPencil, faPlus, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { formatDateTimeSimple } from '@/Composable/date';
 import { ref } from 'vue';
 import Form from '@/Pages/Employee/Components/Form.vue';
 import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue';
+import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
 
 const props = defineProps({
     users: Object,

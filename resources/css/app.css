@@ -915,13 +915,39 @@
         }
     }
 
+    @keyframes overlay-fade-in {
+        from {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+            background-color: rgba(0, 0, 0, 0);
+        }
+        to {
+            opacity: 1;
+            backdrop-filter: blur(4px);
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+    }
+
+    @keyframes modal-scale-up {
+        from {
+            transform: translateY(15px) scale(0.97);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+    }
+
     /* CUSTOM OVERLAY MODAL SYSTEM FOR HIGH Z-INDEX MODALS */
     .overlay-backdrop {
-        @apply fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4;
+        @apply fixed inset-0 z-[9999] flex items-start justify-center p-4 pt-[10vh];
+        animation: overlay-fade-in 0.2s ease-out forwards;
     }
 
     .overlay-modal {
         @apply bg-white w-full rounded-2xl overflow-hidden shadow-2xl border flex flex-col;
+        animation: modal-scale-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .overlay-header {
@@ -942,7 +968,7 @@
 
     /* ACTIVE FILTER BADGES */
     .filter-badge {
-        @apply flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold pl-2.5 pr-1.5 py-1 rounded-lg;
+        @apply flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold pl-2.5 pr-1.5 py-1.5 rounded-lg;
     }
 
     .filter-badge-remove {
