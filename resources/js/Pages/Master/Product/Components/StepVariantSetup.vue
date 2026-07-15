@@ -102,22 +102,10 @@
                                 Barcode
                             </th>
                             <th
-                                v-if="form.track_inventory && !isEdit"
-                                class="p-2 font-semibold text-slate-600 w-24"
+                                v-if="form.track_inventory"
+                                class="p-2 font-semibold text-slate-600 w-28"
                             >
-                                Stok Awal
-                            </th>
-                            <th
-                                v-if="form.track_inventory && !isEdit"
-                                class="p-2 font-semibold text-slate-600 w-36"
-                            >
-                                Harga Beli Stok Awal
-                            </th>
-                            <th
-                                v-if="form.track_inventory && !isEdit"
-                                class="p-2 font-semibold text-slate-600 w-48"
-                            >
-                                Keterangan Stok Awal
+                                Minimal Stok
                             </th>
                         </tr>
                     </thead>
@@ -147,33 +135,13 @@
                                 />
                             </td>
                             <td
-                                v-if="form.track_inventory && !isEdit"
+                                v-if="form.track_inventory"
                                 class="p-2"
                             >
                                 <NumberField
-                                    v-model="combo.stock"
+                                    v-model="combo.min_stock"
                                     class="form-control py-1 text-xs"
-                                    placeholder="Stok"
-                                />
-                            </td>
-                            <td
-                                v-if="form.track_inventory && !isEdit"
-                                class="p-2"
-                            >
-                                <NumberField
-                                    v-model="combo.purchase_price"
-                                    class="form-control py-1 text-xs"
-                                    placeholder="Harga Beli"
-                                />
-                            </td>
-                            <td
-                                v-if="form.track_inventory && !isEdit"
-                                class="p-2"
-                            >
-                                <TextField
-                                    v-model="combo.stock_description"
-                                    class="form-control py-1 text-xs"
-                                    placeholder="Keterangan / Berita Acara"
+                                    placeholder="0"
                                 />
                             </td>
                         </tr>
@@ -192,7 +160,6 @@ import NumberField from '@/Components/Form/NumberField.vue';
 import TextField from '@/Components/Form/TextField.vue';
 
 const form = inject('productForm');
-const isEdit = inject('isEdit');
 const autoGenerateAllSkus = inject('autoGenerateAllSkus');
 
 const addVariantGroup = () => {

@@ -6,16 +6,16 @@
             :label="item.label"
             :separator="item.separator"
         />
-        
+
         <NavigationItem
             v-else-if="item.type === 'item'"
             v-can="item.permissions"
-            :to="route().has(item.route) ? route(item.route) : '#'"
+            :to="item.url"
             :icon="item.icon"
             :label="item.label"
             :active="isActive(item)"
         />
-        
+
         <NavigationDropdown
             v-else-if="item.type === 'dropdown'"
             v-can="item.permissions"
@@ -28,7 +28,7 @@
                 v-for="(submenu, subIndex) in item.items"
                 :key="subIndex"
                 v-can="submenu.permissions"
-                :href="route().has('' + submenu.route) ? route('' + submenu.route) : '#'"
+                :href="submenu.url"
                 class="nav-dropdown-item"
                 :class="{ active: isActive(submenu) }"
             >

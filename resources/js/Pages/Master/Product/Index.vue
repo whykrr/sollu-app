@@ -2,7 +2,7 @@
     <Container>
         <template #header>
             <ContainerHeader title="Data Produk">
-                <button class="btn btn-secondary btn-sm">
+                <button class="btn btn-flat btn-sm">
                     <FontAwesomeIcon :icon="faUpload" />
                     Impor CSV
                 </button>

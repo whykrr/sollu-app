@@ -118,9 +118,7 @@ class ProductService
                             'sku' => $combo['sku'] ?? null,
                             'barcode' => $combo['barcode'] ?? null,
                             'track_inventory' => $product->track_inventory,
-                            'stock' => $combo['stock'] ?? 0,
-                            'purchase_price' => $combo['purchase_price'] ?? null,
-                            'description' => $combo['stock_description'] ?? null,
+                            'min_stock' => $combo['min_stock'] ?? 0,
                             'options' => $optIds,
                         ]);
 
@@ -151,9 +149,7 @@ class ProductService
                     'sku' => $data['code'] ?? null,
                     'barcode' => null,
                     'track_inventory' => $product->track_inventory,
-                    'stock' => $data['stock'] ?? 0,
-                    'purchase_price' => $data['purchase_price'] ?? null,
-                    'description' => $data['stock_description'] ?? null,
+                    'min_stock' => $data['min_stock'] ?? 0,
                 ]);
             }
 
@@ -306,15 +302,14 @@ class ProductService
                                 'sku' => $combo['sku'] ?? null,
                                 'barcode' => $combo['barcode'] ?? null,
                                 'track_inventory' => $product->track_inventory,
-                                'stock' => $combo['stock'] ?? 0,
-                                'purchase_price' => $combo['purchase_price'] ?? null,
-                                'description' => $combo['stock_description'] ?? null,
+                                'min_stock' => $combo['min_stock'] ?? 0,
                                 'options' => $optIds,
                             ]);
                         } else {
                             $invItem->update([
-                                'barcode' => $combo['barcode'] ?? $invItem->barcode,
+                                'barcode'         => $combo['barcode'] ?? $invItem->barcode,
                                 'track_inventory' => $product->track_inventory,
+                                'min_stock'       => $combo['min_stock'] ?? $invItem->min_stock,
                             ]);
                             $invItem->variantGroupOptions()->sync($optIds);
                         }

@@ -148,9 +148,7 @@ const form = useForm({
     recipes: [],
     bundle_items: [],
     modifier_groups: [],
-    stock: '0',
-    purchase_price: '0',
-    stock_description: '',
+    min_stock: '0',
     images: props.product?.images || [],
 });
 
@@ -233,9 +231,7 @@ const updateCombinations = () => {
             sku: existing ? existing.sku : generateSku(options),
             barcode: existing ? existing.barcode : '',
             price: existing ? String(existing.price) : String(form.base_price),
-            stock: existing ? String(existing.stock) : '0',
-            purchase_price: existing ? String(existing.purchase_price) : '0',
-            stock_description: existing ? existing.stock_description : '',
+            min_stock: existing ? String(existing.min_stock) : '0',
         };
     });
 };
@@ -332,8 +328,8 @@ if (isEdit.value) {
                         sku: invItem.sku || '',
                         barcode: invItem.barcode || '',
                         price: String(price),
-                        stock: String(
-                            Math.round(Number(invItem.current_stock)),
+                        min_stock: String(
+                            invItem.min_stock ?? 0,
                         ),
                     };
                 });

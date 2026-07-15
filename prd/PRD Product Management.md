@@ -75,6 +75,7 @@ Selain `product_type`, tabel `products` memiliki boolean flag untuk menandai fit
 | `bundle`     | Composite item (fixed), stok dari komponen | — (tidak ada flag aktif)                                       |
 
 > **Aturan Validasi:**
+>
 > - `service` → `track_inventory` selalu `false`, `has_variant` dan `has_recipe` selalu `false`
 > - `bundle` → Semua flag selalu `false`. Bundle hanya berisi komponen produk saja. Stok di-deduct dari komponen.
 > - Satu produk `basic` bisa sekaligus memiliki variant + modifier + recipe
@@ -119,15 +120,15 @@ Halaman **Kategori Produk** digunakan merchant untuk mengelola hierarki kategori
 
 ### 3.2 Fitur
 
-| Fitur                  | Deskripsi                                                            |
-| ---------------------- | -------------------------------------------------------------------- |
-| List Kategori          | Tampilkan daftar kategori dalam bentuk tree/hierarki yang expandable |
-| Search & Filter        | Cari kategori berdasarkan nama                                       |
-| Sorting                | Atur urutan tampil kategori via drag & drop atau angka urutan        |
-| Create Kategori        | Buat kategori baru (nama, parent opsional, urutan)                   |
-| Edit Kategori          | Ubah nama, parent, atau urutan kategori                              |
-| Delete/Archive         | Hapus atau arsipkan kategori (validasi: tidak boleh ada produk aktif)|
-| Bulk Actions           | Archive beberapa kategori sekaligus                                  |
+| Fitur           | Deskripsi                                                             |
+| --------------- | --------------------------------------------------------------------- |
+| List Kategori   | Tampilkan daftar kategori dalam bentuk tree/hierarki yang expandable  |
+| Search & Filter | Cari kategori berdasarkan nama                                        |
+| Sorting         | Atur urutan tampil kategori via drag & drop atau angka urutan         |
+| Create Kategori | Buat kategori baru (nama, parent opsional, urutan)                    |
+| Edit Kategori   | Ubah nama, parent, atau urutan kategori                               |
+| Delete/Archive  | Hapus atau arsipkan kategori (validasi: tidak boleh ada produk aktif) |
+| Bulk Actions    | Archive beberapa kategori sekaligus                                   |
 
 ### 3.3 Functional Requirements
 
@@ -231,8 +232,8 @@ Merchant dapat:
 
 ### 3.5 Schema Terkait
 
-| Tabel                | Kolom Penting                                    | Deskripsi                                          |
-| -------------------- | ------------------------------------------------ | -------------------------------------------------- |
+| Tabel                | Kolom Penting                                          | Deskripsi                                         |
+| -------------------- | ------------------------------------------------------ | ------------------------------------------------- |
 | `product_categories` | `id`, `business_id`, `parent_id`, `name`, `sort_order` | Hierarki kategori, self-reference via `parent_id` |
 
 ### 3.6 UX Notes
@@ -252,18 +253,18 @@ Halaman **Produk Jual** adalah halaman utama untuk mengelola semua produk yang d
 
 ### 4.2 Fitur
 
-| Fitur                  | Deskripsi                                                                   |
-| ---------------------- | --------------------------------------------------------------------------- |
-| List Produk            | Tampilkan daftar semua produk dengan informasi ringkas                      |
-| Search                 | Cari berdasarkan nama produk, kode, atau SKU                               |
-| Filter                 | Filter berdasarkan: tipe produk, kategori, status (aktif/arsip), outlet    |
-| Sorting                | Urutkan berdasarkan nama, tanggal dibuat, harga, dll                       |
-| Create Produk          | Buat produk baru (basic/service/bundle) via wizard form                    |
-| Edit Produk            | Edit produk existing (semua field + feature flags)                          |
-| Archive Produk         | Arsipkan produk (soft delete, tidak tampil di POS)                         |
-| Duplicate Produk       | Salin produk beserta semua setting (variant, modifier, resep, harga)       |
-| Bulk Actions           | Archive, ubah kategori, atau ubah outlet assignment untuk banyak produk    |
-| Import/Export CSV      | Bulk import produk baru atau export data produk ke CSV                     |
+| Fitur             | Deskripsi                                                               |
+| ----------------- | ----------------------------------------------------------------------- |
+| List Produk       | Tampilkan daftar semua produk dengan informasi ringkas                  |
+| Search            | Cari berdasarkan nama produk, kode, atau SKU                            |
+| Filter            | Filter berdasarkan: tipe produk, kategori, status (aktif/arsip), outlet |
+| Sorting           | Urutkan berdasarkan nama, tanggal dibuat, harga, dll                    |
+| Create Produk     | Buat produk baru (basic/service/bundle) via wizard form                 |
+| Edit Produk       | Edit produk existing (semua field + feature flags)                      |
+| Archive Produk    | Arsipkan produk (soft delete, tidak tampil di POS)                      |
+| Duplicate Produk  | Salin produk beserta semua setting (variant, modifier, resep, harga)    |
+| Bulk Actions      | Archive, ubah kategori, atau ubah outlet assignment untuk banyak produk |
+| Import/Export CSV | Bulk import produk baru atau export data produk ke CSV                  |
 
 ### 4.3 Functional Requirements
 
@@ -487,13 +488,14 @@ Flow ini diakses saat merchant mengaktifkan flag **`has_variant = true`** pada s
          └──────────┬───────────────┘
                     ↓
          ┌──────────────────────────┐
-         │  Set Stock per Kombinasi │  ← Jika track_inventory = true, isi stok awal
+         │  Set Minimal Stok per    │  ← Jika track_inventory = true
+         │  Kombinasi               │     Batas notifikasi stok menipis
          └──────────────────────────┘
                     ↓
              Kembali ke Main Flow (Step 5: Harga)
 ```
 
-> **UX Note**: Tampilkan preview tabel kombinasi secara real-time saat merchant menambahkan opsi. Merchant tidak perlu memahami konsep "inventory_item" — cukup isi nama & nilai variant. Input stok awal, harga beli stok awal, dan keterangan berita acara hanya diisi saat pembuatan produk baru (`!isEdit`).
+> **UX Note**: Tampilkan preview tabel kombinasi secara real-time saat merchant menambahkan opsi. Merchant tidak perlu memahami konsep "inventory_item" — cukup isi nama & nilai variant.
 
 #### 4.4.4 Lampirkan Modifier ke Produk
 
@@ -683,18 +685,18 @@ Dari Product List → Pilih Produk → Klik "Duplikat"
 
 ### 4.5 Schema Terkait
 
-| Tabel                     | Deskripsi                                                              |
-| ------------------------- | ---------------------------------------------------------------------- |
-| `products`                | Entitas utama produk (semua tipe)                                      |
-| `variant_groups`          | Definisi dimensi variant (Size, Color, dll)                            |
-| `variant_group_options`   | Nilai opsi variant (S, M, L, dll)                                      |
-| `product_modifier_groups` | Pivot: produk ↔ modifier group                                         |
-| `recipe_versions`         | Riwayat versi resep produk                                             |
-| `product_recipe_items`    | Detail bahan baku per versi resep                                      |
-| `product_bundle_items`    | Komposisi komponen bundle                                              |
-| `product_prices`          | Harga produk (base, outlet, variant)                                   |
-| `outlet_product`          | Assignment & availability produk per outlet                            |
-| `inventory_items`         | Unit stok (variant SKU / raw material)                                 |
+| Tabel                     | Deskripsi                                   |
+| ------------------------- | ------------------------------------------- |
+| `products`                | Entitas utama produk (semua tipe)           |
+| `variant_groups`          | Definisi dimensi variant (Size, Color, dll) |
+| `variant_group_options`   | Nilai opsi variant (S, M, L, dll)           |
+| `product_modifier_groups` | Pivot: produk ↔ modifier group              |
+| `recipe_versions`         | Riwayat versi resep produk                  |
+| `product_recipe_items`    | Detail bahan baku per versi resep           |
+| `product_bundle_items`    | Komposisi komponen bundle                   |
+| `product_prices`          | Harga produk (base, outlet, variant)        |
+| `outlet_product`          | Assignment & availability produk per outlet |
+| `inventory_items`         | Unit stok (variant SKU / raw material)      |
 
 ### 4.6 UX Notes
 
@@ -713,16 +715,16 @@ Halaman **Opsi Tambahan** digunakan merchant untuk mengelola **Modifier Group** 
 
 ### 5.2 Fitur
 
-| Fitur                      | Deskripsi                                                                   |
-| -------------------------- | --------------------------------------------------------------------------- |
-| List Modifier Group        | Tampilkan daftar semua modifier group dengan info opsi & produk terpasang   |
-| Search & Filter            | Cari modifier group berdasarkan nama                                        |
-| Sorting                    | Urutkan berdasarkan nama atau tanggal dibuat                                |
-| Create Modifier Group      | Buat group baru (nama, tipe seleksi, opsi, batas, kewajiban)               |
-| Edit Modifier Group        | Ubah nama, tipe, opsi, atau pengaturan group                               |
-| Delete Modifier Group      | Hapus group (validasi: tidak boleh terpasang ke produk aktif)               |
-| Bulk Actions               | Archive beberapa modifier group sekaligus                                   |
-| Lihat Produk Terpasang     | Lihat daftar produk yang menggunakan modifier group ini                     |
+| Fitur                  | Deskripsi                                                                 |
+| ---------------------- | ------------------------------------------------------------------------- |
+| List Modifier Group    | Tampilkan daftar semua modifier group dengan info opsi & produk terpasang |
+| Search & Filter        | Cari modifier group berdasarkan nama                                      |
+| Sorting                | Urutkan berdasarkan nama atau tanggal dibuat                              |
+| Create Modifier Group  | Buat group baru (nama, tipe seleksi, opsi, batas, kewajiban)              |
+| Edit Modifier Group    | Ubah nama, tipe, opsi, atau pengaturan group                              |
+| Delete Modifier Group  | Hapus group (validasi: tidak boleh terpasang ke produk aktif)             |
+| Bulk Actions           | Archive beberapa modifier group sekaligus                                 |
+| Lihat Produk Terpasang | Lihat daftar produk yang menggunakan modifier group ini                   |
 
 ### 5.3 Functional Requirements
 
@@ -730,12 +732,12 @@ Merchant dapat:
 
 - Melihat daftar semua Modifier Group yang sudah dibuat
 - Membuat Modifier Group baru dengan:
-  - Nama group (contoh: "Tingkat Manis", "Pilihan Topping")
-  - Tipe seleksi: `single` (pilih 1) atau `multi` (pilih banyak)
-  - Wajib/opsional (`is_required`)
-  - Batas maksimum pilihan (`max_select`, untuk tipe `multi`)
-  - Daftar opsi (nama + harga tambahan + default flag)
-  - (Opsional) Sambungkan opsi ke bahan baku untuk auto stock deduction
+    - Nama group (contoh: "Tingkat Manis", "Pilihan Topping")
+    - Tipe seleksi: `single` (pilih 1) atau `multi` (pilih banyak)
+    - Wajib/opsional (`is_required`)
+    - Batas maksimum pilihan (`max_select`, untuk tipe `multi`)
+    - Daftar opsi (nama + harga tambahan + default flag)
+    - (Opsional) Sambungkan opsi ke bahan baku untuk auto stock deduction
 - Mengedit Modifier Group existing
 - Menghapus Modifier Group (dengan validasi produk terkait)
 - Melihat daftar produk yang menggunakan modifier group tertentu
@@ -853,12 +855,12 @@ Merchant dapat:
 
 ### 5.5 Schema Terkait
 
-| Tabel                     | Kolom Penting                                                           | Deskripsi                                         |
-| ------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------- |
-| `modifier_groups`         | `id`, `name`, `selection_type`, `max_select`, `is_required`             | Definisi modifier group (reusable)                |
-| `modifier_options`        | `id`, `modifier_group_id`, `name`, `additional_price`, `is_default`     | Opsi individual dalam modifier group              |
-| `product_modifier_groups` | `modifier_group_id`, `product_id`                                       | Pivot: modifier group ↔ produk                    |
-| `modifier_recipe_items`   | `id`, `modifier_option_id`, `inventory_item_id`, `qty`, `uom`           | Link opsi modifier ke bahan baku (auto deduction) |
+| Tabel                     | Kolom Penting                                                       | Deskripsi                                         |
+| ------------------------- | ------------------------------------------------------------------- | ------------------------------------------------- |
+| `modifier_groups`         | `id`, `name`, `selection_type`, `max_select`, `is_required`         | Definisi modifier group (reusable)                |
+| `modifier_options`        | `id`, `modifier_group_id`, `name`, `additional_price`, `is_default` | Opsi individual dalam modifier group              |
+| `product_modifier_groups` | `modifier_group_id`, `product_id`                                   | Pivot: modifier group ↔ produk                    |
+| `modifier_recipe_items`   | `id`, `modifier_option_id`, `inventory_item_id`, `qty`, `uom`       | Link opsi modifier ke bahan baku (auto deduction) |
 
 ### 5.6 UX Notes
 
@@ -1100,7 +1102,7 @@ erDiagram
         varchar sku
         varchar barcode
         boolean track_inventory
-        decimal current_stock
+        decimal min_stock "batas notifikasi stok menipis"
     }
 
     inventory_item_variant_group_option {
@@ -1178,10 +1180,10 @@ erDiagram
 
 #### Domain 1: Product Core
 
-| Tabel                | Tujuan                                                                                                                                                                                                                          |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tabel                | Tujuan                                                                                                                                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `products`           | Entitas utama produk. `product_type` (basic/service/bundle) menentukan behavior dasar. Boolean flags (`has_variant`, `has_modifier`, `has_recipe`, `track_inventory`) menentukan fitur tambahan yang aktif. |
-| `product_categories` | Hierarki kategori produk. Mendukung nested category via `parent_id` self-reference.                                                                                                                                             |
+| `product_categories` | Hierarki kategori produk. Mendukung nested category via `parent_id` self-reference.                                                                                                                         |
 
 **Kolom Kritis:**
 
@@ -1197,18 +1199,18 @@ erDiagram
 
 #### Domain 2: Variant
 
-| Tabel                                       | Tujuan                                                                                        |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `variant_groups`                            | Dimensi/atribut variant. Contoh: "Ukuran", "Warna".                                          |
-| `variant_group_options`                     | Nilai dari setiap variant group. Contoh: S, M, L.                                             |
-| `inventory_items` (item_type = variant_sku) | Setiap kombinasi variant sebagai inventory unit terpisah. Menyimpan SKU, barcode, dan stok.   |
-| `inventory_item_variant_group_option`       | Pivot yang memetakan kombinasi variant ke option-option yang membentuknya.                    |
+| Tabel                                       | Tujuan                                                                                      |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `variant_groups`                            | Dimensi/atribut variant. Contoh: "Ukuran", "Warna".                                         |
+| `variant_group_options`                     | Nilai dari setiap variant group. Contoh: S, M, L.                                           |
+| `inventory_items` (item_type = variant_sku) | Setiap kombinasi variant sebagai inventory unit terpisah. Menyimpan SKU, barcode, dan stok. |
+| `inventory_item_variant_group_option`       | Pivot yang memetakan kombinasi variant ke option-option yang membentuknya.                  |
 
 **Kolom Kritis:**
 
 - `inventory_items.item_type` — discriminator: `variant_sku` untuk stok varian, `raw_material` untuk bahan baku
 - `inventory_items.track_inventory` — toggle apakah stok varian ini dipantau
-- `inventory_items.current_stock` — stok aktual; diupdate melalui inventory movement
+- `inventory_items.min_stock` — batas minimal stok; digunakan sebagai notifikasi stok menipis
 
 **Use Case:** Merchant membuat Kaos dengan variant Ukuran (S,M,L) × Warna (Merah, Biru). Sistem menghasilkan 6 kombinasi inventory_item, masing-masing dengan SKU & stok sendiri.
 
@@ -1216,12 +1218,12 @@ erDiagram
 
 #### Domain 3: Modifier
 
-| Tabel                     | Tujuan                                                                                  |
-| ------------------------- | --------------------------------------------------------------------------------------- |
-| `modifier_groups`         | Definisi modifier group (reusable). Contoh: "Tingkat Manis", "Pilihan Topping".         |
-| `modifier_options`        | Opsi individual. Contoh: "Extra Sweet", "Less Sweet". Menyimpan `additional_price`.     |
-| `product_modifier_groups` | Pivot: produk ↔ modifier group. Many-to-many relationship.                               |
-| `modifier_recipe_items`   | Link opsi modifier ke bahan baku untuk auto stock deduction.                             |
+| Tabel                     | Tujuan                                                                              |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| `modifier_groups`         | Definisi modifier group (reusable). Contoh: "Tingkat Manis", "Pilihan Topping".     |
+| `modifier_options`        | Opsi individual. Contoh: "Extra Sweet", "Less Sweet". Menyimpan `additional_price`. |
+| `product_modifier_groups` | Pivot: produk ↔ modifier group. Many-to-many relationship.                          |
+| `modifier_recipe_items`   | Link opsi modifier ke bahan baku untuk auto stock deduction.                        |
 
 **Kolom Kritis:**
 
@@ -1236,10 +1238,10 @@ erDiagram
 
 #### Domain 4: Recipe / BOM
 
-| Tabel                  | Tujuan                                                                                            |
-| ---------------------- | ------------------------------------------------------------------------------------------------- |
-| `recipe_versions`      | Riwayat versi resep. Setiap perubahan membuat row baru. Hanya 1 versi `is_active = true`.        |
-| `product_recipe_items` | Detail bahan baku per versi resep. Menyimpan `inventory_item_id`, `qty`, dan `uom`.              |
+| Tabel                  | Tujuan                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| `recipe_versions`      | Riwayat versi resep. Setiap perubahan membuat row baru. Hanya 1 versi `is_active = true`. |
+| `product_recipe_items` | Detail bahan baku per versi resep. Menyimpan `inventory_item_id`, `qty`, dan `uom`.       |
 
 **Kolom Kritis:**
 
@@ -1253,9 +1255,9 @@ erDiagram
 
 #### Domain 5: Bundle
 
-| Tabel                  | Tujuan                                                                     |
-| ---------------------- | -------------------------------------------------------------------------- |
-| `product_bundle_items` | Komposisi fixed bundle. Setiap row: produk apa, variant mana, qty berapa.  |
+| Tabel                  | Tujuan                                                                    |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `product_bundle_items` | Komposisi fixed bundle. Setiap row: produk apa, variant mana, qty berapa. |
 
 **Kolom Kritis:**
 
@@ -1270,9 +1272,9 @@ erDiagram
 
 #### Domain 6: Pricing
 
-| Tabel            | Tujuan                                                                                           |
-| ---------------- | ------------------------------------------------------------------------------------------------ |
-| `product_prices` | Harga produk 3 level: (1) harga dasar, (2) harga per outlet, (3) harga per variant.            |
+| Tabel            | Tujuan                                                                              |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `product_prices` | Harga produk 3 level: (1) harga dasar, (2) harga per outlet, (3) harga per variant. |
 
 **Kolom Kritis:**
 
@@ -1286,8 +1288,8 @@ erDiagram
 
 #### Domain 7: Outlet & Availability
 
-| Tabel            | Tujuan                                                                    |
-| ---------------- | ------------------------------------------------------------------------- |
+| Tabel            | Tujuan                                                                          |
+| ---------------- | ------------------------------------------------------------------------------- |
 | `outlet_product` | Kontrol enabled & available per outlet. Memisahkan konsep enabled vs available. |
 
 **Kolom Kritis:**
@@ -1301,10 +1303,10 @@ erDiagram
 
 #### Domain 8: Inventory Ledger
 
-| Tabel                 | Tujuan                                                                        |
-| --------------------- | ----------------------------------------------------------------------------- |
-| `inventory_items`     | Unit stok: variant_sku atau raw_material.                                     |
-| `inventory_movements` | Ledger pergerakan stok. Setiap perubahan stok menghasilkan satu row.         |
+| Tabel                 | Tujuan                                                               |
+| --------------------- | -------------------------------------------------------------------- |
+| `inventory_items`     | Unit stok: variant_sku atau raw_material.                            |
+| `inventory_movements` | Ledger pergerakan stok. Setiap perubahan stok menghasilkan satu row. |
 
 **Kolom Kritis di `inventory_movements`:**
 
@@ -1317,9 +1319,9 @@ erDiagram
 
 #### Domain 9: Audit Log
 
-| Tabel        | Tujuan                                                                     |
-| ------------ | -------------------------------------------------------------------------- |
-| `audit_logs` | Catatan semua perubahan penting. Snapshot `before_value` & `after_value`.  |
+| Tabel        | Tujuan                                                                    |
+| ------------ | ------------------------------------------------------------------------- |
+| `audit_logs` | Catatan semua perubahan penting. Snapshot `before_value` & `after_value`. |
 
 **Kolom Kritis:**
 
@@ -1334,14 +1336,14 @@ erDiagram
 
 ## 9. Non Functional Requirements
 
-| Category      | Requirement                                                                  |
-| ------------- | ---------------------------------------------------------------------------- |
-| Scalability   | Support >100k products                                                       |
-| Performance   | Product search <300ms                                                        |
-| Flexibility   | Multi-business adaptable                                                     |
+| Category      | Requirement                                                                   |
+| ------------- | ----------------------------------------------------------------------------- |
+| Scalability   | Support >100k products                                                        |
+| Performance   | Product search <300ms                                                         |
+| Flexibility   | Multi-business adaptable                                                      |
 | Reliability   | Accurate inventory linkage, no race condition pada stock deduction concurrent |
-| Extensibility | Mudah tambah product type                                                    |
-| Auditability  | Semua perubahan produk/harga/resep tercatat & traceable                      |
+| Extensibility | Mudah tambah product type                                                     |
+| Auditability  | Semua perubahan produk/harga/resep tercatat & traceable                       |
 
 ---
 
@@ -1403,12 +1405,12 @@ erDiagram
 
 ## 12. Success Metrics
 
-| Metric                              | Target                                |
-| ----------------------------------- | ------------------------------------- |
-| Product Creation Success            | >99%                                  |
-| Product Search Response             | <300ms                                |
-| Variant Accuracy                    | 100%                                  |
-| Inventory Deduction Accuracy        | 100%                                  |
-| POS Product Load Time               | <1 second                             |
-| Audit Log Completeness              | 100% event tercatat                   |
-| Inventory Movement Reconciliation   | 0 selisih stok tak terjelaskan / hari |
+| Metric                            | Target                                |
+| --------------------------------- | ------------------------------------- |
+| Product Creation Success          | >99%                                  |
+| Product Search Response           | <300ms                                |
+| Variant Accuracy                  | 100%                                  |
+| Inventory Deduction Accuracy      | 100%                                  |
+| POS Product Load Time             | <1 second                             |
+| Audit Log Completeness            | 100% event tercatat                   |
+| Inventory Movement Reconciliation | 0 selisih stok tak terjelaskan / hari |

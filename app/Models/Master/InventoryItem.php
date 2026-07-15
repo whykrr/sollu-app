@@ -5,10 +5,14 @@ namespace App\Models\Master;
 use App\Trait\HasBusiness;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InventoryItem extends Model
 {
-    use HasUuids, HasBusiness;
+    use HasUuids;
+    use HasBusiness;
 
     protected $fillable = [
         'business_id',
@@ -18,25 +22,28 @@ class InventoryItem extends Model
         'sku',
         'barcode',
         'track_inventory',
-        'current_stock',
+        'min_stock',
     ];
 
-    protected $casts = [
-        'track_inventory' => 'boolean',
-        'current_stock' => 'decimal:4',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'track_inventory' => 'boolean',
+            'min_stock'       => 'decimal:4',
+        ];
+    }
 
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function variantGroupOptions()
+    public function variantGroupOptions(): BelongsToMany
     {
         return $this->belongsToMany(VariantGroupOption::class, 'inventory_item_variant_group_option');
     }
 
-    public function movements()
+    public function movements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class);
     }

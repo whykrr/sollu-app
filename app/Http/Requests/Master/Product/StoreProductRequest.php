@@ -62,10 +62,8 @@ class StoreProductRequest extends FormRequest
             'outlets.*.is_enabled'        => 'boolean',
             'outlets.*.is_available'      => 'boolean',
 
-            // Initial stock
-            'stock'                       => 'nullable|numeric|min:0',
-            'purchase_price'              => 'nullable|numeric|min:0',
-            'stock_description'           => 'nullable|string',
+            // Minimum stock
+            'min_stock'                   => 'nullable|numeric|min:0',
 
             // Multiple images
             'images'                      => 'nullable|array',
@@ -86,9 +84,7 @@ class StoreProductRequest extends FormRequest
                 $rules['variant_combinations.*.sku']           = 'nullable|string';
                 $rules['variant_combinations.*.barcode']       = 'nullable|string';
                 $rules['variant_combinations.*.price']         = 'nullable|numeric|min:0';
-                $rules['variant_combinations.*.stock']         = 'nullable|numeric|min:0';
-                $rules['variant_combinations.*.purchase_price']            = 'nullable|numeric|min:0';
-                $rules['variant_combinations.*.stock_description']         = 'nullable|string';
+                $rules['variant_combinations.*.min_stock']     = 'nullable|numeric|min:0';
                 $rules['variant_combinations.*.outlet_prices']             = 'nullable|array';
                 $rules['variant_combinations.*.outlet_prices.*.outlet_id'] = 'required|uuid|exists:outlets,id';
                 $rules['variant_combinations.*.outlet_prices.*.amount']    = 'required|numeric|min:0';

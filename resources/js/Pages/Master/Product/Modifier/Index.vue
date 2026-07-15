@@ -1,23 +1,17 @@
 <template>
     <Container>
         <template #header>
-            <h2 class="text-xl font-bold">Data Opsi Tambahan</h2>
-            <div class="flex flex-row justify-between gap-2">
-                <div class="flex-1 border-r border-slate-200 pr-2">
-                    <div class="flex items-center gap-2">
-                        <div>
-                            <FilterSearch v-model="search" />
-                        </div>
+            <ContainerHeader title="Data Opsi Tambahan Produk">
+                <button class="btn btn-highlight-main" @click="openModal()">
+                    <FontAwesomeIcon :icon="faPlus" />
+                    Tambah Baru
+                </button>
+            </ContainerHeader>
+            <div class="flex-1 border-r border-slate-200 pr-2">
+                <div class="flex items-center gap-2">
+                    <div>
+                        <FilterSearch v-model="search" />
                     </div>
-                </div>
-                <div>
-                    <button
-                        class="btn btn-highlight-main btn-sm"
-                        @click="openModal()"
-                    >
-                        <FontAwesomeIcon :icon="faPlus" />
-                        Grup Tambahan
-                    </button>
                 </div>
             </div>
         </template>
@@ -194,6 +188,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { debounce } from 'lodash';
 import { useModalStore } from '@/store/notification';
+import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
 
 const props = defineProps({
     modifiers: Object,

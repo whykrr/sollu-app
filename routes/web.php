@@ -10,7 +10,6 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'index'])->name('login');
@@ -86,6 +85,7 @@ Route::middleware('auth:business')->group(function () {
     Route::get('/', OverviewController::class)->name('overview');
 
     require __DIR__ . '/web/masters.php';
+    require __DIR__ . '/web/inventories.php';
     require __DIR__ .'/web/employees.php';
     require __DIR__ .'/web/settings.php';
     require __DIR__ .'/web/template.php';

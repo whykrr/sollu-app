@@ -310,7 +310,7 @@ class MasterProductSeeder extends Seeder
                     [
                         'item_type' => 'variant_sku',
                         'track_inventory' => $product->track_inventory,
-                        'current_stock' => $product->track_inventory ? rand(10, 50) : 0,
+                        'min_stock'       => rand(3, 10),
                     ]
                 );
                 $inv1->variantGroupOptions()->sync([$opt1->id]);
@@ -324,7 +324,7 @@ class MasterProductSeeder extends Seeder
                     [
                         'item_type' => 'variant_sku',
                         'track_inventory' => $product->track_inventory,
-                        'current_stock' => $product->track_inventory ? rand(10, 50) : 0,
+                        'min_stock'       => rand(3, 10),
                     ]
                 );
                 $inv2->variantGroupOptions()->sync([$opt2->id]);
@@ -339,7 +339,7 @@ class MasterProductSeeder extends Seeder
                     [
                         'item_type' => 'variant_sku',
                         'track_inventory' => $product->track_inventory,
-                        'current_stock' => $product->track_inventory ? rand(10, 100) : 0,
+                        'min_stock'       => rand(3, 10),
                     ]
                 );
             }

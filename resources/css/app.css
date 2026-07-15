@@ -809,6 +809,10 @@
             @apply disabled:bg-transparent disabled:border-gray-300 disabled:hover:brightness-100;
         }
 
+        &.btn-flat {
+            @apply !border !border-gray-200 hover:!border-gray-300 !bg-white;
+        }
+
         &.link {
             @apply underline;
         }
