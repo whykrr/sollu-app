@@ -78,7 +78,6 @@ class HandleInertiaRequests extends Middleware
                         ['selected_outlet' => '']
                     ) : null,
 
-                'notifications' => Inertia::lazy(fn () => $request->user()->notifications()->get()),
                 'businessInfo'  => Inertia::lazy(function () use ($request) {
                     $business = $request->user()->business;
 

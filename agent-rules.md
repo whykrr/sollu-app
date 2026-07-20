@@ -187,6 +187,13 @@ For complex operations, business logic must reside in a Service.
     - `PUT /{model}/restore` → `restore` (using `->withTrashed()`)
     - `DELETE /{model}/destroy` → `destroy` (force delete)
 
+### CSV Import/Export Pattern
+- **Background Processing:** Both Import and Export of potentially large CSV files must be processed in the background using Queued Jobs.
+- **Base Abstract Jobs:** Extend `AbstractCsvExportJob` and `AbstractCsvImportJob` (located in `app/Jobs/`) to ensure a consistent approach to chunking data and writing/reading rows.
+- **Import Error Handling:** Validation errors during import must NOT cause the entire job to fail. Instead, collect the failed rows, generate a new CSV containing these rows with an added "Error Message" column, and store it.
+- **Notifications:** Use Laravel Notifications (`CsvExportCompleted`, `CsvImportCompleted`) to inform the user. The Import notification must include a download link to the failed rows CSV if any validation errors occurred.
+- **Template Generation:** Import templates should include a dummy row as an example for users. Use case-insensitive matching for relationships (like UOM name) to improve UX.
+
 ### Logging & Seeder
 
 - **Logging:** Log only Errors, Integration failures, Payment failures, and Critical events. Do not spam logs.
@@ -363,6 +370,7 @@ All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
 ### Tables Components (`@/Components/Tables/`)
 
 - **Table.vue**: Data table (`headers`, `data`, `sort`, `sortDirection`, `action`). Custom slots supported via `col.slot`.
+- terdapat properti actions, gunakan true jika terdapat button actions, dan ubah custom template pada #actions (jangan gunakan kolom action pada setting table nya)
 - **Pagination.vue**: Paginator (`links`, `from`, `to`, `total`, `perPage`). Uses Inertia `<Link>`.
 
 ---

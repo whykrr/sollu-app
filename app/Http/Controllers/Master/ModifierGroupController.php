@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
-use App\Models\Master\ModifierGroup;
-use App\Services\Master\ModifierService;
 use App\Http\Requests\Master\StoreModifierGroupRequest;
 use App\Http\Requests\Master\UpdateModifierGroupRequest;
+use App\Models\Master\ModifierGroup;
+use App\Services\Master\ModifierService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -36,7 +36,7 @@ class ModifierGroupController extends Controller
 
     public function store(StoreModifierGroupRequest $request)
     {
-        $data = $request->validated();
+        $data                = $request->validated();
         $data['business_id'] = auth()->user()->business_id ?? \App\Models\Business::first()->id;
 
         $this->modifierService->createGroup($data);
@@ -57,9 +57,9 @@ class ModifierGroupController extends Controller
         if ($modifier->products()->exists()) {
             return redirect()->back()->with('error', 'Modifier sedang digunakan oleh produk aktif.');
         }
-        
+
         $this->modifierService->deleteGroup($modifier);
-        
+
         return redirect()->back()->with('success', 'Modifier berhasil dihapus');
     }
 }

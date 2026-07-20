@@ -26,7 +26,11 @@
                                 />
                                 <FontAwesomeIcon
                                     v-else
-                                    :icon="sortOrder === 'asc' ? faSortUp : faSortDown"
+                                    :icon="
+                                        sortOrder === 'asc'
+                                            ? faSortUp
+                                            : faSortDown
+                                    "
                                     class="text-neutral-800 transition-colors duration-150"
                                 />
                             </div>
@@ -47,15 +51,27 @@
                             :key="col.field"
                             :class="getResponsiveClass(col.show)"
                         >
-                            <slot v-if="col.slot" :name="col.slot" :row="row" />
-                            <template v-else>{{ row[col.field] }}</template>
+                            <slot
+                                v-if="col.slot"
+                                :name="col.slot"
+                                :row="row"
+                                :item="row"
+                            />
+                            <template v-else-if="row[col.field]">{{
+                                row[col.field]
+                            }}</template>
+                            <template v-else>-</template>
                         </td>
                         <td>
                             <span class="text-sm" v-if="!action">
                                 <FontAwesomeIcon :icon="faEllipsis" />
                             </span>
                             <div class="flex gap-1" v-else>
-                                <slot name="actions" :row="row"></slot>
+                                <slot
+                                    name="actions"
+                                    :row="row"
+                                    :item="row"
+                                ></slot>
                             </div>
                         </td>
                     </tr>

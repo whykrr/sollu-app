@@ -8,7 +8,7 @@ export const settingSidebars = [
     },
     {
         type: 'item',
-        route: 'settings.account.profile',
+        url: route('settings.account.profile'),
         icon: faUserCircle,
         label: 'Pusat Akun',
         permissions: [],
@@ -21,7 +21,7 @@ export const settingSidebars = [
     },
     {
         type: 'item',
-        route: 'settings.business.detail',
+        url: route('settings.business.detail'),
         icon: faShop,
         label: 'Detail Usaha',
         permissions: ['business.view'],
@@ -29,7 +29,7 @@ export const settingSidebars = [
     },
     {
         type: 'item',
-        route: 'settings.outlets.index',
+        url: route('settings.outlets.index'),
         icon: faMapMarkerAlt,
         label: 'Outlet',
         permissions: ['outlet.view'],
@@ -37,7 +37,7 @@ export const settingSidebars = [
     },
     {
         type: 'item',
-        route: 'settings.billing.index',
+        url: route('settings.billing.index'),
         icon: faCreditCard,
         label: 'Langganan & Tagihan',
         permissions: ['business.billing'],
@@ -50,7 +50,7 @@ export const settingSidebars = [
     },
     {
         type: 'item',
-        route: '#',
+        url: '#',
         icon: faCog,
         label: 'Konfigurasi Umum',
         permissions: [],
@@ -58,7 +58,7 @@ export const settingSidebars = [
     },
     {
         type: 'item',
-        route: '#',
+        url: '#',
         icon: faCashRegister,
         label: 'Pengaturan Kasir',
         permissions: [],
@@ -66,7 +66,7 @@ export const settingSidebars = [
     },
     {
         type: 'item',
-        route: '#',
+        url: '#',
         icon: faReceipt,
         label: 'Nota',
         permissions: [],
@@ -74,7 +74,7 @@ export const settingSidebars = [
     },
     {
         type: 'item',
-        route: '#',
+        url: '#',
         icon: faBoxes,
         label: 'Inventori',
         permissions: [],
@@ -82,7 +82,7 @@ export const settingSidebars = [
     },
     {
         type: 'item',
-        route: '#',
+        url: '#',
         icon: faUserShield,
         label: 'Hak Akses',
         permissions: [],

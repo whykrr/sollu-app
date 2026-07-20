@@ -1,6 +1,8 @@
 <?php
 
 use App\Helpers\SelectedOutlet;
+use App\Http\Controllers\GeneralController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\LoginController;
@@ -70,6 +72,12 @@ Route::middleware('auth:business')->group(function () {
     })->middleware(['throttle:6,5'])->name('verification.send');
 
     Route::prefix('switch-outlet')->name('switch.')->group(function () {
+        Route::get('/dashboard', function () {
+            return inertia('Dashboard');
+        })->name('dashboard');
+
+
+
         Route::post('/all', function () {
             SelectedOutlet::make()->all();
 
@@ -80,6 +88,14 @@ Route::middleware('auth:business')->group(function () {
 
             return back();
         })->where('id', '[0-9a-fA-F\-]{36}')->name('outlet');
+    });
+
+    // Internal APIs
+    Route::prefix('api/internal')->name('api.internal.')->group(function () {
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     });
 
     Route::get('/', OverviewController::class)->name('overview');

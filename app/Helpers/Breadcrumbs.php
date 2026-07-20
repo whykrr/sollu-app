@@ -101,6 +101,40 @@ if (! function_exists('generateBreadcrumbs')) {
                 ['label' => 'Pembayaran', 'url' => $settingsBillingUrl],
                 ['label' => 'Tagihan', 'url' => '#'],
             ],
+
+            // Inventory Module
+            'inventories.stocks.index' => [
+                ['label' => 'Inventori', 'url' => '#'],
+                ['label' => 'Stok', 'url' => route('inventories.stocks.index')],
+            ],
+            'inventories.movements.index' => [
+                ['label' => 'Inventori', 'url' => '#'],
+                ['label' => 'Pergerakan Stok', 'url' => route('inventories.movements.index')],
+            ],
+            'inventory.raw-materials.index' => [
+                ['label' => 'Inventori', 'url' => '#'],
+                ['label' => 'Bahan Baku', 'url' => route('inventory.raw-materials.index')],
+            ],
+            'inventory.suppliers.index' => [
+                ['label' => 'Inventori', 'url' => '#'],
+                ['label' => 'Pemasok / Supplier', 'url' => route('inventory.suppliers.index')],
+            ],
+            'inventory.purchases.index' => [
+                ['label' => 'Inventori', 'url' => '#'],
+                ['label' => 'Pembelian (PO)', 'url' => route('inventory.purchases.index')],
+            ],
+            'inventory.stocktaking.index' => [
+                ['label' => 'Inventori', 'url' => '#'],
+                ['label' => 'Stok Opname', 'url' => route('inventory.stocktaking.index')],
+            ],
+            'inventory.adjustments.index' => [
+                ['label' => 'Inventori', 'url' => '#'],
+                ['label' => 'Penyesuaian Stok', 'url' => route('inventory.adjustments.index')],
+            ],
+            'inventory.transfers.index' => [
+                ['label' => 'Inventori', 'url' => '#'],
+                ['label' => 'Mutasi Stok', 'url' => route('inventory.transfers.index')],
+            ],
         ];
 
         return $breadcrumbs[$routeName] ?? $breadcrumbs['overview'];
