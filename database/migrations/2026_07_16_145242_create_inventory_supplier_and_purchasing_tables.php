@@ -62,13 +62,17 @@ return new class () extends Migration {
             $table->uuid('id')->primary();
             $table->uuid('purchase_order_id');
             $table->uuid('inventory_item_id');
+            $table->uuid('uom_id')->nullable();
             $table->decimal('qty_ordered', 15, 4);
             $table->decimal('qty_received', 15, 4)->default(0);
             $table->decimal('purchase_price', 15, 2)->default(0);
             $table->decimal('subtotal', 15, 2)->default(0);
+            $table->decimal('conversion_factor', 15, 4)->nullable();
+            $table->decimal('converted_qty', 15, 4)->nullable();
 
             $table->foreign('purchase_order_id')->references('id')->on('purchase_orders')->cascadeOnDelete();
             $table->foreign('inventory_item_id')->references('id')->on('inventory_items')->cascadeOnDelete();
+            $table->foreign('uom_id')->references('id')->on('uoms')->nullOnDelete();
         });
     }
 

@@ -18,7 +18,7 @@
                     <div v-for="(item, index) in form.items" :key="index" class="flex gap-4 items-center border p-3 rounded-lg">
                         <div class="flex-1">
                             <div class="font-semibold">{{ item.name }}</div>
-                            <div class="text-sm text-gray-500">Dikirim: {{ formatQuantity(item.qty_sent) }}</div>
+                            <div class="text-sm text-gray-500">Dikirim: {{ item.qty_sent_formatted }}</div>
                         </div>
                         <div class="w-40" v-if="!isApprove">
                             <TextField
@@ -48,7 +48,6 @@
 <script setup>
 import { watch, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import { formatQuantity } from '@/Composable/number-format';
 import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import TextField from '@/Components/Form/TextField.vue';
 

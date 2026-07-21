@@ -5,12 +5,17 @@ namespace App\Models\Master;
 use App\Trait\HasBusiness;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Traits\HasQuantityFormatter;
+
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InventoryItem extends Model
 {
+    use HasQuantityFormatter;
+
     use HasUuids;
     use HasBusiness;
 
@@ -23,6 +28,10 @@ class InventoryItem extends Model
         'barcode',
         'track_inventory',
         'min_stock',
+    ];
+
+        protected $appends = [
+        'min_stock_formatted',
     ];
 
     protected function casts(): array
@@ -46,5 +55,12 @@ class InventoryItem extends Model
     public function movements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class);
+    }
+
+    protected function minStockFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->min_stock),
+        );
     }
 }

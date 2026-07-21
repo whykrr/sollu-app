@@ -8,7 +8,7 @@
 
         <Table :headers="headers" :data="stocks.data" :action="true">
             <template #minimum_stock="{ item }">
-                {{ formatQuantity(item.minimum_stock) }}
+                {{ item.minimum_stock_formatted }}
             </template>
             <template #current_stock="{ item }">
                 <span
@@ -21,7 +21,7 @@
                               : ''
                     "
                 >
-                    {{ formatQuantity(item.current_stock) }}
+                    {{ item.current_stock_formatted }}
                 </span>
             </template>
             <template #status="{ item }">
@@ -58,7 +58,6 @@ import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faEye } from '@fortawesome/free-solid-svg-icons';
-import { formatQuantity } from '@/Composable/number-format';
 
 const props = defineProps({
     stocks: {

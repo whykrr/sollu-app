@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Traits\HasQuantityFormatter;
+
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -22,6 +25,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class InventoryMovement extends Model
 {
+    use HasQuantityFormatter;
+
     use HasFactory;
     use HasUuids;
     use HasBusiness;
@@ -42,6 +47,12 @@ class InventoryMovement extends Model
         'reference_type',
         'created_by',
         'created_at',
+    ];
+
+        protected $appends = [
+        'qty_change_formatted',
+        'stock_before_formatted',
+        'stock_after_formatted',
     ];
 
     protected function casts(): array
@@ -105,5 +116,24 @@ class InventoryMovement extends Model
     public function reference(): \Illuminate\Database\Eloquent\Relations\MorphTo
     {
         return $this->morphTo('reference', 'reference_type', 'reference_id');
+    }
+
+    protected function qtyChangeFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->qty_change),
+        );
+    }
+    protected function stockBeforeFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->stock_before),
+        );
+    }
+    protected function stockAfterFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->stock_after),
+        );
     }
 }

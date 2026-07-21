@@ -31,7 +31,7 @@
                     <div v-for="(item, index) in form.items" :key="index" class="flex gap-4 items-center border p-3 rounded-lg" :class="{'bg-red-50': isApprove && item.actual_qty !== item.system_qty}">
                         <div class="flex-1">
                             <div class="font-semibold">{{ item.name }}</div>
-                            <div class="text-sm text-gray-500">Sistem: {{ formatQuantity(item.system_qty) }} {{ item.uom }}</div>
+                            <div class="text-sm text-gray-500">Sistem: {{ item.system_qty_formatted }} {{ item.uom }}</div>
                         </div>
                         <div class="w-40">
                             <TextField
@@ -43,7 +43,7 @@
                             />
                         </div>
                         <div class="w-24 text-right font-bold" :class="item.actual_qty - item.system_qty < 0 ? 'text-danger' : (item.actual_qty - item.system_qty > 0 ? 'text-success' : 'text-gray-400')">
-                            Selisih: {{ formatQuantity(Number(item.actual_qty || 0) - Number(item.system_qty)) }}
+                            Selisih: {{ new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(item.actual_qty || 0) - Number(item.system_qty)) }}
                         </div>
                     </div>
                 </div>
@@ -67,7 +67,6 @@
 <script setup>
 import { watch, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import { formatQuantity } from '@/Composable/number-format';
 import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';

@@ -4,9 +4,14 @@ namespace App\Models\Master;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Traits\HasQuantityFormatter;
+
 
 class ModifierRecipeItem extends Model
 {
+    use HasQuantityFormatter;
+
     use HasUuids;
 
     protected $fillable = [
@@ -16,6 +21,11 @@ class ModifierRecipeItem extends Model
         'uom',
     ];
 
+    protected $appends = [
+        'qty_formatted',
+    ];
+
+
     public function modifierOption()
     {
         return $this->belongsTo(ModifierOption::class);
@@ -24,5 +34,12 @@ class ModifierRecipeItem extends Model
     public function inventoryItem()
     {
         return $this->belongsTo(InventoryItem::class);
+    }
+
+    protected function qtyFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->qty),
+        );
     }
 }

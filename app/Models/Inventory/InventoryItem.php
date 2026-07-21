@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Traits\HasQuantityFormatter;
+
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -23,6 +26,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class InventoryItem extends Model
 {
+    use HasQuantityFormatter;
+
     use HasFactory;
     use HasUuids;
     use HasBusiness;
@@ -38,6 +43,10 @@ class InventoryItem extends Model
         'track_inventory',
         'minimum_stock',
         'is_active',
+    ];
+
+        protected $appends = [
+        'minimum_stock_formatted',
     ];
 
     protected function casts(): array
@@ -76,6 +85,11 @@ class InventoryItem extends Model
         return $this->hasMany(InventoryCostLayer::class);
     }
 
+    public function suppliers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Supplier::class, 'supplier_inventory_items');
+    }
+
     // ── Scopes ───────────────────────────────────────────────────
 
     public function scopeFilters(Builder $builder, array $filters): Builder
@@ -93,6 +107,13 @@ class InventoryItem extends Model
         )->when(
             isset($filters['track_inventory']),
             fn (Builder $q) => $q->where('track_inventory', $filters['track_inventory'])
+        );
+    }
+
+    protected function minimumStockFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->minimum_stock),
         );
     }
 }

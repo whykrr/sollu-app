@@ -12,14 +12,14 @@
         >
             <template #qty_change="{ item }">
                 <span :class="item.qty_change > 0 ? 'text-success font-bold' : 'text-danger font-bold'">
-                    {{ item.qty_change > 0 ? '+' : '' }}{{ formatQuantity(item.qty_change) }}
+                    {{ item.qty_change > 0 ? '+' : '' }}{{ item.qty_change_formatted }}
                 </span>
             </template>
             <template #stock_before="{ item }">
-                {{ formatQuantity(item.stock_before) }}
+                {{ item.stock_before_formatted }}
             </template>
             <template #stock_after="{ item }">
-                {{ formatQuantity(item.stock_after) }}
+                {{ item.stock_after_formatted }}
             </template>
             <template #movement_type="{ item }">
                 <span class="badge" :class="movementTypeColor(item.movement_type)">
@@ -45,7 +45,6 @@ import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import { formatDateTimeSimple } from '@/Composable/date.js';
-import { formatQuantity } from '@/Composable/number-format';
 
 const props = defineProps({
     movements: {

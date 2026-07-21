@@ -5,9 +5,14 @@ namespace App\Models\Master;
 use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Traits\HasQuantityFormatter;
+
 
 class ProductBundleItem extends Model
 {
+    use HasQuantityFormatter;
+
     use HasUuids, SortableModel;
 
     protected $fillable = [
@@ -17,6 +22,11 @@ class ProductBundleItem extends Model
         'qty',
         'sort_order',
     ];
+
+    protected $appends = [
+        'qty_formatted',
+    ];
+
 
     public function bundleProduct()
     {
@@ -31,5 +41,12 @@ class ProductBundleItem extends Model
     public function componentInventoryItem()
     {
         return $this->belongsTo(InventoryItem::class, 'component_inventory_item_id');
+    }
+
+    protected function qtyFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->qty),
+        );
     }
 }

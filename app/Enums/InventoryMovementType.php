@@ -14,6 +14,8 @@ enum InventoryMovementType: string
     case Waste            = 'waste';
     case Opname           = 'opname';
 
+    case PurchaseVoid       = 'purchase_void';
+
     /**
      * Get human-readable label in Indonesian.
      */
@@ -29,6 +31,7 @@ enum InventoryMovementType: string
             self::TransferOut     => 'Transfer Keluar',
             self::Waste           => 'Waste',
             self::Opname          => 'Opname',
+            self::PurchaseVoid    => 'Void Pembelian',
         };
     }
 }

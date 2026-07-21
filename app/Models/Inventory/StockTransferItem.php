@@ -5,6 +5,9 @@ namespace App\Models\Inventory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Traits\HasQuantityFormatter;
+
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -14,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class StockTransferItem extends Model
 {
+    use HasQuantityFormatter;
+
     use HasFactory;
     use HasUuids;
 
@@ -24,6 +29,11 @@ class StockTransferItem extends Model
         'inventory_item_id',
         'qty',
         'qty_received',
+    ];
+
+        protected $appends = [
+        'qty_formatted',
+        'qty_received_formatted',
     ];
 
     protected function casts(): array
@@ -44,5 +54,18 @@ class StockTransferItem extends Model
     public function inventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class);
+    }
+
+    protected function qtyFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->qty),
+        );
+    }
+    protected function qtyReceivedFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->qty_received),
+        );
     }
 }

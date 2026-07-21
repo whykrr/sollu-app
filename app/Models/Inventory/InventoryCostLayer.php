@@ -6,6 +6,9 @@ use App\Models\Outlet;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Traits\HasQuantityFormatter;
+
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -15,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class InventoryCostLayer extends Model
 {
+    use HasQuantityFormatter;
+
     use HasFactory;
     use HasUuids;
 
@@ -28,6 +33,11 @@ class InventoryCostLayer extends Model
         'qty_remaining',
         'reference_id',
         'created_at',
+    ];
+
+        protected $appends = [
+        'qty_purchased_formatted',
+        'qty_remaining_formatted',
     ];
 
     protected function casts(): array
@@ -50,5 +60,18 @@ class InventoryCostLayer extends Model
     public function outlet(): BelongsTo
     {
         return $this->belongsTo(Outlet::class);
+    }
+
+    protected function qtyPurchasedFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->qty_purchased),
+        );
+    }
+    protected function qtyRemainingFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->qty_remaining),
+        );
     }
 }

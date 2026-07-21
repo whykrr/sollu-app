@@ -17,7 +17,7 @@
                         <span v-if="item.variant_name" class="badge badge-pill badge-info">{{ item.variant_name }}</span>
                     </template>
                     <template #col-current_stock="{ item }">
-                        {{ formatQuantity(item.current_stock) }} {{ item.unit }}
+                        {{ item.current_stock_formatted }} {{ item.unit }}
                     </template>
                     <template #actions="{ item }">
                         <div class="flex items-center space-x-2">
@@ -40,7 +40,6 @@ import { ref, watch } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import { useModalStore } from '@/store/notification';
-import { formatQuantity } from '@/Composable/number-format';
 import Container from '@/Components/UI/Container.vue';
 import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
 import Table from '@/Components/Tables/Table.vue';

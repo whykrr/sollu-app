@@ -14,7 +14,7 @@
                     </div>
                     <div class="card-body">
                         <p class="text-3xl font-bold">
-                            {{ formatQuantity(stockSummary.currentStock) }}
+                            {{ stockSummary.currentStock }}
                         </p>
                     </div>
                 </Link>
@@ -31,7 +31,7 @@
                     </div>
                     <div class="card-body">
                         <p class="text-3xl font-bold text-warning">
-                            {{ formatQuantity(stockSummary.lowStockAlert) }}
+                            {{ stockSummary.lowStockAlert }}
                         </p>
                     </div>
                 </Link>
@@ -48,7 +48,7 @@
                     </div>
                     <div class="card-body">
                         <p class="text-3xl font-bold text-danger">
-                            {{ formatQuantity(stockSummary.outOfStock) }}
+                            {{ stockSummary.outOfStock }}
                         </p>
                     </div>
                 </Link>
@@ -70,7 +70,7 @@
                         :show-action="false"
                     >
                         <template #quantity="{ item }">
-                            {{ formatQuantity(item.quantity) }}
+                            {{ item.quantity }}
                         </template>
                     </Table>
                 </div>
@@ -82,7 +82,6 @@
 <script setup>
 import { ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { formatQuantity } from '@/Composable/number-format';
 import Container from '@/Components/UI/Container.vue';
 import Table from '@/Components/Tables/Table.vue';
 import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';

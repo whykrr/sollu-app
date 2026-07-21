@@ -97,14 +97,18 @@ return new class () extends Migration {
         Schema::create('inventory_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('business_id');
+            $table->string('name')->nullable();
             $table->enum('item_type', ['variant_sku', 'raw_material']);
             $table->uuid('product_id')->nullable();
-            $table->uuid('raw_material_id')->nullable(); // In case we want to support raw materials entity explicitly
             $table->string('sku')->nullable();
             $table->string('barcode')->nullable();
+            $table->uuid('uom_id')->nullable();
             $table->boolean('track_inventory')->default(false);
-            $table->decimal('current_stock', 15, 4)->default(0);
+            $table->boolean('is_active')->default(true);
+            $table->decimal('minimum_stock', 15, 4)->default(0);
             $table->timestamps();
+            
+            $table->foreign('uom_id')->references('id')->on('uoms')->onDelete('set null');
         });
 
         Schema::create('product_recipe_items', function (Blueprint $table) {
@@ -161,15 +165,20 @@ return new class () extends Migration {
         Schema::create('inventory_movements', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('business_id');
+            $table->uuid('outlet_id')->nullable();
             $table->uuid('inventory_item_id');
             $table->string('movement_type');
             $table->decimal('qty_change', 15, 4);
             $table->decimal('stock_before', 15, 4);
             $table->decimal('stock_after', 15, 4);
+            $table->decimal('cost', 15, 4)->default(0);
             $table->uuid('reference_id')->nullable();
             $table->string('reference_type')->nullable();
+            $table->text('description')->nullable();
             $table->uuid('created_by')->nullable();
             $table->timestamp('created_at')->useCurrent();
+            
+            $table->foreign('outlet_id')->references('id')->on('outlets')->cascadeOnDelete();
         });
     }
 

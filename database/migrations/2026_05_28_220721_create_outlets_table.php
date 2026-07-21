@@ -21,6 +21,12 @@ return new class () extends Migration {
             $table->decimal('longitude', 10, 7)->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('is_main_outlet')->default(false);
+            $table->string('phone')->nullable();
+            $table->string('email')->nullable();
+            $table->string('timezone')->default('Asia/Jakarta');
+            $table->string('currency_code', 3)->default('IDR');
+            $table->text('logo_url')->nullable();
+            $table->softDeletes();
         });
     }
 

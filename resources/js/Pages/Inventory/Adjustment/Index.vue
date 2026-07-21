@@ -18,7 +18,7 @@
                             : 'text-danger font-bold'
                     "
                 >
-                    {{ item.qty_change > 0 ? '+' : '' }}{{ formatQuantity(item.qty_change) }}
+                    {{ item.qty_change > 0 ? '+' : '' }}{{ item.qty_change_formatted }}
                 </span>
             </template>
             <template #movement_type="{ item }">
@@ -56,7 +56,6 @@ import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Form from './Components/Form.vue';
 import { formatDateTimeSimple } from '@/Composable/date.js';
-import { formatQuantity } from '@/Composable/number-format';
 
 const props = defineProps({
     adjustments: {

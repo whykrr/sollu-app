@@ -8,6 +8,9 @@ use App\Trait\HasBusiness;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Traits\HasQuantityFormatter;
+
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -18,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class InventoryBalance extends Model
 {
+    use HasQuantityFormatter;
+
     use HasFactory;
     use HasUuids;
     use HasBusiness;
@@ -27,6 +32,10 @@ class InventoryBalance extends Model
         'outlet_id',
         'inventory_item_id',
         'current_stock',
+    ];
+
+        protected $appends = [
+        'current_stock_formatted',
     ];
 
     protected function casts(): array
@@ -51,5 +60,12 @@ class InventoryBalance extends Model
     public function inventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class);
+    }
+
+    protected function currentStockFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->current_stock),
+        );
     }
 }

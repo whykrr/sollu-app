@@ -13,9 +13,14 @@ return new class extends Migration
     {
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->uuid('business_id')->nullable();
             $table->string('actor_type');
             $table->uuid('actor_id');
+            $table->string('entity_type')->nullable();
+            $table->uuid('entity_id')->nullable();
             $table->string('action');
+            $table->jsonb('before_value')->nullable();
+            $table->jsonb('after_value')->nullable();
             $table->jsonb('metadata')->nullable();
             $table->timestamps();
         });

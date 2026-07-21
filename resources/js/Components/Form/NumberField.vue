@@ -33,6 +33,8 @@ function onKeydown(e) {
         'ArrowRight',
         'ArrowUp',
         'ArrowDown',
+        '.',
+        ',',
     ];
     const isNumber = /^[0-9]$/.test(e.key);
 

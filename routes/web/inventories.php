@@ -37,11 +37,17 @@ Route::prefix('inventories')->group(function () {
         Route::delete('suppliers/{id}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
 
         // Purchases
+        Route::get('purchases/search-items', [StockPurchasesController::class, 'searchItems'])->name('purchases.search-items');
         Route::get('purchases', [StockPurchasesController::class, 'index'])->name('purchases.index');
         Route::post('purchases', [StockPurchasesController::class, 'store'])->name('purchases.store');
         Route::put('purchases/{id}', [StockPurchasesController::class, 'update'])->name('purchases.update');
         Route::delete('purchases/{id}', [StockPurchasesController::class, 'destroy'])->name('purchases.destroy');
+        
+        Route::post('purchases/{id}/order', [StockPurchasesController::class, 'order'])->name('purchases.order');
         Route::post('purchases/{id}/receive', [StockPurchasesController::class, 'receive'])->name('purchases.receive');
+        Route::post('purchases/{id}/cancel', [StockPurchasesController::class, 'cancel'])->name('purchases.cancel');
+        Route::post('purchases/{id}/void', [StockPurchasesController::class, 'void'])->name('purchases.void');
+        Route::get('purchases/{id}/pdf', [StockPurchasesController::class, 'pdf'])->name('purchases.pdf');
 
         // Stock Taking (Opnames)
         Route::get('stock-taking', [StockTakingController::class, 'index'])->name('stocktaking.index');

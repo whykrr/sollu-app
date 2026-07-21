@@ -316,6 +316,8 @@ All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
 **Form Fields Pattern:**
 
 - Use custom components (e.g., `TextField`, `DropdownField`).
+- **DropdownField:** Selalu sertakan properti `placeholder` (misal: `placeholder="Pilih opsi..."`) agar menghasilkan `<option value="">` sebagai pilihan bawaan (kosong) yang memandu pengguna.
+- **NumberField:** Gunakan `NumberField` untuk setiap input bertipe angka/kuantitas (jangan gunakan `<input type="number">` secara langsung). Pastikan nilai yang di-binding ke `v-model` adalah angka asli (raw number), bukan string yang sudah diformat.
 - Init state with Inertia's `useForm`.
 - Validation error display:
 
@@ -328,6 +330,14 @@ All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
     :feedback="form.errors.name"
 />
 ```
+
+---
+
+## Role & Permission Rules
+
+- **PermissionEnum:** Setiap penambahan permission baru wajib didaftarkan di `app/Enum/PermissionEnum.php`.
+- **RoleEnum & Seeder:** Setelah mendaftarkan permission baru, Anda wajib mengaitkannya ke role yang sesuai di dalam file `database/seeders/Production/RolePermissionSeeder.php` dan `app/Enum/RoleEnum.php` (jika ada role baru).
+- **Seeding:** Setiap ada pembaruan pada `PermissionEnum` atau `RolePermissionSeeder.php`, pastikan Anda selalu menjalankan ulang seeder menggunakan perintah `php artisan db:seed --class="Database\Seeders\Production\RolePermissionSeeder"` agar data permission di database ter-update.
 
 ---
 
