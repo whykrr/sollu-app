@@ -188,6 +188,7 @@ For complex operations, business logic must reside in a Service.
     - `DELETE /{model}/destroy` → `destroy` (force delete)
 
 ### CSV Import/Export Pattern
+
 - **Background Processing:** Both Import and Export of potentially large CSV files must be processed in the background using Queued Jobs.
 - **Base Abstract Jobs:** Extend `AbstractCsvExportJob` and `AbstractCsvImportJob` (located in `app/Jobs/`) to ensure a consistent approach to chunking data and writing/reading rows.
 - **Import Error Handling:** Validation errors during import must NOT cause the entire job to fail. Instead, collect the failed rows, generate a new CSV containing these rows with an added "Error Message" column, and store it.
@@ -339,7 +340,8 @@ All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
 - Use a **hybrid approach**: Use custom classes for standard UI elements and Tailwind utilities for layouts and spacing.
 - Extract long Tailwind classes into custom classes in `resources/css/app.css` if they become too verbose.
 - Create reusable custom classes for redundant Tailwind class combinations in `resources/css/app.css`.
-- Use spacing scale 4 (`gap-4`) for normal elements, scale 3 for main area padding, scale 2 for tight components.
+- Use spacing scale 4 (`gap-4`) for normal elements, scale 3 for main area padding, scale 2 for tight components & gap form.
+- do not use spacing scale inside `PopUpPage` body
 
 ### Custom Class Inventory
 

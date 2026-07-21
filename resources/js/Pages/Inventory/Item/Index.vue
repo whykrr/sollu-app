@@ -42,10 +42,10 @@ import { debounce } from 'lodash';
 import { useModalStore } from '@/store/notification';
 import { formatQuantity } from '@/Composable/number-format';
 import Container from '@/Components/UI/Container.vue';
-import ContainerHeader from '@/Components/UI/ContainerHeader.vue';
+import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
-import FilterSearch from '@/Components/UI/FilterSearch.vue';
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 
 const modalStore = useModalStore();
 

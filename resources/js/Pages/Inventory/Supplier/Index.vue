@@ -7,9 +7,23 @@
                     Tambah Baru
                 </button>
             </ContainerHeader>
+            <SupplierFilter :filters="filters" />
         </template>
-
-        <Table :headers="headers" :data="suppliers.data" :action="true">
+        <Table
+            :headers="headers"
+            :data="suppliers.data"
+            :action="true"
+            :sort="route().params.sort"
+            :sortDirection="route().params.direction"
+            @sort="
+                (s, d) =>
+                    router.get(
+                        route('inventory.suppliers.index'),
+                        { ...route().params, sort: s, direction: d, page: 1 },
+                        { preserveState: true, preserveScroll: true },
+                    )
+            "
+        >
             <template #contact="{ item }">
                 <div class="flex flex-col">
                     <span v-if="item.phone" class="text-sm"
@@ -33,6 +47,9 @@
                 >
                     {{ item.is_active ? 'Aktif' : 'Nonaktif' }}
                 </span>
+            </template>
+            <template #created_at="{ item }">
+                {{ formatDateTime(item.created_at) }}
             </template>
             <template #actions="{ item }">
                 <div class="flex items-center gap-1">
@@ -64,7 +81,6 @@
         <Form
             :show="showForm"
             :supplier="selectedItem"
-            :inventory-items="inventoryItems"
             @close="closeForm"
         />
     </Container>
@@ -85,7 +101,10 @@ import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Form from './Components/Form.vue';
+import SupplierFilter from './Components/SupplierFilter.vue';
 import { useModalStore } from '@/store/notification';
+import { formatDateTime } from '@/Composable/time';
+import { router } from '@inertiajs/vue3';
 
 const modalStore = useModalStore();
 
@@ -98,17 +117,19 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-    inventoryItems: {
-        type: Array,
-        default: () => [],
-    },
 });
 
 const headers = [
     { label: 'Nama', field: 'name', sortable: true },
     { label: 'Kontak', field: 'contact', slot: 'contact', sortable: false },
-    { label: 'Alamat', field: 'address', sortable: true },
+    { label: 'Alamat', field: 'address', sortable: false },
     { label: 'Status', field: 'is_active', slot: 'is_active', sortable: false },
+    {
+        label: 'Dibuat',
+        field: 'created_at',
+        slot: 'created_at',
+        sortable: true,
+    },
 ];
 
 const showForm = ref(false);

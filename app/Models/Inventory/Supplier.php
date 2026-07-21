@@ -76,11 +76,12 @@ class Supplier extends Model
             fn (Builder $q, $value) => $q->where(function ($q) use ($value) {
                 $q->whereLike('name', "%{$value}%")
                     ->orWhereLike('email', "%{$value}%")
+                    ->orWhereLike('address', "%{$value}%")
                     ->orWhereLike('phone', "%{$value}%");
             })
         )->when(
-            $filters['is_active'] ?? null,
-            fn (Builder $q, $value) => $q->where('is_active', $value)
+            isset($filters['is_active']) && $filters['is_active'] !== '',
+            fn (Builder $q) => $q->where('is_active', $filters['is_active'])
         );
     }
 }

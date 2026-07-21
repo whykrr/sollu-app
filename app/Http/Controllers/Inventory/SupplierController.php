@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Inventory;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Inventory\Supplier\GetSupplierRequest;
 use App\Http\Requests\Inventory\Supplier\StoreSupplierRequest;
 use App\Http\Requests\Inventory\Supplier\UpdateSupplierRequest;
 use App\Models\Inventory\InventoryItem;
@@ -15,26 +16,46 @@ class SupplierController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(GetSupplierRequest $request)
     {
+        $validated = $request->validated();
+        
         $suppliers = Supplier::currentBusiness()
-            ->filters($request->only(['search', 'is_active']))
+            ->filters($validated)
             ->with('inventoryItems:id,name') // include related items for display if needed
-            ->latest()
+            ->when($request->sort, function ($query, $sort) use ($request) {
+                $query->orderBy($sort, $request->direction ?? 'asc');
+            }, function ($query) {
+                $query->latest();
+            })
             ->paginate(15)
             ->withQueryString();
             
-        // We also need all raw materials for the "select items" dropdown in the form
-        $inventoryItems = InventoryItem::currentBusiness()
-            ->where('item_type', 'raw_material')
-            ->select('id', 'name')
-            ->get();
-
         return inertia('Inventory/Supplier/Index', [
             'suppliers'      => $suppliers,
-            'inventoryItems' => $inventoryItems,
-            'filters'        => $request->only(['search', 'is_active']),
+            'filters'        => [
+                'search' => $validated['search'] ?? '',
+                'is_active' => $validated['is_active'] ?? '',
+            ],
         ]);
+    }
+
+    /**
+     * API Endpoint to search inventory items for the supplier form.
+     */
+    public function searchItems(Request $request)
+    {
+        $search = $request->get('search');
+        
+        $items = InventoryItem::currentBusiness()
+            ->when($search, function ($query, $search) {
+                $query->whereLike('name', "%{$search}%");
+            })
+            ->select('id', 'name')
+            ->limit(50)
+            ->get();
+            
+        return response()->json($items);
     }
 
     /**
