@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -30,7 +29,7 @@ return new class extends Migration
             $table->uuid('supplier_id');
             $table->uuid('inventory_item_id');
             $table->decimal('last_purchase_price', 15, 2)->nullable();
-            
+
             $table->primary(['supplier_id', 'inventory_item_id']);
             $table->foreign('supplier_id')->references('id')->on('suppliers')->cascadeOnDelete();
             $table->foreign('inventory_item_id')->references('id')->on('inventory_items')->cascadeOnDelete();
@@ -40,7 +39,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('business_id');
             $table->uuid('outlet_id');
-            $table->uuid('supplier_id');
+            $table->uuid('supplier_id')->nullable();
             $table->string('po_number');
             $table->string('status')->default('draft'); // draft, ordered, partial_received, received, cancelled
             $table->date('order_date');

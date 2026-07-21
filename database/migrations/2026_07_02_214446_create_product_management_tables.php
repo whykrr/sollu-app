@@ -162,7 +162,7 @@ return new class () extends Migration {
             $table->uuid('id')->primary();
             $table->uuid('business_id');
             $table->uuid('inventory_item_id');
-            $table->enum('movement_type', ['sale', 'purchase', 'adjustment', 'recipe_deduction', 'bundle_deduction']);
+            $table->string('movement_type');
             $table->decimal('qty_change', 15, 4);
             $table->decimal('stock_before', 15, 4);
             $table->decimal('stock_after', 15, 4);
