@@ -52,7 +52,9 @@ class UomSeeder extends Seeder
         ];
 
         foreach ($units as $unit) {
-            Uom::updateOrCreate(['code' => $unit['code']], $unit);
+            $code = ucwords(strtolower($unit['code']));
+            $unit['code'] = $code;
+            Uom::updateOrCreate(['code' => $code], $unit);
         }
     }
 }

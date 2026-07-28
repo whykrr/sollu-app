@@ -1,25 +1,23 @@
 <template>
   <div class="widget">
-    <div class="flex flex-row items-center gap-2 relative">
-      <h2 class="font-medium flex-1">{{ title }}</h2>
-      <div class="absolute top-0 right-0">
-        <div class="widget-icon w-[40px]! h-[40px]!">
-          <FontAwesomeIcon class="text-xl" :icon />
+    <div class="flex flex-row justify-between items-start gap-3">
+      <div class="flex flex-col gap-1">
+        <h2 class="font-medium text-sm text-neutral-600">{{ title }}</h2>
+        <div class="text-2xl font-bold text-neutral-800">
+          {{ highlight }}
+          <span class="inline-flex text-sm font-medium text-success items-center ml-1">
+            <font-awesome-icon :icon="faPlus" class="text-xs mr-0.5" />
+            <span>{{ subHighlight }}</span>
+          </span>
         </div>
       </div>
-    </div>
-    <div>
-      <div class="text-2xl font-bold">
-        {{ highlight }}
-        <div
-          class="inline-flex text-sm font-medium text-success items-center"
-        >
-          <font-awesome-icon :icon="faPlus" class="text-xs mr-0.5" />
-          <span>{{ subHighlight }}</span>
-        </div>
+      <div class="widget-icon bg-main/10 text-main shrink-0">
+        <FontAwesomeIcon class="text-lg" :icon />
       </div>
     </div>
-    <canvas :id="'chart' + id" class="canvas -m-[18px]" />
+    <div class="-mx-4 -mb-4 mt-2">
+      <canvas :id="'chart' + id" class="canvas w-full h-full" />
+    </div>
   </div>
 </template>
 <script setup>

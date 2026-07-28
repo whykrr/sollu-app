@@ -15,7 +15,8 @@ class PurchaseOrderService
 {
     public function __construct(
         protected ActivityLogService $activityLogService
-    ) {}
+    ) {
+    }
 
     /**
      * Create a new Purchase Order.
@@ -25,7 +26,7 @@ class PurchaseOrderService
         return DB::transaction(function () use ($data, $creator) {
             $data['business_id'] = $creator->business_id;
             $data['created_by']  = $creator->id;
-            
+
             $count = PurchaseOrder::where('business_id', $creator->business_id)
                 ->whereMonth('created_at', now()->month)
                 ->count();
@@ -33,7 +34,7 @@ class PurchaseOrderService
             $data['status']    = PurchaseOrder::STATUS_DRAFT;
 
             $totalAmount = 0;
-            $items = $data['items'] ?? [];
+            $items       = $data['items'] ?? [];
 
             $po = PurchaseOrder::create($data);
 
@@ -144,16 +145,16 @@ class PurchaseOrderService
 
             foreach ($po->items as $poItem) {
                 if ($itemsMap->has($poItem->id)) {
-                    $input = $itemsMap->get($poItem->id);
-                    $qtyToReceive = (float) $input['qty_received'];
+                    $input            = $itemsMap->get($poItem->id);
+                    $qtyToReceive     = (float) $input['qty_received'];
                     $conversionFactor = (float) ($input['conversion_factor'] ?? 1.0);
-                    $convertedQty = $qtyToReceive * $conversionFactor;
-                    
+                    $convertedQty     = $qtyToReceive * $conversionFactor;
+
                     if ($qtyToReceive > 0) {
                         // 1. Update PO Item
-                        $poItem->qty_received = $qtyToReceive;
+                        $poItem->qty_received      = $qtyToReceive;
                         $poItem->conversion_factor = $conversionFactor;
-                        $poItem->converted_qty = $convertedQty;
+                        $poItem->converted_qty     = $convertedQty;
                         $poItem->save();
 
                         // 2. Update Balance
@@ -162,7 +163,7 @@ class PurchaseOrderService
                             'outlet_id'         => $po->outlet_id,
                             'inventory_item_id' => $poItem->inventory_item_id,
                         ], [
-                            'current_stock' => 0
+                            'current_stock' => 0,
                         ]);
 
                         $stockBefore = $balance->current_stock;
@@ -170,8 +171,8 @@ class PurchaseOrderService
                         $balance->update(['current_stock' => $stockAfter]);
 
                         // 3. Cost Calculation
-                        $convertedPurchasePrice = $conversionFactor > 0 
-                            ? $poItem->purchase_price / $conversionFactor 
+                        $convertedPurchasePrice = $conversionFactor > 0
+                            ? $poItem->purchase_price / $conversionFactor
                             : $poItem->purchase_price;
 
                         // 4. Create Movement
@@ -183,13 +184,13 @@ class PurchaseOrderService
                             'qty_change'        => $convertedQty,
                             'stock_before'      => $stockBefore,
                             'stock_after'       => $stockAfter,
-                            'purchase_price'    => $convertedPurchasePrice,
-                            'description'       => 'Penerimaan barang dari PO: ' . $po->po_number,
-                            'created_by'        => $receiver->id,
-                            'created_at'        => now(),
+                            // 'purchase_price'    => $convertedPurchasePrice,
+                            'description' => 'Penerimaan barang dari PO: ' . $po->po_number,
+                            'created_by'  => $receiver->id,
+                            'created_at'  => now(),
                         ]);
 
-                        $movement->reference_id = $po->id;
+                        $movement->reference_id   = $po->id;
                         $movement->reference_type = PurchaseOrder::class;
                         $movement->save();
 
@@ -207,7 +208,7 @@ class PurchaseOrderService
                 }
             }
 
-            $po->status = PurchaseOrder::STATUS_RECEIVED;
+            $po->status      = PurchaseOrder::STATUS_RECEIVED;
             $po->approved_by = $receiver->id;
             $po->save();
 
@@ -251,7 +252,7 @@ class PurchaseOrderService
                             'created_at'        => now(),
                         ]);
 
-                        $movement->reference_id = $po->id;
+                        $movement->reference_id   = $po->id;
                         $movement->reference_type = PurchaseOrder::class;
                         $movement->save();
                     }

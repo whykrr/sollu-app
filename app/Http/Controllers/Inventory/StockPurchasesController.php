@@ -27,14 +27,14 @@ class StockPurchasesController extends Controller
         abort_if(! $request->user()?->can(PermissionEnum::PURCHASE_ORDER_VIEW->value), 403, 'Anda tidak memiliki akses.');
 
         $purchases = PurchaseOrder::currentBusiness()
-            ->with(['supplier', 'outlet', 'items.inventoryItem.uom', 'items.uom'])
+            ->with(['supplier:id,name', 'outlet:id,name'])
             ->filters($request->only(['search', 'status', 'supplier_id', 'outlet_id', 'start_date', 'end_date']))
             ->when($request->get('sort'), function ($query, $sort) use ($request) {
                 $query->orderBy($sort, $request->get('direction', 'asc'));
             }, function ($query) {
                 $query->latest();
             })
-            ->paginate(15)
+            ->paginate($request->get('per_page', 20))
             ->withQueryString();
 
         $suppliers = Supplier::currentBusiness()->active()->select('id', 'name')->get();
@@ -48,6 +48,17 @@ class StockPurchasesController extends Controller
             'uoms'      => $uoms,
             'filters'   => $request->only(['search', 'status', 'supplier_id', 'outlet_id', 'start_date', 'end_date']),
         ]);
+    }
+
+    public function show(Request $request, string $id)
+    {
+        abort_if(! $request->user()?->can(PermissionEnum::PURCHASE_ORDER_VIEW->value), 403, 'Anda tidak memiliki akses.');
+
+        $purchase = PurchaseOrder::currentBusiness()
+            ->with(['supplier', 'outlet', 'items.inventoryItem.uom', 'items.uom'])
+            ->findOrFail($id);
+
+        return response()->json($purchase);
     }
 
     public function searchItems(Request $request)

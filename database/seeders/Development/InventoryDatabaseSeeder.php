@@ -29,12 +29,12 @@ class InventoryDatabaseSeeder extends Seeder
         }
 
         // ── UOMs ─────────────────────────────────────────────────────
-        $uomPcs = Uom::where('code', 'PCS')->firstOrFail();
-        $uomKg  = Uom::where('code', 'KG')->firstOrFail();
+        $uomPcs = Uom::where('code', 'Pcs')->firstOrFail();
+        $uomKg  = Uom::where('code', 'Kg')->firstOrFail();
         $uomL   = Uom::where('code', 'L')->firstOrFail();
         $uomG   = Uom::where('code', 'G')->firstOrFail();
-        $uomMl  = Uom::where('code', 'ML')->firstOrFail();
-        $uomBox = Uom::where('code', 'BOX')->firstOrFail();
+        $uomMl  = Uom::where('code', 'Ml')->firstOrFail();
+        $uomBox = Uom::where('code', 'Box')->firstOrFail();
 
         // ── Suppliers ────────────────────────────────────────────────
         $suppliers = [
@@ -103,7 +103,7 @@ class InventoryDatabaseSeeder extends Seeder
                 [
                     'business_id'   => $business->id,
                     'outlet_id'     => $outlet->id,
-                    'current_stock' => fake()->randomFloat(4, 0, $material['minimum_stock'] * 3),
+                    'current_stock' => fake()->randomFloat(0, 0, $material['minimum_stock'] * 3),
                 ]
             );
         }

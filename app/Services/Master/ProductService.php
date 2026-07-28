@@ -115,11 +115,13 @@ class ProductService
                         $invItem = $this->inventoryService->createVariantInventory([
                             'business_id' => $product->business_id,
                             'product_id' => $product->id,
+                            'name' => $product->name . ' - ' . implode(' - ', $combo['options']),
                             'sku' => $combo['sku'] ?? null,
                             'barcode' => $combo['barcode'] ?? null,
                             'track_inventory' => $product->track_inventory,
                             'min_stock' => $combo['min_stock'] ?? 0,
                             'options' => $optIds,
+                            'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
                         ]);
 
                         if (isset($combo['price'])) {
@@ -146,10 +148,12 @@ class ProductService
                 $this->inventoryService->createVariantInventory([
                     'business_id' => $product->business_id,
                     'product_id' => $product->id,
+                    'name' => $product->name,
                     'sku' => $data['code'] ?? null,
                     'barcode' => null,
                     'track_inventory' => $product->track_inventory,
                     'min_stock' => $data['min_stock'] ?? 0,
+                    'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
                 ]);
             }
 
@@ -299,17 +303,21 @@ class ProductService
                             $invItem = $this->inventoryService->createVariantInventory([
                                 'business_id' => $product->business_id,
                                 'product_id' => $product->id,
+                                'name' => $product->name . ' - ' . implode(' - ', $combo['options']),
                                 'sku' => $combo['sku'] ?? null,
                                 'barcode' => $combo['barcode'] ?? null,
                                 'track_inventory' => $product->track_inventory,
                                 'min_stock' => $combo['min_stock'] ?? 0,
                                 'options' => $optIds,
+                                'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
                             ]);
                         } else {
                             $invItem->update([
+                                'name'            => $product->name . ' - ' . implode(' - ', $combo['options']),
                                 'barcode'         => $combo['barcode'] ?? $invItem->barcode,
                                 'track_inventory' => $product->track_inventory,
                                 'min_stock'       => $combo['min_stock'] ?? $invItem->min_stock,
+                                'uom_id'          => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
                             ]);
                             $invItem->variantGroupOptions()->sync($optIds);
                         }
@@ -340,6 +348,29 @@ class ProductService
                 }
             } elseif ($product->product_type === 'basic' && !$product->has_variant) {
                 $product->variantGroups()->delete();
+
+                // Update or create single variant inventory item
+                $invItem = \App\Models\Master\InventoryItem::where('product_id', $product->id)
+                    ->where('item_type', 'variant_sku')
+                    ->first();
+                if ($invItem) {
+                    $invItem->update([
+                        'name'            => $product->name,
+                        'track_inventory' => $product->track_inventory,
+                        'uom_id'          => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
+                    ]);
+                } else {
+                    $this->inventoryService->createVariantInventory([
+                        'business_id'     => $product->business_id,
+                        'product_id'      => $product->id,
+                        'name'            => $product->name,
+                        'sku'             => $product->code ?? null,
+                        'barcode'         => null,
+                        'track_inventory' => $product->track_inventory,
+                        'min_stock'       => $data['min_stock'] ?? 0,
+                        'uom_id'          => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
+                    ]);
+                }
             } elseif ($product->product_type !== 'basic') {
                 $product->variantGroups()->delete();
             }

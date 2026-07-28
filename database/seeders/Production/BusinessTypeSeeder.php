@@ -12,29 +12,33 @@ class BusinessTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        $businessTypes = new BusinessType();
+        $businessTypes = [
+            ['code' => 'minimarket', 'name' => 'Minimarket', 'is_visible' => true],
+            ['code' => 'grocery', 'name' => 'Grocery / Sembako', 'is_visible' => true],
+            ['code' => 'convenience_store', 'name' => 'Toserba', 'is_visible' => true],
+            ['code' => 'fashion_store', 'name' => 'Toko Fesyen', 'is_visible' => true],
+            ['code' => 'coffee_shop', 'name' => 'Coffee Shop', 'is_visible' => true],
+            ['code' => 'restaurant', 'name' => 'Restoran', 'is_visible' => true],
+            ['code' => 'food_stall', 'name' => 'Kedai Makanan', 'is_visible' => true],
+            ['code' => 'bakery', 'name' => 'Bakery', 'is_visible' => true],
+            ['code' => 'laundry', 'name' => 'Laundry', 'is_visible' => false],
+            ['code' => 'barbershop', 'name' => 'Barbershop', 'is_visible' => false],
+            ['code' => 'salon', 'name' => 'Salon, Spa & Beauty', 'is_visible' => false],
+            ['code' => 'repair_shop', 'name' => 'Bengkel', 'is_visible' => false],
+            ['code' => 'pharmacy', 'name' => 'Apotek', 'is_visible' => false],
+            ['code' => 'vape_store', 'name' => 'Vape Store', 'is_visible' => false],
+            ['code' => 'thrift_store', 'name' => 'Toko Thrift', 'is_visible' => false],
+        ];
 
-        BusinessType::upsert(
-            [
-                ['code' => 'minimarket', 'name' => 'Minimarket', 'is_visible' => true],
-                ['code' => 'grocery', 'name' => 'Grocery / Sembako', 'is_visible' => true],
-                ['code' => 'convenience_store', 'name' => 'Toserba', 'is_visible' => true],
-                ['code' => 'fashion_store', 'name' => 'Toko Fesyen', 'is_visible' => true],
-                ['code' => 'coffee_shop', 'name' => 'Coffee Shop', 'is_visible' => true],
-                ['code' => 'restaurant', 'name' => 'Restoran', 'is_visible' => true],
-                ['code' => 'food_stall', 'name' => 'Kedai Makanan', 'is_visible' => true],
-                ['code' => 'bakery', 'name' => 'Bakery', 'is_visible' => true],
-                ['code' => 'laundry', 'name' => 'Laundry', 'is_visible' => false],
-                ['code' => 'barbershop', 'name' => 'Barbershop', 'is_visible' => false],
-                ['code' => 'salon', 'name' => 'Salon, Spa & Beauty', 'is_visible' => false],
-                ['code' => 'repair_shop', 'name' => 'Bengkel', 'is_visible' => false],
-                ['code' => 'pharmacy', 'name' => 'Apotek', 'is_visible' => false],
-                ['code' => 'vape_store', 'name' => 'Vape Store', 'is_visible' => false],
-                ['code' => 'thrift_store', 'name' => 'Toko Thrift', 'is_visible' => false],
-            ],
-            ['code'],
-            ['name', 'is_visible']
-        );
+        foreach ($businessTypes as $type) {
+            BusinessType::updateOrCreate(
+                ['code' => $type['code']],
+                [
+                    'name' => $type['name'],
+                    'is_visible' => $type['is_visible']
+                ]
+            );
+        }
 
         /*
         $businessTypes->updateOrCreate(['code' => 'car_wash', 'name' => 'Car Wash', 'is_visible' => true]);

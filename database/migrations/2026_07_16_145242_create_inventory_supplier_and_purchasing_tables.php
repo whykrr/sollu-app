@@ -51,6 +51,12 @@ return new class () extends Migration {
             $table->timestamps();
 
             $table->unique(['business_id', 'po_number']);
+            $table->index('outlet_id');
+            $table->index('supplier_id');
+            $table->index('status');
+            $table->index('order_date');
+            $table->index('created_at');
+
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
             $table->foreign('outlet_id')->references('id')->on('outlets')->cascadeOnDelete();
             $table->foreign('supplier_id')->references('id')->on('suppliers')->cascadeOnDelete();

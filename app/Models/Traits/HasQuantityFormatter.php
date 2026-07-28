@@ -8,7 +8,7 @@ trait HasQuantityFormatter
      * Format a quantity field for display.
      * Rounds to max 2 decimal places and formats using local id-ID standard.
      */
-    protected function formatQuantity(?float $value): string
+    public function formatQuantity(?float $value): string
     {
         if (is_null($value)) {
             return '0';

@@ -3,16 +3,15 @@
 namespace App\Models\Inventory;
 
 use App\Models\Business;
+use App\Models\Traits\HasQuantityFormatter;
 use App\Models\Uom;
 use App\Trait\HasBusiness;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\Traits\HasQuantityFormatter;
-
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -45,7 +44,7 @@ class InventoryItem extends Model
         'is_active',
     ];
 
-        protected $appends = [
+    protected $appends = [
         'minimum_stock_formatted',
     ];
 
@@ -63,6 +62,11 @@ class InventoryItem extends Model
     public function business(): BelongsTo
     {
         return $this->belongsTo(Business::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Master\Product::class);
     }
 
     public function uom(): BelongsTo

@@ -14,6 +14,9 @@ Route::prefix('inventories')->group(function () {
     // inventories.* group
     Route::name('inventories.')->group(function () {
         Route::get('stocks', [StockController::class, 'index'])->name('stocks.index');
+        Route::get('stocks/{id}', [StockController::class, 'show'])->name('stocks.show');
+        Route::get('stocks/{id}/movements', [StockController::class, 'movements'])->name('stocks.movements');
+        Route::get('stocks/{id}/chart', [StockController::class, 'chart'])->name('stocks.chart');
         Route::get('movements', [InventoryMovementController::class, 'index'])->name('movements.index');
     });
 
@@ -40,6 +43,7 @@ Route::prefix('inventories')->group(function () {
         Route::get('purchases/search-items', [StockPurchasesController::class, 'searchItems'])->name('purchases.search-items');
         Route::get('purchases', [StockPurchasesController::class, 'index'])->name('purchases.index');
         Route::post('purchases', [StockPurchasesController::class, 'store'])->name('purchases.store');
+        Route::get('purchases/{id}', [StockPurchasesController::class, 'show'])->name('purchases.show');
         Route::put('purchases/{id}', [StockPurchasesController::class, 'update'])->name('purchases.update');
         Route::delete('purchases/{id}', [StockPurchasesController::class, 'destroy'])->name('purchases.destroy');
         

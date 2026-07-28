@@ -21,6 +21,7 @@ class InventoryItem extends Model
 
     protected $fillable = [
         'business_id',
+        'name',
         'item_type',
         'product_id',
         'raw_material_id',
@@ -28,6 +29,7 @@ class InventoryItem extends Model
         'barcode',
         'track_inventory',
         'min_stock',
+        'uom_id',
     ];
 
         protected $appends = [
@@ -45,6 +47,19 @@ class InventoryItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    protected function minStock(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, $attributes) => $attributes['minimum_stock'] ?? 0,
+            set: fn ($value) => ['minimum_stock' => $value]
+        );
+    }
+
+    public function uom(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Uom::class);
     }
 
     public function variantGroupOptions(): BelongsToMany

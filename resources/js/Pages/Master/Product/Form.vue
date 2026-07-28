@@ -79,7 +79,6 @@
                         <FontAwesomeIcon :icon="faArrowRight" class="ml-1" />
                     </button>
                     <button
-                        v-else-if="isEdit"
                         type="button"
                         class="btn btn-success"
                         :disabled="form.processing"
@@ -123,9 +122,22 @@ const props = defineProps({
     modifierGroups: Array,
     inventoryItems: Array,
     products: Array,
+    uoms: Array,
 });
 
 const isEdit = computed(() => !!props.product);
+
+const getInitialUomId = () => {
+    if (
+        props.product &&
+        props.product.inventory_items &&
+        props.product.inventory_items.length > 0
+    ) {
+        const item = props.product.inventory_items.find((item) => item.uom_id);
+        return item ? item.uom_id : '';
+    }
+    return '';
+};
 
 const form = useForm({
     name: props.product?.name || '',
@@ -140,6 +152,7 @@ const form = useForm({
     has_modifier: props.product?.has_modifier ?? false,
     has_recipe: props.product?.has_recipe ?? false,
     track_inventory: props.product?.track_inventory ?? false,
+    uom_id: getInitialUomId(),
     base_price: '',
     outlet_prices: [],
     outlets: [],
@@ -328,9 +341,7 @@ if (isEdit.value) {
                         sku: invItem.sku || '',
                         barcode: invItem.barcode || '',
                         price: String(price),
-                        min_stock: String(
-                            invItem.min_stock ?? 0,
-                        ),
+                        min_stock: String(invItem.min_stock ?? 0),
                     };
                 });
 
@@ -358,6 +369,7 @@ provide('outlets', props.outlets);
 provide('modifierGroups', props.modifierGroups);
 provide('inventoryItems', props.inventoryItems);
 provide('products', props.products);
+provide('uoms', props.uoms);
 
 provide('outletPriceMap', outletPriceMap);
 provide('outletStatusMap', outletStatusMap);
@@ -375,6 +387,16 @@ watch(
         updateCombinations();
     },
     { deep: true },
+);
+
+// Watch track_inventory and clear uom_id if false
+watch(
+    () => form.track_inventory,
+    (track) => {
+        if (!track) {
+            form.uom_id = '';
+        }
+    },
 );
 
 // Update combination prices if base price changes (unless already manually customized)

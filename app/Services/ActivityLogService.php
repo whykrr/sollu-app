@@ -13,11 +13,11 @@ class ActivityLogService
      *
      * @param Model $subject
      * @param string $action
-     * @param Model|null $causer
+     * @param Model|TModel|null $causer
      * @param array $properties
      * @return void
      */
-    public function log(Model $subject, string $action, ?Model $causer = null, array $properties = []): void
+    public function log($subject, string $action, ?Model $causer = null, array $properties = []): void
     {
         DB::table('activity_logs')->insert([
             'id'           => Str::uuid()->toString(),

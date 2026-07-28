@@ -383,7 +383,13 @@ All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
 
 - **Table.vue**: Data table (`headers`, `data`, `sort`, `sortDirection`, `action`). Custom slots supported via `col.slot`.
 - terdapat properti actions, gunakan true jika terdapat button actions, dan ubah custom template pada #actions (jangan gunakan kolom action pada setting table nya)
-- **Pagination.vue**: Paginator (`links`, `from`, `to`, `total`, `perPage`). Uses Inertia `<Link>`.
+- **Pagination.vue**: Paginator (`links`, `from`, `to`, `total`, `perPage`). Uses Inertia `<Link>`. gunakan request `per_page` dengan default 20 untuk table yang menggunakan component `<Pagination>`
+
+### Widgets Components (`@/Components/Widgets/`)
+
+- **Widget.vue**: Widget standar untuk menampilkan metrik. Props: `title` (String), `icon` (FontAwesome Icon), `traction` ('up'|'down'), `tractionPercentage` (Number), `descriptors` (String). Nilai utama (main value) dimasukkan melalui default `<slot />`.
+- **WidgetChart.vue**: Widget metrik dengan mini chart (berbasis chart.js). Props: `id` (String unik), `title` (String), `icon` (FontAwesome Icon), `highlight` (String, nilai utama metrik), `subHighlight` (String, info tambahan), `type` (jenis chart misal: 'line', 'bar'), `labels` (Array), `data` (Array). Tidak menggunakan slot.
+- **WidgetProgress.vue**: Widget metrik dengan progress bar otomatis. Props: `title` (String), `icon` (FontAwesome Icon), `value` (Number, nilai saat ini), `maxValue` (Number, batas maksimal untuk persentase bar). Nilai utama (main value) dimasukkan melalui default `<slot />`.
 
 ---
 

@@ -174,6 +174,7 @@
 <script setup>
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import axios from 'axios';
 import {
     faPlus,
     faPencil,
@@ -297,8 +298,34 @@ const statusColor = (status) => {
     return colors[status] || 'badge-gray';
 };
 
-const openForm = (item = null) => {
-    selectedItem.value = item;
+const isLoadingData = ref(false);
+
+const fetchPurchaseDetails = async (id) => {
+    isLoadingData.value = true;
+    try {
+        const response = await axios.get(route('inventory.purchases.show', id));
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        modalStore.addNotification({
+            type: 'error',
+            title: 'Gagal',
+            message: 'Gagal mengambil detail PO.',
+        });
+        return null;
+    } finally {
+        isLoadingData.value = false;
+    }
+};
+
+const openForm = async (item = null) => {
+    if (item) {
+        const data = await fetchPurchaseDetails(item.id);
+        if (!data) return;
+        selectedItem.value = data;
+    } else {
+        selectedItem.value = null;
+    }
     showForm.value = true;
 };
 
@@ -307,8 +334,10 @@ const closeForm = () => {
     selectedItem.value = null;
 };
 
-const openReceive = (item) => {
-    selectedItem.value = item;
+const openReceive = async (item) => {
+    const data = await fetchPurchaseDetails(item.id);
+    if (!data) return;
+    selectedItem.value = data;
     showReceive.value = true;
 };
 
@@ -317,8 +346,10 @@ const closeReceive = () => {
     selectedItem.value = null;
 };
 
-const openDetail = (item) => {
-    selectedItem.value = item;
+const openDetail = async (item) => {
+    const data = await fetchPurchaseDetails(item.id);
+    if (!data) return;
+    selectedItem.value = data;
     showDetail.value = true;
 };
 

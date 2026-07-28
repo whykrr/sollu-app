@@ -47,6 +47,7 @@ class ProductController extends Controller
             'modifierGroups' => \App\Models\Master\ModifierGroup::currentBusiness()->with('options')->get(),
             'inventoryItems' => \App\Models\Master\InventoryItem::currentBusiness()->get(),
             'products'       => Product::currentBusiness()->where('product_type', '!=', 'bundle')->get(), // for bundle components
+            'uoms'           => \App\Models\Uom::where('status', 'active')->get(),
         ]);
     }
 
@@ -89,6 +90,7 @@ class ProductController extends Controller
             'modifierGroups' => \App\Models\Master\ModifierGroup::currentBusiness()->with('options')->get(),
             'inventoryItems' => \App\Models\Master\InventoryItem::currentBusiness()->get(),
             'products'       => Product::currentBusiness()->where('product_type', '!=', 'bundle')->get(),
+            'uoms'           => \App\Models\Uom::where('status', 'active')->get(),
         ]);
     }
 

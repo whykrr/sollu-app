@@ -30,6 +30,12 @@ class UpdateProductRequest extends FormRequest
                 'track_inventory' => false,
             ]);
         }
+
+        if (!$this->input('track_inventory')) {
+            $this->merge([
+                'uom_id' => null,
+            ]);
+        }
     }
 
     public function rules(): array
@@ -49,6 +55,7 @@ class UpdateProductRequest extends FormRequest
             'has_modifier'        => 'boolean',
             'has_recipe'          => 'boolean',
             'track_inventory'     => 'boolean',
+            'uom_id'              => 'required_if:track_inventory,true|nullable|uuid|exists:uoms,id',
 
             // Price setup
             'base_price'                  => 'required|numeric|min:0',

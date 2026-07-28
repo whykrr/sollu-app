@@ -11,8 +11,8 @@ use App\Jobs\Inventory\ImportRawMaterialJob;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Uom;
 use App\Services\Inventory\RawMaterialService;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Response;
 use Inertia\ResponseFactory;
 
@@ -36,7 +36,7 @@ class RawMaterialController extends Controller
             }, function ($query) {
                 $query->latest();
             })
-            ->paginate(15)
+            ->paginate($request->validated('per_page') ?? 20)
             ->withQueryString();
 
         return inertia('Inventory/RawMaterial/Index', [

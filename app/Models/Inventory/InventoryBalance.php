@@ -4,13 +4,12 @@ namespace App\Models\Inventory;
 
 use App\Models\Business;
 use App\Models\Outlet;
+use App\Models\Traits\HasQuantityFormatter;
 use App\Trait\HasBusiness;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\Traits\HasQuantityFormatter;
-
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -34,7 +33,7 @@ class InventoryBalance extends Model
         'current_stock',
     ];
 
-        protected $appends = [
+    protected $appends = [
         'current_stock_formatted',
     ];
 
