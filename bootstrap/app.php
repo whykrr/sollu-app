@@ -40,6 +40,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
 
         $middleware->redirectUsersTo(fn ($request) => route('overview'));
+
+        $middleware->alias([
+            'stock.not.frozen' => \App\Http\Middleware\EnsureStockNotFrozen::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->report(function (Throwable $e) {

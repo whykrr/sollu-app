@@ -150,9 +150,17 @@ protected function casts(): array
 
 For complex operations, business logic must reside in a Service.
 
-- **Naming:** Action-oriented (e.g., `CreateOrderService`, `UpdateOutletService`).
-- **Structure:** Placed in specific subdirectories based on domain (e.g., `app/Services/Outlet/`).
-- **Main method:** `execute(array $data, User $user)` (or similar parameters).
+**Service File Strategy — Simple vs Complex:**
+
+- **Single-file Service (≤500 lines, low complexity):** If the entire business logic for a domain does not exceed 500 lines and is not overly complex, use a **single service file** (e.g., `app/Services/OutletService.php`). Methods such as `create()`, `update()`, `delete()` are combined in one class.
+- **Split-file Service (>500 lines or complex):** If the business logic exceeds 500 lines or involves many dependencies/complex side-effects, split into separate files per action (e.g., `app/Services/Outlet/CreateOutletService.php`, `app/Services/Outlet/UpdateOutletService.php`). Each file uses a **main method** `execute()`.
+
+**General Rules:**
+
+- **Naming (single-file):** Domain-oriented (e.g., `OutletService`, `OrderService`).
+- **Naming (split-file):** Action-oriented (e.g., `CreateOrderService`, `UpdateOutletService`).
+- **Structure:** Placed in specific subdirectories based on domain (e.g., `app/Services/Outlet/`). Single-file services may be placed directly in `app/Services/`.
+- **Main method (split-file):** `execute(array $data, User $user)` (or similar parameters).
 - **Integrity:** Always wrap actions in `DB::transaction()`.
 - **Audit Logging:** Every mutation must create an audit log (e.g., using `OutletAuditLog` or `AuditLogService`).
 
@@ -287,6 +295,7 @@ All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
 
 - Form submissions (`form.post()`, `form.put()`) must always include `preserveState: true` and `preserveScroll: true`.
 - Transitioning or loading base details uses `router.visit()` with **partial reloads** (`only: ['prop_name']`).
+- **Detail Data Loading:** Always use Axios (`axios.get()`) to fetch detail/show data instead of Inertia partial reloads. This prevents page freeze and provides better control over loading states. Register the corresponding routes in `web.php`.
 - For complex data loading in tabs, use API calls (Axios) to prevent page freeze. Register routes in `web.php`.
 
 **Filter Pattern:**

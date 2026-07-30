@@ -62,7 +62,17 @@ Route::prefix('inventories')->group(function () {
 
         // Adjustments
         Route::get('adjustments', [StockAdjustmentController::class, 'index'])->name('adjustments.index');
-        Route::post('adjustments', [StockAdjustmentController::class, 'store'])->name('adjustments.store');
+        Route::get('adjustments/{id}', [StockAdjustmentController::class, 'show'])->name('adjustments.show');
+        Route::post('adjustments/freeze', [StockAdjustmentController::class, 'freeze'])->name('adjustments.freeze');
+        Route::post('adjustments/unfreeze', [StockAdjustmentController::class, 'unfreeze'])->name('adjustments.unfreeze');
+        
+        Route::middleware(['stock.not.frozen'])->group(function () {
+            Route::post('adjustments', [StockAdjustmentController::class, 'store'])->name('adjustments.store');
+            Route::post('adjustments/{stock_adjustment}/approve', [StockAdjustmentController::class, 'approve'])->name('adjustments.approve');
+            Route::post('adjustments/{stock_adjustment}/void', [StockAdjustmentController::class, 'void'])->name('adjustments.void');
+        });
+        
+        Route::post('adjustments/{stock_adjustment}/reject', [StockAdjustmentController::class, 'reject'])->name('adjustments.reject');
 
         // Transfers
         Route::get('transfers', [StockTransferController::class, 'index'])->name('transfers.index');

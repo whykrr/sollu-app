@@ -111,7 +111,9 @@ const itemOptions = computed(() => props.items.map(i => ({
 const typeOptions = [
     { label: 'Waste (Terbuang/Rusak)', value: 'waste' },
     { label: 'Expired (Kedaluwarsa)', value: 'expired' },
+    { label: 'Lost (Hilang)', value: 'lost' },
     { label: 'Correction (Koreksi Salah Input)', value: 'correction' },
+    { label: 'Production (Produksi)', value: 'production' },
     { label: 'Other (Lainnya)', value: 'other' },
 ];
 

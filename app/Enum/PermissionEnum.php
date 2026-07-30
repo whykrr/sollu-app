@@ -105,7 +105,13 @@ enum PermissionEnum: string
 
     case INVENTORY_ALL          = 'inventory.*';
     case INVENTORY_VIEW         = 'inventory.view';
-    case INVENTORY_ADJUST       = 'inventory.adjust';
+    case INVENTORY_ADJUST       = 'inventory.adjust'; // existing, we will keep it for compatibility if any
+    case INVENTORY_ADJUSTMENT_READ   = 'inventory.adjustment.read';
+    case INVENTORY_ADJUSTMENT_CREATE = 'inventory.adjustment.create';
+    case INVENTORY_ADJUSTMENT_APPROVE= 'inventory.adjustment.approve';
+    case INVENTORY_ADJUSTMENT_VOID   = 'inventory.adjustment.void';
+    case INVENTORY_ADJUSTMENT_EXPORT = 'inventory.adjustment.export';
+    case INVENTORY_ADJUSTMENT_FREEZE = 'inventory.adjustment.freeze';
     case INVENTORY_TRANSFER     = 'inventory.transfer';
     case INVENTORY_STOCK_OPNAME = 'inventory.stock_opname';
     case INVENTORY_MOVEMENT     = 'inventory.movement';
@@ -264,7 +270,13 @@ enum PermissionEnum: string
             // Inventory
             self::INVENTORY_ALL          => 'Semua Akses Inventori',
             self::INVENTORY_VIEW         => 'Akses Melihat Inventori',
-            self::INVENTORY_ADJUST       => 'Akses Penyesuaian Inventori',
+            self::INVENTORY_ADJUST       => 'Akses Penyesuaian Inventori (Lama)',
+            self::INVENTORY_ADJUSTMENT_READ   => 'Akses Melihat Penyesuaian',
+            self::INVENTORY_ADJUSTMENT_CREATE => 'Akses Membuat Penyesuaian',
+            self::INVENTORY_ADJUSTMENT_APPROVE=> 'Akses Approval Penyesuaian',
+            self::INVENTORY_ADJUSTMENT_VOID   => 'Akses Void Penyesuaian',
+            self::INVENTORY_ADJUSTMENT_EXPORT => 'Akses Export Penyesuaian',
+            self::INVENTORY_ADJUSTMENT_FREEZE => 'Akses Bekukan Stok Penyesuaian',
             self::INVENTORY_TRANSFER     => 'Akses Transfer Inventori',
             self::INVENTORY_STOCK_OPNAME => 'Akses Stock Opname',
             self::INVENTORY_MOVEMENT     => 'Akses Pergerakan Inventori',

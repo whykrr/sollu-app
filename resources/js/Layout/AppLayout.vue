@@ -137,7 +137,7 @@ router.on('finish', () => (loading.value = false));
 const loading = ref(false);
 const modalStore = useModalStore();
 const flashSuccess = computed(() => usePage().props.app.flash.success);
-const flashFailed = computed(() => usePage().props.app.flash.failed);
+const flashFailed = computed(() => usePage().props.app.flash.failed || usePage().props.app.flash.error);
 const appStore = useAppStore();
 
 const clearMessage = () => {
@@ -145,6 +145,7 @@ const clearMessage = () => {
 };
 const clearMessageFailed = () => {
     usePage().props.app.flash.failed = null;
+    usePage().props.app.flash.error = null;
 };
 
 i18n.global.locale.value = usePage().props.locale;

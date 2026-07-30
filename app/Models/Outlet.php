@@ -49,6 +49,7 @@ class Outlet extends Model
         'timezone',
         'currency_code',
         'logo_url',
+        'is_stock_frozen',
     ];
 
     protected $sortable = [
@@ -60,8 +61,9 @@ class Outlet extends Model
     protected function casts(): array
     {
         return [
-            'is_active'      => 'boolean',
-            'is_main_outlet' => 'boolean',
+            'is_active'       => 'boolean',
+            'is_main_outlet'  => 'boolean',
+            'is_stock_frozen' => 'boolean',
         ];
     }
 

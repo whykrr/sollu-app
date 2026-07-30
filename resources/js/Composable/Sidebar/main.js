@@ -86,17 +86,17 @@ export const mainSidebars = [
             },
             {
                 type: 'item',
-                url: route('inventory.stocktaking.index'),
-                label: 'Stok Opname',
-                permissions: [],
-                activeRoute: 'inventory.stocktaking.',
-            },
-            {
-                type: 'item',
                 url: route('inventory.adjustments.index'),
                 label: 'Penyesuaian Stok',
                 permissions: [],
                 activeRoute: 'inventory.adjustments.',
+            },
+            {
+                type: 'item',
+                url: route('inventory.stocktaking.index'),
+                label: 'Stok Opname',
+                permissions: [],
+                activeRoute: 'inventory.stocktaking.',
             },
             {
                 type: 'item',
