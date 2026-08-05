@@ -116,33 +116,12 @@
         <div class="watermark" style="color: rgba(40, 167, 69, 0.1);">SELESAI</div>
     @endif
 
-    <div class="header">
-        <table>
-            <tr>
-                <td>
-                    @if ($business && $business->logo_url)
-                        <?php
-                        $path = storage_path('app/public/' . $business->logo);
-                        $type = pathinfo($path, PATHINFO_EXTENSION);
-                        $data = file_exists($path) ? file_get_contents($path) : '';
-                        $base64 = $data ? 'data:image/' . $type . ';base64,' . base64_encode($data) : '';
-                        ?>
-                        @if ($base64)
-                            <img src="{{ $base64 }}" alt="Logo">
-                        @else
-                            <h2>{{ $business->name ?? 'Sollu App' }}</h2>
-                        @endif
-                    @else
-                        <h2>{{ $business->name ?? 'Sollu App' }}</h2>
-                    @endif
-                </td>
-                <td class="title">
-                    PURCHASE ORDER<br>
-                    <span style="font-size: 16px; font-weight: normal;">#{{ $po->po_number }}</span>
-                </td>
-            </tr>
-        </table>
-    </div>
+    @include('pdf.partials.header', [
+        'business' => $business,
+        'outlet' => null, // Outlet goes inside the info-table in PO format
+        'title' => 'PURCHASE ORDER',
+        'subtitle' => '#' . $po->po_number
+    ])
 
     <table class="info-table">
         <tr>

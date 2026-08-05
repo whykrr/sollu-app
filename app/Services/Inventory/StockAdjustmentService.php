@@ -115,7 +115,7 @@ class StockAdjustmentService
                     'qty_change'        => $item->qty_change,
                     'stock_before'      => $stockBefore,
                     'stock_after'       => $stockAfter,
-                    'purchase_price'    => $cost,
+                    'cost'              => $cost,
                     'description'       => $item->description,
                     'created_by'        => $user->id,
                     'created_at'        => now(),
@@ -188,7 +188,7 @@ class StockAdjustmentService
                         'qty_change'        => $reversalQty,
                         'stock_before'      => $stockBefore,
                         'stock_after'       => $stockAfter,
-                        'purchase_price'    => 0, // Void reversal inherits cost 0 or previous
+                        'cost'              => 0, // Void reversal inherits cost 0 or previous
                         'description'       => 'Void: ' . $item->description,
                         'created_by'        => $user->id,
                         'created_at'        => now(),

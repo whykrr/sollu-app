@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Constants\ResourceMessage;
-use App\Enum\RoleEnum;
+use App\Enums\RoleEnum;
 use App\Http\Requests\Employee\GetEmployeeRequest;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Constants\AuthorizationMessage;
 use App\Constants\ResourceMessage;
-use App\Enum\PermissionEnum;
+use App\Enums\PermissionEnum;
 use App\Helpers\SummaryUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BusinessUpdateRequest;

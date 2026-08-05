@@ -229,6 +229,66 @@
             </button>
         </template>
     </PopUpPage>
+
+    <!-- Approve Modal -->
+    <Modal
+        title="Konfirmasi Persetujuan"
+        :class="{ show: showApproveModal }"
+        @close="showApproveModal = false"
+    >
+        <p class="text-gray-600 mb-4">
+            Apakah Anda yakin ingin menyetujui penyesuaian ini? Stok akan
+            diperbarui.
+        </p>
+        <template #footer>
+            <div class="flex justify-end gap-2">
+                <button
+                    class="btn btn-flat"
+                    @click="showApproveModal = false"
+                    :disabled="isProcessing"
+                >
+                    Batal
+                </button>
+                <button
+                    class="btn btn-success"
+                    @click="executeApprove"
+                    :disabled="isProcessing"
+                >
+                    <FontAwesomeIcon :icon="faCheck" /> Setujui
+                </button>
+            </div>
+        </template>
+    </Modal>
+
+    <!-- Void Modal -->
+    <Modal
+        title="Konfirmasi Batal (Void)"
+        :class="{ show: showVoidModal }"
+        @close="showVoidModal = false"
+    >
+        <p class="text-gray-600 mb-4">
+            Apakah Anda yakin ingin membatalkan (VOID) penyesuaian ini? Stok
+            akan dikembalikan ke keadaan sebelum penyesuaian.
+        </p>
+        <template #footer>
+            <div class="flex justify-end gap-2">
+                <button
+                    class="btn btn-flat"
+                    @click="showVoidModal = false"
+                    :disabled="isProcessing"
+                >
+                    Batal
+                </button>
+                <button
+                    class="btn btn-danger"
+                    @click="executeVoid"
+                    :disabled="isProcessing"
+                >
+                    <FontAwesomeIcon :icon="faBan" /> Batalkan Penyesuaian
+                </button>
+            </div>
+        </template>
+    </Modal>
 </template>
 
 <script setup>
@@ -238,6 +298,7 @@ import { faCheck, faTimes, faBan } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
+import Modal from '@/Components/Notifications/Modal.vue';
 import { formatDateTimeSimple } from '@/Composable/date.js';
 
 const page = usePage();
@@ -261,6 +322,8 @@ const emit = defineEmits(['close']);
 
 const isProcessing = ref(false);
 const showRejectInput = ref(false);
+const showApproveModal = ref(false);
+const showVoidModal = ref(false);
 
 const rejectForm = useForm({
     notes: '',
@@ -278,29 +341,35 @@ const canVoid = computed(() => can('inventory.adjustment.void'));
 
 const close = () => {
     showRejectInput.value = false;
+    showApproveModal.value = false;
+    showVoidModal.value = false;
     rejectForm.reset();
     emit('close');
 };
 
 const approve = () => {
-    if (
-        confirm(
-            'Apakah Anda yakin ingin menyetujui penyesuaian ini? Stok akan diperbarui.',
-        )
-    ) {
-        isProcessing.value = true;
-        router.post(
-            route('inventory.adjustments.approve', props.adjustment.id),
-            {},
-            {
-                preserveScroll: true,
-                onFinish: () => {
-                    isProcessing.value = false;
+    showApproveModal.value = true;
+};
+
+const executeApprove = () => {
+    isProcessing.value = true;
+    router.post(
+        route('inventory.adjustments.approve', props.adjustment.id),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: (page) => {
+                showApproveModal.value = false;
+                const flash = page.props.app?.flash || {};
+                if (!flash.failed) {
                     close();
-                },
+                }
             },
-        );
-    }
+            onFinish: () => {
+                isProcessing.value = false;
+            },
+        },
+    );
 };
 
 const reject = () => {
@@ -308,32 +377,39 @@ const reject = () => {
         route('inventory.adjustments.reject', props.adjustment.id),
         {
             preserveScroll: true,
-            onSuccess: () => {
-                close();
+            onSuccess: (page) => {
+                const flash = page.props.app?.flash || {};
+                if (!flash.failed) {
+                    close();
+                }
             },
         },
     );
 };
 
 const voidAdjustment = () => {
-    if (
-        confirm(
-            'Apakah Anda yakin ingin membatalkan (VOID) penyesuaian ini? Stok akan dikembalikan ke sebelum penyesuaian.',
-        )
-    ) {
-        isProcessing.value = true;
-        router.post(
-            route('inventory.adjustments.void', props.adjustment.id),
-            {},
-            {
-                preserveScroll: true,
-                onFinish: () => {
-                    isProcessing.value = false;
+    showVoidModal.value = true;
+};
+
+const executeVoid = () => {
+    isProcessing.value = true;
+    router.post(
+        route('inventory.adjustments.void', props.adjustment.id),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: (page) => {
+                showVoidModal.value = false;
+                const flash = page.props.app?.flash || {};
+                if (!flash.failed) {
                     close();
-                },
+                }
             },
-        );
-    }
+            onFinish: () => {
+                isProcessing.value = false;
+            },
+        },
+    );
 };
 
 const formatStatus = (status) => {

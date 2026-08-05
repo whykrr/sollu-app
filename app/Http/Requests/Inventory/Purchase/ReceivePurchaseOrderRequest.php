@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Inventory\Purchase;
 
 use App\Http\Requests\BaseInertiaFormRequest;
-use App\Enum\PermissionEnum;
+use App\Enums\PermissionEnum;
 use Illuminate\Support\Facades\Auth;
 
 class ReceivePurchaseOrderRequest extends BaseInertiaFormRequest

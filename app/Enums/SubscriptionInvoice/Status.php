@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enum\SubscriptionInvoice;
+namespace App\Enums\SubscriptionInvoice;
 
 enum Status: string
 {

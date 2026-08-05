@@ -2,9 +2,9 @@
     <Container>
         <template #header>
             <ContainerHeader title="Penyesuaian Stok">
-                <div class="flex items-center gap-2">
+                <div class="flex items-end gap-2">
                     <button
-                        class="btn btn-primary"
+                        class="btn btn-primary btn-sm"
                         @click="openFreezeModal()"
                         v-if="can('inventory.adjustment.freeze')"
                     >
@@ -24,9 +24,9 @@
             <Filter :filters="filters" :outlets="outlets" />
         </template>
 
-        <Table 
-            :headers="headers" 
-            :data="adjustments.data" 
+        <Table
+            :headers="headers"
+            :data="adjustments.data"
             :action="true"
             :sort="filters.sort"
             :sortDirection="filters.direction"
@@ -44,6 +44,9 @@
                     {{ formatStatus(item.status) }}
                 </span>
             </template>
+            <template #outlet="{ item }">
+                {{ item.outlet.name || '-' }}
+            </template>
             <template #reason="{ item }">
                 <span class="capitalize">
                     {{ formatReason(item.reason) }}
@@ -55,13 +58,25 @@
             <template #created_at="{ item }">
                 <span>{{ formatDateTimeSimple(item.created_at) }}</span>
             </template>
+            <template #creator="{ item }">
+                {{ item.creator.name || '-' }}
+            </template>
             <template #actions="{ item }">
                 <button
-                    class="btn btn-highlight-main btn-sm"
+                    class="btn btn-flat btn-sm"
                     @click="openDetail(item)"
+                    title="Lihat Detail"
                     v-if="can('inventory.adjustment.read')"
                 >
-                    <FontAwesomeIcon :icon="faEye" /> Detail
+                    <FontAwesomeIcon :icon="faEye" />
+                </button>
+                <button
+                    class="btn btn-flat btn-sm text-danger"
+                    @click="exportPdf(item.id)"
+                    v-if="can('inventory.adjustment.read')"
+                    title="Cetak Berita Acara"
+                >
+                    <FontAwesomeIcon :icon="faFilePdf" />
                 </button>
             </template>
         </Table>
@@ -99,7 +114,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { faEye, faPlus, faLock } from '@fortawesome/free-solid-svg-icons';
+import {
+    faEye,
+    faPlus,
+    faLock,
+    faFilePdf,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -149,7 +169,7 @@ const headers = [
         slot: 'created_at',
         sortable: true,
     },
-    { label: 'Outlet', field: 'outlet.name', sortable: false },
+    { label: 'Outlet', slot: 'outlet', sortable: false },
     { label: 'Alasan', field: 'reason', slot: 'reason', sortable: false },
     {
         label: 'Item',
@@ -158,7 +178,7 @@ const headers = [
         sortable: false,
     },
     { label: 'Status', field: 'status', slot: 'status', sortable: false },
-    { label: 'Dibuat Oleh', field: 'creator.name', sortable: false },
+    { label: 'Dibuat Oleh', slot: 'creator', sortable: false },
 ];
 
 const formatStatus = (status) => {
@@ -193,6 +213,10 @@ const openForm = () => {
     showForm.value = true;
 };
 
+const exportPdf = (id) => {
+    window.open(route('inventory.adjustments.export.pdf', id), '_blank');
+};
+
 const closeForm = () => {
     showForm.value = false;
 };
@@ -203,7 +227,9 @@ const openDetail = async (item) => {
     showDetail.value = true;
 
     try {
-        const response = await axios.get(route('inventory.adjustments.show', item.id));
+        const response = await axios.get(
+            route('inventory.adjustments.show', item.id),
+        );
         selectedAdjustment.value = response.data;
     } catch (error) {
         console.error('Failed to load detail:', error);

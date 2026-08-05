@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Inventory\Purchase;
 
-use App\Enum\PermissionEnum;
+use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Support\Facades\Auth;
 

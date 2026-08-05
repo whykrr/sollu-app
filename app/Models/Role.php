@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enum\RoleEnum;
+use App\Enums\RoleEnum;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole

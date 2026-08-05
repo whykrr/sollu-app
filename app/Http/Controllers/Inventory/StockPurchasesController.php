@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Inventory;
 
-use App\Enum\PermissionEnum;
+use App\Enums\PermissionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inventory\Purchase\ReceivePurchaseOrderRequest;
 use App\Http\Requests\Inventory\Purchase\StorePurchaseOrderRequest;

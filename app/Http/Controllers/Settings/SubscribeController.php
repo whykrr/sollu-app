@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Constants\AuthorizationMessage;
 use App\Constants\ResourceMessage;
-use App\Enum\SubscriptionInvoice\Status;
+use App\Enums\SubscriptionInvoice\Status;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\CreateInvoiceSubscribeRequest;
 use App\Models\Outlet;

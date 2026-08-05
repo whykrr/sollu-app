@@ -67,6 +67,7 @@ class HandleInertiaRequests extends Middleware
                     'flash'       => [
                         'success' => $request->session()->get('success'),
                         'failed'  => $request->session()->get('failed'),
+                        'error'   => $request->session()->get('error'),
                         'info'    => $request->session()->get('info'),
                     ],
                 ],
@@ -78,7 +79,7 @@ class HandleInertiaRequests extends Middleware
                         ['selected_outlet' => '']
                     ) : null,
 
-                'businessInfo'  => Inertia::lazy(function () use ($request) {
+                'businessInfo' => Inertia::lazy(function () use ($request) {
                     $business = $request->user()->business;
 
                     $subscription = $business->subscriptions()
@@ -86,7 +87,7 @@ class HandleInertiaRequests extends Middleware
                         ->with('plan:id,name')
                         ->latest()
                         ->first();
-                        
+
                     $isTrial = $business->trial_end_at ? \Carbon\Carbon::parse($business->trial_end_at)->isFuture() : false;
 
                     if ($subscription) {

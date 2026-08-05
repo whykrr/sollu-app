@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enum\PermissionEnum;
+use App\Enums\PermissionEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class Permission extends Model

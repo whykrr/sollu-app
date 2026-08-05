@@ -196,12 +196,30 @@ For complex operations, business logic must reside in a Service.
     - `DELETE /{model}/destroy` → `destroy` (force delete)
 
 ### CSV Import/Export Pattern
+Sistem memproses Import dan Export CSV secara asinkron (di latar belakang) menggunakan *Queued Jobs*.
 
-- **Background Processing:** Both Import and Export of potentially large CSV files must be processed in the background using Queued Jobs.
-- **Base Abstract Jobs:** Extend `AbstractCsvExportJob` and `AbstractCsvImportJob` (located in `app/Jobs/`) to ensure a consistent approach to chunking data and writing/reading rows.
-- **Import Error Handling:** Validation errors during import must NOT cause the entire job to fail. Instead, collect the failed rows, generate a new CSV containing these rows with an added "Error Message" column, and store it.
-- **Notifications:** Use Laravel Notifications (`CsvExportCompleted`, `CsvImportCompleted`) to inform the user. The Import notification must include a download link to the failed rows CSV if any validation errors occurred.
-- **Template Generation:** Import templates should include a dummy row as an example for users. Use case-insensitive matching for relationships (like UOM name) to improve UX.
+**1. Ekspor Data (`AbstractCsvExportJob`)**
+- **Implementasi Job**: Buat class baru yang meng-*extend* `AbstractCsvExportJob`. Anda wajib mendefinisikan metode:
+  - `getQuery()`: Mengembalikan *query builder* data yang akan diekspor (belum dieksekusi / di-`get()`).
+  - `getHeaders()`: Array string header kolom CSV.
+  - `mapRow($row)`: Format pemetaan *row database* ke format array CSV.
+  - `getModuleName()` & `getFileName()`: Untuk notifikasi dan penamaan file di storage `public`.
+- **Implementasi Controller**: Panggil `JobName::dispatch(...)`, lalu kembalikan respons `redirect()->back()->with('success', 'Ekspor sedang diproses...')`. Jangan panggil `.csv` stream secara langsung di Controller untuk data besar.
+
+**2. Impor Data (`AbstractCsvImportJob`)**
+- **Implementasi Job**: Buat class baru yang meng-*extend* `AbstractCsvImportJob`. Wajib mendefinisikan:
+  - `getModuleName()`: Nama modul untuk notifikasi.
+  - `processRow(array $row)`: Logika validasi dan penyimpanan ke database per-baris (menggunakan array assosiatif berbasis nama header CSV). **Penting:** Lemparkan `Exception` (`throw new Exception('Alasan gagal');`) jika terjadi kesalahan / validasi gagal. *Abstract Job* akan otomatis merekap baris yang gagal ini menjadi sebuah file CSV khusus (`failed_import.csv`).
+- **Implementasi Controller**: 
+  - Validasi *file* menggunakan `mimes:csv,txt`, lalu simpan secara temporer ke disk lokal (`$file->store('imports', 'local')`).
+  - *Dispatch* job (`JobName::dispatch(Auth::user(), $path, ...)`) lalu berikan respons sukses `redirect()->back()->with('success', 'Proses impor berjalan di latar belakang...')`.
+
+**3. Download Template Impor**
+- Di-*generate* langsung di Controller menggunakan `response()->stream(...)`.
+- Wajib menyertakan karakter *BOM* (`fputs($file, chr(0xEF) . chr(0xBB) . chr(0xBF));`) agar file CSV tidak rusak saat dibuka menggunakan MS Excel. Selalu sertakan 1 baris *dummy data* sebagai referensi format pengisian yang benar.
+
+**4. Integrasi Notifikasi UI**
+- Pekerjaan latar belakang memicu kelas notifikasi `CsvExportCompleted` / `CsvImportCompleted` saat usai. Hasil unduhan (atau list baris gagal saat impor) akan langsung ditangani secara terpusat oleh antarmuka sistem (Notifikasi Header) menggunakan tautan unduhan dari `Storage` *public*.
 
 ### Logging & Seeder
 
@@ -298,12 +316,29 @@ All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
 - **Detail Data Loading:** Always use Axios (`axios.get()`) to fetch detail/show data instead of Inertia partial reloads. This prevents page freeze and provides better control over loading states. Register the corresponding routes in `web.php`.
 - For complex data loading in tabs, use API calls (Axios) to prevent page freeze. Register routes in `web.php`.
 
-**Filter Pattern:**
-
-- Use `reactive()` for state (not `useForm`).
-- Use `watch` with `debounce` (e.g., 500ms) for auto-submit.
-- When filter changes, always reset pagination to `page: 1`.
-- Merge parameters: `router.get(route('...'), { ...route().params, ...filterForm, page: 1 }, { preserveState: true, preserveScroll: true })`.
+**Table Filter Pattern:**
+Setiap filter table harus mematuhi pola seragam berikut (lihat referensi: Stock, Supplier, Adjustment):
+1. **Layout & Komponen**: 
+   - Gunakan wrapper `flex items-center gap-2`.
+   - Gunakan `<FilterSearch>` untuk pencarian teks utama (`v-model="filterForm.search"`).
+   - Buat tombol "Filter" dengan icon `faSliders` untuk membuka modal (`showFilterModal = true`).
+   - Tampilkan badge aktif (`<div class="filter-badge">`) untuk setiap filter yang sedang berjalan dengan tombol `✕` untuk menghapusnya (`removeFilter(key)`).
+2. **State Management (Script Setup)**:
+   - Definisikan `filterForm` menggunakan `reactive()` dengan inisialisasi dari `props.filters`.
+   - Definisikan `tempFilters` menggunakan `reactive()` untuk menyimpan state sementara di dalam modal.
+   - Definisikan `showFilterModal` menggunakan `ref(false)`.
+3. **Pencarian Auto-submit**:
+   - Terapkan watcher terpisah khusus untuk `filterForm.search` menggunakan `debounce` (500ms) agar langsung memanggil `updateQuery()`.
+4. **Alur Kerja Modal (Apply, Reset, Cancel)**:
+   - `openModal()`: Salin nilai `filterForm` ke `tempFilters`, lalu buka modal.
+   - `closeModal()`: Tutup modal tanpa merubah apapun.
+   - `resetTempFilters()`: Kosongkan nilai di `tempFilters` saja.
+   - `applyFilters()`: Salin nilai `tempFilters` kembali ke `filterForm`, tutup modal, lalu jalankan `updateQuery()`.
+5. **Inertia Router Push (`updateQuery`)**:
+   - Buat objek `query` dengan menggabungkan `route().params` dan isi filter. 
+   - Pastikan parameter yang kosong (`''`) diubah menjadi `undefined` agar tidak muncul di URL.
+   - Selalu reset halaman kembali ke `page: 1`.
+   - Lakukan request: `router.get(window.location.pathname, query, { preserveState: true, preserveScroll: true });`.
 
 **Modal Form Lifecycle Pattern:**
 
@@ -344,61 +379,51 @@ All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
 
 ## Role & Permission Rules
 
-- **PermissionEnum:** Setiap penambahan permission baru wajib didaftarkan di `app/Enum/PermissionEnum.php`.
-- **RoleEnum & Seeder:** Setelah mendaftarkan permission baru, Anda wajib mengaitkannya ke role yang sesuai di dalam file `database/seeders/Production/RolePermissionSeeder.php` dan `app/Enum/RoleEnum.php` (jika ada role baru).
+- **PermissionEnum:** Setiap penambahan permission baru wajib didaftarkan di `app/Enums/PermissionEnum.php`.
+- **RoleEnum & Seeder:** Setelah mendaftarkan permission baru, Anda wajib mengaitkannya ke role yang sesuai di dalam file `database/seeders/Production/RolePermissionSeeder.php` dan `app/Enums/RoleEnum.php` (jika ada role baru).
 - **Seeding:** Setiap ada pembaruan pada `PermissionEnum` atau `RolePermissionSeeder.php`, pastikan Anda selalu menjalankan ulang seeder menggunakan perintah `php artisan db:seed --class="Database\Seeders\Production\RolePermissionSeeder"` agar data permission di database ter-update.
 
 ---
 
-## CSS & Styling Rules
+## UI & Component Usage Patterns
 
-### Tailwind v4 & Custom Classes
+**Aturan penggunaan styling dan komponen UI (Hemat Token & Konsisten):**
 
-- The project uses **Tailwind CSS v4** (`@theme`, `@utility`).
-- **Color Tokens:** `--color-main`, `--color-secondary`, `--color-danger`, `--color-success`, `--color-warning`, `--color-info`.
-- Use a **hybrid approach**: Use custom classes for standard UI elements and Tailwind utilities for layouts and spacing.
-- Extract long Tailwind classes into custom classes in `resources/css/app.css` if they become too verbose.
-- Create reusable custom classes for redundant Tailwind class combinations in `resources/css/app.css`.
-- Use spacing scale 4 (`gap-4`) for normal elements, scale 3 for main area padding, scale 2 for tight components & gap form.
-- do not use spacing scale inside `PopUpPage` body
+### 1. Styling Dasar & Class
+- **Warna Tema (app.css)**: `main`, `secondary`, `success`, `danger`, `warning`, `info`. 
+- **Spasi**: Gunakan skala 4 (`gap-4`, `p-4`) standar, skala 3 main area, skala 2 tight/form. Dilarang pakai padding/margin di dalam `PopUpPage` body.
+- **Button**:
+  - `btn` (wajib).
+  - Varian warna: `btn-main`, `btn-outline-main`, `btn-highlight-main` (berlaku untuk semua warna).
+  - Varian ukuran: `btn-xs`, `btn-sm`, `btn-lg`.
+  - Icon Button: `<button class="btn btn-main"><FontAwesomeIcon :icon="faIcon" /> Text</button>`.
 
-### Custom Class Inventory
+### 2. Layout & Container
+- **`@/Components/UI/Container.vue`**: Wrapper utama halaman (mendukung slot `#header`, `#footer`, `#widgets`).
+- **`@/Components/UI/Card/Card.vue`**: `<Card title="..." image="...">...<template #footer>...</template></Card>`.
+- **`@/Components/UI/Card/CardFade.vue`**: Sama seperti Card dengan gradasi/fade effect.
 
-- **Buttons:** `btn`, `btn-main`, `btn-success`, `btn-danger`, `btn-outline-main`, `btn-sm`, `btn-xs`
-- **Forms:** `form`, `form-group`, `form-check`, `form-check-input`, `form-feedback`, `is-invalid`
-- **Cards:** `card`, `card-header`, `card-outline`
-- **Modals:** `modal`, `modal-dialog`, `modal-content`, `modal-header`, `modal-body`, `modal-footer`
-- **Tables:** `table`, `table-hovered`
-- **Badges:** `badge`, `badge-success`, `badge-danger`, `pill`
-- **Layouts:** `sidebar`, `nav-item`, `nav-dropdown`, `tab`, `floating-scroll`
+### 3. Form & Input (`@/Components/Form/`)
+- Gunakan `TextField`, `TextareaField`, `DropdownField`, `NumberField`, `Switch`.
+- Props: `v-model`, `label`, `placeholder`, `error`, `success`. 
+- Ukuran Form: Tambahkan class `sm` atau `lg`.
+- **Form Group**: 
+  - Icon/teks dengan input: `<div class="form-group"><label class="form-group-text">...</label><input class="form" /></div>`.
+- **Form Floating**: 
+  - `<div class="form-floating"><input id="x" required/><label for="x">...</label></div>`.
+- **Checkbox / Radio**:
+  - Standar: `<div class="form-check"><input class="form-check-input" type="checkbox"/><label>...</label></div>`.
+  - Tampilan Button: `<input class="form-check-btn peer" type="radio"/><label class="btn btn-outline-main">...</label>`.
 
----
+### 4. Tables & Data Display (`@/Components/Tables/`)
+- **`Table.vue`**: Gunakan prop `:actions="true"` jika ada aksi, isi slot `#actions`. Jangan buat kolom action manual.
+- **`Pagination.vue`**: Gunakan default `per_page: 20` pada request backend.
 
-## Component Reference
-
-### UI Components (`@/Components/UI/`)
-
-- **Container.vue**: Main wrapper (`#header`, default, `#footer`, `#widgets`).
-- **PopUpPage.vue**: Side panel modal (`title`, `sub-title`, `size`, `#footer`).
-- **Tab.vue**: Tabbed navigation (`pages`, `vertical`).
-- **FilterSearch.vue**: Search input bound via `v-model`.
-
-### Form Components (`@/Components/Form/`)
-
-- `TextField.vue`, `EmailField.vue`, `PasswordField.vue`, `NumberField.vue`, `TextareaField.vue`, `DropdownField.vue`, `CheckboxField.vue`, `RadioField.vue`, `Switch.vue`, `QuillEditor.vue`.
-- These use `defineOptions({ inheritAttrs: false })` and inherit attributes via `v-bind="$attrs"`. They emit `update:modelValue`.
-
-### Tables Components (`@/Components/Tables/`)
-
-- **Table.vue**: Data table (`headers`, `data`, `sort`, `sortDirection`, `action`). Custom slots supported via `col.slot`.
-- terdapat properti actions, gunakan true jika terdapat button actions, dan ubah custom template pada #actions (jangan gunakan kolom action pada setting table nya)
-- **Pagination.vue**: Paginator (`links`, `from`, `to`, `total`, `perPage`). Uses Inertia `<Link>`. gunakan request `per_page` dengan default 20 untuk table yang menggunakan component `<Pagination>`
-
-### Widgets Components (`@/Components/Widgets/`)
-
-- **Widget.vue**: Widget standar untuk menampilkan metrik. Props: `title` (String), `icon` (FontAwesome Icon), `traction` ('up'|'down'), `tractionPercentage` (Number), `descriptors` (String). Nilai utama (main value) dimasukkan melalui default `<slot />`.
-- **WidgetChart.vue**: Widget metrik dengan mini chart (berbasis chart.js). Props: `id` (String unik), `title` (String), `icon` (FontAwesome Icon), `highlight` (String, nilai utama metrik), `subHighlight` (String, info tambahan), `type` (jenis chart misal: 'line', 'bar'), `labels` (Array), `data` (Array). Tidak menggunakan slot.
-- **WidgetProgress.vue**: Widget metrik dengan progress bar otomatis. Props: `title` (String), `icon` (FontAwesome Icon), `value` (Number, nilai saat ini), `maxValue` (Number, batas maksimal untuk persentase bar). Nilai utama (main value) dimasukkan melalui default `<slot />`.
+### 5. Widgets (Dashboard/Metrics)
+Berikan warna via class (cth: `widget-main`, `widget-teal`).
+- **`Widget.vue`**: Metrik standar. Slot default = nilai utama. Props: `title`, `icon`, `traction`, `tractionPercentage`, `descriptors`.
+- **`WidgetProgress.vue`**: Metrik dengan progress bar. Props: `title`, `icon`, `value`, `maxValue`.
+- **`WidgetChart.vue`**: Metrik chart. Tanpa slot. Props: `id`, `title`, `icon`, `type`, `highlight`, `sub-highlight`, `labels`, `data`.
 
 ---
 

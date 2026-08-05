@@ -26,7 +26,7 @@ Route::prefix('inventories')->group(function () {
         Route::get('raw-materials/export', [RawMaterialController::class, 'export'])->name('raw-materials.export');
         Route::get('raw-materials/import/template', [RawMaterialController::class, 'importTemplate'])->name('raw-materials.importTemplate');
         Route::post('raw-materials/import', [RawMaterialController::class, 'import'])->name('raw-materials.import');
-        
+
         Route::get('raw-materials', [RawMaterialController::class, 'index'])->name('raw-materials.index');
         Route::post('raw-materials', [RawMaterialController::class, 'store'])->name('raw-materials.store');
         Route::put('raw-materials/{id}', [RawMaterialController::class, 'update'])->name('raw-materials.update');
@@ -46,7 +46,7 @@ Route::prefix('inventories')->group(function () {
         Route::get('purchases/{id}', [StockPurchasesController::class, 'show'])->name('purchases.show');
         Route::put('purchases/{id}', [StockPurchasesController::class, 'update'])->name('purchases.update');
         Route::delete('purchases/{id}', [StockPurchasesController::class, 'destroy'])->name('purchases.destroy');
-        
+
         Route::post('purchases/{id}/order', [StockPurchasesController::class, 'order'])->name('purchases.order');
         Route::post('purchases/{id}/receive', [StockPurchasesController::class, 'receive'])->name('purchases.receive');
         Route::post('purchases/{id}/cancel', [StockPurchasesController::class, 'cancel'])->name('purchases.cancel');
@@ -62,16 +62,17 @@ Route::prefix('inventories')->group(function () {
 
         // Adjustments
         Route::get('adjustments', [StockAdjustmentController::class, 'index'])->name('adjustments.index');
+        Route::get('adjustments/{id}/pdf', [StockAdjustmentController::class, 'exportPdf'])->name('adjustments.export.pdf');
         Route::get('adjustments/{id}', [StockAdjustmentController::class, 'show'])->name('adjustments.show');
         Route::post('adjustments/freeze', [StockAdjustmentController::class, 'freeze'])->name('adjustments.freeze');
         Route::post('adjustments/unfreeze', [StockAdjustmentController::class, 'unfreeze'])->name('adjustments.unfreeze');
-        
+
         Route::middleware(['stock.not.frozen'])->group(function () {
             Route::post('adjustments', [StockAdjustmentController::class, 'store'])->name('adjustments.store');
             Route::post('adjustments/{stock_adjustment}/approve', [StockAdjustmentController::class, 'approve'])->name('adjustments.approve');
             Route::post('adjustments/{stock_adjustment}/void', [StockAdjustmentController::class, 'void'])->name('adjustments.void');
         });
-        
+
         Route::post('adjustments/{stock_adjustment}/reject', [StockAdjustmentController::class, 'reject'])->name('adjustments.reject');
 
         // Transfers

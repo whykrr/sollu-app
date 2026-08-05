@@ -78,11 +78,7 @@
             />
         </template>
 
-        <Form
-            :show="showForm"
-            :supplier="selectedItem"
-            @close="closeForm"
-        />
+        <Form :show="showForm" :supplier="selectedItem" @close="closeForm" />
     </Container>
 </template>
 

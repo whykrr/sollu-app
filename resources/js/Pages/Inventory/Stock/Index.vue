@@ -44,7 +44,8 @@
                 {{ item.category_name || '-' }}
             </template>
             <template #minimum_stock="{ item }">
-                {{ item.minimum_stock_formatted }} <span class="text-xs text-gray-500">{{ item.uom }}</span>
+                {{ item.minimum_stock_formatted }}
+                <span class="text-xs text-gray-500">{{ item.uom }}</span>
             </template>
             <template #current_stock="{ item }">
                 <span
@@ -57,7 +58,10 @@
                               : ''
                     "
                 >
-                    {{ item.current_stock_formatted }} <span class="text-xs text-gray-500 font-normal">{{ item.uom }}</span>
+                    {{ item.current_stock_formatted }}
+                    <span class="text-xs text-gray-500 font-normal">{{
+                        item.uom
+                    }}</span>
                 </span>
             </template>
             <template #status="{ item }">
@@ -70,10 +74,7 @@
                 <span v-else class="badge badge-success">Aman</span>
             </template>
             <template #actions="{ item }">
-                <button
-                    class="btn btn-highlight-main btn-sm"
-                    @click="openDetail(item)"
-                >
+                <button class="btn btn-flat btn-sm" @click="openDetail(item)">
                     <FontAwesomeIcon :icon="faEye" title="Detail" />
                 </button>
             </template>

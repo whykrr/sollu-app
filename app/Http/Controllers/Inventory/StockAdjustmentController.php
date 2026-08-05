@@ -11,6 +11,7 @@ use App\Models\Inventory\StockAdjustment;
 use App\Models\Outlet;
 use App\Services\Inventory\StockAdjustmentService;
 use App\Services\Inventory\StockFreezeService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -24,7 +25,7 @@ class StockAdjustmentController extends Controller
     {
         $businessId = Auth::user()->business_id;
 
-        $sort = $request->input('sort', 'created_at');
+        $sort      = $request->input('sort', 'created_at');
         $direction = $request->input('direction', 'desc');
 
         $adjustments = StockAdjustment::query()
@@ -51,12 +52,12 @@ class StockAdjustmentController extends Controller
             ->get();
 
         // The detail is now loaded via API (axios.get) in the show method.
-        
+
         return inertia('Inventory/Adjustment/Index', [
-            'adjustments'      => $adjustments,
-            'outlets'          => $outlets,
-            'items'            => $items,
-            'filters'          => [
+            'adjustments' => $adjustments,
+            'outlets'     => $outlets,
+            'items'       => $items,
+            'filters'     => [
                 ...$request->only(['search', 'status', 'reason', 'outlet_id', 'date_from', 'date_to']),
                 'sort'      => $sort,
                 'direction' => $direction,
@@ -80,13 +81,13 @@ class StockAdjustmentController extends Controller
     public function show($id)
     {
         Gate::authorize('inventory.adjustment.read');
-        
+
         $businessId = Auth::user()->business_id;
-        
+
         $adjustmentDetail = StockAdjustment::with(['outlet', 'creator', 'approver', 'items.inventoryItem.uom'])
             ->where('business_id', $businessId)
             ->findOrFail($id);
-            
+
         return response()->json($adjustmentDetail);
     }
 
@@ -95,16 +96,14 @@ class StockAdjustmentController extends Controller
      */
     public function approve(StockAdjustment $stock_adjustment, StockAdjustmentService $service)
     {
-        Gate::authorize('inventory.adjustment.approve');
-
-        // Middleware `EnsureStockNotFrozen` is applied on route to prevent if frozen
+        $this->authorize('inventory.adjustment.approve');
 
         try {
             $service->approve($stock_adjustment, Auth::user());
 
             return redirect()->back()->with('success', 'Penyesuaian stok disetujui.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->with('failed', $e->getMessage());
         }
     }
 
@@ -118,7 +117,7 @@ class StockAdjustmentController extends Controller
 
             return redirect()->back()->with('success', 'Penyesuaian stok ditolak.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->with('failed', $e->getMessage());
         }
     }
 
@@ -136,7 +135,7 @@ class StockAdjustmentController extends Controller
 
             return redirect()->back()->with('success', 'Penyesuaian stok berhasil dibatalkan.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->with('failed', $e->getMessage());
         }
     }
 
@@ -170,5 +169,36 @@ class StockAdjustmentController extends Controller
         $service->unfreeze($outlet, Auth::user());
 
         return redirect()->back()->with('success', 'Stok pada outlet ' . $outlet->name . ' berhasil dicairkan.');
+    }
+
+    /**
+     * Export to PDF (Berita Acara).
+     */
+    public function exportPdf(string $id)
+    {
+        Gate::authorize('inventory.adjustment.read');
+
+        $businessId = Auth::user()->business_id;
+
+        $adjustment = StockAdjustment::with([
+            'outlet',
+            'creator',
+            'approver',
+            'items.inventoryItem.uom',
+        ])
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        $business = Auth::user()->business;
+
+        $pdf = Pdf::loadView('pdf.stock-adjustment', [
+            'adjustment' => $adjustment,
+            'business'   => $business,
+            'outlet'     => $adjustment->outlet,
+            'title'      => 'PENYESUAIAN STOK',
+            'subtitle'   => 'Nomor: ' . $adjustment->adjustment_number,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->download('Penyesuaian_Stok_' . $adjustment->adjustment_number . '.pdf');
     }
 }

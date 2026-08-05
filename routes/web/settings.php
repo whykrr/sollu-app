@@ -48,7 +48,7 @@ Route::prefix('settings')
                 });
             });
 
-        Route::middleware(['can:' . \App\Enum\PermissionEnum::BUSINESS_BILLING->value])->group(function () {
+        Route::middleware(['can:' . \App\Enums\PermissionEnum::BUSINESS_BILLING->value])->group(function () {
             Route::prefix('billing')
                 ->name('billing.')
                 ->group(function () {
@@ -70,7 +70,7 @@ Route::prefix('settings')
                 });
         });
 
-        Route::middleware(['can:' . \App\Enum\PermissionEnum::BUSINESS_SUBSCRIPTION->value])->group(function () {
+        Route::middleware(['can:' . \App\Enums\PermissionEnum::BUSINESS_SUBSCRIPTION->value])->group(function () {
             Route::prefix('subscriptions')
                 ->name('subscriptions.')
                 ->group(function () {

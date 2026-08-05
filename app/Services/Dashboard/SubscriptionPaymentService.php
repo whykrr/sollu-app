@@ -2,9 +2,9 @@
 
 namespace App\Services\Dashboard;
 
-use App\Enum\SubscriptionPayment\PaymentMethod;
-use App\Enum\SubscriptionPayment\PaymentType;
-use App\Enum\SubscriptionPayment\Status;
+use App\Enums\SubscriptionPayment\PaymentMethod;
+use App\Enums\SubscriptionPayment\PaymentType;
+use App\Enums\SubscriptionPayment\Status;
 use App\Models\SubscriptionInvoice;
 use App\Models\SubscriptionPayment;
 use Carbon\Carbon;
