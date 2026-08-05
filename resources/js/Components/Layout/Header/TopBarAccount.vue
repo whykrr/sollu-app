@@ -6,20 +6,18 @@
                 class="text-slate-700 block transition-transform active:scale-95"
                 @click.prevent="toggle"
             >
+                <img
+                    v-if="auth.profile_photo_url"
+                    :src="auth.profile_photo_url"
+                    alt="Profile"
+                    class="rounded-full w-9 h-9"
+                />
                 <div
+                    v-else
                     class="rounded-full w-10 h-10 bg-white flex items-center justify-center border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-150 ease-in-out"
                 >
                     {{ initials }}
                 </div>
-                <!-- <img
-                    :src="
-                        'https://ui-avatars.com/api/?name=' +
-                        auth.name +
-                        '&size=40&background=fff'
-                    "
-                    alt="Profile"
-                    class="rounded-full w-9 h-9"
-                /> -->
             </a>
         </div>
         <transition name="fade-down" mode="in-out">

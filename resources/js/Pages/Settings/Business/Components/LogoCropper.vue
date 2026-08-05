@@ -271,7 +271,7 @@ const editImage = () => {
                 <!-- Cropper -->
                 <div
                     v-if="image"
-                    class="relative aspect-square overflow-hidden"
+                    class="relative w-full aspect-square max-h-[300px] overflow-hidden"
                 >
                     <Cropper
                         ref="cropper"
@@ -282,6 +282,10 @@ const editImage = () => {
                             aspectRatio: 1,
                         }"
                         class="h-full w-full"
+                        :canvas="{
+                            maxWidth: 200,
+                            maxHeight: 200,
+                        }"
                     />
 
                     <div

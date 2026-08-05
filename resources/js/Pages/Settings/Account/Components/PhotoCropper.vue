@@ -256,7 +256,7 @@ const removeImage = () => {
                 <!-- Cropper -->
                 <div
                     v-if="image"
-                    class="relative aspect-square overflow-hidden"
+                    class="relative aspect-square max-h-[300px] overflow-hidden"
                 >
                     <Cropper
                         ref="cropper"
