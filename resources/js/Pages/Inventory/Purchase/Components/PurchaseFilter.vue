@@ -92,7 +92,7 @@
         </div>
 
         <!-- Filter Modal Overlay -->
-        <div v-if="showFilterModal" class="overlay-backdrop z-50">
+        <div v-show="showFilterModal" class="overlay-backdrop z-50">
             <div class="overlay-modal max-w-md">
                 <!-- Header -->
                 <div class="overlay-header">
@@ -151,24 +151,11 @@
 
                     <!-- Outlet Filter -->
                     <div class="space-y-1">
-                        <label
-                            class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                        >
-                            Outlet
-                        </label>
-                        <select
+                        <AsyncOutletDropdown
                             v-model="tempFilters.outlet_id"
-                            class="form-input w-full rounded-lg border-gray-200"
-                        >
-                            <option value="">Semua</option>
-                            <option
-                                v-for="out in outlets"
-                                :key="out.id"
-                                :value="out.id"
-                            >
-                                {{ out.name }}
-                            </option>
-                        </select>
+                            placeholder="Semua Outlet"
+                            @loaded="onOutletsLoaded"
+                        />
                     </div>
 
                     <!-- Date Filter -->
@@ -234,16 +221,13 @@ import { ref, reactive, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 
 const props = defineProps({
     filters: Object,
     suppliers: {
-        type: Array,
-        default: () => [],
-    },
-    outlets: {
         type: Array,
         default: () => [],
     },
@@ -267,6 +251,12 @@ const tempFilters = reactive({
     start_date: '',
     end_date: '',
 });
+
+const loadedOutlets = ref([]);
+
+const onOutletsLoaded = (outlets) => {
+    loadedOutlets.value = outlets;
+};
 
 // Watch search separately for immediate query trigger
 watch(
@@ -348,7 +338,7 @@ const getSupplierName = (id) => {
 };
 
 const getOutletName = (id) => {
-    const out = props.outlets.find((o) => o.id === id);
+    const out = loadedOutlets.value.find((o) => o.id == id);
     return out ? out.name : 'Unknown';
 };
 </script>

@@ -7,14 +7,15 @@
     >
         <form @submit.prevent="submit" class="space-y-2">
             <div class="grid grid-cols-2 gap-2">
-                <DropdownField
+                <AsyncOutletDropdown
                     id="outlet_id"
                     v-model="form.outlet_id"
                     label="Outlet"
                     placeholder="Pilih outlet..."
-                    :options="outletOptions"
+                    :exclude-frozen="true"
                     :class="{ 'is-invalid': form.errors.outlet_id }"
                     :feedback="form.errors.outlet_id"
+                    @loaded="onOutletsLoaded"
                     required
                 />
                 <DropdownField
@@ -192,6 +193,7 @@
 import { computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import PopUpPage from '@/Components/UI/PopUpPage.vue';
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import TextField from '@/Components/Form/TextField.vue';
@@ -206,10 +208,6 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-    outlets: {
-        type: Array,
-        default: () => [],
-    },
 });
 
 const emit = defineEmits(['close']);
@@ -221,14 +219,11 @@ const form = useForm({
     items: [],
 });
 
-const outletOptions = computed(() =>
-    props.outlets
-        .filter((o) => !o.is_stock_frozen)
-        .map((o) => ({
-            label: o.name,
-            value: o.id,
-        })),
-);
+const loadedOutlets = ref([]);
+
+const onOutletsLoaded = (outlets) => {
+    loadedOutlets.value = outlets;
+};
 
 const itemOptions = computed(() =>
     props.items.map((i) => ({

@@ -118,7 +118,7 @@ class StockController extends Controller
 
         $stocks = $stockQuery
             ->selectRaw('inventory_balances.current_stock < inventory_items.minimum_stock as is_low_stock')
-            ->orderBy('inventory_items.name')
+            ->orderBy($sort, $direction)
             ->paginate($request->get('per_page', 20))
             ->withQueryString()
             ->through(function ($item) {
@@ -127,14 +127,21 @@ class StockController extends Controller
                 return $item;
             });
 
-        $categories = ProductCategory::where('business_id', $businessId)->select('id', 'name')->get();
+        $categories = InventoryCategory::currentBusiness()
+            ->where('is_active', true)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
 
         return inertia('Inventory/Stock/Index', [
             'stocks'     => $stocks,
-            'outlets'    => $outlets,
             'categories' => $categories,
             'summary'    => $summary,
-            'filters'    => $request->only(['search', 'outlet_id', 'item_type', 'category_id', 'stock_status', 'is_active_only', 'in_stock_only']),
+            'filters'    => [
+                ...$request->only(['search', 'outlet_id', 'item_type', 'category_id', 'stock_status', 'is_active_only', 'in_stock_only']),
+                'sort'      => $sort,
+                'direction' => $direction,
+            ],
         ]);
     }
 

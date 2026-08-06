@@ -62,6 +62,8 @@ Route::prefix('inventories')->group(function () {
         Route::post('stock-opnames/{id}/reject', [StockOpnameController::class, 'reject'])->name('opnames.reject');
         Route::get('stock-opnames/{id}/pdf', [StockOpnameController::class, 'exportPdf'])->name('opnames.export.pdf');
         Route::get('stock-opnames/{id}', [StockOpnameController::class, 'show'])->name('opnames.show');
+        Route::post('stock-opnames/freeze', [StockOpnameController::class, 'freeze'])->name('opnames.freeze');
+        Route::post('stock-opnames/unfreeze', [StockOpnameController::class, 'unfreeze'])->name('opnames.unfreeze');
 
         // Adjustments
         Route::get('adjustments', [StockAdjustmentController::class, 'index'])->name('adjustments.index');

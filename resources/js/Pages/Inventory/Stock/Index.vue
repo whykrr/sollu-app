@@ -34,7 +34,6 @@
 
             <StockFilter
                 :filters="filters"
-                :outlets="outlets"
                 :categories="categories"
             />
         </template>
@@ -117,10 +116,6 @@ const props = defineProps({
     stocks: {
         type: Object,
         default: () => ({ data: [], links: [] }),
-    },
-    outlets: {
-        type: Array,
-        default: () => [],
     },
     categories: {
         type: Array,

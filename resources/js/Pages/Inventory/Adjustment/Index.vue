@@ -21,7 +21,7 @@
                     </button>
                 </div>
             </ContainerHeader>
-            <Filter :filters="filters" :outlets="outlets" />
+            <Filter :filters="filters" />
         </template>
 
         <Table
@@ -93,7 +93,6 @@
         <AdjustmentFormPopUp
             :show="showForm"
             :items="items"
-            :outlets="outlets"
             @close="closeForm"
         />
 
@@ -106,7 +105,6 @@
 
         <FreezeStockPopUp
             :show="showFreezeModal"
-            :outlets="outlets"
             @close="closeFreezeModal"
         />
     </Container>
@@ -141,10 +139,6 @@ const props = defineProps({
         default: () => ({ data: [], links: [] }),
     },
     items: {
-        type: Array,
-        default: () => [],
-    },
-    outlets: {
         type: Array,
         default: () => [],
     },

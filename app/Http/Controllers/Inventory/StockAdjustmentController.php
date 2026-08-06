@@ -37,11 +37,6 @@ class StockAdjustmentController extends Controller
             ->paginate($request->input('per_page', 20))
             ->withQueryString();
 
-        $outlets = Outlet::where('business_id', $businessId)
-            ->active()
-            ->select('id', 'name', 'is_stock_frozen')
-            ->get();
-
         // Used for item dropdown in creation
         $items = InventoryItem::currentBusiness()
             ->where('is_active', true)
@@ -55,7 +50,6 @@ class StockAdjustmentController extends Controller
 
         return inertia('Inventory/Adjustment/Index', [
             'adjustments' => $adjustments,
-            'outlets'     => $outlets,
             'items'       => $items,
             'filters'     => [
                 ...$request->only(['search', 'status', 'reason', 'outlet_id', 'date_from', 'date_to']),

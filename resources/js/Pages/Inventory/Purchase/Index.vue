@@ -126,7 +126,6 @@
             :show="showForm"
             :purchase="selectedItem"
             :suppliers="suppliers"
-            :outlets="outlets"
             :uoms="uoms"
             @close="closeForm"
         />
@@ -211,10 +210,6 @@ const props = defineProps({
         default: () => ({ data: [], links: [] }),
     },
     suppliers: {
-        type: Array,
-        default: () => [],
-    },
-    outlets: {
         type: Array,
         default: () => [],
     },

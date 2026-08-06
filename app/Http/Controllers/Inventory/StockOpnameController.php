@@ -9,6 +9,7 @@ use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\StockOpname;
 use App\Models\Outlet;
 use App\Services\Inventory\StockOpnameService;
+use App\Services\Inventory\StockFreezeService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,11 +37,10 @@ class StockOpnameController extends Controller
             ->paginate($request->query('per_page', 20))
             ->withQueryString();
 
-        $outlets = Outlet::where('business_id', $businessId)->active()->get();
-
         $items = InventoryItem::currentBusiness()
             ->where('is_active', true)
             ->with(['uom', 'balances' => function ($q) {
+                // Eager load balances for the frontend to show stock per outlet
                 $q->select('inventory_item_id', 'outlet_id', 'current_stock');
             }])
             ->get()
@@ -52,10 +52,9 @@ class StockOpnameController extends Controller
 
         return inertia('Inventory/StockOpname/Index', [
             'opnames' => $opnames,
-            'outlets' => $outlets,
             'items'   => $items,
             'filters' => [
-                ...$request->only($filterKeys),
+                ...$request->only(['search', 'status', 'outlet_id', 'date_from', 'date_to']),
                 'sort'      => $sort,
                 'direction' => $direction,
             ],
@@ -160,5 +159,31 @@ class StockOpnameController extends Controller
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download('Stock_Opname_' . $opname->opname_number . '.pdf');
+    }
+
+    public function freeze(Request $request, StockFreezeService $service)
+    {
+        $this->authorize('inventory.opname.create');
+
+        $request->validate(['outlet_id' => 'required|exists:outlets,id']);
+
+        $outlet = Outlet::findOrFail($request->outlet_id);
+
+        $service->freeze($outlet, Auth::user());
+
+        return redirect()->back()->with('success', 'Stok pada outlet ' . $outlet->name . ' berhasil dibekukan.');
+    }
+
+    public function unfreeze(Request $request, StockFreezeService $service)
+    {
+        $this->authorize('inventory.opname.create');
+
+        $request->validate(['outlet_id' => 'required|exists:outlets,id']);
+
+        $outlet = Outlet::findOrFail($request->outlet_id);
+
+        $service->unfreeze($outlet, Auth::user());
+
+        return redirect()->back()->with('success', 'Stok pada outlet ' . $outlet->name . ' berhasil dicairkan.');
     }
 }

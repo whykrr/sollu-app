@@ -69,7 +69,7 @@
         </div>
 
         <!-- Filter Modal Overlay -->
-        <div v-if="showFilterModal" class="overlay-backdrop">
+        <div v-show="showFilterModal" class="overlay-backdrop">
             <div class="overlay-modal max-w-md">
                 <!-- Header -->
                 <div class="overlay-header">
@@ -107,24 +107,12 @@
                     </div>
 
                     <div class="space-y-1">
-                        <label
-                            class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                        >
-                            Outlet
-                        </label>
-                        <select
+                        <AsyncOutletDropdown
+                            v-if="showFilterModal"
                             v-model="tempFilters.outlet_id"
-                            class="form-input w-full rounded-lg border-gray-200"
-                        >
-                            <option value="">Semua Outlet</option>
-                            <option
-                                v-for="outlet in outlets"
-                                :key="outlet.id"
-                                :value="outlet.id"
-                            >
-                                {{ outlet.name }}
-                            </option>
-                        </select>
+                            placeholder="Semua Outlet"
+                            @loaded="onOutletsLoaded"
+                        />
                     </div>
 
                     <div class="grid grid-cols-2 gap-2">
@@ -189,13 +177,15 @@ import { ref, reactive, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 
 const props = defineProps({
     filters: Object,
-    outlets: Array,
 });
+
+const loadedOutlets = ref([]);
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
@@ -221,6 +211,10 @@ const statusOptions = [
     { value: 'rejected', label: 'Ditolak' },
 ];
 
+const onOutletsLoaded = (outlets) => {
+    loadedOutlets.value = outlets;
+};
+
 // Watch search separately for immediate query trigger
 watch(
     () => filterForm.search,
@@ -234,7 +228,7 @@ const getStatusName = (val) => {
 };
 
 const getOutletName = (id) => {
-    return props.outlets?.find((o) => o.id == id)?.name || id;
+    return loadedOutlets.value.find((o) => o.id == id)?.name || id;
 };
 
 const openModal = () => {
@@ -275,8 +269,10 @@ const updateQuery = () => {
         ...route().params,
         search: filterForm.search || undefined,
         status: filterForm.status !== '' ? filterForm.status : undefined,
-        outlet_id: filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
-        date_from: filterForm.date_from !== '' ? filterForm.date_from : undefined,
+        outlet_id:
+            filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
+        date_from:
+            filterForm.date_from !== '' ? filterForm.date_from : undefined,
         date_to: filterForm.date_to !== '' ? filterForm.date_to : undefined,
         page: 1,
     };

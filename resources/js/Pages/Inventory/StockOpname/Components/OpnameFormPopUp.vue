@@ -20,14 +20,15 @@
             </div>
 
             <div v-if="!opname" class="grid grid-cols-1 gap-4">
-                <DropdownField
+                <AsyncOutletDropdown
+                    v-if="show"
                     id="outlet_id"
                     v-model="form.outlet_id"
                     label="Pilih Outlet"
-                    :options="outletOptions"
                     placeholder="-- Pilih Outlet --"
                     :class="{ 'is-invalid': form.errors.outlet_id }"
                     :feedback="form.errors.outlet_id"
+                    @loaded="onOutletsLoaded"
                 />
             </div>
 
@@ -234,7 +235,7 @@ import { ref, watch, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';
 import Modal from '@/Components/Notifications/Modal.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -244,7 +245,6 @@ import NumberField from '@/Components/Form/NumberField.vue';
 const props = defineProps({
     show: Boolean,
     opname: Object,
-    outlets: Array,
     items: Array,
 });
 
@@ -256,12 +256,19 @@ const form = useForm({
     items: [],
 });
 
-const outletOptions = computed(() => {
-    return props.outlets.map((outlet) => ({
-        value: outlet.id,
-        label: outlet.name,
-    }));
-});
+const loadedOutlets = ref([]);
+
+const onOutletsLoaded = (outlets) => {
+    loadedOutlets.value = outlets;
+    if (
+        !props.opname &&
+        !form.outlet_id &&
+        outlets.length === 1 &&
+        props.show
+    ) {
+        form.outlet_id = outlets[0].id;
+    }
+};
 
 const showConfirm = ref(false);
 const confirmTitle = ref('');
@@ -286,8 +293,8 @@ watch(
             } else {
                 form.reset();
                 form.items = [];
-                if (props.outlets.length === 1) {
-                    form.outlet_id = props.outlets[0].id;
+                if (loadedOutlets.value.length === 1) {
+                    form.outlet_id = loadedOutlets.value[0].id;
                 }
             }
         }

@@ -123,12 +123,12 @@ const freeze = (outlet) => {
     ) {
         isProcessing.value = true;
         router.post(
-            route('inventory.adjustments.freeze'),
+            route('inventory.opnames.freeze'),
             { outlet_id: outlet.id },
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    fetchOutlets(true);
+                    fetchOutlets(true); // Force refresh globally
                 },
                 onFinish: () => {
                     isProcessing.value = false;
@@ -146,12 +146,12 @@ const unfreeze = (outlet) => {
     ) {
         isProcessing.value = true;
         router.post(
-            route('inventory.adjustments.unfreeze'),
+            route('inventory.opnames.unfreeze'),
             { outlet_id: outlet.id },
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    fetchOutlets(true);
+                    fetchOutlets(true); // Force refresh globally
                 },
                 onFinish: () => {
                     isProcessing.value = false;

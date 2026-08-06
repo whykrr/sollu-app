@@ -38,13 +38,11 @@ class StockPurchasesController extends Controller
             ->withQueryString();
 
         $suppliers = Supplier::currentBusiness()->active()->select('id', 'name')->get();
-        $outlets   = Outlet::currentBusiness()->active()->select('id', 'name')->get();
         $uoms      = Uom::select('id', 'name')->get();
 
         return inertia('Inventory/Purchase/Index', [
             'purchases' => $purchases,
             'suppliers' => $suppliers,
-            'outlets'   => $outlets,
             'uoms'      => $uoms,
             'filters'   => $request->only(['search', 'status', 'supplier_id', 'outlet_id', 'start_date', 'end_date']),
         ]);

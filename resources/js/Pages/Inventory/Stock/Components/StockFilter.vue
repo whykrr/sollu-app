@@ -91,7 +91,7 @@
         </div>
 
         <!-- Filter Modal Overlay -->
-        <div v-if="showFilterModal" class="overlay-backdrop">
+        <div v-show="showFilterModal" class="overlay-backdrop">
             <div class="overlay-modal max-w-md">
                 <!-- Header -->
                 <div class="overlay-header">
@@ -102,18 +102,11 @@
                 <!-- Body -->
                 <div class="p-5 space-y-4">
                     <div class="space-y-1">
-                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Outlet
-                        </label>
-                        <select
+                        <AsyncOutletDropdown
                             v-model="tempFilters.outlet_id"
-                            class="form-input w-full rounded-lg border-gray-200"
-                        >
-                            <option value="">Semua Outlet</option>
-                            <option v-for="outlet in outlets" :key="outlet.id" :value="outlet.id">
-                                {{ outlet.name }}
-                            </option>
-                        </select>
+                            placeholder="Semua Outlet"
+                            @loaded="onOutletsLoaded"
+                        />
                     </div>
 
                     <div class="space-y-1">
@@ -194,12 +187,12 @@ import { ref, reactive, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 
 const props = defineProps({
     filters: Object,
-    outlets: Array,
     categories: Array,
 });
 
@@ -224,6 +217,12 @@ const tempFilters = reactive({
     in_stock_only: '',
 });
 
+const loadedOutlets = ref([]);
+
+const onOutletsLoaded = (outlets) => {
+    loadedOutlets.value = outlets;
+};
+
 // Watch search separately for immediate query trigger
 watch(
     () => filterForm.search,
@@ -233,7 +232,7 @@ watch(
 );
 
 const getOutletName = (id) => {
-    return props.outlets?.find(o => o.id == id)?.name || id;
+    return loadedOutlets.value.find(o => o.id == id)?.name || id;
 };
 
 const getCategoryName = (id) => {

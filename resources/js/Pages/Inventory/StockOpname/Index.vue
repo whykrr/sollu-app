@@ -2,12 +2,21 @@
     <Container>
         <template #header>
             <ContainerHeader title="Stock Opname">
-                <button class="btn btn-highlight-main" @click="openForm()">
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Mulai Opname Baru
-                </button>
+                <div class="flex items-end gap-2">
+                    <button
+                        class="btn btn-primary btn-sm"
+                        @click="openFreezeModal()"
+                    >
+                        <FontAwesomeIcon :icon="faLock" />
+                        Kelola Bekukan Stok
+                    </button>
+                    <button class="btn btn-highlight-main" @click="openForm()">
+                        <FontAwesomeIcon :icon="faPlus" />
+                        Mulai Opname Baru
+                    </button>
+                </div>
             </ContainerHeader>
-            <Filter :filters="filters" :outlets="outlets" />
+            <Filter :filters="filters" />
         </template>
 
         <Table
@@ -90,7 +99,6 @@
         <OpnameFormPopUp
             :show="showForm"
             :opname="selectedItem"
-            :outlets="outlets"
             :items="items"
             @close="closeForm"
         />
@@ -99,6 +107,11 @@
             :show="showDetail"
             :opname="selectedItem"
             @close="closeDetail"
+        />
+
+        <FreezeStockPopUp
+            :show="showFreezeModal"
+            @close="closeFreezeModal"
         />
     </Container>
 </template>
@@ -112,6 +125,7 @@ import {
     faCheck,
     faEye,
     faFilePdf,
+    faLock,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import Container from '@/Components/UI/Container.vue';
@@ -121,6 +135,7 @@ import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from './Components/Filter.vue';
 import OpnameFormPopUp from './Components/OpnameFormPopUp.vue';
 import OpnameDetailPopUp from './Components/OpnameDetailPopUp.vue';
+import FreezeStockPopUp from './Components/FreezeStockPopUp.vue';
 import { useModalStore } from '@/store/notification';
 import { formatDateTimeSimple } from '@/Composable/date.js';
 
@@ -130,10 +145,6 @@ const props = defineProps({
     opnames: {
         type: Object,
         default: () => ({ data: [], links: [] }),
-    },
-    outlets: {
-        type: Array,
-        default: () => [],
     },
     items: {
         type: Array,
@@ -162,8 +173,17 @@ import axios from 'axios';
 
 const showForm = ref(false);
 const showDetail = ref(false);
+const showFreezeModal = ref(false);
 const selectedItem = ref(null);
 const isLoading = ref(false);
+
+const openFreezeModal = () => {
+    showFreezeModal.value = true;
+};
+
+const closeFreezeModal = () => {
+    showFreezeModal.value = false;
+};
 
 const statusLabel = (status) => {
     const labels = {

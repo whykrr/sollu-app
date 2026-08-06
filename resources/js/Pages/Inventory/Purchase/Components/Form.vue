@@ -18,16 +18,18 @@
                     required
                 />
 
-                <DropdownField
-                    id="outlet_id"
-                    v-model="form.outlet_id"
-                    label="Outlet Tujuan"
-                    placeholder="Pilih Outlet Tujuan"
-                    :options="outletOptions"
-                    :class="{ 'is-invalid': form.errors.outlet_id }"
-                    :feedback="form.errors.outlet_id"
-                    required
-                />
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-gray-700">Outlet Tujuan <span class="text-danger">*</span></label>
+                    <AsyncOutletDropdown
+                        v-model="form.outlet_id"
+                        placeholder="Pilih Outlet Tujuan"
+                        :class="{ 'is-invalid': form.errors.outlet_id }"
+                        required
+                    />
+                    <div v-if="form.errors.outlet_id" class="invalid-feedback">
+                        {{ form.errors.outlet_id }}
+                    </div>
+                </div>
 
                 <TextField
                     id="order_date"
@@ -227,6 +229,7 @@ import { debounce } from 'lodash';
 import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -241,10 +244,6 @@ const props = defineProps({
         default: null,
     },
     suppliers: {
-        type: Array,
-        default: () => [],
-    },
-    outlets: {
         type: Array,
         default: () => [],
     },
@@ -271,9 +270,6 @@ const isSearching = ref(false);
 
 const supplierOptions = computed(() =>
     props.suppliers.map((s) => ({ label: s.name, value: s.id })),
-);
-const outletOptions = computed(() =>
-    props.outlets.map((o) => ({ label: o.name, value: o.id })),
 );
 const uomOptions = computed(() =>
     props.uoms.map((u) => ({ label: u.name, value: u.id })),
