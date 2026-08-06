@@ -7,10 +7,15 @@ use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryMovement;
 use App\Models\Inventory\StockOpname;
 use App\Models\User;
+use App\Services\ActivityLogService;
 use Illuminate\Support\Facades\DB;
 
 class StockOpnameService
 {
+    public function __construct(
+        protected ActivityLogService $activityLog
+    ) {}
+
     public function createOpname(array $data, User $creator): StockOpname
     {
         return DB::transaction(function () use ($data, $creator) {
@@ -34,13 +39,15 @@ class StockOpnameService
                 ]);
             }
 
+            $this->activityLog->log($opname, 'created', $creator);
+
             return $opname;
         });
     }
 
-    public function updateOpname(StockOpname $opname, array $data): StockOpname
+    public function updateOpname(StockOpname $opname, array $data, User $updater): StockOpname
     {
-        return DB::transaction(function () use ($opname, $data) {
+        return DB::transaction(function () use ($opname, $data, $updater) {
             if ($opname->status !== 'in_progress') {
                 abort(403, 'Hanya opname berstatus In Progress yang dapat diubah.');
             }
@@ -64,6 +71,8 @@ class StockOpnameService
             
             // Mark as pending approval after update
             $opname->update(['status' => 'pending_approval']);
+
+            $this->activityLog->log($opname, 'submitted', $updater);
 
             return $opname;
         });
@@ -110,24 +119,42 @@ class StockOpnameService
                         'business_id'       => $opname->business_id,
                         'outlet_id'         => $opname->outlet_id,
                         'inventory_item_id' => $opnameItem->inventory_item_id,
-                        'movement_type'     => InventoryMovementType::Adjustment, // Opname is basically a system adjustment
+                        'movement_type'     => InventoryMovementType::Opname,
                         'qty_change'        => $opnameItem->difference_qty,
                         'stock_before'      => $stockBefore,
                         'stock_after'       => $stockAfter,
                         'description'       => 'Penyesuaian stok dari Opname: ' . $opname->opname_number,
+                        'reference_id'      => $opname->id,
+                        'reference_type'    => StockOpname::class,
                         'created_by'        => $approver->id,
                         'created_at'        => now(),
                     ]);
-                    
-                    $movement->reference_id = $opname->id;
-                    $movement->reference_type = StockOpname::class;
-                    $movement->save();
                 }
             }
 
             $opname->status = 'approved';
             $opname->approved_by = $approver->id;
             $opname->save();
+
+            $this->activityLog->log($opname, 'approved', $approver);
+
+            return $opname;
+        });
+    }
+
+    public function rejectOpname(StockOpname $opname, array $data, User $rejecter): StockOpname
+    {
+        return DB::transaction(function () use ($opname, $data, $rejecter) {
+            if ($opname->status !== 'pending_approval') {
+                abort(403, 'Opname harus dalam status Menunggu Persetujuan untuk ditolak.');
+            }
+
+            $opname->status = 'rejected';
+            $opname->notes = $data['notes'] ?? $opname->notes;
+            $opname->approved_by = $rejecter->id;
+            $opname->save();
+
+            $this->activityLog->log($opname, 'rejected', $rejecter, ['notes' => $data['notes'] ?? null]);
 
             return $opname;
         });

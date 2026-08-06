@@ -5,7 +5,7 @@ use App\Http\Controllers\Inventory\RawMaterialController;
 use App\Http\Controllers\Inventory\StockAdjustmentController;
 use App\Http\Controllers\Inventory\StockController;
 use App\Http\Controllers\Inventory\StockPurchasesController;
-use App\Http\Controllers\Inventory\StockTakingController;
+use App\Http\Controllers\Inventory\StockOpnameController;
 use App\Http\Controllers\Inventory\StockTransferController;
 use App\Http\Controllers\Inventory\SupplierController;
 use Illuminate\Support\Facades\Route;
@@ -53,12 +53,15 @@ Route::prefix('inventories')->group(function () {
         Route::post('purchases/{id}/void', [StockPurchasesController::class, 'void'])->name('purchases.void');
         Route::get('purchases/{id}/pdf', [StockPurchasesController::class, 'pdf'])->name('purchases.pdf');
 
-        // Stock Taking (Opnames)
-        Route::get('stock-taking', [StockTakingController::class, 'index'])->name('stocktaking.index');
-        Route::post('stock-taking', [StockTakingController::class, 'store'])->name('opnames.store');
-        Route::put('stock-taking/{id}', [StockTakingController::class, 'update'])->name('opnames.update');
-        Route::delete('stock-taking/{id}', [StockTakingController::class, 'destroy'])->name('opnames.destroy');
-        Route::post('stock-taking/{id}/approve', [StockTakingController::class, 'approve'])->name('opnames.approve');
+        // Stock Opnames
+        Route::get('stock-opnames', [StockOpnameController::class, 'index'])->name('opnames.index');
+        Route::post('stock-opnames', [StockOpnameController::class, 'store'])->name('opnames.store');
+        Route::put('stock-opnames/{id}', [StockOpnameController::class, 'update'])->name('opnames.update');
+        Route::delete('stock-opnames/{id}', [StockOpnameController::class, 'destroy'])->name('opnames.destroy');
+        Route::post('stock-opnames/{id}/approve', [StockOpnameController::class, 'approve'])->name('opnames.approve');
+        Route::post('stock-opnames/{id}/reject', [StockOpnameController::class, 'reject'])->name('opnames.reject');
+        Route::get('stock-opnames/{id}/pdf', [StockOpnameController::class, 'exportPdf'])->name('opnames.export.pdf');
+        Route::get('stock-opnames/{id}', [StockOpnameController::class, 'show'])->name('opnames.show');
 
         // Adjustments
         Route::get('adjustments', [StockAdjustmentController::class, 'index'])->name('adjustments.index');

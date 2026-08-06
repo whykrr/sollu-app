@@ -34,6 +34,10 @@ if (\$user->role == 'admin')
 
 Use Gates, Policies, Spatie Permissions, or inside Form Requests.
 
+**Permission Validation Requirement:**
+When validating permissions in a Controller, ALWAYS use the `$this->authorize('permission.name')` method provided by the `AuthorizesRequests` trait directly inside the controller methods, OR use the `authorize()` method inside Laravel's Form Requests.
+**DO NOT** use `$this->middleware('permission:...')` in the controller's `__construct()` method.
+
 ## Model Standards
 
 **Property/Method Ordering:**
@@ -174,6 +178,11 @@ The system processes CSV Import and Export asynchronously using Queued Jobs.
 **4. UI Notification Integration**
 
 - Background jobs trigger `CsvExportCompleted` or `CsvImportCompleted` notifications upon completion. The download link (or list of failed rows) will be handled centrally by the header notification UI via a public `Storage` link.
+
+### 3. Performance & Database Queries
+- **Eager Loading**: Always use eager loading (`with()`) for relationships that will be accessed in collections or API responses to prevent N+1 query problems.
+- **Partial Data Loading for Datatables**: Never eager load heavy hasMany/belongsToMany relations (e.g., `items`) on `index()` methods that return paginated data for Datatables. Instead, use `withCount('relation')` to show summary counts. Create a `show($id)` method to fetch detailed relationships via API/Axios ONLY when the user opens a detail view or edit modal.
+- **Chunking**: For processing large datasets (e.g., exports or bulk updates), use `chunk()` or `cursor()`.
 
 ## Logging & Seeder
 

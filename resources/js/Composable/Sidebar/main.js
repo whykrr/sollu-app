@@ -93,10 +93,10 @@ export const mainSidebars = [
             },
             {
                 type: 'item',
-                url: route('inventory.stocktaking.index'),
+                url: route('inventory.opnames.index'),
                 label: 'Stok Opname',
                 permissions: [],
-                activeRoute: 'inventory.stocktaking.',
+                activeRoute: 'inventory.opnames.',
             },
             {
                 type: 'item',

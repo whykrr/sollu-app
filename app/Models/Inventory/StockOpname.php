@@ -75,6 +75,15 @@ class StockOpname extends Model
         )->when(
             $filters['status'] ?? false,
             fn (Builder $q, $value) => $q->where('status', $value)
+        )->when(
+            $filters['outlet_id'] ?? false,
+            fn (Builder $q, $value) => $q->where('outlet_id', $value)
+        )->when(
+            $filters['date_from'] ?? false,
+            fn (Builder $q, $value) => $q->whereDate('created_at', '>=', $value)
+        )->when(
+            $filters['date_to'] ?? false,
+            fn (Builder $q, $value) => $q->whereDate('created_at', '<=', $value)
         );
     }
 }

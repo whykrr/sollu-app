@@ -2,6 +2,10 @@
 
 
 if (! function_exists('generateBreadcrumbs')) {
+    /**
+     * @param mixed $routeName
+     * @return mixed
+     */
     function generateBreadcrumbs($routeName)
     {
         // Define base URLs for reusability
@@ -123,9 +127,9 @@ if (! function_exists('generateBreadcrumbs')) {
                 ['label' => 'Inventori', 'url' => '#'],
                 ['label' => 'Pembelian (PO)', 'url' => route('inventory.purchases.index')],
             ],
-            'inventory.stocktaking.index' => [
+            'inventory.opnames.index' => [
                 ['label' => 'Inventori', 'url' => '#'],
-                ['label' => 'Stok Opname', 'url' => route('inventory.stocktaking.index')],
+                ['label' => 'Stok Opname', 'url' => route('inventory.opnames.index')],
             ],
             'inventory.adjustments.index' => [
                 ['label' => 'Inventori', 'url' => '#'],

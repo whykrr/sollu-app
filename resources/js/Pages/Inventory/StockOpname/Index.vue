@@ -7,9 +7,19 @@
                     Mulai Opname Baru
                 </button>
             </ContainerHeader>
+            <Filter :filters="filters" :outlets="outlets" />
         </template>
 
-        <Table :headers="headers" :data="opnames.data" :action="true">
+        <Table
+            :headers="headers"
+            :data="opnames.data"
+            :action="true"
+            :sort="filters.sort"
+            :sortDirection="filters.direction"
+        >
+            <template #outlet="{ item }">
+                {{ item.outlet?.name || '-' }}
+            </template>
             <template #created_at="{ item }">
                 {{ formatDateTimeSimple(item.created_at) }}
             </template>
@@ -21,14 +31,6 @@
             <template #actions="{ item }">
                 <div class="flex items-center gap-2">
                     <button
-                        v-if="item.status === 'pending_approval'"
-                        class="btn btn-info btn-sm leading-0"
-                        @click="openForm(item)"
-                        title="Review & Approve"
-                    >
-                        <FontAwesomeIcon :icon="faCheck" /> Review
-                    </button>
-                    <button
                         v-if="item.status === 'in_progress'"
                         class="btn btn-highlight-main btn-sm"
                         @click="openForm(item)"
@@ -37,13 +39,41 @@
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
-                        v-if="item.status !== 'approved'"
+                        v-if="item.status === 'pending_approval'"
+                        class="btn btn-info btn-sm"
+                        @click="openDetail(item)"
+                        title="Review & Approve"
+                    >
+                        <FontAwesomeIcon :icon="faCheck" /> Review
+                    </button>
+                    <button
+                        v-if="
+                            item.status === 'approved' ||
+                            item.status === 'rejected'
+                        "
+                        class="btn btn-main btn-sm"
+                        @click="openDetail(item)"
+                        title="Lihat Detail"
+                    >
+                        <FontAwesomeIcon :icon="faEye" />
+                    </button>
+                    <button
+                        v-if="item.status === 'in_progress'"
                         class="btn btn-flat btn-sm text-danger"
                         @click="confirmDelete(item)"
                         title="Batalkan Opname"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>
+                    <a
+                        v-if="item.status !== 'in_progress'"
+                        :href="route('inventory.opnames.export.pdf', item.id)"
+                        target="_blank"
+                        class="btn btn-flat btn-sm text-danger"
+                        title="Ekspor PDF"
+                    >
+                        <FontAwesomeIcon :icon="faFilePdf" />
+                    </a>
                 </div>
             </template>
         </Table>
@@ -57,12 +87,18 @@
             />
         </template>
 
-        <Form
+        <OpnameFormPopUp
             :show="showForm"
             :opname="selectedItem"
             :outlets="outlets"
             :items="items"
             @close="closeForm"
+        />
+
+        <OpnameDetailPopUp
+            :show="showDetail"
+            :opname="selectedItem"
+            @close="closeDetail"
         />
     </Container>
 </template>
@@ -74,13 +110,17 @@ import {
     faPencil,
     faTrash,
     faCheck,
+    faEye,
+    faFilePdf,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import Container from '@/Components/UI/Container.vue';
 import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
-import Form from './Components/Form.vue';
+import Filter from './Components/Filter.vue';
+import OpnameFormPopUp from './Components/OpnameFormPopUp.vue';
+import OpnameDetailPopUp from './Components/OpnameDetailPopUp.vue';
 import { useModalStore } from '@/store/notification';
 import { formatDateTimeSimple } from '@/Composable/date.js';
 
@@ -113,18 +153,23 @@ const headers = [
         slot: 'created_at',
         sortable: true,
     },
+    { label: 'Outlet', slot: 'outlet', sortable: false },
     { label: 'Catatan', field: 'notes', sortable: true },
     { label: 'Status', field: 'status', slot: 'status', sortable: false },
 ];
 
+import axios from 'axios';
+
 const showForm = ref(false);
+const showDetail = ref(false);
 const selectedItem = ref(null);
+const isLoading = ref(false);
 
 const statusLabel = (status) => {
     const labels = {
         in_progress: 'Sedang Berjalan',
         pending_approval: 'Menunggu Persetujuan',
-        approved: 'Disetujui / Selesai',
+        approved: 'Disetujui',
         rejected: 'Ditolak',
     };
     return labels[status] || status;
@@ -140,13 +185,48 @@ const statusColor = (status) => {
     return colors[status] || 'badge-gray';
 };
 
-const openForm = (item = null) => {
-    selectedItem.value = item;
+const openForm = async (item = null) => {
+    if (item) {
+        try {
+            isLoading.value = true;
+            const response = await axios.get(
+                route('inventory.opnames.show', item.id),
+            );
+            selectedItem.value = response.data;
+        } catch (error) {
+            console.error('Failed to load detail', error);
+            return;
+        } finally {
+            isLoading.value = false;
+        }
+    } else {
+        selectedItem.value = null;
+    }
     showForm.value = true;
 };
 
 const closeForm = () => {
     showForm.value = false;
+    selectedItem.value = null;
+};
+
+const openDetail = async (item) => {
+    try {
+        isLoading.value = true;
+        const response = await axios.get(
+            route('inventory.opnames.show', item.id),
+        );
+        selectedItem.value = response.data;
+        showDetail.value = true;
+    } catch (error) {
+        console.error('Failed to load detail', error);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const closeDetail = () => {
+    showDetail.value = false;
     selectedItem.value = null;
 };
 

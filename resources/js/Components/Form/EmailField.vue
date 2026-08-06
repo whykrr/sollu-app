@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div v>
         <label v-if="label" :for="$attrs.id">{{ label }}</label>
         <input
             type="email"

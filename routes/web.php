@@ -96,6 +96,11 @@ Route::middleware('auth:business')->group(function () {
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
         Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
         Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+
+        // For reusable components that need to search for products or inventory items
+        Route::get('/products/search', [\App\Http\Controllers\API\ProductController::class, 'search'])->name('products.search');
+        Route::get('/inventory-items/search', [\App\Http\Controllers\API\InventoryItemController::class, 'search'])->name('inventory-items.search');
     });
 
     Route::get('/', OverviewController::class)->name('overview');
