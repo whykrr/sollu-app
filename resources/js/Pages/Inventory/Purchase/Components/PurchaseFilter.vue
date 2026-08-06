@@ -22,93 +22,33 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <!-- Status Badge -->
-            <div v-if="filterForm.status !== ''" class="filter-badge">
-                <span>Status: {{ statusLabel(filterForm.status) }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('status')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-
-            <!-- Supplier Badge -->
-            <div v-if="filterForm.supplier_id !== ''" class="filter-badge">
-                <span
-                    >Supplier:
-                    {{ getSupplierName(filterForm.supplier_id) }}</span
-                >
-                <button
-                    type="button"
-                    @click="removeFilter('supplier_id')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-
-            <!-- Outlet Badge -->
-            <div v-if="filterForm.outlet_id !== ''" class="filter-badge">
-                <span>Outlet: {{ getOutletName(filterForm.outlet_id) }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('outlet_id')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-
-            <!-- Start Date Badge -->
-            <div v-if="filterForm.start_date !== ''" class="filter-badge">
-                <span>Dari: {{ filterForm.start_date }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('start_date')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-
-            <!-- End Date Badge -->
-            <div v-if="filterForm.end_date !== ''" class="filter-badge">
-                <span>Sampai: {{ filterForm.end_date }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('end_date')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
+            <FilterBadge v-if="filterForm.status !== ''" @remove="removeFilter('status')">
+                Status: {{ statusLabel(filterForm.status) }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.supplier_id !== ''" @remove="removeFilter('supplier_id')">
+                Supplier: {{ getSupplierName(filterForm.supplier_id) }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.outlet_id !== ''" @remove="removeFilter('outlet_id')">
+                Outlet: {{ getOutletName(filterForm.outlet_id) }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.start_date !== ''" @remove="removeFilter('start_date')">
+                Dari: {{ filterForm.start_date }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.end_date !== ''" @remove="removeFilter('end_date')">
+                Sampai: {{ filterForm.end_date }}
+            </FilterBadge>
         </div>
 
         <!-- Filter Modal Overlay -->
-        <div v-show="showFilterModal" class="overlay-backdrop z-50">
-            <div class="overlay-modal max-w-md">
-                <!-- Header -->
-                <div class="overlay-header">
-                    <h3 class="overlay-title">Filter PO</h3>
-                    <button
-                        type="button"
-                        @click="closeModal"
-                        class="overlay-close"
-                    >
-                        ✖
-                    </button>
-                </div>
-
-                <!-- Body -->
-                <div class="p-5 space-y-4">
-                    <!-- Status Filter -->
+        <FilterModal
+            :show="showFilterModal"
+            title="Filter PO"
+            @close="closeModal"
+            @reset="resetTempFilters"
+            @apply="applyFilters"
+        >
+            <div class="space-y-4">
+                <!-- Status Filter -->
                     <div class="space-y-1">
                         <label
                             class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
@@ -183,36 +123,12 @@
                                 v-model="tempFilters.end_date"
                                 class="form-input w-full rounded-lg border-gray-200"
                             />
+                            />
                         </div>
                     </div>
-                </div>
 
-                <!-- Footer -->
-                <div class="overlay-footer">
-                    <button
-                        type="button"
-                        class="btn btn-outline-main btn-sm rounded-lg"
-                        @click="resetTempFilters"
-                    >
-                        Reset
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-outline-neutral-400 btn-sm rounded-lg"
-                        @click="closeModal"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-highlight-main btn-sm rounded-lg"
-                        @click="applyFilters"
-                    >
-                        Terapkan
-                    </button>
-                </div>
             </div>
-        </div>
+        </FilterModal>
     </div>
 </template>
 
@@ -221,9 +137,11 @@ import { ref, reactive, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
 
 const props = defineProps({
     filters: Object,

@@ -22,69 +22,30 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <div v-if="filterForm.status !== ''" class="filter-badge">
-                <span>Status: {{ getStatusName(filterForm.status) }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('status')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-            <div v-if="filterForm.outlet_id !== ''" class="filter-badge">
-                <span>Outlet: {{ getOutletName(filterForm.outlet_id) }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('outlet_id')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-            <div v-if="filterForm.date_from !== ''" class="filter-badge">
-                <span>Dari: {{ filterForm.date_from }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('date_from')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-            <div v-if="filterForm.date_to !== ''" class="filter-badge">
-                <span>Sampai: {{ filterForm.date_to }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('date_to')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
+            <FilterBadge v-if="filterForm.status !== ''" @remove="removeFilter('status')">
+                Status: {{ getStatusName(filterForm.status) }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.outlet_id !== ''" @remove="removeFilter('outlet_id')">
+                Outlet: {{ getOutletName(filterForm.outlet_id) }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.date_from !== ''" @remove="removeFilter('date_from')">
+                Dari: {{ filterForm.date_from }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.date_to !== ''" @remove="removeFilter('date_to')">
+                Sampai: {{ filterForm.date_to }}
+            </FilterBadge>
         </div>
 
         <!-- Filter Modal Overlay -->
-        <div v-show="showFilterModal" class="overlay-backdrop">
-            <div class="overlay-modal max-w-md">
-                <!-- Header -->
-                <div class="overlay-header">
-                    <h3 class="overlay-title">Filter Stock Opname</h3>
-                    <button
-                        type="button"
-                        @click="closeModal"
-                        class="overlay-close"
-                    >
-                        ✖
-                    </button>
-                </div>
-
-                <!-- Body -->
-                <div class="p-5 space-y-4">
+        <FilterModal
+            :show="showFilterModal"
+            title="Filter Stock Opname"
+            @close="closeModal"
+            @reset="resetTempFilters"
+            @apply="applyFilters"
+        >
+            <!-- Body -->
+            <div class="space-y-4">
                     <div class="space-y-1">
                         <label
                             class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
@@ -141,34 +102,9 @@
                             />
                         </div>
                     </div>
-                </div>
 
-                <!-- Footer -->
-                <div class="overlay-footer">
-                    <button
-                        type="button"
-                        class="btn btn-outline-main btn-sm rounded-lg"
-                        @click="resetTempFilters"
-                    >
-                        Reset
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-outline-neutral-400 btn-sm rounded-lg"
-                        @click="closeModal"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-highlight-main btn-sm rounded-lg"
-                        @click="applyFilters"
-                    >
-                        Terapkan
-                    </button>
-                </div>
             </div>
-        </div>
+        </FilterModal>
     </div>
 </template>
 
@@ -180,6 +116,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
 
 const props = defineProps({
     filters: Object,

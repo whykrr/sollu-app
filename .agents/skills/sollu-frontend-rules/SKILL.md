@@ -81,12 +81,13 @@ All index pages must use `<Container>` (`@/Components/UI/Container.vue`):
 - For complex data loading in tabs, use API calls (Axios) to prevent page freeze. Register routes in `web.php`.
 
 **Table Filter Pattern:**
-Setiap filter table harus mematuhi pola seragam berikut (lihat referensi: Stock, Supplier, Adjustment):
+Setiap filter table harus menggunakan komponen UI generic `<FilterModal>` dan `<FilterBadge>`:
 1. **Layout & Komponen**: 
    - Gunakan wrapper `flex items-center gap-2`.
    - Gunakan `<FilterSearch>` untuk pencarian teks utama (`v-model="filterForm.search"`).
    - Buat tombol "Filter" dengan icon `faSliders` untuk membuka modal (`showFilterModal = true`).
-   - Tampilkan badge aktif (`<div class="filter-badge">`) untuk setiap filter yang sedang berjalan dengan tombol `✕` untuk menghapusnya (`removeFilter(key)`).
+   - Tampilkan badge aktif menggunakan `<FilterBadge>` (import dari `@/Components/UI/Filter/FilterBadge.vue`) untuk setiap filter yang sedang berjalan dengan event `@remove="removeFilter(key)"`.
+   - Gunakan `<FilterModal>` (import dari `@/Components/UI/Filter/FilterModal.vue`) alih-alih membuat elemen *overlay* HTML hardcode. Komponen ini mengatur state dasar *backdrop*, *header*, tombol *close*, dan tombol *footer*. Anda cukup mengirim event props: `:show="showFilterModal"`, `@close="closeModal"`, `@reset="resetTempFilters"`, `@apply="applyFilters"`.
 2. **State Management (Script Setup)**:
    - Definisikan `filterForm` menggunakan `reactive()` dengan inisialisasi dari `props.filters`.
    - Definisikan `tempFilters` menggunakan `reactive()` untuk menyimpan state sementara di dalam modal.

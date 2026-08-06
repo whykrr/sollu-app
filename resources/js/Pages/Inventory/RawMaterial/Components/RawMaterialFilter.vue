@@ -22,85 +22,42 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <!-- Track Inventory Badge -->
-            <div v-if="filterForm.track_inventory !== ''" class="filter-badge">
-                <span
-                    >Lacak Stok:
-                    {{
-                        filterForm.track_inventory == '1' ? 'Ya' : 'Tidak'
-                    }}</span
-                >
-                <button
-                    type="button"
-                    @click="removeFilter('track_inventory')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
+            <FilterBadge
+                v-if="filterForm.track_inventory !== ''"
+                @remove="removeFilter('track_inventory')"
+            >
+                Lacak Stok:
+                {{ filterForm.track_inventory == '1' ? 'Ya' : 'Tidak' }}
+            </FilterBadge>
         </div>
 
         <!-- Filter Modal Overlay -->
-        <div v-if="showFilterModal" class="overlay-backdrop">
-            <div class="overlay-modal max-w-md">
-                <!-- Header -->
-                <div class="overlay-header">
-                    <h3 class="overlay-title">Filter Bahan Baku</h3>
-                    <button
-                        type="button"
-                        @click="closeModal"
-                        class="overlay-close"
+        <FilterModal
+            :show="showFilterModal"
+            title="Filter Bahan Baku"
+            @close="closeModal"
+            @reset="resetTempFilters"
+            @apply="applyFilters"
+        >
+            <!-- Body -->
+            <div class="space-y-2">
+                <!-- Track Inventory Filter -->
+                <div class="space-y-1">
+                    <label
+                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                        >Lacak Stok</label
                     >
-                        ✖
-                    </button>
-                </div>
-
-                <!-- Body -->
-                <div class="p-5 space-y-4">
-                    <!-- Track Inventory Filter -->
-                    <div class="space-y-1">
-                        <label
-                            class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                            >Lacak Stok</label
-                        >
-                        <select
-                            v-model="tempFilters.track_inventory"
-                            class="form-input w-full rounded-lg border-gray-200"
-                        >
-                            <option value="">Semua</option>
-                            <option value="1">Ya</option>
-                            <option value="0">Tidak</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <div class="overlay-footer">
-                    <button
-                        type="button"
-                        class="btn btn-outline-main btn-sm rounded-lg"
-                        @click="resetTempFilters"
+                    <select
+                        v-model="tempFilters.track_inventory"
+                        class="form-input w-full rounded-lg border-gray-200"
                     >
-                        Reset
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-outline-neutral-400 btn-sm rounded-lg"
-                        @click="closeModal"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-highlight-main btn-sm rounded-lg"
-                        @click="applyFilters"
-                    >
-                        Terapkan
-                    </button>
+                        <option value="">Semua</option>
+                        <option value="1">Ya</option>
+                        <option value="0">Tidak</option>
+                    </select>
                 </div>
             </div>
-        </div>
+        </FilterModal>
     </div>
 </template>
 
@@ -111,6 +68,8 @@ import { debounce } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
 
 const props = defineProps({
     filters: Object,

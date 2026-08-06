@@ -22,85 +22,35 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <div v-if="filterForm.outlet_id !== ''" class="filter-badge">
-                <span>Outlet: {{ getOutletName(filterForm.outlet_id) }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('outlet_id')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-            <div v-if="filterForm.item_type !== ''" class="filter-badge">
-                <span>Tipe: {{ filterForm.item_type == 'raw_material' ? 'Bahan Baku' : 'Produk' }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('item_type')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-            <div v-if="filterForm.category_id !== ''" class="filter-badge">
-                <span>Kategori: {{ getCategoryName(filterForm.category_id) }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('category_id')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-            <div v-if="filterForm.stock_status !== ''" class="filter-badge">
-                <span>Status: {{ getStockStatusName(filterForm.stock_status) }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('stock_status')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-            <div v-if="filterForm.is_active_only == '1'" class="filter-badge">
-                <span>Hanya Aktif</span>
-                <button
-                    type="button"
-                    @click="removeFilter('is_active_only')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
-            <div v-if="filterForm.in_stock_only == '1'" class="filter-badge">
-                <span>Stok > 0</span>
-                <button
-                    type="button"
-                    @click="removeFilter('in_stock_only')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
+            <FilterBadge v-if="filterForm.outlet_id !== ''" @remove="removeFilter('outlet_id')">
+                Outlet: {{ getOutletName(filterForm.outlet_id) }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.item_type !== ''" @remove="removeFilter('item_type')">
+                Tipe: {{ filterForm.item_type == 'raw_material' ? 'Bahan Baku' : 'Produk' }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.category_id !== ''" @remove="removeFilter('category_id')">
+                Kategori: {{ getCategoryName(filterForm.category_id) }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.stock_status !== ''" @remove="removeFilter('stock_status')">
+                Status: {{ getStockStatusName(filterForm.stock_status) }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.is_active_only == '1'" @remove="removeFilter('is_active_only')">
+                Hanya Aktif
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.in_stock_only == '1'" @remove="removeFilter('in_stock_only')">
+                Stok > 0
+            </FilterBadge>
         </div>
 
         <!-- Filter Modal Overlay -->
-        <div v-show="showFilterModal" class="overlay-backdrop">
-            <div class="overlay-modal max-w-md">
-                <!-- Header -->
-                <div class="overlay-header">
-                    <h3 class="overlay-title">Filter Stok</h3>
-                    <button type="button" @click="closeModal" class="overlay-close">✖</button>
-                </div>
-
-                <!-- Body -->
-                <div class="p-5 space-y-4">
+        <FilterModal
+            :show="showFilterModal"
+            title="Filter Stok"
+            @close="closeModal"
+            @reset="resetTempFilters"
+            @apply="applyFilters"
+        >
+            <div class="space-y-4">
                     <div class="space-y-1">
                         <AsyncOutletDropdown
                             v-model="tempFilters.outlet_id"
@@ -163,22 +113,9 @@
                             <span class="text-sm">Hanya Stok > 0</span>
                         </label>
                     </div>
-                </div>
 
-                <!-- Footer -->
-                <div class="overlay-footer">
-                    <button type="button" class="btn btn-outline-main btn-sm rounded-lg" @click="resetTempFilters">
-                        Reset
-                    </button>
-                    <button type="button" class="btn btn-outline-neutral-400 btn-sm rounded-lg" @click="closeModal">
-                        Batal
-                    </button>
-                    <button type="button" class="btn btn-highlight-main btn-sm rounded-lg" @click="applyFilters">
-                        Terapkan
-                    </button>
-                </div>
             </div>
-        </div>
+        </FilterModal>
     </div>
 </template>
 
@@ -188,6 +125,8 @@ import { router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
 import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 

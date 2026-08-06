@@ -19,65 +19,27 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <!-- Category Badge -->
-            <div v-if="filterForm.category" class="filter-badge">
-                <span
-                    >Kategori: {{ getCategoryLabel(filterForm.category) }}</span
-                >
-                <button
-                    type="button"
-                    @click="removeFilter('category')"
-                    class="filter-badge-remove"
-                    title="Hapus filter kategori"
-                >
-                    ✕
-                </button>
-            </div>
-
-            <!-- Outlet Badge -->
-            <div v-if="filterForm.outlet" class="filter-badge">
-                <span>Outlet: {{ getOutletLabel(filterForm.outlet) }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('outlet')"
-                    class="filter-badge-remove"
-                    title="Hapus filter outlet"
-                >
-                    ✕
-                </button>
-            </div>
-
-            <!-- Is Deleted Badge -->
-            <div v-if="filterForm.is_deleted" class="filter-badge">
-                <span>Tampilkan Arsip</span>
-                <button
-                    type="button"
-                    @click="removeFilter('is_deleted')"
-                    class="filter-badge-remove"
-                    title="Sembunyikan Arsip"
-                >
-                    ✕
-                </button>
-            </div>
+            <FilterBadge v-if="filterForm.category" @remove="removeFilter('category')">
+                Kategori: {{ getCategoryLabel(filterForm.category) }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.outlet" @remove="removeFilter('outlet')">
+                Outlet: {{ getOutletLabel(filterForm.outlet) }}
+            </FilterBadge>
+            <FilterBadge v-if="filterForm.is_deleted" @remove="removeFilter('is_deleted')">
+                Tampilkan Arsip
+            </FilterBadge>
         </div>
 
         <!-- Filter Modal Overlay -->
-        <div v-if="showFilterModal" class="overlay-backdrop">
-            <div class="overlay-modal max-w-md">
-                <!-- Header -->
-                <div class="overlay-header">
-                    <h3 class="overlay-title">Filter Produk</h3>
-                    <button
-                        type="button"
-                        @click="closeModal"
-                        class="overlay-close"
-                    >
-                        ✖
-                    </button>
-                </div>
-
-                <!-- Body -->
-                <div class="p-5 space-y-4">
+        <FilterModal
+            :show="showFilterModal"
+            title="Filter Produk"
+            @close="closeModal"
+            @reset="resetTempFilters"
+            @apply="applyFilters"
+        >
+            <!-- Body -->
+            <div class="space-y-4">
                     <!-- Category Filter -->
                     <div class="space-y-1">
                         <label
@@ -128,34 +90,8 @@
                             v-model="tempFilters.is_deleted"
                         />
                     </div>
-                </div>
-
-                <!-- Footer -->
-                <div class="overlay-footer">
-                    <button
-                        type="button"
-                        class="btn btn-outline-main btn-sm rounded-lg"
-                        @click="resetTempFilters"
-                    >
-                        Reset
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-outline-neutral-400 btn-sm rounded-lg"
-                        @click="closeModal"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-highlight-main btn-sm rounded-lg"
-                        @click="applyFilters"
-                    >
-                        Terapkan
-                    </button>
-                </div>
             </div>
-        </div>
+        </FilterModal>
     </div>
 </template>
 
@@ -172,6 +108,8 @@ import {
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
 import Switch from '@/Components/Form/Switch.vue';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
 
 const props = defineProps({
     filters: Object,

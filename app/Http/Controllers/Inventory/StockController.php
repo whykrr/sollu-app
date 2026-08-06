@@ -116,6 +116,9 @@ class StockController extends Controller
             $stockQuery->where('inventory_balances.current_stock', '>', 0);
         }
 
+        $sort      = $request->get('sort', 'inventory_items.name');
+        $direction = $request->get('direction', 'asc');
+
         $stocks = $stockQuery
             ->selectRaw('inventory_balances.current_stock < inventory_items.minimum_stock as is_low_stock')
             ->orderBy($sort, $direction)
@@ -127,8 +130,7 @@ class StockController extends Controller
                 return $item;
             });
 
-        $categories = InventoryCategory::currentBusiness()
-            ->where('is_active', true)
+        $categories = ProductCategory::currentBusiness()
             ->select('id', 'name')
             ->orderBy('name')
             ->get();

@@ -22,31 +22,20 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <!-- Status Badge -->
-            <div v-if="filterForm.is_active !== ''" class="filter-badge">
-                <span>Status: {{ filterForm.is_active == '1' ? 'Aktif' : 'Nonaktif' }}</span>
-                <button
-                    type="button"
-                    @click="removeFilter('is_active')"
-                    class="filter-badge-remove"
-                    title="Hapus filter"
-                >
-                    ✕
-                </button>
-            </div>
+            <FilterBadge v-if="filterForm.is_active !== ''" @remove="removeFilter('is_active')">
+                Status: {{ filterForm.is_active == '1' ? 'Aktif' : 'Nonaktif' }}
+            </FilterBadge>
         </div>
 
         <!-- Filter Modal Overlay -->
-        <div v-if="showFilterModal" class="overlay-backdrop">
-            <div class="overlay-modal max-w-md">
-                <!-- Header -->
-                <div class="overlay-header">
-                    <h3 class="overlay-title">Filter Supplier</h3>
-                    <button type="button" @click="closeModal" class="overlay-close">✖</button>
-                </div>
-
-                <!-- Body -->
-                <div class="p-5 space-y-4">
+        <FilterModal
+            :show="showFilterModal"
+            title="Filter Supplier"
+            @close="closeModal"
+            @reset="resetTempFilters"
+            @apply="applyFilters"
+        >
+            <div class="space-y-4">
                     <!-- Status Filter -->
                     <div class="space-y-1">
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -62,21 +51,7 @@
                         </select>
                     </div>
                 </div>
-
-                <!-- Footer -->
-                <div class="overlay-footer">
-                    <button type="button" class="btn btn-outline-main btn-sm rounded-lg" @click="resetTempFilters">
-                        Reset
-                    </button>
-                    <button type="button" class="btn btn-outline-neutral-400 btn-sm rounded-lg" @click="closeModal">
-                        Batal
-                    </button>
-                    <button type="button" class="btn btn-highlight-main btn-sm rounded-lg" @click="applyFilters">
-                        Terapkan
-                    </button>
-                </div>
-            </div>
-        </div>
+        </FilterModal>
     </div>
 </template>
 
@@ -87,6 +62,8 @@ import { debounce } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
 
 const props = defineProps({
     filters: Object,
