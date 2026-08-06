@@ -5,6 +5,7 @@
             type="checkbox"
             class="sr-only"
             :checked="Number(modelValue) === 1"
+            :disabled="disabled"
             @change="updateValue($event.target.checked ? 1 : 0)"
         />
         <label
@@ -13,6 +14,7 @@
             :class="{
                 'w-6! h-4!': size === 'sm',
                 'w-10! h-6!': size === 'lg',
+                'opacity-50 cursor-not-allowed': disabled
             }"
         >
             <span
@@ -31,6 +33,7 @@
             :class="{
                 'text-sm': size === 'sm',
                 'text-lg': size === 'lg',
+                'opacity-50 cursor-not-allowed': disabled
             }"
             >{{ labeling }}</label
         >
@@ -44,6 +47,10 @@ defineProps({
     modelValue: {
         type: Number,
         default: 0,
+    },
+    disabled: {
+        type: Boolean,
+        default: false,
     },
 });
 

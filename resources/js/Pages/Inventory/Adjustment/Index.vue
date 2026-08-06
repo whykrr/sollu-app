@@ -128,7 +128,7 @@ import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from './Components/Filter.vue';
 import AdjustmentFormPopUp from './Components/AdjustmentFormPopUp.vue';
 import AdjustmentDetailPopUp from './Components/AdjustmentDetailPopUp.vue';
-import FreezeStockPopUp from './Components/FreezeStockPopUp.vue';
+import FreezeStockPopUp from '@/Components/Inventory/FreezeStockPopUp.vue';
 import { formatDateTimeSimple } from '@/Composable/date.js';
 
 const page = usePage();

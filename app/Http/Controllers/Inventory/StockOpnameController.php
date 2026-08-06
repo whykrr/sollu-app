@@ -161,29 +161,5 @@ class StockOpnameController extends Controller
         return $pdf->download('Stock_Opname_' . $opname->opname_number . '.pdf');
     }
 
-    public function freeze(Request $request, StockFreezeService $service)
-    {
-        $this->authorize('inventory.opname.create');
 
-        $request->validate(['outlet_id' => 'required|exists:outlets,id']);
-
-        $outlet = Outlet::findOrFail($request->outlet_id);
-
-        $service->freeze($outlet, Auth::user());
-
-        return redirect()->back()->with('success', 'Stok pada outlet ' . $outlet->name . ' berhasil dibekukan.');
-    }
-
-    public function unfreeze(Request $request, StockFreezeService $service)
-    {
-        $this->authorize('inventory.opname.create');
-
-        $request->validate(['outlet_id' => 'required|exists:outlets,id']);
-
-        $outlet = Outlet::findOrFail($request->outlet_id);
-
-        $service->unfreeze($outlet, Auth::user());
-
-        return redirect()->back()->with('success', 'Stok pada outlet ' . $outlet->name . ' berhasil dicairkan.');
-    }
 }

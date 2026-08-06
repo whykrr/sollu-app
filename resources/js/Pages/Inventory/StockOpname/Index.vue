@@ -111,6 +111,7 @@
 
         <FreezeStockPopUp
             :show="showFreezeModal"
+            description="Pembekuan stok akan memblokir seluruh transaksi persediaan pada outlet yang dipilih selama proses Stock Opname berlangsung."
             @close="closeFreezeModal"
         />
     </Container>
@@ -135,7 +136,7 @@ import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from './Components/Filter.vue';
 import OpnameFormPopUp from './Components/OpnameFormPopUp.vue';
 import OpnameDetailPopUp from './Components/OpnameDetailPopUp.vue';
-import FreezeStockPopUp from './Components/FreezeStockPopUp.vue';
+import FreezeStockPopUp from '@/Components/Inventory/FreezeStockPopUp.vue';
 import { useModalStore } from '@/store/notification';
 import { formatDateTimeSimple } from '@/Composable/date.js';
 

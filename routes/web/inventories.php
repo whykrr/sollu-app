@@ -62,15 +62,15 @@ Route::prefix('inventories')->group(function () {
         Route::post('stock-opnames/{id}/reject', [StockOpnameController::class, 'reject'])->name('opnames.reject');
         Route::get('stock-opnames/{id}/pdf', [StockOpnameController::class, 'exportPdf'])->name('opnames.export.pdf');
         Route::get('stock-opnames/{id}', [StockOpnameController::class, 'show'])->name('opnames.show');
-        Route::post('stock-opnames/freeze', [StockOpnameController::class, 'freeze'])->name('opnames.freeze');
-        Route::post('stock-opnames/unfreeze', [StockOpnameController::class, 'unfreeze'])->name('opnames.unfreeze');
 
         // Adjustments
         Route::get('adjustments', [StockAdjustmentController::class, 'index'])->name('adjustments.index');
         Route::get('adjustments/{id}/pdf', [StockAdjustmentController::class, 'exportPdf'])->name('adjustments.export.pdf');
         Route::get('adjustments/{id}', [StockAdjustmentController::class, 'show'])->name('adjustments.show');
-        Route::post('adjustments/freeze', [StockAdjustmentController::class, 'freeze'])->name('adjustments.freeze');
-        Route::post('adjustments/unfreeze', [StockAdjustmentController::class, 'unfreeze'])->name('adjustments.unfreeze');
+
+        // Outlets (Generic Inventory Outlet Actions)
+        Route::post('outlets/freeze', [\App\Http\Controllers\Inventory\OutletFreezeController::class, 'freeze'])->name('outlets.freeze');
+        Route::post('outlets/unfreeze', [\App\Http\Controllers\Inventory\OutletFreezeController::class, 'unfreeze'])->name('outlets.unfreeze');
 
         Route::middleware(['stock.not.frozen'])->group(function () {
             Route::post('adjustments', [StockAdjustmentController::class, 'store'])->name('adjustments.store');

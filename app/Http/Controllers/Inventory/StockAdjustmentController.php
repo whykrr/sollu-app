@@ -133,37 +133,7 @@ class StockAdjustmentController extends Controller
         }
     }
 
-    /**
-     * Freeze stock for an outlet.
-     */
-    public function freeze(Request $request, StockFreezeService $service)
-    {
-        Gate::authorize('inventory.adjustment.freeze');
 
-        $request->validate(['outlet_id' => 'required|exists:outlets,id']);
-
-        $outlet = Outlet::findOrFail($request->outlet_id);
-
-        $service->freeze($outlet, Auth::user());
-
-        return redirect()->back()->with('success', 'Stok pada outlet ' . $outlet->name . ' berhasil dibekukan.');
-    }
-
-    /**
-     * Unfreeze stock for an outlet.
-     */
-    public function unfreeze(Request $request, StockFreezeService $service)
-    {
-        Gate::authorize('inventory.adjustment.freeze');
-
-        $request->validate(['outlet_id' => 'required|exists:outlets,id']);
-
-        $outlet = Outlet::findOrFail($request->outlet_id);
-
-        $service->unfreeze($outlet, Auth::user());
-
-        return redirect()->back()->with('success', 'Stok pada outlet ' . $outlet->name . ' berhasil dicairkan.');
-    }
 
     /**
      * Export to PDF (Berita Acara).
