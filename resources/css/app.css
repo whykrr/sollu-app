@@ -165,7 +165,7 @@
 }
 
 @utility btn {
-    @apply inline-flex text-sm font-medium gap-2 items-center border border-transparent rounded-lg py-2 px-4 hover:brightness-110 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:brightness-100 cursor-pointer
+    @apply inline-flex text-sm font-medium gap-2 items-center border border-transparent rounded-lg py-2 px-4 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed cursor-pointer
         transition-all duration-200 ease-in-out;
 }
 
@@ -182,6 +182,9 @@
         border-gray-200
         transition-all duration-200 ease-in-out
 
+        hover:border-gray-300
+        hover:bg-gray-50/30
+
         file:py-2
         file:px-4
         file:-my-2
@@ -195,11 +198,14 @@
         disabled:bg-gray-50
         disabled:text-gray-500
         disabled:cursor-not-allowed
+        disabled:hover:border-gray-200
+        disabled:hover:bg-gray-50
 
         focus:ring-4
         focus:outline-0
         focus:ring-main/10
-        focus:border-main;
+        focus:border-main
+        focus:bg-white;
 }
 
 @layer utilities {
@@ -691,34 +697,49 @@
     }
 
     .form-group {
-        @apply flex flex-row rounded-lg items-center bg-white
+        @apply flex flex-row rounded-lg items-stretch bg-white
         border border-gray-200
-        overflow-hidden
-        transition-all duration-200 ease-in-out
+        transition-colors duration-200 ease-in-out
 
         focus-within:ring-4
         focus-within:outline-0
         focus-within:ring-main/10
         focus-within:border-main;
 
+        & > * {
+            @apply border-y-0 border-l-0 border-r border-gray-200 last:border-r-0 !rounded-none;
+        }
+
+        & > *:first-child {
+            @apply !rounded-l-[7px];
+        }
+
+        & > *:last-child {
+            @apply !rounded-r-[7px];
+            border-right: none !important;
+        }
+
+        & .form-group-text,
         & label.form-group-text {
-            @apply !px-2.5 select-none mb-0! py-2 h-full text-sm font-medium text-neutral-600 bg-gray-50 border-r border-gray-200 inline-flex items-center;
-        }
-
-        &.has-text .form {
-            @apply first:!pr-2 last:!pl-2 focus:text-neutral-800 focus:ring-0;
-        }
-
-        & .btn {
-            @apply rounded-none h-full shadow-none border-0 border-l border-gray-200;
-        }
-
-        & .btn:first-child {
-            @apply border-l-0 border-r border-gray-200;
+            @apply !px-3 select-none mb-0! text-sm font-medium text-neutral-600 bg-gray-50 flex items-center justify-center;
         }
 
         & .form {
-            @apply w-full !ring-0 !border-0 rounded-none shadow-none;
+            @apply w-full !ring-0 focus:!ring-0 !shadow-none;
+            border-top: none !important;
+            border-bottom: none !important;
+            border-left: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        & .btn {
+            @apply !ring-0 focus:!ring-0 !shadow-none;
+            border-top: none !important;
+            border-bottom: none !important;
+            border-left: none !important;
+            box-shadow: none !important;
+            outline: none !important;
         }
 
         & + .form-feedback {
@@ -810,7 +831,7 @@
         }
 
         &.btn-flat {
-            @apply !border !border-gray-200 hover:!border-gray-300 !bg-white;
+            @apply !border !border-gray-200 hover:!bg-gray-50 hover:!border-gray-300 !bg-white focus:outline-none focus:ring-4 focus:ring-main/10 focus:!border-main;
         }
 
         &.link {

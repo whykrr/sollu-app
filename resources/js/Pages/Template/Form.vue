@@ -27,18 +27,18 @@
                 </Card>
                 <Card title="Form Size">
                     <div class="space-y-2">
-                        <InputBasic
+                        <TextField
                             class="sm"
                             label="Example Small"
                             placeholder="Example..."
                         />
 
-                        <InputBasic
+                        <TextField
                             label="Example Regular"
                             placeholder="Example..."
                         />
 
-                        <InputBasic
+                        <TextField
                             class="lg"
                             label="Example Large"
                             placeholder="Example..."
@@ -49,46 +49,43 @@
                     <div class="flex flex-col gap-2">
                         <div class="form-floating">
                             <input
-                                id="name"
+                                id="name_floating1"
                                 type="text"
                                 placeholder="asd"
                                 required
                             />
-                            <label for="name">Name</label>
+                            <label for="name_floating1">Name</label>
                         </div>
-                        <div>
-                            <div class="form-floating is-invalid">
-                                <input
-                                    id="name"
-                                    type="text"
-                                    placeholder="asd"
-                                    required
-                                />
-                                <label for="name">Name</label>
-                            </div>
-                            <div class="form-feedback">Invalid !</div>
+                        <div class="form-floating is-invalid">
+                            <input
+                                id="name_floating2"
+                                type="text"
+                                placeholder="asd"
+                                required
+                            />
+                            <label for="name_floating2">Name Invalid</label>
                         </div>
-                        <div>
-                            <div class="form-floating is-valid">
-                                <input
-                                    id="name"
-                                    type="text"
-                                    placeholder="asd"
-                                    required
-                                />
-                                <label for="name">Name</label>
-                            </div>
-                            <div class="form-feedback">Valid !</div>
+                        <div class="form-feedback text-danger">Invalid !</div>
+                        
+                        <div class="form-floating is-valid">
+                            <input
+                                id="name_floating3"
+                                type="text"
+                                placeholder="asd"
+                                required
+                            />
+                            <label for="name_floating3">Name Valid</label>
                         </div>
+                        <div class="form-feedback text-success">Valid !</div>
                     </div>
                 </Card>
                 <Card title="Property Form">
-                    <InputBasic
+                    <TextField
                         v-model="form.exampleInput"
                         label="Disabled"
                         disabled
                     />
-                    <InputBasic
+                    <TextField
                         v-model="form.exampleInput"
                         label="Readonly"
                         readonly
@@ -96,12 +93,12 @@
                 </Card>
 
                 <Card title="Validation">
-                    <InputBasic
+                    <TextField
                         placeholder="Name..."
                         label="Example Error"
                         error="Wajib diisi!"
                     />
-                    <InputBasic
+                    <TextField
                         label="Example Success"
                         placeholder="email@domain.com"
                         success="Email valid !"
@@ -110,12 +107,12 @@
 
                 <Card title="Form Horizontal">
                     <div class="flex flex-row gap-2 items-end">
-                        <InputBasic
+                        <TextField
                             placeholder="Name..."
                             class="lg"
                             label="Example Error"
                         />
-                        <InputBasic
+                        <TextField
                             label="Example Success"
                             class="lg"
                             placeholder="email@domain.com"
@@ -125,11 +122,11 @@
                         </div>
                     </div>
                     <div class="flex flex-row gap-2 items-end pt-2">
-                        <InputBasic
+                        <TextField
                             placeholder="Name..."
                             label="Example Error"
                         />
-                        <InputBasic
+                        <TextField
                             label="Example Success"
                             placeholder="email@domain.com"
                         />
@@ -138,12 +135,12 @@
                         </div>
                     </div>
                     <div class="flex flex-row gap-2 items-end pt-2">
-                        <InputBasic
+                        <TextField
                             placeholder="Name..."
                             class="sm"
                             label="Example Error"
                         />
-                        <InputBasic
+                        <TextField
                             label="Example Success"
                             class="sm"
                             placeholder="email@domain.com"
@@ -158,7 +155,7 @@
                 <Card title="Input File">
                     <div class="flex flex-col gap-2">
                         <div>
-                            <label for="example_file_sm"
+                            <label for="example_file_sm" class="label"
                                 >Input File Small</label
                             >
                             <input
@@ -170,7 +167,7 @@
                             />
                         </div>
                         <div>
-                            <label for="example_file">Input File Regular</label>
+                            <label for="example_file" class="label">Input File Regular</label>
                             <input
                                 id="example_file"
                                 type="file"
@@ -344,14 +341,13 @@
                             <input id="form_group_large" class="form lg" />
                         </div>
                         <div>
-                            <label>Group Input</label>
+                            <label class="label">Group Input</label>
                             <div class="form-group">
                                 <input
                                     type="text"
                                     class="form"
                                     placeholder="From ... "
                                 />
-                                <span> | </span>
                                 <input
                                     type="text"
                                     class="form"
@@ -360,16 +356,16 @@
                             </div>
                         </div>
                         <div>
-                            <label>Group Input Date</label>
+                            <label class="label">Group Input Date</label>
                             <div class="form-group">
                                 <input
                                     type="date"
                                     class="form"
                                     placeholder="From"
                                 />
-                                <span>
+                                <div class="form-group-text px-2 text-gray-400">
                                     <FontAwesomeIcon :icon="faArrowRight" />
-                                </span>
+                                </div>
                                 <input
                                     type="date"
                                     class="form"
@@ -378,14 +374,13 @@
                             </div>
                         </div>
                         <div>
-                            <label>Group Select</label>
+                            <label class="label">Group Select</label>
                             <div class="form-group">
                                 <select name="by" class="form">
                                     <option>Name</option>
                                     <option>Price</option>
                                     <option>Date</option>
                                 </select>
-                                <span> | </span>
                                 <select name="sort" class="form">
                                     <option>Asc</option>
                                     <option>Desc</option>
@@ -393,7 +388,7 @@
                             </div>
                         </div>
                         <div>
-                            <label for="form_group_btn">Group Button</label>
+                            <label for="form_group_btn" class="label">Group Button</label>
                             <div class="form-group">
                                 <button class="btn btn-main">
                                     <FontAwesomeIcon :icon="faSearch" />
@@ -413,7 +408,6 @@
     </Container>
 </template>
 <script setup>
-import InputBasic from '@/Components/Form/TextField.vue';
 import Switch from '@/Components/Form/Switch.vue';
 import Card from '@/Components/UI/Card/Card.vue';
 import Container from '@/Components/UI/Container.vue';

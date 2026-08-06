@@ -1,10 +1,10 @@
 <template>
     <div>
-        <label v-if="label" :for="$attrs.id">{{ label }}</label>
+        <label v-if="label" :for="$attrs.id" class="label">{{ label }}</label>
         <select
             :id
             class="form pr-10!"
-            :class="[{ 'text-gray-500': modelValue === '' }]"
+            :class="[{ 'text-gray-500': modelValue === '' }, { 'is-invalid': error, 'is-valid': success }]"
             :value="modelValue"
             v-bind="$attrs"
             @change="emit('update:modelValue', $event.target.value)"
@@ -14,7 +14,9 @@
                 {{ o.label }}
             </option>
         </select>
-        <span v-if="feedback" class="form-feedback">{{ feedback }}</span>
+        <span v-if="error" class="form-feedback text-danger">{{ error }}</span>
+        <span v-else-if="success" class="form-feedback text-success">{{ success }}</span>
+        <span v-else-if="feedback" class="form-feedback">{{ feedback }}</span>
     </div>
 </template>
 <script setup>
@@ -22,7 +24,7 @@ defineOptions({
     inheritAttrs: false,
 });
 
-const { id, label, modelValue, placeholder, options, feedback } = defineProps({
+const { id, label, modelValue, placeholder, options, feedback, error, success } = defineProps({
     id: String,
     label: String,
     modelValue: { type: String, default: '' },
@@ -32,6 +34,8 @@ const { id, label, modelValue, placeholder, options, feedback } = defineProps({
         default: () => [], // format: [{ value: '1', label: 'Satu' }]
     },
     feedback: String,
+    error: String,
+    success: String,
 });
 
 const emit = defineEmits(['update:modelValue']);

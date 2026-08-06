@@ -54,18 +54,24 @@ function addColorClasses(color) {
     const alert = `.alert-${color}`;
     const widget = `.widget-${color}`;
 
+    const focusRing = {
+        'outline': 'none',
+        'box-shadow': `0 0 0 4px color-mix(in srgb, ${colorVar} 10%, transparent)`,
+        'border-color': colorVar,
+    };
+
     // BTN
     colorClasses[btn] = {
         'background-color': colorVar,
         'color': '#ffffff',
+        '&:hover:not(:disabled)': {
+            'background-color': `color-mix(in srgb, ${colorVar} 90%, black)`,
+        },
+        '&:focus': focusRing,
         '&:disabled': {
             'background-color': '#e5e7eb', // gray-200
             'color': '#9ca3af',            // gray-400
             'cursor': 'not-allowed',
-        },
-        '&:disabled:hover': {
-            'background-color': '#e5e7eb',
-            'filter': 'none',
         }
     };
 
@@ -75,69 +81,62 @@ function addColorClasses(color) {
         'border-color': `${colorVar} !important`,
         'color': colorVar,
         'background-color': 'transparent',
+        '&:focus': focusRing,
         '&:disabled': {
-            'border-color': '#D1D5DB', // gray-300
+            'border-color': '#D1D5DB !important', // gray-300
             'color': '#9ca3af',        // gray-400
             'cursor': 'not-allowed',
-        },
-        '&:disabled:hover': {
-            'background-color': 'transparent',
-            'filter': 'none',
         }
     };
 
     // BTN HIGHLIGHT
     colorClasses[btnHighlight] = {
-        'background-color': `--alpha(${colorVar} / 20%)`,
+        'background-color': `color-mix(in srgb, ${colorVar} 20%, transparent)`,
         'color': colorVar,
+        '&:focus': focusRing,
         '&:disabled': {
             'background-color': 'var(--color-gray-200)', // gray-200
             'color': '#9ca3af',
             'cursor': 'not-allowed',
-        },
-        '&:disabled:hover': {
-            'background-color': 'var(--color-gray-200)',
-            'color': '#9ca3af',
-            'filter': 'none',
         }
     };
 
-    // Hover & active states
+    // Hover & active states (for Outline and Highlight variants)
     const hoverStyle = {
         'background-color': colorVar,
         'color': '#ffffff',
     };
 
-    colorClasses[`button${btnOutline}:hover, a${btnOutline}:hover, button${btnOutline}.active, a${btnOutline}.active`] = hoverStyle;
-    colorClasses[`button${btnHighlight}:hover, a${btnHighlight}:hover, button${btnHighlight}.active, a${btnHighlight}.active`] = hoverStyle;
+    colorClasses[`button${btnOutline}:hover:not(:disabled), a${btnOutline}:hover, button${btnOutline}.active, a${btnOutline}.active`] = hoverStyle;
+    colorClasses[`button${btnHighlight}:hover:not(:disabled), a${btnHighlight}:hover, button${btnHighlight}.active, a${btnHighlight}.active`] = hoverStyle;
     colorClasses[`.form-check-btn:checked + ${btnOutline}`] = hoverStyle;
     colorClasses[`.form-check-btn:checked + ${btnHighlight}`] = hoverStyle;
 
     // Badge
     colorClasses[badge] = {
         'color': colorVar,
-        'background-color': `--alpha(${colorVar} / 7.5%)`,
+        'background-color': `color-mix(in srgb, ${colorVar} 7.5%, transparent)`,
     };
 
     // Alert
     colorClasses[alert] = {
         'color': colorVar,
-        'border-color': `--alpha(${colorVar} / 30%)`,
-        'background-color': `--alpha(${colorVar} / 15%)`,
+        'border-color': `color-mix(in srgb, ${colorVar} 30%, transparent)`,
+        'background-color': `color-mix(in srgb, ${colorVar} 15%, transparent)`,
     };
 
     colorClasses[`${widget} .widget-icon `] = {
         'color': colorVar,
-        'background-color': `--alpha(${colorVar} / 20%)`,
+        'background-color': `color-mix(in srgb, ${colorVar} 20%, transparent)`,
     };
     colorClasses[`${widget} .widget-bar `] = {
-        'background-color': `--alpha(${colorVar} / 30%)`,
+        'background-color': `color-mix(in srgb, ${colorVar} 30%, transparent)`,
     };
     colorClasses[`${widget} .widget-bar .widget-value `] = {
         'background-color': colorVar,
     };
     colorClasses[`${widget} .canvas `] = {
-        'color': `--alpha(${colorVar} / 50%)`,
+        'color': `color-mix(in srgb, ${colorVar} 50%, transparent)`,
     };
     return colorClasses;
 }
