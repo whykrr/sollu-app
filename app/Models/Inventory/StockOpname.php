@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\StockOpnameStatus;
 
 /**
  * @property-read Business $business
@@ -36,6 +37,10 @@ class StockOpname extends Model
         'notes',
         'created_by',
         'approved_by',
+    ];
+
+    protected $casts = [
+        'status' => StockOpnameStatus::class,
     ];
 
     // ── Relationships ────────────────────────────────────────────

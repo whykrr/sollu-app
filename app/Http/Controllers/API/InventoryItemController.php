@@ -49,4 +49,36 @@ class InventoryItemController extends Controller
 
         return $this->successResponse(InventoryItemResource::collection($items));
     }
+
+    /**
+     * Get paginated active inventory items for partial loading (e.g. stock opname).
+     */
+    public function getPartialItems(Request $request)
+    {
+        $request->validate([
+            'outlet_id' => 'nullable|uuid',
+            'limit'     => 'nullable|integer|min:1|max:100',
+        ]);
+
+        $limit = $request->query('limit', 50);
+
+        $items = InventoryItem::currentBusiness()
+            ->where('is_active', true)
+            ->with(['uom', 'balances' => function ($q) use ($request) {
+                if ($request->query('outlet_id')) {
+                    $q->where('outlet_id', $request->query('outlet_id'));
+                }
+            }])
+            ->paginate($limit);
+
+        // Map the items to inject formatted stock
+        $items->getCollection()->transform(function ($item) use ($request) {
+            if ($request->query('outlet_id')) {
+                $item->current_stock = $item->balances->first()?->current_stock_formatted ?? 0;
+            }
+            return $item;
+        });
+
+        return InventoryItemResource::collection($items);
+    }
 }

@@ -88,10 +88,10 @@
                         <button
                             type="button"
                             class="btn btn-outline-main btn-sm"
-                            @click="loadAllItems"
-                            :disabled="!form.outlet_id && !opname"
+                            @click="loadAllItems(false)"
+                            :disabled="(!form.outlet_id && !opname) || isLoadingItems"
                         >
-                            Muat Semua Item
+                            {{ isLoadingItems ? 'Memuat...' : 'Muat Item (Parsial)' }}
                         </button>
                     </div>
                 </div>
@@ -172,6 +172,18 @@
                         </button>
                     </div>
                 </div>
+
+                <div v-if="hasMoreItems" class="text-center mt-3">
+                    <button
+                        type="button"
+                        class="btn btn-outline-main btn-sm"
+                        @click="loadAllItems(true)"
+                        :disabled="isLoadingItems"
+                    >
+                        {{ isLoadingItems ? 'Memuat...' : 'Muat Lebih Banyak' }}
+                    </button>
+                </div>
+
                 <div v-if="form.errors.items" class="text-danger text-sm mt-2">
                     {{ form.errors.items }}
                 </div>
@@ -233,6 +245,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import axios from 'axios';
 import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
@@ -245,7 +258,6 @@ import NumberField from '@/Components/Form/NumberField.vue';
 const props = defineProps({
     show: Boolean,
     opname: Object,
-    items: Array,
 });
 
 const emit = defineEmits(['close']);
@@ -257,6 +269,9 @@ const form = useForm({
 });
 
 const loadedOutlets = ref([]);
+const currentPage = ref(1);
+const hasMoreItems = ref(false);
+const isLoadingItems = ref(false);
 
 const onOutletsLoaded = (outlets) => {
     loadedOutlets.value = outlets;
@@ -279,6 +294,9 @@ watch(
     () => props.show,
     (isOpen) => {
         if (isOpen) {
+            currentPage.value = 1;
+            hasMoreItems.value = false;
+            
             if (props.opname) {
                 form.outlet_id = props.opname.outlet_id;
                 form.notes = props.opname.notes || '';
@@ -315,27 +333,55 @@ const addItemFromSearch = (item) => {
     }
 };
 
-const loadAllItems = () => {
+const loadAllItems = async (isLoadMore = false) => {
     const outletId = props.opname ? props.opname.outlet_id : form.outlet_id;
     if (!outletId) {
         alert('Pilih outlet terlebih dahulu!');
         return;
     }
 
-    props.items.forEach((i) => {
-        if (
-            !form.items.find((existing) => existing.inventory_item_id === i.id)
-        ) {
-            form.items.push({
-                inventory_item_id: i.id,
-                name: i.name,
-                sku: i.sku || '-',
-                uom: i.uom?.name || '-',
-                system_qty: i.current_stock || 0,
-                actual_qty: i.current_stock || 0,
-            });
+    if (!isLoadMore) {
+        currentPage.value = 1;
+    }
+
+    isLoadingItems.value = true;
+    try {
+        const response = await axios.get(route('api.internal.inventory-items.partial'), {
+            params: {
+                outlet_id: outletId,
+                page: currentPage.value,
+                limit: 50,
+            }
+        });
+
+        const newItems = response.data.data;
+        const meta = response.data.meta;
+
+        newItems.forEach((i) => {
+            if (
+                !form.items.find((existing) => existing.inventory_item_id === i.id)
+            ) {
+                form.items.push({
+                    inventory_item_id: i.id,
+                    name: i.name,
+                    sku: i.sku || '-',
+                    uom: i.uom?.name || '-',
+                    system_qty: i.current_stock || 0,
+                    actual_qty: i.current_stock || 0,
+                });
+            }
+        });
+
+        hasMoreItems.value = meta.current_page < meta.last_page;
+        if (hasMoreItems.value) {
+            currentPage.value++;
         }
-    });
+    } catch (error) {
+        console.error('Error loading items:', error);
+        alert('Gagal memuat item. Pastikan API berfungsi dengan baik.');
+    } finally {
+        isLoadingItems.value = false;
+    }
 };
 
 const removeItem = (index) => {

@@ -173,3 +173,8 @@ Berikan warna via class (cth: `widget-main`, `widget-teal`).
 - **`Widget.vue`**: Metrik standar. Slot default = nilai utama. Props: `title`, `icon`, `traction`, `tractionPercentage`, `descriptors`.
 - **`WidgetProgress.vue`**: Metrik dengan progress bar. Props: `title`, `icon`, `value`, `maxValue`.
 - **`WidgetChart.vue`**: Metrik chart. Tanpa slot. Props: `id`, `title`, `icon`, `type`, `highlight`, `sub-highlight`, `labels`, `data`.
+
+### 6.6 Partial Loading & Loading States (Deferred)
+- Saat mengimplementasikan pemuatan data secara parsial (Partial Loading, Lazy Loading, Infinte Scroll, Inertia Deferred props, dll), **WAJIB** selalu menggunakan UI _placeholder_ (contoh: skeleton loader, indikator _spinner_, atau state teks "Memuat...").
+- Dilarang keras membiarkan area tampilan kosong/blank (atau UI tampak freeze) selama data sedang di-_fetch_.
+- Gunakan komponen _skeleton_ bawaan (bila tersedia) atau manfaatkan animasi Tailwind pulse sederhana (`animate-pulse bg-gray-200 rounded`) sebagai placeholder selagi menunggu komponen/data dirender penuh.

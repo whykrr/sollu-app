@@ -99,7 +99,6 @@
         <OpnameFormPopUp
             :show="showForm"
             :opname="selectedItem"
-            :items="items"
             @close="closeForm"
         />
 
@@ -146,10 +145,6 @@ const props = defineProps({
     opnames: {
         type: Object,
         default: () => ({ data: [], links: [] }),
-    },
-    items: {
-        type: Array,
-        default: () => [],
     },
     filters: {
         type: Object,

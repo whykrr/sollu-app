@@ -101,6 +101,7 @@ Route::middleware('auth:business')->group(function () {
         // For reusable components that need to search for products or inventory items
         Route::get('/products/search', [\App\Http\Controllers\API\ProductController::class, 'search'])->name('products.search');
         Route::get('/inventory-items/search', [\App\Http\Controllers\API\InventoryItemController::class, 'search'])->name('inventory-items.search');
+        Route::get('/inventory-items/partial', [\App\Http\Controllers\API\InventoryItemController::class, 'getPartialItems'])->name('inventory-items.partial');
         Route::get('/outlets', [\App\Http\Controllers\API\OutletController::class, 'index'])->name('outlets.index');
     });
 

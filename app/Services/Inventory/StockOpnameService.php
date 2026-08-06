@@ -7,6 +7,7 @@ use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryMovement;
 use App\Models\Inventory\StockOpname;
 use App\Models\User;
+use App\Enums\StockOpnameStatus;
 use App\Services\ActivityLogService;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +27,7 @@ class StockOpnameService
                 ->whereMonth('created_at', now()->month)
                 ->count();
             $data['opname_number'] = 'OP-' . now()->format('Ym') . '-' . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
-            $data['status'] = 'in_progress';
+            $data['status'] = StockOpnameStatus::InProgress;
 
             $opname = StockOpname::create($data);
 
@@ -48,7 +49,7 @@ class StockOpnameService
     public function updateOpname(StockOpname $opname, array $data, User $updater): StockOpname
     {
         return DB::transaction(function () use ($opname, $data, $updater) {
-            if ($opname->status !== 'in_progress') {
+            if ($opname->status !== StockOpnameStatus::InProgress) {
                 abort(403, 'Hanya opname berstatus In Progress yang dapat diubah.');
             }
 
@@ -70,7 +71,7 @@ class StockOpnameService
             }
             
             // Mark as pending approval after update
-            $opname->update(['status' => 'pending_approval']);
+            $opname->update(['status' => StockOpnameStatus::PendingApproval]);
 
             $this->activityLog->log($opname, 'submitted', $updater);
 
@@ -81,7 +82,7 @@ class StockOpnameService
     public function completeOpname(StockOpname $opname, array $data, User $approver): StockOpname
     {
         return DB::transaction(function () use ($opname, $data, $approver) {
-            if ($opname->status !== 'pending_approval') {
+            if ($opname->status !== StockOpnameStatus::PendingApproval) {
                 abort(403, 'Opname harus dalam status Menunggu Persetujuan.');
             }
             
@@ -132,7 +133,7 @@ class StockOpnameService
                 }
             }
 
-            $opname->status = 'approved';
+            $opname->status = StockOpnameStatus::Approved;
             $opname->approved_by = $approver->id;
             $opname->save();
 
@@ -145,11 +146,11 @@ class StockOpnameService
     public function rejectOpname(StockOpname $opname, array $data, User $rejecter): StockOpname
     {
         return DB::transaction(function () use ($opname, $data, $rejecter) {
-            if ($opname->status !== 'pending_approval') {
+            if ($opname->status !== StockOpnameStatus::PendingApproval) {
                 abort(403, 'Opname harus dalam status Menunggu Persetujuan untuk ditolak.');
             }
 
-            $opname->status = 'rejected';
+            $opname->status = StockOpnameStatus::Rejected;
             $opname->notes = $data['notes'] ?? $opname->notes;
             $opname->approved_by = $rejecter->id;
             $opname->save();

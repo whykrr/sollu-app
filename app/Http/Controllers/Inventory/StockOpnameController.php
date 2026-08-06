@@ -11,6 +11,7 @@ use App\Models\Outlet;
 use App\Services\Inventory\StockOpnameService;
 use App\Services\Inventory\StockFreezeService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Enums\StockOpnameStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -37,27 +38,17 @@ class StockOpnameController extends Controller
             ->paginate($request->query('per_page', 20))
             ->withQueryString();
 
-        $items = InventoryItem::currentBusiness()
-            ->where('is_active', true)
-            ->with(['uom', 'balances' => function ($q) {
-                // Eager load balances for the frontend to show stock per outlet
-                $q->select('inventory_item_id', 'outlet_id', 'current_stock');
-            }])
-            ->get()
-            ->map(function ($item) {
-                $item->current_stock = $item->balances->first()?->current_stock ?? 0;
-
-                return $item;
-            });
+        // Determine if we show Create Opname Form immediately
+        $showForm = $request->query('action') === 'create';
 
         return inertia('Inventory/StockOpname/Index', [
-            'opnames' => $opnames,
-            'items'   => $items,
-            'filters' => [
+            'opnames'  => $opnames,
+            'filters'  => [
                 ...$request->only(['search', 'status', 'outlet_id', 'date_from', 'date_to']),
                 'sort'      => $sort,
                 'direction' => $direction,
             ],
+            'showForm' => $showForm,
         ]);
     }
 
@@ -98,7 +89,7 @@ class StockOpnameController extends Controller
         $opname = StockOpname::currentBusiness()->findOrFail($id);
 
         try {
-            if ($opname->status !== 'in_progress') {
+            if ($opname->status !== StockOpnameStatus::InProgress) {
                 return redirect()->back()->with('error', 'Hanya sesi In Progress yang dapat dibatalkan.');
             }
             $opname->delete();

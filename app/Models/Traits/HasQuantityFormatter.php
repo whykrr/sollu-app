@@ -17,12 +17,13 @@ trait HasQuantityFormatter
         // Round to 2 decimals as requested
         $value = round($value, 2);
 
-        // Format to string using number_format
-        $formatted = number_format($value, 2, ',', '.');
+        // Format to string using dot as decimal separator without thousands separator
+        // so it can be parsed correctly by HTML number inputs and the system
+        $formatted = number_format($value, 2, '.', '');
 
-        // Drop trailing zeroes and comma if it's a whole number
-        if (str_contains($formatted, ',')) {
-            $formatted = rtrim(rtrim($formatted, '0'), ',');
+        // Drop trailing zeroes and dot if it's a whole number
+        if (str_contains($formatted, '.')) {
+            $formatted = rtrim(rtrim($formatted, '0'), '.');
         }
 
         return $formatted;
