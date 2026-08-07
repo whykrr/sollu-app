@@ -31,7 +31,7 @@
                     </p>
                     <p class="mb-1">
                         <strong>Tanggal Dibuat:</strong>
-                        {{ formatDateTimeSimple(opname.created_at) }}
+                        {{ formatDateTimeID(opname.created_at) }}
                     </p>
                     <p>
                         <strong>Disetujui/Ditolak Oleh:</strong>
@@ -88,7 +88,7 @@
                             <div
                                 class="text-center font-semibold bg-gray-100 py-1 rounded"
                             >
-                                {{ item.system_qty }}
+                                {{ formatNumberID(item.system_qty) }}
                             </div>
                         </div>
                         <div class="w-32">
@@ -98,7 +98,7 @@
                             <div
                                 class="text-center font-semibold bg-gray-100 py-1 rounded"
                             >
-                                {{ item.actual_qty }}
+                                {{ formatNumberID(item.actual_qty) }}
                             </div>
                         </div>
                         <div class="w-32 text-center">
@@ -145,13 +145,13 @@
                 <div class="text-center p-3 bg-green-50 rounded">
                     <div class="text-xs text-gray-500">Total Surplus</div>
                     <div class="font-bold text-lg text-success">
-                        +{{ formatNumber(summary.surplus) }}
+                        +{{ formatNumberID(summary.surplus) }}
                     </div>
                 </div>
                 <div class="text-center p-3 bg-red-50 rounded">
                     <div class="text-xs text-gray-500">Total Shortage</div>
                     <div class="font-bold text-lg text-danger">
-                        -{{ formatNumber(summary.shortage) }}
+                        -{{ formatNumberID(summary.shortage) }}
                     </div>
                 </div>
             </div>
@@ -225,6 +225,8 @@ import { useForm } from '@inertiajs/vue3';
 import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import Modal from '@/Components/Notifications/Modal.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
+import { formatDateTimeID } from '@/Composable/date';
+import { formatNumberID } from '@/Composable/useNumberFormat';
 
 const props = defineProps({
     show: Boolean,
@@ -285,24 +287,6 @@ const statusColor = (status) => {
     return colors[status] || 'badge-gray';
 };
 
-const formatDateTimeSimple = (dateString) => {
-    if (!dateString) return '-';
-    const d = new Date(dateString);
-    return d.toLocaleString('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-};
-
-const formatNumber = (num) => {
-    return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(
-        Number(num),
-    );
-};
-
 const differenceColor = (actual, system) => {
     const diff = Number(actual || 0) - Number(system || 0);
     if (diff > 0) return 'text-success';
@@ -312,7 +296,7 @@ const differenceColor = (actual, system) => {
 
 const formatDifference = (actual, system) => {
     const diff = Number(actual || 0) - Number(system || 0);
-    const formatted = formatNumber(Math.abs(diff));
+    const formatted = formatNumberID(Math.abs(diff));
     if (diff > 0) return '+' + formatted;
     if (diff < 0) return '-' + formatted;
     return '0';

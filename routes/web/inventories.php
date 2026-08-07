@@ -82,5 +82,13 @@ Route::prefix('inventories')->group(function () {
 
         // Transfers
         Route::get('transfers', [StockTransferController::class, 'index'])->name('transfers.index');
+        Route::post('transfers', [StockTransferController::class, 'store'])->name('transfers.store');
+        Route::get('transfers/{transfer}', [StockTransferController::class, 'show'])->name('transfers.show');
+        Route::get('transfers/{transfer}/pdf', [StockTransferController::class, 'exportPdf'])->name('transfers.export.pdf');
+        Route::put('transfers/{transfer}', [StockTransferController::class, 'update'])->name('transfers.update');
+        Route::post('transfers/{transfer}/approve', [StockTransferController::class, 'approve'])->name('transfers.approve');
+        Route::post('transfers/{transfer}/reject', [StockTransferController::class, 'reject'])->name('transfers.reject');
+        Route::post('transfers/{transfer}/ship', [StockTransferController::class, 'ship'])->name('transfers.ship');
+        Route::post('transfers/{transfer}/receive', [StockTransferController::class, 'receive'])->name('transfers.receive');
     });
 });

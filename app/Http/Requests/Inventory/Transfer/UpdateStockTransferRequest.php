@@ -2,13 +2,15 @@
 
 namespace App\Http\Requests\Inventory\Transfer;
 
+use App\Enums\PermissionEnum;
+use App\Enums\StockTransferStatus;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateStockTransferRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can(PermissionEnum::INVENTORY_TRANSFER_UPDATE->value) ?? false;
     }
 
     public function rules(): array
@@ -16,11 +18,10 @@ class UpdateStockTransferRequest extends FormRequest
         return [
             'from_outlet_id'            => ['required', 'uuid', 'exists:outlets,id'],
             'to_outlet_id'              => ['required', 'uuid', 'exists:outlets,id', 'different:from_outlet_id'],
-            'transfer_date'             => ['required', 'date'],
             'notes'                     => ['nullable', 'string'],
             'items'                     => ['required', 'array', 'min:1'],
-            'items.*.inventory_item_id' => ['required', 'uuid', 'exists:inventory_items,id'],
-            'items.*.qty_transferred'   => ['required', 'numeric', 'min:0.01'],
+            'items.*.inventory_item_id' => ['required', 'uuid', 'exists:inventory_items,id', 'distinct'],
+            'items.*.qty'               => ['required', 'numeric', 'min:0.01'],
         ];
     }
 }

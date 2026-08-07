@@ -145,6 +145,7 @@ Aturan penggunaan styling dan komponen UI (Hemat Token & Konsisten):
 - **Validation**: Bind the validation string to the `feedback` prop. Do not try to append `is-invalid` classes manually to the component.
 - **Dropdowns**: Always include a `placeholder` attribute to generate a default empty `<option>`.
 - **Numbers**: Always use `NumberField` instead of `<input type="number">`. Values bind as raw numbers.
+- **Quantity Display (`HasQuantityFormatter`)**: Whenever displaying stock or item quantities in the UI (tables, details), you MUST use the formatted quantity provided by the backend's `HasQuantityFormatter` trait (e.g., `item.qty_formatted`, `item.qty_received_formatted`). DO NOT use the raw `qty` field for display, and DO NOT manually format quantities in the frontend.
 - Ukuran Form: Tambahkan class `sm` atau `lg`.
 - **Form Group**: 
   - Icon/teks dengan input: `<div class="form-group"><label class="form-group-text">...</label><input class="form" /></div>`.
@@ -178,3 +179,28 @@ Berikan warna via class (cth: `widget-main`, `widget-teal`).
 - Saat mengimplementasikan pemuatan data secara parsial (Partial Loading, Lazy Loading, Infinte Scroll, Inertia Deferred props, dll), **WAJIB** selalu menggunakan UI _placeholder_ (contoh: skeleton loader, indikator _spinner_, atau state teks "Memuat...").
 - Dilarang keras membiarkan area tampilan kosong/blank (atau UI tampak freeze) selama data sedang di-_fetch_.
 - Gunakan komponen _skeleton_ bawaan (bila tersedia) atau manfaatkan animasi Tailwind pulse sederhana (`animate-pulse bg-gray-200 rounded`) sebagai placeholder selagi menunggu komponen/data dirender penuh.
+
+---
+
+## 7. State Management & Auth (Composables & Pinia)
+
+### 7.1 Auth & Permissions (`useAuth`)
+**ALWAYS** use the `useAuth` composable located at `@/Composable/useAuth` instead of directly accessing `usePage().props.auth`.
+- **Import:** `import { useAuth } from '@/Composable/useAuth';`
+- **Exposed Utilities:** `user`, `business`, `outlets`, `roles`, `permissions`, `isOwner`, `can`, `canAny`, `canAll`, `hasRole`, `hasAnyRole`.
+- **Usage Example:**
+  ```javascript
+  const { user, canAny, can } = useAuth();
+  
+  const canApprove = computed(() => {
+      if (can('business.*')) return true;
+      return canAny(['inventory.transfer.approve']) && transferData.value?.requester?.id !== user.value?.id;
+  });
+  ```
+
+### 7.2 Modals & Global State (Pinia)
+The project uses Pinia for global state, located in `resources/js/store/`.
+- **Notification/Delete Modal:** Use `useModalStore` from `@/store/notification`.
+  - For standard delete (Hapus Data): `modalStore.openModalDelete(route('api.destroy', id))`
+  - For soft delete (Arsipkan): `modalStore.openModalSoftDelete(route('api.archive', id))`
+- **App Sidebar State:** Use `useAppStore` from `@/store/app` to control sidebar visibility and active states.

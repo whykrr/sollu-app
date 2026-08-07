@@ -100,7 +100,12 @@ class RolePermissionSeeder extends Seeder
             PermissionEnum::INVENTORY_ADJUSTMENT_APPROVE->value,
             PermissionEnum::INVENTORY_ADJUSTMENT_EXPORT->value,
             PermissionEnum::INVENTORY_ADJUSTMENT_FREEZE->value,
-            PermissionEnum::INVENTORY_TRANSFER->value,
+            PermissionEnum::INVENTORY_TRANSFER_READ->value,
+            PermissionEnum::INVENTORY_TRANSFER_CREATE->value,
+            PermissionEnum::INVENTORY_TRANSFER_UPDATE->value,
+            PermissionEnum::INVENTORY_TRANSFER_APPROVE->value,
+            PermissionEnum::INVENTORY_TRANSFER_SHIP->value,
+            PermissionEnum::INVENTORY_TRANSFER_RECEIVE->value,
             PermissionEnum::INVENTORY_STOCK_OPNAME->value,
 
             PermissionEnum::PROMO_VIEW->value,
@@ -135,6 +140,12 @@ class RolePermissionSeeder extends Seeder
             PermissionEnum::INVENTORY_ADJUSTMENT_APPROVE->value,
             PermissionEnum::INVENTORY_ADJUSTMENT_EXPORT->value,
             PermissionEnum::INVENTORY_ADJUSTMENT_FREEZE->value,
+            PermissionEnum::INVENTORY_TRANSFER_READ->value,
+            PermissionEnum::INVENTORY_TRANSFER_CREATE->value,
+            PermissionEnum::INVENTORY_TRANSFER_UPDATE->value,
+            PermissionEnum::INVENTORY_TRANSFER_APPROVE->value,
+            PermissionEnum::INVENTORY_TRANSFER_SHIP->value,
+            PermissionEnum::INVENTORY_TRANSFER_RECEIVE->value,
 
             PermissionEnum::REPORT_SALES->value,
         ]);

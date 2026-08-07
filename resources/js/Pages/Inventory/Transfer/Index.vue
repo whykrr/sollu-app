@@ -1,19 +1,40 @@
 <template>
     <Container>
         <template #header>
-            <ContainerHeader title="Transfer Stok">
-                <button class="btn btn-highlight-main" @click="openForm()">
+            <ContainerHeader title="Mutasi Stok">
+                <button
+                    v-if="canCreate"
+                    class="btn btn-highlight-main"
+                    @click="openForm()"
+                >
                     <FontAwesomeIcon :icon="faPlus" />
-                    Buat Transfer
+                    Buat Mutasi Stok
                 </button>
             </ContainerHeader>
+            <Filter :filters="filters" />
         </template>
-        
-        <Table 
-            :headers="headers" 
+
+        <Table
+            :headers="headers"
             :data="transfers.data"
             :action="true"
+            :sort="filters.sort"
+            :sortDirection="filters.direction"
         >
+            <template #created_at="{ item }">
+                {{
+                    new Date(item.created_at).toLocaleString('id-ID', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                    })
+                }}
+            </template>
+            <template #from_outlet.name="{ item }">
+                {{ item.from_outlet?.name || '-' }}
+            </template>
+            <template #to_outlet.name="{ item }">
+                {{ item.to_outlet?.name || '-' }}
+            </template>
             <template #status="{ item }">
                 <span class="badge" :class="statusColor(item.status)">
                     {{ statusLabel(item.status) }}
@@ -21,106 +42,135 @@
             </template>
             <template #actions="{ item }">
                 <div class="flex items-center gap-2">
-                    <button v-if="item.status === 'pending'" class="btn btn-info btn-sm" @click="openAction(item)" title="Setujui Transfer">
-                        <FontAwesomeIcon :icon="faCheck" /> Approve
-                    </button>
-                    <button v-if="item.status === 'in_transit'" class="btn btn-success btn-sm" @click="openAction(item)" title="Terima Transfer">
-                        <FontAwesomeIcon :icon="faBoxOpen" /> Terima
-                    </button>
-                    <button v-if="item.status === 'pending'" class="btn btn-flat btn-sm text-danger" @click="confirmDelete(item)" title="Batalkan">
-                        <FontAwesomeIcon :icon="faTimes" />
+                    <button
+                        class="btn btn-flat btn-sm"
+                        @click="openDetail(item)"
+                        title="Detail"
+                    >
+                        <FontAwesomeIcon :icon="faEye" /> Detail
                     </button>
                 </div>
             </template>
         </Table>
 
         <template #footer>
-            <Pagination 
-                :links="transfers.links" 
-                :from="transfers.from" 
-                :to="transfers.to" 
-                :total="transfers.total" 
+            <Pagination
+                :links="transfers.links"
+                :from="transfers.from"
+                :to="transfers.to"
+                :total="transfers.total"
             />
         </template>
 
-        <Form 
-            :show="showForm" 
+        <TransferForm
+            :show="showForm"
             :outlets="outlets"
-            :items="items"
-            @close="closeForm" 
+            @close="closeForm"
+            @refresh="refreshData"
         />
-        
-        <Receive
-            :show="showAction"
-            :transfer="selectedItem"
-            @close="closeAction"
+
+        <TransferDetail
+            :show="showDetail"
+            :transferId="selectedItem?.id"
+            @close="closeDetail"
+            @openReceive="openReceive"
+            @refresh="refreshData"
+        />
+
+        <TransferReceiveForm
+            :show="showReceive"
+            :transferData="receiveData"
+            @close="closeReceive"
+            @refresh="refreshData"
         />
     </Container>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { faPlus, faTimes, faCheck, faBoxOpen } from '@fortawesome/free-solid-svg-icons';
+import { ref, computed } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
+import { faPlus, faEye } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import Container from '@/Components/UI/Container.vue';
 import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
-import Form from './Components/Form.vue';
-import Receive from './Components/Receive.vue';
-import { useModalStore } from '@/store/notification';
+import Filter from './Components/Filter.vue';
+import TransferForm from './Components/TransferForm.vue';
+import TransferDetail from './Components/TransferDetail.vue';
+import TransferReceiveForm from './Components/TransferReceiveForm.vue';
 
-const modalStore = useModalStore();
+const page = usePage();
+const permissions = computed(() => page.props.auth.permissions || []);
+const canCreate = computed(
+    () =>
+        permissions.value.includes('inventory.transfer.create') ||
+        permissions.value.includes('business.*'),
+);
 
 const props = defineProps({
     transfers: {
         type: Object,
-        default: () => ({ data: [], links: [] })
+        default: () => ({ data: [], links: [] }),
     },
     outlets: {
         type: Array,
-        default: () => []
-    },
-    items: {
-        type: Array,
-        default: () => []
+        default: () => [],
     },
     filters: {
         type: Object,
-        default: () => ({})
-    }
+        default: () => ({}),
+    },
 });
 
 const headers = [
     { label: 'Nomor Transfer', field: 'transfer_number', sortable: true },
-    { label: 'Tanggal', field: 'created_at', slot: 'created_at', sortable: true },
-    { label: 'Dari Outlet', field: 'from_outlet.name', sortable: false },
-    { label: 'Ke Outlet', field: 'to_outlet.name', sortable: false },
+    {
+        label: 'Tanggal',
+        field: 'created_at',
+        slot: 'created_at',
+        sortable: true,
+    },
+    {
+        label: 'Dari Outlet',
+        field: 'from_outlet.name',
+        slot: 'from_outlet.name',
+        sortable: false,
+    },
+    {
+        label: 'Ke Outlet',
+        field: 'to_outlet.name',
+        slot: 'to_outlet.name',
+        sortable: false,
+    },
+    { label: 'Jumlah Item', field: 'items_count', sortable: false },
     { label: 'Status', field: 'status', slot: 'status', sortable: false },
 ];
 
 const showForm = ref(false);
-const showAction = ref(false);
+const showDetail = ref(false);
+const showReceive = ref(false);
 const selectedItem = ref(null);
+const receiveData = ref(null);
 
 const statusLabel = (status) => {
     const labels = {
-        'pending': 'Menunggu Persetujuan',
-        'approved': 'Disetujui',
-        'in_transit': 'Dalam Perjalanan',
-        'completed': 'Selesai',
-        'rejected': 'Ditolak',
+        pending: 'Menunggu',
+        approved: 'Disetujui',
+        in_transit: 'Dalam Perjalanan',
+        completed: 'Selesai',
+        rejected: 'Ditolak',
     };
     return labels[status] || status;
 };
 
 const statusColor = (status) => {
     const colors = {
-        'pending': 'badge-warning',
-        'approved': 'badge-info',
-        'in_transit': 'badge-info',
-        'completed': 'badge-success',
-        'rejected': 'badge-danger',
+        pending: 'badge-warning',
+        approved: 'badge-info',
+        in_transit: 'badge-purple',
+        completed: 'badge-success',
+        rejected: 'badge-danger',
     };
     return colors[status] || 'badge-gray';
 };
@@ -133,17 +183,33 @@ const closeForm = () => {
     showForm.value = false;
 };
 
-const openAction = (item) => {
+const openDetail = (item) => {
     selectedItem.value = item;
-    showAction.value = true;
+    showDetail.value = true;
 };
 
-const closeAction = () => {
-    showAction.value = false;
+const closeDetail = () => {
+    showDetail.value = false;
     selectedItem.value = null;
 };
 
-const confirmDelete = (item) => {
-    modalStore.openModalDelete(route('inventory.transfers.destroy', item.id));
+const openReceive = (data) => {
+    showDetail.value = false; // close detail first
+    receiveData.value = data;
+    showReceive.value = true;
+};
+
+const closeReceive = () => {
+    showReceive.value = false;
+    receiveData.value = null;
+
+    // Optionally reopen detail after close
+    if (selectedItem.value) {
+        showDetail.value = true;
+    }
+};
+
+const refreshData = () => {
+    router.reload({ only: ['transfers'] });
 };
 </script>

@@ -3,14 +3,22 @@
 namespace App\Services\Inventory;
 
 use App\Enums\InventoryMovementType;
+use App\Enums\StockTransferStatus;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryMovement;
 use App\Models\Inventory\StockTransfer;
 use App\Models\User;
+use App\Services\ActivityLogService;
 use Illuminate\Support\Facades\DB;
 
 class StockTransferService
 {
+    public function __construct(
+        protected ActivityLogService $activityLogService,
+        protected StockFreezeService $stockFreezeService
+    ) {
+    }
+
     public function createTransfer(array $data, User $creator): StockTransfer
     {
         return DB::transaction(function () use ($data, $creator) {
@@ -21,17 +29,24 @@ class StockTransferService
                 ->whereMonth('created_at', now()->month)
                 ->count();
             $data['transfer_number'] = 'TF-' . now()->format('Ym') . '-' . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
-            $data['status'] = 'pending';
+            $data['status'] = StockTransferStatus::Pending->value;
 
             $transfer = StockTransfer::create($data);
 
             foreach ($data['items'] ?? [] as $itemData) {
                 $transfer->items()->create([
                     'inventory_item_id' => $itemData['inventory_item_id'],
-                    'qty_transferred'   => $itemData['qty_transferred'],
+                    'qty'               => $itemData['qty'],
                     'qty_received'      => 0,
                 ]);
             }
+
+            $this->activityLogService->log(
+                $transfer,
+                'created',
+                $creator,
+                ['message' => 'Permintaan transfer dibuat']
+            );
 
             return $transfer;
         });
@@ -40,8 +55,8 @@ class StockTransferService
     public function updateTransfer(StockTransfer $transfer, array $data): StockTransfer
     {
         return DB::transaction(function () use ($transfer, $data) {
-            if ($transfer->status !== 'pending') {
-                abort(403, 'Hanya transfer berstatus Pending yang dapat diubah.');
+            if ($transfer->status !== StockTransferStatus::Pending->value) {
+                abort(403, 'Hanya transfer berstatus Menunggu yang dapat diubah.');
             }
 
             $transfer->update($data);
@@ -51,7 +66,7 @@ class StockTransferService
                 foreach ($data['items'] as $itemData) {
                     $transfer->items()->create([
                         'inventory_item_id' => $itemData['inventory_item_id'],
-                        'qty_transferred'   => $itemData['qty_transferred'],
+                        'qty'               => $itemData['qty'],
                         'qty_received'      => 0,
                     ]);
                 }
@@ -64,17 +79,76 @@ class StockTransferService
     public function approveTransfer(StockTransfer $transfer, User $approver): StockTransfer
     {
         return DB::transaction(function () use ($transfer, $approver) {
-            if ($transfer->status !== 'pending') {
-                abort(403, 'Hanya transfer berstatus Pending yang dapat disetujui.');
+            if ($transfer->status !== StockTransferStatus::Pending->value) {
+                abort(403, 'Hanya transfer berstatus Menunggu yang dapat disetujui.');
             }
             
-            // In a real transit system, we'd deduct stock from the source outlet now.
-            // But since our plan simplifies it, we just update status.
+            if (!$approver->can('business.*') && $approver->id === $transfer->requested_by) {
+                abort(403, 'Anda tidak dapat menyetujui transfer yang Anda buat sendiri.');
+            }
+            
+            $this->stockFreezeService->assertNotFrozen($transfer->fromOutlet);
+            $this->stockFreezeService->assertNotFrozen($transfer->toOutlet);
+
             $transfer->update([
-                'status' => 'in_transit',
+                'status' => StockTransferStatus::Approved->value,
                 'approved_by' => $approver->id
             ]);
             
+            $this->activityLogService->log(
+                $transfer,
+                'approved',
+                $approver,
+                ['message' => 'Transfer disetujui']
+            );
+
+            return $transfer;
+        });
+    }
+
+    public function rejectTransfer(StockTransfer $transfer, array $data, User $rejecter): StockTransfer
+    {
+        return DB::transaction(function () use ($transfer, $data, $rejecter) {
+            if ($transfer->status !== StockTransferStatus::Pending->value) {
+                abort(403, 'Hanya transfer berstatus Menunggu yang dapat ditolak.');
+            }
+            
+            $transfer->update([
+                'status' => StockTransferStatus::Rejected->value,
+                'notes'  => $data['notes'] ?? $transfer->notes,
+            ]);
+            
+            $this->activityLogService->log(
+                $transfer,
+                'rejected',
+                $rejecter,
+                ['message' => 'Transfer ditolak', 'notes' => $data['notes'] ?? null]
+            );
+
+            return $transfer;
+        });
+    }
+
+    public function shipTransfer(StockTransfer $transfer, User $shipper): StockTransfer
+    {
+        return DB::transaction(function () use ($transfer, $shipper) {
+            if ($transfer->status !== StockTransferStatus::Approved->value) {
+                abort(403, 'Hanya transfer berstatus Disetujui yang dapat dikirim.');
+            }
+            
+            $this->stockFreezeService->assertNotFrozen($transfer->fromOutlet);
+
+            $transfer->update([
+                'status' => StockTransferStatus::InTransit->value,
+            ]);
+            
+            $this->activityLogService->log(
+                $transfer,
+                'shipped',
+                $shipper,
+                ['message' => 'Transfer dalam perjalanan']
+            );
+
             return $transfer;
         });
     }
@@ -82,10 +156,15 @@ class StockTransferService
     public function completeTransfer(StockTransfer $transfer, array $receivedData, User $receiver): StockTransfer
     {
         return DB::transaction(function () use ($transfer, $receivedData, $receiver) {
-            if (!in_array($transfer->status, ['pending', 'in_transit'])) {
-                abort(403, 'Status transfer tidak valid untuk diterima.');
+            if ($transfer->status !== StockTransferStatus::InTransit->value) {
+                abort(403, 'Hanya transfer berstatus Dalam Perjalanan yang dapat diterima.');
             }
 
+            $this->stockFreezeService->assertNotFrozen($transfer->fromOutlet);
+            $this->stockFreezeService->assertNotFrozen($transfer->toOutlet);
+
+            $transfer->load('items.inventoryItem');
+            
             $itemsMap = collect($receivedData['items'])->keyBy('id');
 
             foreach ($transfer->items as $transferItem) {
@@ -93,10 +172,10 @@ class StockTransferService
                     $qtyToReceive = (float) $itemsMap->get($transferItem->id)['qty_received'];
                     
                     if ($qtyToReceive > 0) {
-                        $transferItem->qty_received += $qtyToReceive;
+                        $transferItem->qty_received = $qtyToReceive;
                         $transferItem->save();
 
-                        // Update Source Balance (Deduct)
+                        // Source Balance (Deduct)
                         $sourceBalance = InventoryBalance::firstOrCreate([
                             'business_id'       => $transfer->business_id,
                             'outlet_id'         => $transfer->from_outlet_id,
@@ -105,9 +184,14 @@ class StockTransferService
                         
                         $sourceStockBefore = $sourceBalance->current_stock;
                         $sourceStockAfter  = $sourceStockBefore - $qtyToReceive;
+
+                        if ($sourceStockAfter < 0) {
+                            abort(403, "Stok outlet asal tidak mencukupi untuk item {$transferItem->inventoryItem->name}. Stok saat ini: {$sourceStockBefore}, dikurangi: {$qtyToReceive}.");
+                        }
+
                         $sourceBalance->update(['current_stock' => $sourceStockAfter]);
                         
-                        // Update Destination Balance (Add)
+                        // Destination Balance (Add)
                         $destBalance = InventoryBalance::firstOrCreate([
                             'business_id'       => $transfer->business_id,
                             'outlet_id'         => $transfer->to_outlet_id,
@@ -155,9 +239,16 @@ class StockTransferService
                 }
             }
 
-            $transfer->status      = 'completed';
+            $transfer->status      = StockTransferStatus::Completed->value;
             $transfer->received_by = $receiver->id;
             $transfer->save();
+
+            $this->activityLogService->log(
+                $transfer,
+                'received',
+                $receiver,
+                ['message' => 'Transfer diterima', 'items_received' => count($receivedData['items'])]
+            );
 
             return $transfer;
         });

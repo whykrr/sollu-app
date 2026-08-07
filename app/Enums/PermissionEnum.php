@@ -112,7 +112,12 @@ enum PermissionEnum: string
     case INVENTORY_ADJUSTMENT_VOID   = 'inventory.adjustment.void';
     case INVENTORY_ADJUSTMENT_EXPORT = 'inventory.adjustment.export';
     case INVENTORY_ADJUSTMENT_FREEZE = 'inventory.adjustment.freeze';
-    case INVENTORY_TRANSFER     = 'inventory.transfer';
+    case INVENTORY_TRANSFER_READ    = 'inventory.transfer.read';
+    case INVENTORY_TRANSFER_CREATE  = 'inventory.transfer.create';
+    case INVENTORY_TRANSFER_UPDATE  = 'inventory.transfer.update';
+    case INVENTORY_TRANSFER_APPROVE = 'inventory.transfer.approve';
+    case INVENTORY_TRANSFER_SHIP    = 'inventory.transfer.ship';
+    case INVENTORY_TRANSFER_RECEIVE = 'inventory.transfer.receive';
     case INVENTORY_STOCK_OPNAME = 'inventory.stock_opname';
     case INVENTORY_MOVEMENT     = 'inventory.movement';
     case INVENTORY_PURCHASE     = 'inventory.purchase';
@@ -277,7 +282,12 @@ enum PermissionEnum: string
             self::INVENTORY_ADJUSTMENT_VOID   => 'Akses Void Penyesuaian',
             self::INVENTORY_ADJUSTMENT_EXPORT => 'Akses Export Penyesuaian',
             self::INVENTORY_ADJUSTMENT_FREEZE => 'Akses Bekukan Stok Penyesuaian',
-            self::INVENTORY_TRANSFER     => 'Akses Transfer Inventori',
+            self::INVENTORY_TRANSFER_READ    => 'Akses Melihat Transfer Inventori',
+            self::INVENTORY_TRANSFER_CREATE  => 'Akses Membuat Transfer Inventori',
+            self::INVENTORY_TRANSFER_UPDATE  => 'Akses Memperbarui Transfer Inventori',
+            self::INVENTORY_TRANSFER_APPROVE => 'Akses Approval Transfer Inventori',
+            self::INVENTORY_TRANSFER_SHIP    => 'Akses Kirim Transfer Inventori',
+            self::INVENTORY_TRANSFER_RECEIVE => 'Akses Terima Transfer Inventori',
             self::INVENTORY_STOCK_OPNAME => 'Akses Stock Opname',
             self::INVENTORY_MOVEMENT     => 'Akses Pergerakan Inventori',
             self::INVENTORY_PURCHASE     => 'Akses Pembelian Inventori',

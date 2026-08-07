@@ -27,6 +27,25 @@ Sollu POS adalah aplikasi Point of Sale berbasis SaaS yang dirancang khusus untu
 - [Ziggy](https://github.com/tighten/ziggy) (Penggunaan route Laravel di Vue)
 - **Modul Tambahan:** FontAwesome, Chart.js, Swiper, Quill Editor, Vue Draggable.
 
+## 🏗️ High-Level Architecture
+
+Aplikasi ini menggunakan arsitektur **Monolitik Modern** (Monolith with SPA Frontend) dengan Inertia.js sebagai penghubung antara frontend dan backend.
+
+1. **Client Layer (Vue 3 SPA):**
+   - Berjalan di browser pengguna, menangani interaktivitas UI secara langsung.
+   - Menggunakan **Pinia** untuk local state management.
+   - Meminta data atau navigasi halaman melalui request XHR/Fetch ke backend (via Inertia).
+2. **Bridge Layer (Inertia.js):**
+   - Menghilangkan kebutuhan untuk membuat REST/GraphQL API terpisah.
+   - Mencegah *full page reload* (SPA experience) dengan me-render komponen Vue berdasarkan *props* data yang dikirim oleh controller Laravel.
+3. **Backend & Business Logic Layer (Laravel 11):**
+   - Menangani proses inti bisnis (transaksi POS, manajemen inventaris, langganan).
+   - Validasi input, autentikasi sesi pengguna, dan otorisasi dengan **Spatie Permission**.
+   - Integrasi eksternal seperti **Midtrans** untuk pembayaran dan pembuatan PDF (DomPDF).
+4. **Data Layer (Database & Cache):**
+   - **RDBMS (MySQL/PostgreSQL):** Menyimpan data persisten seperti user, merchant, produk, dan transaksi.
+   - **Redis (Cache & Queue):** Digunakan untuk menyimpan cache sementara dan menangani background jobs asinkron, seperti pengiriman email notifikasi atau pembuatan laporan dalam skala besar.
+
 ## ⚙️ Persyaratan Sistem
 
 Pastikan sistem Anda memenuhi persyaratan berikut sebelum melakukan instalasi:

@@ -53,4 +53,16 @@ class StockFreezeService
             return $outlet;
         });
     }
+
+    /**
+     * Assert that the stock for a specific outlet is not frozen.
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     */
+    public function assertNotFrozen(Outlet $outlet): void
+    {
+        if ($outlet->is_stock_frozen) {
+            abort(403, "Stok outlet '{$outlet->name}' sedang dibekukan. Hubungi admin.");
+        }
+    }
 }
