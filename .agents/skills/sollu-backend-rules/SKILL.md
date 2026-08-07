@@ -188,6 +188,7 @@ The system processes CSV Import and Export asynchronously using Queued Jobs.
 
 - **Logging:** Log only Errors, Integration failures, Payment failures, and Critical events. Do not spam logs.
 - **Seeder:** Must be idempotent. Use `updateOrCreate()` or `firstOrCreate()`. Avoid `create()` for master data.
+- **Permissions:** Whenever a new feature is created that requires new permissions, you MUST always register the new permissions in `app/Enums/PermissionEnum.php` and assign them to the appropriate roles in `database/seeders/Production/RolePermissionSeeder.php`. After updating these files, instruct the user to run `php artisan db:seed --class="Database\Seeders\Production\RolePermissionSeeder"` to apply the changes.
 
 ## API JSON Response Standards
 
