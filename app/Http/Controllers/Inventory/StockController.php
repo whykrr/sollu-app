@@ -12,6 +12,8 @@ use App\Models\Outlet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Jobs\Inventory\ExportStockJob;
 
 class StockController extends Controller
 {
@@ -148,7 +150,7 @@ class StockController extends Controller
     }
 
     /**
-     * Detail API: Get item header and stock balances per outlet
+     * Detail API: Get item header, movements, and chart data
      */
     public function show(Request $request, $id)
     {
@@ -162,62 +164,28 @@ class StockController extends Controller
             ->with(['uom', 'product.category'])
             ->findOrFail($balance->inventory_item_id);
 
-        $balances = InventoryBalance::where('inventory_item_id', $item->id)
-            ->join('outlets', 'inventory_balances.outlet_id', '=', 'outlets.id')
-            ->select('inventory_balances.*', 'outlets.name as outlet_name')
-            ->get();
-
-        return response()->json([
-            'item'            => $item,
-            'balances'        => $balances,
-            'current_balance' => $balance,
-        ]);
-    }
-
-    /**
-     * Detail API: Get paginated stock movements
-     */
-    public function movements(Request $request, $id)
-    {
-        $businessId = Auth::user()->business_id;
-        $balance    = InventoryBalance::where('business_id', $businessId)
-            ->where('id', $id)
-            ->firstOrFail();
-
+        // Movements for the specific outlet (latest 50)
         $movements = InventoryMovement::where('inventory_item_id', $balance->inventory_item_id)
-            ->when($request->get('outlet_id'), fn ($q) => $q->where('outlet_id', $request->get('outlet_id')))
+            ->where('outlet_id', $balance->outlet_id)
             ->with(['outlet', 'creator', 'reference'])
             ->orderByDesc('created_at')
-            ->paginate(15);
+            ->take(50)
+            ->get();
 
-        return response()->json($movements);
-    }
-
-    /**
-     * Detail API: Get 30-day stock chart data
-     */
-    public function chart(Request $request, $id)
-    {
-        $businessId = Auth::user()->business_id;
-        $balance    = InventoryBalance::where('business_id', $businessId)
-            ->where('id', $id)
-            ->firstOrFail();
-
+        // Chart Data for the last 30 days
         $thirtyDaysAgo = now()->subDays(30);
-
-        $movements = InventoryMovement::where('inventory_item_id', $balance->inventory_item_id)
-            ->when($request->get('outlet_id'), fn ($q) => $q->where('outlet_id', $request->get('outlet_id')))
+        $chartMovements = InventoryMovement::where('inventory_item_id', $balance->inventory_item_id)
+            ->where('outlet_id', $balance->outlet_id)
             ->where('created_at', '>=', $thirtyDaysAgo)
             ->orderBy('created_at')
             ->get();
 
-        $dailyData = $movements->groupBy(function ($m) {
+        $dailyData = $chartMovements->groupBy(function ($m) {
             return $m->created_at->format('Y-m-d');
         })->map(function ($dayMovements) {
             return $dayMovements->sum('qty_change');
         });
 
-        // Ensure all 30 days are present
         $labels = [];
         $data   = [];
         for ($i = 30; $i >= 0; $i--) {
@@ -227,8 +195,217 @@ class StockController extends Controller
         }
 
         return response()->json([
-            'labels' => $labels,
-            'data'   => $data,
+            'item'            => $item,
+            'current_balance' => $balance,
+            'movements'       => $movements,
+            'chart'           => [
+                'labels' => $labels,
+                'data'   => $data,
+            ]
         ]);
+    }
+
+    public function updateBarcode(Request $request, $id)
+    {
+        $balance = InventoryBalance::where('business_id', Auth::user()->business_id)
+            ->findOrFail($id);
+
+        $request->validate([
+            'barcode' => 'required|string|max:255',
+        ]);
+
+        $item = InventoryItem::findOrFail($balance->inventory_item_id);
+        
+        $exists = InventoryItem::where('business_id', Auth::user()->business_id)
+            ->where('barcode', $request->barcode)
+            ->where('id', '!=', $item->id)
+            ->exists();
+            
+        if ($exists) {
+            return response()->json(['message' => 'Barcode sudah digunakan oleh produk lain.'], 422);
+        }
+
+        $item->update(['barcode' => $request->barcode]);
+
+        return response()->json(['message' => 'Barcode berhasil diperbarui.', 'barcode' => $item->barcode]);
+    }
+
+    public function storeInitialStock(Request $request, $id)
+    {
+        $balance = InventoryBalance::where('business_id', Auth::user()->business_id)
+            ->findOrFail($id);
+
+        if ($balance->current_stock > 0) {
+            return response()->json(['message' => 'Stok awal tidak dapat ditambahkan karena stok saat ini lebih dari 0.'], 422);
+        }
+
+        $movementCount = InventoryMovement::where('inventory_item_id', $balance->inventory_item_id)
+            ->where('outlet_id', $balance->outlet_id)
+            ->count();
+
+        if ($movementCount > 0) {
+            return response()->json(['message' => 'Stok awal hanya dapat diinput jika belum pernah ada mutasi sama sekali.'], 422);
+        }
+
+        $request->validate([
+            'qty' => 'required|numeric|min:0.01',
+            'purchase_price' => 'required|numeric|min:0',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $balance->current_stock = $request->qty;
+            $balance->save();
+
+            $movement = InventoryMovement::create([
+                'business_id' => Auth::user()->business_id,
+                'outlet_id' => $balance->outlet_id,
+                'inventory_item_id' => $balance->inventory_item_id,
+                'movement_type' => \App\Enums\InventoryMovementType::Adjustment->value,
+                'qty_change' => $request->qty,
+                'stock_before' => 0,
+                'stock_after' => $request->qty,
+                'description' => 'Input Stok Awal',
+                'created_by' => Auth::id(),
+            ]);
+
+            InventoryCostLayer::create([
+                'inventory_item_id' => $balance->inventory_item_id,
+                'outlet_id' => $balance->outlet_id,
+                'purchase_price' => $request->purchase_price,
+                'qty_purchased' => $request->qty,
+                'qty_remaining' => $request->qty,
+                'reference_id' => $movement->id,
+            ]);
+
+            DB::commit();
+            return response()->json(['message' => 'Stok awal berhasil ditambahkan.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal menambahkan stok awal: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function exportPdf(Request $request, $id)
+    {
+        $businessId = Auth::user()->business_id;
+
+        $balance = InventoryBalance::where('business_id', $businessId)
+            ->findOrFail($id);
+
+        $item = InventoryItem::where('business_id', $businessId)
+            ->with(['uom', 'product.category'])
+            ->findOrFail($balance->inventory_item_id);
+            
+        $outlet = Outlet::where('business_id', $businessId)->findOrFail($balance->outlet_id);
+
+        $thirtyDaysAgo = now()->subDays(30);
+        $movements = InventoryMovement::where('inventory_item_id', $balance->inventory_item_id)
+            ->where('outlet_id', $balance->outlet_id)
+            ->where('created_at', '>=', $thirtyDaysAgo)
+            ->with(['creator', 'reference'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.inventory.stock-movements', [
+            'item' => $item,
+            'outlet' => $outlet,
+            'movements' => $movements,
+            'business' => Auth::user()->business,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->download('Riwayat_Mutasi_' . $item->sku . '_' . now()->format('Ymd') . '.pdf');
+    }
+
+    public function exportCsv(Request $request)
+    {
+        ExportStockJob::dispatch(
+            Auth::user(),
+            Auth::user()->business_id,
+            $request->all()
+        );
+
+        return redirect()->back()->with('success', 'Ekspor stok (CSV) sedang diproses di latar belakang. Notifikasi akan masuk jika sudah selesai.');
+    }
+
+    public function exportPdfList(Request $request)
+    {
+        $businessId = Auth::user()->business_id;
+        $outletId   = $request->get('outlet_id');
+
+        $stockQuery = InventoryBalance::query()
+            ->where('inventory_balances.business_id', $businessId)
+            ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
+            ->leftJoin('uoms', 'inventory_items.uom_id', '=', 'uoms.id')
+            ->leftJoin('products', 'inventory_items.product_id', '=', 'products.id')
+            ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
+            ->join('outlets', 'inventory_balances.outlet_id', '=', 'outlets.id')
+            ->select([
+                'inventory_balances.id',
+                'inventory_balances.current_stock',
+                'inventory_items.name as item_name',
+                'inventory_items.item_type',
+                'inventory_items.sku',
+                'inventory_items.minimum_stock',
+                'uoms.code as uom',
+                'outlets.name as outlet_name',
+                'product_categories.name as category_name',
+            ]);
+
+        if ($outletId) {
+            $stockQuery->where('inventory_balances.outlet_id', $outletId);
+        }
+
+        if ($request->get('search')) {
+            $search = $request->get('search');
+            $stockQuery->where(function ($q) use ($search) {
+                $q->where('inventory_items.name', 'ilike', "%{$search}%")
+                    ->orWhere('inventory_items.sku', 'ilike', "%{$search}%")
+                    ->orWhere('inventory_items.barcode', 'ilike', "%{$search}%");
+            });
+        }
+
+        if ($request->get('item_type')) {
+            $stockQuery->where('inventory_items.item_type', $request->get('item_type'));
+        }
+
+        if ($request->get('category_id')) {
+            $stockQuery->where('products.product_category_id', $request->get('category_id'));
+        }
+
+        if ($request->get('stock_status')) {
+            $status = $request->get('stock_status');
+            if ($status === 'aman') {
+                $stockQuery->whereRaw('inventory_balances.current_stock > inventory_items.minimum_stock');
+            } elseif ($status === 'menipis') {
+                $stockQuery->whereRaw('inventory_balances.current_stock > 0')
+                    ->whereRaw('inventory_balances.current_stock <= inventory_items.minimum_stock');
+            } elseif ($status === 'habis') {
+                $stockQuery->where('inventory_balances.current_stock', '<=', 0);
+            }
+        }
+
+        if ($request->boolean('is_active_only')) {
+            $stockQuery->where('inventory_items.is_active', true);
+        }
+
+        if ($request->boolean('in_stock_only')) {
+            $stockQuery->where('inventory_balances.current_stock', '>', 0);
+        }
+
+        $sort      = $request->get('sort', 'inventory_items.name');
+        $direction = $request->get('direction', 'asc');
+
+        $stocks = $stockQuery->orderBy($sort, $direction)->limit(1000)->get();
+
+        $outlet = $outletId ? Outlet::where('business_id', $businessId)->find($outletId) : null;
+
+        $pdf = Pdf::loadView('pdf.inventory.stock-list', [
+            'stocks'   => $stocks,
+            'business' => Auth::user()->business,
+            'outlet'   => $outlet,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->download('Laporan_Stok_' . now()->format('Ymd_His') . '.pdf');
     }
 }

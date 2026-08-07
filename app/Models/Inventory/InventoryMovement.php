@@ -41,7 +41,7 @@ class InventoryMovement extends Model
         'qty_change',
         'stock_before',
         'stock_after',
-        'purchase_price',
+        'cost',
         'description',
         'reference_id',
         'reference_type',

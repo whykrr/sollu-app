@@ -246,7 +246,6 @@ class PurchaseOrderService
                             'qty_change'        => -$poItem->converted_qty,
                             'stock_before'      => $stockBefore,
                             'stock_after'       => $stockAfter,
-                            'purchase_price'    => 0,
                             'description'       => 'Void penerimaan barang dari PO: ' . $po->po_number,
                             'created_by'        => $voider->id,
                             'created_at'        => now(),

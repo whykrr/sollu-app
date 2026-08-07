@@ -101,7 +101,7 @@
                             >
                                 <td class="p-3">
                                     <div class="font-medium">
-                                        {{ item.inventoryItem?.name || '-' }}
+                                        {{ item.inventory_item?.name || '-' }}
                                     </div>
                                     <div class="text-xs text-gray-500">
                                         Satuan: {{ item.uom?.name || '-' }}
@@ -129,7 +129,7 @@
                                                     item.conversion_factor,
                                             )
                                         }}
-                                        {{ item.inventoryItem?.uom?.name }})
+                                        {{ item.inventory_item?.uom?.name }})
                                     </div>
                                 </td>
                                 <td class="p-3 text-right">

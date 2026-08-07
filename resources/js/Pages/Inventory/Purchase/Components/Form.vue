@@ -18,8 +18,10 @@
                     required
                 />
 
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-gray-700">Outlet Tujuan <span class="text-danger">*</span></label>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700"
+                        >Outlet Tujuan <span class="text-danger">*</span></label
+                    >
                     <AsyncOutletDropdown
                         v-model="form.outlet_id"
                         placeholder="Pilih Outlet Tujuan"

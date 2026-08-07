@@ -14,9 +14,13 @@ Route::prefix('inventories')->group(function () {
     // inventories.* group
     Route::name('inventories.')->group(function () {
         Route::get('stocks', [StockController::class, 'index'])->name('stocks.index');
+        Route::get('stocks/export-csv', [StockController::class, 'exportCsv'])->name('stocks.export-csv');
+        Route::get('stocks/export-pdf-list', [StockController::class, 'exportPdfList'])->name('stocks.export-pdf-list');
         Route::get('stocks/{id}', [StockController::class, 'show'])->name('stocks.show');
-        Route::get('stocks/{id}/movements', [StockController::class, 'movements'])->name('stocks.movements');
-        Route::get('stocks/{id}/chart', [StockController::class, 'chart'])->name('stocks.chart');
+        Route::patch('stocks/{id}/barcode', [StockController::class, 'updateBarcode'])->name('stocks.barcode.update');
+        Route::post('stocks/{id}/initial-stock', [StockController::class, 'storeInitialStock'])->name('stocks.initial-stock.store');
+        Route::get('stocks/{id}/export-pdf', [StockController::class, 'exportPdf'])->name('stocks.export.pdf');
+
         Route::get('movements', [InventoryMovementController::class, 'index'])->name('movements.index');
     });
 

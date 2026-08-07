@@ -20,26 +20,74 @@
             </button>
         </div>
 
+        <!-- Export Buttons -->
+
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <FilterBadge v-if="filterForm.outlet_id !== ''" @remove="removeFilter('outlet_id')">
+            <FilterBadge
+                v-if="filterForm.outlet_id !== ''"
+                @remove="removeFilter('outlet_id')"
+            >
                 Outlet: {{ getOutletName(filterForm.outlet_id) }}
             </FilterBadge>
-            <FilterBadge v-if="filterForm.item_type !== ''" @remove="removeFilter('item_type')">
-                Tipe: {{ filterForm.item_type == 'raw_material' ? 'Bahan Baku' : 'Produk' }}
+            <FilterBadge
+                v-if="filterForm.item_type !== ''"
+                @remove="removeFilter('item_type')"
+            >
+                Tipe:
+                {{
+                    filterForm.item_type == 'raw_material'
+                        ? 'Bahan Baku'
+                        : 'Produk'
+                }}
             </FilterBadge>
-            <FilterBadge v-if="filterForm.category_id !== ''" @remove="removeFilter('category_id')">
+            <FilterBadge
+                v-if="filterForm.category_id !== ''"
+                @remove="removeFilter('category_id')"
+            >
                 Kategori: {{ getCategoryName(filterForm.category_id) }}
             </FilterBadge>
-            <FilterBadge v-if="filterForm.stock_status !== ''" @remove="removeFilter('stock_status')">
+            <FilterBadge
+                v-if="filterForm.stock_status !== ''"
+                @remove="removeFilter('stock_status')"
+            >
                 Status: {{ getStockStatusName(filterForm.stock_status) }}
             </FilterBadge>
-            <FilterBadge v-if="filterForm.is_active_only == '1'" @remove="removeFilter('is_active_only')">
+            <FilterBadge
+                v-if="filterForm.is_active_only == '1'"
+                @remove="removeFilter('is_active_only')"
+            >
                 Hanya Aktif
             </FilterBadge>
-            <FilterBadge v-if="filterForm.in_stock_only == '1'" @remove="removeFilter('in_stock_only')">
+            <FilterBadge
+                v-if="filterForm.in_stock_only == '1'"
+                @remove="removeFilter('in_stock_only')"
+            >
                 Stok > 0
             </FilterBadge>
+        </div>
+        <div class="flex items-center gap-1.5">
+            <button
+                type="button"
+                @click="exportCsv"
+                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
+                title="Ekspor CSV"
+            >
+                <FontAwesomeIcon
+                    :icon="faFileCsv"
+                    class="text-green-600 mr-1"
+                />
+                <span>Ekspor CSV</span>
+            </button>
+            <button
+                type="button"
+                @click="exportPdf"
+                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
+                title="Ekspor PDF"
+            >
+                <FontAwesomeIcon :icon="faFilePdf" class="text-red-600 mr-1" />
+                <span>Ekspor PDF</span>
+            </button>
         </div>
 
         <!-- Filter Modal Overlay -->
@@ -51,69 +99,90 @@
             @apply="applyFilters"
         >
             <div class="space-y-4">
-                    <div class="space-y-1">
-                        <AsyncOutletDropdown
-                            v-model="tempFilters.outlet_id"
-                            placeholder="Semua Outlet"
-                            @loaded="onOutletsLoaded"
+                <div class="space-y-1">
+                    <AsyncOutletDropdown
+                        v-model="tempFilters.outlet_id"
+                        placeholder="Semua Outlet"
+                        @loaded="onOutletsLoaded"
+                    />
+                </div>
+
+                <div class="space-y-1">
+                    <label
+                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                    >
+                        Tipe Item
+                    </label>
+                    <select
+                        v-model="tempFilters.item_type"
+                        class="form-input w-full rounded-lg border-gray-200"
+                    >
+                        <option value="">Semua Tipe</option>
+                        <option value="raw_material">Bahan Baku</option>
+                        <option value="variant_sku">Produk</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label
+                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                    >
+                        Kategori
+                    </label>
+                    <select
+                        v-model="tempFilters.category_id"
+                        class="form-input w-full rounded-lg border-gray-200"
+                    >
+                        <option value="">Semua Kategori</option>
+                        <option
+                            v-for="category in categories"
+                            :key="category.id"
+                            :value="category.id"
+                        >
+                            {{ category.name }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label
+                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                    >
+                        Status Stok
+                    </label>
+                    <select
+                        v-model="tempFilters.stock_status"
+                        class="form-input w-full rounded-lg border-gray-200"
+                    >
+                        <option value="">Semua Status</option>
+                        <option value="aman">Aman</option>
+                        <option value="menipis">Menipis</option>
+                        <option value="habis">Habis</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-4 pt-2">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            v-model="tempFilters.is_active_only"
+                            true-value="1"
+                            false-value=""
+                            class="form-checkbox text-main rounded border-gray-300"
                         />
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Tipe Item
-                        </label>
-                        <select
-                            v-model="tempFilters.item_type"
-                            class="form-input w-full rounded-lg border-gray-200"
-                        >
-                            <option value="">Semua Tipe</option>
-                            <option value="raw_material">Bahan Baku</option>
-                            <option value="variant_sku">Produk</option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Kategori
-                        </label>
-                        <select
-                            v-model="tempFilters.category_id"
-                            class="form-input w-full rounded-lg border-gray-200"
-                        >
-                            <option value="">Semua Kategori</option>
-                            <option v-for="category in categories" :key="category.id" :value="category.id">
-                                {{ category.name }}
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Status Stok
-                        </label>
-                        <select
-                            v-model="tempFilters.stock_status"
-                            class="form-input w-full rounded-lg border-gray-200"
-                        >
-                            <option value="">Semua Status</option>
-                            <option value="aman">Aman</option>
-                            <option value="menipis">Menipis</option>
-                            <option value="habis">Habis</option>
-                        </select>
-                    </div>
-
-                    <div class="flex items-center gap-4 pt-2">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" v-model="tempFilters.is_active_only" true-value="1" false-value="" class="form-checkbox text-main rounded border-gray-300">
-                            <span class="text-sm">Hanya Produk Aktif</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" v-model="tempFilters.in_stock_only" true-value="1" false-value="" class="form-checkbox text-main rounded border-gray-300">
-                            <span class="text-sm">Hanya Stok > 0</span>
-                        </label>
-                    </div>
-
+                        <span class="text-sm">Hanya Produk Aktif</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            v-model="tempFilters.in_stock_only"
+                            true-value="1"
+                            false-value=""
+                            class="form-checkbox text-main rounded border-gray-300"
+                        />
+                        <span class="text-sm">Hanya Stok > 0</span>
+                    </label>
+                </div>
             </div>
         </FilterModal>
     </div>
@@ -127,7 +196,11 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
 import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
-import { faSliders } from '@fortawesome/free-solid-svg-icons';
+import {
+    faSliders,
+    faFileCsv,
+    faFilePdf,
+} from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 
 const props = defineProps({
@@ -167,15 +240,15 @@ watch(
     () => filterForm.search,
     debounce(() => {
         updateQuery();
-    }, 500)
+    }, 500),
 );
 
 const getOutletName = (id) => {
-    return loadedOutlets.value.find(o => o.id == id)?.name || id;
+    return loadedOutlets.value.find((o) => o.id == id)?.name || id;
 };
 
 const getCategoryName = (id) => {
-    return props.categories?.find(c => c.id == id)?.name || id;
+    return props.categories?.find((c) => c.id == id)?.name || id;
 };
 
 const getStockStatusName = (status) => {
@@ -226,10 +299,16 @@ const updateQuery = () => {
     const query = {
         ...route().params,
         search: filterForm.search || undefined,
-        outlet_id: filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
-        item_type: filterForm.item_type !== '' ? filterForm.item_type : undefined,
-        category_id: filterForm.category_id !== '' ? filterForm.category_id : undefined,
-        stock_status: filterForm.stock_status !== '' ? filterForm.stock_status : undefined,
+        outlet_id:
+            filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
+        item_type:
+            filterForm.item_type !== '' ? filterForm.item_type : undefined,
+        category_id:
+            filterForm.category_id !== '' ? filterForm.category_id : undefined,
+        stock_status:
+            filterForm.stock_status !== ''
+                ? filterForm.stock_status
+                : undefined,
         is_active_only: filterForm.is_active_only === '1' ? '1' : undefined,
         in_stock_only: filterForm.in_stock_only === '1' ? '1' : undefined,
         page: 1,
@@ -239,5 +318,48 @@ const updateQuery = () => {
         preserveState: true,
         preserveScroll: true,
     });
+};
+
+const exportCsv = () => {
+    const query = {
+        search: filterForm.search || undefined,
+        outlet_id:
+            filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
+        item_type:
+            filterForm.item_type !== '' ? filterForm.item_type : undefined,
+        category_id:
+            filterForm.category_id !== '' ? filterForm.category_id : undefined,
+        stock_status:
+            filterForm.stock_status !== ''
+                ? filterForm.stock_status
+                : undefined,
+        is_active_only: filterForm.is_active_only === '1' ? '1' : undefined,
+        in_stock_only: filterForm.in_stock_only === '1' ? '1' : undefined,
+    };
+
+    router.get(route('inventories.stocks.export-csv'), query, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+};
+
+const exportPdf = () => {
+    const params = new URLSearchParams();
+    if (filterForm.search) params.append('search', filterForm.search);
+    if (filterForm.outlet_id !== '')
+        params.append('outlet_id', filterForm.outlet_id);
+    if (filterForm.item_type !== '')
+        params.append('item_type', filterForm.item_type);
+    if (filterForm.category_id !== '')
+        params.append('category_id', filterForm.category_id);
+    if (filterForm.stock_status !== '')
+        params.append('stock_status', filterForm.stock_status);
+    if (filterForm.is_active_only === '1') params.append('is_active_only', '1');
+    if (filterForm.in_stock_only === '1') params.append('in_stock_only', '1');
+
+    window.open(
+        route('inventories.stocks.export-pdf-list') + '?' + params.toString(),
+        '_blank',
+    );
 };
 </script>
