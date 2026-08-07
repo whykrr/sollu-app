@@ -39,74 +39,104 @@
                 rows="2"
             />
 
-            <div>
-                <div class="flex justify-between items-center">
+            <div class="mt-3 border-t pt-2">
+                <div class="flex justify-between items-center mb-2">
                     <h3 class="font-bold text-gray-700">Daftar Item</h3>
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline"
-                        @click="addItem"
-                    >
-                        + Tambah Item
-                    </button>
+                    <div class="w-72">
+                        <AsyncSelectField
+                            id="search_item"
+                            label="Cari Item (Min. 3 huruf)"
+                            placeholder="Cari nama, SKU, barcode..."
+                            class="sm"
+                            :api-url="
+                                route('api.internal.inventory-items.search')
+                            "
+                            :api-params="{
+                                outlet_id: form.outlet_id,
+                            }"
+                            :min-chars="3"
+                            :disabled="!form.outlet_id"
+                            @select="addItemFromSearch"
+                        >
+                            <template #option="{ item }">
+                                <div
+                                    class="flex justify-between items-center w-full"
+                                >
+                                    <div>
+                                        <div class="font-semibold text-sm">
+                                            {{ item.name }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            SKU: {{ item.sku || '-' }}
+                                        </div>
+                                    </div>
+                                    <div class="text-right text-xs">
+                                        <div>
+                                            Sistem:
+                                            {{ Number(item.current_stock) }}
+                                            {{ item.uom?.name }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </AsyncSelectField>
+                    </div>
                 </div>
 
                 <div v-if="form.errors.items" class="text-danger text-sm mb-2">
                     {{ form.errors.items }}
                 </div>
 
-                <div class="space-y-4">
+                <div
+                    v-if="form.items.length === 0"
+                    class="text-center py-6 text-gray-500 border border-dashed rounded-lg"
+                >
+                    Belum ada item yang ditambahkan. Silakan cari item pada kolom pencarian di atas.
+                </div>
+
+                <div v-else class="space-y-3 max-h-96 overflow-y-auto pr-1">
                     <div
                         v-for="(item, index) in form.items"
-                        :key="index"
-                        class="p-4 border rounded relative bg-gray-50"
+                        :key="item.inventory_item_id || index"
+                        class="p-4 border rounded-lg bg-white shadow-sm space-y-3"
                     >
-                        <button
-                            type="button"
-                            class="absolute top-2 right-2 text-danger hover:text-red-700 text-sm z-10"
-                            @click="removeItem(index)"
-                        >
-                            Hapus
-                        </button>
-
-                        <div class="grid grid-cols-12 gap-4">
-                            <div class="col-span-12 md:col-span-5">
-                                <DropdownField
-                                    :id="'item_' + index"
-                                    v-model="item.inventory_item_id"
-                                    label="Pilih Item"
-                                    placeholder="Pilih item..."
-                                    :options="itemOptions"
-                                    :class="{
-                                        'is-invalid':
-                                            form.errors[
-                                                `items.${index}.inventory_item_id`
-                                            ],
-                                    }"
-                                    :feedback="
-                                        form.errors[
-                                            `items.${index}.inventory_item_id`
-                                        ]
-                                    "
-                                    required
-                                />
-                                <div
-                                    v-if="item.inventory_item_id"
-                                    class="text-xs text-gray-500 mt-1"
-                                >
-                                    Stok saat ini di outlet:
-                                    {{
-                                        getCurrentStock(item.inventory_item_id)
-                                    }}
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-semibold text-gray-800">
+                                    {{ item.name }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    SKU: {{ item.sku || '-' }} | Satuan:
+                                    {{ item.uom || '-' }} | Stok saat ini di outlet:
+                                    <span class="font-medium text-gray-700">
+                                        {{ item.current_stock ?? 0 }}
+                                    </span>
                                 </div>
                             </div>
+                            <button
+                                type="button"
+                                class="btn btn-highlight-danger btn-sm"
+                                @click="removeItem(index)"
+                                title="Hapus Item"
+                            >
+                                <FontAwesomeIcon :icon="faTrash" />
+                            </button>
+                        </div>
 
-                            <div class="col-span-6 md:col-span-3">
+                        <div class="grid grid-cols-12 gap-3">
+                            <div
+                                :class="
+                                    item.qty_change > 0
+                                        ? 'col-span-12 md:col-span-6'
+                                        : 'col-span-12'
+                                "
+                            >
                                 <NumberField
                                     :id="'qty_' + index"
                                     v-model="item.qty_change"
                                     label="Perubahan Qty (+/-)"
                                     placeholder="Misal: -2 atau 5"
+                                    step="any"
                                     :class="{
                                         'is-invalid':
                                             form.errors[
@@ -121,7 +151,7 @@
                             </div>
 
                             <div
-                                class="col-span-6 md:col-span-4"
+                                class="col-span-12 md:col-span-6"
                                 v-if="item.qty_change > 0"
                             >
                                 <NumberField
@@ -130,6 +160,7 @@
                                     label="HPP / Unit Cost (Opsional)"
                                     placeholder="Auto (Moving Avg)"
                                     min="0"
+                                    step="any"
                                     :class="{
                                         'is-invalid':
                                             form.errors[
@@ -190,14 +221,17 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
+import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const props = defineProps({
     show: {
@@ -223,14 +257,10 @@ const loadedOutlets = ref([]);
 
 const onOutletsLoaded = (outlets) => {
     loadedOutlets.value = outlets;
+    if (!form.outlet_id && outlets.length === 1 && props.show) {
+        form.outlet_id = outlets[0].id;
+    }
 };
-
-const itemOptions = computed(() =>
-    props.items.map((i) => ({
-        label: `${i.name} (${i.uom ? i.uom.name : '-'})`,
-        value: i.id,
-    })),
-);
 
 const reasonOptions = [
     { label: 'Rusak / Terbuang (Waste)', value: 'waste' },
@@ -241,35 +271,44 @@ const reasonOptions = [
     { label: 'Lainnya (Other)', value: 'other' },
 ];
 
-const addItem = () => {
-    form.items.push({
-        inventory_item_id: '',
-        qty_change: '',
-        unit_cost: '',
-        description: '',
-    });
+const addItemFromSearch = (item) => {
+    const exists = form.items.find((i) => i.inventory_item_id === item.id);
+    if (!exists) {
+        form.items.unshift({
+            inventory_item_id: item.id,
+            name: item.name,
+            sku: item.sku || '-',
+            uom: item.uom?.name || '-',
+            current_stock: item.current_stock ?? 0,
+            qty_change: '',
+            unit_cost: '',
+            description: '',
+        });
+    }
 };
 
 const removeItem = (index) => {
     form.items.splice(index, 1);
 };
 
-const getCurrentStock = (itemId) => {
-    if (!form.outlet_id || !itemId) return 'Pilih outlet';
-    const item = props.items.find((i) => i.id === itemId);
-    if (!item) return '-';
-
-    const balance = item.balances.find((b) => b.outlet_id === form.outlet_id);
-    return balance ? balance.current_stock : 0;
-};
+watch(
+    () => form.outlet_id,
+    (newVal, oldVal) => {
+        if (oldVal && newVal !== oldVal) {
+            form.items = [];
+        }
+    },
+);
 
 watch(
     () => props.show,
     (isOpen) => {
         if (isOpen) {
             form.reset();
-            if (form.items.length === 0) {
-                addItem();
+            form.clearErrors();
+            form.items = [];
+            if (loadedOutlets.value.length === 1) {
+                form.outlet_id = loadedOutlets.value[0].id;
             }
         }
     },

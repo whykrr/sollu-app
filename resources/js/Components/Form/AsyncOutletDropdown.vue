@@ -3,7 +3,7 @@
         <label
             v-if="label"
             :for="$attrs.id"
-            class="block text-sm font-medium mb-1"
+            class="block text-sm font-medium"
             >{{ label }}</label
         >
         <div class="relative">
@@ -128,7 +128,11 @@ onMounted(() => {
 });
 
 // Watch shared outlets to emit loaded if data arrives via other components forcing refresh
-watch(sharedOutlets, () => {
-    emit('loaded', outlets.value);
-}, { deep: true });
+watch(
+    sharedOutlets,
+    () => {
+        emit('loaded', outlets.value);
+    },
+    { deep: true },
+);
 </script>

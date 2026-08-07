@@ -32,13 +32,15 @@
                 </Widget>
             </div>
 
-            <StockFilter
-                :filters="filters"
-                :categories="categories"
-            />
+            <StockFilter :filters="filters" :categories="categories" />
         </template>
 
-        <Table :headers="headers" :data="stocks.data" :action="true">
+        <Table
+            :headers="headers"
+            :data="stocks.data"
+            :action="false"
+            @row-click="openDetail"
+        >
             <template #category_name="{ item }">
                 {{ item.category_name || '-' }}
             </template>
@@ -71,11 +73,6 @@
                     >Menipis</span
                 >
                 <span v-else class="badge badge-success">Aman</span>
-            </template>
-            <template #actions="{ item }">
-                <button class="btn btn-flat btn-sm" @click="openDetail(item)">
-                    <FontAwesomeIcon :icon="faEye" title="Detail" />
-                </button>
             </template>
         </Table>
 
