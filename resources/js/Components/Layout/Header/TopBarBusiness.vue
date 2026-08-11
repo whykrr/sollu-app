@@ -115,12 +115,19 @@
                                     Aktif Sampai
                                 </div>
                                 <div class="font-medium text-neutral-800">
-                                    <template v-if="businessInfo.subscription.expired_at">
-                                        {{ formatDateID(businessInfo.subscription.expired_at) }}
+                                    <template
+                                        v-if="
+                                            businessInfo.subscription.expired_at
+                                        "
+                                    >
+                                        {{
+                                            formatDateID(
+                                                businessInfo.subscription
+                                                    .expired_at,
+                                            )
+                                        }}
                                     </template>
-                                    <template v-else>
-                                        Selamanya
-                                    </template>
+                                    <template v-else> Selamanya </template>
                                 </div>
                             </div>
                             <div
@@ -185,7 +192,12 @@ import { useDropdown } from '@/Composable/useDropdown';
 const businessInfo = ref(null);
 const page = usePage();
 const auth = computed(() => page.props.auth);
-const { isOpen: showPanel, toggle, close: closePanel, dropdownRef } = useDropdown();
+const {
+    isOpen: showPanel,
+    toggle,
+    close: closePanel,
+    dropdownRef,
+} = useDropdown();
 
 const togglePanel = () => {
     businessInfo.value = null;
@@ -203,12 +215,6 @@ const initials = computed(() => {
 
 const businessLinks = [
     {
-        label: 'Info Usaha',
-        icon: faShop,
-        link: route('settings.business.detail'),
-        method: 'get',
-    },
-    {
         label: 'Langganan & Tagihan',
         icon: faCreditCard,
         link: route('settings.billing.index'),
@@ -217,7 +223,7 @@ const businessLinks = [
     {
         label: 'Pengaturan Usaha',
         icon: faCog,
-        link: '#',
+        link: route('settings.business.detail'),
         method: 'get',
     },
 ];

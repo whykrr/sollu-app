@@ -65,10 +65,11 @@ class HandleInertiaRequests extends Middleware
                     'name'        => config('app.name'),
                     'breadcrumbs' => generateBreadcrumbs($request->route()->getName()),
                     'flash'       => [
-                        'success' => $request->session()->get('success'),
-                        'failed'  => $request->session()->get('failed'),
-                        'error'   => $request->session()->get('error'),
-                        'info'    => $request->session()->get('info'),
+                        'success'  => $request->session()->get('success'),
+                        'failed'   => $request->session()->get('failed'),
+                        'error'    => $request->session()->get('error'),
+                        'info'     => $request->session()->get('info'),
+                        'otp_data' => $request->session()->get('otp_data'),
                     ],
                 ],
 

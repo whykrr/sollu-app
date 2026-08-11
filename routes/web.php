@@ -112,6 +112,7 @@ Route::middleware('auth:business')->group(function () {
     require __DIR__ .'/web/employees.php';
     require __DIR__ .'/web/settings.php';
     require __DIR__ .'/web/template.php';
+    require __DIR__ .'/web/sales.php';
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');
 
@@ -121,3 +122,11 @@ Route::middleware('auth:business')->group(function () {
         // return new InvoiceMail($invoice);        // akan render Blade view email
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Development-Only Swagger API Docs Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('/docs/api', [\App\Http\Controllers\Docs\SwaggerController::class, 'index'])->name('docs.swagger');
+Route::get('/docs/openapi.yaml', [\App\Http\Controllers\Docs\SwaggerController::class, 'yaml'])->name('docs.openapi');

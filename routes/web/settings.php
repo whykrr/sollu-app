@@ -43,6 +43,8 @@ Route::prefix('settings')
                     Route::put('operational-hours', [\App\Http\Controllers\Settings\OutletOperationalHourController::class, 'update'])->name('operational-hours.update');
                     
                     Route::post('devices', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'store'])->name('devices.store');
+                    Route::post('devices/{device}/generate-otp', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'generateOtp'])->name('devices.generate-otp');
+                    Route::post('devices/{device}/unpair', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'unpair'])->name('devices.unpair');
                     Route::put('devices/{device}', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'update'])->name('devices.update');
                     Route::delete('devices/{device}', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'destroy'])->name('devices.destroy');
                 });

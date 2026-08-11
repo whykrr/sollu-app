@@ -46,6 +46,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->shouldRenderJsonWhen(function (Request $request, Throwable $e) {
+            if ($request->is('api/*')) {
+                return true;
+            }
+
+            return $request->expectsJson();
+        });
+
         $exceptions->report(function (Throwable $e) {
             Log::error($e->getMessage(), [
                 'trace' => $e->getTraceAsString(),

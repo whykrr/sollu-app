@@ -1,0 +1,338 @@
+openapi: 3.0.3
+info:
+    title: Sollu POS Client API
+    version: 1.0.0
+    description: API Spesifikasi untuk Aplikasi POS Client (Flutter) & Pairing Perangkat
+servers:
+    - url: http://dashboard.sollu.test/api/pos
+      description: Local Server
+components:
+    securitySchemes:
+        SanctumAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: Sanctum Token
+    schemas:
+        VerifyOtpRequest:
+            type: object
+            required:
+                - otp
+            properties:
+                otp:
+                    type: string
+                    example: '12345678'
+                    description: Kode OTP 8-digit yang dihasilkan dari Dashboard
+        VerifyOtpResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                    example: true
+                message:
+                    type: string
+                    example: Perangkat berhasil dihubungkan.
+                data:
+                    type: object
+                    properties:
+                        token:
+                            type: string
+                            example: '1|abcdef123456...'
+                        device:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                    format: uuid
+                                name:
+                                    type: string
+                                    example: 'Kasir Utama'
+                                type:
+                                    type: string
+                                    example: 'pos'
+                        outlet:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                    format: uuid
+                                name:
+                                    type: string
+                                    example: 'Outlet Sudirman'
+                                address:
+                                    type: string
+                                    example: 'Jl. Jend. Sudirman No. 1'
+                                phone_number:
+                                    type: string
+                                    example: '081234567890'
+                        business:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                    format: uuid
+                                name:
+                                    type: string
+                                    example: 'Sollu Coffee & Resto'
+
+        StorePosTransactionRequest:
+            type: object
+            required:
+                - offline_id
+                - subtotal
+                - discount_amount
+                - tax_amount
+                - service_charge_amount
+                - total
+                - payment_status
+                - status
+                - items
+            properties:
+                offline_id:
+                    type: string
+                    format: uuid
+                    example: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+                receipt_number:
+                    type: string
+                    example: 'INV/20260810/0001'
+                customer_id:
+                    type: string
+                    format: uuid
+                    nullable: true
+                subtotal:
+                    type: number
+                    example: 50000
+                discount_amount:
+                    type: number
+                    example: 5000
+                tax_amount:
+                    type: number
+                    example: 4950
+                service_charge_amount:
+                    type: number
+                    example: 0
+                total:
+                    type: number
+                    example: 49950
+                payment_status:
+                    type: string
+                    enum: [unpaid, paid, partial]
+                    example: 'paid'
+                status:
+                    type: string
+                    enum: [hold, completed, void]
+                    example: 'completed'
+                notes:
+                    type: string
+                    example: 'Catatan khusus pesanan'
+                items:
+                    type: array
+                    items:
+                        type: object
+                        required:
+                            - product_id
+                            - product_name
+                            - price
+                            - qty
+                            - discount_amount
+                            - subtotal
+                        properties:
+                            product_id:
+                                type: string
+                                format: uuid
+                            variant_group_option_id:
+                                type: string
+                                format: uuid
+                                nullable: true
+                            product_name:
+                                type: string
+                                example: 'Kopi Susu Gula Aren'
+                            price:
+                                type: number
+                                example: 25000
+                            qty:
+                                type: integer
+                                example: 2
+                            discount_amount:
+                                type: number
+                                example: 0
+                            subtotal:
+                                type: number
+                                example: 50000
+                            modifiers:
+                                type: array
+                                items:
+                                    type: object
+                                    required:
+                                        - modifier_option_id
+                                        - modifier_name
+                                        - price
+                                        - qty
+                                    properties:
+                                        modifier_option_id:
+                                            type: string
+                                            format: uuid
+                                        modifier_name:
+                                            type: string
+                                            example: 'Extra Shot Espresso'
+                                        price:
+                                            type: number
+                                            example: 5000
+                                        qty:
+                                            type: integer
+                                            example: 1
+                payments:
+                    type: array
+                    items:
+                        type: object
+                        required:
+                            - payment_method_id
+                            - amount
+                            - change_amount
+                        properties:
+                            payment_method_id:
+                                type: string
+                                format: uuid
+                            amount:
+                                type: number
+                                example: 50000
+                            change_amount:
+                                type: number
+                                example: 50
+                            payment_reference:
+                                type: string
+                                nullable: true
+
+        OpenShiftRequest:
+            type: object
+            required:
+                - user_id
+                - opening_cash
+            properties:
+                user_id:
+                    type: string
+                    format: uuid
+                opening_cash:
+                    type: number
+                    example: 500000
+
+        CloseShiftRequest:
+            type: object
+            required:
+                - closing_cash
+                - actual_cash
+            properties:
+                closing_cash:
+                    type: number
+                    example: 1250000
+                actual_cash:
+                    type: number
+                    example: 1250000
+
+        StoreCashLogRequest:
+            type: object
+            required:
+                - type
+                - amount
+            properties:
+                type:
+                    type: string
+                    enum: [cash_in, cash_out]
+                    example: 'cash_out'
+                amount:
+                    type: number
+                    example: 50000
+                description:
+                    type: string
+                    example: 'Beli es batu kristal'
+
+paths:
+    /device/verify-otp:
+        post:
+            summary: Verifikasi OTP & Pairing POS Device
+            description: Memvalidasi 8-digit OTP dari aplikasi POS dan mengembalikan Sanctum Bearer Token beserta detail Perangkat, Outlet, dan Bisnis.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/VerifyOtpRequest'
+            responses:
+                '200':
+                    description: Berhasil verifikasi dan mendapatkan token
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/VerifyOtpResponse'
+                '400':
+                    description: OTP Tidak Valid / Kadaluarsa
+
+    /sync/master:
+        get:
+            summary: Pull Master Data
+            description: Menarik seluruh master data toko (Produk, Kategori, Metode Pembayaran, Setting Outlet) untuk disimpan ke SQLite POS.
+            security:
+                - SanctumAuth: []
+            responses:
+                '200':
+                    description: Payload Master Data berhasil diambil
+
+    /transactions:
+        post:
+            summary: Sync Offline Transaction (Push)
+            description: Mengirim data transaksi dari SQLite lokal POS ke server cloud. Menggunakan idempotency check pada offline_id.
+            security:
+                - SanctumAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/StorePosTransactionRequest'
+            responses:
+                '200':
+                    description: Transaksi berhasil disinkronisasi
+
+    /shifts/open:
+        post:
+            summary: Buka Shift Kasir
+            security:
+                - SanctumAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/OpenShiftRequest'
+            responses:
+                '200':
+                    description: Shift berhasil dibuka
+
+    /shifts/close:
+        post:
+            summary: Tutup Shift Kasir
+            security:
+                - SanctumAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CloseShiftRequest'
+            responses:
+                '200':
+                    description: Shift berhasil ditutup
+
+    /shifts/cash-log:
+        post:
+            summary: Catat Cash In / Cash Out
+            security:
+                - SanctumAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/StoreCashLogRequest'
+            responses:
+                '200':
+                    description: Log kas berhasil dibuat

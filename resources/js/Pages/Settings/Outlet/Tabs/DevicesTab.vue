@@ -37,7 +37,21 @@
                     <span v-if="row.is_active" class="badge badge-success text-xs">Aktif</span>
                     <span v-else class="badge badge-danger text-xs">Tidak Aktif</span>
                 </template>
+                <template #is_connected="{ row }">
+                    <span v-if="row.tokens_count > 0" class="badge badge-success text-xs flex items-center gap-1 w-max">
+                        <FontAwesomeIcon :icon="faLink" class="text-[10px]" /> Terhubung
+                    </span>
+                    <span v-else class="badge badge-warning text-xs flex items-center gap-1 w-max">
+                        <FontAwesomeIcon :icon="faUnlink" class="text-[10px]" /> Belum Terhubung
+                    </span>
+                </template>
                 <template #actions="{ row }">
+                    <button v-if="row.tokens_count > 0" class="btn btn-highlight-danger btn-sm rounded-lg" @click="unpairDevice(row)" title="Putuskan">
+                        <FontAwesomeIcon :icon="faUnlink" />
+                    </button>
+                    <button v-else class="btn btn-highlight-success btn-sm rounded-lg" @click="generateOtp(row)" title="Hubungkan">
+                        <FontAwesomeIcon :icon="faKey" />
+                    </button>
                     <button class="btn btn-highlight-main btn-sm rounded-lg" @click="openForm(row)" title="Edit">
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
@@ -47,14 +61,44 @@
                 </template>
             </Table>
         </div>
+
+        <!-- Modal OTP -->
+        <div v-if="showOtpModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-fade-in">
+                <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Hubungkan Perangkat</h3>
+                <p class="text-slate-500 text-center text-sm mb-6">Buka aplikasi POS Sollu di perangkat Anda, lalu masukkan 8-digit kode OTP di bawah ini.</p>
+                
+                <div class="bg-slate-100 rounded-lg p-6 flex flex-col items-center justify-center mb-6">
+                    <div class="text-4xl font-mono font-bold tracking-widest text-slate-800 mb-2">
+                        {{ formattedOtp }}
+                    </div>
+                    <button class="text-main hover:text-main-hover flex items-center gap-2 text-sm font-medium transition" @click="copyOtp">
+                        <FontAwesomeIcon :icon="faCopy" />
+                        {{ isCopied ? 'Tersalin!' : 'Salin Kode' }}
+                    </button>
+                </div>
+                
+                <div class="flex flex-col items-center gap-2 mb-6">
+                    <span class="text-sm text-slate-500">Berlaku dalam:</span>
+                    <span class="text-3xl font-bold font-mono" :class="{'text-danger': timerMinutes === 0 && timerSeconds <= 30, 'text-main': timerMinutes > 0 || timerSeconds > 30}">
+                        {{ timerMinutes.toString().padStart(2, '0') }}:{{ timerSeconds.toString().padStart(2, '0') }}
+                    </span>
+                    <span v-if="isExpired" class="text-xs text-danger font-medium mt-1">Kode OTP telah kadaluarsa. Silakan tutup dan buat ulang.</span>
+                </div>
+
+                <button class="btn btn-main w-full py-3 rounded-lg font-medium" @click="closeOtpModal">
+                    Tutup
+                </button>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
+import { ref, computed, onUnmounted } from 'vue';
+import { useForm, router, usePage } from '@inertiajs/vue3';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPencil, faTrash, faKey, faLink, faUnlink, faCopy } from '@fortawesome/free-solid-svg-icons';
 import Table from '@/Components/Tables/Table.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
@@ -86,6 +130,7 @@ const tableHeaders = [
     { field: 'device_type', label: 'Tipe' },
     { field: 'serial_number', label: 'S/N' },
     { field: 'is_active', label: 'Status', slot: 'is_active' },
+    { field: 'is_connected', label: 'Koneksi', slot: 'is_connected' },
 ];
 
 const openForm = (device = null) => {
@@ -136,4 +181,85 @@ const deleteDevice = (device) => {
         });
     }
 };
+
+// --- OTP Logic ---
+const showOtpModal = ref(false);
+const currentOtpData = ref(null);
+const timerMinutes = ref(5);
+const timerSeconds = ref(0);
+const isExpired = ref(false);
+let timerInterval = null;
+const isCopied = ref(false);
+
+const formattedOtp = computed(() => {
+    const otp = currentOtpData.value?.otp || '00000000';
+    return otp.slice(0, 4) + ' - ' + otp.slice(4);
+});
+
+const generateOtp = (device) => {
+    router.post(route('settings.outlets.devices.generate-otp', { outlet: props.outlet.id, device: device.id }), {}, {
+        preserveScroll: true,
+        onSuccess: (page) => {
+            const otpData = page.props.app.flash?.otp_data;
+            if (otpData) {
+                showOtpModal.value = true;
+                currentOtpData.value = otpData;
+                startTimer(otpData.expires_at);
+            }
+        }
+    });
+};
+
+const unpairDevice = (device) => {
+    if (confirm('Apakah Anda yakin ingin memutuskan perangkat ini? Perangkat akan dilogout secara paksa.')) {
+        router.post(route('settings.outlets.devices.unpair', { outlet: props.outlet.id, device: device.id }), {}, {
+            preserveScroll: true,
+        });
+    }
+};
+
+const startTimer = (expiresAtString) => {
+    clearInterval(timerInterval);
+    isExpired.value = false;
+    isCopied.value = false;
+    
+    const expiresAt = new Date(expiresAtString).getTime();
+    
+    const updateTimer = () => {
+        const now = new Date().getTime();
+        const distance = expiresAt - now;
+        
+        if (distance <= 0) {
+            clearInterval(timerInterval);
+            timerMinutes.value = 0;
+            timerSeconds.value = 0;
+            isExpired.value = true;
+            return;
+        }
+        
+        timerMinutes.value = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        timerSeconds.value = Math.floor((distance % (1000 * 60)) / 1000);
+    };
+    
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
+};
+
+const closeOtpModal = () => {
+    showOtpModal.value = false;
+    clearInterval(timerInterval);
+    currentOtpData.value = null;
+};
+
+const copyOtp = () => {
+    if (!currentOtpData.value?.otp) return;
+    navigator.clipboard.writeText(currentOtpData.value.otp).then(() => {
+        isCopied.value = true;
+        setTimeout(() => { isCopied.value = false; }, 2000);
+    });
+};
+
+onUnmounted(() => {
+    if (timerInterval) clearInterval(timerInterval);
+});
 </script>

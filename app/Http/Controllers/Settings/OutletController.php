@@ -35,7 +35,7 @@ class OutletController extends Controller
             $outlet->load([
                 'settings',
                 'operationalHours',
-                'devices',
+                'devices' => fn ($q) => $q->withCount('tokens'),
                 'auditLogs' => fn ($q) => $q->with('user')->latest()->take(50),
             ]);
         }
