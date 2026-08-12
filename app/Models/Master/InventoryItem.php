@@ -78,4 +78,9 @@ class InventoryItem extends Model
             get: fn () => $this->formatQuantity($this->min_stock),
         );
     }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class);
+    }
 }

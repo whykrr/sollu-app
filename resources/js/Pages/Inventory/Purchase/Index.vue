@@ -1,12 +1,12 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Pembelian (Purchase Order)">
+            <MainPageHeader title="Pembelian (Purchase Order)">
                 <button class="btn btn-highlight-main" @click="openForm()">
                     <FontAwesomeIcon :icon="faPlus" />
                     Buat PO Baru
                 </button>
-            </ContainerHeader>
+            </MainPageHeader>
             <PurchaseFilter
                 :filters="filters"
                 :suppliers="suppliers"
@@ -122,25 +122,7 @@
             />
         </template>
 
-        <Form
-            :show="showForm"
-            :purchase="selectedItem"
-            :suppliers="suppliers"
-            :uoms="uoms"
-            @close="closeForm"
-        />
 
-        <Receive
-            :show="showReceive"
-            :purchase="selectedItem"
-            @close="closeReceive"
-        />
-
-        <Detail
-            :show="showDetail"
-            :purchase="selectedItem"
-            @close="closeDetail"
-        />
 
         <Modal
             :class="{ show: showConfirmModal }"
@@ -167,7 +149,7 @@
                 </div>
             </template>
         </Modal>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
@@ -187,8 +169,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useModalStore } from '@/store/notification';
-import Container from '@/Components/UI/Container.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Modal from '@/Components/Notifications/Modal.vue';
@@ -196,6 +178,7 @@ import Form from './Components/Form.vue';
 import Receive from './Components/Receive.vue';
 import Detail from './Components/Detail.vue';
 import PurchaseFilter from './Components/PurchaseFilter.vue';
+import { usePopUpStore } from '@/store/popup';
 import {
     formatDateID,
     formatDateTimeID,
@@ -203,6 +186,7 @@ import {
 } from '@/Composable/date.js';
 
 const modalStore = useModalStore();
+const popUpStore = usePopUpStore();
 
 const props = defineProps({
     purchases: {
@@ -242,10 +226,6 @@ const headers = [
     { label: 'Status', field: 'status', slot: 'status', sortable: true },
 ];
 
-const showForm = ref(false);
-const showReceive = ref(false);
-const showDetail = ref(false);
-const selectedItem = ref(null);
 
 const showConfirmModal = ref(false);
 const confirmModalTitle = ref('');
@@ -314,43 +294,41 @@ const fetchPurchaseDetails = async (id) => {
 };
 
 const openForm = async (item = null) => {
+    let data = null;
     if (item) {
-        const data = await fetchPurchaseDetails(item.id);
+        data = await fetchPurchaseDetails(item.id);
         if (!data) return;
-        selectedItem.value = data;
-    } else {
-        selectedItem.value = null;
     }
-    showForm.value = true;
-};
-
-const closeForm = () => {
-    showForm.value = false;
-    selectedItem.value = null;
+    popUpStore.open({
+        title: 'Purchase Order',
+        size: 'lg',
+        component: Form,
+        props: { purchase: data, suppliers: props.suppliers, uoms: props.uoms },
+    });
 };
 
 const openReceive = async (item) => {
     const data = await fetchPurchaseDetails(item.id);
     if (!data) return;
-    selectedItem.value = data;
-    showReceive.value = true;
-};
-
-const closeReceive = () => {
-    showReceive.value = false;
-    selectedItem.value = null;
+    popUpStore.open({
+        title: 'Terima Barang',
+        subTitle: '#' + data.po_number,
+        size: 'lg',
+        component: Receive,
+        props: { purchase: data },
+    });
 };
 
 const openDetail = async (item) => {
     const data = await fetchPurchaseDetails(item.id);
     if (!data) return;
-    selectedItem.value = data;
-    showDetail.value = true;
-};
-
-const closeDetail = () => {
-    showDetail.value = false;
-    selectedItem.value = null;
+    popUpStore.open({
+        title: 'Detail Purchase Order',
+        subTitle: '#' + data.po_number,
+        size: 'lg',
+        component: Detail,
+        props: { purchase: data },
+    });
 };
 
 const confirmOrder = (item) => {

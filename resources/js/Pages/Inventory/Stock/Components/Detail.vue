@@ -1,18 +1,12 @@
 <template>
-    <PopUpPage
-        :title="title"
-        :sub-title="'#' + subTitle"
-        :class="{ show: show }"
-        size="xl"
-        @close="closeDetail"
-    >
+    <div>
         <div class="p-4 mb-4 bg-slate-100 rounded-lg">
             <div v-if="loading" class="text-center text-gray-500 py-4">
                 Memuat data produk...
             </div>
             <div
                 v-else-if="headerData"
-                class="grid grid-cols-2 md:grid-cols-4 gap-4"
+                class="grid grid-cols-2 md:grid-cols-4 gap-2"
             >
                 <div>
                     <div class="text-xs text-gray-500 uppercase">Kategori</div>
@@ -119,13 +113,13 @@
         </div>
 
         <!-- Barcode Modal -->
-    </PopUpPage>
+    </div>
     <Modal
         :class="{ show: showBarcodeModal }"
         title="Ubah Barcode"
         @close="showBarcodeModal = false"
     >
-        <div class="space-y-4">
+        <div class="space-y-2">
             <div>
                 <label class="block text-sm font-medium text-gray-700"
                     >Barcode (Scan/Ketik)</label
@@ -165,7 +159,7 @@
         title="Input Stok Awal"
         @close="showInitialStockModal = false"
     >
-        <div class="space-y-4">
+        <div class="space-y-2">
             <div class="bg-blue-50 text-blue-800 p-3 rounded text-sm">
                 Fitur ini hanya digunakan untuk menginput stok pertama kali
                 untuk barang yang belum memiliki riwayat mutasi sama sekali.
@@ -218,8 +212,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
+import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import Tab from '@/Components/UI/Tab.vue';
 import Modal from '@/Components/Notifications/Modal.vue';
 import axios from 'axios';
@@ -235,7 +228,6 @@ import { faHistory, faChartLine } from '@fortawesome/free-solid-svg-icons';
 const emit = defineEmits(['close']);
 
 const props = defineProps({
-    show: Boolean,
     item: Object,
 });
 
@@ -260,18 +252,11 @@ const showInitialStockModal = ref(false);
 const initialStockForm = ref({ qty: '', purchase_price: '' });
 const savingInitialStock = ref(false);
 
-watch(
-    () => props.show,
-    (newVal) => {
-        if (newVal && props.item) {
-            fetchHeaderData();
-        } else {
-            headerData.value = null;
-            movementsData.value = [];
-            chartData.value = null;
-        }
-    },
-);
+onMounted(() => {
+    if (props.item) {
+        fetchHeaderData();
+    }
+});
 
 const fetchHeaderData = async () => {
     loading.value = true;

@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
             <div
                 class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-xl shadow-sm border border-neutral-200/60 gap-4 mb-4"
@@ -203,11 +203,11 @@
                 </div>
             </div>
         </div>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faBan, faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { Link, router } from '@inertiajs/vue3';

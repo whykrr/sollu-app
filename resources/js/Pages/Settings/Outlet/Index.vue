@@ -1,7 +1,7 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Data Outlet">
+            <MainPageHeader title="Data Outlet">
                 <button
                     class="btn btn-main px-4 py-2 shadow-xs rounded-lg w-full sm:w-auto justify-center"
                     @click="handleAddOutlet"
@@ -9,7 +9,7 @@
                     <FontAwesomeIcon :icon="faPlus" />
                     <span>Tambah Baru</span>
                 </button>
-            </ContainerHeader>
+            </MainPageHeader>
             <div
                 class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full"
             >
@@ -29,12 +29,7 @@
             </div>
         </template>
 
-        <Wizard :show="showForm && !outlet" @close="showForm = false" />
-        <Detail
-            :show="showForm && !!outlet"
-            :outlet="outlet"
-            @close="showForm = false"
-        />
+        <!-- Dynamic popups will be handled by PopUpStore -->
 
         <!-- Modal Upgrade Limit -->
         <LimitUpgradeModal
@@ -133,7 +128,7 @@
                 :per-page="outlets.per_page ?? 20"
             />
         </template>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
@@ -147,7 +142,7 @@ import {
     faToggleOn,
 } from '@fortawesome/free-solid-svg-icons';
 
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from './Components/Filter.vue';
@@ -156,7 +151,10 @@ import Detail from './Components/Detail.vue';
 import LimitUpgradeModal from './Components/LimitUpgradeModal.vue';
 import UnpaidInvoiceModal from './Components/UnpaidInvoiceModal.vue';
 import { formatDateTimeSimple } from '@/Composable/date';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
+import { usePopUpStore } from '@/store/popup';
+
+const popUpStore = usePopUpStore();
 
 const props = defineProps({
     outlets: Object,
@@ -172,14 +170,24 @@ const showUnpaidModal = ref(false);
 const unpaidInvoice = ref({ number: '', url: '' });
 
 if (props.outlet) {
-    showForm.value = true;
+    popUpStore.open({
+        title: 'Detail Outlet',
+        subTitle: '#' + props.outlet.slug,
+        size: 'lg',
+        component: Detail,
+        props: { outlet: props.outlet },
+    });
 }
 
 const handleAddOutlet = () => {
     if (props.limit?.reached) {
         showUpgradeModal.value = true;
     } else {
-        showForm.value = true;
+        popUpStore.open({
+            title: 'Tambahkan Outlet Baru',
+            size: 'md',
+            component: Wizard,
+        });
     }
 };
 
@@ -200,8 +208,14 @@ const getDetail = (id) => {
         only: ['outlet'],
         preserveState: true,
         preserveScroll: true,
-        onSuccess: () => {
-            showForm.value = true;
+        onSuccess: (page) => {
+            popUpStore.open({
+                title: 'Detail Outlet',
+                subTitle: '#' + page.props.outlet.slug,
+                size: 'lg',
+                component: Detail,
+                props: { outlet: page.props.outlet },
+            });
         },
     });
 };

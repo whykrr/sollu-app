@@ -1,12 +1,12 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Data Supplier">
+            <MainPageHeader title="Data Supplier">
                 <button class="btn btn-highlight-main" @click="openForm()">
                     <FontAwesomeIcon :icon="faPlus" />
                     Tambah Baru
                 </button>
-            </ContainerHeader>
+            </MainPageHeader>
             <SupplierFilter :filters="filters" />
         </template>
         <Table
@@ -77,9 +77,7 @@
                 :total="suppliers.total"
             />
         </template>
-
-        <Form :show="showForm" :supplier="selectedItem" @close="closeForm" />
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
@@ -92,17 +90,19 @@ import {
     faEnvelope,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import Container from '@/Components/UI/Container.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Form from './Components/Form.vue';
 import SupplierFilter from './Components/SupplierFilter.vue';
 import { useModalStore } from '@/store/notification';
+import { usePopUpStore } from '@/store/popup';
 import { formatDateTime } from '@/Composable/time';
 import { router } from '@inertiajs/vue3';
 
 const modalStore = useModalStore();
+const popUpStore = usePopUpStore();
 
 const props = defineProps({
     suppliers: {
@@ -128,17 +128,13 @@ const headers = [
     },
 ];
 
-const showForm = ref(false);
-const selectedItem = ref(null);
-
 const openForm = (item = null) => {
-    selectedItem.value = item;
-    showForm.value = true;
-};
-
-const closeForm = () => {
-    showForm.value = false;
-    selectedItem.value = null;
+    popUpStore.open({
+        title: item ? 'Ubah Supplier' : 'Supplier Baru',
+        size: 'lg',
+        component: Form,
+        props: { supplier: item },
+    });
 };
 
 const confirmDelete = (item) => {

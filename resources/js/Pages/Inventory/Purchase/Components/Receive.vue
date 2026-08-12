@@ -1,19 +1,12 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        title="Terima Barang"
-        :sub-title="show ? '#' + purchase.po_number : ''"
-        size="lg"
-        @close="close"
-    >
-        <form @submit.prevent="submit" class="space-y-2">
-            <div v-if="purchase" class="mb-4 bg-gray-100 p-4 rounded-lg">
-                <p><strong>Supplier:</strong> {{ purchase.supplier?.name }}</p>
-                <p><strong>Outlet:</strong> {{ purchase.outlet?.name }}</p>
-            </div>
+    <form @submit.prevent="submit" class="space-y-2">
+        <div v-if="purchase" class="mb-2 bg-gray-100 p-4 rounded-lg">
+            <p><strong>Supplier:</strong> {{ purchase.supplier?.name }}</p>
+            <p><strong>Outlet:</strong> {{ purchase.outlet?.name }}</p>
+        </div>
 
-            <div class="border-t pt-4">
-                <h3 class="text-lg font-semibold mb-4">
+        <div class="border-t pt-2">
+            <h3 class="text-lg font-semibold mb-2">
                     Input Penerimaan & Konversi
                 </h3>
 
@@ -24,12 +17,12 @@
                     Data item tidak ditemukan.
                 </div>
 
-                <div v-else class="space-y-3">
-                    <div
-                        v-for="(item, index) in form.items"
-                        :key="index"
-                        class="flex gap-4 items-center border p-3 rounded-lg"
-                    >
+            <div v-else class="space-y-2">
+                <div
+                    v-for="(item, index) in form.items"
+                    :key="index"
+                    class="flex gap-2 items-center border p-3 rounded-lg"
+                >
                         <div class="flex-1">
                             <div class="font-semibold">{{ item.name }}</div>
                             <div class="text-sm text-gray-500">
@@ -103,48 +96,48 @@
                     </div>
                 </div>
             </div>
-        </form>
+    </form>
 
-        <template #footer>
-            <button
-                type="button"
-                class="btn btn-flat"
-                @click="close"
-                :disabled="form.processing"
-            >
-                Batal
-            </button>
-            <button
-                type="button"
-                class="btn btn-main"
-                @click="submit"
-                :disabled="form.processing || form.items.length === 0"
-            >
-                Simpan Penerimaan
-            </button>
-        </template>
-    </PopUpPage>
+    <Teleport v-if="isMounted" to="#popUpFooter">
+        <button
+            type="button"
+            class="btn btn-flat"
+            @click="close"
+            :disabled="form.processing"
+        >
+            Batal
+        </button>
+        <button
+            type="button"
+            class="btn btn-main"
+            @click="submit"
+            :disabled="form.processing || form.items.length === 0"
+        >
+            Simpan Penerimaan
+        </button>
+    </Teleport>
 </template>
 
 <script setup>
-import { watch } from 'vue';
+import { watch, ref, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
+import { usePopUpStore } from '@/store/popup';
 import TextField from '@/Components/Form/TextField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
 
+const popUpStore = usePopUpStore();
+
 const props = defineProps({
-    show: {
-        type: Boolean,
-        default: false,
-    },
     purchase: {
         type: Object,
         default: null,
     },
 });
 
-const emit = defineEmits(['close']);
+const isMounted = ref(false);
+onMounted(() => {
+    isMounted.value = true;
+});
 
 const form = useForm({
     items: [],
@@ -174,7 +167,7 @@ watch(
 
 const close = () => {
     form.clearErrors();
-    emit('close');
+    popUpStore.close();
 };
 
 const submit = () => {

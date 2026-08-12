@@ -1,7 +1,7 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Mutasi Stok">
+            <MainPageHeader title="Mutasi Stok">
                 <button
                     v-if="canCreate"
                     class="btn btn-highlight-main"
@@ -10,7 +10,7 @@
                     <FontAwesomeIcon :icon="faPlus" />
                     Buat Mutasi Stok
                 </button>
-            </ContainerHeader>
+            </MainPageHeader>
             <Filter :filters="filters" />
         </template>
 
@@ -61,29 +61,7 @@
                 :total="transfers.total"
             />
         </template>
-
-        <TransferForm
-            :show="showForm"
-            :outlets="outlets"
-            @close="closeForm"
-            @refresh="refreshData"
-        />
-
-        <TransferDetail
-            :show="showDetail"
-            :transferId="selectedItem?.id"
-            @close="closeDetail"
-            @openReceive="openReceive"
-            @refresh="refreshData"
-        />
-
-        <TransferReceiveForm
-            :show="showReceive"
-            :transferData="receiveData"
-            @close="closeReceive"
-            @refresh="refreshData"
-        />
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
@@ -91,16 +69,18 @@ import { ref, computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { faPlus, faEye } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import Container from '@/Components/UI/Container.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from './Components/Filter.vue';
 import TransferForm from './Components/TransferForm.vue';
 import TransferDetail from './Components/TransferDetail.vue';
 import TransferReceiveForm from './Components/TransferReceiveForm.vue';
+import { usePopUpStore } from '@/store/popup';
 
 const page = usePage();
+const popUpStore = usePopUpStore();
 const permissions = computed(() => page.props.auth.permissions || []);
 const canCreate = computed(
     () =>
@@ -147,12 +127,6 @@ const headers = [
     { label: 'Status', field: 'status', slot: 'status', sortable: false },
 ];
 
-const showForm = ref(false);
-const showDetail = ref(false);
-const showReceive = ref(false);
-const selectedItem = ref(null);
-const receiveData = ref(null);
-
 const statusLabel = (status) => {
     const labels = {
         pending: 'Menunggu',
@@ -176,37 +150,40 @@ const statusColor = (status) => {
 };
 
 const openForm = () => {
-    showForm.value = true;
-};
-
-const closeForm = () => {
-    showForm.value = false;
+    popUpStore.open({
+        title: 'Form Mutasi Stok',
+        size: 'xl',
+        component: TransferForm,
+        props: { outlets: props.outlets },
+        events: {
+            refresh: refreshData,
+        },
+    });
 };
 
 const openDetail = (item) => {
-    selectedItem.value = item;
-    showDetail.value = true;
-};
-
-const closeDetail = () => {
-    showDetail.value = false;
-    selectedItem.value = null;
+    popUpStore.open({
+        title: 'Detail Mutasi Stok',
+        size: 'xl',
+        component: TransferDetail,
+        props: { transferId: item.id },
+        events: {
+            refresh: refreshData,
+            openReceive: (data) => openReceive(data),
+        },
+    });
 };
 
 const openReceive = (data) => {
-    showDetail.value = false; // close detail first
-    receiveData.value = data;
-    showReceive.value = true;
-};
-
-const closeReceive = () => {
-    showReceive.value = false;
-    receiveData.value = null;
-
-    // Optionally reopen detail after close
-    if (selectedItem.value) {
-        showDetail.value = true;
-    }
+    popUpStore.open({
+        title: 'Terima Transfer',
+        size: 'lg',
+        component: TransferReceiveForm,
+        props: { transferData: data },
+        events: {
+            refresh: refreshData,
+        },
+    });
 };
 
 const refreshData = () => {

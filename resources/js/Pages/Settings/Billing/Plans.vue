@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <MainPage>
         <div
             v-if="invoice"
             class="alert alert-warning inline-flex justify-between items-center w-full mb-4"
@@ -126,10 +126,10 @@
                 </div>
             </div>
         </div>
-    </Container>
+    </MainPage>
 </template>
 <script setup>
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import { formatIDR } from '@/Composable/currency-format';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';

@@ -1,7 +1,7 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Penyesuaian Stok">
+            <MainPageHeader title="Penyesuaian Stok">
                 <div class="flex items-end gap-2">
                     <button
                         class="btn btn-primary btn-sm"
@@ -20,7 +20,7 @@
                         Buat Penyesuaian
                     </button>
                 </div>
-            </ContainerHeader>
+            </MainPageHeader>
             <Filter :filters="filters" />
         </template>
 
@@ -90,24 +90,7 @@
             />
         </template>
 
-        <AdjustmentFormPopUp
-            :show="showForm"
-            :items="items"
-            @close="closeForm"
-        />
-
-        <AdjustmentDetailPopUp
-            :show="showDetail"
-            :adjustment="selectedAdjustment"
-            :is-loading="isLoadingDetail"
-            @close="closeDetail"
-        />
-
-        <FreezeStockPopUp
-            :show="showFreezeModal"
-            @close="closeFreezeModal"
-        />
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
@@ -121,8 +104,8 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import Container from '@/Components/UI/Container.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from './Components/Filter.vue';
@@ -130,8 +113,10 @@ import AdjustmentFormPopUp from './Components/AdjustmentFormPopUp.vue';
 import AdjustmentDetailPopUp from './Components/AdjustmentDetailPopUp.vue';
 import FreezeStockPopUp from '@/Components/Inventory/FreezeStockPopUp.vue';
 import { formatDateTimeSimple } from '@/Composable/date.js';
+import { usePopUpStore } from '@/store/popup';
 
 const page = usePage();
+const popUpStore = usePopUpStore();
 
 const props = defineProps({
     adjustments: {
@@ -197,52 +182,44 @@ const formatReason = (reason) => {
     return map[reason] || reason;
 };
 
-const showForm = ref(false);
-const showDetail = ref(false);
-const showFreezeModal = ref(false);
-const selectedAdjustment = ref(null);
 const isLoadingDetail = ref(false);
 
 const openForm = () => {
-    showForm.value = true;
+    popUpStore.open({
+        title: 'Buat Draft Penyesuaian Stok',
+        size: 'xl',
+        component: AdjustmentFormPopUp,
+    });
 };
 
 const exportPdf = (id) => {
     window.open(route('inventory.adjustments.export.pdf', id), '_blank');
 };
 
-const closeForm = () => {
-    showForm.value = false;
-};
-
 const openDetail = async (item) => {
-    selectedAdjustment.value = null; // Clear old data
     isLoadingDetail.value = true;
-    showDetail.value = true;
-
     try {
         const response = await axios.get(
             route('inventory.adjustments.show', item.id),
         );
-        selectedAdjustment.value = response.data;
+        popUpStore.open({
+            title: 'Detail Penyesuaian Stok',
+            size: 'lg',
+            component: AdjustmentDetailPopUp,
+            props: { adjustment: response.data },
+        });
     } catch (error) {
         console.error('Failed to load detail:', error);
-        // show error notification or handle it
     } finally {
         isLoadingDetail.value = false;
     }
 };
 
-const closeDetail = () => {
-    showDetail.value = false;
-    selectedAdjustment.value = null;
-};
-
 const openFreezeModal = () => {
-    showFreezeModal.value = true;
-};
-
-const closeFreezeModal = () => {
-    showFreezeModal.value = false;
+    popUpStore.open({
+        title: 'Kelola Pembekuan Stok',
+        size: 'lg',
+        component: FreezeStockPopUp,
+    });
 };
 </script>

@@ -92,6 +92,7 @@
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="bg-slate-50 border-b">
+                            <th class="p-2 font-semibold text-slate-600 w-16">Foto</th>
                             <th class="p-2 font-semibold text-slate-600">
                                 Kombinasi
                             </th>
@@ -115,6 +116,13 @@
                             :key="cIdx"
                             class="border-b hover:bg-slate-50/50"
                         >
+                            <td class="p-2">
+                                <div class="w-10 h-10 bg-slate-100 rounded flex items-center justify-center border border-slate-200 overflow-hidden text-slate-400 relative cursor-pointer hover:bg-slate-200 transition">
+                                    <img v-if="combo.image_url" :src="combo.image_url" class="w-full h-full object-cover" />
+                                    <FontAwesomeIcon v-else :icon="faImage" />
+                                    <!-- Here we would ideally add a file input triggered by click -->
+                                </div>
+                            </td>
                             <td class="p-2 font-medium">
                                 {{ Object.values(combo.options).join(' / ') }}
                             </td>
@@ -155,7 +163,7 @@
 <script setup>
 import { inject } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faImage } from '@fortawesome/free-solid-svg-icons';
 import NumberField from '@/Components/Form/NumberField.vue';
 import TextField from '@/Components/Form/TextField.vue';
 

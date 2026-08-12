@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <MainPage>
         <div class="max-w-3xl mx-auto">
             <h2 class="text-2xl font-bold text-gray-800 mb-2">
                 Selesaikan Pembayaran
@@ -322,11 +322,11 @@
                 </div>
             </div>
         </div>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import { formatIDR } from '@/Composable/currency-format';
 import {
     faCheckCircle,

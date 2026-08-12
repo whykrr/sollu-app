@@ -3,6 +3,8 @@ import { createInertiaApp } from '@inertiajs/vue3'
 import { ZiggyVue } from 'ziggy-js'
 import { Ziggy } from './ziggy.js'
 import 'quill/dist/quill.snow.css'
+import './echo';
+
 
 /* import the fontawesome core */
 import { library } from '@fortawesome/fontawesome-svg-core'

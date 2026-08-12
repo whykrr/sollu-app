@@ -1,12 +1,5 @@
 <template>
-    <PopUpPage
-        :title
-        :sub-title="subTitle"
-        :class="{
-            show: show,
-        }"
-        @close="closeForm"
-    >
+    <div>
         <div class="flex flex-col gap-2">
             <div>
                 <TextField
@@ -76,7 +69,7 @@
                 >Diperbarui {{ formatDateTime(user.updated_at) }}</span
             >
         </div>
-        <template #footer>
+        <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 class="btn btn-outline-danger ml-2"
                 :disabled="form.processing"
@@ -91,8 +84,8 @@
             >
                 Simpan
             </button>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
 </template>
 <script setup>
 import CheckboxButtonField from '@/Components/Form/CheckboxButtonField.vue';
@@ -100,19 +93,17 @@ import EmailField from '@/Components/Form/EmailField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
 import RadioButtonField from '@/Components/Form/RadioButtonField.vue';
 import TextField from '@/Components/Form/TextField.vue';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import { formatDateID } from '@/Composable/date';
 import { formatDateTime } from '@/Composable/time';
 import { router, useForm, usePage } from '@inertiajs/vue3';
-import { computed, watch } from 'vue';
-
-const title = computed(() =>
-    props.user ? 'Detail karyawan' : 'Tambahkan karyawan baru',
-);
-
-const subTitle = computed(() => (props.user ? '#' + props.user.email : null));
+import { computed, watch, onMounted, ref } from 'vue';
 
 const emit = defineEmits(['close']);
+
+const isMounted = ref(false);
+onMounted(() => {
+    isMounted.value = true;
+});
 
 const closeForm = () => {
     form.reset();
@@ -122,7 +113,6 @@ const closeForm = () => {
 const props = defineProps({
     user: Object,
     roles: Array,
-    show: Boolean,
 });
 
 const selectedOutlet = computed(() => usePage().props.selectedOutlet);

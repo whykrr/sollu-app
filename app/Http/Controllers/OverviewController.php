@@ -8,18 +8,64 @@ use Illuminate\Http\Request;
 class OverviewController extends Controller
 {
     /**
-     * Handle the incoming request.
+     * Handle the incoming request for Dashboard Overview.
      */
     public function __invoke(Request $request)
     {
-        $firstDateThisMonth = Carbon::now()->startOfMonth()->toDateString();
-        $todayDate          = Carbon::now()->toDateString();
+        $period = $request->get('period', 'today');
+        $outletId = $request->get('outlet', '');
+        $startDateParam = $request->get('start_date');
+        $endDateParam = $request->get('end_date');
 
-        $getAllDates = function (string $start, string $end, string $format = 'Y-m-d') {
-            $dates    = [];
-            $current  = Carbon::parse($start);
-            $last     = Carbon::parse($end);
-            $interval = $current->diffInDays($last);
+        $now = Carbon::now();
+
+        // Calculate Date Range based on Preset
+        switch ($period) {
+            case 'yesterday':
+                $startDate = $now->copy()->subDay()->startOfDay();
+                $endDate = $now->copy()->subDay()->endOfDay();
+                $prevStartDate = $now->copy()->subDays(2)->startOfDay();
+                $prevEndDate = $now->copy()->subDays(2)->endOfDay();
+                $periodLabel = 'dari kemarin';
+                break;
+            case '7_days':
+                $startDate = $now->copy()->subDays(6)->startOfDay();
+                $endDate = $now->copy()->endOfDay();
+                $prevStartDate = $now->copy()->subDays(13)->startOfDay();
+                $prevEndDate = $now->copy()->subDays(7)->endOfDay();
+                $periodLabel = '7 hari terakhir';
+                break;
+            case 'this_month':
+                $startDate = $now->copy()->startOfMonth();
+                $endDate = $now->copy()->endOfDay();
+                $prevStartDate = $now->copy()->subMonth()->startOfMonth();
+                $prevEndDate = $now->copy()->subMonth()->endOfMonth();
+                $periodLabel = 'bulan ini';
+                break;
+            case 'custom':
+                $startDate = $startDateParam ? Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfDay();
+                $endDate = $endDateParam ? Carbon::parse($endDateParam)->endOfDay() : $now->copy()->endOfDay();
+                $diffDays = max(1, $startDate->diffInDays($endDate));
+                $prevStartDate = $startDate->copy()->subDays($diffDays);
+                $prevEndDate = $startDate->copy()->subDay();
+                $periodLabel = 'periode sebelumnya';
+                break;
+            case 'today':
+            default:
+                $period = 'today';
+                $startDate = $now->copy()->startOfDay();
+                $endDate = $now->copy()->endOfDay();
+                $prevStartDate = $now->copy()->subDay()->startOfDay();
+                $prevEndDate = $now->copy()->subDay()->endOfDay();
+                $periodLabel = 'hari ini';
+                break;
+        }
+
+        // Helper for labels
+        $getAllDates = function (Carbon $start, Carbon $end, string $format = 'd M') {
+            $dates = [];
+            $current = $start->copy();
+            $interval = $current->diffInDays($end);
 
             for ($i = 0; $i <= $interval; $i++) {
                 $dates[] = $current->format($format);
@@ -29,126 +75,131 @@ class OverviewController extends Controller
             return $dates;
         };
 
-        $getDummySalesTrend = function (string $start, string $end) {
-            $data     = [];
-            $current  = Carbon::parse($start);
-            $end      = Carbon::parse($end);
+        // Dummy trend generator
+        $getDummySalesTrend = function (Carbon $start, Carbon $end) {
+            $data = [];
+            $current = $start->copy();
             $interval = $current->diffInDays($end);
 
             for ($i = 0; $i <= $interval; $i++) {
-                $data[] = random_int(0, 1000000);
+                $data[] = random_int(100000, 1500000);
                 $current->addDay();
             }
 
             return $data;
         };
 
-        $allDates = $getAllDates($firstDateThisMonth, $todayDate, 'd');
+        $chartLabels = $getAllDates($startDate, $endDate, $period === 'today' ? 'H:00' : 'd M');
+        if ($period === 'today') {
+            $chartLabels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'];
+            $trendNowData = [150000, 320000, 540000, 280000, 420000, 680000, 890000, 310000];
+            $trendPrevData = [120000, 290000, 480000, 230000, 390000, 590000, 750000, 280000];
+        } else {
+            $trendNowData = $getDummySalesTrend($startDate, $endDate);
+            $trendPrevData = $getDummySalesTrend($prevStartDate, $prevEndDate);
+        }
 
-        return inertia(
-            'Overview/Index',
-            [
-                'filters' => [
-                    'type'   => $request->get('type', 'month'),
-                    'outlet' => $request->get('outlet'),
-                ],
-                'totalSales' => [
-                    'now'      => 1980000,
-                    'previous' => 1730000,
-                ],
-                'totalTransactions' => [
-                    'now'      => 35,
-                    'previous' => 46,
-                ],
-                'averageSales' => [
-                    'now'      => 187532,
-                    'previous' => 184165,
-                ],
-
-                'salesTrend' => [
-                    'label' => $getAllDates($firstDateThisMonth, $todayDate, 'd'),
-                    'value' => [
-                        [
-                            'title' => 'Bulan Ini',
-                            'data'  => $getDummySalesTrend($firstDateThisMonth, $todayDate),
-                        ],
-                        [
-                            'title' => 'Bulan Lalu',
-                            'data'  => $getDummySalesTrend($firstDateThisMonth, $todayDate),
-                        ],
+        return inertia('Overview/Index', [
+            'filters' => [
+                'period' => $period,
+                'outlet' => $outletId,
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+                'period_label' => $periodLabel,
+            ],
+            'totalSales' => [
+                'now' => 3590000,
+                'previous' => 3130000,
+            ],
+            'grossProfit' => [
+                'now' => 1436000,
+                'previous' => 1125000,
+            ],
+            'totalTransactions' => [
+                'now' => 48,
+                'previous' => 41,
+            ],
+            'averageSales' => [
+                'now' => 74791,
+                'previous' => 76341,
+            ],
+            'salesTrend' => [
+                'label' => $chartLabels,
+                'value' => [
+                    [
+                        'title' => 'Periode Ini',
+                        'data' => $trendNowData,
                     ],
-                ],
-                'categorySalesTrend' => [
-                    'label' => [
-                        'Atasan',
-                        'Bawahan',
-                        'Outer',
-                        'Aksesoris',
-                        'Sepatu',
-                    ],
-                    'value' => [
-                        170,
-                        380,
-                        780,
-                        80,
-                        90,
+                    [
+                        'title' => 'Periode Lalu',
+                        'data' => $trendPrevData,
                     ],
                 ],
-
-                'mostSoldProducts' => [
-                    [
-                        'name'    => 'Product A',
-                        'total'   => 150,
-                        'revenue' => 1500000,
-                    ],
-                    [
-                        'name'    => 'Product B',
-                        'total'   => 120,
-                        'revenue' => 1500000,
-                    ],
-                    [
-                        'name'    => 'Product C',
-                        'total'   => 100,
-                        'revenue' => 1500000,
-                    ],
-                    [
-                        'name'    => 'Product D',
-                        'total'   => 80,
-                        'revenue' => 1500000,
-                    ],
-                    [
-                        'name'    => 'Product E',
-                        'total'   => 60,
-                        'revenue' => 1500000,
-                    ],
+            ],
+            'categorySalesTrend' => [
+                'label' => ['Makanan & Minuman', 'Pakaian & Aksesoris', 'Bahan Baku', 'Jasa & Layanan', 'Elektronik'],
+                'value' => [1450000, 980000, 620000, 340000, 200000],
+            ],
+            'paymentMethodSummary' => [
+                'label' => ['Tunai', 'QRIS', 'Transfer Bank', 'Kartu EDC'],
+                'value' => [45, 35, 12, 8],
+                'revenue' => [1615500, 1256500, 430800, 287200],
+            ],
+            'mostSoldProducts' => [
+                [
+                    'name' => 'Kopi Susu Gula Aren',
+                    'total' => 124,
+                    'revenue' => 2480000,
                 ],
-
-                'lowStockProduct' => [
-                    [
-                        'name'  => 'Product X',
-                        'stock' => 2,
-                    ],
-                    [
-                        'name'  => 'Product Y',
-                        'stock' => 3,
-                    ],
-                    [
-                        'name'  => 'Product Z',
-                        'stock' => 5,
-                    ],
+                [
+                    'name' => 'Croissant Almond',
+                    'total' => 88,
+                    'revenue' => 1760000,
                 ],
-                'productNotSold' => [
-                    [
-                        'name' => 'Product M',
-                    ],
-                    [
-                        'name' => 'Product N',
-                    ],
-                    [
-                        'name' => 'Product O',
-                    ],
+                [
+                    'name' => 'Matcha Latte Ice',
+                    'total' => 65,
+                    'revenue' => 1430000,
                 ],
-            ]
-        );
+                [
+                    'name' => 'Nasi Goreng Special',
+                    'total' => 52,
+                    'revenue' => 1300000,
+                ],
+                [
+                    'name' => 'Beef Burger Combo',
+                    'total' => 41,
+                    'revenue' => 1230000,
+                ],
+            ],
+            'lowStockProduct' => [
+                [
+                    'name' => 'Susu UHT Full Cream 1L',
+                    'stock' => 2,
+                    'min_stock' => 10,
+                ],
+                [
+                    'name' => 'Bijikopi Espresso Blend 1kg',
+                    'stock' => 3,
+                    'min_stock' => 8,
+                ],
+                [
+                    'name' => 'Syrup Vanilla 700ml',
+                    'stock' => 4,
+                    'min_stock' => 5,
+                ],
+            ],
+            'productNotSold' => [
+                [
+                    'name' => 'Teh Chamomile Loose Leaf',
+                ],
+                [
+                    'name' => 'Red Velvet Muffin',
+                ],
+                [
+                    'name' => 'Sparkling Water 330ml',
+                ],
+            ],
+        ]);
     }
 }

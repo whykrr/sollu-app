@@ -1,30 +1,30 @@
 <template>
-  <Container>
-    <div class="grid grid-cols-2 gap-4">
-      <Card title="Chart Line">
-        <canvas id="chart-line" />
-      </Card>
-      <Card title="Chart Bar">
-        <canvas id="chart-bar" />
-      </Card>
-      <Card title="Chart Doughnut">
-        <canvas id="chart-doughnut" />
-      </Card>
-      <Card title="Chart Pie">
-        <div class="bg-secondary" />
-        <canvas id="chart-pie" />
-      </Card>
-    </div>
-  </Container>
+    <MainPage>
+        <div class="grid grid-cols-2 gap-4">
+            <Card title="Chart Line">
+                <canvas id="chart-line" />
+            </Card>
+            <Card title="Chart Bar">
+                <canvas id="chart-bar" />
+            </Card>
+            <Card title="Chart Doughnut">
+                <canvas id="chart-doughnut" />
+            </Card>
+            <Card title="Chart Pie">
+                <div class="bg-secondary" />
+                <canvas id="chart-pie" />
+            </Card>
+        </div>
+    </MainPage>
 </template>
 <script setup>
-import Card from '@/Components/UI/Card/Card.vue'
-import Container from '@/Components/UI/Container.vue'
+import Card from '@/Components/UI/Card/Card.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 
-import { Chart } from 'chart.js/auto'
-import { onMounted } from 'vue'
+import { Chart } from 'chart.js/auto';
+import { onMounted } from 'vue';
 
-const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']
+const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
 const data = {
     labels: labels,
     datasets: [
@@ -45,7 +45,7 @@ const data = {
             tension: 0.3,
         },
     ],
-}
+};
 const dataBar = {
     labels: labels,
     datasets: [
@@ -57,7 +57,7 @@ const dataBar = {
             tension: 0.1,
         },
     ],
-}
+};
 
 onMounted(() => {
     new Chart(document.getElementById('chart-line'), {
@@ -78,18 +78,18 @@ onMounted(() => {
                 },
             },
         },
-    })
+    });
     new Chart(document.getElementById('chart-bar'), {
         type: 'bar',
         data: dataBar,
-    })
+    });
     new Chart(document.getElementById('chart-doughnut'), {
         type: 'doughnut',
         data: dataBar,
-    })
+    });
     new Chart(document.getElementById('chart-pie'), {
         type: 'pie',
         data: dataBar,
-    })
-})
+    });
+});
 </script>

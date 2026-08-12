@@ -1,7 +1,7 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Stok Saat Ini" />
+            <MainPageHeader title="Stok Saat Ini" />
 
             <!-- Summary Card -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -84,30 +84,24 @@
                 :total="stocks.total"
             />
         </template>
-
-        <Detail :show="showDetail" :item="selectedItem" @close="closeDetail" />
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import Container from '@/Components/UI/Container.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Widget from '@/Components/Widgets/Widget.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faEye,
-    faBox,
-    faMoneyBillWave,
-    faExclamationTriangle,
-    faTimesCircle,
-    faStore,
-} from '@fortawesome/free-solid-svg-icons';
+import { faEye, faBox, faMoneyBillWave, faExclamationTriangle, faTimesCircle, faStore } from '@fortawesome/free-solid-svg-icons';
 import StockFilter from './Components/StockFilter.vue';
 import Detail from './Components/Detail.vue';
 import { formatDateTimeSimple } from '@/Composable/date';
+import { usePopUpStore } from '@/store/popup';
+
+const popUpStore = usePopUpStore();
 
 const props = defineProps({
     stocks: {
@@ -153,16 +147,13 @@ const headers = [
     { label: 'Status', field: 'status', slot: 'status', sortable: false },
 ];
 
-const showDetail = ref(false);
-const selectedItem = ref(null);
-
 const openDetail = (item) => {
-    selectedItem.value = item;
-    showDetail.value = true;
-};
-
-const closeDetail = () => {
-    showDetail.value = false;
-    selectedItem.value = null;
+    popUpStore.open({
+        title: item.item_name,
+        subTitle: '#' + item.sku,
+        size: 'xl',
+        component: Detail,
+        props: { item },
+    });
 };
 </script>

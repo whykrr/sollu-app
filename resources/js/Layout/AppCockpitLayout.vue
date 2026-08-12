@@ -21,86 +21,9 @@
             >
                 <slot />
             </main>
-            <Toast
-                v-if="flashSuccess"
-                :icon="faCheck"
-                title="Berhasil !"
-                color="success"
-                @hide="clearMessage()"
-            >
-                {{ flashSuccess }}
-            </Toast>
-            <Toast
-                v-if="flashFailed"
-                :icon="faClose"
-                title="Gagal !"
-                color="danger"
-                @hide="clearMessageFailed()"
-            >
-                {{ flashFailed }}
-            </Toast>
-
-            <div
-                class="modal"
-                :class="{
-                    show: modalStore.delete.isVisible,
-                }"
-                :title="modalStore.delete.header"
-            >
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <!-- Modal Header -->
-                        <div class="flex flex-row gap-2 p-4">
-                            <div>
-                                <div
-                                    class="bg-main text-white w-8 h-8 flex items-center justify-center rounded-full"
-                                >
-                                    <FontAwesomeIcon
-                                        class="text-base"
-                                        :icon="faExclamation"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex h-8 items-center">
-                                    <div class="text-lg font-bold">
-                                        {{ modalStore.delete.header }}
-                                    </div>
-                                </div>
-                                <p class="text-gray-600">
-                                    {{ modalStore.delete.msg }}
-                                </p>
-                            </div>
-                            <button
-                                id="closeModalBtn"
-                                class="absolute right-2 top-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                                @click="modalStore.closeModalDelete"
-                            >
-                                ✖
-                            </button>
-                        </div>
-                        <!-- Modal Footer -->
-                        <div class="modal-footer p-4 pt-2">
-                            <button
-                                class="btn btn-slate-400"
-                                @click="modalStore.closeModalDelete"
-                            >
-                                Batal
-                            </button>
-                            <Link
-                                v-if="modalStore.delete.url"
-                                class="btn btn-main"
-                                :href="modalStore.delete.url"
-                                as="button"
-                                method="delete"
-                                @click="modalStore.closeModalDelete"
-                            >
-                                Ya
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <ToastContainer />
+            <ModalContainer />
+            <PopUpContainer />
         </div>
     </div>
 </template>
@@ -108,7 +31,11 @@
 <script setup>
 import SidebarCockpit from '@/Components/Cockpit/Layout/Sidebar/SidebarCockpit.vue';
 import HeaderCockpit from '@/Components/Cockpit/Layout/Header/HeaderCockpit.vue';
-import Toast from '@/Components/Notifications/Toast.vue';
+import ModalContainer from '@/Components/Notifications/ModalContainer.vue';
+import ToastContainer from '@/Components/Notifications/ToastContainer.vue';
+import PopUpContainer from '@/Components/UI/PopUpContainer.vue';
+
+
 import i18n from '@/i18n';
 import { useModalStore } from '@/store/notification';
 import { Link, router, usePage } from '@inertiajs/vue3';

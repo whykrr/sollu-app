@@ -1,11 +1,6 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        :title="category ? 'Ubah Kategori' : 'Buat Kategori Baru'"
-        size="md"
-        @close="closeForm"
-    >
-        <div class="space-y-4">
+    <div>
+        <div class="space-y-2">
             <TextField
                 v-model="form.name"
                 label="Nama Kategori"
@@ -33,8 +28,8 @@
             />
         </div>
 
-        <template #footer>
-            <div class="flex justify-end gap-2">
+        <Teleport v-if="isMounted" to="#popUpFooter">
+            <div class="flex justify-end gap-2 w-full">
                 <button
                     type="button"
                     class="btn btn-outline-secondary"
@@ -51,20 +46,18 @@
                     Simpan
                 </button>
             </div>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
 </template>
 
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, watch, ref, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
 
 const props = defineProps({
-    show: Boolean,
     category: {
         type: Object,
         default: null,
@@ -87,27 +80,31 @@ const form = useForm({
     sort_order: '',
 });
 
+const isMounted = ref(false);
+onMounted(() => {
+    isMounted.value = true;
+});
+
 watch(
-    () => props.show,
-    (val) => {
-        if (val) {
-            form.clearErrors();
-            if (props.category) {
-                form.name = props.category.name;
-                form.parent_id = props.category.parent_id || '';
-                form.sort_order =
-                    props.category.sort_order !== null
-                        ? String(props.category.sort_order)
-                        : '';
-            } else {
-                form.name = '';
-                form.parent_id = props.parentCategory
-                    ? props.parentCategory.id
+    () => props.category,
+    () => {
+        form.clearErrors();
+        if (props.category) {
+            form.name = props.category.name;
+            form.parent_id = props.category.parent_id || '';
+            form.sort_order =
+                props.category.sort_order !== null
+                    ? String(props.category.sort_order)
                     : '';
-                form.sort_order = '';
-            }
+        } else {
+            form.name = '';
+            form.parent_id = props.parentCategory
+                ? props.parentCategory.id
+                : '';
+            form.sort_order = '';
         }
     },
+    { immediate: true }
 );
 
 // Only root categories can be parents, and a category cannot be its own parent

@@ -1,54 +1,70 @@
 <template>
-    <transition name="slide-fade" mode="in-out">
-        <aside
+    <transition name="fade-down" mode="in-out">
+        <div
             v-if="props.isOpen"
-            class="fixed w-full sm:w-auto right-0 top-0 h-screen z-50 shadow-2xl bg-gray-200 border-l border-gray-200"
+            class="absolute z-50 bg-white border border-neutral-100 rounded-xl w-[calc(100vw-2rem)] sm:w-[26rem] top-full mt-2 right-0 shadow-xl ring-1 ring-black/5 p-4 origin-top-right flex flex-col"
+            style="max-height: calc(100vh - 100px);"
         >
-            <div class="flex flex-col h-full p-4 w-full sm:w-[30rem] relative gap-2.5">
-                <span class="text-xs text-main underline absolute right-2 top-4">
+            <div class="flex flex-col h-full w-full relative gap-2">
+                <!-- Close Button -->
+                <div class="absolute right-0 top-0">
                     <a
                         href="#"
-                        title="Tutup"
-                        class="text-lg mx-2 text-gray-600 hover:text-gray-900 transition"
                         @click.prevent="closeNotification"
+                        class="text-neutral-400 hover:text-neutral-600 transition-colors text-base"
                     >
                         <FontAwesomeIcon :icon="faClose" />
                     </a>
-                </span>
-                
-                <div class="font-semibold text-2xl flex items-center gap-2">
-                    Notifikasi
-                    <span v-if="unreadCount > 0" class="badge badge-danger rounded-full text-xs animate-pulse">
-                        {{ unreadCount }} Baru
-                    </span>
+                </div>
+
+                <!-- Header Title & Mark All As Read -->
+                <div class="flex items-center justify-between pr-6">
+                    <div class="text-lg font-medium text-neutral-800">
+                        Notifikasi
+                    </div>
+                    <button 
+                        @click="markAllAsRead"
+                        :disabled="unreadCount === 0"
+                        class="text-xs font-medium text-main hover:text-main/80 transition disabled:opacity-40 disabled:no-underline"
+                    >
+                        Tandai semua dibaca
+                    </button>
                 </div>
                 
-                <div class="grid grid-cols-3 gap-0.5 bg-gray-300 rounded-lg p-0.5 shadow-inner">
-                    <NotificationFilter
-                        label="Semua"
-                        :badge="0"
-                        :active="filterActive === 'all'"
+                <!-- Filter Tabs matching TopBarAccount style -->
+                <div class="bg-neutral-50 border border-neutral-100 rounded-xl p-1 flex gap-1 text-xs font-medium text-neutral-500">
+                    <button
+                        class="flex-1 py-1.5 px-2 rounded-lg transition-all duration-150 ease-in-out text-center flex items-center justify-center gap-1.5"
+                        :class="filterActive === 'all' ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold' : 'hover:text-neutral-800 hover:bg-neutral-100/50'"
                         @click="toggleFilter('all')"
-                    />
-                    <NotificationFilter
-                        label="Sistem"
-                        :badge="0"
-                        :active="filterActive === 'system'"
+                    >
+                        <span>Semua</span>
+                        <span v-if="unreadCount > 0" class="bg-main/10 text-main text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                            {{ unreadCount }}
+                        </span>
+                    </button>
+                    <button
+                        class="flex-1 py-1.5 px-2 rounded-lg transition-all duration-150 ease-in-out text-center"
+                        :class="filterActive === 'system' ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold' : 'hover:text-neutral-800 hover:bg-neutral-100/50'"
                         @click="toggleFilter('system')"
-                    />
-                    <NotificationFilter
-                        label="Pesanan"
-                        :badge="0"
-                        :active="filterActive === 'order'"
+                    >
+                        Sistem
+                    </button>
+                    <button
+                        class="flex-1 py-1.5 px-2 rounded-lg transition-all duration-150 ease-in-out text-center"
+                        :class="filterActive === 'order' ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold' : 'hover:text-neutral-800 hover:bg-neutral-100/50'"
                         @click="toggleFilter('order')"
-                    />
+                    >
+                        Pesanan
+                    </button>
                 </div>
                 
-                <div class="flex-1 overflow-y-auto floating-scroll bg-neutral-50 rounded-lg p-2 border border-neutral-100">
+                <!-- Content Area -->
+                <div class="bg-neutral-50 border border-neutral-100 rounded-xl overflow-hidden flex-1 overflow-y-auto floating-scroll">
                     <!-- Loaded State -->
                     <ol
                         v-if="!isLoading && notifications.length > 0"
-                        class="flex flex-col gap-1"
+                        class="divide-y divide-neutral-100"
                     >
                         <li
                             v-for="notification in notifications"
@@ -65,9 +81,9 @@
                     <!-- Loading Skeletons -->
                     <ol
                         v-if="isLoading"
-                        class="flex flex-col gap-1"
+                        class="divide-y divide-neutral-100"
                     >
-                        <li v-for="i in 5" :key="'skeleton-' + i">
+                        <li v-for="i in 4" :key="'skeleton-' + i">
                             <NotificationItem :notification="null" />
                         </li>
                     </ol>
@@ -75,19 +91,19 @@
                     <!-- Empty State -->
                     <div
                         v-if="!isLoading && notifications.length === 0"
-                        class="flex flex-col h-full w-full items-center justify-center text-neutral-400 select-none p-8 text-center"
+                        class="flex flex-col items-center justify-center text-neutral-400 select-none p-8 text-center my-auto min-h-[16rem]"
                     >
-                        <div class="bg-neutral-100/50 rounded-full h-24 w-24 flex items-center justify-center mb-4 border border-neutral-100">
-                            <FontAwesomeIcon :icon="faBellSlash" class="text-4xl text-neutral-300" />
+                        <div class="bg-white rounded-full h-16 w-16 flex items-center justify-center mb-3 border border-neutral-200 shadow-sm">
+                            <FontAwesomeIcon :icon="faBellSlash" class="text-2xl text-neutral-400" />
                         </div>
-                        <h3 class="text-lg font-semibold text-neutral-500 mb-1">Belum Ada Notifikasi</h3>
-                        <p class="text-sm text-neutral-400">Saat ini tidak ada pemberitahuan baru untuk Anda.</p>
+                        <h3 class="text-base font-medium text-neutral-700 mb-1">Belum Ada Notifikasi</h3>
+                        <p class="text-xs text-neutral-500">Saat ini tidak ada pemberitahuan baru untuk Anda.</p>
                     </div>
 
                     <!-- Load More Button -->
-                    <div v-if="!isLoading && currentPage < lastPage" class="mt-4 flex justify-center pb-4">
+                    <div v-if="!isLoading && currentPage < lastPage" class="p-3 flex justify-center border-t border-neutral-100 bg-white">
                         <button 
-                            class="btn btn-outline-main btn-sm rounded-full" 
+                            class="btn btn-outline-main btn-sm rounded-lg text-xs" 
                             @click="fetchNotifications(currentPage + 1, true)" 
                             :disabled="isLoadingMore"
                         >
@@ -96,32 +112,8 @@
                         </button>
                     </div>
                 </div>
-                
-                <div class="pt-2">
-                    <div class="flex flex-row justify-between items-center">
-                        <div>
-                            <button
-                                type="button"
-                                class="btn btn-flat text-danger btn-sm"
-                                @click="closeNotification"
-                            >
-                                Tutup
-                            </button>
-                        </div>
-                        <div>
-                            <button 
-                                class="btn btn-info btn-sm"
-                                @click="markAllAsRead"
-                                :disabled="unreadCount === 0"
-                            >
-                                <FontAwesomeIcon :icon="faListCheck" class="mr-1" />
-                                Tandai semua dibaca
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
-        </aside>
+        </div>
     </transition>
 </template>
 
@@ -130,19 +122,22 @@ import { ref, watch } from 'vue';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faClose, faListCheck, faBellSlash } from '@fortawesome/free-solid-svg-icons';
-import NotificationFilter from '@/Components/Layout/SidebarNotification/NotificationFilter.vue';
 import NotificationItem from './NotificationItem.vue';
 
 const props = defineProps({
     isOpen: Boolean,
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'update-unread-count']);
 
 // State
 const filterActive = ref('all');
 const notifications = ref([]);
 const unreadCount = ref(0);
+
+watch(unreadCount, (val) => {
+    emit('update-unread-count', val);
+});
 const isLoading = ref(false);
 const isLoadingMore = ref(false);
 const currentPage = ref(1);

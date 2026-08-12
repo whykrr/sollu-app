@@ -1,17 +1,12 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        title="Detail Mutasi Stok"
-        size="xl"
-        @close="close"
-    >
+    <div>
         <div v-if="loading" class="p-6 text-center text-gray-500">
             Memuat data...
         </div>
         <div v-else-if="transferData" class="space-y-2">
             <!-- Header Info -->
             <div
-                class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg"
+                class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded-lg"
             >
                 <div>
                     <p class="text-sm text-gray-500">No. Transfer</p>
@@ -56,7 +51,7 @@
 
             <!-- Audit Trail -->
             <div
-                class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600"
+                class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600"
             >
                 <div>
                     <p><strong>Pemohon:</strong></p>
@@ -198,7 +193,7 @@
                     label="Alasan Penolakan"
                     required
                 />
-                <div class="mt-3 flex justify-end gap-2">
+                <div class="mt-2 flex justify-end gap-2">
                     <button
                         type="button"
                         class="btn btn-flat btn-sm"
@@ -218,7 +213,7 @@
             </div>
         </div>
 
-        <template #footer v-if="transferData">
+        <Teleport v-if="isMounted && transferData" to="#popUpFooter">
             <div class="flex justify-between w-full">
                 <div class="flex gap-2">
                     <button type="button" class="btn btn-flat" @click="close">
@@ -280,26 +275,27 @@
                     </template>
                 </div>
             </div>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faFilePdf } from '@fortawesome/free-solid-svg-icons';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
+import { usePopUpStore } from '@/store/popup';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import { useAuth } from '@/Composable/useAuth';
 
 const props = defineProps({
-    show: Boolean,
     transferId: String,
 });
 
-const emit = defineEmits(['close', 'openReceive', 'refresh']);
+const emit = defineEmits(['openReceive', 'refresh']);
+const popUpStore = usePopUpStore();
+const isMounted = ref(false);
 const { user, can, canAny } = useAuth();
 
 const canApprove = computed(() => {
@@ -338,21 +334,15 @@ const fetchDetail = async () => {
     }
 };
 
-watch(
-    () => props.show,
-    (isOpen) => {
-        if (isOpen) {
-            showRejectForm.value = false;
-            rejectForm.reset();
-            fetchDetail();
-        } else {
-            transferData.value = null;
-        }
-    },
-);
+onMounted(() => {
+    isMounted.value = true;
+    showRejectForm.value = false;
+    rejectForm.reset();
+    fetchDetail();
+});
 
 const close = () => {
-    emit('close');
+    popUpStore.close();
 };
 
 const submitApprove = () => {

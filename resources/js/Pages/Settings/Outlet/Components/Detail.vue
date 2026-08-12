@@ -1,21 +1,11 @@
 <template>
-    <PopUpPage
-        :title="title"
-        :sub-title="subTitle"
-        :class="{ show: show }"
-        size="lg"
-        @close="closeDetail"
-    >
-        <div class="-mx-4">
-            <Tab :pages="tabPages" :vertical="false" />
-        </div>
-    </PopUpPage>
+    <div class="-mx-4">
+        <Tab :pages="tabPages" :vertical="false" />
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
-import { router } from '@inertiajs/vue3';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import Tab from '@/Components/UI/Tab.vue';
 
 // Tabs Components
@@ -34,28 +24,9 @@ import {
     faListUl,
 } from '@fortawesome/free-solid-svg-icons';
 
-const emit = defineEmits(['close']);
-
 const props = defineProps({
-    show: Boolean,
     outlet: Object,
 });
-
-const title = computed(() => 'Detail Outlet');
-const subTitle = computed(() => (props.outlet ? '#' + props.outlet.slug : ''));
-
-const closeDetail = () => {
-    emit('close');
-    router.get(
-        route('settings.outlets.index'),
-        {},
-        {
-            only: ['outlet'],
-            preserveState: true,
-            preserveScroll: true,
-        },
-    );
-};
 
 const tabPages = computed(() => [
     {

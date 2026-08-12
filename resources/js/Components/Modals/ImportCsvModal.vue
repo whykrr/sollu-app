@@ -1,5 +1,5 @@
 <template>
-    <Modal :class="{ show }" :title="`Impor ${moduleName}`" @close="close">
+    <Modal :show="show" :title="`Impor ${moduleName}`" @close="close">
         <p class="text-sm text-gray-600 mb-6">
             Unduh template CSV, isi data Anda, lalu unggah kembali file tersebut
             ke sini. Pastikan nama kolom pada baris pertama tidak diubah agar

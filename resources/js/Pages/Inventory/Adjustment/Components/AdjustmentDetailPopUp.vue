@@ -1,11 +1,6 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        title="Detail Penyesuaian Stok"
-        size="lg"
-        @close="close"
-    >
-        <div v-if="isLoading" class="space-y-4 animate-pulse">
+    <div>
+        <div v-if="isLoading" class="space-y-2 animate-pulse">
             <div class="grid grid-cols-2 gap-2">
                 <div class="h-12 bg-gray-200 rounded"></div>
                 <div class="h-12 bg-gray-200 rounded"></div>
@@ -14,12 +9,12 @@
                 <div class="h-12 bg-gray-200 rounded"></div>
                 <div class="h-12 bg-gray-200 rounded"></div>
             </div>
-            <div class="mt-4">
+            <div class="mt-2">
                 <div class="h-6 bg-gray-200 rounded w-1/4 mb-2"></div>
                 <div class="h-32 bg-gray-200 rounded"></div>
             </div>
         </div>
-        <div v-else-if="adjustment" class="space-y-4">
+        <div v-else-if="adjustment" class="space-y-2">
             <div class="grid grid-cols-2 gap-2 text-sm">
                 <div>
                     <p class="text-gray-500">Nomor Referensi</p>
@@ -63,7 +58,7 @@
                 </div>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-2">
                 <h4 class="font-bold text-gray-700">Item Penyesuaian</h4>
                 <div class="border rounded overflow-hidden">
                     <table class="w-full text-sm text-left">
@@ -146,17 +141,17 @@
             <!-- Approval Section -->
             <div
                 v-if="adjustment.status === 'draft' && canApprove"
-                class="bg-yellow-50 p-4 rounded border border-yellow-200 mt-4"
+                class="bg-yellow-50 p-2 rounded border border-yellow-200 mt-2"
             >
                 <h4 class="font-bold text-yellow-800 mb-2">
                     Tindakan Persetujuan
                 </h4>
-                <p class="text-sm text-yellow-700 mb-4">
+                <p class="text-sm text-yellow-700 mb-2">
                     Anda memiliki hak akses untuk menyetujui atau menolak
                     penyesuaian stok ini. Pastikan data sudah benar.
                 </p>
 
-                <div v-if="showRejectInput" class="mb-4">
+                <div v-if="showRejectInput" class="mb-2">
                     <TextareaField
                         id="reject_notes"
                         v-model="rejectForm.notes"
@@ -205,7 +200,7 @@
 
             <div
                 v-if="adjustment.status === 'approved' && canVoid"
-                class="mt-6 flex justify-end"
+                class="mt-2 flex justify-end"
             >
                 <button
                     class="btn btn-outline btn-danger"
@@ -218,7 +213,7 @@
             </div>
         </div>
 
-        <template #footer>
+        <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
                 class="btn btn-flat"
@@ -227,8 +222,8 @@
             >
                 Tutup
             </button>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
 
     <!-- Approve Modal -->
     <Modal
@@ -236,7 +231,7 @@
         :class="{ show: showApproveModal }"
         @close="showApproveModal = false"
     >
-        <p class="text-gray-600 mb-4">
+        <p class="text-gray-600 mb-2">
             Apakah Anda yakin ingin menyetujui penyesuaian ini? Stok akan
             diperbarui.
         </p>
@@ -266,7 +261,7 @@
         :class="{ show: showVoidModal }"
         @close="showVoidModal = false"
     >
-        <p class="text-gray-600 mb-4">
+        <p class="text-gray-600 mb-2">
             Apakah Anda yakin ingin membatalkan (VOID) penyesuaian ini? Stok
             akan dikembalikan ke keadaan sebelum penyesuaian.
         </p>
@@ -292,22 +287,24 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useForm, router, usePage } from '@inertiajs/vue3';
 import { faCheck, faTimes, faBan } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import Modal from '@/Components/Notifications/Modal.vue';
 import { formatDateTimeSimple } from '@/Composable/date.js';
+import { usePopUpStore } from '@/store/popup';
 
 const page = usePage();
+const popUpStore = usePopUpStore();
+
+const isMounted = ref(false);
+onMounted(() => {
+    isMounted.value = true;
+});
 
 const props = defineProps({
-    show: {
-        type: Boolean,
-        default: false,
-    },
     adjustment: {
         type: Object,
         default: null,
@@ -317,8 +314,6 @@ const props = defineProps({
         default: false,
     },
 });
-
-const emit = defineEmits(['close']);
 
 const isProcessing = ref(false);
 const showRejectInput = ref(false);
@@ -344,7 +339,7 @@ const close = () => {
     showApproveModal.value = false;
     showVoidModal.value = false;
     rejectForm.reset();
-    emit('close');
+    popUpStore.close();
 };
 
 const approve = () => {

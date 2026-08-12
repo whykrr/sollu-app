@@ -1,7 +1,7 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Stock Opname">
+            <MainPageHeader title="Stock Opname">
                 <div class="flex items-end gap-2">
                     <button
                         class="btn btn-primary btn-sm"
@@ -15,7 +15,7 @@
                         Mulai Opname Baru
                     </button>
                 </div>
-            </ContainerHeader>
+            </MainPageHeader>
             <Filter :filters="filters" />
         </template>
 
@@ -96,24 +96,7 @@
             />
         </template>
 
-        <OpnameFormPopUp
-            :show="showForm"
-            :opname="selectedItem"
-            @close="closeForm"
-        />
-
-        <OpnameDetailPopUp
-            :show="showDetail"
-            :opname="selectedItem"
-            @close="closeDetail"
-        />
-
-        <FreezeStockPopUp
-            :show="showFreezeModal"
-            description="Pembekuan stok akan memblokir seluruh transaksi persediaan pada outlet yang dipilih selama proses Stock Opname berlangsung."
-            @close="closeFreezeModal"
-        />
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
@@ -128,8 +111,8 @@ import {
     faLock,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import Container from '@/Components/UI/Container.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from './Components/Filter.vue';
@@ -137,9 +120,11 @@ import OpnameFormPopUp from './Components/OpnameFormPopUp.vue';
 import OpnameDetailPopUp from './Components/OpnameDetailPopUp.vue';
 import FreezeStockPopUp from '@/Components/Inventory/FreezeStockPopUp.vue';
 import { useModalStore } from '@/store/notification';
+import { usePopUpStore } from '@/store/popup';
 import { formatDateTimeSimple } from '@/Composable/date.js';
 
 const modalStore = useModalStore();
+const popUpStore = usePopUpStore();
 
 const props = defineProps({
     opnames: {
@@ -167,18 +152,17 @@ const headers = [
 
 import axios from 'axios';
 
-const showForm = ref(false);
 const showDetail = ref(false);
-const showFreezeModal = ref(false);
 const selectedItem = ref(null);
 const isLoading = ref(false);
 
 const openFreezeModal = () => {
-    showFreezeModal.value = true;
-};
-
-const closeFreezeModal = () => {
-    showFreezeModal.value = false;
+    popUpStore.open({
+        title: 'Kelola Pembekuan Stok',
+        description: 'Pembekuan stok akan memblokir seluruh transaksi persediaan pada outlet yang dipilih selama proses Stock Opname berlangsung.',
+        size: 'lg',
+        component: FreezeStockPopUp,
+    });
 };
 
 const statusLabel = (status) => {
@@ -208,7 +192,12 @@ const openForm = async (item = null) => {
             const response = await axios.get(
                 route('inventory.opnames.show', item.id),
             );
-            selectedItem.value = response.data;
+            popUpStore.open({
+                title: 'Mulai / Update Opname',
+                size: 'xl',
+                component: OpnameFormPopUp,
+                props: { opname: response.data }
+            });
         } catch (error) {
             console.error('Failed to load detail', error);
             return;
@@ -216,14 +205,13 @@ const openForm = async (item = null) => {
             isLoading.value = false;
         }
     } else {
-        selectedItem.value = null;
+        popUpStore.open({
+            title: 'Mulai / Update Opname',
+            size: 'xl',
+            component: OpnameFormPopUp,
+            props: { opname: null }
+        });
     }
-    showForm.value = true;
-};
-
-const closeForm = () => {
-    showForm.value = false;
-    selectedItem.value = null;
 };
 
 const openDetail = async (item) => {
@@ -232,18 +220,17 @@ const openDetail = async (item) => {
         const response = await axios.get(
             route('inventory.opnames.show', item.id),
         );
-        selectedItem.value = response.data;
-        showDetail.value = true;
+        popUpStore.open({
+            title: 'Detail Stock Opname',
+            size: 'xl',
+            component: OpnameDetailPopUp,
+            props: { opname: response.data }
+        });
     } catch (error) {
         console.error('Failed to load detail', error);
     } finally {
         isLoading.value = false;
     }
-};
-
-const closeDetail = () => {
-    showDetail.value = false;
-    selectedItem.value = null;
 };
 
 const confirmDelete = (item) => {

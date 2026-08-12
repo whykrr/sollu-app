@@ -1,7 +1,7 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Daftar Shift Kasir" />
+            <MainPageHeader title="Daftar Shift Kasir" />
             <Filter :filters="filters" />
         </template>
 
@@ -22,13 +22,19 @@
                 {{ formatCurrency(item.opening_cash) }}
             </template>
             <template #closing_cash="{ item }">
-                {{ item.status === 'closed' ? formatCurrency(item.closing_cash) : '-' }}
+                {{
+                    item.status === 'closed'
+                        ? formatCurrency(item.closing_cash)
+                        : '-'
+                }}
             </template>
             <template #created_at="{ item }">
                 <span>{{ formatDateTimeSimple(item.created_at) }}</span>
             </template>
             <template #closed_at="{ item }">
-                <span>{{ item.closed_at ? formatDateTimeSimple(item.closed_at) : '-' }}</span>
+                <span>{{
+                    item.closed_at ? formatDateTimeSimple(item.closed_at) : '-'
+                }}</span>
             </template>
             <template #status="{ item }">
                 <span
@@ -62,17 +68,15 @@
                 :total="shifts.total"
             />
         </template>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
-import {
-    faEye,
-} from '@fortawesome/free-solid-svg-icons';
+import { faEye } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { router, usePage } from '@inertiajs/vue3';
-import Container from '@/Components/UI/Container.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from './Components/Filter.vue';
@@ -95,12 +99,27 @@ const props = defineProps({
 });
 
 const headers = [
-    { label: 'Waktu Buka', field: 'created_at', slot: 'created_at', sortable: true },
+    {
+        label: 'Waktu Buka',
+        field: 'created_at',
+        slot: 'created_at',
+        sortable: true,
+    },
     { label: 'Kasir', slot: 'user', sortable: false },
     { label: 'Outlet', slot: 'outlet', sortable: false },
     { label: 'Status', field: 'status', slot: 'status', sortable: true },
-    { label: 'Saldo Awal', field: 'opening_cash', slot: 'opening_cash', sortable: true },
-    { label: 'Saldo Akhir', field: 'closing_cash', slot: 'closing_cash', sortable: true },
+    {
+        label: 'Saldo Awal',
+        field: 'opening_cash',
+        slot: 'opening_cash',
+        sortable: true,
+    },
+    {
+        label: 'Saldo Akhir',
+        field: 'closing_cash',
+        slot: 'closing_cash',
+        sortable: true,
+    },
 ];
 
 const formatStatus = (status) => {

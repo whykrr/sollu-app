@@ -1,16 +1,16 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Daftar Transaksi Penjualan">
+            <MainPageHeader title="Daftar Transaksi Penjualan">
                 <div class="flex items-end gap-2">
                     <button
-                        class="btn btn-outline-main"
+                        class="btn btn-flat btn-sm"
                         @click="exportCsv"
                         v-if="can('transaction.view')"
                         title="Export CSV"
                     >
                         <FontAwesomeIcon :icon="faFileCsv" />
-                        Export
+                        Export CSV
                     </button>
                     <Link
                         :href="route('transactions.sales.invoices.create')"
@@ -21,7 +21,7 @@
                         Tambah Penjualan
                     </Link>
                 </div>
-            </ContainerHeader>
+            </MainPageHeader>
             <Filter :filters="filters" />
         </template>
 
@@ -40,13 +40,25 @@
             </template>
             <template #shift="{ item }">
                 <div class="flex flex-col">
-                    <span class="font-medium">{{ item.shift?.user?.name || '-' }}</span>
-                    <span class="text-xs text-gray-500" v-if="item.channel === 'pos'">POS</span>
-                    <span class="text-xs text-gray-500" v-if="item.channel === 'invoice'">B2B Invoice</span>
+                    <span class="font-medium">{{
+                        item.shift?.user?.name || '-'
+                    }}</span>
+                    <span
+                        class="text-xs text-gray-500"
+                        v-if="item.channel === 'pos'"
+                        >POS</span
+                    >
+                    <span
+                        class="text-xs text-gray-500"
+                        v-if="item.channel === 'invoice'"
+                        >B2B Invoice</span
+                    >
                 </div>
             </template>
             <template #total="{ item }">
-                <span class="font-semibold">{{ formatCurrency(item.total) }}</span>
+                <span class="font-semibold">{{
+                    formatCurrency(item.total)
+                }}</span>
             </template>
             <template #status="{ item }">
                 <span
@@ -93,19 +105,15 @@
                 :total="transactions.total"
             />
         </template>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
-import {
-    faEye,
-    faFileCsv,
-    faPlus,
-} from '@fortawesome/free-solid-svg-icons';
+import { faEye, faFileCsv, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { router, usePage, Link } from '@inertiajs/vue3';
-import Container from '@/Components/UI/Container.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from './Components/Filter.vue';
@@ -128,13 +136,23 @@ const props = defineProps({
 });
 
 const headers = [
-    { label: 'Tanggal', field: 'created_at', slot: 'created_at', sortable: true },
+    {
+        label: 'Tanggal',
+        field: 'created_at',
+        slot: 'created_at',
+        sortable: true,
+    },
     { label: 'No. Struk', field: 'receipt_number', sortable: true },
     { label: 'Pelanggan', slot: 'customer', sortable: false },
     { label: 'Kasir / Channel', slot: 'shift', sortable: false },
     { label: 'Total', field: 'total', slot: 'total', sortable: true },
     { label: 'Status', field: 'status', slot: 'status', sortable: true },
-    { label: 'Status Bayar', field: 'payment_status', slot: 'payment_status', sortable: true },
+    {
+        label: 'Status Bayar',
+        field: 'payment_status',
+        slot: 'payment_status',
+        sortable: true,
+    },
 ];
 
 const formatStatus = (status) => {
@@ -160,13 +178,9 @@ const openDetail = (item) => {
 };
 
 const exportCsv = () => {
-    router.post(
-        route('transactions.sales.export'),
-        props.filters,
-        {
-            preserveScroll: true,
-            preserveState: true,
-        }
-    );
+    router.post(route('transactions.sales.export'), props.filters, {
+        preserveScroll: true,
+        preserveState: true,
+    });
 };
 </script>

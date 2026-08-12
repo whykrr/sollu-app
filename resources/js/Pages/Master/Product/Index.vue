@@ -1,19 +1,23 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Data Produk">
-                <button class="btn btn-flat btn-sm">
+            <MainPageHeader title="Data Produk">
+                <button class="btn btn-flat btn-sm" @click="exportCsv">
+                    <FontAwesomeIcon :icon="faDownload" />
+                    Ekspor CSV
+                </button>
+                <button
+                    class="btn btn-flat btn-sm"
+                    @click="showImportModal = true"
+                >
                     <FontAwesomeIcon :icon="faUpload" />
                     Impor CSV
                 </button>
-                <button
-                    class="btn btn-highlight-main"
-                    @click="router.visit(route('master.products.create'))"
-                >
+                <button class="btn btn-highlight-main" @click="openCreate">
                     <FontAwesomeIcon :icon="faPlus" />
                     Tambah Baru
                 </button>
-            </ContainerHeader>
+            </MainPageHeader>
             <ProductFilter :filters="filters" :categories="categories" />
         </template>
         <Table :headers="headers" :data="products.data" :action="true">
@@ -50,20 +54,44 @@
                 <span v-else class="badge badge-neutral-500">Non-Aktif</span>
             </template>
             <template #actions="{ row }">
-                <button
-                    class="btn btn-highlight-main btn-sm mr-1"
-                    title="Ubah"
-                    @click="router.visit(route('master.products.edit', row.id))"
-                >
-                    <FontAwesomeIcon :icon="faPencil" />
-                </button>
-                <button
-                    class="btn btn-outline-danger btn-sm"
-                    title="Hapus"
-                    @click="archiveProduct(row.id)"
-                >
-                    <FontAwesomeIcon :icon="faTrash" />
-                </button>
+                <div class="flex items-center gap-2 justify-end">
+                    <!-- Dropdown Edit -->
+                    <div class="relative group">
+                        <button class="btn btn-flat btn-sm" title="Ubah Produk">
+                            <FontAwesomeIcon :icon="faPencil" />
+                        </button>
+                        <div
+                            class="absolute right-0 top-8 bg-white border border-slate-200 shadow-lg rounded-lg py-1 z-10 w-48 hidden group-hover:block group-focus-within:block"
+                        >
+                            <button
+                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                                @click="openEditBase(row)"
+                            >
+                                Ubah Info Dasar
+                            </button>
+                            <button
+                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                                @click="openEditPrice(row)"
+                            >
+                                Atur Harga & Outlet
+                            </button>
+                            <button
+                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                                v-if="row.has_variant"
+                                @click="openEditVariant(row)"
+                            >
+                                Atur Varian
+                            </button>
+                        </div>
+                    </div>
+                    <button
+                        class="btn btn-flat btn-sm text-danger"
+                        title="Hapus"
+                        @click="archiveProduct(row.id)"
+                    >
+                        <FontAwesomeIcon :icon="faTrash" />
+                    </button>
+                </div>
             </template>
         </Table>
 
@@ -76,13 +104,21 @@
                 :per-page="products.per_page ?? 20"
             />
         </template>
-    </Container>
+
+        <ImportCsvModal
+            :show="showImportModal"
+            module-name="Produk"
+            :template-url="route('master.products.importTemplate')"
+            :import-url="route('master.products.import')"
+            @close="showImportModal = false"
+        />
+    </MainPage>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
-import Container from '@/Components/UI/Container.vue';
+import { ref, watch, provide, computed } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
+import MainPage from '@/Components/UI/MainPage.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -92,16 +128,55 @@ import {
     faTrash,
     faImage,
     faUpload,
+    faDownload,
 } from '@fortawesome/free-solid-svg-icons';
 import { debounce } from 'lodash';
 import ProductFilter from './Components/ProductFilter.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
+import { usePopUpStore } from '@/store/popup';
+import CreateEdit from './CreateEdit.vue';
+import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue';
+
+const popUpStore = usePopUpStore();
+const page = usePage();
 
 const props = defineProps({
     products: Object,
-    categories: Array,
     filters: Object,
+    categories: Array,
 });
+
+// Provide master data for popup components
+provide(
+    'categories',
+    computed(
+        () =>
+            page.props.rawCategories ||
+            page.props.categories ||
+            props.categories ||
+            [],
+    ),
+);
+provide(
+    'outlets',
+    computed(() => page.props.outlets || []),
+);
+provide(
+    'modifierGroups',
+    computed(() => page.props.modifierGroups || []),
+);
+provide(
+    'inventoryItems',
+    computed(() => page.props.inventoryItems || []),
+);
+provide(
+    'products',
+    computed(() => page.props.baseProducts || []),
+);
+provide(
+    'uoms',
+    computed(() => page.props.uoms || []),
+);
 
 const headers = [
     { label: 'Foto', field: 'image', slot: 'image', sortable: false },
@@ -119,6 +194,7 @@ const headers = [
 ];
 
 const search = ref('');
+const showImportModal = ref(false);
 
 watch(
     search,
@@ -147,5 +223,73 @@ const archiveProduct = (id) => {
     if (confirm('Yakin ingin mengarsipkan produk ini?')) {
         router.delete(route('master.products.destroy', id));
     }
+};
+
+const exportCsv = () => {
+    router.get(
+        route('master.products.export', props.filters),
+        {},
+        {
+            preserveScroll: true,
+            preserveState: true,
+        },
+    );
+};
+
+// Wizard configurations for Popup
+const openCreate = () => {
+    popUpStore.open({
+        title: 'Tambah Produk',
+        size: 'xl',
+        component: CreateEdit,
+        props: {
+            initialStep: 0,
+            editMode: false,
+            targetStepId: 'basic',
+            categories,
+        },
+    });
+};
+
+const openEditBase = (row) => {
+    popUpStore.open({
+        title: 'Ubah Info Dasar',
+        size: 'xl',
+        component: CreateEdit,
+        props: {
+            initialStep: 0,
+            editMode: true,
+            targetStepId: 'basic',
+            product: row,
+        },
+    });
+};
+
+const openEditPrice = (row) => {
+    popUpStore.open({
+        title: 'Atur Harga & Outlet',
+        size: 'xl',
+        component: CreateEdit,
+        props: {
+            initialStep: 2,
+            editMode: true,
+            targetStepId: 'pricing',
+            product: row,
+        },
+    });
+};
+
+const openEditVariant = (row) => {
+    popUpStore.open({
+        title: 'Atur Varian',
+        size: 'xl',
+        component: CreateEdit,
+        props: {
+            initialStep: 1,
+            editMode: true,
+            targetStepId: 'variant',
+            product: row,
+        },
+    });
 };
 </script>

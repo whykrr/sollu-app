@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <MainPage>
         <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-4">
                 <Card title="Basic">
@@ -66,7 +66,7 @@
                             <label for="name_floating2">Name Invalid</label>
                         </div>
                         <div class="form-feedback text-danger">Invalid !</div>
-                        
+
                         <div class="form-floating is-valid">
                             <input
                                 id="name_floating3"
@@ -167,7 +167,9 @@
                             />
                         </div>
                         <div>
-                            <label for="example_file" class="label">Input File Regular</label>
+                            <label for="example_file" class="label"
+                                >Input File Regular</label
+                            >
                             <input
                                 id="example_file"
                                 type="file"
@@ -388,7 +390,9 @@
                             </div>
                         </div>
                         <div>
-                            <label for="form_group_btn" class="label">Group Button</label>
+                            <label for="form_group_btn" class="label"
+                                >Group Button</label
+                            >
                             <div class="form-group">
                                 <button class="btn btn-main">
                                     <FontAwesomeIcon :icon="faSearch" />
@@ -405,12 +409,12 @@
                 </Card>
             </div>
         </div>
-    </Container>
+    </MainPage>
 </template>
 <script setup>
 import Switch from '@/Components/Form/Switch.vue';
 import Card from '@/Components/UI/Card/Card.vue';
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import { faArrowRight, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useForm } from '@inertiajs/vue3';

@@ -1,6 +1,6 @@
 <template>
-    <PopUpPage :class="{ show: show }" :title="title" @close="close">
-        <div class="space-y-3">
+    <div>
+        <div class="space-y-2">
             <p v-if="description" class="text-sm text-gray-600">
                 {{ description }}
             </p>
@@ -12,7 +12,7 @@
                 Memuat data outlet...
             </div>
 
-            <div v-else class="space-y-3">
+            <div v-else class="space-y-2">
                 <div
                     v-if="hasFrozenOutlet"
                     class="bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm p-3 rounded-lg flex items-start gap-2"
@@ -87,7 +87,7 @@
             </div>
         </div>
 
-        <template #footer>
+        <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
                 class="btn btn-flat"
@@ -96,14 +96,15 @@
             >
                 Tutup
             </button>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
 
     <Modal
-        :class="{ show: showConfirm, hide: !showConfirm }"
+        :show="showConfirm"
         :title="confirmTitle"
         @close="closeConfirm"
     >
+
         <p class="text-gray-600">{{ confirmMessage }}</p>
         <template #footer>
             <button type="button" class="btn btn-flat" @click="closeConfirm" :disabled="isProcessing">
@@ -123,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import {
     faLock,
@@ -131,16 +132,11 @@ import {
     faInfoCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import Modal from '@/Components/Notifications/Modal.vue';
 import Switch from '@/Components/Form/Switch.vue';
 import { useOutlets } from '@/Composable/useOutlets.js';
 
 const props = defineProps({
-    show: {
-        type: Boolean,
-        default: false,
-    },
     title: {
         type: String,
         default: 'Kelola Pembekuan Stok',
@@ -169,14 +165,12 @@ const hasFrozenOutlet = computed(() => {
     return outlets.value.some((o) => o.is_stock_frozen);
 });
 
-watch(
-    () => props.show,
-    (newVal) => {
-        if (newVal) {
-            fetchOutlets();
-        }
-    },
-);
+const isMounted = ref(false);
+
+onMounted(() => {
+    isMounted.value = true;
+    fetchOutlets();
+});
 
 const close = () => {
     emit('close');

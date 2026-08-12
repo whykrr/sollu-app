@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <MainPage>
         <div class="flex flex-col gap-4">
             <Card title="Button">
                 <div class="flex flex-row gap-1">
@@ -133,11 +133,11 @@
                 </div>
             </Card>
         </div>
-    </Container>
+    </MainPage>
 </template>
 <script setup>
 import Card from '@/Components/UI/Card/Card.vue';
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 </script>

@@ -36,6 +36,7 @@
                 <div
                     v-for="outlet in outlets"
                     :key="outlet.id"
+                    v-show="outletStatusMap[outlet.id]"
                     class="flex items-center gap-3"
                 >
                     <div class="w-1/3 text-sm font-medium text-slate-600">
@@ -109,6 +110,7 @@
                             <div
                                 v-for="outlet in outlets"
                                 :key="outlet.id"
+                                v-show="outletStatusMap[outlet.id]"
                                 class="flex items-center gap-2"
                             >
                                 <span
@@ -143,6 +145,7 @@ import TextField from '@/Components/Form/TextField.vue';
 const form = inject('productForm');
 const isEdit = inject('isEdit');
 const outlets = inject('outlets');
+const outletStatusMap = inject('outletStatusMap');
 const outletPriceMap = inject('outletPriceMap');
 const variantOutletPriceMap = inject('variantOutletPriceMap');
 const customizeVariantPrices = inject('customizeVariantPrices');

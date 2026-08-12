@@ -1,12 +1,7 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        title="Form Mutasi Stok"
-        size="xl"
-        @close="close"
-    >
+    <div>
         <form @submit.prevent="submit" class="space-y-2">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <DropdownField
                     id="from_outlet_id"
                     v-model="form.from_outlet_id"
@@ -38,7 +33,7 @@
                 :feedback="form.errors.notes"
             />
 
-            <div class="mt-3 border-t pt-2">
+            <div class="mt-2 border-t pt-2">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-lg font-semibold">Item yang Ditransfer</h3>
                     <div class="flex gap-2 items-end">
@@ -98,11 +93,11 @@
                     Belum ada item ditambahkan. Silakan cari atau muat item.
                 </div>
 
-                <div v-else class="space-y-2 max-h-96 overflow-y-auto mt-4">
+                <div v-else class="space-y-2 max-h-96 overflow-y-auto mt-2">
                     <div
                         v-for="(item, index) in form.items"
                         :key="item.inventory_item_id"
-                        class="flex gap-4 items-center border p-2 rounded-lg bg-white"
+                        class="flex gap-2 items-center border p-2 rounded-lg bg-white"
                     >
                         <div class="w-8 text-center text-gray-500 font-bold">
                             {{ index + 1 }}
@@ -154,7 +149,7 @@
             </div>
         </form>
 
-        <template #footer>
+        <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex justify-between w-full">
                 <div class="text-gray-500 pt-2 font-medium">
                     Total Item: {{ form.items.length }}
@@ -178,15 +173,15 @@
                     </button>
                 </div>
             </div>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
+import { usePopUpStore } from '@/store/popup';
 import NumberField from '@/Components/Form/NumberField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
@@ -195,12 +190,13 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const props = defineProps({
-    show: Boolean,
     outlets: Array,
     transferData: Object, // For editing
 });
 
-const emit = defineEmits(['close', 'refresh']);
+const emit = defineEmits(['refresh']);
+const popUpStore = usePopUpStore();
+const isMounted = ref(false);
 
 const form = useForm({
     from_outlet_id: '',
@@ -229,38 +225,31 @@ const toOutletOptions = computed(() => {
         }));
 });
 
-watch(
-    () => form.from_outlet_id,
-    (newVal) => {
-        if (!newVal) {
-            form.items = [];
-        }
-    },
-);
+watch(() => form.from_outlet_id, (newVal) => {
+    if (!newVal) {
+        form.items = [];
+    }
+});
 
-watch(
-    () => props.show,
-    (isOpen) => {
-        if (isOpen) {
-            form.reset();
-            form.clearErrors();
+onMounted(() => {
+    isMounted.value = true;
+    form.reset();
+    form.clearErrors();
 
-            if (props.transferData) {
-                form.from_outlet_id = props.transferData.from_outlet_id;
-                form.to_outlet_id = props.transferData.to_outlet_id;
-                form.notes = props.transferData.notes;
-                form.items = props.transferData.items.map((i) => ({
-                    inventory_item_id: i.inventory_item_id,
-                    name: i.inventory_item?.name || '-',
-                    sku: i.inventory_item?.sku || '-',
-                    uom: i.inventory_item?.uom?.name || '-',
-                    system_qty: i.current_stock || 0, // Ideally fetched from backend, but fallback to 0
-                    qty: i.qty,
-                }));
-            }
-        }
-    },
-);
+    if (props.transferData) {
+        form.from_outlet_id = props.transferData.from_outlet_id;
+        form.to_outlet_id = props.transferData.to_outlet_id;
+        form.notes = props.transferData.notes;
+        form.items = props.transferData.items.map((i) => ({
+            inventory_item_id: i.inventory_item_id,
+            name: i.inventory_item?.name || '-',
+            sku: i.inventory_item?.sku || '-',
+            uom: i.inventory_item?.uom?.name || '-',
+            system_qty: i.current_stock || 0, // Ideally fetched from backend, but fallback to 0
+            qty: i.qty,
+        }));
+    }
+});
 
 const addItemFromSearch = (item) => {
     const exists = form.items.find((i) => i.inventory_item_id === item.id);
@@ -282,7 +271,7 @@ const removeItem = (index) => {
 
 const close = () => {
     form.clearErrors();
-    emit('close');
+    popUpStore.close();
 };
 
 const submit = () => {

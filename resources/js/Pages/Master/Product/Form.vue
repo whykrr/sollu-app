@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
             <h2 class="text-2xl font-bold">
                 <span v-if="!isEdit">Membuat</span>
@@ -90,13 +90,13 @@
                 </div>
             </div>
         </template>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
 import { ref, computed, watch, provide } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
     faArrowLeft,

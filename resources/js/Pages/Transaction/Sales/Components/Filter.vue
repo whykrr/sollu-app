@@ -1,33 +1,41 @@
 <template>
     <div class="flex items-center gap-2">
-        <FilterSearch v-model="filterForm.search" placeholder="Cari No. Struk atau Pelanggan" />
+        <FilterSearch
+            v-model="filterForm.search"
+            placeholder="Cari No. Struk atau Pelanggan"
+        />
 
-        <button class="btn btn-outline-main btn-sm" @click="openFilter">
+        <button class="btn btn-flat btn-sm" @click="openFilter">
             <FontAwesomeIcon :icon="faSliders" />
             Filter
         </button>
 
         <!-- Active Filters Display -->
-        <FilterBadge 
+        <FilterBadge
             v-if="filterForm.status"
             label="Status"
             :value="filterForm.status"
             @remove="removeFilter('status')"
         />
-        <FilterBadge 
+        <FilterBadge
             v-if="filterForm.channel"
             label="Channel"
             :value="filterForm.channel"
             @remove="removeFilter('channel')"
         />
-        <FilterBadge 
+        <FilterBadge
             v-if="filterForm.payment_status"
             label="Status Bayar"
             :value="filterForm.payment_status"
             @remove="removeFilter('payment_status')"
         />
 
-        <FilterModal :show="showFilter" @close="closeFilter" @apply="applyFilter" @reset="resetFilter">
+        <FilterModal
+            :show="showFilter"
+            @close="closeFilter"
+            @apply="applyFilter"
+            @reset="resetFilter"
+        >
             <div class="space-y-4">
                 <DropdownField
                     label="Status Transaksi"
@@ -112,7 +120,11 @@ const updateQuery = () => {
 
     // Clean up empty params
     Object.keys(query).forEach((key) => {
-        if (query[key] === '' || query[key] === null || query[key] === undefined) {
+        if (
+            query[key] === '' ||
+            query[key] === null ||
+            query[key] === undefined
+        ) {
             delete query[key];
         }
     });
@@ -128,7 +140,7 @@ watch(
     () => filterForm.search,
     debounce(() => {
         updateQuery();
-    }, 500)
+    }, 500),
 );
 
 const openFilter = () => {

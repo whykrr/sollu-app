@@ -104,6 +104,8 @@ Route::middleware('auth:business')->group(function () {
         Route::get('/outlets', [\App\Http\Controllers\API\OutletController::class, 'index'])->name('outlets.index');
     });
 
+    Route::get('/exports/download', [\App\Http\Controllers\ExportDownloadController::class, 'download'])->name('exports.download');
+
     Route::get('/', OverviewController::class)->name('overview');
 
     require __DIR__ . '/web/masters.php';
@@ -113,12 +115,6 @@ Route::middleware('auth:business')->group(function () {
     require __DIR__ .'/web/transactions.php';
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');
-
-
-    Route::get('/preview-mail', function () {
-        $invoice = \App\Models\SubscriptionInvoice::first(); // contoh data
-        // return new InvoiceMail($invoice);        // akan render Blade view email
-    });
 });
 
 /*

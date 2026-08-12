@@ -1,10 +1,5 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        title="Mulai / Update Opname"
-        size="xl"
-        @close="close"
-    >
+    <div>
         <form @submit.prevent="confirmSubmit('submit')" class="space-y-2">
             <div
                 v-if="opname"
@@ -19,9 +14,8 @@
                 </div>
             </div>
 
-            <div v-if="!opname" class="grid grid-cols-1 gap-4">
+            <div v-if="!opname" class="grid grid-cols-1 gap-2">
                 <AsyncOutletDropdown
-                    v-if="show"
                     id="outlet_id"
                     v-model="form.outlet_id"
                     label="Pilih Outlet"
@@ -108,7 +102,7 @@
                     <div
                         v-for="(item, index) in form.items"
                         :key="item.inventory_item_id"
-                        class="flex gap-4 items-center border p-2 rounded-lg bg-white"
+                        class="flex gap-2 items-center border p-2 rounded-lg bg-white"
                     >
                         <div class="w-8 text-center text-gray-500 font-bold">
                             {{ index + 1 }}
@@ -190,7 +184,7 @@
             </div>
         </form>
 
-        <template #footer>
+        <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
                 class="btn btn-flat"
@@ -217,8 +211,8 @@
             >
                 Ajukan Persetujuan
             </button>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
     <Modal
         :class="{ show: showConfirm, hide: !showConfirm }"
         :title="confirmTitle"
@@ -243,10 +237,9 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';
@@ -256,11 +249,11 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import NumberField from '@/Components/Form/NumberField.vue';
 
 const props = defineProps({
-    show: Boolean,
     opname: Object,
 });
 
 const emit = defineEmits(['close']);
+const isMounted = ref(false);
 
 const form = useForm({
     outlet_id: '',
@@ -278,8 +271,7 @@ const onOutletsLoaded = (outlets) => {
     if (
         !props.opname &&
         !form.outlet_id &&
-        outlets.length === 1 &&
-        props.show
+        outlets.length === 1
     ) {
         form.outlet_id = outlets[0].id;
     }
@@ -290,34 +282,30 @@ const confirmTitle = ref('');
 const confirmMessage = ref('');
 const confirmActionType = ref('');
 
-watch(
-    () => props.show,
-    (isOpen) => {
-        if (isOpen) {
-            currentPage.value = 1;
-            hasMoreItems.value = false;
-            
-            if (props.opname) {
-                form.outlet_id = props.opname.outlet_id;
-                form.notes = props.opname.notes || '';
-                form.items = props.opname.items.map((i) => ({
-                    inventory_item_id: i.inventory_item_id,
-                    name: i.inventory_item?.name,
-                    sku: i.inventory_item?.sku || '-',
-                    uom: i.inventory_item?.uom?.name || '-',
-                    system_qty: i.system_qty_formatted,
-                    actual_qty: i.actual_qty_formatted,
-                }));
-            } else {
-                form.reset();
-                form.items = [];
-                if (loadedOutlets.value.length === 1) {
-                    form.outlet_id = loadedOutlets.value[0].id;
-                }
-            }
+onMounted(() => {
+    isMounted.value = true;
+    currentPage.value = 1;
+    hasMoreItems.value = false;
+    
+    if (props.opname) {
+        form.outlet_id = props.opname.outlet_id;
+        form.notes = props.opname.notes || '';
+        form.items = props.opname.items.map((i) => ({
+            inventory_item_id: i.inventory_item_id,
+            name: i.inventory_item?.name,
+            sku: i.inventory_item?.sku || '-',
+            uom: i.inventory_item?.uom?.name || '-',
+            system_qty: i.system_qty_formatted,
+            actual_qty: i.actual_qty_formatted,
+        }));
+    } else {
+        form.reset();
+        form.items = [];
+        if (loadedOutlets.value.length === 1) {
+            form.outlet_id = loadedOutlets.value[0].id;
         }
-    },
-);
+    }
+});
 
 const addItemFromSearch = (item) => {
     const exists = form.items.find((i) => i.inventory_item_id === item.id);

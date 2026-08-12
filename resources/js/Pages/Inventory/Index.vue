@@ -1,7 +1,7 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Inventories" />
+            <MainPageHeader title="Inventories" />
         </template>
         <div class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -76,15 +76,15 @@
                 </div>
             </div>
         </div>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import Table from '@/Components/Tables/Table.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 
 const props = defineProps({
     stockSummary: {

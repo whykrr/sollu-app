@@ -17,7 +17,7 @@ class SalesController extends Controller
 
         $filters = $request->only(['search', 'channel', 'status', 'payment_status', 'start_date', 'end_date', 'sort', 'direction']);
 
-        $sortField     = $filters['sort']          ?? 'created_at';
+        $sortField     = $filters['sort']      ?? 'created_at';
         $sortDirection = $filters['direction'] ?? 'desc';
 
         // Wait, is business_id a thing on User? It's typically a trait. We will see in the Job.
@@ -27,7 +27,7 @@ class SalesController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return Inertia::render('Transaction/Index', [
+        return Inertia::render('Transaction/Sales/Index', [
             'transactions' => $transactions,
             'filters'      => $filters,
         ]);
@@ -45,7 +45,7 @@ class SalesController extends Controller
             'payments.paymentMethod',
         ]);
 
-        return Inertia::render('Transaction/Show', [
+        return Inertia::render('Transaction/Sales/Show', [
             'transaction' => $transaction,
         ]);
     }

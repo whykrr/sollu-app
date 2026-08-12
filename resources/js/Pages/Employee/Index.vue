@@ -1,19 +1,18 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Data Pegawai">
+            <MainPageHeader title="Data Pegawai">
                 <button class="btn btn-secondary btn-sm">
                     <FontAwesomeIcon :icon="faUpload" />
                     Impor CSV
                 </button>
-                <button class="btn btn-highlight-main" @click="showForm = true">
+                <button class="btn btn-highlight-main" @click="openForm()">
                     <FontAwesomeIcon :icon="faPlus" />
                     Tambah Baru
                 </button>
-            </ContainerHeader>
+            </MainPageHeader>
             <Filter :filters="params" :roles="roles" />
         </template>
-        <Form :show="showForm" :user :roles @close="closeForm" />
 
         <Table
             :headers="tableHeaders"
@@ -99,14 +98,14 @@
                 :per-page="users.per_page ?? 20"
             />
         </template>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from '@/Pages/Employee/Components/Filter.vue';
 import { Link, router } from '@inertiajs/vue3';
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import Table from '@/Components/Tables/Table.vue';
 import { template } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -115,7 +114,10 @@ import { formatDateTimeSimple } from '@/Composable/date';
 import { ref } from 'vue';
 import Form from '@/Pages/Employee/Components/Form.vue';
 import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
+import { usePopUpStore } from '@/store/popup';
+
+const popUpStore = usePopUpStore();
 
 const props = defineProps({
     users: Object,
@@ -124,10 +126,18 @@ const props = defineProps({
     user: Object,
 });
 
-const showForm = ref(false);
+const openForm = (user = null) => {
+    popUpStore.open({
+        title: user ? 'Detail karyawan' : 'Tambahkan karyawan baru',
+        subTitle: user ? '#' + user.email : null,
+        size: 'lg',
+        component: Form,
+        props: { user, roles: props.roles },
+    });
+};
 
 if (props.user) {
-    showForm.value = true;
+    openForm(props.user);
 }
 
 const tableHeaders = [
@@ -148,13 +158,12 @@ const getDetail = (id) => {
         preserveState: true,
         preserveScroll: true,
         onSuccess: (page) => {
-            showForm.value = true;
+            openForm(page.props.user);
         },
     });
 };
 
 const closeForm = () => {
-    showForm.value = false;
     if (props.user) {
         router.get(
             route('employees.index'),

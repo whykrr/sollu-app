@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <MainPage>
         <div class="grid grid-cols-3 gap-2 min-h-full">
             <div class="col-span-2 bg-white rounded-lg p-2 space-y-1">
                 <div class="font-semibold">Detail</div>
@@ -104,10 +104,10 @@
                 </button>
             </div>
         </template>
-    </Container>
+    </MainPage>
 </template>
 <script setup>
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import TextField from '@/Components/Form/TextField.vue';
 import EmailField from '@/Components/Form/EmailField.vue';

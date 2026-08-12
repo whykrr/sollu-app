@@ -1,12 +1,6 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        title="Purchase Order"
-        size="lg"
-        @close="close"
-    >
-        <form @submit.prevent="submit" class="space-y-2">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form @submit.prevent="submit" class="space-y-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <DropdownField
                     id="supplier_id"
                     v-model="form.supplier_id"
@@ -62,11 +56,11 @@
             />
 
             <!-- Item Section -->
-            <div class="mt-6 border-t pt-4">
-                <h3 class="text-lg font-semibold mb-2">Pilih Barang</h3>
+        <div class="mt-4 border-t pt-2">
+            <h3 class="text-lg font-semibold mb-2">Pilih Barang</h3>
 
-                <!-- Search Input -->
-                <div class="mb-4">
+            <!-- Search Input -->
+            <div class="mb-2">
                     <input
                         type="text"
                         v-model="searchQuery"
@@ -134,7 +128,8 @@
                     Belum ada item ditambahkan.
                 </div>
 
-                <div v-else class="space-y-3">
+            <div
+                v-else class="space-y-2">
                     <div
                         v-for="(item, index) in form.items"
                         :key="index"
@@ -200,35 +195,34 @@
                     </div>
                 </div>
             </div>
-        </form>
+    </form>
 
-        <template #footer>
-            <button
-                type="button"
-                class="btn btn-flat"
-                @click="close"
-                :disabled="form.processing"
-            >
-                Batal
-            </button>
-            <button
-                type="button"
-                class="btn btn-main"
-                @click="submit"
-                :disabled="form.processing || form.items.length === 0"
-            >
-                Simpan PO
-            </button>
-        </template>
-    </PopUpPage>
+    <Teleport v-if="isMounted" to="#popUpFooter">
+        <button
+            type="button"
+            class="btn btn-flat"
+            @click="close"
+            :disabled="form.processing"
+        >
+            Batal
+        </button>
+        <button
+            type="button"
+            class="btn btn-main"
+            @click="submit"
+            :disabled="form.processing || form.items.length === 0"
+        >
+            Simpan PO
+        </button>
+    </Teleport>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { debounce } from 'lodash';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
+import { usePopUpStore } from '@/store/popup';
 import TextField from '@/Components/Form/TextField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
@@ -236,11 +230,9 @@ import TextareaField from '@/Components/Form/TextareaField.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
 
+const popUpStore = usePopUpStore();
+
 const props = defineProps({
-    show: {
-        type: Boolean,
-        default: false,
-    },
     purchase: {
         type: Object,
         default: null,
@@ -255,7 +247,10 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['close']);
+const isMounted = ref(false);
+onMounted(() => {
+    isMounted.value = true;
+});
 
 const form = useForm({
     supplier_id: '',
@@ -388,7 +383,7 @@ watch(
 
 const close = () => {
     form.clearErrors();
-    emit('close');
+    popUpStore.close();
 };
 
 const submit = () => {

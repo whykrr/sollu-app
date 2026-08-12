@@ -1,9 +1,11 @@
 # PRD — Inventory - Bahan Baku
 
 ## 1. Overview
+
 Inventory Management merupakan modul yang bertanggung jawab untuk mengelola persediaan barang pada setiap outlet bisnis. Modul ini memastikan jumlah stok selalu akurat berdasarkan aktivitas operasional seperti pembelian, penjualan, penyesuaian stok, dan transfer stok antar outlet. Pada fase MVP, fokus utama modul ini adalah menyediakan kontrol stok yang sederhana, akurat, dan mudah digunakan oleh bisnis retail, F&B, maupun service yang menjual produk fisik. Modul Inventory terintegrasi dengan Product Management, Purchasing, dan Point of Sale sehingga seluruh pergerakan stok dapat tercatat secara otomatis.
 
 ## 2. Requirements
+
 - **Outlet-Scoped Inventory:** Seluruh data inventory wajib memiliki `outlet_id`. Setiap outlet memiliki stok independen sehingga perpindahan stok antar outlet harus melalui mekanisme transfer. Ini merupakan prinsip desain utama yang sejalan dengan PRD Outlet Management.
 - **Multi Inventory Type:** Mendukung dua jenis inventory item — `raw_material` (bahan baku untuk F&B/recipe-based) dan `variant_sku` (varian produk untuk retail/direct sales). Keduanya dikelola dalam satu modul inventory terpusat.
 - **Stock Ledger (Append-Only):** Semua pergerakan stok dicatat ke dalam `inventory_movements` sebagai ledger append-only. Tidak boleh ada overwrite movement lama. Current stock dihitung berdasarkan akumulasi movement.
@@ -21,36 +23,41 @@ Inventory Management merupakan modul yang bertanggung jawab untuk mengelola pers
 - **Integrasi Product Management:** Inventory behavior mengikuti product behavior (bukan industry hardcoded). Product dengan `has_recipe=true` → deduct ingredients. Product dengan `has_variant=true` → deduct variant SKU. Product type `service` → no stock. Product type `bundle` → deduct child items.
 
 ## 3. Core Features
+
 - **Raw Material Management (CRUD):** Mengelola data bahan baku (raw material) yang belum ter-link ke produk manapun. Setiap raw material adalah `inventory_item` dengan `item_type=raw_material`. Mendukung input nama, SKU, barcode, satuan (UOM), dan flag `track_inventory`.
 - **Supplier Management (CRUD):** Mengelola data supplier/pemasok. Informasi yang disimpan: nama, kontak (telepon, email), alamat, dan catatan. Satu supplier dapat memasok banyak jenis inventory item.
 - **Purchase Order (PO):** Merchant membuat purchase order ke supplier dengan daftar item dan quantity yang dipesan. PO memiliki status: `draft` → `ordered` → `partial_received` → `received` → `cancelled`. Saat barang diterima (receive), sistem otomatis membuat movement `purchase` dan menambah stok.
-  - **Receive Partial:** Mendukung penerimaan bertahap — satu PO bisa diterima dalam beberapa kali pengiriman.
-  - **Purchase Price:** Setiap item yang diterima dicatat purchase price-nya untuk keperluan kalkulasi HPP (FIFO/Average Cost).
+    - **Receive Partial:** Mendukung penerimaan bertahap — satu PO bisa diterima dalam beberapa kali pengiriman.
+    - **Purchase Price:** Setiap item yang diterima dicatat purchase price-nya untuk keperluan kalkulasi HPP (FIFO/Average Cost).
 - **Inventory Movement Ledger:** Mencatat semua pergerakan stok secara append-only. Setiap movement menyimpan: `qty_change`, `stock_before`, `stock_after`, `movement_type`, `reference_id/type`, `purchase_price`, `description`, dan `created_by`.
 - **Stock Transfer Antar Outlet:** Transfer stok dari satu outlet ke outlet lain. Flow: Request → Approval → Transit → Receive. Saat request diapprove dan dikirim, stok outlet asal berkurang (`transfer_out`). Saat outlet tujuan menerima, stok bertambah (`transfer_in`).
-  - **Approval Workflow:** Transfer memerlukan approval dari user yang memiliki permission `inventory.transfer.approve`.
-  - **Transfer Items:** Setiap transfer memiliki daftar item beserta quantity yang ditransfer.
+    - **Approval Workflow:** Transfer memerlukan approval dari user yang memiliki permission `inventory.transfer.approve`.
+    - **Transfer Items:** Setiap transfer memiliki daftar item beserta quantity yang ditransfer.
 - **Stock Opname (Stock Taking):** Proses pengecekan fisik stok. Merchant menginput quantity fisik per item, sistem membandingkan dengan stok sistem, lalu menghasilkan adjustment otomatis untuk selisih.
-  - **Approval Workflow:** Hasil opname memerlukan approval sebelum adjustment diterapkan.
-  - **Opname Period:** Saat opname berlangsung, stok item yang sedang diopname di-lock untuk mencegah movement lain yang bisa mengganggu akurasi penghitungan.
+    - **Approval Workflow:** Hasil opname memerlukan approval sebelum adjustment diterapkan.
+    - **Opname Period:** Saat opname berlangsung, stok item yang sedang diopname di-lock untuk mencegah movement lain yang bisa mengganggu akurasi penghitungan.
 - **Stock Adjustment Manual:** Koreksi stok manual dengan wajib memilih alasan (`waste`, `damaged`, `expired`, `correction`, `other`). Setiap adjustment tercatat sebagai movement dengan deskripsi alasan.
 - **Inventory Valuation (FIFO & Average Cost):** Menghitung HPP berdasarkan metode yang dipilih merchant per outlet. FIFO: barang yang masuk pertama dianggap keluar pertama. Average Cost: HPP dihitung dari rata-rata tertimbang seluruh purchase price.
 - **Low Stock Alert & Dashboard:** Setiap inventory item dapat diatur `minimum_stock` per outlet. Dashboard menampilkan: daftar item dengan stok di bawah minimum, item out of stock, ringkasan total item tracked, dan total inventory value.
 - **Inventory Report:** Laporan pergerakan stok per item, per outlet, per periode. Mendukung filter by movement type, date range, dan item. Menampilkan stock movement timeline secara kronologis.
 
 ## 4. User Flow
+
 **Pengelolaan Bahan Baku:**
+
 1. Admin masuk ke menu **Inventory > Bahan Baku** dan melihat daftar bahan baku yang sudah terdaftar.
 2. Admin klik **Tambah Bahan Baku** dan mengisi informasi: nama, SKU (opsional), barcode (opsional), satuan (UOM), serta flag track inventory.
 3. Sistem menyimpan data sebagai `inventory_item` dengan `item_type=raw_material` dan membuat record stok awal per outlet yang aktif.
 4. Admin dapat **Edit** atau **Hapus** (soft delete) bahan baku dari daftar.
 
 **Pengelolaan Supplier:**
+
 1. Admin masuk ke menu **Inventory > Supplier** dan melihat daftar supplier.
 2. Admin klik **Tambah Supplier** dan mengisi: nama supplier, telepon, email, alamat, dan catatan.
 3. Sistem menyimpan data supplier. Admin dapat mengedit atau menghapus supplier.
 
 **Pembelian / Purchase Order:**
+
 1. Admin masuk ke menu **Inventory > Pembelian** dan klik **Buat PO Baru**.
 2. Admin memilih **Supplier** dari daftar dan memilih **Outlet** tujuan penerimaan.
 3. Admin menambahkan item-item yang dipesan beserta **quantity** dan **harga beli** per item.
@@ -61,6 +68,7 @@ Inventory Management merupakan modul yang bertanggung jawab untuk mengelola pers
 8. Jika semua item diterima penuh, status PO berubah menjadi `received`. Jika sebagian, status berubah menjadi `partial_received`.
 
 **Transfer Stok Antar Outlet:**
+
 1. Admin pada Outlet A masuk ke menu **Inventory > Transfer** dan klik **Buat Transfer**.
 2. Admin memilih **Outlet Tujuan**, lalu menambahkan item dan quantity yang akan ditransfer.
 3. Admin submit transfer request. Sistem menyimpan dengan status `pending`.
@@ -71,6 +79,7 @@ Inventory Management merupakan modul yang bertanggung jawab untuk mengelola pers
 8. Sistem membuat movement `transfer_in` pada Outlet B (stok bertambah). Status transfer berubah menjadi `completed`.
 
 **Stock Opname:**
+
 1. Admin masuk ke menu **Inventory > Stock Opname** dan klik **Mulai Opname**.
 2. Admin memilih kategori item atau semua item untuk diopname di outlet aktif.
 3. Sistem menampilkan daftar item beserta **stok sistem**. Admin menginput **stok fisik** untuk setiap item.
@@ -79,16 +88,19 @@ Inventory Management merupakan modul yang bertanggung jawab untuk mengelola pers
 6. Setelah diapprove, sistem membuat movement `opname` untuk setiap item yang memiliki selisih, menyesuaikan stok sistem dengan stok fisik.
 
 **Adjustment Stok Manual:**
+
 1. Admin masuk ke menu **Inventory > Penyesuaian** dan klik **Buat Penyesuaian**.
 2. Admin memilih item, menginput **quantity penyesuaian** (positif atau negatif), memilih **alasan** (waste/damaged/expired/correction/other), dan mengisi deskripsi.
 3. Sistem membuat movement `adjustment` dan memperbarui stok item di outlet aktif.
 
 **Dashboard & Alert:**
+
 1. Admin masuk ke **Dashboard Inventory** dan melihat ringkasan: total item tracked, total inventory value, item low stock, dan item out of stock.
 2. Item dengan stok di bawah `minimum_stock` ditampilkan dalam alert card berwarna kuning/merah.
 3. Admin dapat klik item untuk melihat **Stock Movement Timeline** — riwayat kronologis semua pergerakan stok item tersebut.
 
 ## 5. Architecture
+
 Modul Inventory mengikuti pendekatan **Modular Monolith** yang sudah menjadi arsitektur utama aplikasi. Backend Laravel bertindak sebagai pengelola logika bisnis inventory, sedangkan Frontend Vue.js merender interface melalui Inertia.js. Semua inventory data bersifat **outlet-scoped** — setiap query dan mutation harus memfilter berdasarkan `outlet_id` dari outlet aktif user (menggunakan trait `HasOutlet` dan `HasBusiness`). Pergerakan stok menggunakan prinsip **append-only ledger** — tidak ada movement yang di-overwrite, dan `current_stock` pada `inventory_items` berfungsi sebagai snapshot yang diupdate setiap kali ada movement baru.
 
 ```mermaid
@@ -136,9 +148,11 @@ flowchart TD
 ```
 
 ## 6. Database Schema
+
 Skema database dirancang untuk mendukung inventory outlet-scoped dengan append-only ledger. Tabel yang sudah ada (`inventory_items`, `inventory_movements`) akan dimodifikasi (penambahan `outlet_id`), dan tabel baru ditambahkan untuk supplier, purchasing, transfer, adjustment, dan opname.
 
 **Daftar Tabel:**
+
 - `inventory_items` (**MODIFY**): Menambahkan `outlet_id` agar stok bersifat outlet-scoped. Menambahkan `minimum_stock` untuk low stock alert, dan `uom_id` untuk satuan. Setiap kombinasi product/variant + outlet menghasilkan satu record.
 - `inventory_movements` (**MODIFY**): Menambahkan movement type baru (`transfer_in`, `transfer_out`, `waste`, `opname`). Menambahkan `outlet_id` agar setiap movement tercatat per outlet.
 - `suppliers` (**NEW**): Menyimpan data supplier/pemasok per business.
@@ -322,9 +336,10 @@ erDiagram
 ```
 
 ## 7. Tech Stack
+
 Berdasarkan tech stack yang sudah digunakan pada project dan kebutuhan spesifik modul inventory:
 
-- **Frontend:** **Vue 3** (Composition API dengan `<script setup>`) + **Tailwind CSS v4** (menggunakan custom color tokens yang sudah dikonfigurasi). Komponen mengikuti pola Container → ContainerHeader + Filter + Table + Pagination. Form menggunakan PopUpPage, konfirmasi menggunakan Modal.
+- **Frontend:** **Vue 3** (Composition API dengan `<script setup>`) + **Tailwind CSS v4** (menggunakan custom color tokens yang sudah dikonfigurasi). Komponen mengikuti pola MainPage → MainPageHeader + Filter + Table + Pagination. Form menggunakan PopUpPage, konfirmasi menggunakan Modal.
 - **Penghubung (Bridge):** **Inertia.js** (merender Vue langsung dari Laravel. Data inventory di-pass sebagai props ke komponen UI tanpa API terpisah).
 - **Backend:** **Laravel 11** (PHP 8.3). Arsitektur Controller → Service → Model. Service class untuk logika kompleks (PurchaseOrderService, TransferService, OpnameService, InventoryMovementService). Semua mutation dibungkus `DB::transaction()` dengan audit logging.
 - **State Management:** **Pinia** untuk state management di frontend (inventory cart, PO item list, transfer item list).

@@ -222,7 +222,7 @@ erDiagram
 
 ## 7. Tech Stack
 
-- **Frontend:** Vue 3 (Composition API `<script setup>`) + Tailwind CSS v4 + Inertia.js. Pola komponen: Container > ContainerHeader + SummaryCard + Filter + Table + Pagination. Halaman Detail menggunakan layout tab: Ringkasan | Riwayat | Grafik.
+- **Frontend:** Vue 3 (Composition API `<script setup>`) + Tailwind CSS v4 + Inertia.js. Pola komponen: MainPage > MainPageHeader + SummaryCard + Filter + Table + Pagination. Halaman Detail menggunakan layout tab: Ringkasan | Riwayat | Grafik.
 - **Backend:** Laravel 11 (PHP 8.3). Arsitektur Controller > Service > Model.
 - **Services:**
     - `StockQueryService`: Query daftar stok dari `inventory_balances` join `inventory_items`, kalkulasi status stok, dan summary card.

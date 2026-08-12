@@ -1,10 +1,5 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        title="Terima Transfer"
-        size="lg"
-        @close="close"
-    >
+    <div>
         <form @submit.prevent="submit" class="space-y-2">
             <div v-if="transferData" class="mb-4 bg-gray-50 p-4 rounded-lg">
                 <p>
@@ -30,7 +25,7 @@
             </div>
 
             <div class="border-t pt-4">
-                <h3 class="text-lg font-semibold mb-4">
+                <h3 class="text-lg font-semibold mb-2">
                     Detail Penerimaan Item
                 </h3>
 
@@ -41,11 +36,11 @@
                     Data item tidak ditemukan.
                 </div>
 
-                <div v-else class="space-y-3">
+                <div v-else class="space-y-2">
                     <div
                         v-for="(item, index) in form.items"
                         :key="index"
-                        class="flex gap-4 items-center border p-3 rounded-lg"
+                        class="flex gap-2 items-center border p-2 rounded-lg"
                     >
                         <div class="flex-1">
                             <div class="font-semibold">{{ item.name }}</div>
@@ -84,7 +79,7 @@
             </div>
         </form>
 
-        <template #footer>
+        <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
                 class="btn btn-flat"
@@ -101,54 +96,53 @@
             >
                 Konfirmasi Penerimaan
             </button>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
 </template>
 
 <script setup>
-import { watch } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
+import { usePopUpStore } from '@/store/popup';
 import NumberField from '@/Components/Form/NumberField.vue';
 
 const props = defineProps({
-    show: Boolean,
     transferData: Object,
 });
 
-const emit = defineEmits(['close', 'refresh']);
+const emit = defineEmits(['refresh']);
+const popUpStore = usePopUpStore();
+const isMounted = ref(false);
 
 const form = useForm({
     items: [],
 });
 
-watch(
-    () => props.show,
-    (isOpen) => {
-        if (isOpen && props.transferData?.items) {
-            form.items = props.transferData.items.map((i) => ({
-                id: i.id,
-                name:
-                    i.inventory_item?.name ||
-                    i.inventoryItem?.name ||
-                    'Unknown',
-                uom_name:
-                    i.inventory_item?.uom?.name ||
-                    i.inventoryItem?.uom?.name ||
-                    '',
-                qty_sent: i.qty, // original value for math and limits
-                qty_sent_formatted: i.qty_formatted,
-                qty_received: i.qty_formatted, // default to receive all, properly formatted
-            }));
-        } else {
-            form.items = [];
-        }
-    },
-);
+onMounted(() => {
+    isMounted.value = true;
+    if (props.transferData?.items) {
+        form.items = props.transferData.items.map((i) => ({
+            id: i.id,
+            name:
+                i.inventory_item?.name ||
+                i.inventoryItem?.name ||
+                'Unknown',
+            uom_name:
+                i.inventory_item?.uom?.name ||
+                i.inventoryItem?.uom?.name ||
+                '',
+            qty_sent: i.qty, // original value for math and limits
+            qty_sent_formatted: i.qty_formatted,
+            qty_received: i.qty_formatted, // default to receive all, properly formatted
+        }));
+    } else {
+        form.items = [];
+    }
+});
 
 const close = () => {
     form.clearErrors();
-    emit('close');
+    popUpStore.close();
 };
 
 const submit = () => {

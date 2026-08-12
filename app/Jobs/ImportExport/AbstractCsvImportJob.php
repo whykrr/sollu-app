@@ -125,8 +125,8 @@ abstract class AbstractCsvImportJob implements ShouldQueue
             $content = stream_get_contents($failedFile);
             fclose($failedFile);
 
-            Storage::disk('public')->put($failedFilePath, $content);
-            $failedUrl = Storage::disk('public')->url($failedFilePath);
+            Storage::disk('local')->put($failedFilePath, $content);
+            $failedUrl = route('exports.download', ['file' => $failedFileName]);
         }
 
         // Notify user

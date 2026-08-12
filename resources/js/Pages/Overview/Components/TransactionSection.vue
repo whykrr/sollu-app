@@ -1,112 +1,93 @@
 <template>
-    <div class="flex flex-col md:grid md:grid-cols-1 lg:grid-cols-3 gap-2 mb-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
         <Widget
-            title="Total Penjualan"
+            title="Total Omset Kotor"
             :icon="faMoneyBill1Wave"
             class="widget-main"
             :traction="getTraction(totalSales.now, totalSales.previous)"
-            :traction-percentage="
-                getPercentage(totalSales.now, totalSales.previous)
-            "
-            :descriptors="getSubtitle(filter)"
+            :traction-percentage="getPercentage(totalSales.now, totalSales.previous)"
+            :descriptors="descriptors"
         >
-            <p class="text-md">{{ formatIDR(totalSales.now) }}</p>
+            <p class="text-lg font-bold text-neutral-900">{{ formatIDR(totalSales.now) }}</p>
+        </Widget>
+
+        <Widget
+            title="Estimasi Keuntungan Kotor"
+            :icon="faCoins"
+            class="widget-main"
+            :traction="getTraction(grossProfit.now, grossProfit.previous)"
+            :traction-percentage="getPercentage(grossProfit.now, grossProfit.previous)"
+            :descriptors="descriptors"
+        >
+            <p class="text-lg font-bold text-neutral-900">{{ formatIDR(grossProfit.now) }}</p>
         </Widget>
 
         <Widget
             title="Total Transaksi"
             :icon="faReceipt"
-            :traction="
-                getTraction(totalTransactions.now, totalTransactions.previous)
-            "
-            :traction-percentage="
-                getPercentage(totalTransactions.now, totalTransactions.previous)
-            "
-            :descriptors="getSubtitle(filter)"
             class="widget-main"
+            :traction="getTraction(totalTransactions.now, totalTransactions.previous)"
+            :traction-percentage="getPercentage(totalTransactions.now, totalTransactions.previous)"
+            :descriptors="descriptors"
         >
-            <p class="text-md">{{ totalTransactions.now }} Transaksi</p>
+            <p class="text-lg font-bold text-neutral-900">{{ totalTransactions.now }} Transaksi</p>
         </Widget>
 
         <Widget
             title="Rata Rata per Transaksi"
             :icon="faChartLine"
-            :traction="getTraction(averageSales.now, averageSales.previous)"
-            :traction-percentage="
-                getPercentage(averageSales.now, averageSales.previous)
-            "
-            :descriptors="getSubtitle(filter)"
             class="widget-main"
+            :traction="getTraction(averageSales.now, averageSales.previous)"
+            :traction-percentage="getPercentage(averageSales.now, averageSales.previous)"
+            :descriptors="descriptors"
         >
-            <p class="text-md">{{ formatIDR(averageSales.now) }}</p>
+            <p class="text-lg font-bold text-neutral-900">{{ formatIDR(averageSales.now) }}</p>
         </Widget>
     </div>
 </template>
+
 <script setup>
+import { computed } from 'vue';
 import Widget from '@/Components/Widgets/Widget.vue';
 import { formatIDR } from '@/Composable/currency-format';
-
 import {
     faChartLine,
+    faCoins,
     faMoneyBill1Wave,
     faReceipt,
 } from '@fortawesome/free-solid-svg-icons';
 
-defineProps({
+const props = defineProps({
     totalSales: {
-        type: Number,
-        default: {
-            now: 0,
-            previous: 0,
-        },
+        type: Object,
+        default: () => ({ now: 0, previous: 0 }),
+    },
+    grossProfit: {
+        type: Object,
+        default: () => ({ now: 0, previous: 0 }),
     },
     totalTransactions: {
         type: Object,
-        default: {
-            now: 0,
-            previous: 0,
-        },
+        default: () => ({ now: 0, previous: 0 }),
     },
     averageSales: {
         type: Object,
-        default: {
-            now: 0,
-            previous: 0,
-        },
+        default: () => ({ now: 0, previous: 0 }),
     },
-    filter: {
+    periodLabel: {
         type: String,
-        default: 'month',
+        default: 'bulan ini',
     },
 });
 
+const descriptors = computed(() => `vs ${props.periodLabel}`);
+
 const getTraction = (now, previous) => {
-    if (now > previous) {
-        return 'up';
-    } else {
-        return 'down';
-    }
+    return now >= previous ? 'up' : 'down';
 };
 
 const getPercentage = (now, previous) => {
-    if (previous === 0) {
-        return 0;
-    }
-    return Math.round(((now - previous) / previous) * 100);
-};
-
-const getSubtitle = (filter) => {
-    switch (filter) {
-        case 'day':
-            return 'dari kemarin';
-        case 'week':
-            return 'dari minggu lalu';
-        case 'month':
-            return 'dari bulan lalu';
-        case 'year':
-            return 'dari tahun lalu';
-        default:
-            return 'dari bulan lalu';
-    }
+    if (!previous || previous === 0) return 0;
+    return Math.abs(Math.round(((now - previous) / previous) * 100));
 };
 </script>

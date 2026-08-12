@@ -1,7 +1,7 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
-            <ContainerHeader title="Data Kategori Produk">
+            <MainPageHeader title="Data Kategori Produk">
                 <button class="btn btn-flat btn-sm">
                     <FontAwesomeIcon :icon="faUpload" />
                     Impor CSV
@@ -10,14 +10,7 @@
                     <FontAwesomeIcon :icon="faPlus" />
                     Tambah Baru
                 </button>
-            </ContainerHeader>
-            <CategoryForm
-                :show="showForm"
-                :category="selectedCategory"
-                :parent-category="selectedParent"
-                :all-categories="categories"
-                @close="closeForm"
-            />
+            </MainPageHeader>
         </template>
 
         <div class="p-0">
@@ -28,52 +21,64 @@
                 @add-sub="openSubForm"
             />
         </div>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faPlus, faUpload } from '@fortawesome/free-solid-svg-icons';
 import CategoryTree from './Components/CategoryTree.vue';
 import CategoryForm from './Components/CategoryForm.vue';
 import { useModalStore } from '@/store/notification';
-import ContainerHeader from '@/Components/UI/Container/ContainerHeader.vue';
+import { usePopUpStore } from '@/store/popup';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 
 const props = defineProps({
     categories: Array,
 });
 
-const showForm = ref(false);
-const selectedCategory = ref(null);
-const selectedParent = ref(null);
 const modal = useModalStore();
+const popUpStore = usePopUpStore();
 
 const openCreateForm = () => {
-    selectedCategory.value = null;
-    selectedParent.value = null;
-    showForm.value = true;
+    popUpStore.open({
+        title: 'Buat Kategori Baru',
+        size: 'md',
+        component: CategoryForm,
+        props: {
+            category: null,
+            parentCategory: null,
+            allCategories: props.categories
+        }
+    });
 };
 
 const openEditForm = (category) => {
-    selectedCategory.value = category;
-    selectedParent.value = null;
-    showForm.value = true;
+    popUpStore.open({
+        title: 'Ubah Kategori',
+        size: 'md',
+        component: CategoryForm,
+        props: {
+            category: category,
+            parentCategory: null,
+            allCategories: props.categories
+        }
+    });
 };
 
 const openSubForm = (parentCategory) => {
-    selectedCategory.value = null;
-    selectedParent.value = parentCategory;
-    showForm.value = true;
-};
-
-const closeForm = () => {
-    showForm.value = false;
-    setTimeout(() => {
-        selectedCategory.value = null;
-        selectedParent.value = null;
-    }, 200);
+    popUpStore.open({
+        title: 'Buat Kategori Baru',
+        size: 'md',
+        component: CategoryForm,
+        props: {
+            category: null,
+            parentCategory: parentCategory,
+            allCategories: props.categories
+        }
+    });
 };
 
 const deleteCategory = (category) => {

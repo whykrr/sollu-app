@@ -9,6 +9,7 @@ use App\Models\Master\Product;
 use App\Services\Master\ProductService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Constants\FlashDataVariable;
 
 class ProductController extends Controller
 {
@@ -22,20 +23,29 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $products = Product::currentBusiness()
-            ->with(['category', 'prices', 'outlets', 'inventoryItems', 'images'])
+            ->with([
+                'category', 'prices', 'outlets', 'inventoryItems.variantGroupOptions', 
+                'images', 'variantGroups.options', 'modifierGroups', 'bundleItems'
+            ])
             ->filters($request->only(['search', 'category', 'outlet', 'is_deleted']))
             ->orderByDesc('created_at')
             ->paginate(15);
 
         return Inertia::render('Master/Product/Index', [
-            'products'   => $products,
-            'filters'    => $request->only(['search', 'category', 'outlet', 'is_deleted']),
-            'categories' => \App\Models\Master\ProductCategory::currentBusiness()->get()->map(function ($row) {
+            'products'       => $products,
+            'filters'        => $request->only(['search', 'category', 'outlet', 'is_deleted']),
+            'categories'     => \App\Models\Master\ProductCategory::currentBusiness()->get()->map(function ($row) {
                 return [
                     'value' => $row->id,
                     'label' => $row->name,
                 ];
             }),
+            'rawCategories'  => \App\Models\Master\ProductCategory::currentBusiness()->get(),
+            'outlets'        => \App\Models\Outlet::currentBusiness()->active()->get(),
+            'modifierGroups' => \App\Models\Master\ModifierGroup::currentBusiness()->with('options')->get(),
+            'inventoryItems' => \App\Models\Master\InventoryItem::currentBusiness()->get(),
+            'baseProducts'   => Product::currentBusiness()->where('product_type', '!=', 'bundle')->get(),
+            'uoms'           => \App\Models\Uom::where('status', 'active')->orderBy('name')->get(),
         ]);
     }
 
@@ -119,5 +129,71 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()->back()->with('success', 'Produk diarsipkan.');
+    }
+
+    public function export(Request $request)
+    {
+        \App\Jobs\Master\ExportProductJob::dispatch(auth()->user(), auth()->user()->business_id, $request->all());
+        
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value, 
+            'Ekspor CSV sedang diproses di latar belakang.'
+        );
+    }
+
+    public function importTemplate()
+    {
+        $headers = [
+            'Kode Produk', 'Nama Produk', 'Kategori', 'Deskripsi', 'Tipe Produk', 
+            'Nama Varian 1', 'Opsi Varian 1', 'Nama Varian 2', 'Opsi Varian 2', 
+            'Harga Dasar', 'Satuan', 'Lacak Stok', 'Minimum Stok', 'Status Tampil'
+        ];
+        
+        $outlets = \App\Models\Outlet::currentBusiness()->active()->get();
+        foreach ($outlets as $outlet) {
+            $headers[] = 'Outlet: ' . $outlet->name;
+        }
+
+        $dummy1 = ['PRD-001', 'Kopi Susu', 'Minuman', 'Kopi susu enak', 'basic', '', '', '', '', '15000', 'Cup', 'Ya', '10', 'Ya'];
+        $dummy2 = ['PRD-002', 'T-Shirt', 'Pakaian', 'Kaos katun', 'basic', '', '', '', '', '50000', 'Pcs', 'Ya', '', 'Ya'];
+        $dummy3 = ['PRD-002-S-M', '', '', '', '', 'Ukuran', 'S', 'Warna', 'Merah', '50000', '', '', '5', ''];
+        $dummy4 = ['PRD-002-M-M', '', '', '', '', 'Ukuran', 'M', 'Warna', 'Merah', '55000', '', '', '5', ''];
+        $dummy5 = ['PRD-002-L-B', '', '', '', '', 'Ukuran', 'L', 'Warna', 'Biru', '60000', '', '', '5', ''];
+
+        foreach ($outlets as $outlet) {
+            $dummy1[] = 'Ya';
+            $dummy2[] = 'Ya';
+            $dummy3[] = '';
+            $dummy4[] = '';
+            $dummy5[] = '';
+        }
+        
+        return response()->stream(function () use ($headers, $dummy1, $dummy2, $dummy3, $dummy4, $dummy5) {
+            $file = fopen('php://output', 'w');
+            fputs($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($file, $headers);
+            fputcsv($file, $dummy1);
+            fputcsv($file, $dummy2);
+            fputcsv($file, $dummy3);
+            fputcsv($file, $dummy4);
+            fputcsv($file, $dummy5);
+            fclose($file);
+        }, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="template_produk.csv"',
+        ]);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate(['file' => 'required|mimes:csv,txt|max:10240']);
+        $path = $request->file('file')->store('imports', 'local');
+
+        \App\Jobs\Master\ImportProductJob::dispatch(auth()->user(), $path, auth()->user()->business_id);
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value, 
+            'Proses impor CSV sedang berjalan di latar belakang.'
+        );
     }
 }

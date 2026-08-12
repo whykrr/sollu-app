@@ -1,6 +1,6 @@
 <template>
-    <PopUpPage :class="{ show: show }" title="Buat Penyesuaian Stok" size="max-w-xl" @close="close">
-        <form @submit.prevent="submit" class="p-4 space-y-4">
+    <div>
+        <form @submit.prevent="submit" class="space-y-2">
             <DropdownField
                 id="outlet_id"
                 v-model="form.outlet_id"
@@ -21,7 +21,7 @@
                 required
             />
             
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-2">
                 <DropdownField
                     id="movement_type"
                     v-model="form.movement_type"
@@ -54,30 +54,33 @@
             />
         </form>
 
-        <template #footer>
+        <Teleport v-if="isMounted" to="#popUpFooter">
             <button type="button" class="btn btn-flat" @click="close" :disabled="form.processing">
                 Batal
             </button>
             <button type="button" class="btn btn-main" @click="submit" :disabled="form.processing">
                 Simpan Penyesuaian
             </button>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
 </template>
 
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
+import { usePopUpStore } from '@/store/popup';
+
+const popUpStore = usePopUpStore();
+
+const isMounted = ref(false);
+onMounted(() => {
+    isMounted.value = true;
+});
 
 const props = defineProps({
-    show: {
-        type: Boolean,
-        default: false,
-    },
     items: {
         type: Array,
         default: () => [],
@@ -87,8 +90,6 @@ const props = defineProps({
         default: () => [],
     },
 });
-
-const emit = defineEmits(['close']);
 
 const form = useForm({
     outlet_id: '',
@@ -117,18 +118,13 @@ const typeOptions = [
     { label: 'Other (Lainnya)', value: 'other' },
 ];
 
-watch(
-    () => props.show,
-    (isOpen) => {
-        if (isOpen) {
-            form.reset();
-        }
-    }
-);
+onMounted(() => {
+    form.reset();
+});
 
 const close = () => {
     form.clearErrors();
-    emit('close');
+    popUpStore.close();
 };
 
 const submit = () => {

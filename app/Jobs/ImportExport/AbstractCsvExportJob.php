@@ -72,9 +72,9 @@ abstract class AbstractCsvExportJob implements ShouldQueue
         $content = stream_get_contents($file);
         fclose($file);
 
-        // Save to public disk so it can be downloaded
-        Storage::disk('public')->put($filePath, $content);
-        $url = Storage::disk('public')->url($filePath);
+        // Save to local disk so it can be securely downloaded
+        Storage::disk('local')->put($filePath, $content);
+        $url = route('exports.download', ['file' => $fileName]);
 
         // Notify user
         $expiresAt = now()->addDays(1);

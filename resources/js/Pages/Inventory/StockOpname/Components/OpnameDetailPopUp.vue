@@ -1,10 +1,5 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        title="Detail Stock Opname"
-        size="xl"
-        @close="close"
-    >
+    <div>
         <div v-if="opname" class="space-y-2">
             <div
                 class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded-lg"
@@ -61,7 +56,7 @@
                     <div
                         v-for="(item, index) in opname.items"
                         :key="item.id"
-                        class="flex gap-4 items-center border p-2 rounded-lg bg-white"
+                        class="flex gap-2 items-center border p-2 rounded-lg bg-white"
                         :class="{
                             'bg-red-50':
                                 Number(item.actual_qty) !==
@@ -157,7 +152,7 @@
             </div>
         </div>
 
-        <template #footer>
+        <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
                 class="btn btn-flat"
@@ -184,8 +179,8 @@
                     Setujui & Sesuaikan Stok
                 </button>
             </template>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
     <!-- Confirmation Modal for Approve / Reject -->
     <Modal
         :class="{ show: showConfirm, hide: !showConfirm }"
@@ -220,20 +215,23 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import Modal from '@/Components/Notifications/Modal.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import { formatDateTimeID } from '@/Composable/date';
 import { formatNumberID } from '@/Composable/useNumberFormat';
 
 const props = defineProps({
-    show: Boolean,
     opname: Object,
 });
 
 const emit = defineEmits(['close']);
+const isMounted = ref(false);
+
+onMounted(() => {
+    isMounted.value = true;
+});
 
 const form = useForm({
     notes: '',

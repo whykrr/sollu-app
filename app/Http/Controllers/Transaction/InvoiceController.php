@@ -20,7 +20,7 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         $this->authorize('transaction.view');
-        
+
         $invoices = Transaction::where('channel', 'invoice')
             ->with(['customer', 'outlet'])
             ->latest()
@@ -29,54 +29,54 @@ class InvoiceController extends Controller
 
         return Inertia::render('Transaction/Invoice/Index', [
             'invoices' => $invoices,
-            'filters'  => $request->only(['search'])
+            'filters'  => $request->only(['search']),
         ]);
     }
 
     public function create()
     {
         $this->authorize('transaction.create');
-        
+
         $customers = \App\Models\Master\Customer::currentBusiness()
             ->select('id', 'name', 'email', 'phone')
             ->orderBy('name')
             ->get();
 
-        $outlets = \App\Models\Master\Outlet::currentBusiness()
+        $outlets = \App\Models\Outlet::currentBusiness()
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
 
         return Inertia::render('Transaction/Invoice/Create', [
             'customers' => $customers,
-            'outlets' => $outlets,
+            'outlets'   => $outlets,
         ]);
     }
 
     public function store(Request $request)
     {
         $this->authorize('transaction.create');
-        
+
         $validated = $request->validate([
-            'outlet_id' => 'required|uuid',
-            'customer_id' => 'required|uuid',
-            'due_date' => 'required|date',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|uuid',
-            'items.*.product_name' => 'required|string',
-            'items.*.price' => 'required|numeric|min:0',
-            'items.*.qty' => 'required|numeric|min:0.01',
+            'outlet_id'               => 'required|uuid',
+            'customer_id'             => 'required|uuid',
+            'due_date'                => 'required|date',
+            'items'                   => 'required|array|min:1',
+            'items.*.product_id'      => 'required|uuid',
+            'items.*.product_name'    => 'required|string',
+            'items.*.price'           => 'required|numeric|min:0',
+            'items.*.qty'             => 'required|numeric|min:0.01',
             'items.*.discount_amount' => 'nullable|numeric|min:0',
-            'items.*.subtotal' => 'required|numeric|min:0',
-            'subtotal' => 'required|numeric|min:0',
-            'tax_amount' => 'nullable|numeric|min:0',
-            'discount_amount' => 'nullable|numeric|min:0',
-            'service_charge_amount' => 'nullable|numeric|min:0',
-            'total' => 'required|numeric|min:0',
+            'items.*.subtotal'        => 'required|numeric|min:0',
+            'subtotal'                => 'required|numeric|min:0',
+            'tax_amount'              => 'nullable|numeric|min:0',
+            'discount_amount'         => 'nullable|numeric|min:0',
+            'service_charge_amount'   => 'nullable|numeric|min:0',
+            'total'                   => 'required|numeric|min:0',
         ]);
 
         $this->transactionService->createB2bInvoice($validated, auth()->user());
-        
+
         return redirect()->route('transactions.sales.index')->with('success', 'Faktur berhasil dibuat.');
     }
 
@@ -86,7 +86,7 @@ class InvoiceController extends Controller
         $invoice->load(['items.modifiers', 'customer', 'outlet', 'payments.paymentMethod']);
 
         return Inertia::render('Transaction/Invoice/Show', [
-            'invoice' => $invoice
+            'invoice' => $invoice,
         ]);
     }
 }

@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
             <div
                 class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-neutral-200/60 mb-4"
@@ -138,11 +138,11 @@
                 </Table>
             </div>
         </div>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import Table from '@/Components/Tables/Table.vue';
 import Switch from '@/Components/Form/Switch.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';

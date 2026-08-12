@@ -31,37 +31,15 @@
 
         <div v-if="error" class="mt-1 text-sm text-red-500">{{ error }}</div>
 
-        <!-- Cropper Modal -->
-        <PopUpPage v-if="showCropper" title="Potong Gambar" size="md" @close="closeCropper">
-            <div class="p-3">
-                <div class="w-full h-64 bg-neutral-900 rounded-lg overflow-hidden">
-                    <Cropper
-                        ref="cropperRef"
-                        class="h-full w-full"
-                        :src="imageSrc"
-                        :stencil-props="{
-                            aspectRatio: 1,
-                        }"
-                    />
-                </div>
-            </div>
-            <template #footer>
-                <div class="flex justify-end gap-2 w-full">
-                    <button type="button" class="btn btn-outline-main btn-sm" @click="closeCropper">Batal</button>
-                    <button type="button" class="btn btn-highlight-main btn-sm" @click="crop">Potong & Simpan</button>
-                </div>
-            </template>
-        </PopUpPage>
     </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import { Cropper } from 'vue-advanced-cropper';
-import 'vue-advanced-cropper/dist/style.css';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faCloudUploadAlt } from '@fortawesome/free-solid-svg-icons';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
+import { usePopUpStore } from '@/store/popup';
+import CropperPopUp from './CropperPopUp.vue';
 
 const props = defineProps({
     modelValue: {
@@ -77,9 +55,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const fileInput = ref(null);
-const cropperRef = ref(null);
-const imageSrc = ref(null);
-const showCropper = ref(false);
+const popUpStore = usePopUpStore();
 
 const triggerFileInput = () => {
     fileInput.value.click();
@@ -96,25 +72,22 @@ const onFileChange = (e) => {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-        imageSrc.value = event.target.result;
-        showCropper.value = true;
+        popUpStore.open({
+            title: 'Potong Gambar',
+            size: 'md',
+            component: CropperPopUp,
+            props: { imageSrc: event.target.result },
+            events: {
+                crop: (dataUrl) => {
+                    emit('update:modelValue', dataUrl);
+                },
+                close: () => {
+                    popUpStore.close();
+                }
+            }
+        });
     };
     reader.readAsDataURL(file);
     e.target.value = '';
-};
-
-const closeCropper = () => {
-    showCropper.value = false;
-    imageSrc.value = null;
-};
-
-const crop = () => {
-    if (cropperRef.value) {
-        const { canvas } = cropperRef.value.getResult();
-        if (canvas) {
-            emit('update:modelValue', canvas.toDataURL());
-            closeCropper();
-        }
-    }
 };
 </script>

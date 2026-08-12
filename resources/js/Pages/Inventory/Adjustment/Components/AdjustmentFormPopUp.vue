@@ -1,10 +1,5 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        title="Buat Draft Penyesuaian Stok"
-        size="xl"
-        @close="close"
-    >
+    <div>
         <form @submit.prevent="submit" class="space-y-2">
             <div class="grid grid-cols-2 gap-2">
                 <AsyncOutletDropdown
@@ -39,7 +34,7 @@
                 rows="2"
             />
 
-            <div class="mt-3 border-t pt-2">
+            <div class="mt-2 border-t pt-2">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="font-bold text-gray-700">Daftar Item</h3>
                     <div class="w-72">
@@ -89,16 +84,16 @@
 
                 <div
                     v-if="form.items.length === 0"
-                    class="text-center py-6 text-gray-500 border border-dashed rounded-lg"
+                    class="text-center py-2 text-gray-500 border border-dashed rounded-lg"
                 >
                     Belum ada item yang ditambahkan. Silakan cari item pada kolom pencarian di atas.
                 </div>
 
-                <div v-else class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                <div v-else class="space-y-2 max-h-96 overflow-y-auto pr-1">
                     <div
                         v-for="(item, index) in form.items"
                         :key="item.inventory_item_id || index"
-                        class="p-4 border rounded-lg bg-white shadow-sm space-y-3"
+                        class="p-2 border rounded-lg bg-white shadow-sm space-y-2"
                     >
                         <div class="flex justify-between items-start">
                             <div>
@@ -123,7 +118,7 @@
                             </button>
                         </div>
 
-                        <div class="grid grid-cols-12 gap-3">
+                        <div class="grid grid-cols-12 gap-2">
                             <div
                                 :class="
                                     item.qty_change > 0
@@ -199,7 +194,7 @@
             </div>
         </form>
 
-        <template #footer>
+        <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
                 class="btn btn-flat"
@@ -216,14 +211,13 @@
             >
                 Simpan Penyesuaian
             </button>
-        </template>
-    </PopUpPage>
+        </Teleport>
+    </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
@@ -232,19 +226,21 @@ import TextField from '@/Components/Form/TextField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { usePopUpStore } from '@/store/popup';
+
+const popUpStore = usePopUpStore();
+
+const isMounted = ref(false);
+onMounted(() => {
+    isMounted.value = true;
+});
 
 const props = defineProps({
-    show: {
-        type: Boolean,
-        default: false,
-    },
     items: {
         type: Array,
         default: () => [],
     },
 });
-
-const emit = defineEmits(['close']);
 
 const form = useForm({
     outlet_id: '',
@@ -257,7 +253,7 @@ const loadedOutlets = ref([]);
 
 const onOutletsLoaded = (outlets) => {
     loadedOutlets.value = outlets;
-    if (!form.outlet_id && outlets.length === 1 && props.show) {
+    if (!form.outlet_id && outlets.length === 1) {
         form.outlet_id = outlets[0].id;
     }
 };
@@ -300,24 +296,19 @@ watch(
     },
 );
 
-watch(
-    () => props.show,
-    (isOpen) => {
-        if (isOpen) {
-            form.reset();
-            form.clearErrors();
-            form.items = [];
-            if (loadedOutlets.value.length === 1) {
-                form.outlet_id = loadedOutlets.value[0].id;
-            }
-        }
-    },
-);
+onMounted(() => {
+    form.reset();
+    form.clearErrors();
+    form.items = [];
+    if (loadedOutlets.value.length === 1) {
+        form.outlet_id = loadedOutlets.value[0].id;
+    }
+});
 
 const close = () => {
     form.reset();
     form.clearErrors();
-    emit('close');
+    popUpStore.close();
 };
 
 const submit = () => {

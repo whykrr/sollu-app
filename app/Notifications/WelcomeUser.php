@@ -18,7 +18,7 @@ class WelcomeUser extends Notification
      */
     public function via($notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail', 'database', 'broadcast'];
     }
 
     /**
@@ -37,7 +37,7 @@ class WelcomeUser extends Notification
             ->salutation(new HtmlString('<strong>Salam hangat,<br>' . config('app.name') . '</strong>'));
     }
 
-    public function toDatabase($notifiable)
+    public function toArray($notifiable)
     {
         return [
             'title'   => 'Selamat Datang di Sollu App!',

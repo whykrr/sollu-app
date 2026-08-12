@@ -1,14 +1,7 @@
 <template>
-    <PopUpPage
-        :class="{ show: show }"
-        title="Detail Purchase Order"
-        :sub-title="show && purchase ? '#' + purchase.po_number : ''"
-        size="lg"
-        @close="close"
-    >
-        <div v-if="purchase" class="space-y-4">
-            <!-- Header Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div v-if="purchase" class="space-y-2">
+        <!-- Header Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div class="bg-gray-50 p-4 rounded-lg">
                     <h3 class="text-gray-500 text-sm mb-1">Status PO</h3>
                     <div class="font-bold">
@@ -19,10 +12,10 @@
                             {{ statusLabel(purchase.status) }}
                         </span>
                     </div>
-                    <div class="mt-3">
-                        <h3 class="text-gray-500 text-sm mb-1">
-                            Tanggal Dibuat
-                        </h3>
+                    <div class="mt-2">
+                    <h3 class="text-gray-500 text-sm mb-1">
+                        Tanggal Dibuat
+                    </h3>
                         <p class="font-semibold">
                             {{ formatDateTimeID(purchase.created_at) }}
                         </p>
@@ -59,10 +52,10 @@
             </div>
 
             <!-- Items Section -->
-            <div>
-                <h3 class="text-lg font-semibold mb-3 border-b pb-2">
-                    Daftar Barang
-                </h3>
+        <div>
+            <h3 class="text-lg font-semibold mb-2 border-b pb-2">
+                Daftar Barang
+            </h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left border">
                         <thead class="bg-gray-100">
@@ -160,53 +153,54 @@
             </div>
 
             <div
-                v-if="purchase.notes"
-                class="bg-yellow-50 p-4 rounded-lg border border-yellow-200"
-            >
-                <h3 class="text-sm font-semibold text-yellow-800 mb-1">
-                    Catatan:
-                </h3>
-                <p class="text-sm text-yellow-700 whitespace-pre-wrap">
-                    {{ purchase.notes }}
-                </p>
-            </div>
+            v-if="purchase.notes"
+            class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-2"
+        >
+            <h3 class="text-sm font-semibold text-yellow-800 mb-1">
+                Catatan:
+            </h3>
+            <p class="text-sm text-yellow-700 whitespace-pre-wrap">
+                {{ purchase.notes }}
+            </p>
         </div>
+    </div>
 
-        <template #footer>
-            <button type="button" class="btn btn-flat" @click="close">
-                Tutup
-            </button>
-            <a
-                v-if="purchase"
-                :href="route('inventory.purchases.pdf', purchase.id)"
-                target="_blank"
-                class="btn btn-outline-main"
-            >
-                Download PDF
-            </a>
-        </template>
-    </PopUpPage>
+    <Teleport v-if="isMounted" to="#popUpFooter">
+        <button type="button" class="btn btn-flat" @click="close">
+            Tutup
+        </button>
+        <a
+            v-if="purchase"
+            :href="route('inventory.purchases.pdf', purchase.id)"
+            target="_blank"
+            class="btn btn-outline-main"
+        >
+            Download PDF
+        </a>
+    </Teleport>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
 import { formatDateTimeID } from '@/Composable/date';
-import PopUpPage from '@/Components/UI/PopUpPage.vue';
+import { usePopUpStore } from '@/store/popup';
+
+const popUpStore = usePopUpStore();
 
 const props = defineProps({
-    show: {
-        type: Boolean,
-        default: false,
-    },
     purchase: {
         type: Object,
         default: null,
     },
 });
 
-const emit = defineEmits(['close']);
+const isMounted = ref(false);
+onMounted(() => {
+    isMounted.value = true;
+});
 
 const close = () => {
-    emit('close');
+    popUpStore.close();
 };
 
 const formatCurrency = (value) => {

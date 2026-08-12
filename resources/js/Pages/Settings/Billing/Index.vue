@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <MainPage>
         <template #header>
             <div
                 class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100"
@@ -331,13 +331,8 @@
                         </label>
                     </template>
                     <template #actions="{ row }">
-                        <Link
-                            :href="
-                                route(
-                                    'settings.billing.invoices.show',
-                                    row.invoice_number,
-                                )
-                            "
+                        <button
+                            @click="getDetail(row.invoice_number)"
                             class="btn btn-highlight-main btn-sm"
                         >
                             Detail
@@ -345,7 +340,7 @@
                                 :icon="faArrowRight"
                                 class="text-[10px]"
                             />
-                        </Link>
+                        </button>
                     </template>
                 </Table>
             </div>
@@ -361,13 +356,16 @@
                 :per-page="invoices.per_page ?? 20"
             />
         </template>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Table from '@/Components/Tables/Table.vue';
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
+import DetailInvoice from './DetailInvoice.vue';
+import { usePopUpStore } from '@/store/popup';
+import { router } from '@inertiajs/vue3';
 import {
     formatDateID,
     formatDateTimeSimple,
@@ -402,6 +400,29 @@ const tableSetting = [
     { field: 'total_amount', label: 'Total', slot: 'total_amount' },
     { field: 'status', label: 'Status', slot: 'status' },
 ];
+
+const popUpStore = usePopUpStore();
+
+const getDetail = (invoice_number) => {
+    router.visit(route('settings.billing.invoices.show', invoice_number), {
+        only: ['invoice', 'midtransClientKey', 'payment', 'manualValidation'],
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: (page) => {
+            popUpStore.open({
+                title: 'Detail Invoice',
+                size: 'xl',
+                component: DetailInvoice,
+                props: {
+                    invoice: page.props.invoice,
+                    midtransClientKey: page.props.midtransClientKey,
+                    payment: page.props.payment,
+                    manualValidation: page.props.manualValidation,
+                },
+            });
+        },
+    });
+};
 
 const page = usePage();
 const auth = computed(() => page.props.auth);

@@ -1,5 +1,5 @@
 <template>
-    <Container>
+    <MainPage>
         <div class="grid grid-cols-12 gap-2 h-full">
             <div class="col-span-8">
                 <div
@@ -154,11 +154,11 @@
                 </button>
             </div>
         </template>
-    </Container>
+    </MainPage>
 </template>
 <script setup>
 import Modal from '@/Components/Notifications/Modal.vue';
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import { formatIDR } from '@/Composable/currency-format';
 import { addDays, formatDateID } from '@/Composable/date';
 import {

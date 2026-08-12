@@ -1,17 +1,30 @@
 <template>
-    <Container>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-start p-1">
+    <MainPage>
+        <div
+            class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-start p-1"
+        >
             <!-- Left Column: Form -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- Informasi Usaha Card -->
-                <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6">
+                <div
+                    class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6"
+                >
                     <!-- Header -->
-                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-                        <div class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main">
-                            <FontAwesomeIcon :icon="faBriefcase" class="text-lg" />
+                    <div
+                        class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6"
+                    >
+                        <div
+                            class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main"
+                        >
+                            <FontAwesomeIcon
+                                :icon="faBriefcase"
+                                class="text-lg"
+                            />
                         </div>
                         <div>
-                            <h2 class="text-lg font-semibold text-slate-800 leading-tight">
+                            <h2
+                                class="text-lg font-semibold text-slate-800 leading-tight"
+                            >
                                 Informasi Usaha
                             </h2>
                             <p class="text-xs text-slate-500 mt-0.5">
@@ -33,8 +46,11 @@
                                 }"
                                 :feedback="business.errors.name"
                             />
-                            <p class="text-xs leading-relaxed text-slate-400 mt-1.5">
-                                Nama usaha akan tampil pada struk, invoice, laporan, dan halaman pelanggan.
+                            <p
+                                class="text-xs leading-relaxed text-slate-400 mt-1.5"
+                            >
+                                Nama usaha akan tampil pada struk, invoice,
+                                laporan, dan halaman pelanggan.
                             </p>
                         </div>
 
@@ -49,8 +65,11 @@
                                 }"
                                 :feedback="business.errors.email"
                             />
-                            <p class="text-xs leading-relaxed text-slate-400 mt-1.5">
-                                Digunakan untuk notifikasi sistem, invoice, dan informasi tagihan.
+                            <p
+                                class="text-xs leading-relaxed text-slate-400 mt-1.5"
+                            >
+                                Digunakan untuk notifikasi sistem, invoice, dan
+                                informasi tagihan.
                             </p>
                         </div>
 
@@ -93,21 +112,34 @@
                                 }"
                                 :feedback="business.errors.address"
                             />
-                            <p class="text-xs leading-relaxed text-slate-400 mt-1.5">
-                                Alamat dapat digunakan untuk kebutuhan invoice, pengiriman, dan profil usaha.
+                            <p
+                                class="text-xs leading-relaxed text-slate-400 mt-1.5"
+                            >
+                                Alamat dapat digunakan untuk kebutuhan invoice,
+                                pengiriman, dan profil usaha.
                             </p>
                         </div>
                     </div>
 
                     <!-- Footer Action -->
-                    <div class="border-t border-slate-100 pt-5 mt-6 flex justify-end">
+                    <div
+                        class="border-t border-slate-100 pt-5 mt-6 flex justify-end"
+                    >
                         <button
                             class="btn btn-success px-6 justify-center rounded-lg w-full sm:w-auto"
                             :disabled="business.processing"
                             @click="saveDetail"
                         >
-                            <FontAwesomeIcon v-if="business.processing" :icon="faSpinner" class="animate-spin" />
-                            <span>{{ business.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}</span>
+                            <FontAwesomeIcon
+                                v-if="business.processing"
+                                :icon="faSpinner"
+                                class="animate-spin"
+                            />
+                            <span>{{
+                                business.processing
+                                    ? 'Menyimpan...'
+                                    : 'Simpan Perubahan'
+                            }}</span>
                         </button>
                     </div>
                 </div>
@@ -115,14 +147,22 @@
 
             <!-- Right Column: Logo -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 sticky top-4">
+                <div
+                    class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 sticky top-4"
+                >
                     <!-- Header -->
-                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-                        <div class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main">
+                    <div
+                        class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6"
+                    >
+                        <div
+                            class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main"
+                        >
                             <FontAwesomeIcon :icon="faImage" class="text-lg" />
                         </div>
                         <div>
-                            <h2 class="text-lg font-semibold text-slate-800 leading-tight">
+                            <h2
+                                class="text-lg font-semibold text-slate-800 leading-tight"
+                            >
                                 Logo Usaha
                             </h2>
                             <p class="text-xs text-slate-500 mt-0.5">
@@ -140,7 +180,7 @@
                 </div>
             </div>
         </div>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
@@ -153,7 +193,7 @@ import {
     faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
 
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import EmailField from '@/Components/Form/EmailField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';

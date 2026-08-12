@@ -1009,38 +1009,9 @@
         @apply relative aspect-square rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-slate-100/50 transition-all duration-300;
     }
 
-    /* TOAST */
-    .toast {
-        @apply fixed bottom-5 right-5 z-50 w-80 p-4 text-white rounded-lg shadow-2xl;
-
-        /* Initial hidden state */
-        opacity: 0;
-        transform: translateY(20px) translateX(10px) scale(0.95);
-
-        visibility: hidden;
-        pointer-events: none;
-
-        transition:
-            opacity 0.25s ease,
-            transform 0.25s ease,
-            visibility 0.25s ease;
-
-        /* Visible state */
-        &.show {
-            opacity: 1;
-            transform: translateY(0) translateX(0) scale(1);
-
-            visibility: visible;
-            pointer-events: auto;
-        }
-
-        /* Hidden state */
-        &.hide {
-            opacity: 0;
-            transform: translateY(20px) translateX(10px) scale(0.95);
-
-            visibility: hidden;
-            pointer-events: none;
-        }
+    /* TOAST UTILITIES */
+    .toast-card {
+        @apply transition-all duration-300;
     }
 }
+

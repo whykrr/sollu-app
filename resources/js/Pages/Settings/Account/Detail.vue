@@ -1,17 +1,27 @@
 <template>
-    <Container>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-start p-1">
+    <MainPage>
+        <div
+            class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-start p-1"
+        >
             <!-- Left Column: Forms -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- Profil Akun Card -->
-                <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6">
+                <div
+                    class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6"
+                >
                     <!-- Header -->
-                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-                        <div class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main">
+                    <div
+                        class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6"
+                    >
+                        <div
+                            class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main"
+                        >
                             <FontAwesomeIcon :icon="faUser" class="text-lg" />
                         </div>
                         <div>
-                            <h2 class="text-lg font-semibold text-slate-800 leading-tight">
+                            <h2
+                                class="text-lg font-semibold text-slate-800 leading-tight"
+                            >
                                 Profil Akun
                             </h2>
                             <p class="text-xs text-slate-500 mt-0.5">
@@ -47,9 +57,17 @@
                                 :feedback="formProfile.errors.email"
                                 disabled
                             />
-                            <p class="text-xs leading-relaxed text-slate-400 mt-1.5 flex items-start gap-1.5">
-                                <FontAwesomeIcon :icon="faInfoCircle" class="text-slate-400 mt-0.5" />
-                                <span>Email utama digunakan untuk masuk ke aplikasi dan tidak dapat diubah.</span>
+                            <p
+                                class="text-xs leading-relaxed text-slate-400 mt-1.5 flex items-start gap-1.5"
+                            >
+                                <FontAwesomeIcon
+                                    :icon="faInfoCircle"
+                                    class="text-slate-400 mt-0.5"
+                                />
+                                <span
+                                    >Email utama digunakan untuk masuk ke
+                                    aplikasi dan tidak dapat diubah.</span
+                                >
                             </p>
                         </div>
 
@@ -68,31 +86,50 @@
                     </div>
 
                     <!-- Footer Action -->
-                    <div class="border-t border-slate-100 pt-5 mt-6 flex justify-end">
+                    <div
+                        class="border-t border-slate-100 pt-5 mt-6 flex justify-end"
+                    >
                         <button
                             class="btn btn-success px-6 justify-center rounded-lg w-full sm:w-auto"
                             :disabled="formProfile.processing"
                             @click="saveDetail"
                         >
-                            <FontAwesomeIcon v-if="formProfile.processing" :icon="faSpinner" class="animate-spin" />
-                            <span>{{ formProfile.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}</span>
+                            <FontAwesomeIcon
+                                v-if="formProfile.processing"
+                                :icon="faSpinner"
+                                class="animate-spin"
+                            />
+                            <span>{{
+                                formProfile.processing
+                                    ? 'Menyimpan...'
+                                    : 'Simpan Perubahan'
+                            }}</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Ganti Password Card -->
-                <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6">
+                <div
+                    class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6"
+                >
                     <!-- Header -->
-                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-                        <div class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main">
+                    <div
+                        class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6"
+                    >
+                        <div
+                            class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main"
+                        >
                             <FontAwesomeIcon :icon="faLock" class="text-lg" />
                         </div>
                         <div>
-                            <h2 class="text-lg font-semibold text-slate-800 leading-tight">
+                            <h2
+                                class="text-lg font-semibold text-slate-800 leading-tight"
+                            >
                                 Ubah Kata Sandi
                             </h2>
                             <p class="text-xs text-slate-500 mt-0.5">
-                                Amankan akun Anda dengan memperbarui kata sandi secara berkala
+                                Amankan akun Anda dengan memperbarui kata sandi
+                                secara berkala
                             </p>
                         </div>
                     </div>
@@ -107,7 +144,8 @@
                                 placeholder="Masukkan kata sandi lama Anda"
                                 :class="{
                                     'is-invalid':
-                                        formChangePassword.errors.current_password,
+                                        formChangePassword.errors
+                                            .current_password,
                                 }"
                                 :feedback="
                                     formChangePassword.errors.current_password
@@ -141,24 +179,36 @@
                                 placeholder="Masukkan kembali kata sandi baru Anda"
                                 :class="{
                                     'is-invalid':
-                                        formChangePassword.errors.new_password_confirmation,
+                                        formChangePassword.errors
+                                            .new_password_confirmation,
                                 }"
                                 :feedback="
-                                    formChangePassword.errors.new_password_confirmation
+                                    formChangePassword.errors
+                                        .new_password_confirmation
                                 "
                             />
                         </div>
                     </div>
 
                     <!-- Footer Action -->
-                    <div class="border-t border-slate-100 pt-5 mt-6 flex justify-end">
+                    <div
+                        class="border-t border-slate-100 pt-5 mt-6 flex justify-end"
+                    >
                         <button
                             class="btn btn-success px-6 justify-center rounded-lg w-full sm:w-auto"
                             :disabled="formChangePassword.processing"
                             @click="changePassword"
                         >
-                            <FontAwesomeIcon v-if="formChangePassword.processing" :icon="faSpinner" class="animate-spin" />
-                            <span>{{ formChangePassword.processing ? 'Menyimpan...' : 'Simpan Kata Sandi' }}</span>
+                            <FontAwesomeIcon
+                                v-if="formChangePassword.processing"
+                                :icon="faSpinner"
+                                class="animate-spin"
+                            />
+                            <span>{{
+                                formChangePassword.processing
+                                    ? 'Menyimpan...'
+                                    : 'Simpan Kata Sandi'
+                            }}</span>
                         </button>
                     </div>
                 </div>
@@ -166,14 +216,22 @@
 
             <!-- Right Column: Profile Picture -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 sticky top-4">
+                <div
+                    class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 sticky top-4"
+                >
                     <!-- Header -->
-                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-                        <div class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main">
+                    <div
+                        class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6"
+                    >
+                        <div
+                            class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main"
+                        >
                             <FontAwesomeIcon :icon="faImage" class="text-lg" />
                         </div>
                         <div>
-                            <h2 class="text-lg font-semibold text-slate-800 leading-tight">
+                            <h2
+                                class="text-lg font-semibold text-slate-800 leading-tight"
+                            >
                                 Foto Profil
                             </h2>
                             <p class="text-xs text-slate-500 mt-0.5">
@@ -191,7 +249,7 @@
                 </div>
             </div>
         </div>
-    </Container>
+    </MainPage>
 </template>
 
 <script setup>
@@ -206,7 +264,7 @@ import {
     faInfoCircle,
 } from '@fortawesome/free-solid-svg-icons';
 
-import Container from '@/Components/UI/Container.vue';
+import MainPage from '@/Components/UI/MainPage.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import EmailField from '@/Components/Form/EmailField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';

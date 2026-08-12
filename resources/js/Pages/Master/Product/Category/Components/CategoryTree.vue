@@ -117,6 +117,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
+import { useToastStore } from '@/store/toast';
+
+const toastStore = useToastStore();
 
 const props = defineProps({
     categories: {
@@ -163,13 +166,12 @@ const saveReorder = () => {
     axios
         .post(route('master.categories.reorder'), { categories: payload })
         .then((response) => {
-            // Optional: show toast notification
-            // Reload the page data without full refresh
+            toastStore.success('Urutan kategori berhasil disimpan.');
             router.reload({ only: ['categories'] });
         })
         .catch((error) => {
             console.error(error);
-            alert(error.response?.data?.message || 'Gagal menyimpan urutan');
+            toastStore.danger(error.response?.data?.message || 'Gagal menyimpan urutan');
             router.reload({ only: ['categories'] });
         });
 };
