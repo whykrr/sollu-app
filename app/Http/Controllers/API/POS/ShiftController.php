@@ -38,7 +38,7 @@ class ShiftController extends Controller
             ->first();
 
         if (!$shift) {
-            return $this->errorResponse('Tidak ada shift aktif', 404);
+            return $this->errorResponse('Tidak ada shift aktif', [], 404);
         }
 
         $shift->update([
@@ -59,7 +59,7 @@ class ShiftController extends Controller
             ->first();
 
         if (!$shift) {
-            return $this->errorResponse('Tidak ada shift aktif', 404);
+            return $this->errorResponse('Tidak ada shift aktif', [], 404);
         }
 
         $log = $shift->cashLogs()->create($request->validated());

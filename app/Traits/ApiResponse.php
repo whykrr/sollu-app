@@ -33,12 +33,17 @@ trait ApiResponse
      * Build an error response.
      *
      * @param string $message
-     * @param array $errors
+     * @param array|int $errors
      * @param int $code
      * @return JsonResponse
      */
-    public function errorResponse(string $message, array $errors = [], int $code = 400): JsonResponse
+    public function errorResponse(string $message, array|int $errors = [], int $code = 400): JsonResponse
     {
+        if (is_int($errors)) {
+            $code = $errors;
+            $errors = [];
+        }
+
         $response = [
             'message' => $message,
         ];

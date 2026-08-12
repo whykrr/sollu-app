@@ -70,4 +70,26 @@ class Transaction extends Model
     {
         return $this->hasMany(TransactionPayment::class);
     }
+
+    public function scopeFilters($query, array $filters)
+    {
+        $query->when($filters['search'] ?? null, function ($query, $search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('receipt_number', 'like', '%' . $search . '%')
+                    ->orWhereHas('customer', function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%');
+                    });
+            });
+        })->when($filters['channel'] ?? null, function ($query, $channel) {
+            $query->where('channel', $channel);
+        })->when($filters['status'] ?? null, function ($query, $status) {
+            $query->where('status', $status);
+        })->when($filters['payment_status'] ?? null, function ($query, $paymentStatus) {
+            $query->where('payment_status', $paymentStatus);
+        })->when($filters['start_date'] ?? null, function ($query, $startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        })->when($filters['end_date'] ?? null, function ($query, $endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        });
+    }
 }

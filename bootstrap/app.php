@@ -43,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'stock.not.frozen' => \App\Http\Middleware\EnsureStockNotFrozen::class,
+            'pos.device' => \App\Http\Middleware\VerifyPosDevice::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

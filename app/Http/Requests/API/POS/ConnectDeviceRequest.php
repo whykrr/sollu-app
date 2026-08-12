@@ -4,7 +4,7 @@ namespace App\Http\Requests\API\POS;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class VerifyOtpRequest extends FormRequest
+class ConnectDeviceRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,6 +15,8 @@ class VerifyOtpRequest extends FormRequest
     {
         return [
             'otp' => ['required', 'string', 'size:8'],
+            'device_uuid' => ['required', 'string'],
+            'hardware_fingerprint' => ['required', 'string'],
         ];
     }
 }

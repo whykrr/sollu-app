@@ -1,290 +1,423 @@
 {
-	"info": {
-		"_postman_id": "a3b4c5d6-7890-4123-b456-7890abcdef12",
-		"name": "Sollu POS Client API",
-		"description": "Koleksi Postman Siap Import untuk Pengujian API POS Client & Pairing Perangkat Sollu App.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "http://localhost:8000/api/pos",
-			"type": "string"
-		},
-		{
-			"key": "deviceToken",
-			"value": "",
-			"type": "string"
-		}
-	],
-	"item": [
-		{
-			"name": "Device Pairing",
-			"item": [
-				{
-					"name": "Verify OTP & Pair Device",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();",
-									"if (jsonData.data && jsonData.data.token) {",
-									"    pm.collectionVariables.set('deviceToken', jsonData.data.token);",
-									"    console.log('deviceToken updated:', jsonData.data.token);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"otp\": \"12345678\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/device/verify-otp",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"device",
-								"verify-otp"
-							]
-						},
-						"description": "Verifikasi 8-digit OTP dari Dashboard untuk menghubungkan perangkat POS dan mengeset otomatis {{deviceToken}}."
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Master Data & Sync",
-			"item": [
-				{
-					"name": "Pull Master Data",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{deviceToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/sync/master",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"sync",
-								"master"
-							]
-						},
-						"description": "Menarik seluruh master data (Produk, Kategori, Metode Pembayaran, Setting Tax) untuk disimpan di SQLite POS."
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Transactions",
-			"item": [
-				{
-					"name": "Sync Offline Transaction",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{deviceToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"offline_id\": \"9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d\",\n    \"receipt_number\": \"INV/20260810/0001\",\n    \"customer_id\": null,\n    \"subtotal\": 50000,\n    \"discount_amount\": 5000,\n    \"tax_amount\": 4950,\n    \"service_charge_amount\": 0,\n    \"total\": 49950,\n    \"payment_status\": \"paid\",\n    \"status\": \"completed\",\n    \"notes\": \"Catatan pesanan\",\n    \"items\": [\n        {\n            \"product_id\": \"018f2d5e-7a1b-7a2c-9a3d-4e5f6a7b8c9d\",\n            \"variant_group_option_id\": null,\n            \"product_name\": \"Kopi Susu Gula Aren\",\n            \"price\": 25000,\n            \"qty\": 2,\n            \"discount_amount\": 0,\n            \"subtotal\": 50000,\n            \"modifiers\": [\n                {\n                    \"modifier_option_id\": \"018f2d5e-8b2c-8b3d-a4e5-5f6a7b8c9d0e\",\n                    \"modifier_name\": \"Extra Shot\",\n                    \"price\": 5000,\n                    \"qty\": 1\n                }\n            ]\n        }\n    ],\n    \"payments\": [\n        {\n            \"payment_method_id\": \"018f2d5e-9c3d-9c4e-b5f6-6a7b8c9d0e1f\",\n            \"amount\": 50000,\n            \"change_amount\": 50,\n            \"payment_reference\": \"CASH-001\"\n        }\n    ]\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/transactions",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"transactions"
-							]
-						},
-						"description": "Kirim data transaksi hasil checkout offline POS App ke Cloud server."
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Shifts",
-			"item": [
-				{
-					"name": "Open Shift",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{deviceToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"user_id\": \"018f2d5e-1a2b-3c4d-5e6f-7a8b9c0d1e2f\",\n    \"opening_cash\": 500000\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/shifts/open",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"shifts",
-								"open"
-							]
-						},
-						"description": "Buka shift kasir baru."
-					},
-					"response": []
-				},
-				{
-					"name": "Close Shift",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{deviceToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"closing_cash\": 1250000,\n    \"actual_cash\": 1250000\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/shifts/close",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"shifts",
-								"close"
-							]
-						},
-						"description": "Tutup shift kasir aktif."
-					},
-					"response": []
-				},
-				{
-					"name": "Add Cash Log",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{deviceToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"cash_out\",\n    \"amount\": 50000,\n    \"description\": \"Pembelian es batu operasional\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/shifts/cash-log",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"shifts",
-								"cash-log"
-							]
-						},
-						"description": "Pencatatan kas masuk / kas keluar di luar transaksi."
-					},
-					"response": []
-				}
-			]
-		}
-	]
+    "info": {
+        "_postman_id": "a3b4c5d6-7890-4123-b456-7890abcdef12",
+        "name": "Sollu POS Client API",
+        "description": "Koleksi Postman Siap Import untuk Pengujian API POS Client & Pairing Perangkat Sollu App.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8000/api/pos",
+            "type": "string"
+        },
+        {
+            "key": "deviceToken",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "deviceUuid",
+            "value": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+            "type": "string"
+        },
+        {
+            "key": "hardwareSignature",
+            "value": "a3f8c...",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Device Pairing & Connection",
+            "item": [
+                {
+                    "name": "Connect Device",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.data && jsonData.data.token) {",
+                                    "    pm.collectionVariables.set('deviceToken', jsonData.data.token);",
+                                    "    console.log('deviceToken updated:', jsonData.data.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"otp\": \"12345678\",\n    \"device_uuid\": \"{{deviceUuid}}\",\n    \"hardware_fingerprint\": \"{{hardwareSignature}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/device/connect",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "device",
+                                "connect"
+                            ]
+                        },
+                        "description": "Koneksi perangkat menggunakan OTP dan Hardware Fingerprint."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Check Device Status",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{deviceToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-DEVICE-UUID",
+                                "value": "{{deviceUuid}}"
+                            },
+                            {
+                                "key": "X-HARDWARE-SIGNATURE",
+                                "value": "{{hardwareSignature}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/device/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "device",
+                                "status"
+                            ]
+                        },
+                        "description": "Cek apakah token dan fingerprint masih valid/aktif."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Master Data & Sync",
+            "item": [
+                {
+                    "name": "Pull Master Data",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{deviceToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-DEVICE-UUID",
+                                "value": "{{deviceUuid}}"
+                            },
+                            {
+                                "key": "X-HARDWARE-SIGNATURE",
+                                "value": "{{hardwareSignature}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/sync/master",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "sync",
+                                "master"
+                            ]
+                        },
+                        "description": "Menarik seluruh master data (Produk, Kategori, Metode Pembayaran, Setting Tax) untuk disimpan di SQLite POS."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Employees",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{deviceToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-DEVICE-UUID",
+                                "value": "{{deviceUuid}}"
+                            },
+                            {
+                                "key": "X-HARDWARE-SIGNATURE",
+                                "value": "{{hardwareSignature}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/employees",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "employees"
+                            ]
+                        },
+                        "description": "Menarik data karyawan/kasir yang terdaftar pada outlet device."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Transactions",
+            "item": [
+                {
+                    "name": "Sync Offline Transaction",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{deviceToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-DEVICE-UUID",
+                                "value": "{{deviceUuid}}"
+                            },
+                            {
+                                "key": "X-HARDWARE-SIGNATURE",
+                                "value": "{{hardwareSignature}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"offline_id\": \"9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d\",\n    \"receipt_number\": \"INV/20260810/0001\",\n    \"customer_id\": null,\n    \"subtotal\": 50000,\n    \"discount_amount\": 5000,\n    \"tax_amount\": 4950,\n    \"service_charge_amount\": 0,\n    \"total\": 49950,\n    \"payment_status\": \"paid\",\n    \"status\": \"completed\",\n    \"notes\": \"Catatan pesanan\",\n    \"items\": [\n        {\n            \"product_id\": \"018f2d5e-7a1b-7a2c-9a3d-4e5f6a7b8c9d\",\n            \"variant_group_option_id\": null,\n            \"product_name\": \"Kopi Susu Gula Aren\",\n            \"price\": 25000,\n            \"qty\": 2,\n            \"discount_amount\": 0,\n            \"subtotal\": 50000,\n            \"modifiers\": [\n                {\n                    \"modifier_option_id\": \"018f2d5e-8b2c-8b3d-a4e5-5f6a7b8c9d0e\",\n                    \"modifier_name\": \"Extra Shot\",\n                    \"price\": 5000,\n                    \"qty\": 1\n                }\n            ]\n        }\n    ],\n    \"payments\": [\n        {\n            \"payment_method_id\": \"018f2d5e-9c3d-9c4e-b5f6-6a7b8c9d0e1f\",\n            \"amount\": 50000,\n            \"change_amount\": 50,\n            \"payment_reference\": \"CASH-001\"\n        }\n    ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/transactions",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "transactions"
+                            ]
+                        },
+                        "description": "Kirim data transaksi hasil checkout offline POS App ke Cloud server."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Shifts",
+            "item": [
+                {
+                    "name": "Open Shift",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{deviceToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-DEVICE-UUID",
+                                "value": "{{deviceUuid}}"
+                            },
+                            {
+                                "key": "X-HARDWARE-SIGNATURE",
+                                "value": "{{hardwareSignature}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user_id\": \"018f2d5e-1a2b-3c4d-5e6f-7a8b9c0d1e2f\",\n    \"opening_cash\": 500000\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/shifts/open",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "shifts",
+                                "open"
+                            ]
+                        },
+                        "description": "Buka shift kasir baru."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Close Shift",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{deviceToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-DEVICE-UUID",
+                                "value": "{{deviceUuid}}"
+                            },
+                            {
+                                "key": "X-HARDWARE-SIGNATURE",
+                                "value": "{{hardwareSignature}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"closing_cash\": 1250000,\n    \"actual_cash\": 1250000\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/shifts/close",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "shifts",
+                                "close"
+                            ]
+                        },
+                        "description": "Tutup shift kasir aktif."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add Cash Log",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{deviceToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-DEVICE-UUID",
+                                "value": "{{deviceUuid}}"
+                            },
+                            {
+                                "key": "X-HARDWARE-SIGNATURE",
+                                "value": "{{hardwareSignature}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"type\": \"cash_out\",\n    \"amount\": 50000,\n    \"description\": \"Pembelian es batu operasional\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/shifts/cash-log",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "shifts",
+                                "cash-log"
+                            ]
+                        },
+                        "description": "Pencatatan kas masuk / kas keluar di luar transaksi."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
 }

@@ -12,17 +12,44 @@ components:
             type: http
             scheme: bearer
             bearerFormat: Sanctum Token
+    parameters:
+        DeviceUuidHeader:
+            name: X-DEVICE-UUID
+            in: header
+            required: true
+            schema:
+                type: string
+                format: uuid
+            example: 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
+        HardwareSignatureHeader:
+            name: X-HARDWARE-SIGNATURE
+            in: header
+            required: true
+            schema:
+                type: string
+            example: 'a3f8c...'
     schemas:
-        VerifyOtpRequest:
+        ConnectDeviceRequest:
             type: object
             required:
                 - otp
+                - device_uuid
+                - hardware_fingerprint
             properties:
                 otp:
                     type: string
                     example: '12345678'
                     description: Kode OTP 8-digit yang dihasilkan dari Dashboard
-        VerifyOtpResponse:
+                device_uuid:
+                    type: string
+                    format: uuid
+                    example: 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6'
+                    description: UUID spesifik perangkat dari aplikasi POS
+                hardware_fingerprint:
+                    type: string
+                    example: 'a3f8c...'
+                    description: Signature/fingerprint hardware dari aplikasi POS
+        ConnectDeviceResponse:
             type: object
             properties:
                 success:
@@ -243,28 +270,43 @@ components:
                     example: 50000
                 description:
                     type: string
-                    example: 'Beli es batu kristal'
+                    description: 'Beli es batu kristal'
 
 paths:
-    /device/verify-otp:
+    /device/connect:
         post:
-            summary: Verifikasi OTP & Pairing POS Device
-            description: Memvalidasi 8-digit OTP dari aplikasi POS dan mengembalikan Sanctum Bearer Token beserta detail Perangkat, Outlet, dan Bisnis.
+            summary: Connect Device & Pairing POS
+            description: Memvalidasi 8-digit OTP, mendaftarkan device_uuid & hardware_fingerprint dari POS Client, serta mengembalikan Sanctum Bearer Token.
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/VerifyOtpRequest'
+                            $ref: '#/components/schemas/ConnectDeviceRequest'
             responses:
                 '200':
                     description: Berhasil verifikasi dan mendapatkan token
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/VerifyOtpResponse'
+                                $ref: '#/components/schemas/ConnectDeviceResponse'
                 '400':
                     description: OTP Tidak Valid / Kadaluarsa
+
+    /device/status:
+        get:
+            summary: Cek Status Koneksi Device
+            description: Memeriksa apakah token Sanctum dan fingerprint hardware masih valid/aktif.
+            security:
+                - SanctumAuth: []
+            parameters:
+                - $ref: '#/components/parameters/DeviceUuidHeader'
+                - $ref: '#/components/parameters/HardwareSignatureHeader'
+            responses:
+                '200':
+                    description: Device valid dan terhubung
+                '401':
+                    description: Token atau signature tidak valid
 
     /sync/master:
         get:
@@ -272,9 +314,59 @@ paths:
             description: Menarik seluruh master data toko (Produk, Kategori, Metode Pembayaran, Setting Outlet) untuk disimpan ke SQLite POS.
             security:
                 - SanctumAuth: []
+            parameters:
+                - $ref: '#/components/parameters/DeviceUuidHeader'
+                - $ref: '#/components/parameters/HardwareSignatureHeader'
             responses:
                 '200':
                     description: Payload Master Data berhasil diambil
+
+    /employees:
+        get:
+            summary: Get Employees List
+            description: Menarik daftar karyawan/kasir yang terdaftar pada outlet tempat device dipairing.
+            security:
+                - SanctumAuth: []
+            parameters:
+                - $ref: '#/components/parameters/DeviceUuidHeader'
+                - $ref: '#/components/parameters/HardwareSignatureHeader'
+            responses:
+                '200':
+                    description: Data karyawan berhasil diambil
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: 'Data karyawan berhasil diambil.'
+                                    data:
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                id:
+                                                    type: string
+                                                    format: uuid
+                                                name:
+                                                    type: string
+                                                    example: 'Budi Kasir'
+                                                email:
+                                                    type: string
+                                                    example: 'budi@sollu.id'
+                                                pin:
+                                                    type: string
+                                                    example: '$2y$12$eImiTXuWVxfM37uY4JANjO...'
+                                                photo:
+                                                    type: string
+                                                    nullable: true
+                                                role:
+                                                    type: string
+                                                    example: 'Kasir'
 
     /transactions:
         post:
@@ -282,6 +374,9 @@ paths:
             description: Mengirim data transaksi dari SQLite lokal POS ke server cloud. Menggunakan idempotency check pada offline_id.
             security:
                 - SanctumAuth: []
+            parameters:
+                - $ref: '#/components/parameters/DeviceUuidHeader'
+                - $ref: '#/components/parameters/HardwareSignatureHeader'
             requestBody:
                 required: true
                 content:
@@ -297,6 +392,9 @@ paths:
             summary: Buka Shift Kasir
             security:
                 - SanctumAuth: []
+            parameters:
+                - $ref: '#/components/parameters/DeviceUuidHeader'
+                - $ref: '#/components/parameters/HardwareSignatureHeader'
             requestBody:
                 required: true
                 content:
@@ -312,6 +410,9 @@ paths:
             summary: Tutup Shift Kasir
             security:
                 - SanctumAuth: []
+            parameters:
+                - $ref: '#/components/parameters/DeviceUuidHeader'
+                - $ref: '#/components/parameters/HardwareSignatureHeader'
             requestBody:
                 required: true
                 content:
@@ -327,6 +428,9 @@ paths:
             summary: Catat Cash In / Cash Out
             security:
                 - SanctumAuth: []
+            parameters:
+                - $ref: '#/components/parameters/DeviceUuidHeader'
+                - $ref: '#/components/parameters/HardwareSignatureHeader'
             requestBody:
                 required: true
                 content:

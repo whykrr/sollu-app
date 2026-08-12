@@ -84,7 +84,7 @@ class Outlet extends Model
      */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'outlet_user', 'user_id', 'outlet_id');
+        return $this->belongsToMany(User::class, 'outlet_user', 'outlet_id', 'user_id');
     }
 
     /**

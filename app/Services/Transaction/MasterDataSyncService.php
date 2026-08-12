@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Sales;
+namespace App\Services\Transaction;
 
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
@@ -88,6 +88,10 @@ class MasterDataSyncService
             ->get()
             ->makeHidden(['business_id', 'outlet_id']);
 
+        $inventoryItemVariantGroupOptions = DB::table('inventory_item_variant_group_option')
+            ->whereIn('inventory_item_id', $inventoryItems->pluck('id'))
+            ->get();
+
         return [
             'products' => $products,
             'product_categories' => $productCategories,
@@ -104,6 +108,7 @@ class MasterDataSyncService
             'outlet_products' => $outletProducts,
             'inventory_items' => $inventoryItems,
             'inventory_balances' => $inventoryBalances,
+            'inventory_item_variant_group_options' => $inventoryItemVariantGroupOptions,
         ];
     }
 }

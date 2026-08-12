@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Sales;
+namespace App\Services\Transaction;
 
 use App\Models\Sales\Transaction;
 use App\Models\Master\InventoryBalance;

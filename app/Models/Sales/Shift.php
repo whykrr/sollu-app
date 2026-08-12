@@ -56,4 +56,19 @@ class Shift extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+
+    public function scopeFilters($query, array $filters)
+    {
+        $query->when($filters['search'] ?? null, function ($query, $search) {
+            $query->whereHas('user', function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%');
+            });
+        })->when($filters['status'] ?? null, function ($query, $status) {
+            $query->where('status', $status);
+        })->when($filters['start_date'] ?? null, function ($query, $startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        })->when($filters['end_date'] ?? null, function ($query, $endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        });
+    }
 }

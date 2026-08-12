@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Sales;
+namespace App\Services\Transaction;
 
 use App\Models\Sales\Transaction;
 use App\Models\User;
@@ -22,15 +22,55 @@ class TransactionService
     public function createB2bInvoice(array $data, User $user): Transaction
     {
         return DB::transaction(function () use ($data, $user) {
-            // Scaffold: Calculate price, create transaction, create items, deduct inventory
             $transaction = Transaction::create([
-                // mapping data
+                'outlet_id' => $data['outlet_id'] ?? null,
+                'customer_id' => $data['customer_id'] ?? null,
+                'channel' => 'invoice',
+                'subtotal' => $data['subtotal'],
+                'discount_amount' => $data['discount_amount'] ?? 0,
+                'tax_amount' => $data['tax_amount'] ?? 0,
+                'service_charge_amount' => $data['service_charge_amount'] ?? 0,
+                'total' => $data['total'],
+                'payment_status' => 'unpaid',
+                'status' => 'completed', // B2B invoices are considered completed orders, but unpaid.
+                'is_offline' => false,
+                'due_date' => $data['due_date'] ?? null,
+                'receipt_number' => $this->generateInvoiceNumber(),
             ]);
 
-            // ... create items ...
+            if (!empty($data['items'])) {
+                foreach ($data['items'] as $item) {
+                    $transaction->items()->create([
+                        'product_id' => $item['product_id'],
+                        'product_name' => $item['product_name'],
+                        'price' => $item['price'],
+                        'qty' => $item['qty'],
+                        'discount_amount' => $item['discount_amount'] ?? 0,
+                        'subtotal' => $item['subtotal'],
+                    ]);
+                }
+            }
+
+            // Deduct stock if invoice is completed
+            $this->inventoryDeductionService->deductFromTransaction($transaction);
 
             return $transaction;
         });
+    }
+
+    protected function generateInvoiceNumber(): string
+    {
+        $prefix = 'INV/' . date('Y/m/');
+        $last = Transaction::where('receipt_number', 'like', $prefix . '%')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (!$last) {
+            return $prefix . '0001';
+        }
+
+        $lastNumber = intval(substr($last->receipt_number, -4));
+        return $prefix . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
     }
 
     public function syncOfflineTransaction(array $data, ?\App\Models\OutletDevice $device = null): Transaction

@@ -1,7 +1,6 @@
 <?php
 
 use App\Helpers\SelectedOutlet;
-use App\Http\Controllers\GeneralController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\User\ForgotPasswordController;
@@ -111,8 +110,7 @@ Route::middleware('auth:business')->group(function () {
     require __DIR__ . '/web/inventories.php';
     require __DIR__ .'/web/employees.php';
     require __DIR__ .'/web/settings.php';
-    require __DIR__ .'/web/template.php';
-    require __DIR__ .'/web/sales.php';
+    require __DIR__ .'/web/transactions.php';
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');
 

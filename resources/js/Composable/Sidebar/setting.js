@@ -1,4 +1,4 @@
-import { faArrowLeft, faBoxes, faCashRegister, faCog, faCreditCard, faGears, faHistory, faHome, faInfo, faMapMarkerAlt, faMarker, faMoneyBill, faMoneyBills, faReceipt, faShop, faUser, faUserCircle, faUserShield, faWallet, faXmarkCircle } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faBoxes, faCalculator, faCashRegister, faCog, faCreditCard, faGears, faHistory, faHome, faInfo, faMapMarkerAlt, faMarker, faMinus, faMinusSquare, faMoneyBill, faMoneyBills, faReceipt, faShop, faUser, faUserCircle, faUserShield, faWallet, faXmarkCircle } from '@fortawesome/free-solid-svg-icons'
 
 export const settingSidebars = [
     {
@@ -23,7 +23,7 @@ export const settingSidebars = [
         type: 'item',
         url: route('settings.business.detail'),
         icon: faShop,
-        label: 'Detail Usaha',
+        label: 'Informasi Usaha',
         permissions: ['business.view'],
         activeRoute: 'settings.business',
     },
@@ -45,7 +45,7 @@ export const settingSidebars = [
     },
     {
         type: 'section',
-        label: 'Pengaturan Umum',
+        label: 'Pengaturan',
         separator: true,
     },
     {
@@ -60,7 +60,7 @@ export const settingSidebars = [
         type: 'item',
         url: '#',
         icon: faCashRegister,
-        label: 'Pengaturan Kasir',
+        label: 'Perangkat',
         permissions: [],
         activeRoute: 'settings.cashier',
     },
@@ -75,16 +75,32 @@ export const settingSidebars = [
     {
         type: 'item',
         url: '#',
-        icon: faBoxes,
-        label: 'Inventori',
+        icon: faCalculator,
+        label: 'Pajak & Potongan',
         permissions: [],
         activeRoute: 'settings.inventory',
     },
     {
         type: 'item',
         url: '#',
+        icon: faCreditCard,
+        label: 'Metode Pembayaran',
+        permissions: [],
+        activeRoute: 'settings.cashier',
+    },
+    {
+        type: 'item',
+        url: '#',
         icon: faUserShield,
         label: 'Hak Akses',
+        permissions: [],
+        activeRoute: 'settings.roles',
+    },
+    {
+        type: 'item',
+        url: '#',
+        icon: faHistory,
+        label: 'Log Aktivitas',
         permissions: [],
         activeRoute: 'settings.roles',
     },

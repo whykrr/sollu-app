@@ -32,7 +32,7 @@
 
         <div class="sidebar-container relative z-30">
             <SidebarHeader />
-            <SidebarOutlet v-if="!isSetting" />
+            <SidebarOutlet />
             <SidebarNav class="mb-2" />
             <SidebarFooter :is-setting="isSetting" />
         </div>

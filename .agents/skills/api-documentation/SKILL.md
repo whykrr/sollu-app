@@ -16,8 +16,8 @@ Dokumentasi API adalah kontrak antara Backend dan Frontend/Client. Setiap kali t
    - Pengembalian JSON di `Controller` atau `Resource` (menambah atribut, menyembunyikan relasi, dll).
 
 2. **Perbarui File Dokumentasi**: 
-   Cari dan perbarui file dokumentasi API yang ada di dalam proyek:
-   - **Postman Collection**: Cari file `.json` yang mendeskripsikan koleksi Postman (contoh: `docs/postman_collection.json` atau serupa).
+   Perbarui file dokumentasi API yang ada di dalam proyek di `docs/` :
+   - **Postman Collection**: Cari file `.json` yang mendeskripsikan koleksi Postman (`docs/postman_collection.json` dan `docs\openapi.yaml`).
    - **Swagger / OpenAPI**: Cari file anotasi Swagger atau spesifikasi `.yaml`/`.json` jika ada.
 
 3. **Detail yang Harus Diperbarui**:
