@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read Collection|PurchaseOrder[] $purchaseOrders
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperSupplier
  */
 class Supplier extends Model
 {

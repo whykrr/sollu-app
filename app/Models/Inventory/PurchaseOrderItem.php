@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read InventoryItem $inventoryItem
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperPurchaseOrderItem
  */
 class PurchaseOrderItem extends Model
 {

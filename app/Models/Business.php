@@ -23,6 +23,7 @@ use Spatie\Sluggable\SlugOptions;
  * @property-read Collection|Product[] $products
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperBusiness
  */
 class Business extends Model
 {

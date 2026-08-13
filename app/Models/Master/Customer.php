@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @mixin IdeHelperCustomer
+ */
 class Customer extends Model
 {
     use HasBusiness, HasFactory, HasUuids;
@@ -21,6 +24,11 @@ class Customer extends Model
         'phone',
         'email',
         'address',
+        'birthdate',
+        'gender',
+        'notes',
+        'is_active',
+        'created_by',
     ];
 
     public function business(): BelongsTo
@@ -31,5 +39,18 @@ class Customer extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * Cast attributes to native types.
+     */
+    protected function casts(): array
+    {
+        return [
+            'birthdate' => 'date',
+            'gender' => \App\Enums\CustomerGender::class,
+            'is_active' => 'boolean',
+            'created_by' => 'string',
+        ];
     }
 }

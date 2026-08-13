@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection|PurchaseOrderItem[] $items
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperPurchaseOrder
  */
 class PurchaseOrder extends Model
 {

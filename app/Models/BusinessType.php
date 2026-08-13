@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Collection|ProductCategory[] $productCategories
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperBusinessType
  */
 class BusinessType extends Model
 {

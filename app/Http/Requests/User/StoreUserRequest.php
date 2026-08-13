@@ -29,6 +29,41 @@ class StoreUserRequest extends BaseInertiaFormRequest
             'role' => 'required',
             'outlets' => 'required|array',
             'outlets.*' => 'distinct|exists:outlets,id',
+            'pin' => 'required|numeric|digits:6',
         ];
+    }
+
+    /**
+     * Configure the validator instance.
+     *
+     * @param  \Illuminate\Validation\Validator  $validator
+     * @return void
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $req = $this->all();
+
+            $find = \App\Models\User::where(function ($builder) use ($req) {
+                $builder->where('email', '=', $req['email']);
+                if (! empty($req['phone'])) {
+                    $builder->orWhere('phone', '=', $req['phone']);
+                }
+            })->first();
+
+            if ($find !== null && $find->merchant_id !== Auth::user()->merchant_id) {
+                if ($find->email === $req['email']) {
+                    $validator->errors()->add('email', 'Sudah terdaftar di merchant lain!');
+                } elseif (! empty($req['phone']) && $find->phone === $req['phone']) {
+                    $validator->errors()->add('phone', 'Sudah terdaftar di merchant lain!');
+                }
+            } elseif ($find) {
+                if ($find->email === $req['email']) {
+                    $validator->errors()->add('email', 'Sudah terdaftar!');
+                } elseif (! empty($req['phone']) && $find->phone === $req['phone']) {
+                    $validator->errors()->add('phone', 'Sudah terdaftar!');
+                }
+            }
+        });
     }
 }

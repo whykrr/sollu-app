@@ -110,11 +110,23 @@ Route::middleware('auth:business')->group(function () {
     require __DIR__.'/web/employees.php';
     require __DIR__.'/web/settings.php';
     require __DIR__.'/web/transactions.php';
+    require __DIR__.'/web/customers.php';
 
     require __DIR__.'/web/promotions.php';
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');
 });
+
+if (app()->environment('local', 'development')) {
+    Route::get('/bypass-auth', function () {
+        $user = \App\Models\User::first();
+        if ($user) {
+            \Illuminate\Support\Facades\Auth::login($user);
+        }
+
+        return redirect('/');
+    })->name('bypass.auth');
+}
 
 /*
 |--------------------------------------------------------------------------

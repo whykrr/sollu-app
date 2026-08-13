@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection|StockOpnameItem[] $items
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperStockOpname
  */
 class StockOpname extends Model
 {

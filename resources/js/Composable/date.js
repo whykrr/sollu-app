@@ -1,4 +1,6 @@
 export function formatDateID(dateInput) {
+    if (!dateInput) return '';
+
     const bulanIndo = [
         'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
@@ -13,6 +15,8 @@ export function formatDateID(dateInput) {
 }
 
 export function formatDateTimeSimple(dateInput) {
+    if (!dateInput) return '';
+
     const tanggal = new Date(dateInput)
     const tahun = tanggal.getFullYear()
     const bulan = String(tanggal.getMonth() + 1).padStart(2, '0')
@@ -25,6 +29,8 @@ export function formatDateTimeSimple(dateInput) {
 
 
 export function formatDateTimeID(dateInput) {
+    if (!dateInput) return '';
+
     const bulanIndo = [
         'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
@@ -42,6 +48,8 @@ export function formatDateTimeID(dateInput) {
 }
 
 export function formatDateCompleteID(dateInput) {
+    if (!dateInput) return '';
+
     const hariIndo = [
         'Minggu', 'Senin', 'Selasa', 'Rabu',
         'Kamis', 'Jumat', 'Sabtu',
@@ -61,6 +69,8 @@ export function formatDateCompleteID(dateInput) {
 }
 
 export function gapDaysFromNow(expiredDate) {
+    if (!expiredDate) return 0;
+
     const expired = new Date(expiredDate)
     const today = new Date()
 
@@ -84,6 +94,8 @@ export function gapDaysFromNow(expiredDate) {
 
 // function addDays(date, days)
 export function addDays(date, days) {
+    if (!date) return null;
+
     const result = new Date(date)
     result.setDate(result.getDate() + days)
     return result

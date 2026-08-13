@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\RoleEnum;
 use App\Http\Requests\Employee\GetEmployeeRequest;
@@ -9,17 +10,13 @@ use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\Role as ModelsRole;
 use App\Models\User;
-use App\Notifications\NewEmployee;
-use Illuminate\Contracts\Database\Eloquent\Builder;
+use App\Services\EmployeeService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 class EmployeeController extends Controller
 {
+    public function __construct(protected EmployeeService $employeeService) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -50,103 +47,30 @@ class EmployeeController extends Controller
         ]);
     }
 
-    protected function checkEmailPhone($req, ?User $user = null)
-    {
-        /**
-         * @var User $find
-         */
-        $find = User::where(function (Builder $builder) use ($req) {
-            $builder->where('email', '=', $req['email']);
-            $builder->orWhere('phone', '=', $req['phone']);
-        });
-
-        if ($user) {
-            $find->where('id', '!=', $user->id);
-        }
-        $result = $find->first();
-
-        if ($result !== null && $result->merchant_id !== Auth::user()->merchant_id) {
-            if ($result->email === $req['email']) {
-                throw ValidationException::withMessages(['email' => 'Sudah terdaftar di merchant lain!']);
-            } elseif (! empty($req['phone']) && $result->phone === $req['phone']) {
-                throw ValidationException::withMessages(['phone' => 'Sudah terdaftar di merchant lain!']);
-            }
-        } elseif ($result) {
-            if ($result->email === $req['email']) {
-                throw ValidationException::withMessages(['email' => 'Sudah terdaftar!']);
-            } elseif (! empty($req['phone']) && $result->phone === $req['phone']) {
-                throw ValidationException::withMessages(['phone' => 'Sudah terdaftar!']);
-            }
-        }
-    }
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreUserRequest $request)
     {
-        $req = $request->validated();
+        $this->employeeService->create($request->validated());
 
-        $this->checkEmailPhone($req);
-
-        $password_default = Str::random(10);
-
-        DB::beginTransaction();
-        try {
-            /**
-             * @var \App\Models\User $user
-             */
-            $user = Auth::user()->business->users()->create([
-                'name' => $req['name'],
-                'email' => $req['email'],
-                'phone' => $req['phone'],
-                'password' => $password_default,
-                'is_root_user' => false,
-                'email_verified_at' => Carbon::now(),
-            ]);
-
-            $user->assignRole($req['role']);
-            $user->outlets()->attach($req['outlets']);
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-
-        $user->notify(new NewEmployee($password_default));
-
-        return redirect()->route('employees.index')->with('success', ResourceMessage::CREATE_SUCCESS);
+        return redirect()->route('employees.index')->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::CREATE_SUCCESS
+        );
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param  Request  $request
      */
     public function update(UpdateUserRequest $request, User $user)
     {
-        $req = $request->validated();
+        $this->employeeService->update($user, $request->validated());
 
-        $this->checkEmailPhone($req, $user);
-
-        DB::beginTransaction();
-
-        try {
-            $user->update($req);
-
-            if (! $user->hasRole($req['role'])) {
-                $user->syncRoles($req['role']);
-            }
-            $user->outlets()->sync($req['outlets']);
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 
     /**
@@ -154,9 +78,12 @@ class EmployeeController extends Controller
      */
     public function delete(Request $req, User $user)
     {
-        $user->deleteOrFail();
+        $this->employeeService->delete($user);
 
-        return redirect()->back()->with('success', ResourceMessage::DELETE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::DELETE_SUCCESS
+        );
     }
 
     /**
@@ -164,18 +91,24 @@ class EmployeeController extends Controller
      */
     public function restore(Request $req, User $user)
     {
-        $user->restore();
+        $this->employeeService->restore($user);
 
-        return redirect()->back()->with('success', ResourceMessage::RESTORE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::RESTORE_SUCCESS
+        );
     }
 
     /**
-     * Restore the specified resource to storage.
+     * Permanently destroy the specified resource from storage.
      */
     public function destroy(Request $req, User $user)
     {
-        $user->forceDelete();
+        $this->employeeService->destroy($user);
 
-        return redirect()->back()->with('success', ResourceMessage::PURGE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::PURGE_SUCCESS
+        );
     }
 }

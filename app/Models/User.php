@@ -65,7 +65,17 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $hidden = [
         'password',
+        'pin',
         'remember_token',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'has_pin',
     ];
 
     protected $sortable = [
@@ -86,6 +96,14 @@ class User extends Authenticatable implements MustVerifyEmail
             'pin' => 'hashed',
             'is_root_user' => 'boolean',
         ];
+    }
+
+    /**
+     * Determine if the user has a PIN set.
+     */
+    public function getHasPinAttribute(): bool
+    {
+        return ! empty($this->pin);
     }
 
     /**

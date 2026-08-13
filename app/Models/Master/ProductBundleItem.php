@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperProductBundleItem
+ */
 class ProductBundleItem extends Model
 {
     use HasQuantityFormatter;

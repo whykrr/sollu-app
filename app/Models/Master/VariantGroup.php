@@ -6,6 +6,9 @@ use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperVariantGroup
+ */
 class VariantGroup extends Model
 {
     use HasUuids, SortableModel;

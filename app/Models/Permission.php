@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Enums\PermissionEnum;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperPermission
+ */
 class Permission extends Model
 {
     protected $appends = [

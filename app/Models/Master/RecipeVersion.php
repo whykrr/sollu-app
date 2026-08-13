@@ -5,6 +5,9 @@ namespace App\Models\Master;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperRecipeVersion
+ */
 class RecipeVersion extends Model
 {
     use HasUuids;

@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection|StockTransferItem[] $items
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperStockTransfer
  */
 class StockTransfer extends Model
 {

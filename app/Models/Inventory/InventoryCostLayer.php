@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read Outlet $outlet
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperInventoryCostLayer
  */
 class InventoryCostLayer extends Model
 {

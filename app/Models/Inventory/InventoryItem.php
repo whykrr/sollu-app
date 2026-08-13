@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection|InventoryCostLayer[] $costLayers
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperInventoryItem
  */
 class InventoryItem extends Model
 {

@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperModifierRecipeItem
+ */
 class ModifierRecipeItem extends Model
 {
     use HasQuantityFormatter;

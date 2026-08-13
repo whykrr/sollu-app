@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @mixin IdeHelperProductImage
+ */
 class ProductImage extends Model
 {
     use HasUuids;

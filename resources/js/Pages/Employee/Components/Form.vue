@@ -30,6 +30,23 @@
                 />
             </div>
             <div>
+                <PinField
+                    v-if="showPinField"
+                    id="pin"
+                    v-model="form.pin"
+                    label="PIN Karyawan (6 angka)"
+                    :error="form.errors.pin"
+                    :hint="user ? 'Masukkan 6 angka PIN baru' : 'Wajib diisi 6 angka'"
+                />
+                <div v-else class="flex flex-col gap-1 items-start">
+                    <span class="block text-sm font-medium text-neutral-700">PIN Karyawan</span>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @click.prevent="requestPinReset">
+                        Reset / Ubah PIN
+                    </button>
+                    <span class="text-xs text-neutral-400 mt-1">PIN sudah diatur. Klik tombol di atas jika ingin mereset.</span>
+                </div>
+            </div>
+            <div v-if="!user?.is_root_user">
                 <span class="block text-xs text-neutral-400"
                     >Pilih peran yang akan digunakan karyawan</span
                 >
@@ -48,7 +65,7 @@
                     {{ form.errors.role }}
                 </div>
             </div>
-            <div v-if="!selectedOutlet" class="space-y-1">
+            <div v-if="!selectedOutlet && !user?.is_root_user" class="space-y-1">
                 <span class="block text-xs text-neutral-400 mb-1"
                     >Pilih akses outlet untuk karyawan</span
                 >
@@ -100,10 +117,14 @@ import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
 import EmailField from '@/Components/Form/EmailField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
 import TextField from '@/Components/Form/TextField.vue';
+import PinField from '@/Components/Form/PinField.vue';
 import { formatDateID } from '@/Composable/date';
 import { formatDateTime } from '@/Composable/time';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, watch, onMounted, ref } from 'vue';
+import { useModalStore } from '@/store/notification';
+
+const modalStore = useModalStore();
 
 const emit = defineEmits(['close']);
 
@@ -133,9 +154,24 @@ const form = useForm({
     name: null,
     email: null,
     phone: null,
+    pin: '',
     role: '',
     outlets: [],
 });
+
+const showPinField = ref(true);
+
+const requestPinReset = () => {
+    modalStore.confirm({
+        title: 'Ubah / Reset PIN',
+        message: 'Apakah Anda yakin ingin mengganti PIN untuk akun ini?',
+        confirmText: 'Ya, Ubah',
+        cancelText: 'Batal',
+        onConfirm: () => {
+            showPinField.value = true;
+        },
+    });
+};
 
 watch(
     () => props.user,
@@ -146,12 +182,18 @@ watch(
             form.name = props.user.name;
             form.email = props.user.email;
             form.phone = props.user.phone;
-            form.role = props.user.roles[0].name;
+            if (props.user.roles && props.user.roles.length > 0) {
+                 form.role = props.user.roles[0].name;
+            }
             form.outlets = props.user.outlets
                 ? props.user.outlets?.map((outlet) => outlet.id)
                 : selectedOutlet.value
                   ? [selectedOutlet.value?.id]
                   : [];
+                  
+            showPinField.value = !user.has_pin;
+        } else {
+            showPinField.value = true;
         }
     },
     { immediate: true },

@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read User|null $creator
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperInventoryMovement
  */
 class InventoryMovement extends Model
 {

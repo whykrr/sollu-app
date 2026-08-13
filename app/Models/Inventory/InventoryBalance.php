@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read InventoryItem $inventoryItem
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperInventoryBalance
  */
 class InventoryBalance extends Model
 {

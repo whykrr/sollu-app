@@ -4,6 +4,9 @@ namespace App\Models\Master;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
+/**
+ * @mixin IdeHelperOutletProduct
+ */
 class OutletProduct extends Pivot
 {
     protected $table = 'outlet_product';

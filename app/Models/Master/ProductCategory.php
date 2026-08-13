@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @mixin IdeHelperProductCategory
+ */
 class ProductCategory extends Model
 {
     use HasBusiness, HasUuids, SoftDeletes, SortableModel;

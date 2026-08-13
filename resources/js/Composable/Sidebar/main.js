@@ -185,11 +185,11 @@ export const mainSidebars = [
     },
     {
         type: 'item',
-        url: '#',
+        url: route('customers.index'),
         icon: faUsers,
         label: 'Pelanggan',
         permissions: [],
-        activeRoute: 'members',
+        activeRoute: 'customers',
     },
     {
         type: 'item',
