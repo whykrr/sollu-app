@@ -14,24 +14,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Transaction extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'outlet_id',
         'shift_id',
         'customer_id',
         'channel',
-        'receipt_number',
+        'transaction_number',
         'subtotal',
         'discount_amount',
+        'discount_type',
+        'discount_value',
+        'promo_name',
         'tax_amount',
+        'shipping_fee',
         'service_charge_amount',
         'total',
         'payment_status',
         'status',
-        'is_offline',
-        'offline_id',
-        'due_date',
         'notes',
     ];
 
@@ -40,11 +42,11 @@ class Transaction extends Model
         return [
             'subtotal' => 'float',
             'discount_amount' => 'float',
+            'discount_value' => 'float',
             'tax_amount' => 'float',
+            'shipping_fee' => 'float',
             'service_charge_amount' => 'float',
             'total' => 'float',
-            'is_offline' => 'boolean',
-            'due_date' => 'date',
         ];
     }
 
@@ -83,11 +85,19 @@ class Transaction extends Model
         return $this->hasMany(TransactionPayment::class);
     }
 
+    public function promos(): HasMany
+    {
+        return $this->hasMany(TransactionPromo::class);
+    }
+
     public function scopeFilters($query, array $filters)
     {
         $query->when($filters['search'] ?? null, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->where('receipt_number', 'like', '%'.$search.'%')
+                $query->where('transaction_number', 'like', '%'.$search.'%')
+                    ->orWhereHas('invoice', function ($query) use ($search) {
+                        $query->where('invoice_number', 'like', '%'.$search.'%');
+                    })
                     ->orWhereHas('customer', function ($query) use ($search) {
                         $query->where('name', 'like', '%'.$search.'%');
                     });
@@ -95,7 +105,9 @@ class Transaction extends Model
         })->when($filters['channel'] ?? null, function ($query, $channel) {
             $query->where('channel', $channel);
         })->when($filters['status'] ?? null, function ($query, $status) {
-            $query->where('status', $status);
+            if ($status !== 'all') {
+                $query->where('status', $status);
+            }
         })->when($filters['payment_status'] ?? null, function ($query, $paymentStatus) {
             $query->where('payment_status', $paymentStatus);
         })->when($filters['start_date'] ?? null, function ($query, $startDate) {

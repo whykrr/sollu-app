@@ -63,7 +63,6 @@
         <!-- 4 KPI Cards Section -->
         <TransactionSection
             :total-sales="totalSales"
-            :gross-profit="grossProfit"
             :total-transactions="totalTransactions"
             :average-sales="averageSales"
             :period-label="filters?.period_label || 'periode ini'"
@@ -128,7 +127,6 @@ const outletOptions = computed(() => {
 const props = defineProps({
     filters: Object,
     totalSales: Object,
-    grossProfit: Object,
     totalTransactions: Object,
     averageSales: Object,
     salesTrend: {

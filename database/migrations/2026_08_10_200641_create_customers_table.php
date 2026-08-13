@@ -12,12 +12,19 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('business_id');
             $table->string('name')->index();
-            $table->string('phone')->nullable()->index();
+            $table->string('phone');
             $table->string('email')->nullable();
             $table->text('address')->nullable();
+            $table->date('birthdate')->nullable();
+            $table->string('gender')->nullable();
+            $table->text('notes')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->uuid('created_by')->nullable();
             $table->timestamps();
 
+            $table->unique(['business_id', 'phone']);
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
+            $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
         });
     }
 

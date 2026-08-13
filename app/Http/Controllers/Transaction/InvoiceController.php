@@ -62,11 +62,13 @@ class InvoiceController extends Controller
             'customer_id' => 'required|uuid',
             'due_date' => 'required|date',
             'items' => 'required|array|min:1',
+            'items.*.inventory_item_id' => 'nullable|uuid',
             'items.*.product_id' => 'required|uuid',
             'items.*.product_name' => 'required|string',
             'items.*.price' => 'required|numeric|min:0',
             'items.*.qty' => 'required|numeric|min:0.01',
             'items.*.discount_amount' => 'nullable|numeric|min:0',
+            'items.*.promo_name' => 'nullable|string',
             'items.*.subtotal' => 'required|numeric|min:0',
             'subtotal' => 'required|numeric|min:0',
             'tax_amount' => 'nullable|numeric|min:0',
@@ -75,7 +77,7 @@ class InvoiceController extends Controller
             'total' => 'required|numeric|min:0',
         ]);
 
-        $this->transactionService->createB2bInvoice($validated, auth()->user());
+        $this->transactionService->createTransaction($validated, auth()->user());
 
         return redirect()->route('transactions.sales.index')->with('success', 'Faktur berhasil dibuat.');
     }

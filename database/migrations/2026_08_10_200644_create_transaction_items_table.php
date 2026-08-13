@@ -12,17 +12,20 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('transaction_id');
             $table->uuid('product_id')->nullable();
+            $table->uuid('inventory_item_id')->nullable();
             $table->uuid('variant_group_option_id')->nullable();
             $table->string('product_name');
             $table->decimal('price', 15, 4)->default(0);
             $table->decimal('qty', 15, 4)->default(0);
             $table->decimal('discount_amount', 15, 4)->default(0);
+            $table->string('promo_name')->nullable();
             $table->decimal('subtotal', 15, 4)->default(0);
             $table->text('notes')->nullable();
             $table->timestamps();
 
             $table->foreign('transaction_id')->references('id')->on('transactions')->cascadeOnDelete();
             $table->foreign('product_id')->references('id')->on('products')->nullOnDelete();
+            $table->foreign('inventory_item_id')->references('id')->on('inventory_items')->nullOnDelete();
             $table->foreign('variant_group_option_id')->references('id')->on('variant_group_options')->nullOnDelete();
         });
     }

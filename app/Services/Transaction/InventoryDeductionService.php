@@ -13,7 +13,7 @@ class InventoryDeductionService
     public function deductFromTransaction(Transaction $transaction): void
     {
         DB::transaction(function () use ($transaction) {
-            $transaction->loadMissing(['items.product.inventoryItems', 'outlet']);
+            $transaction->load(['items.product.inventoryItems', 'outlet']);
 
             $outletId = $transaction->outlet_id;
             $businessId = $transaction->outlet?->business_id ?? $transaction->business_id ?? auth()->user()?->business_id;
@@ -89,7 +89,7 @@ class InventoryDeductionService
     public function restoreFromTransaction(Transaction $transaction): void
     {
         DB::transaction(function () use ($transaction) {
-            $transaction->loadMissing(['items.product.inventoryItems', 'outlet']);
+            $transaction->load(['items.product.inventoryItems', 'outlet']);
 
             $outletId = $transaction->outlet_id;
             $businessId = $transaction->outlet?->business_id ?? $transaction->business_id ?? auth()->user()?->business_id;

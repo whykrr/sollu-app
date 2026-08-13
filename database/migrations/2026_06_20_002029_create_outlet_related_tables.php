@@ -40,6 +40,7 @@ return new class extends Migration
             $table->string('device_name');
             $table->string('device_type');
             $table->string('serial_number')->nullable();
+            $table->string('fingerprint')->nullable()->unique();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 

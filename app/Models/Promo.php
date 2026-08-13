@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\PromoStatus;
 use App\Enums\PromoTarget;
 use App\Enums\PromoType;
-use App\Models\Master\Product;
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Builder;
@@ -74,10 +73,10 @@ class Promo extends Model
             ->using(PromoOutlet::class);
     }
 
-    public function products(): BelongsToMany
+    public function inventoryItems(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class, 'promo_products', 'promo_id', 'product_id')
-            ->using(PromoProduct::class);
+        return $this->belongsToMany(\App\Models\Inventory\InventoryItem::class, 'promo_inventory_items', 'promo_id', 'inventory_item_id')
+            ->using(PromoInventoryItem::class);
     }
 
     public function creator(): BelongsTo

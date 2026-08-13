@@ -42,7 +42,9 @@ class CustomerController extends Controller
     {
         $this->authorize('customer.view');
         $data = $customer->toArray();
-        $data['summary'] = $this->service->getSummaryStats($customer);
+        $summary = $this->service->getSummaryStats($customer);
+        $data['summary'] = $summary;
+        $data['recent_transactions'] = $summary['recent_transactions'];
 
         return response()->json(['data' => $data]);
     }

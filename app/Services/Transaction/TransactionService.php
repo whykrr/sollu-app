@@ -29,47 +29,116 @@ class TransactionService
                 $promoName = $promo?->name;
             }
 
+            // 1. Calculate subtotal from items first
+            $calculatedSubtotal = 0;
+            if (! empty($data['items'])) {
+                foreach ($data['items'] as &$item) {
+                    $itemQty = floatval($item['qty'] ?? 0);
+                    $itemPrice = floatval($item['price'] ?? 0);
+                    $itemDisc = floatval($item['discount_amount'] ?? 0);
+
+                    // Clamp discount if promo exists for this inventory item
+                    $inventoryItemId = $item['inventory_item_id'] ?? null;
+                    if ($inventoryItemId && ! empty($data['outlet_id'])) {
+                        $activePromo = \App\Models\Promo::active()
+                            ->whereHas('inventoryItems', fn ($q) => $q->where('inventory_items.id', $inventoryItemId))
+                            ->where(function ($q) use ($data) {
+                                $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $data['outlet_id']))
+                                    ->orWhere('applies_to_all_outlets', true);
+                            })
+                            ->first();
+
+                        if ($activePromo) {
+                            $maxAllowedDiscount = 0;
+                            $promoType = is_object($activePromo->promo_type) ? $activePromo->promo_type->value : $activePromo->promo_type;
+
+                            if ($promoType === 'percentage') {
+                                $maxAllowedDiscount = ($itemPrice * floatval($activePromo->discount_value)) / 100;
+                                if ($activePromo->max_discount && $maxAllowedDiscount > floatval($activePromo->max_discount)) {
+                                    $maxAllowedDiscount = floatval($activePromo->max_discount);
+                                }
+                                $maxAllowedDiscount *= $itemQty;
+                            } elseif ($promoType === 'fixed') {
+                                $maxAllowedDiscount = min(floatval($activePromo->discount_value), $itemPrice) * $itemQty;
+                            }
+
+                            if ($itemDisc > $maxAllowedDiscount) {
+                                $itemDisc = $maxAllowedDiscount;
+                            }
+                        }
+                    }
+
+                    $item['discount_amount'] = $itemDisc;
+                    $item['subtotal'] = ($itemQty * $itemPrice) - $itemDisc;
+
+                    $calculatedSubtotal += max(0, $item['subtotal']);
+                }
+                unset($item);
+            }
+
+            $manualDiscount = floatval($data['manual_discount_amount'] ?? 0);
+            $promoDiscount = floatval($data['promo_discount_amount'] ?? 0);
+            $totalDiscount = $manualDiscount + $promoDiscount;
+
+            $taxAmount = floatval($data['tax_amount'] ?? 0);
+            $shippingFee = floatval($data['shipping_fee'] ?? 0);
+            $serviceChargeAmount = floatval($data['service_charge_amount'] ?? 0);
+
+            $grandTotal = isset($data['total'])
+                ? floatval($data['total'])
+                : max(0, $calculatedSubtotal - $totalDiscount + $taxAmount + $shippingFee + $serviceChargeAmount);
+
+            $transactionNumber = $this->generateTransactionNumber();
+            $invoiceNumber = $this->generateInvoiceNumber();
+
             $transaction = Transaction::create([
                 'outlet_id' => $data['outlet_id'] ?? null,
                 'customer_id' => $data['customer_id'] ?? null,
                 'channel' => $data['channel'] ?? 'direct',
-                'subtotal' => collect($data['items'])->sum('subtotal'),
-                'discount_amount' => floatval($data['manual_discount_amount'] ?? 0) + floatval($data['promo_discount_amount'] ?? 0),
+                'transaction_number' => $transactionNumber,
+                'subtotal' => $calculatedSubtotal,
+                'discount_amount' => $totalDiscount,
                 'discount_type' => ! empty($data['promo_id']) ? 'promo' : null,
-                'discount_value' => floatval($data['promo_discount_amount'] ?? 0),
+                'discount_value' => $promoDiscount,
                 'promo_name' => $promoName,
-                'tax_amount' => floatval($data['tax_amount'] ?? 0),
-                'shipping_fee' => floatval($data['shipping_fee'] ?? 0),
-                'service_charge_amount' => floatval($data['service_charge_amount'] ?? 0),
-                'total' => 0, // calculated below
+                'tax_amount' => $taxAmount,
+                'shipping_fee' => $shippingFee,
+                'service_charge_amount' => $serviceChargeAmount,
+                'total' => $grandTotal,
                 'payment_status' => 'draft',
                 'status' => 'draft',
-                'is_offline' => false,
-                'transaction_date' => $data['transaction_date'] ?? now()->toDateString(),
                 'notes' => $data['notes'] ?? null,
-                'receipt_number' => $this->generateInvoiceNumber(),
-                'transaction_number' => $this->generateInvoiceNumber(),
             ]);
 
-            $total = $transaction->subtotal
-                - $transaction->discount_amount
-                + $transaction->tax_amount
-                + $transaction->shipping_fee
-                + $transaction->service_charge_amount;
-
-            $transaction->update(['total' => $total > 0 ? $total : 0]);
-
             // Create Extension Invoice Record
+            $paymentTerm = in_array($data['payment_term'] ?? '', ['cash', 'credit'])
+                ? $data['payment_term']
+                : (($data['payment_term'] ?? '') === 'termin' ? 'credit' : 'cash');
+
             $transaction->invoice()->create([
-                'invoice_number' => $transaction->receipt_number,
+                'invoice_number' => $invoiceNumber,
                 'invoice_date' => $data['transaction_date'] ?? now()->toDateString(),
-                'payment_term' => $data['payment_term'] ?? 'tunai',
-                'due_date' => ($data['payment_term'] ?? 'tunai') === 'termin' ? ($data['due_date'] ?? null) : null,
+                'payment_term' => $paymentTerm,
+                'due_date' => $paymentTerm === 'credit' ? ($data['due_date'] ?? null) : null,
                 'status' => 'draft',
                 'terms_and_conditions' => $data['terms_and_conditions'] ?? null,
                 'notes' => $data['notes'] ?? null,
                 'created_by' => $user->id,
             ]);
+
+            if (! empty($data['promo_id'])) {
+                $promo = \App\Models\Promo::find($data['promo_id']);
+                if ($promo) {
+                    $transaction->promos()->create([
+                        'promo_id' => $promo->id,
+                        'promo_name' => $promo->name,
+                        'promo_code' => $promo->code ?? null,
+                        'discount_type' => is_object($promo->promo_type) ? $promo->promo_type->value : $promo->promo_type,
+                        'discount_value' => floatval($promo->discount_value),
+                        'discount_amount' => $promoDiscount,
+                    ]);
+                }
+            }
 
             if (! empty($data['items'])) {
                 foreach ($data['items'] as $item) {
@@ -80,24 +149,79 @@ class TransactionService
                     $inventoryItem = $inventoryItemId ? \App\Models\Inventory\InventoryItem::find($inventoryItemId) : null;
                     $product = $productId ? \App\Models\Master\Product::find($productId) : null;
 
+                    if (! $product && $inventoryItem) {
+                        $product = $inventoryItem->product;
+                        $productId = $product?->id;
+                    }
+
                     $productName = $inventoryItem?->name ?? $product?->name ?? $item['product_name'] ?? '';
+                    $itemQty = floatval($item['qty'] ?? 0);
+                    $itemPrice = floatval($item['price'] ?? 0);
+                    $itemDisc = floatval($item['discount_amount'] ?? 0);
+                    $itemSubtotal = isset($item['subtotal']) ? floatval($item['subtotal']) : (($itemQty * $itemPrice) - $itemDisc);
 
                     $transaction->items()->create([
                         'product_id' => $productId,
                         'inventory_item_id' => $inventoryItemId,
                         'variant_group_option_id' => $variantGroupOptionId,
                         'product_name' => $productName,
-                        'price' => $item['price'],
-                        'qty' => $item['qty'],
-                        'discount_amount' => $item['discount_amount'] ?? 0,
+                        'price' => $itemPrice,
+                        'qty' => $itemQty,
+                        'discount_amount' => $itemDisc,
                         'promo_name' => $item['promo_name'] ?? null,
-                        'subtotal' => ($item['qty'] * $item['price']) - ($item['discount_amount'] ?? 0),
+                        'subtotal' => max(0, $itemSubtotal),
                     ]);
                 }
             }
 
+            // Check stock availability if action is 'issue'
+            if (($data['action'] ?? '') === 'issue') {
+                $this->checkStockAvailability($data['items'] ?? [], $data['outlet_id'] ?? null);
+            }
+
             return $transaction;
         });
+    }
+
+    public function checkStockAvailability(array $items, ?string $outletId): void
+    {
+        if (! $outletId || empty($items)) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            $inventoryItemId = $item['inventory_item_id'] ?? null;
+            $productId = $item['product_id'] ?? null;
+
+            if (! $inventoryItemId && $productId) {
+                $product = \App\Models\Master\Product::with('inventoryItems')->find($productId);
+                $inventoryItemId = $product?->inventoryItems?->first()?->id;
+            }
+
+            if (! $inventoryItemId) {
+                continue;
+            }
+
+            $inventoryItem = \App\Models\Inventory\InventoryItem::find($inventoryItemId);
+            if (! $inventoryItem || ! $inventoryItem->track_inventory) {
+                continue;
+            }
+
+            $balance = \App\Models\Inventory\InventoryBalance::where('outlet_id', $outletId)
+                ->where('inventory_item_id', $inventoryItemId)
+                ->first();
+
+            $currentStock = floatval($balance?->current_stock ?? 0);
+            $requestedQty = floatval($item['qty'] ?? 0);
+
+            if ($requestedQty > $currentStock) {
+                $itemName = $inventoryItem->name ?: ($item['product_name'] ?? 'Item');
+
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'items' => "Stok produk '{$itemName}' tidak mencukupi di outlet ini. Stok tersedia: {$currentStock}, dibutuhkan: {$requestedQty}.",
+                ]);
+            }
+        }
     }
 
     public function issueInvoice(Transaction $transaction, User $user): Transaction
@@ -106,15 +230,21 @@ class TransactionService
             throw new \Exception('Hanya transaksi draf yang dapat diterbitkan.');
         }
 
+        $transaction->load(['items', 'outlet']);
+        $this->checkStockAvailability($transaction->items->toArray(), $transaction->outlet_id);
+
         return DB::transaction(function () use ($transaction) {
+            $paymentTerm = $transaction->invoice?->payment_term ?? 'cash';
+            $targetStatus = $paymentTerm === 'cash' ? 'paid' : 'unpaid';
+
             $transaction->update([
-                'status' => 'unpaid',
-                'payment_status' => 'unpaid',
+                'status' => $targetStatus,
+                'payment_status' => $targetStatus,
             ]);
 
             if ($transaction->invoice) {
                 $transaction->invoice->update([
-                    'status' => 'unpaid',
+                    'status' => $targetStatus,
                     'invoice_date' => now()->toDateString(),
                     'sent_at' => now(),
                 ]);
@@ -205,11 +335,10 @@ class TransactionService
         });
     }
 
-    // (createB2bInvoice telah digantikan dengan createTransaction untuk V1)
-    protected function generateInvoiceNumber(): string
+    protected function generateTransactionNumber(): string
     {
-        $prefix = 'INV/'.date('Y/m/');
-        $last = Transaction::where('receipt_number', 'like', $prefix.'%')
+        $prefix = 'TRX/'.date('Y/m/');
+        $last = Transaction::where('transaction_number', 'like', $prefix.'%')
             ->orderBy('id', 'desc')
             ->first();
 
@@ -217,7 +346,23 @@ class TransactionService
             return $prefix.'0001';
         }
 
-        $lastNumber = intval(substr($last->receipt_number, -4));
+        $lastNumber = intval(substr($last->transaction_number, -4));
+
+        return $prefix.str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+    }
+
+    protected function generateInvoiceNumber(): string
+    {
+        $prefix = 'INV/'.date('Y/m/');
+        $last = \App\Models\Sales\TransactionInvoice::where('invoice_number', 'like', $prefix.'%')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (! $last) {
+            return $prefix.'0001';
+        }
+
+        $lastNumber = intval(substr($last->invoice_number, -4));
 
         return $prefix.str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
     }

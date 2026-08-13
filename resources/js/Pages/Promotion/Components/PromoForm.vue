@@ -81,11 +81,10 @@
             <AsyncSelectField
                 id="product_search"
                 label="Cari & Pilih Produk"
-                api-url="/api/internal/products/search"
-                search-param-name="query"
+                :api-url="route('api.internal.inventory-items.search')"
                 @select="addProduct"
                 placeholder="Ketik nama produk..."
-                :error="form.errors.product_ids"
+                :error="form.errors.inventory_item_ids"
             />
 
             <div v-if="selectedProducts.length > 0" class="mt-2 space-y-1">
@@ -264,7 +263,7 @@ const promoTypeOptions = [
     { value: 'fixed', label: 'Nominal Tetap (Rp)' },
 ];
 
-const selectedProducts = ref(props.promo?.products || []);
+const selectedProducts = ref(props.promo?.inventory_items || []);
 
 const form = useForm({
     name: props.promo?.name || '',
@@ -280,7 +279,7 @@ const form = useForm({
     applies_to_all_outlets: props.promo
         ? props.promo.applies_to_all_outlets
         : true,
-    product_ids: [],
+    inventory_item_ids: [],
     outlet_ids: props.promo?.outlets?.map((o) => o.id) || [],
 });
 
@@ -298,11 +297,11 @@ watch(
     },
 );
 
-// Update product_ids form array when selectedProducts changes
+// Update inventory_item_ids form array when selectedProducts changes
 watch(
     selectedProducts,
     (newVal) => {
-        form.product_ids = newVal.map((p) => p.id);
+        form.inventory_item_ids = newVal.map((p) => p.id);
     },
     { deep: true, immediate: true },
 );

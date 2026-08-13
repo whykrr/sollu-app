@@ -1,0 +1,104 @@
+SKU,Barcode,Nama Produk,Kategori,Deskripsi,Tipe Produk,Nama Varian 1,Opsi Varian 1,Nama Varian 2,Opsi Varian 2,Harga Dasar,Satuan,Lacak Stok,Minimum Stok,Status Tampil,Outlet: SM Sentral,Outlet: SM Soekarno Hatta
+PRD-001,,Pulsa Telkomsel 50k,Digital,Pulsa prabayar,basic,,,,,52000,Pieces,Tidak,,Ya,Ya,Ya
+PRD-002,,Pulsa Indosat 50k,Digital,Pulsa prabayar,basic,,,,,52000,Pieces,Tidak,,Ya,Ya,Ya
+PRD-003,,Pulsa XL 50k,Digital,Pulsa prabayar,basic,,,,,52000,Pieces,Tidak,,Ya,Ya,Ya
+PRD-004,,Token Listrik 100k,Digital,Token PLN prabayar,basic,,,,,102000,Pieces,Tidak,,Ya,Ya,Ya
+PRD-005,,Token Listrik 50k,Digital,Token PLN prabayar,basic,,,,,52000,Pieces,Tidak,,Ya,Ya,Ya
+PRD-006,,Topup Gopay 50k,Digital,Saldo e-wallet,basic,,,,,51500,Pieces,Tidak,,Ya,Ya,Ya
+PRD-007,,Topup OVO 50k,Digital,Saldo e-wallet,basic,,,,,51500,Pieces,Tidak,,Ya,Ya,Ya
+PRD-008,,Kantong Plastik Kecil,Lain-lain,Kantong kresek belanja,basic,,,,,200,Pieces,Tidak,,Ya,Ya,Ya
+PRD-009,,Kantong Plastik Besar,Lain-lain,Kantong kresek belanja,basic,,,,,500,Pieces,Tidak,,Ya,Ya,Ya
+PRD-010,,Jasa Titip Paket,Lain-lain,Biaya penitipan barang,basic,,,,,5000,Trip,Tidak,,Ya,Ya,Ya
+PRD-011,899237142157,Indomie Goreng,Sembako,Mie instan goreng,basic,,,,,3000,Pack,Ya,10,Ya,Ya,Ya
+PRD-012,899456138819,Aqua 600ml,Minuman,Air mineral botol sedang,basic,,,,,3500,Pieces,Ya,10,Ya,Ya,Ya
+PRD-013,899185582229,Le Minerale 600ml,Minuman,Air mineral botol sedang,basic,,,,,3500,Pieces,Ya,10,Ya,Ya,Ya
+PRD-014,899398541980,Pocari Sweat 500ml,Minuman,Minuman isotonik,basic,,,,,8000,Pieces,Ya,10,Ya,Ya,Ya
+PRD-015,899716508315,Teh Pucuk Harum 350ml,Minuman,Minuman teh botol,basic,,,,,4000,Pieces,Ya,10,Ya,Ya,Ya
+PRD-016,899266237930,Taro Snack Net,Makanan Ringan,Snack kentang,basic,,,,,5000,Pack,Ya,10,Ya,Ya,Ya
+PRD-017,899846271115,Chitato Sapi Panggang,Makanan Ringan,Keripik kentang,basic,,,,,10000,Pack,Ya,10,Ya,Ya,Ya
+PRD-018,899239498844,Silverqueen Chunky Bar,Makanan Ringan,Coklat batang,basic,,,,,25000,Pieces,Ya,10,Ya,Ya,Ya
+PRD-019,899709546071,Beras Maknyuss 5kg,Sembako,Beras premium,basic,,,,,65000,Pack,Ya,10,Ya,Ya,Ya
+PRD-020,899735600187,Minyak Goreng Bimoli 2L,Sembako,Minyak goreng pouch,basic,,,,,35000,Pieces,Ya,10,Ya,Ya,Ya
+PRD-021,899625976603,Gula Pasir Gulaku 1kg,Sembako,Gula pasir putih,basic,,,,,15000,Pack,Ya,10,Ya,Ya,Ya
+PRD-022,899165530015,Telur Ayam Negeri,Sembako,Telur ayam per kg,basic,,,,,28000,Kilogram,Ya,10,Ya,Ya,Ya
+PRD-023,899496867015,Lifebuoy Sabun Mandi,Kebersihan,Sabun mandi batang,basic,,,,,4000,Pieces,Ya,10,Ya,Ya,Ya
+PRD-024,899624801495,Sunlight Jeruk Nipis 400ml,Kebersihan,Sabun cuci piring,basic,,,,,10000,Pieces,Ya,10,Ya,Ya,Ya
+PRD-025,899342765638,Rinso Anti Noda 800gr,Kebersihan,Deterjen bubuk,basic,,,,,22000,Pack,Ya,10,Ya,Ya,Ya
+PRD-026,899790773254,Pepsodent White 190gr,Kebersihan,Pasta gigi,basic,,,,,12000,Pieces,Ya,10,Ya,Ya,Ya
+PRD-027,899813884390,Tolak Angin Sido Muncul,Kesehatan,Obat herbal masuk angin,basic,,,,,3500,Pieces,Ya,10,Ya,Ya,Ya
+PRD-028,899713919914,Panadol Paracetamol,Kesehatan,Obat pereda nyeri,basic,,,,,10000,Pack,Ya,10,Ya,Ya,Ya
+PRD-029,899763067907,Marlboro Merah,Rokok,Rokok filter,basic,,,,,38000,Pack,Ya,10,Ya,Ya,Ya
+PRD-030,899545430504,Sampoerna Mild,Rokok,Rokok kretek,basic,,,,,30000,Pack,Ya,10,Ya,Ya,Ya
+PRD-031,899359893672,Pop Mie,Makanan Ringan,Mie seduh instan,basic,,,,,5000,Pieces,Ya,,Ya,Ya,Ya
+PRD-031-AYAM-BAWANG,899232035859,,,,,Rasa,Ayam Bawang,,,5000,,,5,,,
+PRD-031-BASO-SAPI,899538535853,,,,,Rasa,Baso Sapi,,,5000,,,5,,,
+PRD-031-KARI-AYAM,899500963128,,,,,Rasa,Kari Ayam,,,5500,,,5,,,
+PRD-032,899445046469,Susu Bear Brand,Minuman,Susu beruang kaleng,basic,,,,,10000,Pieces,Ya,,Ya,Ya,Ya
+PRD-032-ORIGINAL,899643660018,,,,,Varian,Original,,,10000,,,5,,,
+PRD-032-GOLD-WHITE-TEA,899403469694,,,,,Varian,Gold White Tea,,,12000,,,5,,,
+PRD-032-GOLD-MALT,899713243240,,,,,Varian,Gold Malt,,,12000,,,5,,,
+PRD-033,899242334051,Qtela Keripik Singkong,Makanan Ringan,Keripik singkong,basic,,,,,15000,Pack,Ya,,Ya,Ya,Ya
+PRD-033-ORIGINAL,899908479495,,,,,Rasa,Original,,,15000,,,5,,,
+PRD-033-BALADO,899856026960,,,,,Rasa,Balado,,,15000,,,5,,,
+PRD-033-BARBEQUE,899804373424,,,,,Rasa,Barbeque,,,15000,,,5,,,
+PRD-034,899238350378,Yakult,Minuman,Minuman probiotik,basic,,,,,10000,Pieces,Ya,,Ya,Ya,Ya
+PRD-034-PACK-ISI-5,899370742276,,,,,Kemasan,Pack isi 5,,,10000,,,5,,,
+PRD-034-SATUAN,899574509447,,,,,Kemasan,Satuan,,,2000,,,5,,,
+PRD-035,899206472608,Mie Sedaap,Sembako,Mie instan,basic,,,,,3000,Pack,Ya,,Ya,Ya,Ya
+PRD-035-GORENG,899531376501,,,,,Rasa,Goreng,,,3000,,,5,,,
+PRD-035-SOTO,899530214677,,,,,Rasa,Soto,,,2800,,,5,,,
+PRD-035-KARI-SPESIAL,899300550706,,,,,Rasa,Kari Spesial,,,3000,,,5,,,
+PRD-035-AYAM-BAWANG,899246255543,,,,,Rasa,Ayam Bawang,,,2800,,,5,,,
+PRD-036,899626061162,Kopi Kenangan Mantancino,Minuman,Kopi botol siap minum,basic,,,,,9000,Pieces,Ya,,Ya,Ya,Ya
+PRD-036-220ML,899922503263,,,,,Ukuran,220ml,,,9000,,,5,,,
+PRD-036-1-LITER,899840780724,,,,,Ukuran,1 Liter,,,45000,,,5,,,
+PRD-037,899519877276,Pringles,Makanan Ringan,Keripik kentang tabung,basic,,,,,22000,Pieces,Ya,,Ya,Ya,Ya
+PRD-037-ORIGINAL,899664081035,,,,,Rasa,Original,,,22000,,,5,,,
+PRD-037-SOUR-CREAM,899978733195,,,,,Rasa,Sour Cream,,,22000,,,5,,,
+PRD-037-CHEESE,899744356131,,,,,Rasa,Cheese,,,22000,,,5,,,
+PRD-038,899706339325,Oreo,Makanan Ringan,Biskuit sandwich,basic,,,,,9000,Pack,Ya,,Ya,Ya,Ya
+PRD-038-VANILLA,899823130256,,,,,Rasa,Vanilla,,,9000,,,5,,,
+PRD-038-CHOCOLATE,899972488421,,,,,Rasa,Chocolate,,,9000,,,5,,,
+PRD-038-STRAWBERRY,899602964945,,,,,Rasa,Strawberry,,,9000,,,5,,,
+PRD-038-BLUEBERRY,899766727236,,,,,Rasa,Blueberry,,,9000,,,5,,,
+PRD-039,899335030597,Sari Wangi Teh Celup,Sembako,Teh celup,basic,,,,,6000,Box,Ya,,Ya,Ya,Ya
+PRD-039-25-SACHET,899325387241,,,,,Isi,25 Sachet,,,6000,,,5,,,
+PRD-039-50-SACHET,899250056727,,,,,Isi,50 Sachet,,,11000,,,5,,,
+PRD-040,899611432035,Tango Wafer,Makanan Ringan,Wafer renyah,basic,,,,,35000,Pieces,Ya,,Ya,Ya,Ya
+PRD-040-COKLAT,899861711932,,,,,Rasa,Coklat,,,35000,,,5,,,
+PRD-040-VANILLA,899849740399,,,,,Rasa,Vanilla,,,35000,,,5,,,
+PRD-041,899546206741,Good Day Kopi Botol,Minuman,Kopi siap minum,basic,,,,,7000,Pieces,Ya,,Ya,Ya,Ya
+PRD-041-MOCACINNO,899422699493,,,,,Rasa,Mocacinno,,,7000,,,5,,,
+PRD-041-TIRAMISU,899984597302,,,,,Rasa,Tiramisu,,,7000,,,5,,,
+PRD-041-VANILLA-LATTE,899853809645,,,,,Rasa,Vanilla Latte,,,7000,,,5,,,
+PRD-042,899439766164,Choki Choki,Makanan Ringan,Pasta coklat,basic,,,,,5000,Pack,Ya,,Ya,Ya,Ya
+PRD-042-ISI-5,899408126661,,,,,Kemasan,Isi 5,,,5000,,,5,,,
+PRD-042-ISI-10,899577703895,,,,,Kemasan,Isi 10,,,10000,,,5,,,
+PRD-043,899278582632,Gatsby Styling Wax,Kebersihan,Wax rambut,basic,,,,,15000,Pieces,Ya,,Ya,Ya,Ya
+PRD-043-MATTE-&-HARD,899545666952,,,,,Varian,Matte & Hard,,,15000,,,5,,,
+PRD-043-POWER-&-SPIKES,899178453747,,,,,Varian,Power & Spikes,,,15000,,,5,,,
+PRD-044,899147378192,Sutra Kondom,Kesehatan,Alat kontrasepsi,basic,,,,,15000,Box,Ya,,Ya,Ya,Ya
+PRD-044-ISI-3,899212968634,,,,,Isi,Isi 3,,,15000,,,5,,,
+PRD-044-ISI-12,899414071977,,,,,Isi,Isi 12,,,45000,,,5,,,
+PRD-044-ISI-24,899142649480,,,,,Isi,Isi 24,,,80000,,,5,,,
+PRD-045,899829288694,Dettol Sabun Cair,Kebersihan,Sabun mandi cair,basic,,,,,20000,Pieces,Ya,,Ya,Ya,Ya
+PRD-045-250ML,899842330639,,,,,Ukuran,250ml,,,20000,,,5,,,
+PRD-045-410ML,899561300073,,,,,Ukuran,410ml,,,30000,,,5,,,
+PRD-045-800ML,899492452373,,,,,Ukuran,800ml,,,50000,,,5,,,
+PRD-046,899207338849,Clear Shampoo,Kebersihan,Shampo anti ketombe,basic,,,,,25000,Pieces,Ya,,Ya,Ya,Ya
+PRD-046-ICE-COOL-MENTHOL,899124866107,,,,,Varian,Ice Cool Menthol,,,25000,,,5,,,
+PRD-046-COMPLETE-SOFT-CARE,899528194579,,,,,Varian,Complete Soft Care,,,25000,,,5,,,
+PRD-047,899638027342,Cimory Yogurt Squeeze,Minuman,Yogurt siap minum,basic,,,,,10000,Pieces,Ya,,Ya,Ya,Ya
+PRD-047-ORIGINAL,899363794510,,,,,Rasa,Original,,,10000,,,5,,,
+PRD-047-STRAWBERRY,899499954254,,,,,Rasa,Strawberry,,,10000,,,5,,,
+PRD-047-BLUEBERRY,899768527092,,,,,Rasa,Blueberry,,,10000,,,5,,,
+PRD-047-PEACH,899966223559,,,,,Rasa,Peach,,,10000,,,5,,,
+PRD-048,899189978087,Milo UHT,Minuman,Susu coklat malt,basic,,,,,4000,Box,Ya,,Ya,Ya,Ya
+PRD-048-115ML,899845566550,,,,,Ukuran,115ml,,,4000,,,5,,,
+PRD-048-180ML,899344824757,,,,,Ukuran,180ml,,,6000,,,5,,,
+PRD-049,899833548176,Biskuit Roma Kelapa,Makanan Ringan,Biskuit kelapa,basic,,,,,12000,Pack,Ya,,Ya,Ya,Ya
+PRD-049-300GR,899570334038,,,,,Ukuran,300gr,,,12000,,,5,,,
+PRD-049-450GR,899115894498,,,,,Ukuran,450gr,,,18000,,,5,,,
+PRD-050,899980675974,Beng Beng,Makanan Ringan,Wafer coklat caramel,basic,,,,,2500,Pieces,Ya,,Ya,Ya,Ya
+PRD-050-REGULER,899513337633,,,,,Ukuran,Reguler,,,2500,,,5,,,
+PRD-050-MAXX,899312593529,,,,,Ukuran,Maxx,,,3500,,,5,,,

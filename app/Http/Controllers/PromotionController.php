@@ -24,7 +24,7 @@ class PromotionController extends Controller
         $limit = $request->query('limit', 20);
 
         $promos = Promo::currentBusiness()
-            ->with(['outlets:id,name', 'products:id,name'])
+            ->with(['outlets:id,name', 'inventoryItems:id,name'])
             ->filters($request->only(['search', 'status', 'target', 'type', 'outlet']))
             ->sortable($request->get('sort', 'updated_at'), $request->get('direction', 'desc'))
             ->paginate($limit)

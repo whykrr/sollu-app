@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_stock_frozen')->default(false);
             $table->boolean('is_main_outlet')->default(false);
             $table->string('phone')->nullable();
             $table->string('email')->nullable();

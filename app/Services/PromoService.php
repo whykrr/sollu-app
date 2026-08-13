@@ -102,11 +102,11 @@ class PromoService
         }
 
         if (isset($data['target_type']) && $data['target_type'] === PromoTarget::Product->value) {
-            if (isset($data['product_ids']) && is_array($data['product_ids'])) {
-                $promo->products()->sync($data['product_ids']);
+            if (isset($data['inventory_item_ids']) && is_array($data['inventory_item_ids'])) {
+                $promo->inventoryItems()->sync($data['inventory_item_ids']);
             }
         } else {
-            $promo->products()->detach();
+            $promo->inventoryItems()->detach();
         }
     }
 }

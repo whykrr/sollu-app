@@ -116,6 +116,7 @@ Route::middleware('auth:business')->group(function () {
     require __DIR__.'/web/customers.php';
 
     require __DIR__.'/web/promotions.php';
+    require __DIR__.'/web/reports.php';
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');
 });

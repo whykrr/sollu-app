@@ -1,0 +1,41 @@
+services:
+  sollu-app:
+    image: ghcr.io/whykrr/sollu-app:latest
+    container_name: sollu-app
+    restart: always
+    depends_on:
+      - sollu-redis
+    ports:
+      - "8002:80" # Port 8002 di server ke port 80 di container
+      - "8080:8080" # Port untuk Laravel Reverb
+    env_file:
+      - .env
+    networks:
+      - sollu-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  sollu-redis:
+    image: redis:7-alpine
+    container_name: sollu-redis
+    restart: always
+    volumes:
+      - sollu-redis-data:/data
+    networks:
+      - sollu-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  sollu-redis-data:
+    driver: local
+
+networks:
+  sollu-network:
+    external: true

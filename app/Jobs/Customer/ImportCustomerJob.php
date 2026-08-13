@@ -43,7 +43,7 @@ class ImportCustomerJob extends AbstractCsvImportJob
 
         $gender = null;
         if (! empty($validated['Jenis Kelamin'])) {
-            $gender = $validated['Jenis Kelamin'] === 'Laki-laki' ? CustomerGender::MALE : CustomerGender::FEMALE;
+            $gender = $validated['Jenis Kelamin'] === 'Laki-laki' ? CustomerGender::Male : CustomerGender::Female;
         }
 
         $isActive = true;

@@ -23,7 +23,7 @@ class PromoResource extends JsonResource
             'discount_value' => floatval($this->discount_value),
             'max_discount' => $this->max_discount ? floatval($this->max_discount) : null,
             'applies_to_all_outlets' => $this->applies_to_all_outlets,
-            'product_ids' => $this->relationLoaded('products') ? $this->products->pluck('id')->toArray() : [],
+            'inventory_item_ids' => $this->relationLoaded('inventoryItems') ? $this->inventoryItems->pluck('id')->toArray() : [],
         ];
     }
 }

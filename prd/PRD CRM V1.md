@@ -41,13 +41,14 @@ Modul CRM (Customer Relationship Management) V1 bertanggung jawab untuk mengelol
 1. User (GM/Owner/Cashier) masuk ke menu **Pelanggan > Daftar Pelanggan**.
 2. User klik tombol **Tambah Pelanggan**.
 3. Sistem menampilkan form PopUpPage dengan field:
-    - **Nama Lengkap** (wajib)
-    - **Nomor Telepon** (wajib, hanya angka)
-    - **Email** (opsional)
-    - **Alamat** (opsional, Textarea)
-    - **Tanggal Lahir** (opsional, Datepicker)
-    - **Jenis Kelamin** (opsional, Radio/Dropdown: Laki-laki / Perempuan)
-    - **Catatan** (opsional, Textarea)
+
+   - **Nama Lengkap** (wajib)
+   - **Nomor Telepon** (wajib, hanya angka)
+   - **Email** (opsional)
+   - **Alamat** (opsional, Textarea)
+   - **Tanggal Lahir** (opsional, Datepicker)
+   - **Jenis Kelamin** (opsional, Radio/Dropdown: Laki-laki / Perempuan)
+   - **Catatan** (opsional, Textarea)
 4. User mengisi form lalu klik **Simpan**.
 5. Sistem memvalidasi keunikan nomor telepon di bisnis yang sama.
 6. Sistem menyimpan data ke tabel `customers` dan mencatat `activity_logs`.
@@ -69,9 +70,10 @@ Modul CRM (Customer Relationship Management) V1 bertanggung jawab untuk mengelol
 2. User mengklik salah satu baris pelanggan di tabel.
 3. Sistem membuka **PopUpPage Detail Pelanggan**.
 4. Halaman menampilkan:
-    - **Profil:** Nama, No. Telepon, Email, Umur (dihitung dari tanggal lahir), Alamat, Catatan.
-    - **Ringkasan Belanja:** Total Transaksi, Total Belanja, Rata-rata, Transaksi Terakhir (dihitung agregasi on-the-fly atau di-cache dari tabel `transactions`).
-    - **Riwayat Transaksi:** Tabel mini berisi max 10 transaksi terakhir (No. Invoice, Tanggal, Outlet, Total).
+
+   - **Profil:** Nama, No. Telepon, Email, Umur (dihitung dari tanggal lahir), Alamat, Catatan.
+   - **Ringkasan Belanja:** Total Transaksi, Total Belanja, Rata-rata, Transaksi Terakhir (dihitung agregasi on-the-fly atau di-cache dari tabel `transactions`).
+   - **Riwayat Transaksi:** Tabel mini berisi max 10 transaksi terakhir (No. Invoice, Tanggal, Outlet, Total).
 5. User dapat menekan tombol **Edit** untuk mengubah profil atau menutup PopUpPage.
 
 ---
@@ -197,12 +199,12 @@ erDiagram
 
 ### Catatan Desain Penting
 
-| Aspek                     | Detail                                                                                                                                                                                                                                 |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Unique Constraint**     | Kombinasi `(business_id, phone)` dipastikan unik baik di level database mapun validasi request                                                                                                                                         |
-| **Relasi Transaksi**      | `transactions` memiliki `customer_id` (nullable). Jika bukan null, transaksi tersebut dihitung dalam riwayat dan statistik pelanggan                                                                                                   |
+| Aspek                     | Detail                                                                                               |
+| ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Unique Constraint**     | Kombinasi `(business_id, phone)` dipastikan unik baik di level database mapun validasi request       |
+| **Relasi Transaksi**      | `transactions` memiliki `customer_id` (nullable). Jika bukan null, transaksi tersebut dihitung dalam riwayat dan statistik pelanggan |
 | **Perhitungan Statistik** | Saat ini statistik (Total Transaksi, Total Belanja) dihitung secara langsung menggunakan query agregasi relasi `transactions` demi keakuratan. Di fase mendatang jika data membesar, dapat diekstraksi ke _summary table_ atau _cache_ |
-| **Soft Delete / Inaktif** | Penghapusan pelanggan mungkin tidak dibolehkan jika sudah memiliki transaksi. Gunakan `is_active = false` sebagai soft-delete agar integritas transaksi lama tetap terjaga, namun tidak muncul di pencarian POS                        |
+| **Soft Delete / Inaktif** | Penghapusan pelanggan mungkin tidak dibolehkan jika sudah memiliki transaksi. Gunakan `is_active = false` sebagai soft-delete agar integritas transaksi lama tetap terjaga, namun tidak muncul di pencarian POS |
 
 ---
 
@@ -260,14 +262,14 @@ _Catatan: Role **Owner** memiliki semua permission di atas secara default._
 
 ## 9. Validasi & Error Handling
 
-| Skenario              | Validasi                   | Pesan Error (Bahasa Indonesia)                                                                                   |
-| --------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Nama Kosong           | `required`                 | "Nama pelanggan wajib diisi."                                                                                    |
-| Telepon Kosong        | `required`                 | "Nomor telepon wajib diisi."                                                                                     |
-| Telepon Tidak Unik    | `unique` per `business_id` | "Nomor telepon ini sudah terdaftar di bisnis Anda."                                                              |
-| Format Email Salah    | `email`                    | "Format email tidak valid."                                                                                      |
+| Skenario              | Validasi                   | Pesan Error (Bahasa Indonesia)                                                                       |
+| --------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Nama Kosong           | `required`                 | "Nama pelanggan wajib diisi."                                                                        |
+| Telepon Kosong        | `required`                 | "Nomor telepon wajib diisi."                                                                         |
+| Telepon Tidak Unik    | `unique` per `business_id` | "Nomor telepon ini sudah terdaftar di bisnis Anda."                                                  |
+| Format Email Salah    | `email`                    | "Format email tidak valid."                                                                          |
 | Hapus Pelanggan Aktif | Cek relasi                 | "Pelanggan tidak dapat dihapus karena sudah memiliki riwayat transaksi. Anda dapat menonaktifkan pelanggan ini." |
-| Cari Pelanggan POS    | Term < 3 huruf             | (Pencarian baru tertrigger ketika > 3 karakter diketik)                                                          |
+| Cari Pelanggan POS    | Term < 3 huruf             | (Pencarian baru tertrigger ketika > 3 karakter diketik)                                              |
 
 ---
 

@@ -6,16 +6,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
- * @mixin IdeHelperPromoProduct
+ * @mixin IdeHelperPromoInventoryItem
  */
-class PromoProduct extends Pivot
+class PromoInventoryItem extends Pivot
 {
     use HasUuids;
 
-    protected $table = 'promo_products';
+    protected $table = 'promo_inventory_items';
 
     protected $fillable = [
         'promo_id',
-        'product_id',
+        'inventory_item_id',
     ];
 }

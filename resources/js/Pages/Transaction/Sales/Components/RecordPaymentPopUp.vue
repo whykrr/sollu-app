@@ -1,20 +1,33 @@
 <template>
-    <div class="p-4 space-y-6 pb-24">
+    <div class="space-y-4 pb-24">
         <!-- Summary Info -->
-        <div class="bg-slate-50 p-4 rounded-lg space-y-2 text-sm border border-slate-200">
+        <div
+            class="bg-slate-50 p-4 rounded-lg space-y-2 text-sm border border-slate-200"
+        >
             <div class="flex justify-between">
                 <span class="text-slate-500">Nomor Invoice</span>
-                <span class="font-semibold">{{ transaction.transaction_number }}</span>
+                <span class="font-semibold">{{
+                    transaction.transaction_number
+                }}</span>
             </div>
             <div class="flex justify-between">
                 <span class="text-slate-500">Total Tagihan</span>
-                <span class="font-semibold">{{ formatCurrency(transaction.total) }}</span>
+                <span class="font-semibold">{{
+                    formatCurrency(transaction.total)
+                }}</span>
             </div>
-            <div class="flex justify-between text-success" v-if="transaction.paid_amount > 0">
+            <div
+                class="flex justify-between text-success"
+                v-if="transaction.paid_amount > 0"
+            >
                 <span class="font-medium">Sudah Dibayar</span>
-                <span class="font-semibold">{{ formatCurrency(transaction.paid_amount) }}</span>
+                <span class="font-semibold">{{
+                    formatCurrency(transaction.paid_amount)
+                }}</span>
             </div>
-            <div class="flex justify-between text-danger text-lg pt-2 border-t border-slate-200 mt-2">
+            <div
+                class="flex justify-between text-danger text-lg pt-2 border-t border-slate-200 mt-2"
+            >
                 <span class="font-bold">Sisa Tagihan</span>
                 <span class="font-bold">{{ formatCurrency(balanceDue) }}</span>
             </div>
@@ -28,7 +41,7 @@
                 :error="form.errors.payment_method_id"
                 required
             />
-            
+
             <NumberField
                 v-model="form.amount"
                 label="Nominal Pelunasan"
@@ -36,7 +49,7 @@
                 :error="form.errors.amount"
                 required
             />
-            
+
             <TextField
                 type="date"
                 v-model="form.payment_date"
@@ -44,7 +57,7 @@
                 :error="form.errors.payment_date"
                 required
             />
-            
+
             <TextareaField
                 v-model="form.notes"
                 label="Catatan Pembayaran"
@@ -55,12 +68,22 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex items-center justify-between w-full">
-                <button type="button" class="btn btn-flat" @click="popUpStore.close()">Batal</button>
-                <button 
-                    type="button" 
-                    class="btn btn-main" 
-                    @click="submit" 
-                    :disabled="form.processing || form.amount <= 0 || form.amount > balanceDue"
+                <button
+                    type="button"
+                    class="btn btn-flat"
+                    @click="popUpStore.close()"
+                >
+                    Batal
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-main"
+                    @click="submit"
+                    :disabled="
+                        form.processing ||
+                        form.amount <= 0 ||
+                        form.amount > balanceDue
+                    "
                 >
                     Catat Pembayaran
                 </button>
@@ -85,7 +108,7 @@ const props = defineProps({
     transaction: {
         type: Object,
         required: true,
-    }
+    },
 });
 
 const popUpStore = usePopUpStore();
@@ -106,9 +129,9 @@ const form = useForm({
 const fetchPaymentMethods = async () => {
     try {
         const res = await axios.get(route('api.payment-methods.index'));
-        paymentMethodOptions.value = res.data.data.map(pm => ({
+        paymentMethodOptions.value = res.data.data.map((pm) => ({
             value: pm.id,
-            label: pm.name
+            label: pm.name,
         }));
         if (paymentMethodOptions.value.length > 0) {
             form.payment_method_id = paymentMethodOptions.value[0].value;
@@ -119,15 +142,18 @@ const fetchPaymentMethods = async () => {
 };
 
 const submit = () => {
-    form.post(route('transactions.sales.record-payment', props.transaction.id), {
-        preserveScroll: true,
-        onSuccess: () => {
-            popUpStore.close();
-            // In a real app we might want to also re-fetch the detail page if it's open, 
-            // but closing this popup usually reveals the detail popup which might need a reload.
-            // A simple page reload is fine, or Inertia does it.
+    form.post(
+        route('transactions.sales.record-payment', props.transaction.id),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                popUpStore.close();
+                // In a real app we might want to also re-fetch the detail page if it's open,
+                // but closing this popup usually reveals the detail popup which might need a reload.
+                // A simple page reload is fine, or Inertia does it.
+            },
         },
-    });
+    );
 };
 
 onMounted(() => {

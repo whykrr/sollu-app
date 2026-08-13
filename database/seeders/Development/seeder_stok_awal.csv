@@ -1,0 +1,147 @@
+﻿Outlet,Nama,SKU,Barcode,Tipe Item,Kategori,Satuan,Minimum Stok,Stok Awal,Harga Beli,Stok Saat Ini,Status
+SM Soekarno Hatta,Aqua 600ml,PRD-012,899456138819,Produk,Minuman,Pieces,10,91,2800,91,Tersedia
+SM Sentral,Aqua 600ml,PRD-012,899456138819,Produk,Minuman,Pieces,10,72,2800,72,Tersedia
+SM Sentral,Beng Beng - Maxx,PRD-050-MAXX,899312593529,Produk,Makanan Ringan,Pieces,5,81,2800,81,Tersedia
+SM Soekarno Hatta,Beng Beng - Maxx,PRD-050-MAXX,899312593529,Produk,Makanan Ringan,Pieces,5,79,2800,79,Tersedia
+SM Sentral,Beng Beng - Reguler,PRD-050-REGULER,899513337633,Produk,Makanan Ringan,Pieces,5,80,2000,80,Tersedia
+SM Soekarno Hatta,Beng Beng - Reguler,PRD-050-REGULER,899513337633,Produk,Makanan Ringan,Pieces,5,82,2000,82,Tersedia
+SM Sentral,Beras Maknyuss 5kg,PRD-019,899709546071,Produk,Sembako,Pack,10,79,52000,79,Tersedia
+SM Soekarno Hatta,Beras Maknyuss 5kg,PRD-019,899709546071,Produk,Sembako,Pack,10,83,52000,83,Tersedia
+SM Soekarno Hatta,Biskuit Roma Kelapa - 300gr,PRD-049-300GR,899570334038,Produk,Makanan Ringan,Pack,5,96,9600,96,Tersedia
+SM Sentral,Biskuit Roma Kelapa - 300gr,PRD-049-300GR,899570334038,Produk,Makanan Ringan,Pack,5,61,9600,61,Tersedia
+SM Soekarno Hatta,Biskuit Roma Kelapa - 450gr,PRD-049-450GR,899115894498,Produk,Makanan Ringan,Pack,5,78,14400,78,Tersedia
+SM Sentral,Biskuit Roma Kelapa - 450gr,PRD-049-450GR,899115894498,Produk,Makanan Ringan,Pack,5,99,14400,99,Tersedia
+SM Soekarno Hatta,Chitato Sapi Panggang,PRD-017,899846271115,Produk,Makanan Ringan,Pack,10,93,8000,93,Tersedia
+SM Sentral,Chitato Sapi Panggang,PRD-017,899846271115,Produk,Makanan Ringan,Pack,10,90,8000,90,Tersedia
+SM Soekarno Hatta,Choki Choki - Isi 10,PRD-042-ISI-10,899577703895,Produk,Makanan Ringan,Pack,5,99,8000,99,Tersedia
+SM Sentral,Choki Choki - Isi 10,PRD-042-ISI-10,899577703895,Produk,Makanan Ringan,Pack,5,89,8000,89,Tersedia
+SM Soekarno Hatta,Choki Choki - Isi 5,PRD-042-ISI-5,899408126661,Produk,Makanan Ringan,Pack,5,90,4000,90,Tersedia
+SM Sentral,Choki Choki - Isi 5,PRD-042-ISI-5,899408126661,Produk,Makanan Ringan,Pack,5,81,4000,81,Tersedia
+SM Soekarno Hatta,Cimory Yogurt Squeeze - Blueberry,PRD-047-BLUEBERRY,899768527092,Produk,Minuman,Pieces,5,85,8000,85,Tersedia
+SM Sentral,Cimory Yogurt Squeeze - Blueberry,PRD-047-BLUEBERRY,899768527092,Produk,Minuman,Pieces,5,71,8000,71,Tersedia
+SM Soekarno Hatta,Cimory Yogurt Squeeze - Original,PRD-047-ORIGINAL,899363794510,Produk,Minuman,Pieces,5,95,8000,95,Tersedia
+SM Sentral,Cimory Yogurt Squeeze - Original,PRD-047-ORIGINAL,899363794510,Produk,Minuman,Pieces,5,56,8000,56,Tersedia
+SM Soekarno Hatta,Cimory Yogurt Squeeze - Peach,PRD-047-PEACH,899966223559,Produk,Minuman,Pieces,5,62,8000,62,Tersedia
+SM Sentral,Cimory Yogurt Squeeze - Peach,PRD-047-PEACH,899966223559,Produk,Minuman,Pieces,5,70,8000,70,Tersedia
+SM Sentral,Cimory Yogurt Squeeze - Strawberry,PRD-047-STRAWBERRY,899499954254,Produk,Minuman,Pieces,5,86,8000,86,Tersedia
+SM Soekarno Hatta,Cimory Yogurt Squeeze - Strawberry,PRD-047-STRAWBERRY,899499954254,Produk,Minuman,Pieces,5,91,8000,91,Tersedia
+SM Soekarno Hatta,Clear Shampoo - Complete Soft Care,PRD-046-COMPLETE-SOFT-CARE,899528194579,Produk,Kebersihan,Pieces,5,94,20000,94,Tersedia
+SM Sentral,Clear Shampoo - Complete Soft Care,PRD-046-COMPLETE-SOFT-CARE,899528194579,Produk,Kebersihan,Pieces,5,53,20000,53,Tersedia
+SM Sentral,Clear Shampoo - Ice Cool Menthol,PRD-046-ICE-COOL-MENTHOL,899124866107,Produk,Kebersihan,Pieces,5,64,20000,64,Tersedia
+SM Soekarno Hatta,Clear Shampoo - Ice Cool Menthol,PRD-046-ICE-COOL-MENTHOL,899124866107,Produk,Kebersihan,Pieces,5,83,20000,83,Tersedia
+SM Soekarno Hatta,Dettol Sabun Cair - 250ml,PRD-045-250ML,899842330639,Produk,Kebersihan,Pieces,5,95,16000,95,Tersedia
+SM Sentral,Dettol Sabun Cair - 250ml,PRD-045-250ML,899842330639,Produk,Kebersihan,Pieces,5,63,16000,63,Tersedia
+SM Soekarno Hatta,Dettol Sabun Cair - 410ml,PRD-045-410ML,899561300073,Produk,Kebersihan,Pieces,5,83,24000,83,Tersedia
+SM Sentral,Dettol Sabun Cair - 410ml,PRD-045-410ML,899561300073,Produk,Kebersihan,Pieces,5,76,24000,76,Tersedia
+SM Soekarno Hatta,Dettol Sabun Cair - 800ml,PRD-045-800ML,899492452373,Produk,Kebersihan,Pieces,5,79,40000,79,Tersedia
+SM Sentral,Dettol Sabun Cair - 800ml,PRD-045-800ML,899492452373,Produk,Kebersihan,Pieces,5,53,40000,53,Tersedia
+SM Soekarno Hatta,Gatsby Styling Wax - Matte & Hard,PRD-043-MATTE-&-HARD,899545666952,Produk,Kebersihan,Pieces,5,67,12000,67,Tersedia
+SM Sentral,Gatsby Styling Wax - Matte & Hard,PRD-043-MATTE-&-HARD,899545666952,Produk,Kebersihan,Pieces,5,93,12000,93,Tersedia
+SM Soekarno Hatta,Gatsby Styling Wax - Power & Spikes,PRD-043-POWER-&-SPIKES,899178453747,Produk,Kebersihan,Pieces,5,53,12000,53,Tersedia
+SM Sentral,Gatsby Styling Wax - Power & Spikes,PRD-043-POWER-&-SPIKES,899178453747,Produk,Kebersihan,Pieces,5,77,12000,77,Tersedia
+SM Soekarno Hatta,Good Day Kopi Botol - Mocacinno,PRD-041-MOCACINNO,899422699493,Produk,Minuman,Pieces,5,71,5600,71,Tersedia
+SM Sentral,Good Day Kopi Botol - Mocacinno,PRD-041-MOCACINNO,899422699493,Produk,Minuman,Pieces,5,88,5600,88,Tersedia
+SM Sentral,Good Day Kopi Botol - Tiramisu,PRD-041-TIRAMISU,899984597302,Produk,Minuman,Pieces,5,96,5600,96,Tersedia
+SM Soekarno Hatta,Good Day Kopi Botol - Tiramisu,PRD-041-TIRAMISU,899984597302,Produk,Minuman,Pieces,5,77,5600,77,Tersedia
+SM Sentral,Good Day Kopi Botol - Vanilla Latte,PRD-041-VANILLA-LATTE,899853809645,Produk,Minuman,Pieces,5,92,5600,92,Tersedia
+SM Soekarno Hatta,Good Day Kopi Botol - Vanilla Latte,PRD-041-VANILLA-LATTE,899853809645,Produk,Minuman,Pieces,5,77,5600,77,Tersedia
+SM Sentral,Gula Pasir Gulaku 1kg,PRD-021,899625976603,Produk,Sembako,Pack,10,75,12000,75,Tersedia
+SM Soekarno Hatta,Gula Pasir Gulaku 1kg,PRD-021,899625976603,Produk,Sembako,Pack,10,60,12000,60,Tersedia
+SM Sentral,Indomie Goreng,PRD-011,899237142157,Produk,Sembako,Pack,10,82,2400,82,Tersedia
+SM Soekarno Hatta,Indomie Goreng,PRD-011,899237142157,Produk,Sembako,Pack,10,88,2400,88,Tersedia
+SM Soekarno Hatta,Kopi Kenangan Mantancino - 1 Liter,PRD-036-1-LITER,899840780724,Produk,Minuman,Pieces,5,93,36000,93,Tersedia
+SM Sentral,Kopi Kenangan Mantancino - 1 Liter,PRD-036-1-LITER,899840780724,Produk,Minuman,Pieces,5,53,36000,53,Tersedia
+SM Sentral,Kopi Kenangan Mantancino - 220ml,PRD-036-220ML,899922503263,Produk,Minuman,Pieces,5,57,7200,57,Tersedia
+SM Soekarno Hatta,Kopi Kenangan Mantancino - 220ml,PRD-036-220ML,899922503263,Produk,Minuman,Pieces,5,79,7200,79,Tersedia
+SM Soekarno Hatta,Le Minerale 600ml,PRD-013,899185582229,Produk,Minuman,Pieces,10,51,2800,51,Tersedia
+SM Sentral,Le Minerale 600ml,PRD-013,899185582229,Produk,Minuman,Pieces,10,91,2800,91,Tersedia
+SM Sentral,Lifebuoy Sabun Mandi,PRD-023,899496867015,Produk,Kebersihan,Pieces,10,59,3200,59,Tersedia
+SM Soekarno Hatta,Lifebuoy Sabun Mandi,PRD-023,899496867015,Produk,Kebersihan,Pieces,10,60,3200,60,Tersedia
+SM Sentral,Marlboro Merah,PRD-029,899763067907,Produk,Rokok,Pack,10,83,30400,83,Tersedia
+SM Soekarno Hatta,Marlboro Merah,PRD-029,899763067907,Produk,Rokok,Pack,10,89,30400,89,Tersedia
+SM Soekarno Hatta,Mie Sedaap - Ayam Bawang,PRD-035-AYAM-BAWANG,899246255543,Produk,Sembako,Pack,5,89,2240,89,Tersedia
+SM Sentral,Mie Sedaap - Ayam Bawang,PRD-035-AYAM-BAWANG,899246255543,Produk,Sembako,Pack,5,50,2240,50,Tersedia
+SM Soekarno Hatta,Mie Sedaap - Goreng,PRD-035-GORENG,899531376501,Produk,Sembako,Pack,5,83,2400,83,Tersedia
+SM Sentral,Mie Sedaap - Goreng,PRD-035-GORENG,899531376501,Produk,Sembako,Pack,5,97,2400,97,Tersedia
+SM Soekarno Hatta,Mie Sedaap - Kari Spesial,PRD-035-KARI-SPESIAL,899300550706,Produk,Sembako,Pack,5,82,2400,82,Tersedia
+SM Sentral,Mie Sedaap - Kari Spesial,PRD-035-KARI-SPESIAL,899300550706,Produk,Sembako,Pack,5,81,2400,81,Tersedia
+SM Soekarno Hatta,Mie Sedaap - Soto,PRD-035-SOTO,899530214677,Produk,Sembako,Pack,5,72,2240,72,Tersedia
+SM Sentral,Mie Sedaap - Soto,PRD-035-SOTO,899530214677,Produk,Sembako,Pack,5,59,2240,59,Tersedia
+SM Soekarno Hatta,Milo UHT - 115ml,PRD-048-115ML,899845566550,Produk,Minuman,Box,5,82,3200,82,Tersedia
+SM Sentral,Milo UHT - 115ml,PRD-048-115ML,899845566550,Produk,Minuman,Box,5,76,3200,76,Tersedia
+SM Soekarno Hatta,Milo UHT - 180ml,PRD-048-180ML,899344824757,Produk,Minuman,Box,5,100,4800,100,Tersedia
+SM Sentral,Milo UHT - 180ml,PRD-048-180ML,899344824757,Produk,Minuman,Box,5,61,4800,61,Tersedia
+SM Soekarno Hatta,Minyak Goreng Bimoli 2L,PRD-020,899735600187,Produk,Sembako,Pieces,10,68,28000,68,Tersedia
+SM Sentral,Minyak Goreng Bimoli 2L,PRD-020,899735600187,Produk,Sembako,Pieces,10,68,28000,68,Tersedia
+SM Sentral,Oreo - Blueberry,PRD-038-BLUEBERRY,899766727236,Produk,Makanan Ringan,Pack,5,97,7200,97,Tersedia
+SM Soekarno Hatta,Oreo - Blueberry,PRD-038-BLUEBERRY,899766727236,Produk,Makanan Ringan,Pack,5,56,7200,56,Tersedia
+SM Sentral,Oreo - Chocolate,PRD-038-CHOCOLATE,899972488421,Produk,Makanan Ringan,Pack,5,77,7200,77,Tersedia
+SM Soekarno Hatta,Oreo - Chocolate,PRD-038-CHOCOLATE,899972488421,Produk,Makanan Ringan,Pack,5,57,7200,57,Tersedia
+SM Sentral,Oreo - Strawberry,PRD-038-STRAWBERRY,899602964945,Produk,Makanan Ringan,Pack,5,71,7200,71,Tersedia
+SM Soekarno Hatta,Oreo - Strawberry,PRD-038-STRAWBERRY,899602964945,Produk,Makanan Ringan,Pack,5,84,7200,84,Tersedia
+SM Soekarno Hatta,Oreo - Vanilla,PRD-038-VANILLA,899823130256,Produk,Makanan Ringan,Pack,5,63,7200,63,Tersedia
+SM Sentral,Oreo - Vanilla,PRD-038-VANILLA,899823130256,Produk,Makanan Ringan,Pack,5,91,7200,91,Tersedia
+SM Sentral,Panadol Paracetamol,PRD-028,899713919914,Produk,Kesehatan,Pack,10,94,8000,94,Tersedia
+SM Soekarno Hatta,Panadol Paracetamol,PRD-028,899713919914,Produk,Kesehatan,Pack,10,90,8000,90,Tersedia
+SM Sentral,Pepsodent White 190gr,PRD-026,899790773254,Produk,Kebersihan,Pieces,10,77,9600,77,Tersedia
+SM Soekarno Hatta,Pepsodent White 190gr,PRD-026,899790773254,Produk,Kebersihan,Pieces,10,92,9600,92,Tersedia
+SM Sentral,Pocari Sweat 500ml,PRD-014,899398541980,Produk,Minuman,Pieces,10,68,6400,68,Tersedia
+SM Soekarno Hatta,Pocari Sweat 500ml,PRD-014,899398541980,Produk,Minuman,Pieces,10,54,6400,54,Tersedia
+SM Soekarno Hatta,Pop Mie - Ayam Bawang,PRD-031-AYAM-BAWANG,899232035859,Produk,Makanan Ringan,Pieces,5,75,4000,75,Tersedia
+SM Sentral,Pop Mie - Ayam Bawang,PRD-031-AYAM-BAWANG,899232035859,Produk,Makanan Ringan,Pieces,5,86,4000,86,Tersedia
+SM Sentral,Pop Mie - Baso Sapi,PRD-031-BASO-SAPI,899538535853,Produk,Makanan Ringan,Pieces,5,72,4000,72,Tersedia
+SM Soekarno Hatta,Pop Mie - Baso Sapi,PRD-031-BASO-SAPI,899538535853,Produk,Makanan Ringan,Pieces,5,56,4000,56,Tersedia
+SM Sentral,Pop Mie - Kari Ayam,PRD-031-KARI-AYAM,899500963128,Produk,Makanan Ringan,Pieces,5,54,4400,54,Tersedia
+SM Soekarno Hatta,Pop Mie - Kari Ayam,PRD-031-KARI-AYAM,899500963128,Produk,Makanan Ringan,Pieces,5,70,4400,70,Tersedia
+SM Soekarno Hatta,Pringles - Cheese,PRD-037-CHEESE,899744356131,Produk,Makanan Ringan,Pieces,5,55,17600,55,Tersedia
+SM Sentral,Pringles - Cheese,PRD-037-CHEESE,899744356131,Produk,Makanan Ringan,Pieces,5,61,17600,61,Tersedia
+SM Soekarno Hatta,Pringles - Original,PRD-037-ORIGINAL,899664081035,Produk,Makanan Ringan,Pieces,5,85,17600,85,Tersedia
+SM Sentral,Pringles - Original,PRD-037-ORIGINAL,899664081035,Produk,Makanan Ringan,Pieces,5,57,17600,57,Tersedia
+SM Sentral,Pringles - Sour Cream,PRD-037-SOUR-CREAM,899978733195,Produk,Makanan Ringan,Pieces,5,69,17600,69,Tersedia
+SM Soekarno Hatta,Pringles - Sour Cream,PRD-037-SOUR-CREAM,899978733195,Produk,Makanan Ringan,Pieces,5,83,17600,83,Tersedia
+SM Sentral,Qtela Keripik Singkong - Balado,PRD-033-BALADO,899856026960,Produk,Makanan Ringan,Pack,5,72,12000,72,Tersedia
+SM Soekarno Hatta,Qtela Keripik Singkong - Balado,PRD-033-BALADO,899856026960,Produk,Makanan Ringan,Pack,5,95,12000,95,Tersedia
+SM Soekarno Hatta,Qtela Keripik Singkong - Barbeque,PRD-033-BARBEQUE,899804373424,Produk,Makanan Ringan,Pack,5,59,12000,59,Tersedia
+SM Sentral,Qtela Keripik Singkong - Barbeque,PRD-033-BARBEQUE,899804373424,Produk,Makanan Ringan,Pack,5,61,12000,61,Tersedia
+SM Sentral,Qtela Keripik Singkong - Original,PRD-033-ORIGINAL,899908479495,Produk,Makanan Ringan,Pack,5,99,12000,99,Tersedia
+SM Soekarno Hatta,Qtela Keripik Singkong - Original,PRD-033-ORIGINAL,899908479495,Produk,Makanan Ringan,Pack,5,96,12000,96,Tersedia
+SM Sentral,Rinso Anti Noda 800gr,PRD-025,899342765638,Produk,Kebersihan,Pack,10,64,17600,64,Tersedia
+SM Soekarno Hatta,Rinso Anti Noda 800gr,PRD-025,899342765638,Produk,Kebersihan,Pack,10,80,17600,80,Tersedia
+SM Soekarno Hatta,Sampoerna Mild,PRD-030,899545430504,Produk,Rokok,Pack,10,81,24000,81,Tersedia
+SM Sentral,Sampoerna Mild,PRD-030,899545430504,Produk,Rokok,Pack,10,83,24000,83,Tersedia
+SM Sentral,Sari Wangi Teh Celup - 25 Sachet,PRD-039-25-SACHET,899325387241,Produk,Sembako,Box,5,52,4800,52,Tersedia
+SM Soekarno Hatta,Sari Wangi Teh Celup - 25 Sachet,PRD-039-25-SACHET,899325387241,Produk,Sembako,Box,5,89,4800,89,Tersedia
+SM Sentral,Sari Wangi Teh Celup - 50 Sachet,PRD-039-50-SACHET,899250056727,Produk,Sembako,Box,5,53,8800,53,Tersedia
+SM Soekarno Hatta,Sari Wangi Teh Celup - 50 Sachet,PRD-039-50-SACHET,899250056727,Produk,Sembako,Box,5,98,8800,98,Tersedia
+SM Soekarno Hatta,Silverqueen Chunky Bar,PRD-018,899239498844,Produk,Makanan Ringan,Pieces,10,56,20000,56,Tersedia
+SM Sentral,Silverqueen Chunky Bar,PRD-018,899239498844,Produk,Makanan Ringan,Pieces,10,52,20000,52,Tersedia
+SM Soekarno Hatta,Sunlight Jeruk Nipis 400ml,PRD-024,899624801495,Produk,Kebersihan,Pieces,10,98,8000,98,Tersedia
+SM Sentral,Sunlight Jeruk Nipis 400ml,PRD-024,899624801495,Produk,Kebersihan,Pieces,10,82,8000,82,Tersedia
+SM Sentral,Susu Bear Brand - Gold Malt,PRD-032-GOLD-MALT,899713243240,Produk,Minuman,Pieces,5,63,9600,63,Tersedia
+SM Soekarno Hatta,Susu Bear Brand - Gold Malt,PRD-032-GOLD-MALT,899713243240,Produk,Minuman,Pieces,5,84,9600,84,Tersedia
+SM Sentral,Susu Bear Brand - Gold White Tea,PRD-032-GOLD-WHITE-TEA,899403469694,Produk,Minuman,Pieces,5,58,9600,58,Tersedia
+SM Soekarno Hatta,Susu Bear Brand - Gold White Tea,PRD-032-GOLD-WHITE-TEA,899403469694,Produk,Minuman,Pieces,5,79,9600,79,Tersedia
+SM Sentral,Susu Bear Brand - Original,PRD-032-ORIGINAL,899643660018,Produk,Minuman,Pieces,5,73,8000,73,Tersedia
+SM Soekarno Hatta,Susu Bear Brand - Original,PRD-032-ORIGINAL,899643660018,Produk,Minuman,Pieces,5,84,8000,84,Tersedia
+SM Sentral,Sutra Kondom - Isi 12,PRD-044-ISI-12,899414071977,Produk,Kesehatan,Box,5,100,36000,100,Tersedia
+SM Soekarno Hatta,Sutra Kondom - Isi 12,PRD-044-ISI-12,899414071977,Produk,Kesehatan,Box,5,74,36000,74,Tersedia
+SM Soekarno Hatta,Sutra Kondom - Isi 24,PRD-044-ISI-24,899142649480,Produk,Kesehatan,Box,5,86,64000,86,Tersedia
+SM Sentral,Sutra Kondom - Isi 24,PRD-044-ISI-24,899142649480,Produk,Kesehatan,Box,5,83,64000,83,Tersedia
+SM Sentral,Sutra Kondom - Isi 3,PRD-044-ISI-3,899212968634,Produk,Kesehatan,Box,5,55,12000,55,Tersedia
+SM Soekarno Hatta,Sutra Kondom - Isi 3,PRD-044-ISI-3,899212968634,Produk,Kesehatan,Box,5,56,12000,56,Tersedia
+SM Sentral,Tango Wafer - Coklat,PRD-040-COKLAT,899861711932,Produk,Makanan Ringan,Pieces,5,97,28000,97,Tersedia
+SM Soekarno Hatta,Tango Wafer - Coklat,PRD-040-COKLAT,899861711932,Produk,Makanan Ringan,Pieces,5,83,28000,83,Tersedia
+SM Sentral,Tango Wafer - Vanilla,PRD-040-VANILLA,899849740399,Produk,Makanan Ringan,Pieces,5,71,28000,71,Tersedia
+SM Soekarno Hatta,Tango Wafer - Vanilla,PRD-040-VANILLA,899849740399,Produk,Makanan Ringan,Pieces,5,54,28000,54,Tersedia
+SM Sentral,Taro Snack Net,PRD-016,899266237930,Produk,Makanan Ringan,Pack,10,78,4000,78,Tersedia
+SM Soekarno Hatta,Taro Snack Net,PRD-016,899266237930,Produk,Makanan Ringan,Pack,10,81,4000,81,Tersedia
+SM Sentral,Teh Pucuk Harum 350ml,PRD-015,899716508315,Produk,Minuman,Pieces,10,54,3200,54,Tersedia
+SM Soekarno Hatta,Teh Pucuk Harum 350ml,PRD-015,899716508315,Produk,Minuman,Pieces,10,91,3200,91,Tersedia
+SM Sentral,Telur Ayam Negeri,PRD-022,899165530015,Produk,Sembako,Kilogram,10,73,22400,73,Tersedia
+SM Soekarno Hatta,Telur Ayam Negeri,PRD-022,899165530015,Produk,Sembako,Kilogram,10,78,22400,78,Tersedia
+SM Soekarno Hatta,Tolak Angin Sido Muncul,PRD-027,899813884390,Produk,Kesehatan,Pieces,10,64,2800,64,Tersedia
+SM Sentral,Tolak Angin Sido Muncul,PRD-027,899813884390,Produk,Kesehatan,Pieces,10,79,2800,79,Tersedia
+SM Sentral,Yakult - Pack isi 5,PRD-034-PACK-ISI-5,899370742276,Produk,Minuman,Pieces,5,68,8000,68,Tersedia
+SM Soekarno Hatta,Yakult - Pack isi 5,PRD-034-PACK-ISI-5,899370742276,Produk,Minuman,Pieces,5,98,8000,98,Tersedia
+SM Sentral,Yakult - Satuan,PRD-034-SATUAN,899574509447,Produk,Minuman,Pieces,5,51,1600,51,Tersedia
+SM Soekarno Hatta,Yakult - Satuan,PRD-034-SATUAN,899574509447,Produk,Minuman,Pieces,5,85,1600,85,Tersedia

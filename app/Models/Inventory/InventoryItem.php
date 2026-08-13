@@ -95,6 +95,11 @@ class InventoryItem extends Model
         return $this->belongsToMany(Supplier::class, 'supplier_inventory_items');
     }
 
+    public function variantGroupOptions(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(\App\Models\Master\VariantGroupOption::class, 'inventory_item_variant_group_option');
+    }
+
     // ── Scopes ───────────────────────────────────────────────────
 
     public function scopeFilters(Builder $builder, array $filters): Builder

@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('receipt_number')->index();
             $table->decimal('subtotal', 15, 4)->default(0);
             $table->decimal('discount_amount', 15, 4)->default(0);
+            $table->string('discount_type')->nullable();
+            $table->decimal('discount_value', 15, 4)->nullable();
+            $table->string('promo_name')->nullable();
             $table->decimal('tax_amount', 15, 4)->default(0);
             $table->decimal('service_charge_amount', 15, 4)->default(0);
             $table->decimal('total', 15, 4)->default(0);
@@ -24,7 +27,6 @@ return new class extends Migration
             $table->string('status')->default('completed'); // hold, completed, void
             $table->boolean('is_offline')->default(false);
             $table->uuid('offline_id')->nullable()->unique();
-            $table->date('due_date')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
 

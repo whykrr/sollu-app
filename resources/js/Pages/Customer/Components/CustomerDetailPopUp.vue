@@ -5,12 +5,12 @@
              class="bg-white p-6 rounded-xl border border-slate-200 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
             <div
                  class="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center text-2xl font-bold shrink-0">
-                {{ getInitials(customer?.name) }}
+                {{ getInitials(detail?.name) }}
             </div>
             <div class="flex-1">
                 <h3
                     class="text-xl font-bold text-slate-800">
-                    {{ customer?.name || '-' }}
+                    {{ detail?.name || '-' }}
                 </h3>
                 <div
                      class="text-slate-500 mt-1 flex items-center gap-4 text-sm">
@@ -18,20 +18,20 @@
                           class="flex items-center gap-1">
                         <FontAwesomeIcon :icon="faPhone"
                                          class="text-slate-400" />
-                        {{ customer?.phone || '-'
+                        {{ detail?.phone || '-'
                         }}
                     </span>
-                    <span v-if="customer?.email"
+                    <span v-if="detail?.email"
                           class="flex items-center gap-1">
                         <FontAwesomeIcon :icon="faEnvelope"
                                          class="text-slate-400" />
-                        {{ customer.email }}
+                        {{ detail.email }}
                     </span>
                 </div>
             </div>
             <div
-                 v-if="customer?.is_active !== undefined">
-                <span v-if="customer.is_active"
+                 v-if="detail?.is_active !== undefined">
+                <span v-if="detail.is_active"
                       class="badge badge-success px-3 py-1">Aktif</span>
                 <span v-else
                       class="badge badge-neutral-500 px-3 py-1">Tidak
@@ -53,11 +53,11 @@
                         Lahir / Umur</span>
                     <span
                           class="font-medium text-slate-800">
-                        {{ customer?.birthdate ||
+                        {{ detail?.birthdate ||
                             '-' }}
-                        <span v-if="customer?.age"
+                        <span v-if="detail?.age"
                               class="text-slate-500 font-normal">({{
-                                customer.age }}
+                                detail.age }}
                             tahun)</span>
                     </span>
                 </div>
@@ -75,7 +75,7 @@
                         Lengkap</span>
                     <span
                           class="font-medium text-slate-800">{{
-                            customer?.address || '-'
+                            detail?.address || '-'
                         }}</span>
                 </div>
                 <div class="md:col-span-2">
@@ -84,7 +84,7 @@
                         Khusus</span>
                     <span
                           class="font-medium text-slate-800">{{
-                            customer?.notes || '-'
+                            detail?.notes || '-'
                         }}</span>
                 </div>
             </div>
@@ -101,7 +101,7 @@
                 <div
                      class="font-bold text-lg text-slate-800">
                     {{
-                        customer?.summary?.total_transactions
+                        detail?.summary?.total_transactions
                         || 0 }} kali</div>
             </div>
             <div
@@ -112,7 +112,7 @@
                 <div
                      class="font-bold text-lg text-slate-800">
                     {{
-                        formatCurrency(customer?.summary?.total_spent)
+                        formatCurrency(detail?.summary?.total_spent)
                     }}</div>
             </div>
             <div
@@ -123,7 +123,7 @@
                 <div
                      class="font-bold text-lg text-slate-800">
                     {{
-                        formatCurrency(customer?.summary?.average_spent)
+                        formatCurrency(detail?.summary?.average_spent)
                     }}</div>
             </div>
             <div
@@ -134,7 +134,7 @@
                 <div
                      class="font-bold text-lg text-slate-800">
                     {{
-                        formatDateID(customer?.summary?.last_transaction_date)
+                        formatDateID(detail?.summary?.last_transaction_date)
                         || '-' }}</div>
             </div>
         </div>
@@ -169,14 +169,14 @@
                     <tbody
                            class="divide-y divide-slate-100">
                         <tr
-                            v-if="!customer?.recent_transactions?.length">
+                            v-if="!detail?.recent_transactions?.length">
                             <td colspan="4"
                                 class="px-4 py-8 text-center text-slate-400">
                                 Belum ada riwayat
                                 transaksi
                             </td>
                         </tr>
-                        <tr v-for="tx in customer?.recent_transactions"
+                        <tr v-for="tx in detail?.recent_transactions"
                             :key="tx.id"
                             class="hover:bg-slate-50">
                             <td
@@ -225,6 +225,7 @@ import { usePopUpStore } from '@/store/popup';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { formatDateID } from '@/Composable/date';
+import axios from 'axios';
 
 const props = defineProps({
     customer: {
@@ -237,14 +238,24 @@ const emit = defineEmits(['edit']);
 
 const popUpStore = usePopUpStore();
 const isMounted = ref(false);
+const detail = ref({ ...props.customer });
+const isLoading = ref(true);
 
-onMounted(() => {
+onMounted(async () => {
     isMounted.value = true;
+    try {
+        const response = await axios.get(route('customers.show', props.customer.id));
+        detail.value = response.data.data;
+    } catch (e) {
+        console.error('Failed to fetch customer details:', e);
+    } finally {
+        isLoading.value = false;
+    }
 });
 
 const genderLabel = computed(() => {
-    if (props.customer?.gender === 'male') return 'Laki-laki';
-    if (props.customer?.gender === 'female') return 'Perempuan';
+    if (detail.value?.gender === 'male') return 'Laki-laki';
+    if (detail.value?.gender === 'female') return 'Perempuan';
     return '-';
 });
 
@@ -264,7 +275,6 @@ const formatCurrency = (amount) => {
 };
 
 const handleEdit = () => {
-    // We can emit an event or close this popup and open the form popup
-    emit('edit', props.customer);
+    emit('edit', detail.value);
 };
 </script>

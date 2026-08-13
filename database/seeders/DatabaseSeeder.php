@@ -25,9 +25,9 @@ class DatabaseSeeder extends Seeder
         if (! app()->environment('production')) {
             $this->call([
                 DummyMinimarketSeeder::class,
-                \Database\Seeders\Development\MasterProductCategorySeeder::class,
-                \Database\Seeders\Development\MasterModifierSeeder::class,
-                \Database\Seeders\Development\InventoryDatabaseSeeder::class,
+                // \Database\Seeders\Development\MasterProductCategorySeeder::class,
+                // \Database\Seeders\Development\MasterModifierSeeder::class,
+                // \Database\Seeders\Development\InventoryDatabaseSeeder::class,
             ]);
         }
     }

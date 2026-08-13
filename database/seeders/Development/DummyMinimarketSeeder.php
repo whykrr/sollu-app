@@ -37,11 +37,19 @@ class DummyMinimarketSeeder extends Seeder
          * @var \App\Models\Outlet
          */
         $outlet = $business->outlets()->updateOrCreate(
-            ['slug' => 'sollu-mart-sentral'],
+            ['slug' => 'sm-sentral'],
             [
-                'name' => 'Sollu Mart Sentral',
-                'address' => '',
+                'name' => 'SM Sentral',
+                'address' => 'Jl. Ijen Boulevard No.17, Malang',
                 'is_main_outlet' => true,
+            ]
+        );
+        $outlet = $business->outlets()->updateOrCreate(
+            ['slug' => 'sm-soekarno-hatta'],
+            [
+                'name' => 'SM Soekarno Hatta',
+                'address' => 'Jl. Soekarno Hatta 20, Malang',
+                'is_main_outlet' => false,
             ]
         );
 
@@ -60,7 +68,6 @@ class DummyMinimarketSeeder extends Seeder
                 'is_root_user' => true,
             ]
         );
-
         $user->assignRole('owner');
         $user->outlets()->sync($business->outlets()->pluck('id')->toArray());
     }

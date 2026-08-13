@@ -48,29 +48,31 @@ class CustomerService
      */
     public function getSummaryStats(Customer $customer): array
     {
-        $transactions = $customer->transactions();
-        $totalTransactions = $transactions->count();
-        $totalBelanja = $transactions->sum('total_amount');
+        $transactionsQuery = $customer->transactions();
+        $totalTransactions = $transactionsQuery->count();
+        $totalBelanja = $transactionsQuery->sum('total');
         $rataRata = $totalTransactions > 0 ? $totalBelanja / $totalTransactions : 0;
-        $kunjunganTerakhir = $transactions->orderBy('created_at', 'desc')->first()?->created_at;
+        $kunjunganTerakhir = $transactionsQuery->orderBy('created_at', 'desc')->first()?->created_at;
 
-        $recentTransactions = $transactions->orderBy('created_at', 'desc')->limit(10)->get([
-            'id', 'invoice_number', 'created_at as date', 'outlet_id', 'total as grand_total',
-        ])->map(function ($trx) {
-            return [
-                'id' => $trx->id,
-                'invoice_number' => $trx->invoice_number,
-                'date' => $trx->date->format('d M Y'),
-                'outlet_name' => $trx->outlet?->name ?? '-',
-                'grand_total' => $trx->grand_total,
-            ];
-        });
+        $recentTransactions = $transactionsQuery->with(['outlet', 'invoice'])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($trx) {
+                return [
+                    'id' => $trx->id,
+                    'invoice_number' => $trx->invoice?->invoice_number ?? $trx->transaction_number,
+                    'date' => $trx->created_at->format('d M Y'),
+                    'outlet_name' => $trx->outlet?->name ?? '-',
+                    'grand_total' => $trx->total,
+                ];
+            });
 
         return [
             'total_transactions' => $totalTransactions,
             'total_spent' => (float) $totalBelanja,
             'average_spent' => (float) $rataRata,
-            'last_visit' => $kunjunganTerakhir ? $kunjunganTerakhir->toDateString() : null,
+            'last_transaction_date' => $kunjunganTerakhir ? $kunjunganTerakhir->toDateString() : null,
             'recent_transactions' => $recentTransactions,
         ];
     }

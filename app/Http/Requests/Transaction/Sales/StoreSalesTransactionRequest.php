@@ -23,6 +23,14 @@ class StoreSalesTransactionRequest extends BaseInertiaFormRequest
         return $canCreate;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'customer_id' => $this->customer_id ?: null,
+            'promo_id' => $this->promo_id ?: null,
+        ]);
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -35,8 +43,8 @@ class StoreSalesTransactionRequest extends BaseInertiaFormRequest
             'customer_id' => ['nullable', 'uuid'],
             'channel' => ['required', 'string'],
             'transaction_date' => ['required', 'date'],
-            'payment_term' => ['required', 'in:tunai,termin'],
-            'due_date' => ['nullable', 'required_if:payment_term,termin', 'date'],
+            'payment_term' => ['required', 'in:cash,credit'],
+            'due_date' => ['nullable', 'required_if:payment_term,credit', 'date'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'uuid'],
             'items.*.inventory_item_id' => ['nullable', 'uuid', 'exists:inventory_items,id'],
@@ -45,12 +53,15 @@ class StoreSalesTransactionRequest extends BaseInertiaFormRequest
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.discount_amount' => ['nullable', 'numeric', 'min:0'],
             'items.*.promo_name' => ['nullable', 'string'],
+            'subtotal' => ['nullable', 'numeric', 'min:0'],
             'manual_discount_amount' => ['nullable', 'numeric', 'min:0'],
             'promo_id' => ['nullable', 'uuid'],
             'promo_discount_amount' => ['nullable', 'numeric', 'min:0'],
             'shipping_fee' => ['nullable', 'numeric', 'min:0'],
             'tax_amount' => ['nullable', 'numeric', 'min:0'],
             'service_charge_amount' => ['nullable', 'numeric', 'min:0'],
+            'total' => ['nullable', 'numeric', 'min:0'],
+            'items.*.subtotal' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
             'terms_and_conditions' => ['nullable', 'string'],
             'action' => ['required', 'in:draft,issue'],

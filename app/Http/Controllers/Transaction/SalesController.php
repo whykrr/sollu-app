@@ -28,7 +28,7 @@ class SalesController extends Controller
         $sortField = $filters['sort'] ?? 'created_at';
         $sortDirection = $filters['direction'] ?? 'desc';
 
-        $transactions = Transaction::with(['customer', 'outlet', 'shift.user'])
+        $transactions = Transaction::with(['customer', 'outlet', 'shift.user', 'invoice', 'promos'])
             ->filters($filters)
             ->orderBy($sortField, $sortDirection)
             ->paginate(15)
@@ -78,6 +78,10 @@ class SalesController extends Controller
                 ->with(FlashDataVariable::SUCCESS->value, ResourceMessage::CREATE_SUCCESS);
         } catch (\Exception $e) {
             DB::rollBack();
+
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                throw $e;
+            }
 
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
@@ -156,17 +160,24 @@ class SalesController extends Controller
         $this->authorize('transaction.view');
 
         $transaction->load([
+            'invoice',
             'customer',
-            'outlet',
+            'outlet.business',
             'items',
             'payments.paymentMethod',
+            'promos',
         ]);
+
+        $number = $transaction->invoice?->invoice_number ?? $transaction->transaction_number;
+        $safeFilename = 'Invoice-'.str_replace(['/', '\\'], '-', $number).'.pdf';
 
         $pdf = Pdf::loadView('pdf.transactions.invoice', [
             'transaction' => $transaction,
-        ]);
+            'business' => $transaction->outlet?->business ?? Auth::user()?->business,
+            'outlet' => $transaction->outlet,
+        ])->setPaper('a4', 'portrait');
 
-        return $pdf->stream('Invoice-'.$transaction->transaction_number.'.pdf');
+        return $pdf->stream($safeFilename);
     }
 
     public function export(Request $request)

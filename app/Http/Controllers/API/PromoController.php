@@ -36,7 +36,7 @@ class PromoController extends Controller
             ->when($searchTerm, function ($q, $search) {
                 $q->whereLike('name', "%{$search}%");
             })
-            ->with('products:id')
+            ->with('inventoryItems:id')
             ->take($limit)
             ->get();
 

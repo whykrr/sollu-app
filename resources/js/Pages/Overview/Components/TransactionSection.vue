@@ -1,5 +1,5 @@
 <template>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-2">
         <Widget
             title="Total Omset Kotor"
             :icon="faMoneyBill1Wave"
@@ -11,16 +11,7 @@
             <p class="text-lg font-bold text-neutral-900">{{ formatIDR(totalSales.now) }}</p>
         </Widget>
 
-        <Widget
-            title="Estimasi Keuntungan Kotor"
-            :icon="faCoins"
-            class="widget-main"
-            :traction="getTraction(grossProfit.now, grossProfit.previous)"
-            :traction-percentage="getPercentage(grossProfit.now, grossProfit.previous)"
-            :descriptors="descriptors"
-        >
-            <p class="text-lg font-bold text-neutral-900">{{ formatIDR(grossProfit.now) }}</p>
-        </Widget>
+
 
         <Widget
             title="Total Transaksi"
@@ -62,10 +53,7 @@ const props = defineProps({
         type: Object,
         default: () => ({ now: 0, previous: 0 }),
     },
-    grossProfit: {
-        type: Object,
-        default: () => ({ now: 0, previous: 0 }),
-    },
+
     totalTransactions: {
         type: Object,
         default: () => ({ now: 0, previous: 0 }),

@@ -46,11 +46,11 @@ class UpdatePromoRequest extends BaseInertiaFormRequest
                 Rule::requiredIf(fn () => ! $this->applies_to_all_outlets),
             ],
             'outlet_ids.*' => ['exists:outlets,id'],
-            'product_ids' => [
+            'inventory_item_ids' => [
                 'array',
                 Rule::requiredIf(fn () => $this->target_type === PromoTarget::Product->value),
             ],
-            'product_ids.*' => ['exists:products,id'],
+            'inventory_item_ids.*' => ['exists:inventory_items,id'],
         ];
     }
 
@@ -59,7 +59,7 @@ class UpdatePromoRequest extends BaseInertiaFormRequest
         return [
             'end_date.after_or_equal' => 'Tanggal berakhir tidak boleh sebelum tanggal mulai.',
             'max_discount.required_if' => 'Batas maksimal diskon harus diisi untuk tipe persentase.',
-            'product_ids.required_if' => 'Minimal satu produk harus dipilih untuk promo per produk.',
+            'inventory_item_ids.required_if' => 'Minimal satu produk harus dipilih untuk promo per produk.',
             'outlet_ids.required_if' => 'Minimal satu outlet harus dipilih jika tidak berlaku untuk semua.',
             'start_time.required_with' => 'Jam mulai dan jam selesai harus diisi keduanya jika ingin menggunakan jadwal waktu.',
             'end_time.required_with' => 'Jam mulai dan jam selesai harus diisi keduanya jika ingin menggunakan jadwal waktu.',
