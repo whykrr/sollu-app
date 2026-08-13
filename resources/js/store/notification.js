@@ -1,3 +1,4 @@
+import { markRaw } from 'vue'
 import i18n from '@/i18n'
 import { defineStore } from 'pinia'
 import { useToastStore } from './toast'
@@ -47,7 +48,7 @@ export const useModalStore = defineStore('modal', {
                 type: options.type || 'info',
                 title: options.title || 'Konfirmasi',
                 message: options.message || options.msg || '',
-                component: options.component || null,
+                component: options.component ? markRaw(options.component) : null,
                 props: options.props || {},
                 confirmText: options.confirmText || 'Ya',
                 cancelText: options.cancelText || 'Batal',

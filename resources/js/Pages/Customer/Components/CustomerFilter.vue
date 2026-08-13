@@ -11,16 +11,12 @@
                   class="hidden md:inline">Filter</span>
         </button>
 
-        <FilterBadge v-if="filterForm.is_active"
-                     label="Status"
-                     :value="statusOptions.find((o) => o.value === filterForm.is_active)
-                        ?.label
-                        "
-                     @remove="filterForm.is_active = ''" />
-        <FilterBadge v-if="hasFilters"
-                     label="Hapus Filter"
-                     variant="danger"
-                     @remove="resetFilters" />
+        <FilterBadge v-if="filterForm.is_active !== '' && filterForm.is_active !== null && filterForm.is_active !== undefined"
+                     @remove="filterForm.is_active = ''">
+            Status: {{statusOptions.find((o) =>
+                o.value ==
+            filterForm.is_active)?.label}}
+        </FilterBadge>
 
         <FilterModal :show="showFilterModal"
                      title="Filter Pelanggan"

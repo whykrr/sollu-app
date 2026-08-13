@@ -19,13 +19,13 @@
                 :class="$attrs.class"
             >
                 <input
-                    v-bind="$attrs"
                     :id="inputName + idx"
                     :name="name || inputName"
                     :type="multiple ? 'checkbox' : 'radio'"
                     class="form-check-btn peer"
                     :value="opt.value"
                     :checked="isSelected(opt.value)"
+                    :disabled="disabled"
                     @change="handleSelect(opt.value)"
                 />
                 <label
@@ -34,6 +34,7 @@
                         {
                             'btn-outline-main': isSelected(opt.value),
                             'btn-outline-neutral-400': !isSelected(opt.value),
+                            'opacity-50 cursor-not-allowed': disabled,
                         },
                         $attrs.class,
                     ]"
@@ -88,6 +89,10 @@ const props = defineProps({
         default: 'Batalkan Semua',
     },
     feedback: String,
+    disabled: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits(['update:modelValue', 'update:allSelected', 'all-selected']);

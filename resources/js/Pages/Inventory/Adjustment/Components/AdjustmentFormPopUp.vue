@@ -1,75 +1,83 @@
 <template>
     <div>
-        <form @submit.prevent="submit" class="space-y-2">
+        <form @submit.prevent="submit"
+              class="space-y-2">
             <div class="grid grid-cols-2 gap-2">
-                <AsyncOutletDropdown
-                    id="outlet_id"
-                    v-model="form.outlet_id"
-                    label="Outlet"
-                    placeholder="Pilih outlet..."
-                    :exclude-frozen="true"
-                    :class="{ 'is-invalid': form.errors.outlet_id }"
-                    :error="form.errors.outlet_id"
-                    @loaded="onOutletsLoaded"
-                    required
-                />
-                <DropdownField
-                    id="reason"
-                    v-model="form.reason"
-                    label="Alasan Utama"
-                    placeholder="Pilih alasan..."
-                    :options="reasonOptions"
-                    :class="{ 'is-invalid': form.errors.reason }"
-                    :error="form.errors.reason"
-                    required
-                />
+                <AsyncOutletDropdown id="outlet"
+                                     v-model="form.outlet_id"
+                                     label="Pilih Outlet"
+                                     placeholder="-- Pilih Outlet --"
+                                     :class="{ 'is-invalid': form.errors.outlet_id }"
+                                     :error="form.errors.outlet_id"
+                                     @loaded="onOutletsLoaded" />
+
+
+                <DropdownField id="reason"
+                               v-model="form.reason"
+                               label="Alasan Utama"
+                               placeholder="Pilih alasan..."
+                               :options="reasonOptions"
+                               :class="{ 'is-invalid': form.errors.reason }"
+                               :error="form.errors.reason"
+                               required />
             </div>
 
-            <TextareaField
-                id="notes"
-                v-model="form.notes"
-                label="Catatan Opsional"
-                :class="{ 'is-invalid': form.errors.notes }"
-                :error="form.errors.notes"
-                rows="2"
-            />
+            <TextareaField id="notes"
+                           v-model="form.notes"
+                           label="Catatan Opsional"
+                           :class="{ 'is-invalid': form.errors.notes }"
+                           :error="form.errors.notes"
+                           rows="2" />
 
             <div class="mt-2 border-t pt-2">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-gray-700">Daftar Item</h3>
+                <div
+                     class="flex justify-between items-center mb-2">
+                    <h3
+                        class="font-bold text-gray-700">
+                        Daftar Item</h3>
                     <div class="w-72">
-                        <AsyncSelectField
-                            id="search_item"
-                            label="Cari Item (Min. 3 huruf)"
-                            placeholder="Cari nama, SKU, barcode..."
-                            class="sm"
-                            :api-url="
-                                route('api.internal.inventory-items.search')
-                            "
-                            :api-params="{
-                                outlet_id: form.outlet_id,
-                            }"
-                            :min-chars="3"
-                            :disabled="!form.outlet_id"
-                            @select="addItemFromSearch"
-                        >
-                            <template #option="{ item }">
+                        <AsyncSelectField id="search_item"
+                                          label="Cari Item (Min. 3 huruf)"
+                                          placeholder="Cari nama, SKU, barcode..."
+                                          class="sm"
+                                          :api-url="route('api.internal.inventory-items.search')
+                                            "
+                                          :api-params="{
+                                            outlet_id: form.outlet_id,
+                                        }"
+                                          :min-chars="3"
+                                          :disabled="!form.outlet_id"
+                                          @select="addItemFromSearch">
+                            <template
+                                      #option="{ item }">
                                 <div
-                                    class="flex justify-between items-center w-full"
-                                >
+                                     class="flex justify-between items-center w-full">
                                     <div>
-                                        <div class="font-semibold text-sm">
-                                            {{ item.name }}
+                                        <div
+                                             class="font-semibold text-sm">
+                                            {{
+                                                item.name
+                                            }}
                                         </div>
-                                        <div class="text-xs text-gray-500">
-                                            SKU: {{ item.sku || '-' }}
+                                        <div
+                                             class="text-xs text-gray-500">
+                                            SKU:
+                                            {{
+                                                item.sku
+                                                || '-'
+                                            }}
                                         </div>
                                     </div>
-                                    <div class="text-right text-xs">
+                                    <div
+                                         class="text-right text-xs">
                                         <div>
                                             Sistem:
-                                            {{ Number(item.current_stock) }}
-                                            {{ item.uom?.name }}
+                                            {{
+                                                Number(item.current_stock)
+                                            }}
+                                            {{
+                                                item.uom?.name
+                                            }}
                                         </div>
                                     </div>
                                 </div>
@@ -78,117 +86,117 @@
                     </div>
                 </div>
 
-                <div v-if="form.errors.items" class="text-danger text-sm mb-2">
+                <div v-if="form.errors.items"
+                     class="text-danger text-sm mb-2">
                     {{ form.errors.items }}
                 </div>
 
-                <div
-                    v-if="form.items.length === 0"
-                    class="text-center py-2 text-gray-500 border border-dashed rounded-lg"
-                >
-                    Belum ada item yang ditambahkan. Silakan cari item pada
+                <div v-if="form.items.length === 0"
+                     class="text-center py-2 text-gray-500 border border-dashed rounded-lg">
+                    Belum ada item yang
+                    ditambahkan. Silakan cari
+                    item pada
                     kolom pencarian di atas.
                 </div>
 
-                <div v-else class="space-y-2 max-h-96 overflow-y-auto pr-1">
-                    <div
-                        v-for="(item, index) in form.items"
-                        :key="item.inventory_item_id || index"
-                        class="p-2 border rounded-lg bg-white shadow-sm space-y-2"
-                    >
-                        <div class="flex justify-between items-start">
+                <div v-else
+                     class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                    <div v-for="(item, index) in form.items"
+                         :key="item.inventory_item_id || index"
+                         class="p-2 border rounded-lg bg-white shadow-sm space-y-2">
+                        <div
+                             class="flex justify-between items-start">
                             <div>
-                                <div class="font-semibold text-gray-800">
-                                    {{ item.name }}
+                                <div
+                                     class="font-semibold text-gray-800">
+                                    {{ item.name
+                                    }}
                                 </div>
-                                <div class="text-xs text-gray-500">
-                                    SKU: {{ item.sku || '-' }} | Satuan:
-                                    {{ item.uom || '-' }} | Stok saat ini di
+                                <div
+                                     class="text-xs text-gray-500">
+                                    SKU: {{
+                                        item.sku ||
+                                        '-' }} |
+                                    Satuan:
+                                    {{ item.uom ||
+                                        '-' }} | Stok
+                                    saat ini di
                                     outlet:
-                                    <span class="font-medium text-gray-700">
-                                        {{ item.current_stock ?? 0 }}
+                                    <span
+                                          class="font-medium text-gray-700">
+                                        {{
+                                            item.current_stock
+                                            ?? 0
+                                        }}
                                     </span>
                                 </div>
                             </div>
-                            <button
-                                type="button"
-                                class="btn btn-highlight-danger btn-sm"
-                                @click="removeItem(index)"
-                                title="Hapus Item"
-                            >
-                                <FontAwesomeIcon :icon="faTrash" />
+                            <button type="button"
+                                    class="btn btn-highlight-danger btn-sm"
+                                    @click="removeItem(index)"
+                                    title="Hapus Item">
+                                <FontAwesomeIcon
+                                                 :icon="faTrash" />
                             </button>
                         </div>
 
-                        <div class="grid grid-cols-12 gap-2">
-                            <div
-                                :class="
-                                    item.qty_change > 0
-                                        ? 'col-span-12 md:col-span-6'
-                                        : 'col-span-12'
-                                "
-                            >
-                                <NumberField
-                                    :id="'qty_' + index"
-                                    v-model="item.qty_change"
-                                    label="Perubahan Qty (+/-)"
-                                    placeholder="Misal: -2 atau 5"
-                                    step="any"
-                                    :class="{
-                                        'is-invalid':
-                                            form.errors[
-                                                `items.${index}.qty_change`
-                                            ],
-                                    }"
-                                    :error="
-                                        form.errors[`items.${index}.qty_change`]
-                                    "
-                                    required
-                                />
+                        <div
+                             class="grid grid-cols-12 gap-2">
+                            <div :class="item.qty_change > 0
+                                ? 'col-span-12 md:col-span-6'
+                                : 'col-span-12'
+                                ">
+                                <NumberField :id="'qty_' + index"
+                                             v-model="item.qty_change"
+                                             label="Perubahan Qty (+/-)"
+                                             placeholder="Misal: -2 atau 5"
+                                             step="any"
+                                             :class="{
+                                                'is-invalid':
+                                                    form.errors[
+                                                    `items.${index}.qty_change`
+                                                    ],
+                                            }"
+                                             :error="form.errors[`items.${index}.qty_change`]
+                                                "
+                                             required />
+                            </div>
+
+                            <div class="col-span-12 md:col-span-6"
+                                 v-if="item.qty_change > 0">
+                                <NumberField :id="'unit_cost_' + index"
+                                             v-model="item.unit_cost"
+                                             label="HPP / Unit Cost (Opsional)"
+                                             placeholder="Auto (Moving Avg)"
+                                             min="0"
+                                             step="any"
+                                             :class="{
+                                                'is-invalid':
+                                                    form.errors[
+                                                    `items.${index}.unit_cost`
+                                                    ],
+                                            }"
+                                             :error="form.errors[`items.${index}.unit_cost`]
+                                                " />
                             </div>
 
                             <div
-                                class="col-span-12 md:col-span-6"
-                                v-if="item.qty_change > 0"
-                            >
-                                <NumberField
-                                    :id="'unit_cost_' + index"
-                                    v-model="item.unit_cost"
-                                    label="HPP / Unit Cost (Opsional)"
-                                    placeholder="Auto (Moving Avg)"
-                                    min="0"
-                                    step="any"
-                                    :class="{
-                                        'is-invalid':
-                                            form.errors[
-                                                `items.${index}.unit_cost`
-                                            ],
-                                    }"
-                                    :error="
-                                        form.errors[`items.${index}.unit_cost`]
-                                    "
-                                />
-                            </div>
-
-                            <div class="col-span-12">
-                                <TextField
-                                    :id="'desc_' + index"
-                                    v-model="item.description"
-                                    label="Deskripsi / Alasan"
-                                    placeholder="Detail alasan untuk item ini"
-                                    :class="{
-                                        'is-invalid':
-                                            form.errors[
+                                 class="col-span-12">
+                                <TextField :id="'desc_' + index"
+                                           v-model="item.description"
+                                           label="Deskripsi / Alasan"
+                                           placeholder="Detail alasan untuk item ini"
+                                           :class="{
+                                            'is-invalid':
+                                                form.errors[
                                                 `items.${index}.description`
-                                            ],
-                                    }"
-                                    :error="
-                                        form.errors[
+                                                ],
+                                        }"
+                                           :error="form.errors[
                                             `items.${index}.description`
                                         ]
-                                    "
-                                    required
-                                />
+                                            "
+                                           required />
                             </div>
                         </div>
                     </div>
@@ -196,21 +204,18 @@
             </div>
         </form>
 
-        <Teleport v-if="isMounted" to="#popUpFooter">
-            <button
-                type="button"
-                class="btn btn-flat"
-                @click="close"
-                :disabled="form.processing"
-            >
+        <Teleport v-if="isMounted"
+                  to="#popUpFooter">
+            <button type="button"
+                    class="btn btn-flat"
+                    @click="close"
+                    :disabled="form.processing">
                 Batal
             </button>
-            <button
-                type="button"
-                class="btn btn-main"
-                @click="submit"
-                :disabled="form.processing || form.items.length === 0"
-            >
+            <button type="button"
+                    class="btn btn-main"
+                    @click="submit"
+                    :disabled="form.processing || form.items.length === 0">
                 Simpan Penyesuaian
             </button>
         </Teleport>
@@ -254,6 +259,7 @@ const form = useForm({
 const loadedOutlets = ref([]);
 
 const onOutletsLoaded = (outlets) => {
+    console.log(outlets);
     loadedOutlets.value = outlets;
     if (!form.outlet_id && outlets.length === 1) {
         form.outlet_id = outlets[0].id;
@@ -299,7 +305,7 @@ watch(
 );
 
 onMounted(() => {
-    form.reset();
+    isMounted.value = true;
     form.clearErrors();
     form.items = [];
     if (loadedOutlets.value.length === 1) {

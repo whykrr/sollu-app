@@ -80,8 +80,8 @@
                 </template>
             </div>
         </div>
-        <span v-if="feedback" class="text-danger text-xs mt-1 block">{{
-            feedback
+        <span v-if="feedbackMessage" class="text-danger text-xs mt-1 block">{{
+            feedbackMessage
         }}</span>
 
         <!-- Backdrop to close dropdown when clicking outside -->
@@ -94,14 +94,16 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted, computed } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
+    modelValue: [String, Number, Object],
     label: { type: String, default: '' },
     placeholder: { type: String, default: 'Ketik untuk mencari...' },
     disabled: { type: Boolean, default: false },
     feedback: { type: String, default: '' },
+    error: { type: String, default: '' },
 
     // API Configuration
     apiUrl: { type: String, required: true },
@@ -116,7 +118,9 @@ const props = defineProps({
     optionLabel: { type: [String, Function], default: 'name' },
 });
 
-const emit = defineEmits(['select']);
+const feedbackMessage = computed(() => props.feedback || props.error || '');
+
+const emit = defineEmits(['update:modelValue', 'select']);
 
 const searchQuery = ref('');
 const results = ref([]);
@@ -142,6 +146,8 @@ const closeDropdown = () => {
 };
 
 const selectItem = (item) => {
+    const val = item.value !== undefined ? item.value : (item.id !== undefined ? item.id : item);
+    emit('update:modelValue', val);
     emit('select', item);
     showDropdown.value = false;
     searchQuery.value = ''; // Reset input after selection

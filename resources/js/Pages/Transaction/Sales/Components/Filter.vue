@@ -38,23 +38,29 @@
         >
             <div class="space-y-4">
                 <DropdownField
-                    label="Status Transaksi"
+                    label="Status Transaksi / Invoice"
                     v-model="tempFilters.status"
                     :options="statusOptions"
                     placeholder="Semua Status"
                 />
                 <DropdownField
-                    label="Channel Pembelian"
+                    label="Channel Penjualan"
                     v-model="tempFilters.channel"
                     :options="channelOptions"
                     placeholder="Semua Channel"
                 />
-                <DropdownField
-                    label="Status Pembayaran"
-                    v-model="tempFilters.payment_status"
-                    :options="paymentStatusOptions"
-                    placeholder="Semua Status Bayar"
-                />
+                <div class="grid grid-cols-2 gap-4">
+                    <TextField
+                        type="date"
+                        label="Dari Tanggal"
+                        v-model="tempFilters.start_date"
+                    />
+                    <TextField
+                        type="date"
+                        label="Sampai Tanggal"
+                        v-model="tempFilters.end_date"
+                    />
+                </div>
             </div>
         </FilterModal>
     </div>
@@ -70,6 +76,7 @@ import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
 import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
+import TextField from '@/Components/Form/TextField.vue';
 
 const props = defineProps({
     filters: {
@@ -84,7 +91,8 @@ const filterForm = reactive({
     search: props.filters.search || '',
     status: props.filters.status || '',
     channel: props.filters.channel || '',
-    payment_status: props.filters.payment_status || '',
+    start_date: props.filters.start_date || '',
+    end_date: props.filters.end_date || '',
     sort: props.filters.sort || '',
     direction: props.filters.direction || '',
 });
@@ -92,23 +100,26 @@ const filterForm = reactive({
 const tempFilters = reactive({
     status: '',
     channel: '',
-    payment_status: '',
+    start_date: '',
+    end_date: '',
 });
 
 const statusOptions = [
-    { value: 'completed', label: 'Selesai' },
-    { value: 'hold', label: 'Ditahan' },
-    { value: 'void', label: 'Dibatalkan' },
+    { value: 'draft', label: 'Draf' },
+    { value: 'unpaid', label: 'Belum Lunas' },
+    { value: 'paid', label: 'Lunas' },
+    { value: 'cancel', label: 'Dibatalkan' },
 ];
 
 const channelOptions = [
-    { value: 'pos', label: 'POS' },
-    { value: 'invoice', label: 'Invoice B2B' },
-];
-
-const paymentStatusOptions = [
-    { value: 'paid', label: 'Lunas' },
-    { value: 'unpaid', label: 'Belum Lunas' },
+    { value: 'e_commerce', label: 'E-Commerce' },
+    { value: 'social_media', label: 'Social Media' },
+    { value: 'direct', label: 'Direct / B2B' },
+    { value: 'wholesale', label: 'Wholesale' },
+    { value: 'custom', label: 'Custom' },
+    { value: 'dine_in', label: 'POS - Dine In' },
+    { value: 'take_away', label: 'POS - Take Away' },
+    { value: 'online_delivery', label: 'POS - Online Delivery' },
 ];
 
 const updateQuery = () => {
@@ -146,7 +157,8 @@ watch(
 const openFilter = () => {
     tempFilters.status = filterForm.status;
     tempFilters.channel = filterForm.channel;
-    tempFilters.payment_status = filterForm.payment_status;
+    tempFilters.start_date = filterForm.start_date;
+    tempFilters.end_date = filterForm.end_date;
     showFilter.value = true;
 };
 
@@ -157,7 +169,8 @@ const closeFilter = () => {
 const applyFilter = () => {
     filterForm.status = tempFilters.status;
     filterForm.channel = tempFilters.channel;
-    filterForm.payment_status = tempFilters.payment_status;
+    filterForm.start_date = tempFilters.start_date;
+    filterForm.end_date = tempFilters.end_date;
     updateQuery();
     closeFilter();
 };
@@ -165,10 +178,12 @@ const applyFilter = () => {
 const resetFilter = () => {
     tempFilters.status = '';
     tempFilters.channel = '';
-    tempFilters.payment_status = '';
+    tempFilters.start_date = '';
+    tempFilters.end_date = '';
     filterForm.status = '';
     filterForm.channel = '';
-    filterForm.payment_status = '';
+    filterForm.start_date = '';
+    filterForm.end_date = '';
     updateQuery();
     closeFilter();
 };

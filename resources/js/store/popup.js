@@ -1,3 +1,4 @@
+import { markRaw } from 'vue'
 import { defineStore } from 'pinia'
 
 export const usePopUpStore = defineStore('popup', {
@@ -31,7 +32,7 @@ export const usePopUpStore = defineStore('popup', {
                 title: options.title || '',
                 subTitle: options.subTitle || null,
                 size: options.size || 'md',
-                component: options.component || null,
+                component: options.component ? markRaw(options.component) : null,
                 props: options.props || {},
                 events: options.events || {},
                 onClose: options.onClose || null,

@@ -1,6 +1,6 @@
 <template>
     <form @submit.prevent="submit"
-          class="space-y-4">
+          class="space-y-2">
         <TextField v-model="form.name"
                    label="Nama Lengkap"
                    placeholder="Masukkan nama pelanggan"
@@ -41,6 +41,23 @@
                        placeholder="Alergi, preferensi, dll"
                        :feedback="form.errors.notes"
                        rows="2" />
+
+        <!-- Status Keaktifan Pelanggan -->
+        <div class="space-y-2 mt-2">
+            <label class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition w-full">
+                <div>
+                    <div class="font-bold text-sm text-slate-800">
+                        Status Pelanggan Aktif
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        Pelanggan aktif dapat dicari pada transaksi penjualan (POS).
+                    </div>
+                </div>
+                <input v-model="form.is_active"
+                       type="checkbox"
+                       class="rounded h-5 w-5 text-primary cursor-pointer" />
+            </label>
+        </div>
 
         <Teleport v-if="isMounted"
                   to="#popUpFooter">
@@ -93,6 +110,7 @@ const form = useForm({
     gender: props.customer?.gender || '',
     address: props.customer?.address || '',
     notes: props.customer?.notes || '',
+    is_active: props.customer ? (props.customer.is_active ?? true) : true,
 });
 
 onMounted(() => {

@@ -131,6 +131,12 @@ class RolePermissionSeeder extends Seeder
             PermissionEnum::TRANSACTION_CREATE->value,
             PermissionEnum::TRANSACTION_HOLD->value,
             PermissionEnum::TRANSACTION_REPRINT->value,
+            PermissionEnum::TRANSACTION_ISSUE_INVOICE->value,
+            PermissionEnum::TRANSACTION_RECORD_PAYMENT->value,
+            PermissionEnum::TRANSACTION_CANCEL->value,
+            PermissionEnum::TRANSACTION_VOID->value,
+            PermissionEnum::TRANSACTION_DISCOUNT->value,
+            PermissionEnum::TRANSACTION_EDIT_DUE_DATE->value,
 
             PermissionEnum::PRODUCT_VIEW->value,
 
@@ -163,6 +169,8 @@ class RolePermissionSeeder extends Seeder
             PermissionEnum::TRANSACTION_CREATE->value,
             PermissionEnum::TRANSACTION_HOLD->value,
             PermissionEnum::TRANSACTION_REPRINT->value,
+            PermissionEnum::TRANSACTION_ISSUE_INVOICE->value,
+            PermissionEnum::TRANSACTION_RECORD_PAYMENT->value,
 
             PermissionEnum::PRODUCT_VIEW->value,
 

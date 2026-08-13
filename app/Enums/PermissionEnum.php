@@ -67,6 +67,9 @@ enum PermissionEnum: string
     case TRANSACTION_REPRINT = 'transaction.reprint';
     case TRANSACTION_OPEN_SHIFT = 'transaction.open_shift';
     case TRANSACTION_CLOSE_SHIFT = 'transaction.close_shift';
+    case TRANSACTION_ISSUE_INVOICE = 'transaction.issue_invoice';
+    case TRANSACTION_RECORD_PAYMENT = 'transaction.record_payment';
+    case TRANSACTION_EDIT_DUE_DATE = 'transaction.edit_due_date';
 
     /*
     |--------------------------------------------------------------------------
@@ -252,6 +255,9 @@ enum PermissionEnum: string
             self::TRANSACTION_REPRINT => 'Akses Cetak Ulang Transaksi',
             self::TRANSACTION_OPEN_SHIFT => 'Akses Buka Shift',
             self::TRANSACTION_CLOSE_SHIFT => 'Akses Tutup Shift',
+            self::TRANSACTION_ISSUE_INVOICE => 'Akses Menerbitkan Invoice',
+            self::TRANSACTION_RECORD_PAYMENT => 'Akses Mencatat Pelunasan',
+            self::TRANSACTION_EDIT_DUE_DATE => 'Akses Mengubah Jatuh Tempo',
 
             // Product
             self::PRODUCT_ALL => 'Semua Akses Produk',

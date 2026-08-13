@@ -2,7 +2,7 @@ import { createApp, h } from 'vue'
 import { createInertiaApp, router } from '@inertiajs/vue3'
 import { ZiggyVue } from 'ziggy-js'
 import { Ziggy } from './ziggy.js'
-import './echo';
+// import './echo';
 
 
 import AppLayout from '@/Layout/AppLayout.vue'

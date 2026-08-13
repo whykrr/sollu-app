@@ -160,7 +160,7 @@ const openDetail = (customer) => {
         size: 'xl',
         component: CustomerDetailPopUp,
         props: { customer },
-        on: {
+        events: {
             edit: (cust) => {
                 // When "Ubah Data" is clicked inside Detail Popup
                 openEdit(cust);

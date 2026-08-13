@@ -177,7 +177,7 @@ export const mainSidebars = [
     },
     {
         type: 'item',
-        url: 'promotions',
+        url: route('promotions.index'),
         icon: faPercent,
         label: 'Promosi',
         permissions: [],

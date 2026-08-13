@@ -3,7 +3,6 @@
 namespace App\Models\Sales;
 
 use App\Models\Master\Customer;
-use App\Models\Master\Outlet;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -51,7 +50,7 @@ class Transaction extends Model
 
     public function outlet(): BelongsTo
     {
-        return $this->belongsTo(Outlet::class);
+        return $this->belongsTo(\App\Models\Outlet::class);
     }
 
     public function shift(): BelongsTo
@@ -62,6 +61,16 @@ class Transaction extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function modifiers(): HasManyThrough
+    {
+        return $this->hasManyThrough(TransactionItemModifier::class, TransactionItem::class);
+    }
+
+    public function invoice(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TransactionInvoice::class);
     }
 
     public function items(): HasMany

@@ -20,6 +20,7 @@ class TransactionItem extends Model
     protected $fillable = [
         'transaction_id',
         'product_id',
+        'inventory_item_id',
         'variant_group_option_id',
         'product_name',
         'price',
@@ -27,6 +28,7 @@ class TransactionItem extends Model
         'discount_amount',
         'subtotal',
         'notes',
+        'promo_name',
     ];
 
     protected function casts(): array
@@ -47,6 +49,11 @@ class TransactionItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function inventoryItem(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Inventory\InventoryItem::class);
     }
 
     public function variantGroupOption(): BelongsTo
