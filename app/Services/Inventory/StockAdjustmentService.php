@@ -6,12 +6,10 @@ use App\Enums\AdjustmentReason;
 use App\Enums\AdjustmentStatus;
 use App\Enums\InventoryMovementType;
 use App\Models\Inventory\InventoryBalance;
-use App\Models\Inventory\InventoryMovement;
 use App\Models\Inventory\StockAdjustment;
 use App\Models\User;
 use App\Services\ActivityLogService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class StockAdjustmentService
 {
@@ -29,13 +27,13 @@ class StockAdjustmentService
     {
         return DB::transaction(function () use ($data, $user) {
             $adjustment = StockAdjustment::create([
-                'business_id'       => $user->business_id,
-                'outlet_id'         => $data['outlet_id'],
+                'business_id' => $user->business_id,
+                'outlet_id' => $data['outlet_id'],
                 'adjustment_number' => $this->generateAdjustmentNumber(),
-                'status'            => AdjustmentStatus::Draft,
-                'reason'            => $data['reason'],
-                'notes'             => $data['notes'] ?? null,
-                'created_by'        => $user->id,
+                'status' => AdjustmentStatus::Draft,
+                'reason' => $data['reason'],
+                'notes' => $data['notes'] ?? null,
+                'created_by' => $user->id,
             ]);
 
             foreach ($data['items'] as $itemData) {
@@ -46,12 +44,12 @@ class StockAdjustmentService
 
                 $adjustment->items()->create([
                     'inventory_item_id' => $itemData['inventory_item_id'],
-                    'movement_type'     => $movementType,
-                    'qty_change'        => $itemData['qty_change'],
-                    'unit_cost'         => (isset($itemData['unit_cost']) && $itemData['qty_change'] > 0)
-                                            ? $itemData['unit_cost'] 
+                    'movement_type' => $movementType,
+                    'qty_change' => $itemData['qty_change'],
+                    'unit_cost' => (isset($itemData['unit_cost']) && $itemData['qty_change'] > 0)
+                                            ? $itemData['unit_cost']
                                             : null,
-                    'description'       => $itemData['description'],
+                    'description' => $itemData['description'],
                 ]);
             }
 
@@ -74,8 +72,8 @@ class StockAdjustmentService
             foreach ($adjustment->items as $item) {
                 $balance = InventoryBalance::firstOrCreate(
                     [
-                        'business_id'       => $adjustment->business_id,
-                        'outlet_id'         => $adjustment->outlet_id,
+                        'business_id' => $adjustment->business_id,
+                        'outlet_id' => $adjustment->outlet_id,
                         'inventory_item_id' => $item->inventory_item_id,
                     ],
                     [
@@ -95,9 +93,9 @@ class StockAdjustmentService
 
                 $item->update([
                     'stock_before' => $stockBefore,
-                    'stock_after'  => $stockAfter,
+                    'stock_after' => $stockAfter,
                 ]);
-                
+
                 $cost = 0;
                 if ($item->qty_change > 0) {
                     // In: Use manual unit_cost if provided, otherwise moving average (we can assume 0 or fetch from inventoryItem if it had moving avg)
@@ -108,22 +106,22 @@ class StockAdjustmentService
                 }
 
                 $adjustment->inventoryMovements()->create([
-                    'business_id'       => $adjustment->business_id,
-                    'outlet_id'         => $adjustment->outlet_id,
+                    'business_id' => $adjustment->business_id,
+                    'outlet_id' => $adjustment->outlet_id,
                     'inventory_item_id' => $item->inventory_item_id,
-                    'movement_type'     => $item->movement_type,
-                    'qty_change'        => $item->qty_change,
-                    'stock_before'      => $stockBefore,
-                    'stock_after'       => $stockAfter,
-                    'cost'              => $cost,
-                    'description'       => $item->description,
-                    'created_by'        => $user->id,
-                    'created_at'        => now(),
+                    'movement_type' => $item->movement_type,
+                    'qty_change' => $item->qty_change,
+                    'stock_before' => $stockBefore,
+                    'stock_after' => $stockAfter,
+                    'cost' => $cost,
+                    'description' => $item->description,
+                    'created_by' => $user->id,
+                    'created_at' => now(),
                 ]);
             }
 
             $adjustment->update([
-                'status'      => AdjustmentStatus::Approved,
+                'status' => AdjustmentStatus::Approved,
                 'approved_by' => $user->id,
                 'approved_at' => now(),
             ]);
@@ -145,8 +143,8 @@ class StockAdjustmentService
 
         return DB::transaction(function () use ($adjustment, $notes, $user) {
             $adjustment->update([
-                'status'      => AdjustmentStatus::Rejected,
-                'notes'       => $notes,
+                'status' => AdjustmentStatus::Rejected,
+                'notes' => $notes,
                 'approved_by' => $user->id,
                 'approved_at' => now(),
             ]);
@@ -181,17 +179,17 @@ class StockAdjustmentService
                     $balance->update(['current_stock' => $stockAfter]);
 
                     $adjustment->inventoryMovements()->create([
-                        'business_id'       => $adjustment->business_id,
-                        'outlet_id'         => $adjustment->outlet_id,
+                        'business_id' => $adjustment->business_id,
+                        'outlet_id' => $adjustment->outlet_id,
                         'inventory_item_id' => $item->inventory_item_id,
-                        'movement_type'     => $item->movement_type,
-                        'qty_change'        => $reversalQty,
-                        'stock_before'      => $stockBefore,
-                        'stock_after'       => $stockAfter,
-                        'cost'              => 0, // Void reversal inherits cost 0 or previous
-                        'description'       => 'Void: ' . $item->description,
-                        'created_by'        => $user->id,
-                        'created_at'        => now(),
+                        'movement_type' => $item->movement_type,
+                        'qty_change' => $reversalQty,
+                        'stock_before' => $stockBefore,
+                        'stock_after' => $stockAfter,
+                        'cost' => 0, // Void reversal inherits cost 0 or previous
+                        'description' => 'Void: '.$item->description,
+                        'created_by' => $user->id,
+                        'created_at' => now(),
                     ]);
                 }
             }
@@ -211,7 +209,7 @@ class StockAdjustmentService
      */
     protected function generateAdjustmentNumber(): string
     {
-        $prefix = 'ADJ-' . now()->format('Ymd') . '-';
+        $prefix = 'ADJ-'.now()->format('Ymd').'-';
         $latest = StockAdjustment::where('adjustment_number', 'like', "{$prefix}%")
             ->orderBy('adjustment_number', 'desc')
             ->first();
@@ -223,6 +221,6 @@ class StockAdjustmentService
             $nextSequence = '001';
         }
 
-        return $prefix . $nextSequence;
+        return $prefix.$nextSequence;
     }
 }

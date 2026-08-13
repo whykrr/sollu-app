@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class () extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('product_categories', function (Blueprint $table) {
@@ -107,7 +108,7 @@ return new class () extends Migration {
             $table->boolean('is_active')->default(true);
             $table->decimal('minimum_stock', 15, 4)->default(0);
             $table->timestamps();
-            
+
             $table->foreign('uom_id')->references('id')->on('uoms')->onDelete('set null');
         });
 
@@ -177,7 +178,7 @@ return new class () extends Migration {
             $table->text('description')->nullable();
             $table->uuid('created_by')->nullable();
             $table->timestamp('created_at')->useCurrent();
-            
+
             $table->foreign('outlet_id')->references('id')->on('outlets')->cascadeOnDelete();
         });
     }

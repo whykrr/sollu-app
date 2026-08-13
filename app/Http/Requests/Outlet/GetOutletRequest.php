@@ -23,10 +23,10 @@ class GetOutletRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sort'      => 'nullable|in:name,created_at,updated_at',
+            'sort' => 'nullable|in:name,created_at,updated_at',
             'direction' => 'nullable|in:asc,desc',
-            'perpage'   => 'nullable|integer|min:1|max:100',
-            'search'    => 'nullable|string|max:255',
+            'perpage' => 'nullable|integer|min:1|max:100',
+            'search' => 'nullable|string|max:255',
         ];
     }
 }

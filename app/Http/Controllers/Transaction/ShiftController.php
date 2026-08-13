@@ -14,10 +14,10 @@ class ShiftController extends Controller
         $this->authorize('transaction.view');
 
         $filters = $request->only(['search', 'status', 'start_date', 'end_date', 'sort', 'direction']);
-        
+
         $sortField = $filters['sort'] ?? 'created_at';
         $sortDirection = $filters['direction'] ?? 'desc';
-        
+
         $shifts = Shift::with(['user', 'outlet'])
             ->filters($filters)
             ->orderBy($sortField, $sortDirection)

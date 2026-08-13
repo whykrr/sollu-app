@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PaymentMethod extends Model
 {
-    use HasFactory, HasUuids, HasBusiness;
+    use HasBusiness, HasFactory, HasUuids;
 
     protected $fillable = [
         'business_id',

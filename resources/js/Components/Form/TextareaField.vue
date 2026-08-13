@@ -9,8 +9,9 @@
             :value="modelValue"
         ></textarea>
         <span v-if="error" class="form-feedback text-danger">{{ error }}</span>
-        <span v-else-if="success" class="form-feedback text-success">{{ success }}</span>
-        <span v-else-if="feedback" class="form-feedback">{{ feedback }}</span>
+        <span v-else-if="success" class="form-feedback text-success">{{
+            success
+        }}</span>
     </div>
 </template>
 <script setup>

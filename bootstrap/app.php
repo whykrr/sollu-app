@@ -16,10 +16,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        api: __DIR__ . '/../routes/api.php',
-        commands: __DIR__ . '/../routes/console.php',
-        channels: __DIR__ . '/../routes/channels.php',
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        channels: __DIR__.'/../routes/channels.php',
         health: '/health',
         then: function () {
             // This is where you can add any additional middleware to the web routes.
@@ -38,7 +38,6 @@ return Application::configure(basePath: dirname(__DIR__))
             // HandleInertiaRequests::class,
             HandleInertiaRequests::class,
         ]);
-
 
         $middleware->redirectUsersTo(fn ($request) => route('overview'));
 
@@ -81,7 +80,6 @@ return Application::configure(basePath: dirname(__DIR__))
             return redirect()->back()->with('failed', $message);
         });
 
-
         // Error Data Not Found
         $exceptions->renderable(function (ModelNotFoundException $e, Request $request) {
             $message = 'Data tidak ditemukan.';
@@ -118,6 +116,5 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return redirect()->back()->with('failed', $message);
         });
-
 
     })->create();

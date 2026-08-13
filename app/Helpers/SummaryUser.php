@@ -6,8 +6,6 @@ use App\Models\Outlet;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * @package App\Helpers
- *
  * @property Outlet $cached
  * @property Outlet $change
  *
@@ -16,18 +14,19 @@ use Illuminate\Support\Facades\Cache;
 class SummaryUser
 {
     private $user;
+
     private $cache_key;
 
     public function __construct()
     {
-        $this->user      = request()->user();
+        $this->user = request()->user();
         $this->cache_key = "auth:user:{$this->user?->id}:summary";
     }
 
     // static factory
     public static function make(): self
     {
-        return new self();
+        return new self;
     }
 
     public function cached()
@@ -40,13 +39,13 @@ class SummaryUser
             function () use ($user) {
                 return [
                     'role' => $user->roles->map(fn ($role) => [
-                        'name'  => $role->name,
+                        'name' => $role->name,
                         'label' => $role->label,
                     ])->toArray(),
-                    'permissions'  => $user->getAllPermissions()->pluck('name')->toArray(),
-                    'business'     => $user->business,
+                    'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                    'business' => $user->business,
                     'subscription' => $user->business->subscriptions()->with('plan')->latest()->first(),
-                    'outlets'      => $user->outlets()->where('is_active', '=', true)
+                    'outlets' => $user->outlets()->where('is_active', '=', true)
                         ->get()
                         ->map(fn ($outlet) => $outlet->only('id', 'name')),
                 ];
@@ -56,7 +55,7 @@ class SummaryUser
 
     public static function cacheDelete()
     {
-        $instance = new self();
+        $instance = new self;
         Cache::delete($instance->cache_key);
     }
 }

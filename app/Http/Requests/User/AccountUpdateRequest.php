@@ -23,7 +23,7 @@ class AccountUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'  => ['required', 'max:150'],
+            'name' => ['required', 'max:150'],
             'email' => ['required', 'email',
                 Rule::unique('users', 'email')->ignore(request()->input('id'))],
             'phone' => [

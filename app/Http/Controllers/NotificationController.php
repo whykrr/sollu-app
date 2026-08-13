@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
@@ -18,15 +17,15 @@ class NotificationController extends Controller
         if ($request->filled('filter') && $request->filter !== 'all') {
             if ($request->filter === 'system') {
                 $query->where('type', 'like', '%Csv%')
-                      ->orWhere('type', 'like', '%Welcome%');
+                    ->orWhere('type', 'like', '%Welcome%');
             } elseif ($request->filter === 'order') {
                 $query->where('type', 'like', '%Order%')
-                      ->orWhere('type', 'like', '%Transaction%');
+                    ->orWhere('type', 'like', '%Transaction%');
             }
         }
 
         $notifications = $query->paginate(15);
-        
+
         $unreadCount = $request->user()->unreadNotifications()->count();
 
         return response()->json([
@@ -42,7 +41,7 @@ class NotificationController extends Controller
     {
         $notification = $request->user()->notifications()->findOrFail($id);
         $notification->markAsRead();
-        
+
         return response()->json(['success' => true]);
     }
 
@@ -52,7 +51,7 @@ class NotificationController extends Controller
     public function markAllAsRead(Request $request)
     {
         $request->user()->unreadNotifications->markAsRead();
-        
+
         return response()->json(['success' => true]);
     }
 

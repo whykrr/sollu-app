@@ -1,200 +1,196 @@
 <template>
     <form @submit.prevent="submit" class="space-y-2">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <DropdownField
-                    id="supplier_id"
-                    v-model="form.supplier_id"
-                    label="Supplier"
-                    placeholder="Pilih Supplier"
-                    :options="supplierOptions"
-                    :class="{ 'is-invalid': form.errors.supplier_id }"
-                    :feedback="form.errors.supplier_id"
-                    required
-                />
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700"
-                        >Outlet Tujuan <span class="text-danger">*</span></label
-                    >
-                    <AsyncOutletDropdown
-                        v-model="form.outlet_id"
-                        placeholder="Pilih Outlet Tujuan"
-                        :class="{ 'is-invalid': form.errors.outlet_id }"
-                        required
-                    />
-                    <div v-if="form.errors.outlet_id" class="invalid-feedback">
-                        {{ form.errors.outlet_id }}
-                    </div>
-                </div>
-
-                <TextField
-                    id="order_date"
-                    v-model="form.order_date"
-                    type="date"
-                    label="Tanggal Pesan"
-                    :class="{ 'is-invalid': form.errors.order_date }"
-                    :feedback="form.errors.order_date"
-                    required
-                />
-
-                <TextField
-                    id="expected_date"
-                    v-model="form.expected_date"
-                    type="date"
-                    label="Tanggal Diharapkan"
-                    :class="{ 'is-invalid': form.errors.expected_date }"
-                    :feedback="form.errors.expected_date"
-                />
-            </div>
-
-            <TextareaField
-                id="notes"
-                v-model="form.notes"
-                label="Catatan"
-                :class="{ 'is-invalid': form.errors.notes }"
-                :feedback="form.errors.notes"
+            <DropdownField
+                id="supplier_id"
+                v-model="form.supplier_id"
+                label="Supplier"
+                placeholder="Pilih Supplier"
+                :options="supplierOptions"
+                :class="{ 'is-invalid': form.errors.supplier_id }"
+                :error="form.errors.supplier_id"
+                required
             />
 
-            <!-- Item Section -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700"
+                    >Outlet Tujuan <span class="text-danger">*</span></label
+                >
+                <AsyncOutletDropdown
+                    v-model="form.outlet_id"
+                    placeholder="Pilih Outlet Tujuan"
+                    :class="{ 'is-invalid': form.errors.outlet_id }"
+                    required
+                />
+                <div v-if="form.errors.outlet_id" class="invalid-feedback">
+                    {{ form.errors.outlet_id }}
+                </div>
+            </div>
+
+            <TextField
+                id="order_date"
+                v-model="form.order_date"
+                type="date"
+                label="Tanggal Pesan"
+                :class="{ 'is-invalid': form.errors.order_date }"
+                :error="form.errors.order_date"
+                required
+            />
+
+            <TextField
+                id="expected_date"
+                v-model="form.expected_date"
+                type="date"
+                label="Tanggal Diharapkan"
+                :class="{ 'is-invalid': form.errors.expected_date }"
+                :error="form.errors.expected_date"
+            />
+        </div>
+
+        <TextareaField
+            id="notes"
+            v-model="form.notes"
+            label="Catatan"
+            :class="{ 'is-invalid': form.errors.notes }"
+            :error="form.errors.notes"
+        />
+
+        <!-- Item Section -->
         <div class="mt-4 border-t pt-2">
             <h3 class="text-lg font-semibold mb-2">Pilih Barang</h3>
 
             <!-- Search Input -->
             <div class="mb-2">
-                    <input
-                        type="text"
-                        v-model="searchQuery"
-                        class="form-input text-sm w-full rounded-lg border-gray-300"
-                        placeholder="Cari nama barang atau bahan baku..."
-                        @input="onSearchInput"
-                    />
-                    <div v-if="isSearching" class="text-xs text-slate-500 py-1">
-                        Mencari...
-                    </div>
-
-                    <!-- Search Results -->
-                    <div
-                        v-if="searchQuery || searchResults.length > 0"
-                        class="border border-gray-200 rounded-lg p-2 max-h-48 overflow-y-auto space-y-1 mt-1 bg-white shadow-sm"
-                    >
-                        <div
-                            v-for="item in searchResults"
-                            :key="item.id"
-                            @click="selectItem(item)"
-                            class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer border-b last:border-0 border-gray-100"
-                        >
-                            <div>
-                                <div class="font-medium text-sm text-slate-800">
-                                    {{ item.name }}
-                                    <span class="text-xs text-slate-500"
-                                        >({{ item.uom?.name || '-' }})</span
-                                    >
-                                </div>
-                                <div
-                                    v-if="item.sku"
-                                    class="text-xs text-slate-400"
-                                >
-                                    SKU: {{ item.sku }}
-                                </div>
-                            </div>
-                            <div>
-                                <span
-                                    v-if="item.is_supplied"
-                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 gap-1"
-                                >
-                                    <FontAwesomeIcon :icon="faCheck" />
-                                    Terdaftar di Supplier Ini
-                                </span>
-                            </div>
-                        </div>
-                        <div
-                            v-if="searchResults.length === 0 && !isSearching"
-                            class="text-xs text-slate-500 text-center py-4"
-                        >
-                            Barang tidak ditemukan.
-                        </div>
-                    </div>
+                <input
+                    type="text"
+                    v-model="searchQuery"
+                    class="form-input text-sm w-full rounded-lg border-gray-300"
+                    placeholder="Cari nama barang atau bahan baku..."
+                    @input="onSearchInput"
+                />
+                <div v-if="isSearching" class="text-xs text-slate-500 py-1">
+                    Mencari...
                 </div>
 
-                <!-- Selected Items List -->
-                <h3 class="text-md font-semibold mb-2 mt-4">
-                    Daftar Barang yang Dipesan
-                </h3>
-
+                <!-- Search Results -->
                 <div
-                    v-if="form.items.length === 0"
-                    class="text-center py-6 text-gray-500 border rounded-lg bg-gray-50/50"
+                    v-if="searchQuery || searchResults.length > 0"
+                    class="border border-gray-200 rounded-lg p-2 max-h-48 overflow-y-auto space-y-1 mt-1 bg-white shadow-sm"
                 >
-                    Belum ada item ditambahkan.
-                </div>
-
-            <div
-                v-else class="space-y-2">
                     <div
-                        v-for="(item, index) in form.items"
-                        :key="index"
-                        class="flex flex-col md:flex-row gap-2 md:items-center border px-3 py-2 rounded-lg bg-white"
+                        v-for="item in searchResults"
+                        :key="item.id"
+                        @click="selectItem(item)"
+                        class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer border-b last:border-0 border-gray-100"
                     >
-                        <div class="flex-1 min-w-0">
-                            <div class="font-bold text-slate-800 truncate">
+                        <div>
+                            <div class="font-medium text-sm text-slate-800">
                                 {{ item.name }}
+                                <span class="text-xs text-slate-500"
+                                    >({{ item.uom?.name || '-' }})</span
+                                >
                             </div>
-                            <div class="mt-1 max-w-40">
-                                <DropdownField
-                                    :id="'uom_id_' + index"
-                                    v-model="item.uom_id"
-                                    :options="uomOptions"
-                                    placeholder="Pilih Satuan"
-                                    class="sm"
-                                    required
-                                />
+                            <div v-if="item.sku" class="text-xs text-slate-400">
+                                SKU: {{ item.sku }}
                             </div>
                         </div>
-                        <div class="w-full md:w-32">
-                            <TextField
-                                :id="'qty_ordered_' + index"
-                                v-model="item.qty_ordered"
-                                type="number"
-                                label="Quantity"
-                                class="sm"
-                                min="1"
-                                required
-                            />
-                        </div>
-                        <div class="w-full md:w-40">
-                            <TextField
-                                :id="'purchase_price_' + index"
-                                v-model="item.purchase_price"
-                                type="number"
-                                label="Harga Satuan"
-                                min="0"
-                                class="sm"
-                                required
-                            />
-                        </div>
-                        <div class="pt-6 md:pt-0 shrink-0">
-                            <button
-                                type="button"
-                                class="btn btn-outline-danger btn-sm"
-                                @click="removeItem(index)"
+                        <div>
+                            <span
+                                v-if="item.is_supplied"
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 gap-1"
                             >
-                                <FontAwesomeIcon :icon="faTrash" />
-                            </button>
+                                <FontAwesomeIcon :icon="faCheck" />
+                                Terdaftar di Supplier Ini
+                            </span>
                         </div>
                     </div>
-
                     <div
-                        class="flex justify-between items-center border-t mt-4 pt-4"
+                        v-if="searchResults.length === 0 && !isSearching"
+                        class="text-xs text-slate-500 text-center py-4"
                     >
-                        <div class="font-bold text-lg text-slate-800">
-                            Total Pembelian:
-                        </div>
-                        <div class="font-bold text-xl text-main">
-                            {{ formatCurrency(totalAmount) }}
-                        </div>
+                        Barang tidak ditemukan.
                     </div>
                 </div>
             </div>
+
+            <!-- Selected Items List -->
+            <h3 class="text-md font-semibold mb-2 mt-4">
+                Daftar Barang yang Dipesan
+            </h3>
+
+            <div
+                v-if="form.items.length === 0"
+                class="text-center py-6 text-gray-500 border rounded-lg bg-gray-50/50"
+            >
+                Belum ada item ditambahkan.
+            </div>
+
+            <div v-else class="space-y-2">
+                <div
+                    v-for="(item, index) in form.items"
+                    :key="index"
+                    class="flex flex-col md:flex-row gap-2 md:items-center border px-3 py-2 rounded-lg bg-white"
+                >
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-slate-800 truncate">
+                            {{ item.name }}
+                        </div>
+                        <div class="mt-1 max-w-40">
+                            <DropdownField
+                                :id="'uom_id_' + index"
+                                v-model="item.uom_id"
+                                :options="uomOptions"
+                                placeholder="Pilih Satuan"
+                                class="sm"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div class="w-full md:w-32">
+                        <TextField
+                            :id="'qty_ordered_' + index"
+                            v-model="item.qty_ordered"
+                            type="number"
+                            label="Quantity"
+                            class="sm"
+                            min="1"
+                            required
+                        />
+                    </div>
+                    <div class="w-full md:w-40">
+                        <TextField
+                            :id="'purchase_price_' + index"
+                            v-model="item.purchase_price"
+                            type="number"
+                            label="Harga Satuan"
+                            min="0"
+                            class="sm"
+                            required
+                        />
+                    </div>
+                    <div class="pt-6 md:pt-0 shrink-0">
+                        <button
+                            type="button"
+                            class="btn btn-outline-danger btn-sm"
+                            @click="removeItem(index)"
+                        >
+                            <FontAwesomeIcon :icon="faTrash" />
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    class="flex justify-between items-center border-t mt-4 pt-4"
+                >
+                    <div class="font-bold text-lg text-slate-800">
+                        Total Pembelian:
+                    </div>
+                    <div class="font-bold text-xl text-main">
+                        {{ formatCurrency(totalAmount) }}
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
 
     <Teleport v-if="isMounted" to="#popUpFooter">

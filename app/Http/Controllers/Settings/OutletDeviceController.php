@@ -41,16 +41,16 @@ class OutletDeviceController extends Controller
     public function generateOtp(Request $request, Outlet $outlet, OutletDevice $device)
     {
         $otp = str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
-        
+
         \Illuminate\Support\Facades\Cache::put("device_otp_{$otp}", $device->id, now()->addMinutes(5));
 
         return redirect()->back()->with([
-            'success' => "Kode OTP berhasil dibuat",
+            'success' => 'Kode OTP berhasil dibuat',
             'otp_data' => [
                 'otp' => $otp,
                 'device_id' => $device->id,
                 'expires_at' => now()->addMinutes(5)->toIso8601String(),
-            ]
+            ],
         ]);
     }
 

@@ -40,12 +40,12 @@ class BusinessInfoController extends Controller
         /**
          * @var Business
          */
-        $business             = Business::find($business_id);
-        $business->name       = $req->validated('name');
-        $business->email      = $req->validated('email');
-        $business->phone      = $req->validated('phone');
+        $business = Business::find($business_id);
+        $business->name = $req->validated('name');
+        $business->email = $req->validated('email');
+        $business->phone = $req->validated('phone');
         $business->owner_name = $req->validated('owner_name');
-        $business->address    = $req->validated('address');
+        $business->address = $req->validated('address');
         $business->save();
 
         SummaryUser::cacheDelete();
@@ -60,7 +60,7 @@ class BusinessInfoController extends Controller
         }
 
         $business_id = Auth::user()->business_id;
-        $business    = Business::find($business_id);
+        $business = Business::find($business_id);
 
         if (! $request->hasFile('logo')) {
             $business->logo = null;
@@ -73,7 +73,6 @@ class BusinessInfoController extends Controller
         }
 
         $path = $request->file('logo')->store('business/image');
-
 
         if ($business->logo && Storage::exists($business->logo)) {
             Storage::delete($business->logo);

@@ -14,7 +14,6 @@ class UserTest extends TestCase
     /**
      * A basic feature test example.
      */
-
     public function test_create_user_merchant(): void
     {
         $this->seed(V1_0_Seeder::class);
@@ -22,11 +21,11 @@ class UserTest extends TestCase
         /**
          * @var User $user
          */
-        $user     = User::firstOrFail();
+        $user = User::firstOrFail();
         $response = $this->actingAs($user)->post('/users', [
-            'name'       => 'Laura',
-            'email'      => 'laura@gmail.com',
-            'role'       => 'cashier',
+            'name' => 'Laura',
+            'email' => 'laura@gmail.com',
+            'role' => 'cashier',
             'outlet_ids' => [$user->merchant->outlets->first()->id],
         ]);
 
@@ -35,6 +34,7 @@ class UserTest extends TestCase
             'email' => 'laura@gmail.com',
         ]);
     }
+
     public function test_update_user_merchant(): void
     {
         $this->seed(V1_0_Seeder::class);
@@ -42,13 +42,13 @@ class UserTest extends TestCase
         /**
          * @var User $user
          */
-        $user       = User::whereEmail('sollu.resto@email.com')->firstOrFail();
+        $user = User::whereEmail('sollu.resto@email.com')->firstOrFail();
         $userUpdate = User::whereEmail('manager.sollu.resto@email.com')->firstOrFail();
 
         $response = $this->actingAs($user)->put("/users/{$userUpdate->id}", [
-            'name'       => 'Cashier Store',
-            'email'      => 'cashier@gmail.com',
-            'role'       => 'cashier',
+            'name' => 'Cashier Store',
+            'email' => 'cashier@gmail.com',
+            'role' => 'cashier',
             'outlet_ids' => [$user->merchant->outlets->first()->id],
         ]);
 
@@ -65,7 +65,7 @@ class UserTest extends TestCase
         /**
          * @var User $user
          */
-        $user       = User::whereEmail('sollu.resto@email.com')->firstOrFail();
+        $user = User::whereEmail('sollu.resto@email.com')->firstOrFail();
         $userDelete = User::whereEmail('manager.sollu.resto@email.com')->firstOrFail();
 
         $response = $this->actingAs($user)->delete("/users/{$userDelete->id}");
@@ -83,7 +83,7 @@ class UserTest extends TestCase
         /**
          * @var User $user
          */
-        $user        = User::whereEmail('sollu.resto@email.com')->firstOrFail();
+        $user = User::whereEmail('sollu.resto@email.com')->firstOrFail();
         $userRestore = User::whereEmail('manager.sollu.resto@email.com')->firstOrFail();
 
         $userRestore->delete();
@@ -103,7 +103,7 @@ class UserTest extends TestCase
         /**
          * @var User $user
          */
-        $user        = User::whereEmail('sollu.resto@email.com')->firstOrFail();
+        $user = User::whereEmail('sollu.resto@email.com')->firstOrFail();
         $userRestore = User::whereEmail('manager.sollu.resto@email.com')->firstOrFail();
 
         $response = $this->actingAs($user)->delete("/users/{$userRestore->id}/purge");

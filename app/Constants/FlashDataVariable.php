@@ -6,5 +6,5 @@ enum FlashDataVariable: string
 {
     case SUCCESS = 'success';
     case WARNING = 'warning';
-    case FAILED  = 'failed';
+    case FAILED = 'failed';
 }

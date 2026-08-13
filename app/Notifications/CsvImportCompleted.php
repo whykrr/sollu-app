@@ -11,9 +11,13 @@ class CsvImportCompleted extends Notification implements ShouldQueue
     use Queueable;
 
     public $moduleName;
+
     public $successCount;
+
     public $failedCount;
+
     public $failedDownloadUrl;
+
     public $expiresAt;
 
     /**
@@ -45,9 +49,9 @@ class CsvImportCompleted extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        $title = 'Impor ' . $this->moduleName . ' Selesai';
+        $title = 'Impor '.$this->moduleName.' Selesai';
         $message = "Berhasil: {$this->successCount} baris.";
-        
+
         if ($this->failedCount > 0) {
             $message .= " Gagal: {$this->failedCount} baris.";
         }

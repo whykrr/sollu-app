@@ -23,7 +23,7 @@ class EmployeeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(GetEmployeeRequest $req, User $user = null)
+    public function index(GetEmployeeRequest $req, ?User $user = null)
     {
         $users = User::currentBusiness()
             ->selectedOutlet($req->get('outlet'))
@@ -38,9 +38,9 @@ class EmployeeController extends Controller
         }
 
         return inertia('Employee/Index', [
-            'users'  => $users,
+            'users' => $users,
             'params' => $req->validated(),
-            'roles'  => ModelsRole::get()->map(function ($row) {
+            'roles' => ModelsRole::get()->map(function ($row) {
                 return [
                     'value' => $row->name,
                     'label' => RoleEnum::tryFrom($row->name)?->label() ?? $row->name,
@@ -49,7 +49,6 @@ class EmployeeController extends Controller
             'user' => $user,
         ]);
     }
-
 
     protected function checkEmailPhone($req, ?User $user = null)
     {
@@ -98,11 +97,11 @@ class EmployeeController extends Controller
              * @var \App\Models\User $user
              */
             $user = Auth::user()->business->users()->create([
-                'name'              => $req['name'],
-                'email'             => $req['email'],
-                'phone'             => $req['phone'],
-                'password'          => $password_default,
-                'is_root_user'      => false,
+                'name' => $req['name'],
+                'email' => $req['email'],
+                'phone' => $req['phone'],
+                'password' => $password_default,
+                'is_root_user' => false,
                 'email_verified_at' => Carbon::now(),
             ]);
 
@@ -123,7 +122,7 @@ class EmployeeController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param Request $request
+     * @param  Request  $request
      */
     public function update(UpdateUserRequest $request, User $user)
     {

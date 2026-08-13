@@ -36,13 +36,13 @@ class Transaction extends Model
     protected function casts(): array
     {
         return [
-            'subtotal'              => 'decimal:4',
-            'discount_amount'       => 'decimal:4',
-            'tax_amount'            => 'decimal:4',
-            'service_charge_amount' => 'decimal:4',
-            'total'                 => 'decimal:4',
-            'is_offline'            => 'boolean',
-            'due_date'              => 'date',
+            'subtotal' => 'float',
+            'discount_amount' => 'float',
+            'tax_amount' => 'float',
+            'service_charge_amount' => 'float',
+            'total' => 'float',
+            'is_offline' => 'boolean',
+            'due_date' => 'date',
         ];
     }
 
@@ -75,9 +75,9 @@ class Transaction extends Model
     {
         $query->when($filters['search'] ?? null, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->where('receipt_number', 'like', '%' . $search . '%')
+                $query->where('receipt_number', 'like', '%'.$search.'%')
                     ->orWhereHas('customer', function ($query) use ($search) {
-                        $query->where('name', 'like', '%' . $search . '%');
+                        $query->where('name', 'like', '%'.$search.'%');
                     });
             });
         })->when($filters['channel'] ?? null, function ($query, $channel) {

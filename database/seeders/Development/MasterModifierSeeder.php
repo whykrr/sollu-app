@@ -11,7 +11,9 @@ class MasterModifierSeeder extends Seeder
     public function run(): void
     {
         $business = Business::where('email', 'sollu.mart@email.com')->first();
-        if (!$business) return;
+        if (! $business) {
+            return;
+        }
 
         $modifiers = [
             [
@@ -23,7 +25,7 @@ class MasterModifierSeeder extends Seeder
                     ['name' => 'Normal Ice', 'additional_price' => 0, 'is_default' => true],
                     ['name' => 'Less Ice', 'additional_price' => 0, 'is_default' => false],
                     ['name' => 'No Ice', 'additional_price' => 0, 'is_default' => false],
-                ]
+                ],
             ],
             [
                 'name' => 'Tingkat Kemanisan (Point Coffee)',
@@ -34,7 +36,7 @@ class MasterModifierSeeder extends Seeder
                     ['name' => 'Normal Sugar', 'additional_price' => 0, 'is_default' => true],
                     ['name' => 'Less Sugar', 'additional_price' => 0, 'is_default' => false],
                     ['name' => 'No Sugar', 'additional_price' => 0, 'is_default' => false],
-                ]
+                ],
             ],
             [
                 'name' => 'Topping Makanan (RTE)',
@@ -45,7 +47,7 @@ class MasterModifierSeeder extends Seeder
                     ['name' => 'Extra Keju', 'additional_price' => 3000, 'is_default' => false],
                     ['name' => 'Extra Sosis', 'additional_price' => 4000, 'is_default' => false],
                     ['name' => 'Extra Telur', 'additional_price' => 3000, 'is_default' => false],
-                ]
+                ],
             ],
             [
                 'name' => 'Kantong Belanja',
@@ -56,7 +58,7 @@ class MasterModifierSeeder extends Seeder
                     ['name' => 'Kantong Plastik Kecil', 'additional_price' => 200, 'is_default' => false],
                     ['name' => 'Kantong Plastik Besar', 'additional_price' => 500, 'is_default' => false],
                     ['name' => 'Tas Kain Reusable', 'additional_price' => 5000, 'is_default' => false],
-                ]
+                ],
             ],
         ];
 

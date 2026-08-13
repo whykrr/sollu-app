@@ -8,7 +8,14 @@
       :size="modalStore.activeModal.size"
       @close="handleCancel"
     >
-      <div class="flex items-start gap-3 py-1">
+      <component
+        :is="modalStore.activeModal.component"
+        v-if="modalStore.activeModal.component"
+        v-bind="modalStore.activeModal.props"
+        @close="handleCancel"
+        @success="handleConfirm"
+      />
+      <div v-else class="flex items-start gap-3 py-1">
         <!-- Icon Badge for Alert/Confirm -->
         <div
           v-if="modalStore.activeModal.type !== 'default'"
@@ -25,7 +32,7 @@
         </div>
       </div>
 
-      <template #footer>
+      <template v-if="modalStore.activeModal.showFooter && !modalStore.activeModal.component" #footer>
         <button
           v-if="modalStore.activeModal.showCancel"
           type="button"

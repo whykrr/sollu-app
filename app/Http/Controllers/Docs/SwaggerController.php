@@ -8,7 +8,7 @@ class SwaggerController extends Controller
 {
     public function index()
     {
-        if (!app()->environment('local', 'development', 'testing')) {
+        if (! app()->environment('local', 'development', 'testing')) {
             abort(404);
         }
 
@@ -52,22 +52,22 @@ window.onload = function() {
 </body>
 </html>
 HTML
-        , 200, ['Content-Type' => 'text/html']);
+            , 200, ['Content-Type' => 'text/html']);
     }
 
     public function yaml()
     {
-        if (!app()->environment('local', 'development', 'testing')) {
+        if (! app()->environment('local', 'development', 'testing')) {
             abort(404);
         }
 
         $path = base_path('docs/openapi.yaml');
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             abort(404, 'File OpenAPI specification tidak ditemukan.');
         }
 
         return response()->file($path, [
-            'Content-Type' => 'text/yaml'
+            'Content-Type' => 'text/yaml',
         ]);
     }
 }

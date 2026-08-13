@@ -1,9 +1,10 @@
 <?php
+
 namespace App\Services\Outlet;
 
 use App\Models\Outlet;
-use App\Models\OutletDevice;
 use App\Models\OutletAuditLog;
+use App\Models\OutletDevice;
 use Illuminate\Support\Facades\DB;
 
 class ManageOutletDeviceService

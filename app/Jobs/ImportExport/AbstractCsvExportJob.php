@@ -2,14 +2,14 @@
 
 namespace App\Jobs\ImportExport;
 
+use App\Models\User;
+use App\Notifications\CsvExportCompleted;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
-use App\Models\User;
-use App\Notifications\CsvExportCompleted;
 
 abstract class AbstractCsvExportJob implements ShouldQueue
 {
@@ -50,13 +50,13 @@ abstract class AbstractCsvExportJob implements ShouldQueue
     public function handle(): void
     {
         $fileName = $this->getFileName();
-        $filePath = 'exports/' . $fileName;
+        $filePath = 'exports/'.$fileName;
 
         // Open temp file stream
         $file = fopen('php://temp', 'w+');
 
         // Write BOM for Excel compatibility (UTF-8)
-        fputs($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        fwrite($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
         // Write headers
         fputcsv($file, $this->getHeaders());

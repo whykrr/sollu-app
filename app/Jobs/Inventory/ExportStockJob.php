@@ -9,6 +9,7 @@ use App\Models\User;
 class ExportStockJob extends AbstractCsvExportJob
 {
     protected $businessId;
+
     protected $filters;
 
     public function __construct(User $user, $businessId, array $filters = [])
@@ -41,11 +42,11 @@ class ExportStockJob extends AbstractCsvExportJob
                 'product_categories.name as category_name',
             ]);
 
-        if (!empty($this->filters['outlet_id'])) {
+        if (! empty($this->filters['outlet_id'])) {
             $stockQuery->where('inventory_balances.outlet_id', $this->filters['outlet_id']);
         }
 
-        if (!empty($this->filters['search'])) {
+        if (! empty($this->filters['search'])) {
             $search = $this->filters['search'];
             $stockQuery->where(function ($q) use ($search) {
                 $q->where('inventory_items.name', 'ilike', "%{$search}%")
@@ -54,15 +55,15 @@ class ExportStockJob extends AbstractCsvExportJob
             });
         }
 
-        if (!empty($this->filters['item_type'])) {
+        if (! empty($this->filters['item_type'])) {
             $stockQuery->where('inventory_items.item_type', $this->filters['item_type']);
         }
 
-        if (!empty($this->filters['category_id'])) {
+        if (! empty($this->filters['category_id'])) {
             $stockQuery->where('products.product_category_id', $this->filters['category_id']);
         }
 
-        if (!empty($this->filters['stock_status'])) {
+        if (! empty($this->filters['stock_status'])) {
             $status = $this->filters['stock_status'];
             if ($status === 'aman') {
                 $stockQuery->whereRaw('inventory_balances.current_stock > inventory_items.minimum_stock');
@@ -74,11 +75,11 @@ class ExportStockJob extends AbstractCsvExportJob
             }
         }
 
-        if (!empty($this->filters['is_active_only'])) {
+        if (! empty($this->filters['is_active_only'])) {
             $stockQuery->where('inventory_items.is_active', true);
         }
 
-        if (!empty($this->filters['in_stock_only'])) {
+        if (! empty($this->filters['in_stock_only'])) {
             $stockQuery->where('inventory_balances.current_stock', '>', 0);
         }
 
@@ -99,7 +100,9 @@ class ExportStockJob extends AbstractCsvExportJob
             'Kategori',
             'Satuan',
             'Minimum Stok',
-            'Stok',
+            'Stok Awal',
+            'Harga Beli',
+            'Stok Saat Ini',
             'Status',
         ];
     }
@@ -122,6 +125,8 @@ class ExportStockJob extends AbstractCsvExportJob
             $row->category_name ?? '-',
             $row->uom_name ?? ($row->uom_code ?? '-'),
             (float) $row->minimum_stock,
+            '', // Stok Awal selalu kosong pada ekspor
+            '', // Harga Beli selalu kosong pada ekspor
             (float) $row->current_stock,
             $status,
         ];
@@ -134,6 +139,6 @@ class ExportStockJob extends AbstractCsvExportJob
 
     protected function getFileName(): string
     {
-        return 'stok_export_' . time() . '.csv';
+        return 'stok_export_'.time().'.csv';
     }
 }

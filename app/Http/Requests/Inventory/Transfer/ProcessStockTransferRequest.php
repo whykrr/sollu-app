@@ -15,8 +15,8 @@ class ProcessStockTransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'items'                => ['required', 'array', 'min:1'],
-            'items.*.id'           => ['required', 'uuid', 'exists:stock_transfer_items,id'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'uuid', 'exists:stock_transfer_items,id'],
             'items.*.qty_received' => ['required', 'numeric', 'min:0'],
         ];
     }
@@ -26,17 +26,17 @@ class ProcessStockTransferRequest extends FormRequest
         $validator->after(function ($validator) {
             $transfer = $this->route('transfer');
             $itemsData = $this->input('items', []);
-            
-            if (!$transfer || empty($itemsData)) {
+
+            if (! $transfer || empty($itemsData)) {
                 return;
             }
 
             $transferItems = $transfer->items()->pluck('qty', 'id');
-            
+
             foreach ($itemsData as $index => $item) {
                 $transferItemId = $item['id'] ?? null;
                 $qtyReceived = $item['qty_received'] ?? 0;
-                
+
                 if ($transferItemId && isset($transferItems[$transferItemId])) {
                     $maxQty = $transferItems[$transferItemId];
                     if ($qtyReceived > $maxQty) {

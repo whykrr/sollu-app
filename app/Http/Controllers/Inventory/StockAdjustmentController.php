@@ -10,9 +10,7 @@ use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\StockAdjustment;
 use App\Models\Outlet;
 use App\Services\Inventory\StockAdjustmentService;
-use App\Services\Inventory\StockFreezeService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
@@ -25,7 +23,7 @@ class StockAdjustmentController extends Controller
     {
         $businessId = Auth::user()->business_id;
 
-        $sort      = $request->input('sort', 'created_at');
+        $sort = $request->input('sort', 'created_at');
         $direction = $request->input('direction', 'desc');
 
         $adjustments = StockAdjustment::query()
@@ -50,10 +48,10 @@ class StockAdjustmentController extends Controller
 
         return inertia('Inventory/Adjustment/Index', [
             'adjustments' => $adjustments,
-            'items'       => $items,
-            'filters'     => [
+            'items' => $items,
+            'filters' => [
                 ...$request->only(['search', 'status', 'reason', 'outlet_id', 'date_from', 'date_to']),
-                'sort'      => $sort,
+                'sort' => $sort,
                 'direction' => $direction,
             ],
         ]);
@@ -133,8 +131,6 @@ class StockAdjustmentController extends Controller
         }
     }
 
-
-
     /**
      * Export to PDF (Berita Acara).
      */
@@ -157,12 +153,12 @@ class StockAdjustmentController extends Controller
 
         $pdf = Pdf::loadView('pdf.stock-adjustment', [
             'adjustment' => $adjustment,
-            'business'   => $business,
-            'outlet'     => $adjustment->outlet,
-            'title'      => 'PENYESUAIAN STOK',
-            'subtitle'   => 'Nomor: ' . $adjustment->adjustment_number,
+            'business' => $business,
+            'outlet' => $adjustment->outlet,
+            'title' => 'PENYESUAIAN STOK',
+            'subtitle' => 'Nomor: '.$adjustment->adjustment_number,
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->download('Penyesuaian_Stok_' . $adjustment->adjustment_number . '.pdf');
+        return $pdf->download('Penyesuaian_Stok_'.$adjustment->adjustment_number.'.pdf');
     }
 }

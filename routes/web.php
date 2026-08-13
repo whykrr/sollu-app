@@ -75,8 +75,6 @@ Route::middleware('auth:business')->group(function () {
             return inertia('Dashboard');
         })->name('dashboard');
 
-
-
         Route::post('/all', function () {
             SelectedOutlet::make()->all();
 
@@ -96,7 +94,6 @@ Route::middleware('auth:business')->group(function () {
         Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
         Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 
-
         // For reusable components that need to search for products or inventory items
         Route::get('/products/search', [\App\Http\Controllers\API\ProductController::class, 'search'])->name('products.search');
         Route::get('/inventory-items/search', [\App\Http\Controllers\API\InventoryItemController::class, 'search'])->name('inventory-items.search');
@@ -108,11 +105,13 @@ Route::middleware('auth:business')->group(function () {
 
     Route::get('/', OverviewController::class)->name('overview');
 
-    require __DIR__ . '/web/masters.php';
-    require __DIR__ . '/web/inventories.php';
-    require __DIR__ .'/web/employees.php';
-    require __DIR__ .'/web/settings.php';
-    require __DIR__ .'/web/transactions.php';
+    require __DIR__.'/web/masters.php';
+    require __DIR__.'/web/inventories.php';
+    require __DIR__.'/web/employees.php';
+    require __DIR__.'/web/settings.php';
+    require __DIR__.'/web/transactions.php';
+
+    require __DIR__.'/web/promotions.php';
 
     Route::delete('/logout', [LoginController::class, 'destroy'])->name('logout');
 });

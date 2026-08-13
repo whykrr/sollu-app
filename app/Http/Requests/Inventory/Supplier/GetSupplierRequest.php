@@ -22,11 +22,11 @@ class GetSupplierRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search'    => ['nullable', 'string', 'max:255'],
+            'search' => ['nullable', 'string', 'max:255'],
             'is_active' => ['nullable'],
-            'sort'      => ['nullable', 'string'],
+            'sort' => ['nullable', 'string'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'page'      => ['nullable', 'integer', 'min:1'],
+            'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
 }

@@ -41,7 +41,7 @@
                                 :class="{
                                     'is-invalid': formProfile.errors.name,
                                 }"
-                                :feedback="formProfile.errors.name"
+                                :error="formProfile.errors.name"
                             />
                         </div>
 
@@ -54,7 +54,7 @@
                                 :class="{
                                     'is-invalid': formProfile.errors.email,
                                 }"
-                                :feedback="formProfile.errors.email"
+                                :error="formProfile.errors.email"
                                 disabled
                             />
                             <p
@@ -80,7 +80,7 @@
                                 :class="{
                                     'is-invalid': formProfile.errors.phone,
                                 }"
-                                :feedback="formProfile.errors.phone"
+                                :error="formProfile.errors.phone"
                             />
                         </div>
                     </div>
@@ -147,7 +147,7 @@
                                         formChangePassword.errors
                                             .current_password,
                                 }"
-                                :feedback="
+                                :error="
                                     formChangePassword.errors.current_password
                                 "
                             />
@@ -163,9 +163,7 @@
                                     'is-invalid':
                                         formChangePassword.errors.new_password,
                                 }"
-                                :feedback="
-                                    formChangePassword.errors.new_password
-                                "
+                                :error="formChangePassword.errors.new_password"
                             />
                         </div>
 
@@ -182,7 +180,7 @@
                                         formChangePassword.errors
                                             .new_password_confirmation,
                                 }"
-                                :feedback="
+                                :error="
                                     formChangePassword.errors
                                         .new_password_confirmation
                                 "

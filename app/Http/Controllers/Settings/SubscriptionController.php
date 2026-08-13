@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 class SubscriptionController extends Controller
 {
     protected $subscriptionService;
+
     protected $billingEngine;
 
     public function __construct(SubscriptionService $subscriptionService, BillingEngine $billingEngine)
@@ -35,7 +36,7 @@ class SubscriptionController extends Controller
         // Generate the initial invoice for active outlets
         if ($business->outlets()->where('is_active', true)->count() > 0) {
             $invoice = $this->billingEngine->generateRecurringInvoice($business, $subscription);
-            
+
             if ($invoice->total_amount == 0) {
                 $invoice->update([
                     'status' => 'paid',
@@ -44,18 +45,19 @@ class SubscriptionController extends Controller
                 $subscription->update([
                     'status' => 'active',
                 ]);
+
                 return redirect()->route('settings.billing.index')->with('success', 'Berhasil berlangganan paket.');
             }
 
             if ($request->payment_method === 'manual') {
                 $invoice->payments()->create([
-                    'amount'            => $invoice->total_amount,
-                    'payment_method'    => 'manual',
-                    'status'            => 'pending',
-                    'payment_reference' => "{$invoice->invoice_number}-MANUAL-" . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
+                    'amount' => $invoice->total_amount,
+                    'payment_method' => 'manual',
+                    'status' => 'pending',
+                    'payment_reference' => "{$invoice->invoice_number}-MANUAL-".\Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
                 ]);
             }
-            
+
             return redirect()->route('settings.billing.invoices.show', $invoice->invoice_number)
                 ->with('success', 'Berhasil berlangganan. Silakan selesaikan pembayaran tagihan awal.');
         }
@@ -91,15 +93,16 @@ class SubscriptionController extends Controller
             $subscription->update([
                 'status' => 'active',
             ]);
+
             return redirect()->route('settings.billing.index')->with('success', 'Paket berhasil diubah.');
         }
 
         if ($request->payment_method === 'manual') {
             $invoice->payments()->create([
-                'amount'            => $invoice->total_amount,
-                'payment_method'    => 'manual',
-                'status'            => 'pending',
-                'payment_reference' => "{$invoice->invoice_number}-MANUAL-" . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
+                'amount' => $invoice->total_amount,
+                'payment_method' => 'manual',
+                'status' => 'pending',
+                'payment_reference' => "{$invoice->invoice_number}-MANUAL-".\Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
             ]);
         }
 

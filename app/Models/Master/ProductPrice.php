@@ -17,7 +17,7 @@ class ProductPrice extends Model
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
+        'amount' => 'float',
     ];
 
     public function product()
@@ -27,7 +27,7 @@ class ProductPrice extends Model
 
     public function outlet()
     {
-        return $this->belongsTo(\App\Models\Master\Outlet::class);
+        return $this->belongsTo(\App\Models\Outlet::class);
     }
 
     public function inventoryItem()

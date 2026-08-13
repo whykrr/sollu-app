@@ -19,15 +19,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $stock_before
  * @property string|null $stock_after
  * @property string $description
- * 
  * @property-read \App\Models\Inventory\StockAdjustment $adjustment
  * @property-read \App\Models\Inventory\InventoryItem $inventoryItem
  */
 class StockAdjustmentItem extends Model
 {
     use HasFactory;
-    use HasUuids;
     use HasQuantityFormatter;
+    use HasUuids;
 
     public $timestamps = false;
 
@@ -51,10 +50,10 @@ class StockAdjustmentItem extends Model
     protected function casts(): array
     {
         return [
-            'qty_change'   => 'decimal:4',
-            'unit_cost'    => 'decimal:4',
-            'stock_before' => 'decimal:4',
-            'stock_after'  => 'decimal:4',
+            'qty_change' => 'float',
+            'unit_cost' => 'float',
+            'stock_before' => 'float',
+            'stock_after' => 'float',
         ];
     }
 
@@ -74,12 +73,14 @@ class StockAdjustmentItem extends Model
             get: fn () => $this->formatQuantity($this->qty_change),
         );
     }
+
     protected function stockBeforeFormatted(): Attribute
     {
         return Attribute::make(
             get: fn () => $this->stock_before !== null ? $this->formatQuantity($this->stock_before) : null,
         );
     }
+
     protected function stockAfterFormatted(): Attribute
     {
         return Attribute::make(

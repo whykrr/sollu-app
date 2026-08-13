@@ -31,7 +31,7 @@ class CategoryService
     {
         $data['business_id'] = \Illuminate\Support\Facades\Auth::user()->business_id;
 
-        if (!isset($data['sort_order'])) {
+        if (! isset($data['sort_order'])) {
             $maxSortOrder = ProductCategory::currentBusiness()
                 ->where('parent_id', $data['parent_id'] ?? null)
                 ->max('sort_order');
@@ -40,6 +40,7 @@ class CategoryService
 
         $category = ProductCategory::create($data);
         $this->auditLogService->log($category->business_id, 'category', $category->id, 'created', null, $category->toArray());
+
         return $category;
     }
 
@@ -48,6 +49,7 @@ class CategoryService
         $before = $category->toArray();
         $category->update($data);
         $this->auditLogService->log($category->business_id, 'category', $category->id, 'updated', $before, $category->fresh()->toArray());
+
         return $category;
     }
 
@@ -57,7 +59,7 @@ class CategoryService
         // Also check products in child categories if this is a parent category.
         $hasActiveProducts = $category->products()->exists();
 
-        if (!$hasActiveProducts && $category->children()->exists()) {
+        if (! $hasActiveProducts && $category->children()->exists()) {
             $childIds = $category->children()->pluck('id');
             $hasActiveProducts = \Illuminate\Support\Facades\DB::table('products')
                 ->whereIn('product_category_id', $childIds)
@@ -92,7 +94,7 @@ class CategoryService
         return \Illuminate\Support\Facades\DB::transaction(function () use ($categoriesData) {
             foreach ($categoriesData as $catData) {
                 // Ensure max 1 level depth check for safety
-                if (!empty($catData['parent_id'])) {
+                if (! empty($catData['parent_id'])) {
                     $parent = ProductCategory::find($catData['parent_id']);
                     if ($parent && $parent->parent_id !== null) {
                         continue;
@@ -103,7 +105,7 @@ class CategoryService
                     ->where('business_id', \Illuminate\Support\Facades\Auth::user()->business_id)
                     ->update([
                         'parent_id' => $catData['parent_id'] ?? null,
-                        'sort_order' => $catData['sort_order']
+                        'sort_order' => $catData['sort_order'],
                     ]);
             }
         });

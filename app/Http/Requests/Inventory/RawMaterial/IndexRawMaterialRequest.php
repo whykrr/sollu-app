@@ -22,10 +22,10 @@ class IndexRawMaterialRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search'          => 'nullable|string',
+            'search' => 'nullable|string',
             'track_inventory' => 'nullable|boolean',
-            'sort'            => 'nullable|string|in:name,sku,barcode',
-            'direction'       => 'nullable|string|in:asc,desc',
+            'sort' => 'nullable|string|in:name,sku,barcode',
+            'direction' => 'nullable|string|in:asc,desc',
         ];
     }
 }

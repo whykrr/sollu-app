@@ -4,15 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportDownloadController extends Controller
 {
     public function download(Request $request)
     {
         $fileName = $request->query('file');
-        
-        if (!$fileName) {
+
+        if (! $fileName) {
             abort(404, 'File not specified.');
         }
 
@@ -21,9 +20,9 @@ class ExportDownloadController extends Controller
             abort(403, 'Invalid file name.');
         }
 
-        $filePath = 'exports/' . $fileName;
+        $filePath = 'exports/'.$fileName;
 
-        if (!Storage::disk('local')->exists($filePath)) {
+        if (! Storage::disk('local')->exists($filePath)) {
             abort(404, 'File not found or has expired.');
         }
 

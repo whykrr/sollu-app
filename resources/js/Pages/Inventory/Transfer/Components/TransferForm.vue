@@ -2,27 +2,35 @@
     <div>
         <form @submit.prevent="submit" class="space-y-2">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <DropdownField
-                    id="from_outlet_id"
-                    v-model="form.from_outlet_id"
-                    label="Dari Outlet"
-                    :options="outletOptions"
-                    :class="{ 'is-invalid': form.errors.from_outlet_id }"
-                    :feedback="form.errors.from_outlet_id"
-                    :disabled="
-                        form.items.length > 0 && form.from_outlet_id !== ''
-                    "
-                    required
-                />
-                <DropdownField
-                    id="to_outlet_id"
-                    v-model="form.to_outlet_id"
-                    label="Ke Outlet"
-                    :options="toOutletOptions"
-                    :class="{ 'is-invalid': form.errors.to_outlet_id }"
-                    :feedback="form.errors.to_outlet_id"
-                    required
-                />
+                <div
+                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
+                >
+                    <SelectionGroupField
+                        id="from_outlet_id"
+                        v-model="form.from_outlet_id"
+                        label="Dari Outlet"
+                        :options="outletOptions"
+                        :error="form.errors.from_outlet_id"
+                        :disabled="
+                            form.items.length > 0 && form.from_outlet_id !== ''
+                        "
+                        name="from_outlet_id"
+                        class="sm btn-sm"
+                    />
+                </div>
+                <div
+                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
+                >
+                    <SelectionGroupField
+                        id="to_outlet_id"
+                        v-model="form.to_outlet_id"
+                        label="Ke Outlet"
+                        :options="toOutletOptions"
+                        :error="form.errors.to_outlet_id"
+                        name="to_outlet_id"
+                        class="sm btn-sm"
+                    />
+                </div>
             </div>
 
             <TextareaField
@@ -30,7 +38,7 @@
                 v-model="form.notes"
                 label="Catatan Transfer"
                 :class="{ 'is-invalid': form.errors.notes }"
-                :feedback="form.errors.notes"
+                :error="form.errors.notes"
             />
 
             <div class="mt-2 border-t pt-2">
@@ -129,7 +137,7 @@
                                     'is-invalid':
                                         form.errors[`items.${index}.qty`],
                                 }"
-                                :feedback="form.errors[`items.${index}.qty`]"
+                                :error="form.errors[`items.${index}.qty`]"
                             />
                         </div>
                         <button
@@ -178,12 +186,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { usePopUpStore } from '@/store/popup';
 import NumberField from '@/Components/Form/NumberField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -225,11 +234,14 @@ const toOutletOptions = computed(() => {
         }));
 });
 
-watch(() => form.from_outlet_id, (newVal) => {
-    if (!newVal) {
-        form.items = [];
-    }
-});
+watch(
+    () => form.from_outlet_id,
+    (newVal) => {
+        if (!newVal) {
+            form.items = [];
+        }
+    },
+);
 
 onMounted(() => {
     isMounted.value = true;

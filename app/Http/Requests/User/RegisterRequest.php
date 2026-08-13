@@ -12,7 +12,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * @property string $phone
  * @property int $merchant_type_id
  * @property int $password
-*/
+ */
 class RegisterRequest extends FormRequest
 {
     /**
@@ -23,17 +23,17 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => 'required|string|max:200',
-            'owner_name'  => 'required|string|max:200',
+            'name' => 'required|string|max:200',
+            'owner_name' => 'required|string|max:200',
             'outlet_name' => 'required|string|max:200',
-            'email'       => 'required|email|unique:users,email',
-            'phone'       => [
+            'email' => 'required|email|unique:users,email',
+            'phone' => [
                 'required',
                 'regex:/^(0|\+62|62)[0-9]{7,13}$/',
                 'unique:users,phone',
             ],
             'business_type_id' => 'required',
-            'password'         => 'required|confirmed|min:8',
+            'password' => 'required|confirmed|min:8',
         ];
     }
 }

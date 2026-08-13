@@ -24,7 +24,7 @@ class BusinessUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'  => ['required', 'max:150'],
+            'name' => ['required', 'max:150'],
             'email' => ['required', 'email',
                 Rule::unique('businesses', 'email')->ignore(request()->input('id'))],
             'phone' => [
@@ -32,7 +32,7 @@ class BusinessUpdateRequest extends FormRequest
                 'regex:/^(0|\+62|62)[0-9]{7,13}$/',
             ],
             'owner_name' => ['required', 'max:200'],
-            'address'    => ['nullable'],
+            'address' => ['nullable'],
         ];
     }
 }

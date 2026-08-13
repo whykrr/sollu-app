@@ -3,8 +3,8 @@
 namespace App\Services\Outlet;
 
 use App\Models\Outlet;
-use App\Models\User;
 use App\Models\OutletAuditLog;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class UpdateOutletService
@@ -13,7 +13,7 @@ class UpdateOutletService
     {
         return DB::transaction(function () use ($outlet, $data, $user) {
             $oldData = $outlet->toArray();
-            
+
             $outlet->update($data);
 
             // Audit log

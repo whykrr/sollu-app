@@ -2,22 +2,23 @@
 
 namespace App\Jobs\ImportExport;
 
+use App\Models\User;
+use App\Notifications\CsvImportCompleted;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
-use App\Models\User;
-use App\Notifications\CsvImportCompleted;
 
 abstract class AbstractCsvImportJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $user;
+
     protected $filePath;
-    
+
     public function __construct(User $user, string $filePath)
     {
         $this->user = $user;
@@ -37,15 +38,15 @@ abstract class AbstractCsvImportJob implements ShouldQueue
 
     public function handle(): void
     {
-        if (!Storage::disk('local')->exists($this->filePath)) {
+        if (! Storage::disk('local')->exists($this->filePath)) {
             return; // File doesn't exist anymore
         }
 
         $stream = Storage::disk('local')->readStream($this->filePath);
-        
+
         // Skip BOM if present
         $bom = fread($stream, 3);
-        if ($bom !== b"\xEF\xBB\xBF") {
+        if ($bom !== "\xEF\xBB\xBF") {
             rewind($stream);
         }
 
@@ -63,13 +64,14 @@ abstract class AbstractCsvImportJob implements ShouldQueue
         // Rewind and skip BOM again for actual reading
         rewind($stream);
         $bom = fread($stream, 3);
-        if ($bom !== b"\xEF\xBB\xBF") {
+        if ($bom !== "\xEF\xBB\xBF") {
             rewind($stream);
         }
-        
+
         $headers = fgetcsv($stream, 0, $delimiter);
-        if (!$headers) {
+        if (! $headers) {
             fclose($stream);
+
             return;
         }
 
@@ -85,7 +87,7 @@ abstract class AbstractCsvImportJob implements ShouldQueue
             $rowData = [];
             foreach ($headers as $index => $headerName) {
                 // Trim header to remove hidden characters, usually BOM issue but handled above
-                $headerName = trim($headerName); 
+                $headerName = trim($headerName);
                 $rowData[$headerName] = isset($row[$index]) ? trim($row[$index]) : null;
             }
 
@@ -99,7 +101,7 @@ abstract class AbstractCsvImportJob implements ShouldQueue
         }
 
         fclose($stream);
-        
+
         // Clean up the uploaded file
         Storage::disk('local')->delete($this->filePath);
 
@@ -108,19 +110,19 @@ abstract class AbstractCsvImportJob implements ShouldQueue
 
         // If there are failures, generate a failed rows CSV
         if ($failedCount > 0) {
-            $failedFileName = 'failed_import_' . time() . '.csv';
-            $failedFilePath = 'exports/' . $failedFileName; // Public directory
-            
+            $failedFileName = 'failed_import_'.time().'.csv';
+            $failedFilePath = 'exports/'.$failedFileName; // Public directory
+
             $failedFile = fopen('php://temp', 'w+');
-            fputs($failedFile, chr(0xEF) . chr(0xBB) . chr(0xBF));
-            
+            fwrite($failedFile, chr(0xEF).chr(0xBB).chr(0xBF));
+
             $failedHeaders = array_keys($failedRows[0]);
             fputcsv($failedFile, $failedHeaders, $delimiter);
-            
+
             foreach ($failedRows as $failedRow) {
                 fputcsv($failedFile, $failedRow, $delimiter);
             }
-            
+
             rewind($failedFile);
             $content = stream_get_contents($failedFile);
             fclose($failedFile);
@@ -132,9 +134,9 @@ abstract class AbstractCsvImportJob implements ShouldQueue
         // Notify user
         $expiresAt = $failedCount > 0 ? now()->addDays(1) : null;
         $this->user->notify(new CsvImportCompleted(
-            $this->getModuleName(), 
-            $successCount, 
-            $failedCount, 
+            $this->getModuleName(),
+            $successCount,
+            $failedCount,
             $failedUrl,
             $expiresAt
         ));

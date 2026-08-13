@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ModifierGroup extends Model
 {
-    use HasUuids;
     use HasBusiness;
+    use HasUuids;
 
     public function scopeFilters(Builder $builder, array $filters): Builder
     {

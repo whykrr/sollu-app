@@ -121,34 +121,6 @@
                 :total="purchases.total"
             />
         </template>
-
-
-
-        <Modal
-            :class="{ show: showConfirmModal }"
-            :title="confirmModalTitle"
-            @close="showConfirmModal = false"
-        >
-            <p>{{ confirmModalMessage }}</p>
-            <template #footer>
-                <div class="flex justify-end gap-2 w-full">
-                    <button
-                        type="button"
-                        class="btn btn-flat"
-                        @click="showConfirmModal = false"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-main"
-                        @click="executeConfirmAction"
-                    >
-                        Ya, Lanjutkan
-                    </button>
-                </div>
-            </template>
-        </Modal>
     </MainPage>
 </template>
 
@@ -226,26 +198,6 @@ const headers = [
     { label: 'Status', field: 'status', slot: 'status', sortable: true },
 ];
 
-
-const showConfirmModal = ref(false);
-const confirmModalTitle = ref('');
-const confirmModalMessage = ref('');
-const confirmModalAction = ref(null);
-
-const executeConfirmAction = () => {
-    if (confirmModalAction.value) {
-        confirmModalAction.value();
-    }
-    showConfirmModal.value = false;
-};
-
-const openConfirmModal = (title, message, action) => {
-    confirmModalTitle.value = title;
-    confirmModalMessage.value = message;
-    confirmModalAction.value = action;
-    showConfirmModal.value = true;
-};
-
 const formatCurrency = (value) => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -301,7 +253,7 @@ const openForm = async (item = null) => {
     }
     popUpStore.open({
         title: 'Purchase Order',
-        size: 'lg',
+        size: 'xl',
         component: Form,
         props: { purchase: data, suppliers: props.suppliers, uoms: props.uoms },
     });
@@ -313,7 +265,7 @@ const openReceive = async (item) => {
     popUpStore.open({
         title: 'Terima Barang',
         subTitle: '#' + data.po_number,
-        size: 'lg',
+        size: 'xl',
         component: Receive,
         props: { purchase: data },
     });
@@ -332,45 +284,51 @@ const openDetail = async (item) => {
 };
 
 const confirmOrder = (item) => {
-    openConfirmModal(
-        'Konfirmasi Order',
-        `Apakah Anda yakin ingin memproses PO ${item.po_number} menjadi Ordered?`,
-        () => {
+    modalStore.confirm({
+        title: 'Konfirmasi Order',
+        message: `Apakah Anda yakin ingin memproses PO ${item.po_number} menjadi Ordered?`,
+        type: 'info',
+        confirmText: 'Ya, Process Order',
+        onConfirm: () => {
             router.post(
                 route('inventory.purchases.order', item.id),
                 {},
                 { preserveScroll: true, preserveState: true },
             );
         },
-    );
+    });
 };
 
 const confirmCancel = (item) => {
-    openConfirmModal(
-        'Konfirmasi Batal',
-        `Apakah Anda yakin ingin membatalkan PO ${item.po_number}?`,
-        () => {
+    modalStore.confirm({
+        title: 'Konfirmasi Batal',
+        message: `Apakah Anda yakin ingin membatalkan PO ${item.po_number}?`,
+        type: 'warning',
+        confirmText: 'Ya, Batalkan',
+        onConfirm: () => {
             router.post(
                 route('inventory.purchases.cancel', item.id),
                 {},
                 { preserveScroll: true, preserveState: true },
             );
         },
-    );
+    });
 };
 
 const confirmVoid = (item) => {
-    openConfirmModal(
-        'Konfirmasi Void',
-        `Apakah Anda yakin ingin melakukan Void penerimaan PO ${item.po_number}? Stok akan dikembalikan seperti semula.`,
-        () => {
+    modalStore.confirm({
+        title: 'Konfirmasi Void',
+        message: `Apakah Anda yakin ingin melakukan Void penerimaan PO ${item.po_number}? Stok akan dikembalikan seperti semula.`,
+        type: 'danger',
+        confirmText: 'Ya, Void',
+        onConfirm: () => {
             router.post(
                 route('inventory.purchases.void', item.id),
                 {},
                 { preserveScroll: true, preserveState: true },
             );
         },
-    );
+    });
 };
 
 const confirmDelete = (item) => {

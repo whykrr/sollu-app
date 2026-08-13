@@ -66,14 +66,15 @@
                             class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
                             >Outlet</label
                         >
-                        <GroupDropdownIconField
-                            id="outlets"
-                            v-model="tempFilters.outlet"
-                            :icon="faMapMarkerAlt"
-                            placeholder="Semua Outlet"
-                            class="w-full"
-                            :options="outlets"
-                        />
+                        <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
+                            <SelectionGroupField
+                                id="outlets"
+                                v-model="tempFilters.outlet"
+                                name="outlet"
+                                class="sm btn-sm"
+                                :options="outlets"
+                            />
+                        </div>
                     </div>
 
                     <!-- Show Archived Filter -->
@@ -106,6 +107,7 @@ import {
     faSliders,
 } from '@fortawesome/free-solid-svg-icons';
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
 import Switch from '@/Components/Form/Switch.vue';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 import FilterModal from '@/Components/UI/Filter/FilterModal.vue';

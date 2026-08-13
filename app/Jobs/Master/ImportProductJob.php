@@ -5,14 +5,14 @@ namespace App\Jobs\Master;
 use App\Jobs\ImportExport\AbstractCsvImportJob;
 use App\Models\Master\ProductCategory;
 use App\Models\Uom;
+use App\Notifications\CsvImportCompleted;
 use App\Services\Master\ProductService;
 use Illuminate\Support\Facades\Storage;
-use App\Models\User;
-use App\Notifications\CsvImportCompleted;
 
 class ImportProductJob extends AbstractCsvImportJob
 {
     protected ProductService $productService;
+
     protected $businessId;
 
     public function __construct($user, string $filePath, string $businessId)
@@ -35,15 +35,15 @@ class ImportProductJob extends AbstractCsvImportJob
     {
         $this->productService = app(ProductService::class);
 
-        if (!Storage::disk('local')->exists($this->filePath)) {
+        if (! Storage::disk('local')->exists($this->filePath)) {
             return;
         }
 
         $stream = Storage::disk('local')->readStream($this->filePath);
-        
+
         // Skip BOM if present
         $bom = fread($stream, 3);
-        if ($bom !== b"\xEF\xBB\xBF") {
+        if ($bom !== "\xEF\xBB\xBF") {
             rewind($stream);
         }
 
@@ -60,13 +60,14 @@ class ImportProductJob extends AbstractCsvImportJob
 
         rewind($stream);
         $bom = fread($stream, 3);
-        if ($bom !== b"\xEF\xBB\xBF") {
+        if ($bom !== "\xEF\xBB\xBF") {
             rewind($stream);
         }
-        
+
         $headers = fgetcsv($stream, 0, $delimiter);
-        if (!$headers) {
+        if (! $headers) {
             fclose($stream);
+
             return;
         }
 
@@ -90,11 +91,22 @@ class ImportProductJob extends AbstractCsvImportJob
 
             $nama = trim($rowData['Nama Produk'] ?? '');
 
-            if (!empty($nama)) {
+            if (! empty($nama)) {
                 // Save previous parent
                 if ($currentParentData) {
                     try {
-                        $this->productService->createProduct($currentParentData);
+                        $existingProduct = \App\Models\Master\Product::where('business_id', $this->businessId)
+                            ->where('name', $currentParentData['name'])
+                            ->first();
+
+                        if ($existingProduct) {
+                            if ($existingProduct->has_variant && ! $currentParentData['has_variant']) {
+                                throw new \Exception('Penonaktifan varian tidak dapat dilakukan melalui Impor. Silakan lakukan aksi ini secara manual melalui form produk di aplikasi.');
+                            }
+                            $this->productService->updateProduct($existingProduct, $currentParentData);
+                        } else {
+                            $this->productService->createProduct($currentParentData);
+                        }
                         $successCount += count($currentParentRows);
                     } catch (\Exception $e) {
                         foreach ($currentParentRows as $r) {
@@ -123,7 +135,7 @@ class ImportProductJob extends AbstractCsvImportJob
                     } catch (\Exception $e) {
                         // Fail the whole parent if child fails
                         foreach ($currentParentRows as $r) {
-                            $r['Error Message'] = "Error Varian: " . $e->getMessage();
+                            $r['Error Message'] = 'Error Varian: '.$e->getMessage();
                             $failedRows[] = $r;
                         }
                         $currentParentData = null;
@@ -139,7 +151,18 @@ class ImportProductJob extends AbstractCsvImportJob
         // Save the last parent
         if ($currentParentData) {
             try {
-                $this->productService->createProduct($currentParentData);
+                $existingProduct = \App\Models\Master\Product::where('business_id', $this->businessId)
+                    ->where('name', $currentParentData['name'])
+                    ->first();
+
+                if ($existingProduct) {
+                    if ($existingProduct->has_variant && ! $currentParentData['has_variant']) {
+                        throw new \Exception('Penonaktifan varian tidak dapat dilakukan melalui Impor. Silakan lakukan aksi ini secara manual melalui form produk di aplikasi.');
+                    }
+                    $this->productService->updateProduct($existingProduct, $currentParentData);
+                } else {
+                    $this->productService->createProduct($currentParentData);
+                }
                 $successCount += count($currentParentRows);
             } catch (\Exception $e) {
                 foreach ($currentParentRows as $r) {
@@ -156,19 +179,19 @@ class ImportProductJob extends AbstractCsvImportJob
         $failedCount = count($failedRows);
 
         if ($failedCount > 0) {
-            $failedFileName = 'failed_import_' . time() . '.csv';
-            $failedFilePath = 'exports/' . $failedFileName;
-            
+            $failedFileName = 'failed_import_'.time().'.csv';
+            $failedFilePath = 'exports/'.$failedFileName;
+
             $failedFile = fopen('php://temp', 'w+');
-            fputs($failedFile, chr(0xEF) . chr(0xBB) . chr(0xBF));
-            
+            fwrite($failedFile, chr(0xEF).chr(0xBB).chr(0xBF));
+
             $failedHeaders = array_keys($failedRows[0]);
             fputcsv($failedFile, $failedHeaders, $delimiter);
-            
+
             foreach ($failedRows as $failedRow) {
                 fputcsv($failedFile, $failedRow, $delimiter);
             }
-            
+
             rewind($failedFile);
             $content = stream_get_contents($failedFile);
             fclose($failedFile);
@@ -179,9 +202,9 @@ class ImportProductJob extends AbstractCsvImportJob
 
         $expiresAt = $failedCount > 0 ? now()->addDays(1) : null;
         $this->user->notify(new CsvImportCompleted(
-            $this->getModuleName(), 
-            $successCount, 
-            $failedCount, 
+            $this->getModuleName(),
+            $successCount,
+            $failedCount,
             $failedUrl,
             $expiresAt
         ));
@@ -189,7 +212,8 @@ class ImportProductJob extends AbstractCsvImportJob
 
     protected function buildParentData(array $row): array
     {
-        $kode = $row['Kode Produk'] ?? '';
+        $kode = $row['SKU'] ?? '';
+        $barcode = $row['Barcode'] ?? '';
         $nama = $row['Nama Produk'] ?? '';
         $kategori = $row['Kategori'] ?? '';
         $deskripsi = $row['Deskripsi'] ?? '';
@@ -206,7 +230,7 @@ class ImportProductJob extends AbstractCsvImportJob
 
         // Category
         $categoryId = null;
-        if (!empty($kategori)) {
+        if (! empty($kategori)) {
             $cat = ProductCategory::firstOrCreate(
                 ['business_id' => $this->businessId, 'name' => $kategori],
                 ['name' => $kategori]
@@ -216,7 +240,7 @@ class ImportProductJob extends AbstractCsvImportJob
 
         // UOM
         $uomId = null;
-        if (!empty($satuan) && $lacakStok) {
+        if (! empty($satuan) && $lacakStok) {
             $uom = Uom::where('name', $satuan)->first();
             if ($uom) {
                 $uomId = $uom->id;
@@ -228,6 +252,7 @@ class ImportProductJob extends AbstractCsvImportJob
         $data = [
             'business_id' => $this->businessId,
             'code' => $kode,
+            'barcode' => $barcode,
             'name' => $nama,
             'product_category_id' => $categoryId,
             'description' => $deskripsi,
@@ -250,7 +275,7 @@ class ImportProductJob extends AbstractCsvImportJob
         // Process Outlets
         $activeOutlets = \App\Models\Outlet::where('business_id', $this->businessId)->active()->get();
         foreach ($activeOutlets as $outlet) {
-            $colName = 'Outlet: ' . $outlet->name;
+            $colName = 'Outlet: '.$outlet->name;
             if (isset($row[$colName]) && strtolower($row[$colName]) === 'ya') {
                 $data['outlets'][] = [
                     'outlet_id' => $outlet->id,
@@ -261,7 +286,7 @@ class ImportProductJob extends AbstractCsvImportJob
         }
 
         // If parent has variant info, process it
-        if (!empty($v1Name) && !empty($v1Opt)) {
+        if (! empty($v1Name) && ! empty($v1Opt)) {
             $this->buildChildData($data, $row);
         }
 
@@ -270,46 +295,47 @@ class ImportProductJob extends AbstractCsvImportJob
 
     protected function buildChildData(array &$data, array $row)
     {
-        $kode = $row['Kode Produk'] ?? '';
+        $kode = $row['SKU'] ?? '';
+        $barcode = $row['Barcode'] ?? '';
         $v1Name = $row['Nama Varian 1'] ?? '';
         $v1Opt = $row['Opsi Varian 1'] ?? '';
         $v2Name = $row['Nama Varian 2'] ?? '';
         $v2Opt = $row['Opsi Varian 2'] ?? '';
-        
-        $hargaStr = trim((string)($row['Harga Dasar'] ?? ''));
+
+        $hargaStr = trim((string) ($row['Harga Dasar'] ?? ''));
         $harga = $hargaStr !== '' ? (float) $hargaStr : $data['base_price'];
-        
-        $minStokStr = trim((string)($row['Minimum Stok'] ?? ''));
+
+        $minStokStr = trim((string) ($row['Minimum Stok'] ?? ''));
         $minStok = $minStokStr !== '' ? (float) $minStokStr : $data['min_stock'];
 
         if (empty($v1Name) || empty($v1Opt)) {
-            throw new \Exception("Varian 1 (Nama & Opsi) harus diisi untuk baris anak.");
+            throw new \Exception('Varian 1 (Nama & Opsi) harus diisi untuk baris anak.');
         }
 
         $data['has_variant'] = true;
 
         $options = [];
         $options[$v1Name] = $v1Opt;
-        
+
         // Variant group 1
-        $vg1Index = collect($data['variants'])->search(fn($g) => $g['name'] === $v1Name);
+        $vg1Index = collect($data['variants'])->search(fn ($g) => $g['name'] === $v1Name);
         if ($vg1Index === false) {
             $data['variants'][] = ['name' => $v1Name, 'options' => [['name' => $v1Opt]]];
         } else {
-            $opt1Index = collect($data['variants'][$vg1Index]['options'])->search(fn($o) => $o['name'] === $v1Opt);
+            $opt1Index = collect($data['variants'][$vg1Index]['options'])->search(fn ($o) => $o['name'] === $v1Opt);
             if ($opt1Index === false) {
                 $data['variants'][$vg1Index]['options'][] = ['name' => $v1Opt];
             }
         }
 
         // Variant group 2
-        if (!empty($v2Name) && !empty($v2Opt)) {
+        if (! empty($v2Name) && ! empty($v2Opt)) {
             $options[$v2Name] = $v2Opt;
-            $vg2Index = collect($data['variants'])->search(fn($g) => $g['name'] === $v2Name);
+            $vg2Index = collect($data['variants'])->search(fn ($g) => $g['name'] === $v2Name);
             if ($vg2Index === false) {
                 $data['variants'][] = ['name' => $v2Name, 'options' => [['name' => $v2Opt]]];
             } else {
-                $opt2Index = collect($data['variants'][$vg2Index]['options'])->search(fn($o) => $o['name'] === $v2Opt);
+                $opt2Index = collect($data['variants'][$vg2Index]['options'])->search(fn ($o) => $o['name'] === $v2Opt);
                 if ($opt2Index === false) {
                     $data['variants'][$vg2Index]['options'][] = ['name' => $v2Opt];
                 }
@@ -319,6 +345,7 @@ class ImportProductJob extends AbstractCsvImportJob
         $data['variant_combinations'][] = [
             'options' => $options,
             'sku' => $kode,
+            'barcode' => $barcode,
             'price' => $harga,
             'min_stock' => $minStok,
         ];

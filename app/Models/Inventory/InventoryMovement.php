@@ -5,15 +5,14 @@ namespace App\Models\Inventory;
 use App\Enums\InventoryMovementType;
 use App\Models\Business;
 use App\Models\Outlet;
+use App\Models\Traits\HasQuantityFormatter;
 use App\Models\User;
 use App\Trait\HasBusiness;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\Traits\HasQuantityFormatter;
-
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -21,15 +20,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read Outlet $outlet
  * @property-read InventoryItem $inventoryItem
  * @property-read User|null $creator
+ *
  * @mixin \Eloquent
  */
 class InventoryMovement extends Model
 {
-    use HasQuantityFormatter;
-
-    use HasFactory;
-    use HasUuids;
     use HasBusiness;
+    use HasFactory;
+    use HasQuantityFormatter;
+    use HasUuids;
 
     public $timestamps = false;
 
@@ -49,7 +48,7 @@ class InventoryMovement extends Model
         'created_at',
     ];
 
-        protected $appends = [
+    protected $appends = [
         'qty_change_formatted',
         'stock_before_formatted',
         'stock_after_formatted',
@@ -58,12 +57,12 @@ class InventoryMovement extends Model
     protected function casts(): array
     {
         return [
-            'movement_type'  => InventoryMovementType::class,
-            'qty_change'     => 'decimal:4',
-            'stock_before'   => 'decimal:4',
-            'stock_after'    => 'decimal:4',
-            'purchase_price' => 'decimal:2',
-            'created_at'     => 'datetime',
+            'movement_type' => InventoryMovementType::class,
+            'qty_change' => 'float',
+            'stock_before' => 'float',
+            'stock_after' => 'float',
+            'purchase_price' => 'float',
+            'created_at' => 'datetime',
         ];
     }
 
@@ -124,12 +123,14 @@ class InventoryMovement extends Model
             get: fn () => $this->formatQuantity($this->qty_change),
         );
     }
+
     protected function stockBeforeFormatted(): Attribute
     {
         return Attribute::make(
             get: fn () => $this->formatQuantity($this->stock_before),
         );
     }
+
     protected function stockAfterFormatted(): Attribute
     {
         return Attribute::make(

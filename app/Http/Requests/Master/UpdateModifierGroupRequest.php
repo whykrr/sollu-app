@@ -22,14 +22,14 @@ class UpdateModifierGroupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'                       => ['required', 'string', 'max:255'],
-            'selection_type'             => ['required', 'in:single,multi'],
-            'max_select'                 => ['nullable', 'integer', 'min:1'],
-            'is_required'                => ['boolean'],
-            'options'                    => ['required', 'array', 'min:1'],
-            'options.*.name'             => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
+            'selection_type' => ['required', 'in:single,multi'],
+            'max_select' => ['nullable', 'integer', 'min:1'],
+            'is_required' => ['boolean'],
+            'options' => ['required', 'array', 'min:1'],
+            'options.*.name' => ['required', 'string', 'max:255'],
             'options.*.additional_price' => ['numeric', 'min:0'],
-            'options.*.is_default'       => ['boolean'],
+            'options.*.is_default' => ['boolean'],
         ];
     }
 }

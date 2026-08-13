@@ -4,8 +4,8 @@ use App\Http\Controllers\Inventory\InventoryMovementController;
 use App\Http\Controllers\Inventory\RawMaterialController;
 use App\Http\Controllers\Inventory\StockAdjustmentController;
 use App\Http\Controllers\Inventory\StockController;
-use App\Http\Controllers\Inventory\StockPurchasesController;
 use App\Http\Controllers\Inventory\StockOpnameController;
+use App\Http\Controllers\Inventory\StockPurchasesController;
 use App\Http\Controllers\Inventory\StockTransferController;
 use App\Http\Controllers\Inventory\SupplierController;
 use Illuminate\Support\Facades\Route;
@@ -16,8 +16,11 @@ Route::prefix('inventories')->group(function () {
         Route::get('stocks', [StockController::class, 'index'])->name('stocks.index');
         Route::get('stocks/export-csv', [StockController::class, 'exportCsv'])->name('stocks.export-csv');
         Route::get('stocks/export-pdf-list', [StockController::class, 'exportPdfList'])->name('stocks.export-pdf-list');
+        Route::get('stocks/import/template', [StockController::class, 'importTemplate'])->name('stocks.import-template');
+        Route::post('stocks/import', [StockController::class, 'import'])->name('stocks.import');
         Route::get('stocks/{id}', [StockController::class, 'show'])->name('stocks.show');
         Route::patch('stocks/{id}/barcode', [StockController::class, 'updateBarcode'])->name('stocks.barcode.update');
+        Route::patch('stocks/{id}/sku', [StockController::class, 'updateSku'])->name('stocks.sku.update');
         Route::post('stocks/{id}/initial-stock', [StockController::class, 'storeInitialStock'])->name('stocks.initial-stock.store');
         Route::get('stocks/{id}/export-pdf', [StockController::class, 'exportPdf'])->name('stocks.export.pdf');
 

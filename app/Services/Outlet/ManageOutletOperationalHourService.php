@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services\Outlet;
 
 use App\Models\Outlet;

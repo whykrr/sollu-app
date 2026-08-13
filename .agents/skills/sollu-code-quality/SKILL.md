@@ -46,7 +46,7 @@ Sebelum menyelesaikan tugas atau mengirimkan perubahan kode:
 A feature or bugfix is considered **DONE** only when:
 - [ ] Backend logic & endpoints tested and returning accurate HTTP status codes.
 - [ ] Controller response messages use `App\Constants\*` (`ResourceMessage`, `FlashDataVariable`) or `lang/` translation files without any hardcoded strings.
-- [ ] Frontend UI verified and layout aligns with design standards.
+- [ ] Frontend UI verified visually and functionally via `browsermcp` (navigasi URL, screenshot, snapshot, console log check), and layout aligns with design standards.
 - [ ] Code formatted with `vendor/bin/pint` and `npm run fix:eslint`.
 - [ ] `npm run build` executes cleanly with zero syntax or bundling errors.
 - [ ] All permissions registered in `PermissionEnum.php` & `RolePermissionSeeder.php` (if applicable).

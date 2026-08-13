@@ -2,7 +2,6 @@
 
 namespace App\Services\Master;
 
-use App\Models\Master\RecipeVersion;
 use App\Models\Master\Product;
 
 class RecipeService

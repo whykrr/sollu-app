@@ -21,7 +21,7 @@ class SubscriptionService
             if ($current) {
                 $current->update([
                     'status' => 'canceled',
-                    'canceled_at' => Carbon::now()
+                    'canceled_at' => Carbon::now(),
                 ]);
             }
 

@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'api'       => env('DOMAIN_API', 'api.sollu.test'),
+    'api' => env('DOMAIN_API', 'api.sollu.test'),
 ];

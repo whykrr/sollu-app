@@ -2,22 +2,20 @@
 
 namespace App\Models\Master;
 
+use App\Models\Traits\HasQuantityFormatter;
 use App\Trait\HasBusiness;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\Traits\HasQuantityFormatter;
-
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InventoryItem extends Model
 {
-    use HasQuantityFormatter;
-
-    use HasUuids;
     use HasBusiness;
+    use HasQuantityFormatter;
+    use HasUuids;
 
     protected $fillable = [
         'business_id',
@@ -28,11 +26,12 @@ class InventoryItem extends Model
         'sku',
         'barcode',
         'track_inventory',
+        'is_active',
         'min_stock',
         'uom_id',
     ];
 
-        protected $appends = [
+    protected $appends = [
         'min_stock_formatted',
     ];
 
@@ -40,7 +39,7 @@ class InventoryItem extends Model
     {
         return [
             'track_inventory' => 'boolean',
-            'min_stock'       => 'decimal:4',
+            'min_stock' => 'float',
         ];
     }
 

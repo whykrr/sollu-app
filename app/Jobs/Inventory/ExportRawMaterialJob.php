@@ -9,6 +9,7 @@ use App\Models\User;
 class ExportRawMaterialJob extends AbstractCsvExportJob
 {
     protected $businessId;
+
     protected $filters;
 
     public function __construct(User $user, $businessId, array $filters = [])
@@ -60,6 +61,6 @@ class ExportRawMaterialJob extends AbstractCsvExportJob
 
     protected function getFileName(): string
     {
-        return 'bahan_baku_export_' . time() . '.csv';
+        return 'bahan_baku_export_'.time().'.csv';
     }
 }

@@ -21,7 +21,7 @@
                     label="Pilih Outlet"
                     placeholder="-- Pilih Outlet --"
                     :class="{ 'is-invalid': form.errors.outlet_id }"
-                    :feedback="form.errors.outlet_id"
+                    :error="form.errors.outlet_id"
                     @loaded="onOutletsLoaded"
                 />
             </div>
@@ -31,7 +31,7 @@
                 v-model="form.notes"
                 label="Catatan (Opsional)"
                 :class="{ 'is-invalid': form.errors.notes }"
-                :feedback="form.errors.notes"
+                :error="form.errors.notes"
             />
 
             <div class="mt-3 border-t pt-2">
@@ -83,9 +83,15 @@
                             type="button"
                             class="btn btn-outline-main btn-sm"
                             @click="loadAllItems(false)"
-                            :disabled="(!form.outlet_id && !opname) || isLoadingItems"
+                            :disabled="
+                                (!form.outlet_id && !opname) || isLoadingItems
+                            "
                         >
-                            {{ isLoadingItems ? 'Memuat...' : 'Muat Item (Parsial)' }}
+                            {{
+                                isLoadingItems
+                                    ? 'Memuat...'
+                                    : 'Muat Item (Parsial)'
+                            }}
                         </button>
                     </div>
                 </div>
@@ -268,11 +274,7 @@ const isLoadingItems = ref(false);
 
 const onOutletsLoaded = (outlets) => {
     loadedOutlets.value = outlets;
-    if (
-        !props.opname &&
-        !form.outlet_id &&
-        outlets.length === 1
-    ) {
+    if (!props.opname && !form.outlet_id && outlets.length === 1) {
         form.outlet_id = outlets[0].id;
     }
 };
@@ -286,7 +288,7 @@ onMounted(() => {
     isMounted.value = true;
     currentPage.value = 1;
     hasMoreItems.value = false;
-    
+
     if (props.opname) {
         form.outlet_id = props.opname.outlet_id;
         form.notes = props.opname.notes || '';
@@ -334,20 +336,25 @@ const loadAllItems = async (isLoadMore = false) => {
 
     isLoadingItems.value = true;
     try {
-        const response = await axios.get(route('api.internal.inventory-items.partial'), {
-            params: {
-                outlet_id: outletId,
-                page: currentPage.value,
-                limit: 50,
-            }
-        });
+        const response = await axios.get(
+            route('api.internal.inventory-items.partial'),
+            {
+                params: {
+                    outlet_id: outletId,
+                    page: currentPage.value,
+                    limit: 50,
+                },
+            },
+        );
 
         const newItems = response.data.data;
         const meta = response.data.meta;
 
         newItems.forEach((i) => {
             if (
-                !form.items.find((existing) => existing.inventory_item_id === i.id)
+                !form.items.find(
+                    (existing) => existing.inventory_item_id === i.id,
+                )
             ) {
                 form.items.push({
                     inventory_item_id: i.id,

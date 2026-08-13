@@ -7,7 +7,7 @@
                     v-model="form.name"
                     label="Nama Lengkap"
                     :class="{ 'is-invalid': form.errors.name }"
-                    :feedback="form.errors.name"
+                    :error="form.errors.name"
                 />
             </div>
             <div>
@@ -16,7 +16,7 @@
                     v-model="form.email"
                     label="Email"
                     :class="{ 'is-invalid': form.errors.email }"
-                    :feedback="form.errors.email"
+                    :error="form.errors.email"
                     :disabled="user"
                 />
             </div>
@@ -26,41 +26,49 @@
                     v-model="form.phone"
                     label="Telepon"
                     :class="{ 'is-invalid': form.errors.phone }"
-                    :feedback="form.errors.phone"
+                    :error="form.errors.phone"
                 />
             </div>
             <div>
-                <label class="label">Peran</label>
                 <span class="block text-xs text-neutral-400"
                     >Pilih peran yang akan digunakan karyawan</span
                 >
-                <div class="flex flex-wrap gap-1 border p-2 rounded-lg">
-                    <RadioButtonField
+                <div
+                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
+                >
+                    <SelectionGroupField
                         v-model="form.role"
-                        name="role"
+                        label="Peran"
                         :options="roles"
+                        name="role"
                         class="sm btn-sm"
-                        :feedback="form.errors.role"
                     />
                 </div>
                 <div class="text-danger text-xs select-none">
                     {{ form.errors.role }}
                 </div>
             </div>
-            <div v-if="!selectedOutlet">
-                <label class="label">Outlet</label>
-                <span class="block text-xs text-neutral-400"
+            <div v-if="!selectedOutlet" class="space-y-1">
+                <span class="block text-xs text-neutral-400 mb-1"
                     >Pilih akses outlet untuk karyawan</span
                 >
-                <div class="flex flex-wrap gap-1 border p-2 rounded-lg">
-                    <CheckboxButtonField
+                <div
+                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
+                >
+                    <SelectionGroupField
                         v-model="form.outlets"
+                        multiple
+                        label="Outlet"
                         :options="outlets"
                         name="outlets"
                         class="sm btn-sm"
+                        show-select-all
                     />
                 </div>
-                <div class="text-danger text-xs select-none">
+                <div
+                    v-if="form.errors.outlets"
+                    class="text-danger text-xs select-none"
+                >
                     {{ form.errors.outlets }}
                 </div>
             </div>
@@ -88,10 +96,9 @@
     </div>
 </template>
 <script setup>
-import CheckboxButtonField from '@/Components/Form/CheckboxButtonField.vue';
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
 import EmailField from '@/Components/Form/EmailField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
-import RadioButtonField from '@/Components/Form/RadioButtonField.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import { formatDateID } from '@/Composable/date';
 import { formatDateTime } from '@/Composable/time';

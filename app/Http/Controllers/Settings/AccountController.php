@@ -33,7 +33,7 @@ class AccountController extends Controller
         /**
          * @var User
          */
-        $user->name  = $req->validated('name');
+        $user->name = $req->validated('name');
         $user->email = $req->validated('email');
         $user->phone = $req->validated('phone');
         $user->save();
@@ -91,7 +91,7 @@ class AccountController extends Controller
             Storage::delete($user->photo);
         }
 
-        $user->photo = null ;
+        $user->photo = null;
         $user->save();
 
         SummaryUser::cacheDelete();

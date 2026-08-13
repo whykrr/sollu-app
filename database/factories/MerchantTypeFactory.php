@@ -17,20 +17,20 @@ class MerchantTypeFactory extends Factory
     public function definition(): array
     {
         $types = [
-            'Restoran'    => 'fnb',
-            'Retail'      => 'retail',
-            'Barbershop'  => 'services',
+            'Restoran' => 'fnb',
+            'Retail' => 'retail',
+            'Barbershop' => 'services',
             'Toko Online' => 'online_shop',
         ];
 
         $name = fake()->randomElement(array_keys($types));
 
         return [
-            'name'     => $name,
-            'code'     => $types[$name],
+            'name' => $name,
+            'code' => $types[$name],
             'settings' => [
                 'email' => fake()->boolean(),
-                'sms'   => fake()->boolean(),
+                'sms' => fake()->boolean(),
             ],
         ];
     }

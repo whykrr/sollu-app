@@ -35,7 +35,7 @@ class BusinessTypeSeeder extends Seeder
                 ['code' => $type['code']],
                 [
                     'name' => $type['name'],
-                    'is_visible' => $type['is_visible']
+                    'is_visible' => $type['is_visible'],
                 ]
             );
         }

@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- *
  * @property Collection|Business[] $merchants
  * @property Collection|ProductCategory[] $productCategories
+ *
  * @mixin \Eloquent
  */
 class BusinessType extends Model
@@ -37,20 +37,13 @@ class BusinessType extends Model
         ];
     }
 
-    /**
-     * @return HasMany
-     */
     public function businesses(): HasMany
     {
         return $this->hasMany(Business::class);
     }
 
-    /**
-     * @return BelongsToMany
-     */
     public function productCategories(): BelongsToMany
     {
         return $this->belongsToMany(ProductCategory::class);
     }
-
 }

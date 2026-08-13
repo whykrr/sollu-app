@@ -9,14 +9,13 @@ use App\Models\PaymentManualValidation;
 use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class InvoiceController extends Controller
 {
     public function show(Request $req, $invoice_number)
     {
         $business = $req->user()->business;
-        $invoice  = Invoice::where('invoice_number', $invoice_number)->where('business_id', $business->id)->with(['items', 'business'])->firstOrFail();
+        $invoice = Invoice::where('invoice_number', $invoice_number)->where('business_id', $business->id)->with(['items', 'business'])->firstOrFail();
 
         $payment = $invoice->payments()->latest()->first();
 
@@ -27,60 +26,60 @@ class InvoiceController extends Controller
         if (! $payment && $invoice->status === 'open') {
             $midtrans_request = [
                 'transaction_details' => [
-                    'order_id'     => "{$invoice->invoice_number}-" . Str::upper(Str::random(4)),
+                    'order_id' => "{$invoice->invoice_number}-".Str::upper(Str::random(4)),
                     'gross_amount' => (int) $invoice->total_amount,
                 ],
                 'customer_details' => [
-                    'first_name'      => $business->name,
-                    'email'           => $business->email,
-                    'phone'           => $business->phone,
+                    'first_name' => $business->name,
+                    'email' => $business->email,
+                    'phone' => $business->phone,
                     'billing_address' => [
                         'address' => $business->address,
                     ],
                 ],
                 'item_details' => [
                     [
-                        'id'       => $invoice->id, // Simplified for now
-                        'price'    => (int) $invoice->total_amount,
+                        'id' => $invoice->id, // Simplified for now
+                        'price' => (int) $invoice->total_amount,
                         'quantity' => 1,
-                        'name'     => 'Subscription Billing',
+                        'name' => 'Subscription Billing',
                     ],
                 ],
                 'expiry' => [
-                    'unit'     => 'minute',
+                    'unit' => 'minute',
                     'duration' => 60,
                 ],
                 'callbacks' => [
                     'finish' => route('settings.billing.invoices.finish', $invoice_number),
-                    'error'  => route('settings.billing.invoices.error', $invoice_number),
+                    'error' => route('settings.billing.invoices.error', $invoice_number),
                 ],
             ];
 
             // Assuming MidtransService exists and works as in old code
             if (class_exists(MidtransService::class)) {
-                $midtrans    = new MidtransService();
+                $midtrans = new MidtransService;
                 $transaction = $midtrans->createTransaction($midtrans_request);
             } else {
                 $transaction = ['token' => 'dummy-token']; // Mock if service not found
             }
 
             $payment = $invoice->payments()->create([
-                'amount'            => $invoice->total_amount,
-                'payment_method'    => 'midtrans',
+                'amount' => $invoice->total_amount,
+                'payment_method' => 'midtrans',
                 'payment_reference' => $midtrans_request['transaction_details']['order_id'],
-                'status'            => 'pending',
-                'json_request'      => $midtrans_request,
-                'json_respond'      => $transaction,
+                'status' => 'pending',
+                'json_request' => $midtrans_request,
+                'json_respond' => $transaction,
             ]);
         }
 
         $manualValidation = PaymentManualValidation::where('invoice_id', $invoice->id)->first();
 
         return inertia('Settings/Billing/DetailInvoice', [
-            'invoice'           => $invoice,
-            'payment'           => $payment,
+            'invoice' => $invoice,
+            'payment' => $payment,
             'midtransClientKey' => config('midtrans.client_key'),
-            'manualValidation'  => $manualValidation,
+            'manualValidation' => $manualValidation,
         ]);
     }
 
@@ -98,10 +97,10 @@ class InvoiceController extends Controller
 
         if ($request->payment_method === 'manual') {
             $invoice->payments()->create([
-                'amount'            => $invoice->total_amount,
-                'payment_method'    => 'manual',
-                'status'            => 'pending',
-                'payment_reference' => "{$invoice->invoice_number}-MANUAL-" . Str::upper(Str::random(4)),
+                'amount' => $invoice->total_amount,
+                'payment_method' => 'manual',
+                'status' => 'pending',
+                'payment_reference' => "{$invoice->invoice_number}-MANUAL-".Str::upper(Str::random(4)),
             ]);
         }
 
@@ -164,7 +163,7 @@ class InvoiceController extends Controller
         }
 
         // Only cancel the main subscription if this is NOT a prorated outlet addition invoice
-        if (!$isOutletAddition) {
+        if (! $isOutletAddition) {
             $subscription = $business->subscriptions()->latest()->first();
             if ($subscription) {
                 $subscription->update([
@@ -174,8 +173,8 @@ class InvoiceController extends Controller
             }
         }
 
-        return redirect()->route('settings.billing.index')->with('success', $isOutletAddition 
-            ? 'Tagihan berhasil dibatalkan dan outlet terkait telah dihapus.' 
+        return redirect()->route('settings.billing.index')->with('success', $isOutletAddition
+            ? 'Tagihan berhasil dibatalkan dan outlet terkait telah dihapus.'
             : 'Tagihan berhasil dibatalkan.');
     }
 
@@ -193,7 +192,7 @@ class InvoiceController extends Controller
     {
         $business = $req->user()->business;
         Invoice::where('invoice_number', $invoice_number)->where('business_id', $business->id)->update([
-            'status'  => 'paid',
+            'status' => 'paid',
             'paid_at' => \Carbon\Carbon::now(),
         ]);
 
@@ -206,10 +205,11 @@ class InvoiceController extends Controller
 
         return redirect()->route('settings.billing.invoices.show', $invoice_number)->with('success', 'Tagihan berhasil dibayarkan.');
     }
+
     public function download(Request $req, $invoice_number)
     {
         $business = $req->user()->business;
-        $invoice  = Invoice::where('invoice_number', $invoice_number)->where('business_id', $business->id)->with(['items', 'business'])->firstOrFail();
+        $invoice = Invoice::where('invoice_number', $invoice_number)->where('business_id', $business->id)->with(['items', 'business'])->firstOrFail();
 
         $payment = $invoice->payments()->latest()->first();
 
@@ -218,7 +218,7 @@ class InvoiceController extends Controller
         }
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.invoice', compact('invoice', 'payment'));
-        
+
         return $pdf->download("Invoice-{$invoice->invoice_number}.pdf");
     }
 }

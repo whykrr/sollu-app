@@ -21,17 +21,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read User|null $creator
  * @property-read User|null $approver
  * @property-read Collection|PurchaseOrderItem[] $items
+ *
  * @mixin \Eloquent
  */
 class PurchaseOrder extends Model
 {
+    use HasBusiness;
     use HasFactory;
     use HasUuids;
-    use HasBusiness;
 
-    public const STATUS_DRAFT     = 'draft';
-    public const STATUS_ORDERED   = 'ordered';
-    public const STATUS_RECEIVED  = 'received';
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_ORDERED = 'ordered';
+
+    public const STATUS_RECEIVED = 'received';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
@@ -51,7 +55,7 @@ class PurchaseOrder extends Model
     protected function casts(): array
     {
         return [
-            'total_amount' => 'decimal:2',
+            'total_amount' => 'float',
         ];
     }
 

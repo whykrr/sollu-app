@@ -16,7 +16,7 @@ class OutletFreezeController extends Controller
      */
     public function freeze(Request $request, StockFreezeService $service)
     {
-        if (!Gate::check('inventory.opname.freeze') && !Gate::check('inventory.adjustment.freeze')) {
+        if (! Gate::check('inventory.opname.freeze') && ! Gate::check('inventory.adjustment.freeze')) {
             abort(403);
         }
 
@@ -26,7 +26,7 @@ class OutletFreezeController extends Controller
 
         $service->freeze($outlet, Auth::user());
 
-        return redirect()->back()->with('success', 'Stok pada outlet ' . $outlet->name . ' berhasil dibekukan.');
+        return redirect()->back()->with('success', 'Stok pada outlet '.$outlet->name.' berhasil dibekukan.');
     }
 
     /**
@@ -34,7 +34,7 @@ class OutletFreezeController extends Controller
      */
     public function unfreeze(Request $request, StockFreezeService $service)
     {
-        if (!Gate::check('inventory.opname.freeze') && !Gate::check('inventory.adjustment.freeze')) {
+        if (! Gate::check('inventory.opname.freeze') && ! Gate::check('inventory.adjustment.freeze')) {
             abort(403);
         }
 
@@ -44,6 +44,6 @@ class OutletFreezeController extends Controller
 
         $service->unfreeze($outlet, Auth::user());
 
-        return redirect()->back()->with('success', 'Stok pada outlet ' . $outlet->name . ' berhasil dicairkan.');
+        return redirect()->back()->with('success', 'Stok pada outlet '.$outlet->name.' berhasil dicairkan.');
     }
 }

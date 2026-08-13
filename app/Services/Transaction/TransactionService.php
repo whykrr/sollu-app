@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 class TransactionService
 {
     protected PriceCalculationService $priceCalculationService;
+
     protected InventoryDeductionService $inventoryDeductionService;
 
     public function __construct(
@@ -21,7 +22,7 @@ class TransactionService
 
     public function createB2bInvoice(array $data, User $user): Transaction
     {
-        return DB::transaction(function () use ($data, $user) {
+        return DB::transaction(function () use ($data) {
             $transaction = Transaction::create([
                 'outlet_id' => $data['outlet_id'] ?? null,
                 'customer_id' => $data['customer_id'] ?? null,
@@ -38,7 +39,7 @@ class TransactionService
                 'receipt_number' => $this->generateInvoiceNumber(),
             ]);
 
-            if (!empty($data['items'])) {
+            if (! empty($data['items'])) {
                 foreach ($data['items'] as $item) {
                     $transaction->items()->create([
                         'product_id' => $item['product_id'],
@@ -60,17 +61,18 @@ class TransactionService
 
     protected function generateInvoiceNumber(): string
     {
-        $prefix = 'INV/' . date('Y/m/');
-        $last = Transaction::where('receipt_number', 'like', $prefix . '%')
+        $prefix = 'INV/'.date('Y/m/');
+        $last = Transaction::where('receipt_number', 'like', $prefix.'%')
             ->orderBy('id', 'desc')
             ->first();
 
-        if (!$last) {
-            return $prefix . '0001';
+        if (! $last) {
+            return $prefix.'0001';
         }
 
         $lastNumber = intval(substr($last->receipt_number, -4));
-        return $prefix . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+
+        return $prefix.str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
     }
 
     public function syncOfflineTransaction(array $data, ?\App\Models\OutletDevice $device = null): Transaction
@@ -113,7 +115,7 @@ class TransactionService
                     'subtotal' => $item['subtotal'],
                 ]);
 
-                if (!empty($item['modifiers'])) {
+                if (! empty($item['modifiers'])) {
                     foreach ($item['modifiers'] as $mod) {
                         $txItem->modifiers()->create([
                             'modifier_option_id' => $mod['modifier_option_id'],
@@ -125,7 +127,7 @@ class TransactionService
                 }
             }
 
-            if (!empty($data['payments'])) {
+            if (! empty($data['payments'])) {
                 foreach ($data['payments'] as $payment) {
                     $transaction->payments()->create([
                         'payment_method_id' => $payment['payment_method_id'],

@@ -122,7 +122,7 @@ return [
     'include_helpers' => false,
 
     'helper_files' => [
-        base_path() . '/vendor/laravel/framework/src/Illuminate/Support/helpers.php',
+        base_path().'/vendor/laravel/framework/src/Illuminate/Support/helpers.php',
     ],
 
     /*
@@ -181,13 +181,13 @@ return [
 
     'extra' => [
         'Eloquent' => ['Illuminate\Database\Eloquent\Builder', 'Illuminate\Database\Query\Builder'],
-        'Session'  => ['Illuminate\Session\Store'],
+        'Session' => ['Illuminate\Session\Store'],
     ],
 
     'magic' => [
         'Auth' => [
             'user' => 'App\Models\User::class',
-            'id'   => 'App\Models\User::id',
+            'id' => 'App\Models\User::id',
             // 'guard("cockpit")->user' => 'App\Models\User',
         ],
     ],

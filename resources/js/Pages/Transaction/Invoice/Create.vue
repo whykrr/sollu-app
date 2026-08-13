@@ -9,14 +9,20 @@
             <div
                 class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100"
             >
-                <DropdownField
-                    v-model="form.outlet_id"
-                    label="Pilih Outlet"
-                    :options="
-                        outlets.map((o) => ({ value: o.id, label: o.name }))
-                    "
-                    :error="form.errors.outlet_id"
-                />
+                <div
+                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
+                >
+                    <SelectionGroupField
+                        v-model="form.outlet_id"
+                        label="Pilih Outlet"
+                        :options="
+                            outlets.map((o) => ({ value: o.id, label: o.name }))
+                        "
+                        :error="form.errors.outlet_id"
+                        name="outlet_id"
+                        class="sm btn-sm"
+                    />
+                </div>
                 <DropdownField
                     v-model="form.customer_id"
                     label="Pilih Pelanggan"
@@ -232,6 +238,7 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import MainPage from '@/Components/UI/MainPage.vue';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';

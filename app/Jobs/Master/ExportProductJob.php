@@ -33,7 +33,8 @@ class ExportProductJob extends AbstractCsvExportJob
     protected function getHeaders(): array
     {
         $headers = [
-            'Kode Produk',
+            'SKU',
+            'Barcode',
             'Nama Produk',
             'Kategori',
             'Deskripsi',
@@ -51,7 +52,7 @@ class ExportProductJob extends AbstractCsvExportJob
 
         $outlets = \App\Models\Outlet::where('business_id', $this->businessId)->active()->get();
         foreach ($outlets as $outlet) {
-            $headers[] = 'Outlet: ' . $outlet->name;
+            $headers[] = 'Outlet: '.$outlet->name;
         }
 
         return $headers;
@@ -65,11 +66,11 @@ class ExportProductJob extends AbstractCsvExportJob
     public function handle(): void
     {
         $fileName = $this->getFileName();
-        $filePath = 'exports/' . $fileName;
+        $filePath = 'exports/'.$fileName;
 
         $file = fopen('php://temp', 'w+');
-        fputs($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
-        
+        fwrite($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
         $outlets = \App\Models\Outlet::where('business_id', $this->businessId)->active()->get();
         $headers = $this->getHeaders();
         fputcsv($file, $headers);
@@ -81,6 +82,7 @@ class ExportProductJob extends AbstractCsvExportJob
                 // Parent Row
                 $parentRow = [
                     $product->code,
+                    '', // Barcode default kosong (diisi di bawah jika tidak ada varian)
                     $product->name,
                     $product->category ? $product->category->name : '',
                     $product->description,
@@ -92,7 +94,7 @@ class ExportProductJob extends AbstractCsvExportJob
                     $product->prices->firstWhere('outlet_id', null)?->amount ?? 0,
                     $uomName,
                     $product->track_inventory ? 'Ya' : 'Tidak',
-                    '', // Min Stok (Anak/Induk) tapi karena ini Parent, mungkin kosong atau default 0 jika tidak ada varian
+                    '', // Min Stok (Anak/Induk)
                     $product->is_show ? 'Ya' : 'Tidak',
                 ];
 
@@ -100,18 +102,20 @@ class ExportProductJob extends AbstractCsvExportJob
                     $hasOutlet = $product->outlets->contains('id', $outlet->id);
                     $parentRow[] = $hasOutlet ? 'Ya' : 'Tidak';
                 }
-                
+
                 if ($product->product_type === 'basic' && $product->has_variant && $product->inventoryItems->where('item_type', 'variant_sku')->count() > 0) {
                     $variants = $product->inventoryItems->where('item_type', 'variant_sku');
                     $variantGroups = $product->variantGroups;
-                    
-                    $parentRow[12] = ''; // Parent min stock is empty for variant products
+
+                    $parentRow[13] = ''; // Parent min stock is empty for variant products
                     fputcsv($file, $parentRow);
 
                     foreach ($variants as $variant) {
-                        $v1Name = ''; $v1Opt = '';
-                        $v2Name = ''; $v2Opt = '';
-                        
+                        $v1Name = '';
+                        $v1Opt = '';
+                        $v2Name = '';
+                        $v2Opt = '';
+
                         $opts = $variant->variantGroupOptions;
                         if ($opts->count() > 0) {
                             $vg1 = $variantGroups->firstWhere('id', $opts[0]->variant_group_id);
@@ -130,6 +134,7 @@ class ExportProductJob extends AbstractCsvExportJob
 
                         $childRow = [
                             $variant->sku,
+                            $variant->barcode ?? '',
                             '', // Nama Produk Kosong
                             '',
                             '',
@@ -138,7 +143,7 @@ class ExportProductJob extends AbstractCsvExportJob
                             $v1Opt,
                             $v2Name,
                             $v2Opt,
-                            $product->prices->where('inventory_item_id', $variant->id)->whereNull('outlet_id')->first()?->amount ?? $parentRow[9],
+                            $product->prices->where('inventory_item_id', $variant->id)->whereNull('outlet_id')->first()?->amount ?? $parentRow[10],
                             '',
                             '',
                             $variant->min_stock,
@@ -148,12 +153,13 @@ class ExportProductJob extends AbstractCsvExportJob
                         foreach ($outlets as $outlet) {
                             $childRow[] = '';
                         }
-                        
+
                         fputcsv($file, $childRow);
                     }
                 } else {
                     $inv = $product->inventoryItems->where('item_type', 'variant_sku')->first();
-                    $parentRow[12] = $inv ? $inv->min_stock : 0;
+                    $parentRow[1] = $inv ? ($inv->barcode ?? '') : '';
+                    $parentRow[13] = $inv ? $inv->min_stock : 0;
                     fputcsv($file, $parentRow);
                 }
             }
@@ -177,6 +183,6 @@ class ExportProductJob extends AbstractCsvExportJob
 
     protected function getFileName(): string
     {
-        return 'produk_export_' . time() . '.csv';
+        return 'produk_export_'.time().'.csv';
     }
 }

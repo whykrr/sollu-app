@@ -52,7 +52,7 @@ class OutletTest extends TestCase
             'address' => 'Jakarta',
         ]);
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('outlets', [
             'name' => 'New Outlet',
             'business_id' => $user->business_id,
@@ -63,13 +63,13 @@ class OutletTest extends TestCase
     {
         $user = User::first();
         $outlet = Outlet::where('business_id', $user->business_id)->first();
-        
-        $response = $this->actingAs($user)->put('/settings/outlets/' . $outlet->id, [
+
+        $response = $this->actingAs($user)->put('/settings/outlets/'.$outlet->id, [
             'name' => 'Updated Outlet Name',
             'address' => 'Bandung',
         ]);
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('outlets', [
             'id' => $outlet->id,
             'name' => 'Updated Outlet Name',
@@ -80,18 +80,18 @@ class OutletTest extends TestCase
     {
         $user = User::first();
         $outlet = Outlet::where('business_id', $user->business_id)->first();
-        
-        $response = $this->actingAs($user)->delete('/settings/outlets/' . $outlet->id);
+
+        $response = $this->actingAs($user)->delete('/settings/outlets/'.$outlet->id);
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('outlets', [
             'id' => $outlet->id,
             'is_active' => false,
         ]);
 
-        $response = $this->actingAs($user)->put('/settings/outlets/' . $outlet->id . '/enabled');
+        $response = $this->actingAs($user)->put('/settings/outlets/'.$outlet->id.'/enabled');
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('outlets', [
             'id' => $outlet->id,
             'is_active' => true,
@@ -102,17 +102,17 @@ class OutletTest extends TestCase
     {
         $user = User::first();
         $outlet = Outlet::where('business_id', $user->business_id)->first();
-        
-        $response = $this->actingAs($user)->delete('/settings/outlets/' . $outlet->id . '/destroy');
+
+        $response = $this->actingAs($user)->delete('/settings/outlets/'.$outlet->id.'/destroy');
         $response->assertRedirect();
-        
+
         $this->assertSoftDeleted('outlets', [
             'id' => $outlet->id,
         ]);
 
-        $response = $this->actingAs($user)->put('/settings/outlets/' . $outlet->id . '/restore');
+        $response = $this->actingAs($user)->put('/settings/outlets/'.$outlet->id.'/restore');
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('outlets', [
             'id' => $outlet->id,
             'deleted_at' => null,
@@ -123,7 +123,7 @@ class OutletTest extends TestCase
     {
         $user = User::first();
         $business = $user->business;
-        
+
         // Ensure there is already 1 outlet
         $this->assertEquals(1, $business->outlets()->count());
 
@@ -132,9 +132,9 @@ class OutletTest extends TestCase
             'name' => 'Second Outlet',
             'address' => 'Surabaya',
         ]);
-        
+
         $response->assertSessionHasErrors(['name']);
-        
+
         $this->assertDatabaseMissing('outlets', [
             'name' => 'Second Outlet',
             'business_id' => $business->id,
@@ -171,7 +171,7 @@ class OutletTest extends TestCase
             'address' => 'Surabaya',
         ]);
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('outlets', [
             'name' => 'Second Outlet',
             'business_id' => $business->id,
@@ -194,11 +194,11 @@ class OutletTest extends TestCase
     {
         $user = User::first();
         $business = $user->business;
-        
+
         $firstOutlet = Outlet::where('business_id', $business->id)->first();
-        
+
         // Soft delete the first outlet (active count becomes 0)
-        $response = $this->actingAs($user)->delete('/settings/outlets/' . $firstOutlet->id . '/destroy');
+        $response = $this->actingAs($user)->delete('/settings/outlets/'.$firstOutlet->id.'/destroy');
         $response->assertRedirect();
         $this->assertSoftDeleted('outlets', ['id' => $firstOutlet->id]);
 
@@ -214,9 +214,9 @@ class OutletTest extends TestCase
         ]);
 
         // Trying to restore the first outlet should fail because we are already at 1/1 active outlets
-        $response = $this->actingAs($user)->put('/settings/outlets/' . $firstOutlet->id . '/restore');
+        $response = $this->actingAs($user)->put('/settings/outlets/'.$firstOutlet->id.'/restore');
         $response->assertSessionHasErrors(['name']);
-        
+
         // Confirm first outlet is still soft deleted
         $this->assertSoftDeleted('outlets', ['id' => $firstOutlet->id]);
     }
@@ -251,7 +251,7 @@ class OutletTest extends TestCase
         // It should redirect to show invoice details page
         $invoice = \App\Models\Invoice::where('business_id', $business->id)->latest()->first();
         $this->assertNotNull($invoice);
-        $response->assertRedirect('/settings/billing/invoices/' . $invoice->invoice_number);
+        $response->assertRedirect('/settings/billing/invoices/'.$invoice->invoice_number);
 
         // Verify invoice details
         $this->assertEquals('open', $invoice->status);
@@ -259,7 +259,7 @@ class OutletTest extends TestCase
 
         $item = $invoice->items()->first();
         $this->assertEquals('outlet_addition', $item->item_type);
-        
+
         $outlet = Outlet::where('name', 'Subscribed Outlet')->first();
         $this->assertEquals($outlet->id, $item->metadata['outlet_id']);
     }
@@ -295,7 +295,7 @@ class OutletTest extends TestCase
         $this->assertFalse($outlet->is_active);
 
         // Trying to activate should fail because the invoice is unpaid
-        $response = $this->actingAs($user)->put('/settings/outlets/' . $outlet->id . '/enabled');
+        $response = $this->actingAs($user)->put('/settings/outlets/'.$outlet->id.'/enabled');
         $response->assertSessionHasErrors(['unpaid_invoice_number']);
 
         $outlet->refresh();
@@ -340,7 +340,7 @@ class OutletTest extends TestCase
         ]);
 
         // Activating should succeed
-        $response = $this->actingAs($user)->put('/settings/outlets/' . $outlet->id . '/enabled');
+        $response = $this->actingAs($user)->put('/settings/outlets/'.$outlet->id.'/enabled');
         $response->assertRedirect();
 
         $outlet->refresh();
@@ -390,7 +390,7 @@ class OutletTest extends TestCase
         $this->assertEquals('open', $invoice->status);
 
         // Cancel the invoice
-        $response = $this->actingAs($user)->delete('/settings/billing/invoices/' . $invoice->invoice_number . '/cancel');
+        $response = $this->actingAs($user)->delete('/settings/billing/invoices/'.$invoice->invoice_number.'/cancel');
         $response->assertRedirect();
 
         // Verify invoice is status 'void'
@@ -431,7 +431,7 @@ class OutletTest extends TestCase
         // Generate a main subscription invoice (recurring plan)
         $invoice = \App\Models\Invoice::create([
             'business_id' => $business->id,
-            'invoice_number' => 'INV-MAIN-' . \Illuminate\Support\Str::random(6),
+            'invoice_number' => 'INV-MAIN-'.\Illuminate\Support\Str::random(6),
             'status' => 'open',
             'subtotal' => 50000,
             'tax_amount' => 0,
@@ -447,7 +447,7 @@ class OutletTest extends TestCase
         ]);
 
         // Cancel the invoice
-        $response = $this->actingAs($user)->delete('/settings/billing/invoices/' . $invoice->invoice_number . '/cancel');
+        $response = $this->actingAs($user)->delete('/settings/billing/invoices/'.$invoice->invoice_number.'/cancel');
         $response->assertRedirect();
 
         // Verify invoice is status 'void'

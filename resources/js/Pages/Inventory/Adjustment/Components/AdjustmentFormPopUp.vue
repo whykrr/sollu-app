@@ -9,7 +9,7 @@
                     placeholder="Pilih outlet..."
                     :exclude-frozen="true"
                     :class="{ 'is-invalid': form.errors.outlet_id }"
-                    :feedback="form.errors.outlet_id"
+                    :error="form.errors.outlet_id"
                     @loaded="onOutletsLoaded"
                     required
                 />
@@ -20,7 +20,7 @@
                     placeholder="Pilih alasan..."
                     :options="reasonOptions"
                     :class="{ 'is-invalid': form.errors.reason }"
-                    :feedback="form.errors.reason"
+                    :error="form.errors.reason"
                     required
                 />
             </div>
@@ -30,7 +30,7 @@
                 v-model="form.notes"
                 label="Catatan Opsional"
                 :class="{ 'is-invalid': form.errors.notes }"
-                :feedback="form.errors.notes"
+                :error="form.errors.notes"
                 rows="2"
             />
 
@@ -86,7 +86,8 @@
                     v-if="form.items.length === 0"
                     class="text-center py-2 text-gray-500 border border-dashed rounded-lg"
                 >
-                    Belum ada item yang ditambahkan. Silakan cari item pada kolom pencarian di atas.
+                    Belum ada item yang ditambahkan. Silakan cari item pada
+                    kolom pencarian di atas.
                 </div>
 
                 <div v-else class="space-y-2 max-h-96 overflow-y-auto pr-1">
@@ -102,7 +103,8 @@
                                 </div>
                                 <div class="text-xs text-gray-500">
                                     SKU: {{ item.sku || '-' }} | Satuan:
-                                    {{ item.uom || '-' }} | Stok saat ini di outlet:
+                                    {{ item.uom || '-' }} | Stok saat ini di
+                                    outlet:
                                     <span class="font-medium text-gray-700">
                                         {{ item.current_stock ?? 0 }}
                                     </span>
@@ -138,7 +140,7 @@
                                                 `items.${index}.qty_change`
                                             ],
                                     }"
-                                    :feedback="
+                                    :error="
                                         form.errors[`items.${index}.qty_change`]
                                     "
                                     required
@@ -162,7 +164,7 @@
                                                 `items.${index}.unit_cost`
                                             ],
                                     }"
-                                    :feedback="
+                                    :error="
                                         form.errors[`items.${index}.unit_cost`]
                                     "
                                 />
@@ -180,7 +182,7 @@
                                                 `items.${index}.description`
                                             ],
                                     }"
-                                    :feedback="
+                                    :error="
                                         form.errors[
                                             `items.${index}.description`
                                         ]

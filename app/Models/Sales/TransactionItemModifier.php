@@ -23,8 +23,8 @@ class TransactionItemModifier extends Model
     protected function casts(): array
     {
         return [
-            'price' => 'decimal:4',
-            'qty'   => 'decimal:4',
+            'price' => 'float',
+            'qty' => 'float',
         ];
     }
 

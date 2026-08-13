@@ -29,10 +29,10 @@ class TransactionItem extends Model
     protected function casts(): array
     {
         return [
-            'price'           => 'decimal:4',
-            'qty'             => 'decimal:4',
-            'discount_amount' => 'decimal:4',
-            'subtotal'        => 'decimal:4',
+            'price' => 'float',
+            'qty' => 'float',
+            'discount_amount' => 'float',
+            'subtotal' => 'float',
         ];
     }
 

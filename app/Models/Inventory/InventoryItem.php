@@ -21,15 +21,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection|InventoryBalance[] $balances
  * @property-read Collection|InventoryMovement[] $movements
  * @property-read Collection|InventoryCostLayer[] $costLayers
+ *
  * @mixin \Eloquent
  */
 class InventoryItem extends Model
 {
-    use HasQuantityFormatter;
-
-    use HasFactory;
-    use HasUuids;
     use HasBusiness;
+    use HasFactory;
+    use HasQuantityFormatter;
+    use HasUuids;
 
     protected $fillable = [
         'business_id',
@@ -52,8 +52,8 @@ class InventoryItem extends Model
     {
         return [
             'track_inventory' => 'boolean',
-            'minimum_stock'   => 'decimal:4',
-            'is_active'       => 'boolean',
+            'minimum_stock' => 'float',
+            'is_active' => 'boolean',
         ];
     }
 

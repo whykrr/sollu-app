@@ -107,13 +107,13 @@ export const mainSidebars = [
                 permissions: [],
                 activeRoute: 'master.products.',
             },
-            {
-                type: 'item',
-                url: route('master.modifiers.index'),
-                label: 'Opsi Tambahan',
-                permissions: [],
-                activeRoute: 'master.modifiers.',
-            },
+            // {
+            //     type: 'item',
+            //     url: route('master.modifiers.index'),
+            //     label: 'Opsi Tambahan',
+            //     permissions: [],
+            //     activeRoute: 'master.modifiers.',
+            // },
         ],
     },
     {
@@ -124,13 +124,13 @@ export const mainSidebars = [
         permissions: [],
         activeRoute: 'inventories.',
         items: [
-            {
-                type: 'item',
-                url: route('inventory.raw-materials.index'),
-                label: 'Bahan Baku',
-                permissions: [],
-                activeRoute: 'inventory.raw-materials.',
-            },
+            // {
+            //     type: 'item',
+            //     url: route('inventory.raw-materials.index'),
+            //     label: 'Bahan Baku',
+            //     permissions: [],
+            //     activeRoute: 'inventory.raw-materials.',
+            // },
             {
                 type: 'item',
                 url: route('inventories.stocks.index'),

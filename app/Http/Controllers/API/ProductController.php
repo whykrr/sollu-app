@@ -15,9 +15,9 @@ class ProductController extends Controller
     public function search(Request $request)
     {
         $request->validate([
-            'query'     => 'nullable|string|min:3',
+            'query' => 'nullable|string|min:3',
             'outlet_id' => 'nullable|uuid',
-            'limit'     => 'nullable|integer|min:1|max:100',
+            'limit' => 'nullable|integer|min:1|max:100',
         ]);
 
         $limit = $request->query('limit', 20);
@@ -27,7 +27,7 @@ class ProductController extends Controller
             ->when($request->query('query'), function ($q, $search) {
                 $q->where(function ($query) use ($search) {
                     $query->whereLike('name', "%{$search}%")
-                          ->orWhereLike('code', "%{$search}%");
+                        ->orWhereLike('code', "%{$search}%");
                 });
             })
             ->when($request->query('outlet_id'), function ($q, $outletId) {

@@ -29,7 +29,6 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property \Illuminate\Support\Carbon|null $approved_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * 
  * @property-read \App\Models\Business $business
  * @property-read \App\Models\Outlet $outlet
  * @property-read \App\Models\User $creator
@@ -39,9 +38,9 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  */
 class StockAdjustment extends Model
 {
+    use HasBusiness;
     use HasFactory;
     use HasUuids;
-    use HasBusiness;
 
     protected $fillable = [
         'business_id',
@@ -58,8 +57,8 @@ class StockAdjustment extends Model
     protected function casts(): array
     {
         return [
-            'status'      => AdjustmentStatus::class,
-            'reason'      => AdjustmentReason::class,
+            'status' => AdjustmentStatus::class,
+            'reason' => AdjustmentReason::class,
             'approved_at' => 'datetime',
         ];
     }
@@ -100,9 +99,9 @@ class StockAdjustment extends Model
             $filters['search'] ?? false,
             function (Builder $q, $value) {
                 $q->where(function ($sub) use ($value) {
-                    $sub->where('adjustment_number', 'ilike', '%' . $value . '%')
+                    $sub->where('adjustment_number', 'ilike', '%'.$value.'%')
                         ->orWhereHas('items.inventoryItem', function ($itemQ) use ($value) {
-                            $itemQ->where('name', 'ilike', '%' . $value . '%');
+                            $itemQ->where('name', 'ilike', '%'.$value.'%');
                         });
                 });
             }

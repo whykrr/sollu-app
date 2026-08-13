@@ -56,31 +56,36 @@
             <template #actions="{ row }">
                 <div class="flex items-center gap-2 justify-end">
                     <!-- Dropdown Edit -->
-                    <div class="relative group">
-                        <button class="btn btn-flat btn-sm" title="Ubah Produk">
+                    <div class="relative">
+                        <button
+                            class="btn btn-flat btn-sm"
+                            title="Ubah Produk"
+                            @click.stop="toggleDropdown(row.id)"
+                        >
                             <FontAwesomeIcon :icon="faPencil" />
                         </button>
                         <div
-                            class="absolute right-0 top-8 bg-white border border-slate-200 shadow-lg rounded-lg py-1 z-10 w-48 hidden group-hover:block group-focus-within:block"
+                            v-if="activeDropdownId === row.id"
+                            class="absolute right-0 top-8 bg-white border border-slate-200 shadow-lg rounded-lg py-1 z-10 w-48"
                         >
                             <button
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                                @click="openEditBase(row)"
+                                @click="openEditBase(row); activeDropdownId = null"
                             >
                                 Ubah Info Dasar
                             </button>
                             <button
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                                @click="openEditPrice(row)"
+                                v-if="row.has_variant || row.track_inventory"
+                                @click="openEditInventory(row); activeDropdownId = null"
                             >
-                                Atur Harga & Outlet
+                                Setup Inventori
                             </button>
                             <button
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                                v-if="row.has_variant"
-                                @click="openEditVariant(row)"
+                                @click="openEditPrice(row); activeDropdownId = null"
                             >
-                                Atur Varian
+                                Atur Harga & Outlet
                             </button>
                         </div>
                     </div>
@@ -116,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref, watch, provide, computed } from 'vue';
+import { ref, watch, provide, computed, onMounted, onUnmounted } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import MainPage from '@/Components/UI/MainPage.vue';
 import Table from '@/Components/Tables/Table.vue';
@@ -134,7 +139,7 @@ import { debounce } from 'lodash';
 import ProductFilter from './Components/ProductFilter.vue';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import { usePopUpStore } from '@/store/popup';
-import CreateEdit from './CreateEdit.vue';
+import CreateEditWrapper from './CreateEditWrapper.vue';
 import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue';
 
 const popUpStore = usePopUpStore();
@@ -195,6 +200,23 @@ const headers = [
 
 const search = ref('');
 const showImportModal = ref(false);
+const activeDropdownId = ref(null);
+
+const toggleDropdown = (id) => {
+    activeDropdownId.value = activeDropdownId.value === id ? null : id;
+};
+
+const closeDropdown = () => {
+    activeDropdownId.value = null;
+};
+
+onMounted(() => {
+    window.addEventListener('click', closeDropdown);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('click', closeDropdown);
+});
 
 watch(
     search,
@@ -208,9 +230,7 @@ watch(
 );
 
 const getBasePrice = (product) => {
-    const price = product.prices?.find(
-        (p) => p.outlet_id === null && p.inventory_item_id === null,
-    );
+    const price = product.prices?.find((p) => !p.outlet_id);
     return price
         ? new Intl.NumberFormat('id-ID', {
               style: 'currency',
@@ -241,12 +261,14 @@ const openCreate = () => {
     popUpStore.open({
         title: 'Tambah Produk',
         size: 'xl',
-        component: CreateEdit,
+        component: CreateEditWrapper,
         props: {
             initialStep: 0,
             editMode: false,
             targetStepId: 'basic',
-            categories,
+            categories: page.props.rawCategories || page.props.categories || props.categories || [],
+            outlets: page.props.outlets || [],
+            uoms: page.props.uoms || [],
         },
     });
 };
@@ -255,12 +277,15 @@ const openEditBase = (row) => {
     popUpStore.open({
         title: 'Ubah Info Dasar',
         size: 'xl',
-        component: CreateEdit,
+        component: CreateEditWrapper,
         props: {
             initialStep: 0,
             editMode: true,
             targetStepId: 'basic',
             product: row,
+            categories: page.props.rawCategories || page.props.categories || props.categories || [],
+            outlets: page.props.outlets || [],
+            uoms: page.props.uoms || [],
         },
     });
 };
@@ -269,26 +294,32 @@ const openEditPrice = (row) => {
     popUpStore.open({
         title: 'Atur Harga & Outlet',
         size: 'xl',
-        component: CreateEdit,
+        component: CreateEditWrapper,
         props: {
             initialStep: 2,
             editMode: true,
             targetStepId: 'pricing',
             product: row,
+            categories: page.props.rawCategories || page.props.categories || props.categories || [],
+            outlets: page.props.outlets || [],
+            uoms: page.props.uoms || [],
         },
     });
 };
 
-const openEditVariant = (row) => {
+const openEditInventory = (row) => {
     popUpStore.open({
-        title: 'Atur Varian',
+        title: 'Setup Inventori',
         size: 'xl',
-        component: CreateEdit,
+        component: CreateEditWrapper,
         props: {
             initialStep: 1,
             editMode: true,
-            targetStepId: 'variant',
+            targetStepId: 'inventory',
             product: row,
+            categories: page.props.rawCategories || page.props.categories || props.categories || [],
+            outlets: page.props.outlets || [],
+            uoms: page.props.uoms || [],
         },
     });
 };

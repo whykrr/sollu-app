@@ -23,11 +23,11 @@ class StoreUserRequest extends BaseInertiaFormRequest
     public function rules(): array
     {
         return [
-            'name'      => 'required|max:200',
-            'email'     => 'required|email',
-            'phone'     => 'nullable|numeric',
-            'role'      => 'required',
-            'outlets'   => 'required|array',
+            'name' => 'required|max:200',
+            'email' => 'required|email',
+            'phone' => 'nullable|numeric',
+            'role' => 'required',
+            'outlets' => 'required|array',
             'outlets.*' => 'distinct|exists:outlets,id',
         ];
     }

@@ -16,20 +16,19 @@ use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 /**
- *
- *
  * @property-read Collection|Business $business
  * @property-read Collection|User[] $users
+ *
  * @mixin IdeHelperOutlet
  */
 class Outlet extends Model
 {
-    use HasFactory;
-    use HasUuids;
-    use HasSlug;
     use HasBusiness;
-    use SortableModel;
+    use HasFactory;
+    use HasSlug;
+    use HasUuids;
     use SoftDeletes;
+    use SortableModel;
 
     /**
      * The attributes that are mass assignable.
@@ -61,16 +60,14 @@ class Outlet extends Model
     protected function casts(): array
     {
         return [
-            'is_active'       => 'boolean',
-            'is_main_outlet'  => 'boolean',
+            'is_active' => 'boolean',
+            'is_main_outlet' => 'boolean',
             'is_stock_frozen' => 'boolean',
         ];
     }
 
     /**
      * Get the merchant that owns the Outlet
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function business(): BelongsTo
     {
@@ -79,8 +76,6 @@ class Outlet extends Model
 
     /**
      * The users that belong to the Outlet
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function users(): BelongsToMany
     {
@@ -89,8 +84,6 @@ class Outlet extends Model
 
     /**
      * Get the subscription outlets
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function subscriptionOutlets(): HasMany
     {
@@ -128,5 +121,4 @@ class Outlet extends Model
             ->generateSlugsFrom('name')
             ->saveSlugsTo('slug');
     }
-
 }

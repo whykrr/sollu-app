@@ -10,7 +10,6 @@ trait HasBusiness
     /**
      * Scope: currentBusiness
      *
-     * @param Builder $query
      * @return Builder
      */
     public function scopeCurrentBusiness(Builder $query)
@@ -19,11 +18,10 @@ trait HasBusiness
     }
 
     /**
-    * Scope: globalAndCurrentBusiness
-    *
-     * @param Builder $query
+     * Scope: globalAndCurrentBusiness
+     *
      * @return Builder
-    */
+     */
     public function scopeGlobalAndCurrentBusiness(Builder $query)
     {
         return $query->where(function (Builder $query) {

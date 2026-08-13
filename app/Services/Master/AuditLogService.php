@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 class AuditLogService
 {
-    public function log(string $businessId, string $entityType, string $entityId, string $action, array $before = null, array $after = null)
+    public function log(string $businessId, string $entityType, string $entityId, string $action, ?array $before = null, ?array $after = null)
     {
         DB::table('audit_logs')->insert([
             'id' => \Illuminate\Support\Str::uuid(),

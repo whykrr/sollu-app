@@ -157,7 +157,7 @@
                         v-model="rejectForm.notes"
                         label="Alasan Penolakan"
                         :class="{ 'is-invalid': rejectForm.errors.notes }"
-                        :feedback="rejectForm.errors.notes"
+                        :error="rejectForm.errors.notes"
                         required
                     />
                 </div>

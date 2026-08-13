@@ -2,6 +2,7 @@
 
 namespace App\Models\Inventory;
 
+use App\Enums\StockOpnameStatus;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -13,7 +14,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Enums\StockOpnameStatus;
 
 /**
  * @property-read Business $business
@@ -21,13 +21,14 @@ use App\Enums\StockOpnameStatus;
  * @property-read User|null $creator
  * @property-read User|null $approver
  * @property-read Collection|StockOpnameItem[] $items
+ *
  * @mixin \Eloquent
  */
 class StockOpname extends Model
 {
+    use HasBusiness;
     use HasFactory;
     use HasUuids;
-    use HasBusiness;
 
     protected $fillable = [
         'business_id',

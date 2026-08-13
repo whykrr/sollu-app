@@ -61,6 +61,7 @@ Standard pengembangan backend pada Sollu App menggunakan Laravel 11.9+ dan PHP 8
 - **DataTables & Pagination:**
   - Jangan load relasi berat pada `index()`; gunakan `withCount()` untuk jumlah data relasi.
   - Jika memerlukan *sorting* atau *filtering* pada kolom tabel relasi, gunakan `join()` atau `leftJoin()` di tingkat database untuk efisiensi memori.
+- **Offload Complex Detail & Secondary Data:** Sediakan endpoint API JSON (`JsonResource`) tersendiri untuk data detail kompleks (diakses via PopUpPage) atau data sekunder (opsi dropdown dinamis), dilarang di-load di Inertia `index()`.
 - **Large Datasets:** Gunakan `chunk()`, `lazy()`, atau `cursor()` untuk pengolahan data dalam jumlah besar.
 
 ## 6. API JSON Response Standards
@@ -68,6 +69,18 @@ Standard pengembangan backend pada Sollu App menggunakan Laravel 11.9+ dan PHP 8
 - **Key Format:** `snake_case`.
 - **Status Codes:** Mengacu pada standar HTTP (200, 201, 400, 404, 422, 500). Tidak menggunakan wrapper custom `"success": true`.
 - **Data & Meta:** Gunakan `JsonResource`. Bungkus koleksi data dalam `"data"` dan data paginasi dalam `"meta"`.
+- **Numeric & Decimal Casting (`(float)` / `(double)`):** Seluruh nilai desimal dan numerik (harga, stok, persentase, bobot) pada `JsonResource` atau respon API WAJIB di-cast ke tipe angka murni `(float)` atau `(double)`. Dilarang mengirimkan string berformat desimal (contoh salah: `"10.50"`), wajib dikirim sebagai angka murni (contoh benar: `10.5`).
+  ```php
+  public function toArray(Request $request): array
+  {
+      return [
+          'id'            => $this->id,
+          'name'          => $this->name,
+          'base_price'    => (float) $this->amount,
+          'current_stock' => (float) $this->current_stock,
+      ];
+  }
+  ```
 - **Validation Error (422):** Format default FormRequest (`"message"`, `"errors"`).
 
 ## 7. Controller Response Messages & Constants (MANDATORY)

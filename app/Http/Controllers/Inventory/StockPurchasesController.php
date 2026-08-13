@@ -10,7 +10,6 @@ use App\Http\Requests\Inventory\Purchase\UpdatePurchaseOrderRequest;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\PurchaseOrder;
 use App\Models\Inventory\Supplier;
-use App\Models\Outlet;
 use App\Models\Uom;
 use App\Services\Inventory\PurchaseOrderService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -38,13 +37,13 @@ class StockPurchasesController extends Controller
             ->withQueryString();
 
         $suppliers = Supplier::currentBusiness()->active()->select('id', 'name')->get();
-        $uoms      = Uom::select('id', 'name')->get();
+        $uoms = Uom::select('id', 'name')->get();
 
         return inertia('Inventory/Purchase/Index', [
             'purchases' => $purchases,
             'suppliers' => $suppliers,
-            'uoms'      => $uoms,
-            'filters'   => $request->only(['search', 'status', 'supplier_id', 'outlet_id', 'start_date', 'end_date']),
+            'uoms' => $uoms,
+            'filters' => $request->only(['search', 'status', 'supplier_id', 'outlet_id', 'start_date', 'end_date']),
         ]);
     }
 
@@ -61,7 +60,7 @@ class StockPurchasesController extends Controller
 
     public function searchItems(Request $request)
     {
-        $search     = $request->get('search');
+        $search = $request->get('search');
         $supplierId = $request->get('supplier_id');
 
         $items = InventoryItem::currentBusiness()
@@ -162,10 +161,10 @@ class StockPurchasesController extends Controller
         $business = $request->user()->business;
 
         $pdf = Pdf::loadView('pdf.purchase-order', [
-            'po'       => $po,
+            'po' => $po,
             'business' => $business,
         ]);
 
-        return $pdf->download('PO-' . $po->po_number . '.pdf');
+        return $pdf->download('PO-'.$po->po_number.'.pdf');
     }
 }

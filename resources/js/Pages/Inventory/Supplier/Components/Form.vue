@@ -6,7 +6,7 @@
                 v-model="form.name"
                 label="Nama Supplier"
                 :class="{ 'is-invalid': form.errors.name }"
-                :feedback="form.errors.name"
+                :error="form.errors.name"
                 required
             />
 
@@ -15,7 +15,7 @@
                 v-model="form.phone"
                 label="Nomor Telepon"
                 :class="{ 'is-invalid': form.errors.phone }"
-                :feedback="form.errors.phone"
+                :error="form.errors.phone"
             />
 
             <EmailField
@@ -23,7 +23,7 @@
                 v-model="form.email"
                 label="Email"
                 :class="{ 'is-invalid': form.errors.email }"
-                :feedback="form.errors.email"
+                :error="form.errors.email"
             />
 
             <TextareaField
@@ -31,7 +31,7 @@
                 v-model="form.address"
                 label="Alamat"
                 :class="{ 'is-invalid': form.errors.address }"
-                :feedback="form.errors.address"
+                :error="form.errors.address"
             />
 
             <TextareaField
@@ -39,7 +39,7 @@
                 v-model="form.notes"
                 label="Catatan"
                 :class="{ 'is-invalid': form.errors.notes }"
-                :feedback="form.errors.notes"
+                :error="form.errors.notes"
             />
 
             <div class="flex flex-col gap-1">

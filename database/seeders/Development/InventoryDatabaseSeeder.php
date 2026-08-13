@@ -30,30 +30,30 @@ class InventoryDatabaseSeeder extends Seeder
 
         // ── UOMs ─────────────────────────────────────────────────────
         $uomPcs = Uom::where('code', 'Pcs')->firstOrFail();
-        $uomKg  = Uom::where('code', 'Kg')->firstOrFail();
-        $uomL   = Uom::where('code', 'L')->firstOrFail();
-        $uomG   = Uom::where('code', 'G')->firstOrFail();
-        $uomMl  = Uom::where('code', 'Ml')->firstOrFail();
+        $uomKg = Uom::where('code', 'Kg')->firstOrFail();
+        $uomL = Uom::where('code', 'L')->firstOrFail();
+        $uomG = Uom::where('code', 'G')->firstOrFail();
+        $uomMl = Uom::where('code', 'Ml')->firstOrFail();
         $uomBox = Uom::where('code', 'Box')->firstOrFail();
 
         // ── Suppliers ────────────────────────────────────────────────
         $suppliers = [
             [
-                'name'    => 'PT Indofood Sukses Makmur',
-                'phone'   => '021-5795-8822',
-                'email'   => 'procurement@indofood.co.id',
+                'name' => 'PT Indofood Sukses Makmur',
+                'phone' => '021-5795-8822',
+                'email' => 'procurement@indofood.co.id',
                 'address' => 'Sudirman Plaza, Jakarta Selatan',
             ],
             [
-                'name'    => 'CV Sumber Rejeki',
-                'phone'   => '031-555-1234',
-                'email'   => 'order@sumberrejeki.com',
+                'name' => 'CV Sumber Rejeki',
+                'phone' => '031-555-1234',
+                'email' => 'order@sumberrejeki.com',
                 'address' => 'Jl. Raya Darmo No. 45, Surabaya',
             ],
             [
-                'name'    => 'PT Unilever Indonesia',
-                'phone'   => '021-526-2112',
-                'email'   => 'supply@unilever.co.id',
+                'name' => 'PT Unilever Indonesia',
+                'phone' => '021-526-2112',
+                'email' => 'supply@unilever.co.id',
                 'address' => 'Graha Unilever, BSD, Tangerang',
             ],
         ];
@@ -83,26 +83,26 @@ class InventoryDatabaseSeeder extends Seeder
             $item = InventoryItem::updateOrCreate(
                 ['business_id' => $business->id, 'sku' => $material['sku']],
                 [
-                    'business_id'     => $business->id,
-                    'name'            => $material['name_hint'],
-                    'item_type'       => 'raw_material',
-                    'sku'             => $material['sku'],
-                    'uom_id'          => $material['uom_id'],
+                    'business_id' => $business->id,
+                    'name' => $material['name_hint'],
+                    'item_type' => 'raw_material',
+                    'sku' => $material['sku'],
+                    'uom_id' => $material['uom_id'],
                     'track_inventory' => true,
-                    'minimum_stock'   => $material['minimum_stock'],
-                    'is_active'       => true,
+                    'minimum_stock' => $material['minimum_stock'],
+                    'is_active' => true,
                 ]
             );
 
             // Create balance for the outlet
             InventoryBalance::updateOrCreate(
                 [
-                    'outlet_id'         => $outlet->id,
+                    'outlet_id' => $outlet->id,
                     'inventory_item_id' => $item->id,
                 ],
                 [
-                    'business_id'   => $business->id,
-                    'outlet_id'     => $outlet->id,
+                    'business_id' => $business->id,
+                    'outlet_id' => $outlet->id,
                     'current_stock' => fake()->randomFloat(0, 0, $material['minimum_stock'] * 3),
                 ]
             );

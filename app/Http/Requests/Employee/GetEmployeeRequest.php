@@ -23,13 +23,13 @@ class GetEmployeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sort'       => 'nullable|in:name,email,created_at',
-            'direction'  => 'nullable|in:asc,desc',
-            'perpage'    => 'nullable|integer|min:1|max:100',
-            'search'     => 'nullable|string|max:255',
-            'role'       => 'nullable',
+            'sort' => 'nullable|in:name,email,created_at',
+            'direction' => 'nullable|in:asc,desc',
+            'perpage' => 'nullable|integer|min:1|max:100',
+            'search' => 'nullable|string|max:255',
+            'role' => 'nullable',
             'is_deleted' => 'nullable|boolean',
-            'outlet'     => 'nullable|exists:outlets,id',
+            'outlet' => 'nullable|exists:outlets,id',
         ];
     }
 }

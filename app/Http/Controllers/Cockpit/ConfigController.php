@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Cockpit;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ConfigController extends Controller

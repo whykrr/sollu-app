@@ -32,16 +32,16 @@ class CreateInvoiceSubscribeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'merchant_id'          => ['required'],
+            'merchant_id' => ['required'],
             'subscription_plan_id' => ['required'],
-            'subtotal'             => ['required'],
-            'add_ons'              => ['min:0'],
-            'tax'                  => ['required'],
-            'discount'             => ['required'],
-            'total'                => ['required'],
-            'note'                 => ['required'],
-            'start_date'           => ['required'],
-            'period_end'           => ['required'],
+            'subtotal' => ['required'],
+            'add_ons' => ['min:0'],
+            'tax' => ['required'],
+            'discount' => ['required'],
+            'total' => ['required'],
+            'note' => ['required'],
+            'start_date' => ['required'],
+            'period_end' => ['required'],
         ];
     }
 

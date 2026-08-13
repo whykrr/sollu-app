@@ -18,13 +18,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read Business $business
  * @property-read Collection|InventoryItem[] $inventoryItems
  * @property-read Collection|PurchaseOrder[] $purchaseOrders
+ *
  * @mixin \Eloquent
  */
 class Supplier extends Model
 {
+    use HasBusiness;
     use HasFactory;
     use HasUuids;
-    use HasBusiness;
     use SoftDeletes;
 
     protected $fillable = [

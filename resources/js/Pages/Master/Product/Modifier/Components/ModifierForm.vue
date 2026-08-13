@@ -5,7 +5,7 @@
                 <TextField
                     v-model="form.name"
                     label="Nama Grup Modifier"
-                    :feedback="form.errors.name"
+                    :error="form.errors.name"
                     required
                 />
                 <DropdownField
@@ -15,7 +15,7 @@
                         { label: 'Pilih Banyak (Multi)', value: 'multi' },
                     ]"
                     label="Tipe Pilihan"
-                    :feedback="form.errors.selection_type"
+                    :error="form.errors.selection_type"
                 />
                 <div class="flex items-center gap-2 mt-6">
                     <Switch
@@ -29,7 +29,7 @@
                     v-if="form.selection_type === 'multi'"
                     v-model="form.max_select"
                     label="Maksimal Pilih (Opsional)"
-                    :feedback="form.errors.max_select"
+                    :error="form.errors.max_select"
                 />
             </div>
 
@@ -81,10 +81,7 @@
                     </div>
                 </div>
             </div>
-            <div
-                v-if="form.errors.options"
-                class="text-red-500 text-sm mb-4"
-            >
+            <div v-if="form.errors.options" class="text-red-500 text-sm mb-4">
                 {{ form.errors.options }}
             </div>
         </form>

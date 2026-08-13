@@ -14,11 +14,12 @@ class LoginController extends Controller
     {
         return inertia('User/Login');
     }
+
     public function store(Request $request)
     {
         if (! Auth::attempt(
             $request->validate([
-                'email'    => ['required', 'email'],
+                'email' => ['required', 'email'],
                 'password' => ['required'],
             ]),
             $request->filled('remember')

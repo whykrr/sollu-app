@@ -15,9 +15,9 @@ class InventoryItemController extends Controller
     public function search(Request $request)
     {
         $request->validate([
-            'query'     => 'nullable|string|min:3',
+            'query' => 'nullable|string|min:3',
             'outlet_id' => 'nullable|uuid',
-            'limit'     => 'nullable|integer|min:1|max:100',
+            'limit' => 'nullable|integer|min:1|max:100',
         ]);
 
         $limit = $request->query('limit', 20);
@@ -57,7 +57,7 @@ class InventoryItemController extends Controller
     {
         $request->validate([
             'outlet_id' => 'nullable|uuid',
-            'limit'     => 'nullable|integer|min:1|max:100',
+            'limit' => 'nullable|integer|min:1|max:100',
         ]);
 
         $limit = $request->query('limit', 50);
@@ -76,6 +76,7 @@ class InventoryItemController extends Controller
             if ($request->query('outlet_id')) {
                 $item->current_stock = $item->balances->first()?->current_stock_formatted ?? 0;
             }
+
             return $item;
         });
 

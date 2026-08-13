@@ -27,8 +27,8 @@ class BillingController extends Controller
         $activeSubscription = $business->subscriptions()->with('plan')->where('status', 'active')->first();
 
         return inertia('Settings/Billing/Index', [
-            'subscription'  => $activeSubscription,
-            'invoices'      => $invoices->paginate($req->get('perpage', 20)),
+            'subscription' => $activeSubscription,
+            'invoices' => $invoices->paginate($req->get('perpage', 20)),
         ]);
     }
 
@@ -38,7 +38,7 @@ class BillingController extends Controller
             throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
         }
 
-        $business     = $req->user()->business;
+        $business = $req->user()->business;
         $subscription = $business->subscriptions()
             ->where('status', 'active')
             ->with(['plan'])
@@ -53,9 +53,9 @@ class BillingController extends Controller
         $plans = SubscriptionPlan::orderBy('price_per_outlet', 'asc')->get();
 
         return inertia('Settings/Billing/Plans', [
-            'subscription'  => $subscription,
-            'plans'         => $plans,
-            'invoice'       => $invoice,
+            'subscription' => $subscription,
+            'plans' => $plans,
+            'invoice' => $invoice,
         ]);
     }
 
@@ -65,7 +65,7 @@ class BillingController extends Controller
             throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
         }
 
-        $business     = $req->user()->business;
+        $business = $req->user()->business;
         $subscription = $business->subscriptions()
             ->where('status', 'active')
             ->with(['plan'])
@@ -86,7 +86,7 @@ class BillingController extends Controller
 
         return inertia('Settings/Billing/Checkout', [
             'subscription' => $subscription,
-            'plan'         => $plan,
+            'plan' => $plan,
         ]);
     }
 }

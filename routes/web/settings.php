@@ -26,7 +26,7 @@ Route::prefix('settings')
                 Route::post('/logo', [BusinessInfoController::class, 'saveLogo'])->name('detail.save.logo');
             });
 
-            Route::prefix('outlets')
+        Route::prefix('outlets')
             ->name('outlets.')
             ->group(function () {
                 Route::get('/', [OutletController::class, 'index'])->name('index');
@@ -41,7 +41,7 @@ Route::prefix('settings')
                 Route::prefix('{outlet}')->group(function () {
                     Route::put('settings', [\App\Http\Controllers\Settings\OutletSettingController::class, 'update'])->name('settings.update');
                     Route::put('operational-hours', [\App\Http\Controllers\Settings\OutletOperationalHourController::class, 'update'])->name('operational-hours.update');
-                    
+
                     Route::post('devices', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'store'])->name('devices.store');
                     Route::post('devices/{device}/generate-otp', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'generateOtp'])->name('devices.generate-otp');
                     Route::post('devices/{device}/unpair', [\App\Http\Controllers\Settings\OutletDeviceController::class, 'unpair'])->name('devices.unpair');
@@ -50,7 +50,7 @@ Route::prefix('settings')
                 });
             });
 
-        Route::middleware(['can:' . \App\Enums\PermissionEnum::BUSINESS_BILLING->value])->group(function () {
+        Route::middleware(['can:'.\App\Enums\PermissionEnum::BUSINESS_BILLING->value])->group(function () {
             Route::prefix('billing')
                 ->name('billing.')
                 ->group(function () {
@@ -72,7 +72,7 @@ Route::prefix('settings')
                 });
         });
 
-        Route::middleware(['can:' . \App\Enums\PermissionEnum::BUSINESS_SUBSCRIPTION->value])->group(function () {
+        Route::middleware(['can:'.\App\Enums\PermissionEnum::BUSINESS_SUBSCRIPTION->value])->group(function () {
             Route::prefix('subscriptions')
                 ->name('subscriptions.')
                 ->group(function () {

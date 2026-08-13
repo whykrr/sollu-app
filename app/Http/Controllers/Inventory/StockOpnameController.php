@@ -2,16 +2,13 @@
 
 namespace App\Http\Controllers\Inventory;
 
+use App\Enums\StockOpnameStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inventory\StockOpname\StoreStockOpnameRequest;
 use App\Http\Requests\Inventory\StockOpname\UpdateStockOpnameRequest;
-use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\StockOpname;
-use App\Models\Outlet;
 use App\Services\Inventory\StockOpnameService;
-use App\Services\Inventory\StockFreezeService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Enums\StockOpnameStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,8 +22,8 @@ class StockOpnameController extends Controller
         $this->authorize('inventory.opname.read');
 
         $businessId = Auth::user()->business_id;
-        $sort       = $request->query('sort', 'created_at');
-        $direction  = $request->query('direction', 'desc');
+        $sort = $request->query('sort', 'created_at');
+        $direction = $request->query('direction', 'desc');
 
         $filterKeys = ['search', 'status', 'outlet_id', 'date_from', 'date_to'];
 
@@ -42,10 +39,10 @@ class StockOpnameController extends Controller
         $showForm = $request->query('action') === 'create';
 
         return inertia('Inventory/StockOpname/Index', [
-            'opnames'  => $opnames,
-            'filters'  => [
+            'opnames' => $opnames,
+            'filters' => [
                 ...$request->only(['search', 'status', 'outlet_id', 'date_from', 'date_to']),
-                'sort'      => $sort,
+                'sort' => $sort,
                 'direction' => $direction,
             ],
             'showForm' => $showForm,
@@ -144,13 +141,11 @@ class StockOpnameController extends Controller
         $business = Auth::user()->business;
 
         $pdf = Pdf::loadView('pdf.inventory.stock-opname', [
-            'data'     => $opname,
+            'data' => $opname,
             'business' => $business,
-            'outlet'   => $opname->outlet,
+            'outlet' => $opname->outlet,
         ])->setPaper('a4', 'landscape');
 
-        return $pdf->download('Stock_Opname_' . $opname->opname_number . '.pdf');
+        return $pdf->download('Stock_Opname_'.$opname->opname_number.'.pdf');
     }
-
-
 }

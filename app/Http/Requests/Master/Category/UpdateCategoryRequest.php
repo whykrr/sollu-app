@@ -46,12 +46,14 @@ class UpdateCategoryRequest extends FormRequest
                 function ($attribute, $value, $fail) use ($categoryId) {
                     if ($value === $categoryId) {
                         $fail('Kategori tidak dapat menjadi induk untuk dirinya sendiri.');
+
                         return;
                     }
 
                     $parentCategory = ProductCategory::find($value);
                     if ($parentCategory && $parentCategory->parent_id !== null) {
                         $fail('Maksimal kedalaman kategori adalah 1 tingkat (Sub-kategori tidak boleh memiliki sub-kategori lagi).');
+
                         return;
                     }
 

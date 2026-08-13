@@ -1,23 +1,22 @@
 <?php
 
-
 if (! function_exists('generateBreadcrumbs')) {
     /**
-     * @param mixed $routeName
+     * @param  mixed  $routeName
      * @return mixed
      */
     function generateBreadcrumbs($routeName)
     {
         // Define base URLs for reusability
-        $overviewUrl               = route('overview');
-        $employeesIndexUrl         = route('employees.index');
-        $settingsOutletsUrl        = route('settings.outlets.index');
-        $settingsBillingUrl        = route('settings.billing.index');
+        $overviewUrl = route('overview');
+        $employeesIndexUrl = route('employees.index');
+        $settingsOutletsUrl = route('settings.outlets.index');
+        $settingsBillingUrl = route('settings.billing.index');
         $settingsAccountProfileUrl = route('settings.account.profile');
         $settingsBusinessDetailUrl = route('settings.business.detail');
-        $masterCategoriesUrl       = route('master.categories.index');
-        $masterModifiersUrl        = route('master.modifiers.index');
-        $masterProductsUrl         = route('master.products.index');
+        $masterCategoriesUrl = route('master.categories.index');
+        $masterModifiersUrl = route('master.modifiers.index');
+        $masterProductsUrl = route('master.products.index');
 
         $breadcrumbs = [
             'overview' => [

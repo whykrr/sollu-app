@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers\Inventory;
 
+use App\Constants\FlashDataVariable;
 use App\Http\Controllers\Controller;
+use App\Jobs\Inventory\ExportStockJob;
+use App\Jobs\Inventory\ImportStockJob;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryCostLayer;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
 use App\Models\Master\ProductCategory;
 use App\Models\Outlet;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Jobs\Inventory\ExportStockJob;
 
 class StockController extends Controller
 {
@@ -24,16 +26,11 @@ class StockController extends Controller
     public function index(Request $request)
     {
         $businessId = Auth::user()->business_id;
-        $outletId   = $request->get('outlet_id');
-
-        $outlets = Outlet::where('business_id', $businessId)
-            ->active()
-            ->select('id', 'name')
-            ->get();
+        $outletId = $request->get('outlet_id');
 
         // Summary Card
         $summary = [
-            'total_item'       => InventoryItem::where('business_id', $businessId)->where('is_active', true)->where('track_inventory', true)->count(),
+            'total_item' => InventoryItem::where('business_id', $businessId)->where('is_active', true)->where('track_inventory', true)->count(),
             'total_nilai_stok' => (int) InventoryCostLayer::whereHas('outlet', function ($q) use ($businessId) {
                 $q->where('business_id', $businessId);
             })->when($outletId, function ($q) use ($outletId) {
@@ -118,7 +115,7 @@ class StockController extends Controller
             $stockQuery->where('inventory_balances.current_stock', '>', 0);
         }
 
-        $sort      = $request->get('sort', 'inventory_items.name');
+        $sort = $request->get('sort', 'inventory_items.name');
         $direction = $request->get('direction', 'asc');
 
         $stocks = $stockQuery
@@ -129,6 +126,7 @@ class StockController extends Controller
             ->through(function ($item) {
                 // Menyuntikkan format minimum_stock agar terbaca di frontend tanpa mengubah model
                 $item->minimum_stock_formatted = $item->formatQuantity($item->minimum_stock);
+
                 return $item;
             });
 
@@ -138,12 +136,12 @@ class StockController extends Controller
             ->get();
 
         return inertia('Inventory/Stock/Index', [
-            'stocks'     => $stocks,
+            'stocks' => $stocks,
             'categories' => $categories,
-            'summary'    => $summary,
-            'filters'    => [
+            'summary' => $summary,
+            'filters' => [
                 ...$request->only(['search', 'outlet_id', 'item_type', 'category_id', 'stock_status', 'is_active_only', 'in_stock_only']),
-                'sort'      => $sort,
+                'sort' => $sort,
                 'direction' => $direction,
             ],
         ]);
@@ -187,21 +185,21 @@ class StockController extends Controller
         });
 
         $labels = [];
-        $data   = [];
+        $data = [];
         for ($i = 30; $i >= 0; $i--) {
-            $date     = now()->subDays($i)->format('Y-m-d');
+            $date = now()->subDays($i)->format('Y-m-d');
             $labels[] = $date;
-            $data[]   = $dailyData->get($date, 0);
+            $data[] = $dailyData->get($date, 0);
         }
 
         return response()->json([
-            'item'            => $item,
+            'item' => $item,
             'current_balance' => $balance,
-            'movements'       => $movements,
-            'chart'           => [
+            'movements' => $movements,
+            'chart' => [
                 'labels' => $labels,
-                'data'   => $data,
-            ]
+                'data' => $data,
+            ],
         ]);
     }
 
@@ -215,12 +213,12 @@ class StockController extends Controller
         ]);
 
         $item = InventoryItem::findOrFail($balance->inventory_item_id);
-        
+
         $exists = InventoryItem::where('business_id', Auth::user()->business_id)
             ->where('barcode', $request->barcode)
             ->where('id', '!=', $item->id)
             ->exists();
-            
+
         if ($exists) {
             return response()->json(['message' => 'Barcode sudah digunakan oleh produk lain.'], 422);
         }
@@ -228,6 +226,92 @@ class StockController extends Controller
         $item->update(['barcode' => $request->barcode]);
 
         return response()->json(['message' => 'Barcode berhasil diperbarui.', 'barcode' => $item->barcode]);
+    }
+
+    public function updateSku(Request $request, $id)
+    {
+        $balance = InventoryBalance::where('business_id', Auth::user()->business_id)
+            ->findOrFail($id);
+
+        $request->validate([
+            'sku' => 'required|string|max:100',
+        ]);
+
+        $item = InventoryItem::findOrFail($balance->inventory_item_id);
+
+        $exists = InventoryItem::where('business_id', Auth::user()->business_id)
+            ->where('sku', $request->sku)
+            ->where('id', '!=', $item->id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => 'SKU sudah digunakan oleh produk lain.'], 422);
+        }
+
+        $item->update(['sku' => $request->sku]);
+
+        return response()->json(['message' => 'SKU berhasil diperbarui.', 'sku' => $item->sku]);
+    }
+
+    public function importTemplate()
+    {
+        $headers = [
+            'Outlet',
+            'Nama',
+            'SKU',
+            'Barcode',
+            'Tipe Item',
+            'Kategori',
+            'Satuan',
+            'Minimum Stok',
+            'Stok Awal',
+            'Harga Beli',
+            'Stok Saat Ini',
+            'Status',
+        ];
+
+        $dummyData = [
+            'Outlet Utama',
+            'Contoh Produk A',
+            'SKU-001',
+            '8991234567890',
+            'Produk',
+            'Minuman',
+            'Cangkir',
+            '5',
+            '',
+            '',
+            '10',
+            'Aman',
+        ];
+
+        return response()->stream(function () use ($headers, $dummyData) {
+            $file = fopen('php://output', 'w');
+            fwrite($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($file, $headers);
+            fputcsv($file, $dummyData);
+            fclose($file);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="template_stok_inventori.csv"',
+        ]);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate(['file' => 'required|mimes:csv,txt|max:10240']);
+        $path = $request->file('file')->store('imports', 'local');
+
+        ImportStockJob::dispatch(
+            Auth::user(),
+            $path,
+            Auth::user()->business_id
+        );
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            'Proses impor stok CSV sedang berjalan di latar belakang. Notifikasi akan masuk jika sudah selesai.'
+        );
     }
 
     public function storeInitialStock(Request $request, $id)
@@ -279,10 +363,12 @@ class StockController extends Controller
             ]);
 
             DB::commit();
+
             return response()->json(['message' => 'Stok awal berhasil ditambahkan.']);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Gagal menambahkan stok awal: ' . $e->getMessage()], 500);
+
+            return response()->json(['message' => 'Gagal menambahkan stok awal: '.$e->getMessage()], 500);
         }
     }
 
@@ -296,7 +382,7 @@ class StockController extends Controller
         $item = InventoryItem::where('business_id', $businessId)
             ->with(['uom', 'product.category'])
             ->findOrFail($balance->inventory_item_id);
-            
+
         $outlet = Outlet::where('business_id', $businessId)->findOrFail($balance->outlet_id);
 
         $thirtyDaysAgo = now()->subDays(30);
@@ -314,7 +400,7 @@ class StockController extends Controller
             'business' => Auth::user()->business,
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->download('Riwayat_Mutasi_' . $item->sku . '_' . now()->format('Ymd') . '.pdf');
+        return $pdf->download('Riwayat_Mutasi_'.$item->sku.'_'.now()->format('Ymd').'.pdf');
     }
 
     public function exportCsv(Request $request)
@@ -331,7 +417,7 @@ class StockController extends Controller
     public function exportPdfList(Request $request)
     {
         $businessId = Auth::user()->business_id;
-        $outletId   = $request->get('outlet_id');
+        $outletId = $request->get('outlet_id');
 
         $stockQuery = InventoryBalance::query()
             ->where('inventory_balances.business_id', $businessId)
@@ -393,7 +479,7 @@ class StockController extends Controller
             $stockQuery->where('inventory_balances.current_stock', '>', 0);
         }
 
-        $sort      = $request->get('sort', 'inventory_items.name');
+        $sort = $request->get('sort', 'inventory_items.name');
         $direction = $request->get('direction', 'asc');
 
         $stocks = $stockQuery->orderBy($sort, $direction)->limit(1000)->get();
@@ -401,11 +487,11 @@ class StockController extends Controller
         $outlet = $outletId ? Outlet::where('business_id', $businessId)->find($outletId) : null;
 
         $pdf = Pdf::loadView('pdf.inventory.stock-list', [
-            'stocks'   => $stocks,
+            'stocks' => $stocks,
             'business' => Auth::user()->business,
-            'outlet'   => $outlet,
+            'outlet' => $outlet,
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->download('Laporan_Stok_' . now()->format('Ymd_His') . '.pdf');
+        return $pdf->download('Laporan_Stok_'.now()->format('Ymd_His').'.pdf');
     }
 }

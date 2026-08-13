@@ -56,8 +56,8 @@
                         </transition>
                     </div>
 
-                    <div v-if="currentStep === 1">
-                        <RadioButtonField
+                    <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2 mb-4" v-if="currentStep === 1">
+                        <SelectionGroupField
                             v-model="form.business_type_id"
                             name="business_type"
                             :options="business_types"
@@ -273,7 +273,10 @@ import {
     faStore,
     faUser,
 } from '@fortawesome/free-solid-svg-icons';
-import RadioButtonField from '@/Components/Form/RadioButtonField.vue';
+import PasswordField from '@/Components/Form/PasswordField.vue';
+import TextField from '@/Components/Form/TextField.vue';
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
+import NumberField from '@/Components/Form/NumberField.vue';
 
 const props = defineProps({
     business_types: Array,

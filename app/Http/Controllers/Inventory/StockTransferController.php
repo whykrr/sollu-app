@@ -10,7 +10,6 @@ use App\Http\Requests\Inventory\Transfer\UpdateStockTransferRequest;
 use App\Models\Inventory\StockTransfer;
 use App\Services\Inventory\StockTransferService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class StockTransferController extends Controller
 {
@@ -27,7 +26,7 @@ class StockTransferController extends Controller
             ->withCount('items');
 
         if ($request->filled('search')) {
-            $query->where('transfer_number', 'ilike', '%' . $request->search . '%');
+            $query->where('transfer_number', 'ilike', '%'.$request->search.'%');
         }
 
         if ($request->filled('status')) {
@@ -54,8 +53,8 @@ class StockTransferController extends Controller
 
         return inertia('Inventory/Transfer/Index', [
             'transfers' => $transfers,
-            'outlets'   => $outlets,
-            'filters'   => $request->only(['search', 'status', 'from_outlet_id', 'to_outlet_id', 'sort', 'direction']),
+            'outlets' => $outlets,
+            'filters' => $request->only(['search', 'status', 'from_outlet_id', 'to_outlet_id', 'sort', 'direction']),
         ]);
     }
 
@@ -71,16 +70,16 @@ class StockTransferController extends Controller
         $this->authorize(PermissionEnum::INVENTORY_TRANSFER_READ->value);
 
         $transfer->load([
-            'fromOutlet:id,name,is_stock_frozen', 
-            'toOutlet:id,name,is_stock_frozen', 
-            'requester:id,name', 
-            'approver:id,name', 
+            'fromOutlet:id,name,is_stock_frozen',
+            'toOutlet:id,name,is_stock_frozen',
+            'requester:id,name',
+            'approver:id,name',
             'receiver:id,name',
-            'items.inventoryItem.uom:id,name,code'
+            'items.inventoryItem.uom:id,name,code',
         ]);
 
         return response()->json([
-            'data' => $transfer
+            'data' => $transfer,
         ]);
     }
 
@@ -89,21 +88,21 @@ class StockTransferController extends Controller
         $this->authorize(PermissionEnum::INVENTORY_TRANSFER_READ->value);
 
         $transfer->load([
-            'fromOutlet', 
-            'toOutlet', 
-            'requester', 
-            'approver', 
+            'fromOutlet',
+            'toOutlet',
+            'requester',
+            'approver',
             'receiver',
-            'items.inventoryItem.uom'
+            'items.inventoryItem.uom',
         ]);
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.inventory.transfer-detail', [
-            'data'     => $transfer,
+            'data' => $transfer,
             'business' => auth()->user()->business,
-            'outlet'   => $transfer->fromOutlet,
+            'outlet' => $transfer->fromOutlet,
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->download('Transfer_Stok_' . $transfer->transfer_number . '.pdf');
+        return $pdf->download('Transfer_Stok_'.$transfer->transfer_number.'.pdf');
     }
 
     public function update(UpdateStockTransferRequest $request, StockTransfer $transfer)
@@ -125,7 +124,7 @@ class StockTransferController extends Controller
     public function reject(Request $request, StockTransfer $transfer)
     {
         $this->authorize(PermissionEnum::INVENTORY_TRANSFER_APPROVE->value);
-        
+
         $request->validate(['notes' => 'required|string']);
 
         $this->stockTransferService->rejectTransfer($transfer, $request->only('notes'), $request->user());

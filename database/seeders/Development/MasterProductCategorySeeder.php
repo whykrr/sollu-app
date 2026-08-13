@@ -11,7 +11,9 @@ class MasterProductCategorySeeder extends Seeder
     public function run(): void
     {
         $business = Business::where('email', 'sollu.mart@email.com')->first();
-        if (!$business) return;
+        if (! $business) {
+            return;
+        }
 
         $categories = [
             ['name' => 'Makanan Ringan'],

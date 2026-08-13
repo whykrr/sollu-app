@@ -23,8 +23,8 @@ class TransactionPayment extends Model
     protected function casts(): array
     {
         return [
-            'amount'        => 'decimal:4',
-            'change_amount' => 'decimal:4',
+            'amount' => 'float',
+            'change_amount' => 'float',
         ];
     }
 

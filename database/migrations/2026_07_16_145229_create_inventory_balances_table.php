@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreign('business_id')->references('id')->on('businesses')->cascadeOnDelete();
             $table->foreign('outlet_id')->references('id')->on('outlets')->cascadeOnDelete();
             $table->foreign('inventory_item_id')->references('id')->on('inventory_items')->cascadeOnDelete();
-            
+
             // One balance per item per outlet
             $table->unique(['outlet_id', 'inventory_item_id']);
         });

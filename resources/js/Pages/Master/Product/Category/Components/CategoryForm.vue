@@ -5,7 +5,7 @@
                 v-model="form.name"
                 label="Nama Kategori"
                 placeholder="Masukkan nama kategori"
-                :feedback="form.errors.name"
+                :error="form.errors.name"
                 required
             />
 
@@ -17,14 +17,14 @@
                 label="Kategori Induk (Opsional)"
                 :options="availableParentsFormatted"
                 placeholder="-- Tidak Ada (Kategori Utama) --"
-                :feedback="form.errors.parent_id"
+                :error="form.errors.parent_id"
             />
 
             <NumberField
                 v-model="form.sort_order"
                 label="Urutan (Opsional)"
                 placeholder="Contoh: 1"
-                :feedback="form.errors.sort_order"
+                :error="form.errors.sort_order"
             />
         </div>
 
@@ -104,7 +104,7 @@ watch(
             form.sort_order = '';
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 // Only root categories can be parents, and a category cannot be its own parent

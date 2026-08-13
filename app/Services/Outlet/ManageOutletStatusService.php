@@ -4,8 +4,8 @@ namespace App\Services\Outlet;
 
 use App\Helpers\SummaryUser;
 use App\Models\Outlet;
-use App\Models\User;
 use App\Models\OutletAuditLog;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class ManageOutletStatusService

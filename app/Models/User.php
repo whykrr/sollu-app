@@ -24,21 +24,22 @@ use Spatie\Permission\Traits\HasRoles;
 /**
  * @property-read Collection|Business $business
  * @property-read Collection|Outlet[] $outlets
+ *
  * @mixin HasRoles
  * @mixin IdeHelperUser
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasRoles;
+    use CanResetPassword;
+    use HasBusiness;
     use HasFactory;
+    use HasOutlet;
+    use HasRoles;
+    use HasUuids;
     use Notifiable;
     use SoftDeletes;
-    use HasUuids;
     use SoftDeletes;
-    use CanResetPassword;
     use SortableModel;
-    use HasBusiness;
-    use HasOutlet;
 
     /**
      * The attributes that are mass assignable.
@@ -81,19 +82,20 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'password'     => 'hashed',
-            'pin'          => 'hashed',
+            'password' => 'hashed',
+            'pin' => 'hashed',
             'is_root_user' => 'boolean',
         ];
     }
 
     /**
      * @return void
+     *
      * @throws BindingResolutionException
      */
     public function sendEmailVerificationNotification()
     {
-        $this->notify(new VerifyEmailBusiness());
+        $this->notify(new VerifyEmailBusiness);
     }
 
     public function sendPasswordResetNotification($token)
@@ -113,8 +115,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * The outlets that belong to the User
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function outlets(): BelongsToMany
     {

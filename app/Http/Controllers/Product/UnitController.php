@@ -45,7 +45,7 @@ class UnitController extends Controller
     {
         return inertia('Product/Unit/Form', [
             'returnTo' => url()->previous() != url()->current() ? url()->previous() : null,
-            'unit'     => $unit,
+            'unit' => $unit,
         ]);
     }
 

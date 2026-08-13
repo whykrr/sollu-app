@@ -14,7 +14,7 @@
                     placeholder="Masukkan nama outlet"
                     v-model="formOutlet.name"
                     :class="{ 'is-invalid': formOutlet.errors.name }"
-                    :feedback="formOutlet.errors.name"
+                    :error="formOutlet.errors.name"
                 />
             </div>
             <div class="col-span-1">
@@ -24,7 +24,7 @@
                     placeholder="08123456789"
                     v-model="formOutlet.phone"
                     :class="{ 'is-invalid': formOutlet.errors.phone }"
-                    :feedback="formOutlet.errors.phone"
+                    :error="formOutlet.errors.phone"
                 />
             </div>
             <div class="col-span-1">
@@ -34,7 +34,7 @@
                     placeholder="outlet@example.com"
                     v-model="formOutlet.email"
                     :class="{ 'is-invalid': formOutlet.errors.email }"
-                    :feedback="formOutlet.errors.email"
+                    :error="formOutlet.errors.email"
                 />
             </div>
             <div class="col-span-1 md:col-span-2">
@@ -43,7 +43,7 @@
                     placeholder="Masukkan alamat outlet lengkap"
                     v-model="formOutlet.address"
                     :class="{ 'is-invalid': formOutlet.errors.address }"
-                    :feedback="formOutlet.errors.address"
+                    :error="formOutlet.errors.address"
                     label="Alamat"
                     rows="4"
                 />
@@ -56,7 +56,7 @@
                     v-model="formOutlet.timezone"
                     :options="timezones"
                     :class="{ 'is-invalid': formOutlet.errors.timezone }"
-                    :feedback="formOutlet.errors.timezone"
+                    :error="formOutlet.errors.timezone"
                 />
             </div>
             <div class="col-span-1">
@@ -67,7 +67,7 @@
                     v-model="formOutlet.currency_code"
                     :options="currencies"
                     :class="{ 'is-invalid': formOutlet.errors.currency_code }"
-                    :feedback="formOutlet.errors.currency_code"
+                    :error="formOutlet.errors.currency_code"
                 />
             </div>
         </div>

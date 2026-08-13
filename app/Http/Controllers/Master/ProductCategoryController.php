@@ -42,7 +42,7 @@ class ProductCategoryController extends Controller
 
             return redirect()->back()->with('success', 'Kategori berhasil ditambahkan.');
         } catch (Exception $e) {
-            return redirect()->back()->with('failed', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->back()->with('failed', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
@@ -56,7 +56,7 @@ class ProductCategoryController extends Controller
 
             return redirect()->back()->with('success', 'Kategori berhasil diperbarui.');
         } catch (Exception $e) {
-            return redirect()->back()->with('failed', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->back()->with('failed', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
@@ -84,7 +84,7 @@ class ProductCategoryController extends Controller
 
             return response()->json(['success' => true, 'message' => 'Urutan berhasil diperbarui.']);
         } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 400);
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: '.$e->getMessage()], 400);
         }
     }
 }

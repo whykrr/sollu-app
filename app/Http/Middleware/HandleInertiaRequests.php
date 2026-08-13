@@ -46,12 +46,12 @@ class HandleInertiaRequests extends Middleware
         if ($request->routeIs('cockpit.*')) {
             return array_merge(parent::share($request), [
                 'app' => [
-                    'name'        => config('app.name'),
+                    'name' => config('app.name'),
                     'breadcrumbs' => generateBreadcrumbs($request->route()->getName()),
-                    'flash'       => [
+                    'flash' => [
                         'success' => $request->session()->get('success'),
-                        'failed'  => $request->session()->get('failed'),
-                        'info'    => $request->session()->get('info'),
+                        'failed' => $request->session()->get('failed'),
+                        'info' => $request->session()->get('info'),
                     ],
                 ],
                 'auth' => fn () => $request->user()
@@ -62,13 +62,13 @@ class HandleInertiaRequests extends Middleware
         } else {
             return array_merge(parent::share($request), [
                 'app' => [
-                    'name'        => config('app.name'),
+                    'name' => config('app.name'),
                     'breadcrumbs' => generateBreadcrumbs($request->route()->getName()),
-                    'flash'       => [
-                        'success'  => $request->session()->get('success'),
-                        'failed'   => $request->session()->get('failed'),
-                        'error'    => $request->session()->get('error'),
-                        'info'     => $request->session()->get('info'),
+                    'flash' => [
+                        'success' => $request->session()->get('success'),
+                        'failed' => $request->session()->get('failed'),
+                        'error' => $request->session()->get('error'),
+                        'info' => $request->session()->get('info'),
                         'otp_data' => $request->session()->get('otp_data'),
                     ],
                 ],
@@ -93,17 +93,17 @@ class HandleInertiaRequests extends Middleware
 
                     if ($subscription) {
                         $planData = [
-                            'plan'       => ['name' => $subscription->plan->name ?? 'Default Plan'],
+                            'plan' => ['name' => $subscription->plan->name ?? 'Default Plan'],
                             'expired_at' => $subscription->expired_at,
                         ];
                     } elseif ($isTrial) {
                         $planData = [
-                            'plan'       => ['name' => 'Trial Plan'],
+                            'plan' => ['name' => 'Trial Plan'],
                             'expired_at' => $business->trial_end_at,
                         ];
                     } else {
                         $planData = [
-                            'plan'       => ['name' => 'Free Plan'],
+                            'plan' => ['name' => 'Free Plan'],
                             'expired_at' => null,
                         ];
                     }

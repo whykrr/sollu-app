@@ -5,8 +5,8 @@ namespace App\Http\Controllers\API\POS;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\POS\ConnectDeviceRequest;
 use App\Models\OutletDevice;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DeviceController extends Controller
 {
@@ -15,17 +15,17 @@ class DeviceController extends Controller
         $otp = $request->validated('otp');
         $deviceUuid = $request->validated('device_uuid');
         $fingerprint = $request->validated('hardware_fingerprint');
-        
+
         $cacheKey = "device_otp_{$otp}";
         $deviceId = Cache::get($cacheKey);
 
-        if (!$deviceId) {
+        if (! $deviceId) {
             return $this->errorResponse('Kode OTP tidak valid atau sudah kadaluarsa.', [], 400);
         }
 
         $device = OutletDevice::with(['outlet.business'])->find($deviceId);
 
-        if (!$device) {
+        if (! $device) {
             return $this->errorResponse('Perangkat tidak ditemukan.', [], 404);
         }
 
@@ -65,7 +65,7 @@ class DeviceController extends Controller
             'business' => [
                 'id' => $device->outlet->business->id,
                 'name' => $device->outlet->business->name,
-            ]
+            ],
         ], 'Perangkat berhasil dihubungkan.');
     }
 

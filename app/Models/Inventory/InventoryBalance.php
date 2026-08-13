@@ -16,15 +16,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read Business $business
  * @property-read Outlet $outlet
  * @property-read InventoryItem $inventoryItem
+ *
  * @mixin \Eloquent
  */
 class InventoryBalance extends Model
 {
-    use HasQuantityFormatter;
-
-    use HasFactory;
-    use HasUuids;
     use HasBusiness;
+    use HasFactory;
+    use HasQuantityFormatter;
+    use HasUuids;
 
     protected $fillable = [
         'business_id',
@@ -40,7 +40,7 @@ class InventoryBalance extends Model
     protected function casts(): array
     {
         return [
-            'current_stock' => 'decimal:4',
+            'current_stock' => 'float',
         ];
     }
 

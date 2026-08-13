@@ -195,7 +195,7 @@
                 v-model="form.notes"
                 label="Alasan Penolakan (Wajib)"
                 :class="{ 'is-invalid': form.errors.notes }"
-                :feedback="form.errors.notes"
+                :error="form.errors.notes"
             />
         </div>
 

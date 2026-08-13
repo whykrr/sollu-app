@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\API\POS;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Services\Sales\TransactionService;
 use App\Http\Requests\API\POS\StorePosTransactionRequest;
+use App\Services\Sales\TransactionService;
 
 class TransactionController extends Controller
 {
@@ -19,12 +18,12 @@ class TransactionController extends Controller
     public function store(StorePosTransactionRequest $request)
     {
         $device = $request->user();
-        
+
         $transaction = $this->transactionService->syncOfflineTransaction($request->validated(), $device);
-        
+
         return $this->successResponse([
             'transaction_id' => $transaction->id,
-            'offline_id' => $transaction->offline_id
+            'offline_id' => $transaction->offline_id,
         ], 'Transaksi berhasil disinkronisasi');
     }
 }

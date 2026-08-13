@@ -29,7 +29,7 @@ class Payment extends Model
         return [
             'json_request' => 'json',
             'json_respond' => 'json',
-            'paid_at'      => 'datetime',
+            'paid_at' => 'datetime',
         ];
     }
 

@@ -29,11 +29,11 @@ class Shift extends Model
     protected function casts(): array
     {
         return [
-            'opening_cash'  => 'decimal:4',
-            'closing_cash'  => 'decimal:4',
-            'expected_cash' => 'decimal:4',
-            'total_sales'   => 'decimal:4',
-            'closed_at'     => 'datetime',
+            'opening_cash' => 'float',
+            'closing_cash' => 'float',
+            'expected_cash' => 'float',
+            'total_sales' => 'float',
+            'closed_at' => 'datetime',
         ];
     }
 
@@ -61,7 +61,7 @@ class Shift extends Model
     {
         $query->when($filters['search'] ?? null, function ($query, $search) {
             $query->whereHas('user', function ($query) use ($search) {
-                $query->where('name', 'like', '%' . $search . '%');
+                $query->where('name', 'like', '%'.$search.'%');
             });
         })->when($filters['status'] ?? null, function ($query, $status) {
             $query->where('status', $status);

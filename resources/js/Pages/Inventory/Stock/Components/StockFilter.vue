@@ -67,27 +67,50 @@
             </FilterBadge>
         </div>
         <div class="flex items-center gap-1.5">
+            <!-- Impor Button -->
             <button
                 type="button"
-                @click="exportCsv"
-                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
-                title="Ekspor CSV"
+                @click="showImportModal = true"
+                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white flex items-center gap-1.5"
+                title="Impor CSV"
             >
-                <FontAwesomeIcon
-                    :icon="faFileCsv"
-                    class="text-green-600 mr-1"
-                />
-                <span>Ekspor CSV</span>
+                <FontAwesomeIcon :icon="faUpload" class="text-blue-600" />
+                <span>Impor CSV</span>
             </button>
-            <button
-                type="button"
-                @click="exportPdf"
-                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
-                title="Ekspor PDF"
-            >
-                <FontAwesomeIcon :icon="faFilePdf" class="text-red-600 mr-1" />
-                <span>Ekspor PDF</span>
-            </button>
+
+            <!-- Export Dropdown -->
+            <div class="relative inline-block text-left">
+                <button
+                    type="button"
+                    @click="showExportDropdown = !showExportDropdown"
+                    class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white flex items-center gap-1.5"
+                >
+                    <FontAwesomeIcon :icon="faDownload" class="text-slate-600" />
+                    <span>Ekspor</span>
+                    <FontAwesomeIcon :icon="faChevronDown" class="text-xs text-slate-400" />
+                </button>
+                <div
+                    v-if="showExportDropdown"
+                    class="absolute right-0 mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-30"
+                >
+                    <button
+                        type="button"
+                        @click="exportPdf(); showExportDropdown = false"
+                        class="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                    >
+                        <FontAwesomeIcon :icon="faFilePdf" class="text-red-600" />
+                        <span>Ekspor PDF</span>
+                    </button>
+                    <button
+                        type="button"
+                        @click="exportCsv(); showExportDropdown = false"
+                        class="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                    >
+                        <FontAwesomeIcon :icon="faFileCsv" class="text-green-600" />
+                        <span>Ekspor CSV</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Filter Modal Overlay -->
@@ -185,6 +208,14 @@
                 </div>
             </div>
         </FilterModal>
+
+        <ImportCsvModal
+            :show="showImportModal"
+            module-name="Stok Inventori"
+            :template-url="route('inventories.stocks.import-template')"
+            :import-url="route('inventories.stocks.import')"
+            @close="showImportModal = false"
+        />
     </div>
 </template>
 
@@ -196,10 +227,14 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
 import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
+import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue';
 import {
     faSliders,
     faFileCsv,
     faFilePdf,
+    faDownload,
+    faUpload,
+    faChevronDown,
 } from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 
@@ -218,8 +253,10 @@ const filterForm = reactive({
     in_stock_only: props.filters?.in_stock_only ?? '',
 });
 
-// Modal State
+// Modal & Dropdown State
 const showFilterModal = ref(false);
+const showExportDropdown = ref(false);
+const showImportModal = ref(false);
 const tempFilters = reactive({
     outlet_id: '',
     item_type: '',

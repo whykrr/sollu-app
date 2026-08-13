@@ -15,22 +15,18 @@
                 v-model="form.name"
                 label="Nama Produk"
                 :class="{ 'is-invalid': form.errors.name }"
-                :feedback="form.errors.name"
+                :error="form.errors.name"
                 required
             />
-            <TextField
-                v-model="form.code"
-                label="Kode / SKU (Opsional)"
-                :class="{ 'is-invalid': form.errors.code }"
-                :feedback="form.errors.code"
-            />
-            <div class="col-span-2">
+
+            <div>
                 <DropdownField
                     v-model="form.product_category_id"
                     :options="categoryOptions"
                     label="Kategori"
+                    placeholder="Pilih Kategori"
                     :class="{ 'is-invalid': form.errors.product_category_id }"
-                    :feedback="form.errors.product_category_id"
+                    :error="form.errors.product_category_id"
                 />
             </div>
             <div class="col-span-2">
@@ -81,7 +77,7 @@
                         label="Satuan (UOM)"
                         placeholder="Pilih Satuan"
                         :class="{ 'is-invalid': form.errors.uom_id }"
-                        :feedback="form.errors.uom_id"
+                        :error="form.errors.uom_id"
                         required
                     />
                     <TextField
@@ -89,7 +85,7 @@
                         type="number"
                         label="Minimum Stok"
                         placeholder="0"
-                        :feedback="form.errors.min_stock"
+                        :error="form.errors.min_stock"
                     />
                 </div>
 
@@ -107,7 +103,8 @@
                         </div>
                     </div>
                     <input
-                        v-model="form.has_variant"
+                        :checked="form.has_variant"
+                        @change="handleVariantChange"
                         type="checkbox"
                         class="rounded h-5 w-5 text-primary cursor-pointer"
                     />
@@ -163,22 +160,17 @@
                     <div class="text-xs text-slate-500 mb-2">
                         Pilih outlet mana saja yang menjual produk ini.
                     </div>
-                    <div class="grid grid-cols-1 gap-2">
-                        <label
-                            v-for="outlet in outlets"
-                            :key="outlet.id"
-                            class="flex items-center justify-between p-2 rounded-lg bg-slate-50 hover:bg-slate-100 cursor-pointer"
-                        >
-                            <span
-                                class="text-sm font-semibold text-slate-700"
-                                >{{ outlet.name }}</span
-                            >
-                            <input
-                                v-model="outletStatusMap[outlet.id]"
-                                type="checkbox"
-                                class="rounded text-primary cursor-pointer h-4 w-4"
-                            />
-                        </label>
+                    <div
+                        class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
+                    >
+                        <SelectionGroupField
+                            v-model="selectedOutlets"
+                            multiple
+                            :options="formattedOutlets"
+                            name="outlet_ids"
+                            class="sm btn-sm"
+                            show-select-all
+                        />
                     </div>
                 </div>
             </div>
@@ -190,6 +182,7 @@
 import { inject, computed } from 'vue';
 import TextField from '@/Components/Form/TextField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
 import ProductImagesUploader from './ProductImagesUploader.vue';
 
 const form = inject('productForm');
@@ -197,6 +190,49 @@ const categories = inject('categories', []);
 const uoms = inject('uoms', []);
 const outlets = inject('outlets', []);
 const outletStatusMap = inject('outletStatusMap', {});
+const isEdit = inject('isEdit');
+const originalProduct = inject('originalProduct');
+
+const formattedOutlets = computed(() => {
+    return outlets.value.map((o) => ({
+        value: o.id,
+        label: o.name,
+    }));
+});
+
+const selectedOutlets = computed({
+    get: () => {
+        return Object.keys(outletStatusMap.value)
+            .filter((id) => outletStatusMap.value[id])
+            .map((id) => Number(id) || id);
+    },
+    set: (newVal) => {
+        outlets.value.forEach((o) => {
+            outletStatusMap.value[o.id] = false;
+        });
+        newVal.forEach((id) => {
+            outletStatusMap.value[id] = true;
+        });
+    },
+});
+
+const handleVariantChange = (e) => {
+    const isChecked = e.target.checked;
+    if (!isChecked && isEdit.value && originalProduct?.has_variant) {
+        if (
+            window.confirm(
+                'PERINGATAN: Menonaktifkan opsi ini akan menonaktifkan seluruh data varian produk sebelumnya (histori tidak dihapus). Apakah Anda yakin?',
+            )
+        ) {
+            form.has_variant = false;
+        } else {
+            e.target.checked = true;
+            form.has_variant = true;
+        }
+    } else {
+        form.has_variant = isChecked;
+    }
+};
 
 const categoryOptions = computed(() => {
     const raw =

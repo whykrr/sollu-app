@@ -28,6 +28,7 @@ class RegisterController extends Controller
         ]);
 
     }
+
     public function store(RegisterRequest $request)
     {
         DB::beginTransaction();
@@ -36,18 +37,18 @@ class RegisterController extends Controller
             $type = BusinessType::find($request->business_type_id);
 
             $business = Business::create([
-                'name'             => $request->name,
-                'owner_name'       => $request->owner_name,
-                'email'            => $request->email,
-                'phone'            => $request->phone,
-                'status'           => 'active',
+                'name' => $request->name,
+                'owner_name' => $request->owner_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'status' => 'active',
                 'business_type_id' => $request->business_type_id,
-                'settings'         => $type->default_settings,
-                'trial_end_at'     => now()->addDays(15),
+                'settings' => $type->default_settings,
+                'trial_end_at' => now()->addDays(15),
             ]);
 
             $outlet = $business->outlets()->create([
-                'name'           => $request->outlet_name,
+                'name' => $request->outlet_name,
                 'is_main_outlet' => true,
             ]);
 
@@ -55,10 +56,10 @@ class RegisterController extends Controller
              * @var User
              */
             $user = $business->users()->create([
-                'name'         => $request->owner_name,
-                'email'        => $request->email,
-                'phone'        => $request->phone,
-                'password'     => $request->password,
+                'name' => $request->owner_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => $request->password,
                 'is_root_user' => true,
             ]);
 

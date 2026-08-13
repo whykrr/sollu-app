@@ -2,17 +2,15 @@
 
 namespace App\Models\Master;
 
+use App\Models\Traits\HasQuantityFormatter;
 use App\Trait\SortableModel;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\Traits\HasQuantityFormatter;
-
 
 class ProductBundleItem extends Model
 {
     use HasQuantityFormatter;
-
     use HasUuids, SortableModel;
 
     protected $fillable = [
@@ -26,7 +24,6 @@ class ProductBundleItem extends Model
     protected $appends = [
         'qty_formatted',
     ];
-
 
     public function bundleProduct()
     {

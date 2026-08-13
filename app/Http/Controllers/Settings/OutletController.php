@@ -18,13 +18,12 @@ class OutletController extends Controller
         protected CreateOutletService $createOutletService,
         protected UpdateOutletService $updateOutletService,
         protected ManageOutletStatusService $manageStatusService
-    ) {
-    }
+    ) {}
 
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $req, Outlet $outlet = null)
+    public function index(Request $req, ?Outlet $outlet = null)
     {
         $outlets = fn () => Outlet::currentBusiness()
             ->sortable($req->get('sort', 'created_at'), $req->get('direction', 'asc'))
@@ -40,20 +39,20 @@ class OutletController extends Controller
             ]);
         }
 
-        $business            = $req->user()->business;
-        $maxOutlets          = $business->maxOutletsAllowed();
+        $business = $req->user()->business;
+        $maxOutlets = $business->maxOutletsAllowed();
         $currentOutletsCount = $business->outlets()->count();
-        $subscription        = $business->subscriptions()->with('plan')->where('status', 'active')->first();
-        $isTrial             = $business->trial_end_at ? \Carbon\Carbon::parse($business->trial_end_at)->isFuture() : false;
+        $subscription = $business->subscriptions()->with('plan')->where('status', 'active')->first();
+        $isTrial = $business->trial_end_at ? \Carbon\Carbon::parse($business->trial_end_at)->isFuture() : false;
 
         return inertia('Settings/Outlet/Index', [
             'outlets' => $outlets,
-            'params'  => $req->all(),
-            'outlet'  => fn () => $outlet,
-            'limit'   => [
-                'max'      => $maxOutlets,
-                'current'  => $currentOutletsCount,
-                'reached'  => $currentOutletsCount >= $maxOutlets,
+            'params' => $req->all(),
+            'outlet' => fn () => $outlet,
+            'limit' => [
+                'max' => $maxOutlets,
+                'current' => $currentOutletsCount,
+                'reached' => $currentOutletsCount >= $maxOutlets,
                 'is_trial' => $isTrial,
             ],
             'subscription' => $subscription,

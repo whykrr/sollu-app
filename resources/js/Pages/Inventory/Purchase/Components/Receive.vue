@@ -7,15 +7,15 @@
 
         <div class="border-t pt-2">
             <h3 class="text-lg font-semibold mb-2">
-                    Input Penerimaan & Konversi
-                </h3>
+                Input Penerimaan & Konversi
+            </h3>
 
-                <div
-                    v-if="form.items.length === 0"
-                    class="text-center py-4 text-gray-500 border rounded-lg"
-                >
-                    Data item tidak ditemukan.
-                </div>
+            <div
+                v-if="form.items.length === 0"
+                class="text-center py-4 text-gray-500 border rounded-lg"
+            >
+                Data item tidak ditemukan.
+            </div>
 
             <div v-else class="space-y-2">
                 <div
@@ -23,79 +23,73 @@
                     :key="index"
                     class="flex gap-2 items-center border p-3 rounded-lg"
                 >
-                        <div class="flex-1">
-                            <div class="font-semibold">{{ item.name }}</div>
-                            <div class="text-sm text-gray-500">
-                                Dipesan: {{ item.qty_ordered }}
-                                {{ item.uom_name }}
-                            </div>
-                            <div
-                                class="text-xs text-blue-600 mt-1"
-                                v-if="
-                                    item.uom_name &&
-                                    item.base_uom_name &&
-                                    item.uom_name !== item.base_uom_name
-                                "
-                            >
-                                Konversi: 1 {{ item.uom_name }} =
-                                {{ item.conversion_factor ?? '1' }}
-                                {{ item.base_uom_name }}
-                            </div>
+                    <div class="flex-1">
+                        <div class="font-semibold">{{ item.name }}</div>
+                        <div class="text-sm text-gray-500">
+                            Dipesan: {{ item.qty_ordered }}
+                            {{ item.uom_name }}
                         </div>
-                        <div class="w-32">
-                            <NumberField
-                                v-model="item.qty_ordered"
-                                label="Jml Diterima"
-                                class="sm"
-                                :class="{
-                                    'is-invalid':
-                                        form.errors[
-                                            `items.${index}.qty_received`
-                                        ],
-                                }"
-                                :feedback="
-                                    form.errors[`items.${index}.qty_received`]
-                                "
-                            />
+                        <div
+                            class="text-xs text-blue-600 mt-1"
+                            v-if="
+                                item.uom_name &&
+                                item.base_uom_name &&
+                                item.uom_name !== item.base_uom_name
+                            "
+                        >
+                            Konversi: 1 {{ item.uom_name }} =
+                            {{ item.conversion_factor ?? '1' }}
+                            {{ item.base_uom_name }}
                         </div>
-                        <div class="w-32">
-                            <NumberField
-                                v-model="item.conversion_factor"
-                                label="Faktor Konversi"
-                                min="1"
-                                class="sm"
-                                step="any"
-                                :class="{
-                                    'is-invalid':
-                                        form.errors[
-                                            `items.${index}.conversion_factor`
-                                        ],
-                                }"
-                                :feedback="
+                    </div>
+                    <div class="w-32">
+                        <NumberField
+                            v-model="item.qty_ordered"
+                            label="Jml Diterima"
+                            class="sm"
+                            :class="{
+                                'is-invalid':
+                                    form.errors[`items.${index}.qty_received`],
+                            }"
+                            :error="form.errors[`items.${index}.qty_received`]"
+                        />
+                    </div>
+                    <div class="w-32">
+                        <NumberField
+                            v-model="item.conversion_factor"
+                            label="Faktor Konversi"
+                            min="1"
+                            class="sm"
+                            step="any"
+                            :class="{
+                                'is-invalid':
                                     form.errors[
                                         `items.${index}.conversion_factor`
-                                    ]
-                                "
-                                title="Faktor pengali ke satuan inventori (contoh: 1 dus = 24 botol, isi 24)"
-                            />
-                        </div>
-                        <div class="w-32 pt-6 text-sm text-gray-700">
-                            Masuk Stok:
-                            <strong
-                                >{{
-                                    new Intl.NumberFormat('id-ID', {
-                                        maximumFractionDigits: 2,
-                                    }).format(
-                                        Number(item.qty_received || 0) *
-                                            Number(item.conversion_factor || 1),
-                                    )
-                                }}
-                                {{ item.base_uom_name }}</strong
-                            >
-                        </div>
+                                    ],
+                            }"
+                            :error="
+                                form.errors[`items.${index}.conversion_factor`]
+                            "
+                            title="Faktor pengali ke satuan inventori (contoh: 1 dus = 24 botol, isi 24)"
+                        />
+                    </div>
+                    <div class="w-32 pt-6 text-sm text-gray-700">
+                        Masuk Stok:
+                        <strong
+                            >{{
+                                new Intl.NumberFormat('id-ID', {
+                                    maximumFractionDigits: 2,
+                                }).format(
+                                    Number(item.qty_received || 0) *
+                                        Number(item.conversion_factor || 1),
+                                )
+                            }}
+                            {{ item.base_uom_name }}</strong
+                        >
                     </div>
                 </div>
             </div>
+        </div>
     </form>
 
     <Teleport v-if="isMounted" to="#popUpFooter">

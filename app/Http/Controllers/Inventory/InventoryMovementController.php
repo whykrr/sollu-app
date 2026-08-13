@@ -52,9 +52,9 @@ class InventoryMovementController extends Controller
 
         return inertia('Inventory/Movement/Index', [
             'movements' => $movements,
-            'outlets'   => $outlets,
-            'items'     => $items,
-            'filters'   => $request->only(['search', 'movement_type', 'outlet_id', 'date_from', 'date_to']),
+            'outlets' => $outlets,
+            'items' => $items,
+            'filters' => $request->only(['search', 'movement_type', 'outlet_id', 'date_from', 'date_to']),
         ]);
     }
 }

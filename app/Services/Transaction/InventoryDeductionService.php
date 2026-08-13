@@ -2,9 +2,9 @@
 
 namespace App\Services\Transaction;
 
-use App\Models\Sales\Transaction;
 use App\Models\Master\InventoryBalance;
 use App\Models\Master\InventoryMovement;
+use App\Models\Sales\Transaction;
 
 class InventoryDeductionService
 {

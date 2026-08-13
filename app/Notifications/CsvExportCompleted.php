@@ -11,8 +11,11 @@ class CsvExportCompleted extends Notification implements ShouldQueue
     use Queueable;
 
     public $moduleName;
+
     public $fileName;
+
     public $downloadUrl;
+
     public $expiresAt;
 
     /**
@@ -45,7 +48,7 @@ class CsvExportCompleted extends Notification implements ShouldQueue
     {
         return [
             'type' => 'success',
-            'title' => 'Ekspor ' . $this->moduleName . ' Selesai',
+            'title' => 'Ekspor '.$this->moduleName.' Selesai',
             'message' => 'File ekspor Anda sudah siap diunduh.',
             'action_url' => $this->downloadUrl,
             'action_text' => 'Unduh File',

@@ -44,7 +44,7 @@
                                 :class="{
                                     'is-invalid': business.errors.name,
                                 }"
-                                :feedback="business.errors.name"
+                                :error="business.errors.name"
                             />
                             <p
                                 class="text-xs leading-relaxed text-slate-400 mt-1.5"
@@ -63,7 +63,7 @@
                                 :class="{
                                     'is-invalid': business.errors.email,
                                 }"
-                                :feedback="business.errors.email"
+                                :error="business.errors.email"
                             />
                             <p
                                 class="text-xs leading-relaxed text-slate-400 mt-1.5"
@@ -82,7 +82,7 @@
                                 :class="{
                                     'is-invalid': business.errors.owner_name,
                                 }"
-                                :feedback="business.errors.owner_name"
+                                :error="business.errors.owner_name"
                             />
                         </div>
 
@@ -95,7 +95,7 @@
                                 :class="{
                                     'is-invalid': business.errors.phone,
                                 }"
-                                :feedback="business.errors.phone"
+                                :error="business.errors.phone"
                             />
                         </div>
 
@@ -110,7 +110,7 @@
                                 :class="{
                                     'is-invalid': business.errors.address,
                                 }"
-                                :feedback="business.errors.address"
+                                :error="business.errors.address"
                             />
                             <p
                                 class="text-xs leading-relaxed text-slate-400 mt-1.5"

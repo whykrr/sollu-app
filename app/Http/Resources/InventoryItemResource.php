@@ -15,20 +15,20 @@ class InventoryItemResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'              => $this->id,
-            'name'            => $this->name,
-            'sku'             => $this->sku,
-            'barcode'         => $this->barcode,
-            'item_type'       => $this->item_type,
+            'id' => $this->id,
+            'name' => $this->name,
+            'sku' => $this->sku,
+            'barcode' => $this->barcode,
+            'item_type' => $this->item_type,
             'track_inventory' => $this->track_inventory,
-            'is_active'       => $this->is_active,
-            'uom'             => $this->whenLoaded('uom', function () {
+            'is_active' => $this->is_active,
+            'uom' => $this->whenLoaded('uom', function () {
                 return [
-                    'id'   => $this->uom->id,
+                    'id' => $this->uom->id,
                     'name' => $this->uom->name,
                 ];
             }),
-            'current_stock'   => $this->when(isset($this->current_stock), $this->current_stock),
+            'current_stock' => $this->when(isset($this->current_stock), $this->current_stock),
         ];
     }
 }

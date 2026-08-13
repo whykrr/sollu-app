@@ -9,7 +9,6 @@ use Illuminate\Validation\Rule;
 /**
  * Class UserUpdateRequest
  *
- * @package App\Http\Requests
  *
  * @property-read User $user  The bound user model from route model binding.
  */
@@ -31,14 +30,14 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'  => 'required|max:200',
+            'name' => 'required|max:200',
             'email' => [
                 'required',
                 'email',
                 Rule::unique('users', 'email')->ignore($this->user)],
-            'phone'     => 'nullable|numeric',
-            'role'      => 'required',
-            'outlets'   => 'required|array',
+            'phone' => 'nullable|numeric',
+            'role' => 'required',
+            'outlets' => 'required|array',
             'outlets.*' => 'distinct|exists:outlets,id',
         ];
     }

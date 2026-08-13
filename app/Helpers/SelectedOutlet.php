@@ -6,8 +6,6 @@ use App\Models\Outlet;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * @package App\Helpers
- *
  * @property Outlet $cached
  * @property Outlet $change
  *
@@ -16,18 +14,19 @@ use Illuminate\Support\Facades\Cache;
 class SelectedOutlet
 {
     private $user;
+
     private $cache_key;
 
     public function __construct()
     {
-        $this->user      = request()->user();
+        $this->user = request()->user();
         $this->cache_key = "auth:user:{$this->user?->id}:selectedOutlet";
     }
 
     // static factory
     public static function make(): self
     {
-        return new self();
+        return new self;
     }
 
     public function cached()

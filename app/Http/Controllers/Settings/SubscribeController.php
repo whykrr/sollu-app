@@ -35,11 +35,11 @@ class SubscribeController extends Controller
                 ->subscription_plan_id;
         }
 
-        $plan    = SubscriptionPlan::find($plan_id);
+        $plan = SubscriptionPlan::find($plan_id);
         $outlets = Outlet::where('merchant_id', Auth::user()->merchant_id)->where('is_active', true)->get();
 
         return inertia('Settings/Billing/Subscribe', [
-            'plan'    => $plan,
+            'plan' => $plan,
             'outlets' => $outlets,
         ]);
     }
@@ -50,15 +50,15 @@ class SubscribeController extends Controller
         try {
             $subscription = Auth::user()->merchant->subscriptions()->create([
                 'subscription_plans_id' => $req->subscription_plan_id,
-                'start_date'            => $req->start_date,
-                'end_date'              => $req->period_end,
-                'is_active'             => false,
+                'start_date' => $req->start_date,
+                'end_date' => $req->period_end,
+                'is_active' => false,
             ]);
 
-            $invoice                           = new SubscriptionInvoice($req->validated());
-            $invoice->code                     = SubscriptionInvoice::generateCode();
-            $invoice->status                   = Status::Unpaid;
-            $invoice->due_date                 = Carbon::now()->addDay();
+            $invoice = new SubscriptionInvoice($req->validated());
+            $invoice->code = SubscriptionInvoice::generateCode();
+            $invoice->status = Status::Unpaid;
+            $invoice->due_date = Carbon::now()->addDay();
             $invoice->merchant_subscription_id = $subscription->id;
 
             $invoice->save();
@@ -77,6 +77,4 @@ class SubscribeController extends Controller
             ->route('merchant.invoices.show', $invoice->code)
             ->with('success', ResourceMessage::CREATE_SUCCESS);
     }
-
-
 }

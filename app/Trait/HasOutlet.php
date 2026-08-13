@@ -11,14 +11,13 @@ trait HasOutlet
     /**
      * Scope: selectedOutlet
      *
-     * @param Builder $query
-     * @param string|int $filter
+     * @param  string|int  $filter
      * @return Builder
      */
     public function scopeSelectedOutlet(Builder $query, $filter = null)
     {
         $selectedOutlet = SelectedOutlet::make()->get();
-        $userOutlets    = Auth::user()->outlets()->pluck('id');
+        $userOutlets = Auth::user()->outlets()->pluck('id');
 
         if ($selectedOutlet !== null) {
             return $query->whereHas('outlets', fn (Builder $q) => $q->where('outlets.id', $selectedOutlet->id));

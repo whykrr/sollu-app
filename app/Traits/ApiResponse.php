@@ -9,16 +9,13 @@ trait ApiResponse
     /**
      * Build a success response.
      *
-     * @param mixed $data
-     * @param string|null $message
-     * @param int $code
-     * @return JsonResponse
+     * @param  mixed  $data
      */
     public function successResponse($data = [], ?string $message = null, int $code = 200): JsonResponse
     {
         $response = [];
 
-        if (!empty($data) || is_array($data)) {
+        if (! empty($data) || is_array($data)) {
             $response['data'] = $data;
         }
 
@@ -31,11 +28,6 @@ trait ApiResponse
 
     /**
      * Build an error response.
-     *
-     * @param string $message
-     * @param array|int $errors
-     * @param int $code
-     * @return JsonResponse
      */
     public function errorResponse(string $message, array|int $errors = [], int $code = 400): JsonResponse
     {
@@ -48,7 +40,7 @@ trait ApiResponse
             'message' => $message,
         ];
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $response['errors'] = $errors;
         }
 
@@ -57,8 +49,6 @@ trait ApiResponse
 
     /**
      * Build a "No Content" response.
-     *
-     * @return JsonResponse
      */
     public function noContentResponse(): JsonResponse
     {

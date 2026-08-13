@@ -10,8 +10,7 @@ trait SortableModel
     /**
      * Scope: sortable
      *
-     * @param Builder $query
-     * @param Request|null $request
+     * @param  Request|null  $request
      * @return Builder
      */
     public function scopeSortable(Builder $query, $sort, $direction = 'asc')

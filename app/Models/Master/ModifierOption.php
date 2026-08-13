@@ -18,7 +18,7 @@ class ModifierOption extends Model
 
     protected $casts = [
         'is_default' => 'boolean',
-        'additional_price' => 'decimal:2',
+        'additional_price' => 'float',
     ];
 
     public function modifierGroup()

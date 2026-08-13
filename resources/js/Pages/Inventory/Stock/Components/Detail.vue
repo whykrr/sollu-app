@@ -38,7 +38,7 @@
                 </div>
             </div>
 
-            <!-- Barcode and Outlet Row -->
+            <!-- SKU, Barcode and Outlet Row -->
             <div
                 v-if="headerData"
                 class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center"
@@ -50,31 +50,50 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col items-end">
-                    <div
-                        class="text-xs text-gray-500 uppercase mb-1 flex items-center gap-2"
-                    >
-                        Barcode
-                        <button
-                            @click="openBarcodeModal"
-                            class="text-main hover:underline text-[10px]"
-                        >
-                            {{ headerData?.barcode ? 'Ubah' : 'Tambah' }}
-                        </button>
-                    </div>
-                    <div
-                        v-if="headerData?.barcode"
-                        class="bg-white p-2 rounded border"
-                    >
-                        <svg ref="barcodeRef"></svg>
-                        <div
-                            class="text-center text-xs font-mono tracking-widest mt-1"
-                        >
-                            {{ headerData.barcode }}
+                <div class="flex items-center gap-6">
+                    <!-- SKU Section -->
+                    <div class="flex flex-col items-end">
+                        <div class="text-xs text-gray-500 uppercase mb-1 flex items-center gap-2">
+                            SKU
+                            <button
+                                @click="openSkuModal"
+                                class="text-main hover:underline text-[10px]"
+                            >
+                                {{ headerData?.sku ? 'Ubah' : 'Tambah' }}
+                            </button>
+                        </div>
+                        <div class="font-mono text-sm font-semibold text-slate-800">
+                            {{ headerData?.sku || '-' }}
                         </div>
                     </div>
-                    <div v-else class="text-sm text-gray-400 italic py-2">
-                        Belum ada barcode
+
+                    <!-- Barcode Section -->
+                    <div class="flex flex-col items-end">
+                        <div
+                            class="text-xs text-gray-500 uppercase mb-1 flex items-center gap-2"
+                        >
+                            Barcode
+                            <button
+                                @click="openBarcodeModal"
+                                class="text-main hover:underline text-[10px]"
+                            >
+                                {{ headerData?.barcode ? 'Ubah' : 'Tambah' }}
+                            </button>
+                        </div>
+                        <div
+                            v-if="headerData?.barcode"
+                            class="bg-white p-2 rounded border"
+                        >
+                            <svg ref="barcodeRef"></svg>
+                            <div
+                                class="text-center text-xs font-mono tracking-widest mt-1"
+                            >
+                                {{ headerData.barcode }}
+                            </div>
+                        </div>
+                        <div v-else class="text-sm text-gray-400 italic py-2">
+                            Belum ada barcode
+                        </div>
                     </div>
                 </div>
             </div>
@@ -104,119 +123,27 @@
             </div>
         </div>
 
-        <div class="">
+        <div>
             <Tab
                 v-if="!loading && headerData"
                 :pages="tabPages"
                 :vertical="false"
             />
         </div>
-
-        <!-- Barcode Modal -->
     </div>
-    <Modal
-        :class="{ show: showBarcodeModal }"
-        title="Ubah Barcode"
-        @close="showBarcodeModal = false"
-    >
-        <div class="space-y-2">
-            <div>
-                <label class="block text-sm font-medium text-gray-700"
-                    >Barcode (Scan/Ketik)</label
-                >
-                <input
-                    type="text"
-                    v-model="barcodeInput"
-                    class="form block"
-                    placeholder="Arahkan kursor kesini dan scan..."
-                    @keyup.enter="saveBarcode"
-                    autofocus
-                />
-            </div>
-        </div>
-        <template #footer>
-            <div class="flex justify-end gap-2 w-full">
-                <button
-                    class="btn btn-outline-secondary"
-                    @click="showBarcodeModal = false"
-                >
-                    Batal
-                </button>
-                <button
-                    class="btn btn-main"
-                    :disabled="savingBarcode"
-                    @click="saveBarcode"
-                >
-                    {{ savingBarcode ? 'Menyimpan...' : 'Simpan' }}
-                </button>
-            </div>
-        </template>
-    </Modal>
-
-    <!-- Initial Stock Modal -->
-    <Modal
-        :class="{ show: showInitialStockModal }"
-        title="Input Stok Awal"
-        @close="showInitialStockModal = false"
-    >
-        <div class="space-y-2">
-            <div class="bg-blue-50 text-blue-800 p-3 rounded text-sm">
-                Fitur ini hanya digunakan untuk menginput stok pertama kali
-                untuk barang yang belum memiliki riwayat mutasi sama sekali.
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700"
-                    >Kuantitas (Qty)</label
-                >
-                <input
-                    type="number"
-                    step="0.01"
-                    v-model="initialStockForm.qty"
-                    class="form block"
-                    placeholder="0"
-                />
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700"
-                    >Harga Beli / HPP</label
-                >
-                <input
-                    type="number"
-                    step="0.01"
-                    v-model="initialStockForm.purchase_price"
-                    class="form block"
-                    placeholder="0"
-                />
-            </div>
-        </div>
-        <template #footer>
-            <div class="flex justify-end gap-2 w-full">
-                <button
-                    class="btn btn-outline-secondary"
-                    @click="showInitialStockModal = false"
-                >
-                    Batal
-                </button>
-                <button
-                    class="btn btn-main"
-                    :disabled="savingInitialStock"
-                    @click="saveInitialStock"
-                >
-                    {{
-                        savingInitialStock ? 'Menyimpan...' : 'Simpan Stok Awal'
-                    }}
-                </button>
-            </div>
-        </template>
-    </Modal>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, onMounted } from 'vue';
+import { ref, computed, nextTick, onMounted, markRaw } from 'vue';
 import Tab from '@/Components/UI/Tab.vue';
-import Modal from '@/Components/Notifications/Modal.vue';
 import axios from 'axios';
 import JsBarcode from 'jsbarcode';
+import { useModalStore } from '@/store/notification';
+
+// Modals
+import BarcodeFormModal from './Modals/BarcodeFormModal.vue';
+import SkuFormModal from './Modals/SkuFormModal.vue';
+import InitialStockFormModal from './Modals/InitialStockFormModal.vue';
 
 // Tabs Components
 import MovementTab from '../Tabs/MovementTab.vue';
@@ -231,11 +158,7 @@ const props = defineProps({
     item: Object,
 });
 
-const title = computed(() =>
-    props.item ? props.item.item_name : 'Detail Stok',
-);
-const subTitle = computed(() => (props.item ? props.item.sku : ''));
-
+const modalStore = useModalStore();
 const barcodeRef = ref(null);
 
 const loading = ref(false);
@@ -243,14 +166,6 @@ const headerData = ref(null);
 const currentBalanceData = ref(null);
 const movementsData = ref([]);
 const chartData = ref(null);
-
-const showBarcodeModal = ref(false);
-const barcodeInput = ref('');
-const savingBarcode = ref(false);
-
-const showInitialStockModal = ref(false);
-const initialStockForm = ref({ qty: '', purchase_price: '' });
-const savingInitialStock = ref(false);
 
 onMounted(() => {
     if (props.item) {
@@ -290,55 +205,41 @@ const fetchHeaderData = async () => {
 };
 
 const openBarcodeModal = () => {
-    barcodeInput.value = headerData.value?.barcode || '';
-    showBarcodeModal.value = true;
+    modalStore.open({
+        title: 'Ubah Barcode',
+        component: markRaw(BarcodeFormModal),
+        props: {
+            stockId: props.item.id,
+            initialBarcode: headerData.value?.barcode || '',
+        },
+        showFooter: false,
+        onConfirm: () => fetchHeaderData(),
+    });
 };
 
-const saveBarcode = async () => {
-    if (!barcodeInput.value) return;
-    savingBarcode.value = true;
-    try {
-        await axios.patch(
-            route('inventories.stocks.barcode.update', props.item.id),
-            {
-                barcode: barcodeInput.value,
-            },
-        );
-        showBarcodeModal.value = false;
-        fetchHeaderData();
-    } catch (error) {
-        console.error(error);
-        alert(error.response?.data?.message || 'Gagal menyimpan barcode');
-    } finally {
-        savingBarcode.value = false;
-    }
+const openSkuModal = () => {
+    modalStore.open({
+        title: 'Ubah SKU',
+        component: markRaw(SkuFormModal),
+        props: {
+            stockId: props.item.id,
+            initialSku: headerData.value?.sku || '',
+        },
+        showFooter: false,
+        onConfirm: () => fetchHeaderData(),
+    });
 };
 
 const openInitialStockModal = () => {
-    initialStockForm.value = { qty: '', purchase_price: '' };
-    showInitialStockModal.value = true;
-};
-
-const saveInitialStock = async () => {
-    if (!initialStockForm.value.qty || !initialStockForm.value.purchase_price)
-        return;
-    savingInitialStock.value = true;
-    try {
-        await axios.post(
-            route('inventories.stocks.initial-stock.store', props.item.id),
-            {
-                qty: initialStockForm.value.qty,
-                purchase_price: initialStockForm.value.purchase_price,
-            },
-        );
-        showInitialStockModal.value = false;
-        fetchHeaderData();
-    } catch (error) {
-        console.error(error);
-        alert(error.response?.data?.message || 'Gagal menyimpan stok awal');
-    } finally {
-        savingInitialStock.value = false;
-    }
+    modalStore.open({
+        title: 'Input Stok Awal',
+        component: markRaw(InitialStockFormModal),
+        props: {
+            stockId: props.item.id,
+        },
+        showFooter: false,
+        onConfirm: () => fetchHeaderData(),
+    });
 };
 
 const exportPdf = () => {
@@ -346,10 +247,6 @@ const exportPdf = () => {
         route('inventories.stocks.export.pdf', props.item.id),
         '_blank',
     );
-};
-
-const closeDetail = () => {
-    emit('close');
 };
 
 const tabPages = computed(() => {

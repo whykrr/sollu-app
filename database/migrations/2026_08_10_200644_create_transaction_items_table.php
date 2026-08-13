@@ -11,13 +11,13 @@ return new class extends Migration
         Schema::create('transaction_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('transaction_id');
-            $table->uuid('product_id')->nullable(); 
+            $table->uuid('product_id')->nullable();
             $table->uuid('variant_group_option_id')->nullable();
             $table->string('product_name');
             $table->decimal('price', 15, 4)->default(0);
             $table->decimal('qty', 15, 4)->default(0);
             $table->decimal('discount_amount', 15, 4)->default(0);
-            $table->decimal('subtotal', 15, 4)->default(0); 
+            $table->decimal('subtotal', 15, 4)->default(0);
             $table->text('notes')->nullable();
             $table->timestamps();
 

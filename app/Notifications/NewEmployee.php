@@ -36,10 +36,10 @@ class NewEmployee extends Notification
      */
     public function toMail(User $notifiable): MailMessage
     {
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject('Selamat Datang di Sollu App!')
             ->markdown('mail.employee.new', [
-                'user'            => $notifiable,
+                'user' => $notifiable,
                 'defaultPassword' => $this->password,
             ])
             ->action('Login Sekarang', route('login'));

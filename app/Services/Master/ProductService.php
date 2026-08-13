@@ -4,13 +4,13 @@ namespace App\Services\Master;
 
 use App\Models\Master\Product;
 use Illuminate\Support\Facades\DB;
-use App\Models\Master\VariantGroup;
-use App\Models\Master\VariantGroupOption;
 
 class ProductService
 {
     private AuditLogService $auditLogService;
+
     private InventoryService $inventoryService;
+
     private RecipeService $recipeService;
 
     public function __construct(
@@ -55,26 +55,41 @@ class ProductService
                 'purchasable' => $data['purchasable'] ?? false,
             ]);
 
+            $singleInvItem = null;
+            if ($product->product_type === 'basic' && ! $product->has_variant) {
+                // Single variant inventory item
+                $singleInvItem = $this->inventoryService->createVariantInventory([
+                    'business_id' => $product->business_id,
+                    'product_id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $data['code'] ?? null,
+                    'barcode' => $data['barcode'] ?? null,
+                    'track_inventory' => $product->track_inventory,
+                    'min_stock' => $data['min_stock'] ?? 0,
+                    'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
+                ]);
+            }
+
             // Base Price
             $product->prices()->create([
                 'outlet_id' => null,
-                'inventory_item_id' => null,
+                'inventory_item_id' => $singleInvItem ? $singleInvItem->id : null,
                 'amount' => $data['base_price'],
             ]);
 
             // Outlet Prices
-            if (!empty($data['outlet_prices'])) {
+            if (! empty($data['outlet_prices'])) {
                 foreach ($data['outlet_prices'] as $op) {
                     $product->prices()->create([
                         'outlet_id' => $op['outlet_id'],
-                        'inventory_item_id' => null,
+                        'inventory_item_id' => $singleInvItem ? $singleInvItem->id : null,
                         'amount' => $op['amount'],
                     ]);
                 }
             }
 
             // Outlets Assignment
-            if (!empty($data['outlets'])) {
+            if (! empty($data['outlets'])) {
                 $syncData = [];
                 foreach ($data['outlets'] as $out) {
                     $syncData[$out['outlet_id']] = [
@@ -86,7 +101,7 @@ class ProductService
             }
 
             // Variants
-            if ($product->product_type === 'basic' && $product->has_variant && !empty($data['variants'])) {
+            if ($product->product_type === 'basic' && $product->has_variant && ! empty($data['variants'])) {
                 $optionMap = []; // original option name to ID
                 foreach ($data['variants'] as $idx => $vData) {
                     $vg = $product->variantGroups()->create([
@@ -98,24 +113,24 @@ class ProductService
                             'name' => $oData['name'],
                             'sort_order' => $oIdx,
                         ]);
-                        $optionMap[$vData['name'] . ':' . $oData['name']] = $opt->id;
+                        $optionMap[$vData['name'].':'.$oData['name']] = $opt->id;
                     }
                 }
 
                 // Create Inventory Items for variant combinations
-                if (!empty($data['variant_combinations'])) {
+                if (! empty($data['variant_combinations'])) {
                     foreach ($data['variant_combinations'] as $combo) {
                         $optIds = [];
                         foreach ($combo['options'] as $groupName => $optName) {
-                            if (isset($optionMap[$groupName . ':' . $optName])) {
-                                $optIds[] = $optionMap[$groupName . ':' . $optName];
+                            if (isset($optionMap[$groupName.':'.$optName])) {
+                                $optIds[] = $optionMap[$groupName.':'.$optName];
                             }
                         }
 
                         $invItem = $this->inventoryService->createVariantInventory([
                             'business_id' => $product->business_id,
                             'product_id' => $product->id,
-                            'name' => $product->name . ' - ' . implode(' - ', $combo['options']),
+                            'name' => $product->name.' - '.implode(' - ', $combo['options']),
                             'sku' => $combo['sku'] ?? null,
                             'barcode' => $combo['barcode'] ?? null,
                             'track_inventory' => $product->track_inventory,
@@ -132,7 +147,7 @@ class ProductService
                             ]);
                         }
 
-                        if (!empty($combo['outlet_prices'])) {
+                        if (! empty($combo['outlet_prices'])) {
                             foreach ($combo['outlet_prices'] as $op) {
                                 $product->prices()->create([
                                     'outlet_id' => $op['outlet_id'],
@@ -143,27 +158,15 @@ class ProductService
                         }
                     }
                 }
-            } elseif ($product->product_type === 'basic') {
-                // Single variant inventory item
-                $this->inventoryService->createVariantInventory([
-                    'business_id' => $product->business_id,
-                    'product_id' => $product->id,
-                    'name' => $product->name,
-                    'sku' => $data['code'] ?? null,
-                    'barcode' => null,
-                    'track_inventory' => $product->track_inventory,
-                    'min_stock' => $data['min_stock'] ?? 0,
-                    'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
-                ]);
             }
 
             // Recipe
-            if ($product->product_type === 'basic' && $product->has_recipe && !empty($data['recipes'])) {
+            if ($product->product_type === 'basic' && $product->has_recipe && ! empty($data['recipes'])) {
                 $this->recipeService->syncRecipe($product, $data['recipes']);
             }
 
             // Bundle
-            if ($product->product_type === 'bundle' && !empty($data['bundle_items'])) {
+            if ($product->product_type === 'bundle' && ! empty($data['bundle_items'])) {
                 foreach ($data['bundle_items'] as $idx => $bi) {
                     $product->bundleItems()->create([
                         'component_product_id' => $bi['component_product_id'],
@@ -175,7 +178,7 @@ class ProductService
             }
 
             // Modifiers
-            if ($product->has_modifier && !empty($data['modifier_groups'])) {
+            if ($product->has_modifier && ! empty($data['modifier_groups'])) {
                 $modIds = array_column($data['modifier_groups'], 'modifier_group_id');
                 $product->modifierGroups()->sync($modIds);
             }
@@ -215,7 +218,7 @@ class ProductService
                 'has_modifier' => $data['has_modifier'] ?? $product->has_modifier,
                 'has_recipe' => $data['has_recipe'] ?? $product->has_recipe,
                 'track_inventory' => $data['track_inventory'] ?? $product->track_inventory,
-                'code' => $data['code'] ?? $product->code,
+                'code' => array_key_exists('code', $data) ? $data['code'] : $product->code,
                 'name' => $data['name'] ?? $product->name,
                 'description' => $data['description'] ?? $product->description,
                 'image_url' => $data['image_url'] ?? $product->image_url,
@@ -224,22 +227,71 @@ class ProductService
                 'purchasable' => $data['purchasable'] ?? $product->purchasable,
             ]);
 
+            $singleInvItem = null;
+            if ($product->product_type === 'basic' && ! $product->has_variant) {
+                // Fetch all variant inventory items
+                $invItems = \App\Models\Master\InventoryItem::where('product_id', $product->id)
+                    ->where('item_type', 'variant_sku')
+                    ->get();
+
+                if ($invItems->count() > 0) {
+                    $singleInvItem = $invItems->first();
+                    $singleInvItem->update([
+                        'name' => $product->name,
+                        'sku' => $data['code'] ?? null,
+                        'barcode' => $data['barcode'] ?? null,
+                        'track_inventory' => $product->track_inventory,
+                        'min_stock' => $data['min_stock'] ?? 0,
+                        'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
+                        'is_active' => true,
+                    ]);
+
+                    if ($singleInvItem->track_inventory) {
+                        $this->inventoryService->syncInventoryBalances($singleInvItem);
+                    }
+
+                    // Deactivate others
+                    if ($invItems->count() > 1) {
+                        $invItems->where('id', '!=', $singleInvItem->id)->each(function ($item) {
+                            $item->update(['is_active' => false]);
+                        });
+                    }
+                } else {
+                    $singleInvItem = $this->inventoryService->createVariantInventory([
+                        'business_id' => $product->business_id,
+                        'product_id' => $product->id,
+                        'name' => $product->name,
+                        'sku' => $data['code'] ?? null,
+                        'barcode' => $data['barcode'] ?? null,
+                        'track_inventory' => $product->track_inventory,
+                        'min_stock' => $data['min_stock'] ?? 0,
+                        'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
+                    ]);
+                }
+            }
+
             // Price updates
             if (isset($data['base_price'])) {
                 $product->prices()->whereNull('outlet_id')->whereNull('inventory_item_id')->delete();
+                if ($singleInvItem) {
+                    $product->prices()->whereNull('outlet_id')->where('inventory_item_id', $singleInvItem->id)->delete();
+                }
                 $product->prices()->create([
                     'outlet_id' => null,
-                    'inventory_item_id' => null,
+                    'inventory_item_id' => $singleInvItem ? $singleInvItem->id : null,
                     'amount' => $data['base_price'],
                 ]);
             }
 
             if (isset($data['outlet_prices'])) {
                 $product->prices()->whereNotNull('outlet_id')->whereNull('inventory_item_id')->delete();
+                if ($singleInvItem) {
+                    $product->prices()->whereNotNull('outlet_id')->where('inventory_item_id', $singleInvItem->id)->delete();
+                }
                 foreach ($data['outlet_prices'] as $op) {
                     $product->prices()->create([
                         'outlet_id' => $op['outlet_id'],
-                        'inventory_item_id' => null,
+                        'inventory_item_id' => $singleInvItem ? $singleInvItem->id : null,
                         'amount' => $op['amount'],
                     ]);
                 }
@@ -268,7 +320,7 @@ class ProductService
                     );
                     $vg->update(['sort_order' => $idx]);
                     $currentGroupIds[] = $vg->id;
-                    
+
                     $currentOptionIds = [];
                     foreach ($vData['options'] as $oIdx => $oData) {
                         $opt = $vg->options()->firstOrCreate(
@@ -277,7 +329,7 @@ class ProductService
                         );
                         $opt->update(['sort_order' => $oIdx]);
                         $currentOptionIds[] = $opt->id;
-                        $optionMap[$vData['name'] . ':' . $oData['name']] = $opt->id;
+                        $optionMap[$vData['name'].':'.$oData['name']] = $opt->id;
                     }
                     $vg->options()->whereNotIn('id', $currentOptionIds)->delete();
                 }
@@ -287,23 +339,23 @@ class ProductService
                     foreach ($data['variant_combinations'] as $combo) {
                         $optIds = [];
                         foreach ($combo['options'] as $groupName => $optName) {
-                            if (isset($optionMap[$groupName . ':' . $optName])) {
-                                $optIds[] = $optionMap[$groupName . ':' . $optName];
+                            if (isset($optionMap[$groupName.':'.$optName])) {
+                                $optIds[] = $optionMap[$groupName.':'.$optName];
                             }
                         }
 
                         $invItem = null;
-                        if (!empty($combo['sku'])) {
+                        if (! empty($combo['sku'])) {
                             $invItem = \App\Models\Master\InventoryItem::where('product_id', $product->id)
                                 ->where('sku', $combo['sku'])
                                 ->first();
                         }
-                        
-                        if (!$invItem) {
+
+                        if (! $invItem) {
                             $invItem = $this->inventoryService->createVariantInventory([
                                 'business_id' => $product->business_id,
                                 'product_id' => $product->id,
-                                'name' => $product->name . ' - ' . implode(' - ', $combo['options']),
+                                'name' => $product->name.' - '.implode(' - ', $combo['options']),
                                 'sku' => $combo['sku'] ?? null,
                                 'barcode' => $combo['barcode'] ?? null,
                                 'track_inventory' => $product->track_inventory,
@@ -313,13 +365,18 @@ class ProductService
                             ]);
                         } else {
                             $invItem->update([
-                                'name'            => $product->name . ' - ' . implode(' - ', $combo['options']),
-                                'barcode'         => $combo['barcode'] ?? $invItem->barcode,
+                                'name' => $product->name.' - '.implode(' - ', $combo['options']),
+                                'sku' => array_key_exists('sku', $combo) ? $combo['sku'] : $invItem->sku,
+                                'barcode' => array_key_exists('barcode', $combo) ? $combo['barcode'] : $invItem->barcode,
                                 'track_inventory' => $product->track_inventory,
-                                'min_stock'       => $combo['min_stock'] ?? $invItem->min_stock,
-                                'uom_id'          => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
+                                'min_stock' => $combo['min_stock'] ?? $invItem->min_stock,
+                                'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
                             ]);
                             $invItem->variantGroupOptions()->sync($optIds);
+                        }
+
+                        if ($invItem->track_inventory) {
+                            $this->inventoryService->syncInventoryBalances($invItem);
                         }
 
                         if (isset($combo['price'])) {
@@ -335,7 +392,7 @@ class ProductService
                         }
 
                         $product->prices()->where('inventory_item_id', $invItem->id)->whereNotNull('outlet_id')->delete();
-                        if (!empty($combo['outlet_prices'])) {
+                        if (! empty($combo['outlet_prices'])) {
                             foreach ($combo['outlet_prices'] as $op) {
                                 $product->prices()->create([
                                     'outlet_id' => $op['outlet_id'],
@@ -346,31 +403,9 @@ class ProductService
                         }
                     }
                 }
-            } elseif ($product->product_type === 'basic' && !$product->has_variant) {
+            } elseif ($product->product_type === 'basic' && ! $product->has_variant) {
                 $product->variantGroups()->delete();
 
-                // Update or create single variant inventory item
-                $invItem = \App\Models\Master\InventoryItem::where('product_id', $product->id)
-                    ->where('item_type', 'variant_sku')
-                    ->first();
-                if ($invItem) {
-                    $invItem->update([
-                        'name'            => $product->name,
-                        'track_inventory' => $product->track_inventory,
-                        'uom_id'          => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
-                    ]);
-                } else {
-                    $this->inventoryService->createVariantInventory([
-                        'business_id'     => $product->business_id,
-                        'product_id'      => $product->id,
-                        'name'            => $product->name,
-                        'sku'             => $product->code ?? null,
-                        'barcode'         => null,
-                        'track_inventory' => $product->track_inventory,
-                        'min_stock'       => $data['min_stock'] ?? 0,
-                        'uom_id'          => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
-                    ]);
-                }
             } elseif ($product->product_type !== 'basic') {
                 $product->variantGroups()->delete();
             }
@@ -379,7 +414,7 @@ class ProductService
             if ($product->has_modifier && isset($data['modifier_groups'])) {
                 $modIds = array_column($data['modifier_groups'], 'modifier_group_id');
                 $product->modifierGroups()->sync($modIds);
-            } elseif (!$product->has_modifier) {
+            } elseif (! $product->has_modifier) {
                 $product->modifierGroups()->sync([]);
             }
 
@@ -422,7 +457,7 @@ class ProductService
 
         foreach ($images as $idx => $img) {
             $imageUrl = $img['image_url'] ?? null;
-            
+
             // Check if there is an uploaded file
             if (isset($img['image_file']) && $img['image_file'] instanceof \Illuminate\Http\UploadedFile) {
                 $imageUrl = $img['image_file']->store('products');

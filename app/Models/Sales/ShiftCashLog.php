@@ -21,7 +21,7 @@ class ShiftCashLog extends Model
     protected function casts(): array
     {
         return [
-            'amount' => 'decimal:4',
+            'amount' => 'float',
         ];
     }
 

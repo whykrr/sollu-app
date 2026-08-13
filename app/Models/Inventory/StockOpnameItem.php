@@ -2,24 +2,23 @@
 
 namespace App\Models\Inventory;
 
+use App\Models\Traits\HasQuantityFormatter;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\Traits\HasQuantityFormatter;
-
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property-read StockOpname $stockOpname
  * @property-read InventoryItem $inventoryItem
+ *
  * @mixin \Eloquent
  */
 class StockOpnameItem extends Model
 {
-    use HasQuantityFormatter;
-
     use HasFactory;
+    use HasQuantityFormatter;
     use HasUuids;
 
     public $timestamps = false;
@@ -32,7 +31,7 @@ class StockOpnameItem extends Model
         'difference_qty',
     ];
 
-        protected $appends = [
+    protected $appends = [
         'system_qty_formatted',
         'actual_qty_formatted',
         'difference_qty_formatted',
@@ -41,9 +40,9 @@ class StockOpnameItem extends Model
     protected function casts(): array
     {
         return [
-            'system_qty'     => 'decimal:4',
-            'actual_qty'     => 'decimal:4',
-            'difference_qty' => 'decimal:4',
+            'system_qty' => 'float',
+            'actual_qty' => 'float',
+            'difference_qty' => 'float',
         ];
     }
 
@@ -65,12 +64,14 @@ class StockOpnameItem extends Model
             get: fn () => $this->formatQuantity($this->system_qty),
         );
     }
+
     protected function actualQtyFormatted(): Attribute
     {
         return Attribute::make(
             get: fn () => $this->formatQuantity($this->actual_qty),
         );
     }
+
     protected function differenceQtyFormatted(): Attribute
     {
         return Attribute::make(

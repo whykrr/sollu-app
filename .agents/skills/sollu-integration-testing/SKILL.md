@@ -2,7 +2,8 @@
 name: sollu-integration-testing
 description: >-
   End-to-End (E2E) and browser integration testing guidelines using Web MCP tools (browsermcp).
-  MUST trigger whenever verifying user flows, testing Inertia page interactions, filling forms, testing PopUpPage drawers,
+  MUST trigger whenever creating, editing, or modifying Vue components, Inertia page layouts,
+  verifying user flows, testing Inertia page interactions, filling forms, testing PopUpPage drawers,
   capturing screenshots, auditing DOM snapshots, or inspecting browser console logs in Sollu App.
 ---
 
@@ -25,8 +26,8 @@ Sebelum melakukan pengujian browser via MCP tools:
    Panggil `browser_navigate` dengan `url: "http://localhost:8000/login"`.
 2. **Isi Form Kredensial:**
    Gunakan `browser_type` pada selector email/password:
-   - Email field: `browser_type({ element: "input[type='email']", refIndex: ..., text: "owner@sollu.com" })`
-   - Password field: `browser_type({ element: "input[type='password']", refIndex: ..., text: "password" })`
+   - Email field: `browser_type({ element: "textbox 'Email'", ref: ..., text: "sollu.mart@email.com" })`
+   - Password field: `browser_type({ element: "textbox 'Kata Sandi'", ref: ..., text: "password" })`
 3. **Submit Login:**
    Panggil `browser_click` pada tombol login (`button[type='submit']`).
 

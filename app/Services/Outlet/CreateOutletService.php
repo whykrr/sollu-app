@@ -16,15 +16,15 @@ class CreateOutletService
     public function execute(array $data, User $user): array
     {
         return DB::transaction(function () use ($data, $user) {
-            $outlet                = new Outlet();
-            $outlet->business_id   = $user->business_id;
-            $outlet->name          = $data['name'];
-            $outlet->address       = $data['address']       ?? null;
-            $outlet->phone         = $data['phone']         ?? null;
-            $outlet->email         = $data['email']         ?? null;
-            $outlet->timezone      = $data['timezone']      ?? 'Asia/Jakarta';
+            $outlet = new Outlet;
+            $outlet->business_id = $user->business_id;
+            $outlet->name = $data['name'];
+            $outlet->address = $data['address'] ?? null;
+            $outlet->phone = $data['phone'] ?? null;
+            $outlet->email = $data['email'] ?? null;
+            $outlet->timezone = $data['timezone'] ?? 'Asia/Jakarta';
             $outlet->currency_code = $data['currency_code'] ?? 'IDR';
-            $outlet->is_active     = false;
+            $outlet->is_active = false;
             $outlet->save();
 
             // Assign to current user if root, or find root user
@@ -40,9 +40,9 @@ class CreateOutletService
             // Audit log
             OutletAuditLog::create([
                 'outlet_id' => $outlet->id,
-                'user_id'   => $user->id,
-                'action'    => 'created',
-                'metadata'  => ['data' => $data],
+                'user_id' => $user->id,
+                'action' => 'created',
+                'metadata' => ['data' => $data],
             ]);
 
             SummaryUser::cacheDelete();

@@ -6,7 +6,7 @@
                 v-model="form.base_price"
                 label="Harga Dasar Produk"
                 :class="{ 'is-invalid': form.errors.base_price }"
-                :feedback="form.errors.base_price"
+                :error="form.errors.base_price"
                 required
             />
         </div>

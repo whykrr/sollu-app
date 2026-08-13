@@ -32,14 +32,14 @@ class MerchantTest extends TestCase
     {
         $this->seed(V1_0_Seeder::class);
         $response = $this->post('/register', [
-            'name'                  => 'PizzaHub',
-            'owner_name'            => 'Samuel',
-            'outlet_name'           => 'PizzaHub Jakarta',
-            'email'                 => 'pizzahub.fnb@gmail.com',
-            'phone'                 => '6282123444676',
-            'address'               => 'Jakarta',
-            'merchant_type_id'      => 1,
-            'password'              => 'password',
+            'name' => 'PizzaHub',
+            'owner_name' => 'Samuel',
+            'outlet_name' => 'PizzaHub Jakarta',
+            'email' => 'pizzahub.fnb@gmail.com',
+            'phone' => '6282123444676',
+            'address' => 'Jakarta',
+            'merchant_type_id' => 1,
+            'password' => 'password',
             'password_confirmation' => 'password',
         ]);
 
@@ -57,7 +57,7 @@ class MerchantTest extends TestCase
         $this->assertNotNull($user);
 
         $response = $this->post('/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'password',
         ]);
 
@@ -72,7 +72,7 @@ class MerchantTest extends TestCase
         $user = \App\Models\User::first();
 
         $response = $this->post('/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'wrongPassword',
         ]);
 

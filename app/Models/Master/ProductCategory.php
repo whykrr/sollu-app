@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductCategory extends Model
 {
-    use HasUuids, HasBusiness, SortableModel, SoftDeletes;
+    use HasBusiness, HasUuids, SoftDeletes, SortableModel;
 
     protected $fillable = [
         'business_id',

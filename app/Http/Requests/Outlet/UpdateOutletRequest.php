@@ -24,7 +24,7 @@ class UpdateOutletRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'    => ['required', 'string', 'max:255', Rule::unique('outlets')->ignore($this->outlet->id)->where('business_id', Auth::user()->business_id)],
+            'name' => ['required', 'string', 'max:255', Rule::unique('outlets')->ignore($this->outlet->id)->where('business_id', Auth::user()->business_id)],
             'address' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],

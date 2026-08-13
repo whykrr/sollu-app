@@ -41,8 +41,8 @@ class RawMaterialController extends Controller
 
         return inertia('Inventory/RawMaterial/Index', [
             'rawMaterials' => $rawMaterials,
-            'uoms'         => $uoms,
-            'filters'      => $request->only(['search', 'track_inventory', 'sort', 'direction']),
+            'uoms' => $uoms,
+            'filters' => $request->only(['search', 'track_inventory', 'sort', 'direction']),
         ]);
     }
 
@@ -76,7 +76,7 @@ class RawMaterialController extends Controller
         $item = InventoryItem::currentBusiness()->findOrFail($id);
 
         $hasMovements = $item->movements()->exists();
-        $hasStock     = $item->balances()->where('current_stock', '>', 0)->exists();
+        $hasStock = $item->balances()->where('current_stock', '>', 0)->exists();
 
         if ($hasMovements || $hasStock) {
             $item->update(['is_active' => false]);
@@ -130,14 +130,14 @@ class RawMaterialController extends Controller
 
         $callback = function () use ($headers, $dummyData) {
             $file = fopen('php://output', 'w');
-            fputs($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // Write BOM
+            fwrite($file, chr(0xEF).chr(0xBB).chr(0xBF)); // Write BOM
             fputcsv($file, $headers);
             fputcsv($file, $dummyData);
             fclose($file);
         };
 
         return response()->stream($callback, 200, [
-            'Content-Type'        => 'text/csv',
+            'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="bahan_baku_template.csv"',
         ]);
     }

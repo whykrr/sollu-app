@@ -23,28 +23,28 @@ class SubscriptionPlanSeeder extends Seeder
 
         $plans = [
             [
-                'code'                    => 'micro',
-                'name'                    => 'Paket Mikro',
-                'price_per_outlet'        => 59000,
-                'max_outlet'              => 3,
+                'code' => 'micro',
+                'name' => 'Paket Mikro',
+                'price_per_outlet' => 59000,
+                'max_outlet' => 3,
                 'yearly_discount_percent' => 20,
-                'features'                => $features,
+                'features' => $features,
             ],
             [
-                'code'                    => 'basic',
-                'name'                    => 'Paket Basic',
-                'price_per_outlet'        => 129000,
-                'max_outlet'              => 10,
+                'code' => 'basic',
+                'name' => 'Paket Basic',
+                'price_per_outlet' => 129000,
+                'max_outlet' => 10,
                 'yearly_discount_percent' => 20,
-                'features'                => $features,
+                'features' => $features,
             ],
             [
-                'code'                    => 'pro',
-                'name'                    => 'Paket Pro',
-                'price_per_outlet'        => 299000,
-                'max_outlet'              => 99,
+                'code' => 'pro',
+                'name' => 'Paket Pro',
+                'price_per_outlet' => 299000,
+                'max_outlet' => 99,
                 'yearly_discount_percent' => 20,
-                'features'                => $features,
+                'features' => $features,
             ],
         ];
 

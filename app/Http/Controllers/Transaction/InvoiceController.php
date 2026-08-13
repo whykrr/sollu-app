@@ -29,7 +29,7 @@ class InvoiceController extends Controller
 
         return Inertia::render('Transaction/Invoice/Index', [
             'invoices' => $invoices,
-            'filters'  => $request->only(['search']),
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -49,7 +49,7 @@ class InvoiceController extends Controller
 
         return Inertia::render('Transaction/Invoice/Create', [
             'customers' => $customers,
-            'outlets'   => $outlets,
+            'outlets' => $outlets,
         ]);
     }
 
@@ -58,21 +58,21 @@ class InvoiceController extends Controller
         $this->authorize('transaction.create');
 
         $validated = $request->validate([
-            'outlet_id'               => 'required|uuid',
-            'customer_id'             => 'required|uuid',
-            'due_date'                => 'required|date',
-            'items'                   => 'required|array|min:1',
-            'items.*.product_id'      => 'required|uuid',
-            'items.*.product_name'    => 'required|string',
-            'items.*.price'           => 'required|numeric|min:0',
-            'items.*.qty'             => 'required|numeric|min:0.01',
+            'outlet_id' => 'required|uuid',
+            'customer_id' => 'required|uuid',
+            'due_date' => 'required|date',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|uuid',
+            'items.*.product_name' => 'required|string',
+            'items.*.price' => 'required|numeric|min:0',
+            'items.*.qty' => 'required|numeric|min:0.01',
             'items.*.discount_amount' => 'nullable|numeric|min:0',
-            'items.*.subtotal'        => 'required|numeric|min:0',
-            'subtotal'                => 'required|numeric|min:0',
-            'tax_amount'              => 'nullable|numeric|min:0',
-            'discount_amount'         => 'nullable|numeric|min:0',
-            'service_charge_amount'   => 'nullable|numeric|min:0',
-            'total'                   => 'required|numeric|min:0',
+            'items.*.subtotal' => 'required|numeric|min:0',
+            'subtotal' => 'required|numeric|min:0',
+            'tax_amount' => 'nullable|numeric|min:0',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'service_charge_amount' => 'nullable|numeric|min:0',
+            'total' => 'required|numeric|min:0',
         ]);
 
         $this->transactionService->createB2bInvoice($validated, auth()->user());

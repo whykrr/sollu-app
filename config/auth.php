@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard'     => env('AUTH_GUARD', 'business'),
+        'guard' => env('AUTH_GUARD', 'business'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
@@ -37,11 +37,11 @@ return [
 
     'guards' => [
         'business' => [
-            'driver'   => 'session',
+            'driver' => 'session',
             'provider' => 'users',
         ],
         'cockpit' => [
-            'driver'   => 'session',
+            'driver' => 'session',
             'provider' => 'internal_users',
         ],
     ],
@@ -66,12 +66,12 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent_redis',
-            'model'  => env('AUTH_MODEL', App\Models\User::class),
+            'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
 
         'internal_users' => [
             'driver' => 'eloquent',
-            'model'  => env('AUTH_MODEL_INTERNAL', App\Models\CockpitUser::class),
+            'model' => env('AUTH_MODEL_INTERNAL', App\Models\CockpitUser::class),
         ],
 
         // 'users' => [
@@ -102,15 +102,15 @@ return [
     'passwords' => [
         'users' => [
             'provider' => 'users',
-            'table'    => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
-            'expire'   => 60,
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
             'throttle' => 60,
         ],
 
         'internal_users' => [
             'provider' => 'users',
-            'table'    => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
-            'expire'   => 60,
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
             'throttle' => 60,
         ],
     ],

@@ -36,6 +36,7 @@ class ModifierService
             }
 
             $this->auditLogService->log($group->business_id, 'modifier_group', $group->id, 'created', null, $group->load('options')->toArray());
+
             return $group;
         });
     }
@@ -62,6 +63,7 @@ class ModifierService
             }
 
             $this->auditLogService->log($group->business_id, 'modifier_group', $group->id, 'updated', null, $group->load('options')->toArray());
+
             return $group;
         });
     }

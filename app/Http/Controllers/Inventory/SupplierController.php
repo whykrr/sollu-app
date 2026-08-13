@@ -33,8 +33,8 @@ class SupplierController extends Controller
 
         return inertia('Inventory/Supplier/Index', [
             'suppliers' => $suppliers,
-            'filters'   => [
-                'search'    => $validated['search']    ?? '',
+            'filters' => [
+                'search' => $validated['search'] ?? '',
                 'is_active' => $validated['is_active'] ?? '',
             ],
         ]);
@@ -63,7 +63,7 @@ class SupplierController extends Controller
      */
     public function store(StoreSupplierRequest $request)
     {
-        $validated                = $request->validated();
+        $validated = $request->validated();
         $validated['business_id'] = Auth::user()->business_id;
 
         $supplier = Supplier::create($validated);
@@ -80,7 +80,7 @@ class SupplierController extends Controller
      */
     public function update(UpdateSupplierRequest $request, string $id)
     {
-        $supplier  = Supplier::currentBusiness()->findOrFail($id);
+        $supplier = Supplier::currentBusiness()->findOrFail($id);
         $validated = $request->validated();
 
         $supplier->update($validated);

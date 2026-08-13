@@ -41,8 +41,8 @@ class ForgotPasswordController extends Controller
     public function doReset(Request $request)
     {
         $request->validate([
-            'token'    => 'required',
-            'email'    => 'required|email|exists:users,email',
+            'token' => 'required',
+            'email' => 'required|email|exists:users,email',
             'password' => 'required|min:8|confirmed',
         ]);
 

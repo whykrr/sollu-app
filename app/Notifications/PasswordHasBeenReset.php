@@ -34,9 +34,9 @@ class PasswordHasBeenReset extends Notification
      */
     public function toMail($notifiable): MailMessage
     {
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject('Kata Sandi Anda Berhasil Diperbarui')
-            ->greeting('Halo ' . $notifiable->name)
+            ->greeting('Halo '.$notifiable->name)
             ->line('Kami ingin memberitahu bahwa kata sandi akun Anda telah berhasil diperbarui.')
             ->line('Jika Anda merasa tidak melakukan perubahan ini, segera hubungi tim dukungan kami.')
             ->action('Masuk ke Aplikasi', route('login'))

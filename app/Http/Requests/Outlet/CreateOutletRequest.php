@@ -36,7 +36,7 @@ class CreateOutletRequest extends FormRequest
                     if ($business && $business->outlets()->count() >= $business->maxOutletsAllowed()) {
                         $fail('Batas maksimum outlet untuk paket langganan Anda telah tercapai. Harap upgrade paket Anda.');
                     }
-                }
+                },
             ],
             'address' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:50'],

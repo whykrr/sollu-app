@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasUuids;
     use HasBusiness;
-    use SortableModel;
+    use HasUuids;
     use SoftDeletes;
+    use SortableModel;
 
     protected $fillable = [
         'business_id',
@@ -35,13 +35,13 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'has_variant'     => 'boolean',
-        'has_modifier'    => 'boolean',
-        'has_recipe'      => 'boolean',
+        'has_variant' => 'boolean',
+        'has_modifier' => 'boolean',
+        'has_recipe' => 'boolean',
         'track_inventory' => 'boolean',
-        'is_show'         => 'boolean',
-        'sellable'        => 'boolean',
-        'purchasable'     => 'boolean',
+        'is_show' => 'boolean',
+        'sellable' => 'boolean',
+        'purchasable' => 'boolean',
     ];
 
     protected $appends = [

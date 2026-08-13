@@ -20,12 +20,12 @@ class BillingEngine
 
         $price = $plan->price_per_outlet;
         if ($subscription->billing_cycle === 'yearly') {
-            $yearly_price = $price        * 12;
-            $discount     = $yearly_price * ($plan->yearly_discount_percent / 100);
-            $price        = $yearly_price - $discount;
+            $yearly_price = $price * 12;
+            $discount = $yearly_price * ($plan->yearly_discount_percent / 100);
+            $price = $yearly_price - $discount;
         }
 
-        $now       = Carbon::now();
+        $now = Carbon::now();
         $expiredAt = $subscription->expired_at;
 
         if (! $expiredAt || $expiredAt->isPast()) {
@@ -59,24 +59,24 @@ class BillingEngine
         }
 
         $invoice = Invoice::create([
-            'business_id'    => $business->id,
-            'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
-            'status'         => 'open',
-            'subtotal'       => $proratedCost,
-            'tax_amount'     => 0, // Simplified tax
-            'total_amount'   => $proratedCost,
-            'due_date'       => Carbon::now()->addDays(3),
+            'business_id' => $business->id,
+            'invoice_number' => 'INV-'.strtoupper(Str::random(8)),
+            'status' => 'open',
+            'subtotal' => $proratedCost,
+            'tax_amount' => 0, // Simplified tax
+            'total_amount' => $proratedCost,
+            'due_date' => Carbon::now()->addDays(3),
         ]);
 
         $invoice->items()->create([
-            'item_type'   => 'outlet_addition',
-            'description' => 'Tagihan prorated untuk outlet baru: ' . $outlet->name,
-            'quantity'    => 1,
-            'unit_price'  => $proratedCost,
-            'subtotal'    => $proratedCost,
-            'metadata'    => [
-                'outlet_id'      => $outlet->id,
-                'outlet_name'    => $outlet->name,
+            'item_type' => 'outlet_addition',
+            'description' => 'Tagihan prorated untuk outlet baru: '.$outlet->name,
+            'quantity' => 1,
+            'unit_price' => $proratedCost,
+            'subtotal' => $proratedCost,
+            'metadata' => [
+                'outlet_id' => $outlet->id,
+                'outlet_name' => $outlet->name,
                 'remaining_days' => (int) Carbon::now()->diffInDays($subscription->expired_at),
             ],
         ]);
@@ -96,30 +96,30 @@ class BillingEngine
 
         $price = $plan->price_per_outlet;
         if ($subscription->billing_cycle === 'yearly') {
-            $yearly_price = $price        * 12;
-            $discount     = $yearly_price * ($plan->yearly_discount_percent / 100);
-            $price        = $yearly_price - $discount;
+            $yearly_price = $price * 12;
+            $discount = $yearly_price * ($plan->yearly_discount_percent / 100);
+            $price = $yearly_price - $discount;
         }
 
         $subtotal = $activeOutlets * $price;
 
         $invoice = Invoice::create([
-            'business_id'    => $business->id,
-            'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
-            'status'         => 'open',
-            'subtotal'       => $subtotal,
-            'tax_amount'     => 0,
-            'total_amount'   => $subtotal,
-            'due_date'       => Carbon::now()->addDays(7),
+            'business_id' => $business->id,
+            'invoice_number' => 'INV-'.strtoupper(Str::random(8)),
+            'status' => 'open',
+            'subtotal' => $subtotal,
+            'tax_amount' => 0,
+            'total_amount' => $subtotal,
+            'due_date' => Carbon::now()->addDays(7),
         ]);
 
         $invoice->items()->create([
-            'item_type'   => 'recurring_plan',
-            'description' => 'Recurring billing for ' . $plan->name . ' (' . $activeOutlets . ' outlets)',
-            'quantity'    => $activeOutlets,
-            'unit_price'  => $price,
-            'subtotal'    => $subtotal,
-            'metadata'    => [
+            'item_type' => 'recurring_plan',
+            'description' => 'Recurring billing for '.$plan->name.' ('.$activeOutlets.' outlets)',
+            'quantity' => $activeOutlets,
+            'unit_price' => $price,
+            'subtotal' => $subtotal,
+            'metadata' => [
                 'active_outlets' => $activeOutlets,
             ],
         ]);

@@ -9,6 +9,7 @@ use App\Models\User;
 class ExportTransactionJob extends AbstractCsvExportJob
 {
     protected $businessId;
+
     protected $filters;
 
     public function __construct(User $user, $businessId, array $filters = [])
@@ -21,10 +22,10 @@ class ExportTransactionJob extends AbstractCsvExportJob
     protected function getQuery()
     {
         $query = Transaction::query()->with(['customer', 'outlet', 'shift.user']);
-        
+
         // As per PRD and DB schema, outlet_id/business_id filtering might be needed depending on the tenant setup.
         // Assuming there is a scope filters on the model.
-        if (!empty($this->filters)) {
+        if (! empty($this->filters)) {
             $query->filters($this->filters);
         }
 
@@ -80,6 +81,6 @@ class ExportTransactionJob extends AbstractCsvExportJob
 
     protected function getFileName(): string
     {
-        return 'transaksi_export_' . time() . '.csv';
+        return 'transaksi_export_'.time().'.csv';
     }
 }

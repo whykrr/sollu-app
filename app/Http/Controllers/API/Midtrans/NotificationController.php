@@ -4,9 +4,6 @@ namespace App\Http\Controllers\API\Midtrans;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
-use App\Models\Invoice;
-use App\Models\Subscription;
-use App\Models\Business;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,9 +22,9 @@ class NotificationController extends Controller
 
         $signature = hash(
             'sha512',
-            $request->order_id .
-            $request->status_code .
-            $request->gross_amount .
+            $request->order_id.
+            $request->status_code.
+            $request->gross_amount.
             $serverKey
         );
 
@@ -37,7 +34,7 @@ class NotificationController extends Controller
 
         $payment = Payment::where('payment_reference', $request->order_id)->first();
 
-        if (!$payment) {
+        if (! $payment) {
             return response()->json(['message' => 'Payment record not found'], 404);
         }
 

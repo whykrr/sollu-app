@@ -11,16 +11,12 @@ class RawMaterialService
 {
     /**
      * Create a new raw material and initialize balances for active outlets.
-     *
-     * @param array $data
-     * @param Business $business
-     * @return InventoryItem
      */
     public function createRawMaterial(array $data, Business $business): InventoryItem
     {
         return DB::transaction(function () use ($data, $business) {
             $data['business_id'] = $business->id;
-            $data['item_type']   = 'raw_material';
+            $data['item_type'] = 'raw_material';
 
             $item = InventoryItem::create($data);
 
@@ -28,10 +24,10 @@ class RawMaterialService
             $outlets = $business->outlets()->active()->get();
             foreach ($outlets as $outlet) {
                 InventoryBalance::create([
-                    'business_id'       => $business->id,
-                    'outlet_id'         => $outlet->id,
+                    'business_id' => $business->id,
+                    'outlet_id' => $outlet->id,
                     'inventory_item_id' => $item->id,
-                    'current_stock'     => 0,
+                    'current_stock' => 0,
                 ]);
             }
 
@@ -41,14 +37,11 @@ class RawMaterialService
 
     /**
      * Update an existing raw material.
-     *
-     * @param InventoryItem $item
-     * @param array $data
-     * @return InventoryItem
      */
     public function updateRawMaterial(InventoryItem $item, array $data): InventoryItem
     {
         $item->update($data);
+
         return $item;
     }
 }

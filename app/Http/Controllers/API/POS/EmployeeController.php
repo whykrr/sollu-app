@@ -12,11 +12,11 @@ class EmployeeController extends Controller
     {
         // $request->user() is the OutletDevice for POS APIs protected by pos.device middleware
         $device = $request->user();
-        
+
         $device->load('outlet');
         $outlet = $device->outlet;
-        
-        if (!$outlet) {
+
+        if (! $outlet) {
             return $this->errorResponse('Outlet not found for this device.', [], 404);
         }
 
@@ -30,15 +30,15 @@ class EmployeeController extends Controller
                 $roleEnum = $roleName ? RoleEnum::tryFrom($roleName) : null;
 
                 return [
-                    'id'    => $user->id,
-                    'name'  => $user->name,
+                    'id' => $user->id,
+                    'name' => $user->name,
                     'email' => $user->email,
-                    'pin'   => $user->pin,
+                    'pin' => $user->pin,
                     'photo' => $user->photo,
-                    'role'  => $roleEnum?->label() ?? ($roleName ?? 'Kasir'),
+                    'role' => $roleEnum?->label() ?? ($roleName ?? 'Kasir'),
                 ];
             });
-            
+
         return $this->successResponse($employees, 'Data karyawan berhasil diambil.');
     }
 }

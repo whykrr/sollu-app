@@ -26,16 +26,16 @@ class IndexStockAdjustmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search'        => ['nullable', 'string', 'max:255'],
-            'status'        => ['nullable', 'string', Rule::enum(AdjustmentStatus::class)],
-            'reason'        => ['nullable', 'string', Rule::enum(AdjustmentReason::class)],
-            'outlet_id'     => ['nullable', 'uuid'],
-            'date_from'     => ['nullable', 'date'],
-            'date_to'       => ['nullable', 'date', 'after_or_equal:date_from'],
+            'search' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string', Rule::enum(AdjustmentStatus::class)],
+            'reason' => ['nullable', 'string', Rule::enum(AdjustmentReason::class)],
+            'outlet_id' => ['nullable', 'uuid'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
             'adjustment_id' => ['nullable', 'uuid'],
-            'per_page'      => ['nullable', 'integer', 'min:1', 'max:100'],
-            'sort'          => ['nullable', 'string', 'in:created_at,adjustment_number'],
-            'direction'     => ['nullable', 'string', 'in:asc,desc'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'sort' => ['nullable', 'string', 'in:created_at,adjustment_number'],
+            'direction' => ['nullable', 'string', 'in:asc,desc'],
         ];
     }
 }

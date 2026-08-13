@@ -16,19 +16,19 @@ use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
 /**
- *
  * @property-read Collection|BusinessType $type
  * @property-read Collection|Outlet[] $outlets
  * @property-read Collection|User[] $users
  * @property-read Collection|ProductVariation[] $product_variations
  * @property-read Collection|Product[] $products
+ *
  * @mixin \Eloquent
  */
 class Business extends Model
 {
     use HasFactory;
-    use HasUuids;
     use HasSlug;
+    use HasUuids;
     use Notifiable;
 
     /**
@@ -72,8 +72,6 @@ class Business extends Model
 
     /**
      * Get all of the outlets for the Merchant
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function outlets(): HasMany
     {
@@ -92,8 +90,6 @@ class Business extends Model
 
     /**
      * Get all of the subscriptions for the Merchant
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function subscriptions(): HasMany
     {
@@ -102,8 +98,6 @@ class Business extends Model
 
     /**
      * Get all of the invoices for the Merchant
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function invoices(): HasMany
     {
@@ -112,8 +106,6 @@ class Business extends Model
 
     /**
      * Get all of the billing logs for the Merchant
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function billingLogs(): HasMany
     {
@@ -122,8 +114,6 @@ class Business extends Model
 
     /**
      * Get all of the product_variations for the Merchant
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function product_variations(): HasMany
     {
@@ -132,8 +122,6 @@ class Business extends Model
 
     /**
      * Get all of the products for the Merchant
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function products(): HasMany
     {
@@ -142,8 +130,6 @@ class Business extends Model
 
     /**
      * Get the maximum number of outlets allowed for this business.
-     *
-     * @return int
      */
     public function maxOutletsAllowed(): int
     {
@@ -151,7 +137,7 @@ class Business extends Model
             ->where('status', 'active')
             ->first();
 
-        if (!$activeSubscription || !$activeSubscription->plan) {
+        if (! $activeSubscription || ! $activeSubscription->plan) {
             return 1;
         }
 
@@ -159,7 +145,7 @@ class Business extends Model
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getSlugOptions(): SlugOptions
     {

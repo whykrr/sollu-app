@@ -30,13 +30,13 @@ class ModifierGroupController extends Controller
 
         return Inertia::render('Master/Product/Modifier/Index', [
             'modifiers' => $modifiers,
-            'filters'   => $request->only('search'),
+            'filters' => $request->only('search'),
         ]);
     }
 
     public function store(StoreModifierGroupRequest $request)
     {
-        $data                = $request->validated();
+        $data = $request->validated();
         $data['business_id'] = auth()->user()->business_id ?? \App\Models\Business::first()->id;
 
         $this->modifierService->createGroup($data);

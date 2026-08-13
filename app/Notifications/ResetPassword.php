@@ -30,9 +30,9 @@ class ResetPassword extends Notification
             'email' => $notifiable->getEmailForPasswordReset(),
         ], false));
 
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject('Atur Ulang Kata Sandi')
-            ->greeting('Halo, ' . $notifiable->name)
+            ->greeting('Halo, '.$notifiable->name)
             ->line('Kami menerima permintaan untuk mereset kata sandi Anda.')
             ->action('Atur Ulang Kata Sandi', $url)
             ->line('Abaikan jika Anda tidak meminta permintaan ini.')
