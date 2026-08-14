@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
-import path from 'path'
+import path from 'path';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
     plugins: [
@@ -21,6 +22,71 @@ export default defineConfig({
                 },
             },
         }),
+        VitePWA({
+            registerType: 'autoUpdate',
+            injectRegister: false,
+            manifest: {
+                name: 'Sollu App',
+                short_name: 'Sollu',
+                description: 'Sollu Enterprise Management Platform',
+                theme_color: '#004AAD',
+                background_color: '#111827',
+                display: 'standalone',
+                orientation: 'portrait-primary',
+                start_url: '/',
+                scope: '/',
+                icons: [
+                    {
+                        src: '/img/pwa-192x192.png',
+                        sizes: '192x192',
+                        type: 'image/png'
+                    },
+                    {
+                        src: '/img/pwa-512x512.png',
+                        sizes: '512x512',
+                        type: 'image/png'
+                    },
+                    {
+                        src: '/img/pwa-512x512.png',
+                        sizes: '512x512',
+                        type: 'image/png',
+                        purpose: 'any maskable'
+                    }
+                ]
+            },
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+                navigateFallback: null,
+                cleanupOutdatedCaches: true,
+                runtimeCaching: [
+                    {
+                        urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'google-fonts-cache',
+                            expiration: {
+                                maxEntries: 10,
+                                maxAgeSeconds: 60 * 60 * 24 * 365
+                            },
+                            cacheableResponse: {
+                                statuses: [0, 200]
+                            }
+                        }
+                    },
+                    {
+                        urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+                        handler: 'StaleWhileRevalidate',
+                        options: {
+                            cacheName: 'images-cache',
+                            expiration: {
+                                maxEntries: 50,
+                                maxAgeSeconds: 60 * 60 * 24 * 30
+                            }
+                        }
+                    }
+                ]
+            }
+        })
     ],
     resolve: {
         alias: {

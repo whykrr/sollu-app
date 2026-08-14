@@ -1,11 +1,14 @@
 import { createApp, h } from 'vue'
-import { createInertiaApp, router } from '@inertiajs/vue3'
+import { createInertiaApp } from '@inertiajs/vue3'
 import { ZiggyVue } from 'ziggy-js'
 import { Ziggy } from './ziggy.js'
 
 import AppLayout from '@/Layout/AppCockpitLayout.vue'
 import { createPinia } from 'pinia'
 import AccessHandle from '@/access-handle.js'
+import { registerSW } from 'virtual:pwa-register'
+
+registerSW({ immediate: true })
 
 createInertiaApp({
     progress: {

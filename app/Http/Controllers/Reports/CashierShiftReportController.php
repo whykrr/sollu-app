@@ -17,7 +17,7 @@ class CashierShiftReportController extends Controller
     {
         $startDateParam = $request->get('start_date');
         $endDateParam = $request->get('end_date');
-        $outletId = $request->get('outlet', '');
+        $outletId = $request->get('outlet') ?? '';
 
         $now = Carbon::now();
         $startDate = $startDateParam ? Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();
@@ -39,7 +39,7 @@ class CashierShiftReportController extends Controller
     {
         $startDateParam = $request->get('start_date');
         $endDateParam = $request->get('end_date');
-        $outletId = $request->get('outlet', '');
+        $outletId = $request->get('outlet') ?? '';
 
         $now = Carbon::now();
         $startDate = $startDateParam ? Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();
@@ -62,7 +62,7 @@ class CashierShiftReportController extends Controller
     {
         $startDateParam = $request->get('start_date');
         $endDateParam = $request->get('end_date');
-        $outletId = $request->get('outlet', '');
+        $outletId = $request->get('outlet') ?? '';
 
         $now = Carbon::now();
         $startDate = $startDateParam ? Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();

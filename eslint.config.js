@@ -1,6 +1,7 @@
 import globals from 'globals'
 import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
+import prettierConfig from 'eslint-config-prettier'
 
 export default [
     js.configs.recommended,
@@ -48,6 +49,6 @@ export default [
             ],
             'vue/no-v-text-v-html-on-component': 'off',
         },
-        extends: ['prettier'],
     },
+    prettierConfig,
 ]

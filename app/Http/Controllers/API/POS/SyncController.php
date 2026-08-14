@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\API\POS;
 
 use App\Http\Controllers\Controller;
-use App\Services\Sales\MasterDataSyncService;
+use App\Services\Transaction\MasterDataSyncService as TransactionMasterDataSyncService;
 use Illuminate\Http\Request;
 
 class SyncController extends Controller
 {
-    public function masterData(Request $request, MasterDataSyncService $service)
+    public function masterData(Request $request, TransactionMasterDataSyncService $service)
     {
         $device = $request->user();
 

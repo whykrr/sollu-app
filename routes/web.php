@@ -115,7 +115,6 @@ Route::middleware('auth:business')->group(function () {
     require __DIR__.'/web/settings.php';
     require __DIR__.'/web/transactions.php';
     require __DIR__.'/web/customers.php';
-
     require __DIR__.'/web/promotions.php';
     require __DIR__.'/web/reports.php';
 
