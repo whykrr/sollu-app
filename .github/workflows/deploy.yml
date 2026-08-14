@@ -88,8 +88,9 @@ jobs:
             echo "=> Restarting containers..."
             $DOCKER_COMPOSE -f docker-compose.prod.yml up -d
 
-            echo "=> Running database migrations..."
+            echo "=> Running database migrations & seeders..."
             $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan migrate --force
+            $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan db:seed --force
 
             echo "=> Optimizing Laravel caching..."
             $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan optimize:clear
