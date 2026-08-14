@@ -13,22 +13,22 @@ class CashierShiftReportService
 
         $shifts = DB::table('shifts')
             ->join('users', 'shifts.user_id', '=', 'users.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('shifts.outlet_id', $outletIds);
             })
-            ->whereBetween('shifts.opened_at', [$startDate, $endDate])
+            ->whereBetween('shifts.created_at', [$startDate, $endDate])
             ->select(
                 'shifts.id',
-                'shifts.opened_at',
+                'shifts.created_at as opened_at',
                 'shifts.closed_at',
                 'users.name as cashier_name',
-                'shifts.starting_cash',
-                'shifts.expected_ending_cash',
-                'shifts.actual_ending_cash',
+                'shifts.opening_cash as starting_cash',
+                'shifts.expected_cash as expected_ending_cash',
+                'shifts.closing_cash as actual_ending_cash',
                 'shifts.status',
-                DB::raw('(shifts.actual_ending_cash - shifts.expected_ending_cash) as difference')
+                DB::raw('(COALESCE(shifts.closing_cash, 0) - COALESCE(shifts.expected_cash, 0)) as difference')
             )
-            ->orderBy('shifts.opened_at', 'desc')
+            ->orderBy('shifts.created_at', 'desc')
             ->get();
 
         return $shifts;

@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Reports\ExportPromotionReportJob;
 use App\Services\Reports\PromotionReportService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class PromotionReportController extends Controller
@@ -30,5 +33,43 @@ class PromotionReportController extends Controller
             ],
             'promotions' => $data,
         ]);
+    }
+
+    public function exportPdf(Request $request, \App\Services\Reports\PromotionReportService $service)
+    {
+        $startDateParam = $request->get('start_date');
+        $endDateParam = $request->get('end_date');
+        $outletId = $request->get('outlet', '');
+
+        $now = Carbon::now();
+        $startDate = $startDateParam ? Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();
+        $endDate = $endDateParam ? Carbon::parse($endDateParam)->endOfDay() : $now->copy()->endOfDay();
+
+        $data = $service->getReport($outletId, $startDate, $endDate);
+
+        $pdf = Pdf::loadView('pdf.reports.promotions', [
+            'data' => $data,
+            'business' => Auth::user()->business,
+            'outlet' => Auth::user()->activeOutlet,
+            'start_date' => $startDate->format('d M Y'),
+            'end_date' => $endDate->format('d M Y'),
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download('promotions_report_'.now()->format('YmdHis').'.pdf');
+    }
+
+    public function exportCsv(Request $request)
+    {
+        $startDateParam = $request->get('start_date');
+        $endDateParam = $request->get('end_date');
+        $outletId = $request->get('outlet', '');
+
+        $now = Carbon::now();
+        $startDate = $startDateParam ? Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();
+        $endDate = $endDateParam ? Carbon::parse($endDateParam)->endOfDay() : $now->copy()->endOfDay();
+
+        ExportPromotionReportJob::dispatch(Auth::user(), (array) $outletId, $startDate, $endDate);
+
+        return redirect()->back()->with('success', 'Proses ekspor CSV sedang berjalan di latar belakang. Anda akan menerima notifikasi jika sudah selesai.');
     }
 }

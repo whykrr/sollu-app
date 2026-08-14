@@ -14,7 +14,7 @@ class PromotionReportService
         $promotions = DB::table('transaction_promos')
             ->join('transactions', 'transaction_promos.transaction_id', '=', 'transactions.id')
             ->join('promos', 'transaction_promos.promo_id', '=', 'promos.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('transactions.outlet_id', $outletIds);
             })
             ->where('transactions.status', 'completed')

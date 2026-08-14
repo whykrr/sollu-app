@@ -11,13 +11,13 @@ class StockAssetReportService
     {
         $outletIds = array_filter((array) $outletId);
 
-        // Since inventory_balances doesn't track historical changes, we use inventory_movements 
+        // Since inventory_balances doesn't track historical changes, we use inventory_movements
         // to reconstruct the starting and ending balance for the given period.
         // Wait, for simplicity in this implementation, we will fetch current balances and summarize movements in period.
-        
+
         $movements = DB::table('inventory_movements')
             ->join('inventory_items', 'inventory_movements.inventory_item_id', '=', 'inventory_items.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('inventory_movements.outlet_id', $outletIds);
             })
             ->whereBetween('inventory_movements.created_at', [$startDate, $endDate])
@@ -32,7 +32,7 @@ class StockAssetReportService
 
         $balances = DB::table('inventory_balances')
             ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('inventory_balances.outlet_id', $outletIds);
             })
             ->select(
@@ -50,7 +50,7 @@ class StockAssetReportService
             // This is a naive approximation assuming we only query up to 'today'
             $netMovement = $m->total_in - $m->total_out;
             $startingStock = $currentStock - $netMovement;
-            
+
             $report[] = [
                 'item_name' => $m->item_name,
                 'starting_stock' => $startingStock,

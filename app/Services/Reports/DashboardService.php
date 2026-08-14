@@ -36,7 +36,7 @@ class DashboardService
     private function queryMetrics(array $outletIds, Carbon $start, Carbon $end)
     {
         return DB::table('transactions')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('outlet_id', $outletIds);
             })
             ->where('status', 'completed')
@@ -61,7 +61,7 @@ class DashboardService
         if ($isToday) {
             // Hours from 0 to 23
             for ($i = 0; $i < 24; $i++) {
-                $label = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
+                $label = str_pad($i, 2, '0', STR_PAD_LEFT).':00';
                 $labels[] = $label;
                 $nowData[] = $nowTrend[$i] ?? 0;
                 $prevData[] = $prevTrend[$i] ?? 0;
@@ -74,7 +74,7 @@ class DashboardService
             for ($i = 0; $i <= $interval; $i++) {
                 $dateKeyNow = $current->format('Y-m-d');
                 $dateKeyPrev = $prevCurrent->format('Y-m-d');
-                
+
                 $labels[] = $current->format('d M');
                 $nowData[] = $nowTrend[$dateKeyNow] ?? 0;
                 $prevData[] = $prevTrend[$dateKeyPrev] ?? 0;
@@ -89,7 +89,7 @@ class DashboardService
             'value' => [
                 ['title' => 'Periode Ini', 'data' => $nowData],
                 ['title' => 'Periode Lalu', 'data' => $prevData],
-            ]
+            ],
         ];
     }
 
@@ -97,9 +97,9 @@ class DashboardService
     {
         $groupExpr = $isToday ? 'EXTRACT(HOUR FROM created_at)' : 'DATE(created_at)';
         $selectExpr = $isToday ? "$groupExpr as time_key" : "$groupExpr as date_key";
-        
+
         $results = DB::table('transactions')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('outlet_id', $outletIds);
             })
             ->where('status', 'completed')
@@ -111,9 +111,9 @@ class DashboardService
         $trend = [];
         foreach ($results as $row) {
             if ($isToday) {
-                $trend[(int)$row->time_key] = (float)$row->total;
+                $trend[(int) $row->time_key] = (float) $row->total;
             } else {
-                $trend[$row->date_key] = (float)$row->total;
+                $trend[$row->date_key] = (float) $row->total;
             }
         }
 
@@ -129,7 +129,7 @@ class DashboardService
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
             ->join('products', 'transaction_items.product_id', '=', 'products.id')
             ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('transactions.outlet_id', $outletIds);
             })
             ->where('transactions.status', 'completed')
@@ -144,7 +144,7 @@ class DashboardService
         $values = [];
         foreach ($results as $row) {
             $labels[] = $row->category_name;
-            $values[] = (float)$row->total_sales;
+            $values[] = (float) $row->total_sales;
         }
 
         return [
@@ -161,7 +161,7 @@ class DashboardService
         $results = DB::table('transaction_payments')
             ->join('transactions', 'transaction_payments.transaction_id', '=', 'transactions.id')
             ->join('payment_methods', 'transaction_payments.payment_method_id', '=', 'payment_methods.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('transactions.outlet_id', $outletIds);
             })
             ->where('transactions.status', 'completed')
@@ -176,8 +176,8 @@ class DashboardService
         $revenues = [];
         foreach ($results as $row) {
             $labels[] = $row->name;
-            $values[] = (int)$row->total_tx;
-            $revenues[] = (float)$row->total_rev;
+            $values[] = (int) $row->total_tx;
+            $revenues[] = (float) $row->total_rev;
         }
 
         return [
@@ -195,7 +195,7 @@ class DashboardService
         $results = DB::table('transaction_items')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
             ->join('products', 'transaction_items.product_id', '=', 'products.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('transactions.outlet_id', $outletIds);
             })
             ->where('transactions.status', 'completed')
@@ -206,11 +206,11 @@ class DashboardService
             ->limit(5)
             ->get();
 
-        return array_map(function($row) {
+        return array_map(function ($row) {
             return [
                 'name' => $row->name,
-                'total' => (int)$row->total,
-                'revenue' => (float)$row->revenue,
+                'total' => (int) $row->total,
+                'revenue' => (float) $row->revenue,
             ];
         }, $results->toArray());
     }
@@ -222,7 +222,7 @@ class DashboardService
     {
         $results = DB::table('inventory_balances')
             ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('inventory_balances.outlet_id', $outletIds);
             })
             ->selectRaw('inventory_items.name, SUM(inventory_balances.current_stock) as stock, inventory_items.minimum_stock')
@@ -232,11 +232,11 @@ class DashboardService
             ->limit(5)
             ->get();
 
-        return array_map(function($row) {
+        return array_map(function ($row) {
             return [
                 'name' => $row->name,
-                'stock' => (int)$row->stock,
-                'min_stock' => (int)$row->minimum_stock,
+                'stock' => (int) $row->stock,
+                'min_stock' => (int) $row->minimum_stock,
             ];
         }, $results->toArray());
     }
@@ -249,20 +249,20 @@ class DashboardService
         $results = DB::table('products')
             ->whereNotExists(function ($query) use ($outletIds, $startDate, $endDate) {
                 $query->select(DB::raw(1))
-                      ->from('transaction_items')
-                      ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
-                      ->whereColumn('transaction_items.product_id', 'products.id')
-                      ->whereBetween('transactions.created_at', [$startDate, $endDate])
-                      ->where('transactions.status', 'completed')
-                      ->when(!empty($outletIds), function ($subQuery) use ($outletIds) {
-                          $subQuery->whereIn('transactions.outlet_id', $outletIds);
-                      });
+                    ->from('transaction_items')
+                    ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+                    ->whereColumn('transaction_items.product_id', 'products.id')
+                    ->whereBetween('transactions.created_at', [$startDate, $endDate])
+                    ->where('transactions.status', 'completed')
+                    ->when(! empty($outletIds), function ($subQuery) use ($outletIds) {
+                        $subQuery->whereIn('transactions.outlet_id', $outletIds);
+                    });
             })
             ->select('name')
             ->limit(5)
             ->get();
 
-        return array_map(function($row) {
+        return array_map(function ($row) {
             return ['name' => $row->name];
         }, $results->toArray());
     }

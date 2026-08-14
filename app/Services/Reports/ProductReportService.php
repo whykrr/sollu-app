@@ -18,7 +18,7 @@ class ProductReportService
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
             ->join('products', 'transaction_items.product_id', '=', 'products.id')
             ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('transactions.outlet_id', $outletIds);
             })
             ->where('transactions.status', 'completed')

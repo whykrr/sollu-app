@@ -13,7 +13,7 @@ class CustomerReportService
 
         $customers = DB::table('transactions')
             ->join('customers', 'transactions.customer_id', '=', 'customers.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('transactions.outlet_id', $outletIds);
             })
             ->where('transactions.status', 'completed')

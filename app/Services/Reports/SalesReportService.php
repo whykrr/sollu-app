@@ -13,7 +13,7 @@ class SalesReportService
 
         // Omset per hari
         $dailySales = DB::table('transactions')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('outlet_id', $outletIds);
             })
             ->where('status', 'completed')
@@ -28,12 +28,12 @@ class SalesReportService
             ->groupBy(DB::raw('DATE(created_at)'))
             ->orderBy('date', 'desc')
             ->get();
-            
+
         // Breakdown Pembayaran
         $paymentMethods = DB::table('transaction_payments')
             ->join('transactions', 'transaction_payments.transaction_id', '=', 'transactions.id')
             ->join('payment_methods', 'transaction_payments.payment_method_id', '=', 'payment_methods.id')
-            ->when(!empty($outletIds), function ($query) use ($outletIds) {
+            ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('transactions.outlet_id', $outletIds);
             })
             ->where('transactions.status', 'completed')

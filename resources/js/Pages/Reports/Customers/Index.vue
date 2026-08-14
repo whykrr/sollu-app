@@ -31,6 +31,14 @@
                             @change="applyFilters"
                         />
                     </div>
+                    <div class="flex items-center gap-2 ml-auto">
+                        <a :href="route('reports.customers.export.pdf', formFilters)" target="_blank" class="btn btn-outline-primary sm">
+                            <FontAwesomeIcon :icon="faFilePdf" /> Ekspor PDF
+                        </a>
+                        <button @click="exportCsv" class="btn btn-outline-success sm">
+                            <FontAwesomeIcon :icon="faFileCsv" /> Ekspor CSV
+                        </button>
+                    </div>
                 </div>
             </MainPageHeader>
         </template>
@@ -81,7 +89,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, router } from '@inertiajs/vue3';
 import { faStore } from '@fortawesome/free-solid-svg-icons';
 import MainPage from '@/Components/UI/MainPage.vue';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
@@ -127,4 +135,12 @@ const formatDate = (dateString) => {
         year: 'numeric',
     });
 };
+
+const exportCsv = () => {
+    router.post(route('reports.customers.export.csv'), formFilters.data(), {
+        preserveScroll: true,
+        preserveState: true,
+    });
+};
+
 </script>
