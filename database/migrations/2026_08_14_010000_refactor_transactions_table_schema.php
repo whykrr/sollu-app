@@ -15,6 +15,7 @@ return new class extends Migration
             $table->renameColumn('receipt_number', 'transaction_number');
             $table->decimal('shipping_fee', 15, 2)->default(0)->after('tax_amount');
 
+            $table->dropUnique(['offline_id']);
             $table->dropColumn(['is_offline', 'offline_id']);
         });
     }
