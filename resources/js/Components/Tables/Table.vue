@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="overflow-x-auto table-responsive">
         <table class="table table-hovered min-w-full">
             <thead>
                 <tr

@@ -1,8 +1,7 @@
 <template>
-    <div class="flex flex-row gap-2">
-        <h2 class="text-2xl font-bold">{{ title }}</h2>
-        <div class="flex-1 border-slate-200"></div>
-        <div class="space-x-2 items-end flex">
+    <div class="flex flex-col sm:flex-row gap-2 sm:items-center justify-between">
+        <h2 class="text-xl sm:text-2xl font-bold text-neutral-900">{{ title }}</h2>
+        <div v-if="$slots.default" class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <slot></slot>
         </div>
     </div>

@@ -1,11 +1,11 @@
 <template>
     <form @submit.prevent="register">
-        <div class="flex flex-col gap-2 h-full">
-            <div class="">
+        <div class="flex flex-col gap-2 h-full justify-between">
+            <div>
                 <ol class="flex items-center w-full relative gap-2">
-                    <li v-for="(stepItem, index) in steps">
+                    <li v-for="(stepItem, index) in steps" :key="index" class="flex-1 max-w-[5rem]">
                         <div
-                            class="h-1.5 w-20 rounded-full overflow-hidden bg-main/10"
+                            class="h-1.5 w-full rounded-full overflow-hidden bg-main/10"
                         >
                             <div
                                 class="h-full origin-left transition-transform duration-500"
@@ -24,13 +24,13 @@
                         <div
                             v-if="steps[currentStep - 1]"
                             :key="currentStep"
-                            class="z-10 text-base text-gray-400 flex flex-row justify-start items-center gap-2 my-2"
+                            class="z-10 text-xs sm:text-sm text-gray-400 flex flex-row justify-start items-center gap-2 my-2"
                         >
                             <FontAwesomeIcon
                                 :icon="steps[currentStep - 1].icon"
                                 class=""
                             />
-                            <span class="text-sm">{{
+                            <span>{{
                                 steps[currentStep - 1].label
                             }}</span>
                         </div>
@@ -46,10 +46,10 @@
                                 :key="currentStep"
                                 class="space-y-1 mb-4"
                             >
-                                <div class="text-3xl font-semibold">
+                                <div class="text-2xl sm:text-3xl font-semibold text-neutral-900 leading-tight">
                                     {{ steps[currentStep - 1].title }}
                                 </div>
-                                <div class="text-sm text-gray-600">
+                                <div class="text-xs sm:text-sm text-gray-600">
                                     {{ steps[currentStep - 1].greetings }}
                                 </div>
                             </div>
@@ -65,7 +65,7 @@
                         />
                         <span
                             v-if="form.errors.business_type_id"
-                            class="text-danger text-sm"
+                            class="text-danger text-xs sm:text-sm"
                         >
                             Pilih salah satu jenis usaha!
                         </span>
@@ -83,7 +83,7 @@
                                         id="name"
                                         v-model="form.name"
                                         type="text"
-                                        placeholder="Email"
+                                        placeholder="Nama Usaha"
                                         class="bg-white/40"
                                     />
                                     <label for="name">Nama Usaha</label>
@@ -132,7 +132,7 @@
                                     form.errors.owner_name
                                 }}</span>
                             </div>
-                            <div>
+                            <div class="col-span-2 sm:col-span-1">
                                 <div
                                     class="form-floating"
                                     :class="{
@@ -143,7 +143,7 @@
                                         id="email"
                                         v-model="form.email"
                                         type="text"
-                                        placeholder="Nama Outlet"
+                                        placeholder="Email Pemilik"
                                         class="bg-white/40"
                                     />
                                     <label for="email">Email Pemilik</label>
@@ -152,7 +152,7 @@
                                     form.errors.email
                                 }}</span>
                             </div>
-                            <div>
+                            <div class="col-span-2 sm:col-span-1">
                                 <div
                                     class="form-floating"
                                     :class="{
@@ -163,7 +163,7 @@
                                         id="phone"
                                         v-model="form.phone"
                                         type="text"
-                                        placeholder="Nama Outlet"
+                                        placeholder="Telepon Pemilik"
                                         class="bg-white/40"
                                     />
                                     <label for="phone">Telepon Pemilik</label>
@@ -225,7 +225,7 @@
                 <div class="flex gap-2">
                     <button
                         type="button"
-                        class="btn btn-highlight-danger text-xl"
+                        class="btn btn-highlight-danger text-lg sm:text-xl shrink-0"
                         :disabled="currentStep === 1"
                         @click="prevStep"
                     >
@@ -234,7 +234,7 @@
                     <button
                         v-if="currentStep < 3"
                         type="button"
-                        class="btn btn-main block! px-12 text-xl"
+                        class="btn btn-main flex-1 sm:flex-none px-8 sm:px-12 text-lg sm:text-xl justify-center"
                         :disabled="currentStep === steps.length"
                         @click="nextStep"
                     >
@@ -243,15 +243,15 @@
                     <button
                         v-else
                         type="submit"
-                        class="btn btn-main block! px-12 text-xl"
+                        class="btn btn-main flex-1 sm:flex-none px-8 sm:px-12 text-lg sm:text-xl justify-center"
                     >
                         Daftar Sekarang
                     </button>
                 </div>
             </div>
-            <div class="text">
+            <div class="text-sm text-neutral-600 mt-2">
                 Sudah punya akun ?
-                <Link :href="route('login')" class="underline text-blue-800">
+                <Link :href="route('login')" class="underline text-blue-800 font-medium">
                     Masuk
                 </Link>
             </div>

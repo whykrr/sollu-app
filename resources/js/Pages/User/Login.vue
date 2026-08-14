@@ -1,10 +1,10 @@
 <template>
     <form @submit.prevent="login">
-        <div class="flex flex-col gap-2 h-full">
-            <div class="w-full max-w-md space-y-6">
+        <div class="flex flex-col gap-2 h-full justify-between">
+            <div class="w-full max-w-md space-y-4 mb-2">
                 <div>
                     <img
-                        class="h-[40px]"
+                        class="h-[36px] sm:h-[40px]"
                         src="img/logo-colored.png"
                         alt="Logo"
                     />
@@ -14,10 +14,10 @@
             <div class="flex-1">
                 <div class="flex flex-col gap-1 justify-center h-full">
                     <div class="space-y-1 mb-4">
-                        <div class="text-3xl font-semibold">
+                        <div class="text-2xl sm:text-3xl font-semibold text-neutral-900 leading-tight">
                             Halo, <br />Selamat Datang
                         </div>
-                        <div class="text-sm text-gray-600">
+                        <div class="text-xs sm:text-sm text-gray-600">
                             Login sekarang dan mulai kelola bisnismu dengan
                             mudah.
                         </div>
@@ -67,7 +67,7 @@
                             form.errors.password
                         }}</span>
                     </div>
-                    <div class="flex justify-between items-center text-sm mt-2">
+                    <div class="flex justify-between items-center text-xs sm:text-sm mt-2">
                         <div>
                             <div class="form-check items-center">
                                 <input
@@ -88,13 +88,13 @@
                 </div>
             </div>
             <div class="mt-4">
-                <button type="submit" class="btn btn-main block! px-12 text-xl">
+                <button type="submit" class="btn btn-main w-full sm:w-auto px-10 text-lg sm:text-xl justify-center">
                     Login
                 </button>
             </div>
-            <div class="text">
+            <div class="text-sm text-neutral-600 mt-2">
                 Belum punya akun ?
-                <Link :href="route('register')" class="underline text-blue-800">
+                <Link :href="route('register')" class="underline text-blue-800 font-medium">
                     Daftar sekarang
                 </Link>
             </div>

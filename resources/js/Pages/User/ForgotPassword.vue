@@ -1,10 +1,10 @@
 <template>
     <form @submit.prevent="forgot">
-        <div class="flex flex-col gap-2 h-full">
-            <div class="w-full max-w-md space-y-6">
+        <div class="flex flex-col gap-2 h-full justify-between">
+            <div class="w-full max-w-md space-y-4 mb-2">
                 <div>
                     <img
-                        class="h-[60px]"
+                        class="h-[48px] sm:h-[60px]"
                         src="img/logo-fit-color.png"
                         alt="Logo"
                     />
@@ -13,10 +13,10 @@
             <div class="flex-1">
                 <div class="flex flex-col gap-1 justify-center h-full">
                     <div class="space-y-1 mb-4">
-                        <div class="text-3xl font-semibold">
+                        <div class="text-2xl sm:text-3xl font-semibold text-neutral-900 leading-tight">
                             Lupa Kata Sandi
                         </div>
-                        <div class="text-sm text-gray-600">
+                        <div class="text-xs sm:text-sm text-gray-600">
                             Masukkan email Anda untuk Atur ulang kata sandimu
                             sekarang dan lanjutkan bisnismu tanpa hambatan.
                         </div>
@@ -40,7 +40,7 @@
                                 placeholder="Email"
                                 class="bg-white/40"
                             />
-                            <label for="name">Email</label>
+                            <label for="email">Email</label>
                         </div>
                         <span class="form-feedback">{{
                             form.errors.email
@@ -48,18 +48,18 @@
                     </div>
                 </div>
             </div>
-            <div>
+            <div class="mt-4">
                 <button
                     type="submit"
-                    class="btn btn-main w-full block! text-lg"
+                    class="btn btn-main w-full sm:w-auto px-10 text-lg sm:text-xl justify-center"
                 >
                     Kirim Tautan
                 </button>
             </div>
-            <div class="text">
-                <Link :href="route('login')" class="underline text-blue-800">
+            <div class="text-sm text-neutral-600 mt-2">
+                <Link :href="route('login')" class="underline text-blue-800 font-medium inline-flex items-center gap-1.5">
                     <FontAwesomeIcon :icon="faArrowLeft" />
-                    Kembali
+                    Kembali ke Login
                 </Link>
             </div>
         </div>

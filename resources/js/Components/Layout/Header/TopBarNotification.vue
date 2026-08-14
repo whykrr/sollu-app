@@ -2,14 +2,14 @@
   <div ref="panelRef" class="relative">
     <a
       href="#"
-      class="relative flex items-center justify-center w-10 h-10 rounded-full text-slate-700 hover:bg-neutral-100 transition-all duration-200 active:scale-95"
+      class="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-slate-700 hover:bg-neutral-100 transition-all duration-200 active:scale-95 cursor-pointer"
       title="Notifikasi"
       @click.prevent="toggleNotification"
     >
-      <FontAwesomeIcon :icon="faBell" class="text-[1.15rem]" />
+      <FontAwesomeIcon :icon="faBell" class="text-[1.1rem] sm:text-[1.15rem]" />
       <span 
         v-if="unreadCount > 0" 
-        class="absolute top-[8px] right-[9px] w-2.5 h-2.5 bg-red-500 ring-2 ring-white rounded-full"
+        class="absolute top-[6px] right-[6px] sm:top-[8px] sm:right-[9px] w-2.5 h-2.5 bg-red-500 ring-2 ring-white rounded-full"
       ></span>
     </a>
     <PopoverNotification

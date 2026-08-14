@@ -105,6 +105,19 @@ class Outlet extends Model
         return $this->hasMany(OutletDevice::class);
     }
 
+    public function paymentMethods(): BelongsToMany
+    {
+        return $this->belongsToMany(\App\Models\Master\PaymentMethod::class, 'outlet_payment_method')
+            ->using(\App\Models\Master\OutletPaymentMethod::class)
+            ->withPivot('is_enabled')
+            ->withTimestamps();
+    }
+
+    public function outletPaymentMethods(): HasMany
+    {
+        return $this->hasMany(\App\Models\Master\OutletPaymentMethod::class);
+    }
+
     public function auditLogs(): HasMany
     {
         return $this->hasMany(OutletAuditLog::class);

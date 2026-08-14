@@ -82,11 +82,11 @@ export const settingSidebars = [
     },
     {
         type: 'item',
-        url: '#',
+        url: route('settings.payment-methods.index'),
         icon: faCreditCard,
         label: 'Metode Pembayaran',
-        permissions: [],
-        activeRoute: 'settings.cashier',
+        permissions: ['setting.payment'],
+        activeRoute: 'settings.payment-methods',
     },
     {
         type: 'item',

@@ -53,6 +53,8 @@ const renderChart = () => {
         '#EC4899',
     ];
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+
     chartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -72,15 +74,15 @@ const renderChart = () => {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'right',
+                    position: isMobile ? 'bottom' : 'right',
                     labels: {
-                        boxWidth: 12,
+                        boxWidth: 10,
                         usePointStyle: true,
                         font: {
                             size: 11,
                             family: 'Inter, sans-serif',
                         },
-                        padding: 12,
+                        padding: isMobile ? 8 : 12,
                     },
                 },
                 tooltip: {

@@ -1,31 +1,27 @@
 <template>
     <div ref="dropdownRef" class="relative">
-        <div class="hidden sm:block">
+        <div>
             <a
                 href="#"
-                class="flex flex-row items-center gap-2 h-10 pl-1 pr-3 bg-white hover:bg-neutral-50 rounded-full border border-neutral-200 transition-colors duration-150 ease-in-out"
+                class="flex flex-row items-center justify-center gap-2 h-9 w-9 sm:w-auto sm:h-10 p-0 sm:pl-1 sm:pr-3 bg-white hover:bg-neutral-50 rounded-full border border-neutral-200 transition-all duration-150 ease-in-out active:scale-95 cursor-pointer"
+                title="Informasi Usaha"
                 @click.prevent="togglePanel"
             >
-                <!-- <img
-                    :src="'https://dummyimage.com/35x35'"
-                    alt="Merchant"
-                    class="rounded-full w-7 h-7"
-                /> -->
                 <div
-                    class="rounded-full w-8 h-8 flex items-center justify-center bg-main/20 text-main text-[16px]"
+                    class="rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-main/10 text-main text-xs sm:text-sm shrink-0"
                 >
                     <FontAwesomeIcon :icon="faShop" />
                 </div>
-                <span class="font-base hidden lg:inline">{{
+                <span class="text-sm font-medium text-neutral-800 hidden lg:inline">{{
                     auth.business.name
                 }}</span>
-                <span class="font-base inline lg:hidden">{{ initials }}</span>
+                <span class="text-sm font-medium text-neutral-800 hidden sm:inline lg:hidden">{{ initials }}</span>
             </a>
         </div>
         <transition name="fade-down" mode="in-out">
             <div
                 v-if="showPanel"
-                class="absolute z-50 bg-white border border-neutral-100 rounded-xl w-[calc(100vw-2rem)] sm:w-96 top-[48px] right-0 sm:-right-0 shadow-xl ring-1 ring-black/5 p-4 origin-top-right"
+                class="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:top-[48px] sm:right-0 sm:w-96 z-50 bg-white border border-neutral-100 rounded-xl shadow-2xl ring-1 ring-black/5 p-4 origin-top-right max-h-[calc(100vh-5rem)] overflow-y-auto floating-scroll"
             >
                 <div class="flex flex-col gap-2">
                     <div class="absolute right-4 top-4">

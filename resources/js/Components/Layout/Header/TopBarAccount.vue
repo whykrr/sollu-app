@@ -3,18 +3,19 @@
         <div class="relative">
             <a
                 href="#"
-                class="text-slate-700 block transition-transform active:scale-95"
+                class="text-slate-700 block transition-transform active:scale-95 cursor-pointer"
+                title="Akun Pengguna"
                 @click.prevent="toggle"
             >
                 <img
                     v-if="auth.profile_photo_url"
                     :src="auth.profile_photo_url"
                     alt="Profile"
-                    class="rounded-full w-9 h-9"
+                    class="rounded-full w-9 h-9 sm:w-10 sm:h-10 object-cover border border-neutral-200"
                 />
                 <div
                     v-else
-                    class="rounded-full w-10 h-10 bg-white flex items-center justify-center border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-150 ease-in-out"
+                    class="rounded-full w-9 h-9 sm:w-10 sm:h-10 bg-white flex items-center justify-center border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-150 ease-in-out text-xs sm:text-sm font-semibold text-neutral-700"
                 >
                     {{ initials }}
                 </div>
@@ -23,7 +24,7 @@
         <transition name="fade-down" mode="in-out">
             <div
                 v-if="isOpen"
-                class="absolute z-50 bg-white border border-neutral-100 rounded-xl w-72 top-[48px] right-0 sm:-right-0 shadow-xl ring-1 ring-black/5 p-4 origin-top-right"
+                class="fixed inset-x-3 sm:inset-auto sm:right-0 sm:w-72 top-16 sm:top-[48px] z-50 bg-white border border-neutral-100 rounded-xl shadow-2xl ring-1 ring-black/5 p-4 origin-top-right max-h-[calc(100vh-5rem)] overflow-y-auto floating-scroll"
             >
                 <div class="flex flex-col gap-2">
                     <div class="absolute right-4 top-4">

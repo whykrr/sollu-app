@@ -82,4 +82,17 @@ Route::prefix('settings')
                 });
         });
 
+        Route::middleware(['can:'.\App\Enums\PermissionEnum::SETTING_PAYMENT->value])->group(function () {
+            Route::prefix('payment-methods')
+                ->name('payment-methods.')
+                ->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Settings\PaymentMethodController::class, 'index'])->name('index');
+                    Route::post('/', [\App\Http\Controllers\Settings\PaymentMethodController::class, 'store'])->name('store');
+                    Route::put('/{paymentMethod}', [\App\Http\Controllers\Settings\PaymentMethodController::class, 'update'])->name('update');
+                    Route::patch('/{paymentMethod}/toggle-status', [\App\Http\Controllers\Settings\PaymentMethodController::class, 'toggleStatus'])->name('toggle-status');
+                    Route::patch('/{paymentMethod}/toggle-outlet/{outlet}', [\App\Http\Controllers\Settings\PaymentMethodController::class, 'toggleOutlet'])->name('toggle-outlet');
+                    Route::delete('/{paymentMethod}', [\App\Http\Controllers\Settings\PaymentMethodController::class, 'destroy'])->name('destroy');
+                });
+        });
+
     });

@@ -61,7 +61,7 @@ class MasterDataSyncService
             ->makeHidden('business_id');
 
         $paymentMethods = PaymentMethod::where('business_id', $businessId)
-            ->where('is_active', true)
+            ->activeForOutlet($outletId)
             ->get()
             ->makeHidden('business_id');
 

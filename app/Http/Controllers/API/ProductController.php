@@ -15,14 +15,14 @@ class ProductController extends Controller
     public function search(Request $request)
     {
         $request->validate([
-            'query'     => 'nullable|string|min:3',
-            'search'    => 'nullable|string|min:3',
+            'query' => 'nullable|string|min:3',
+            'search' => 'nullable|string|min:3',
             'outlet_id' => 'nullable|uuid',
-            'limit'     => 'nullable|integer|min:1|max:100',
+            'limit' => 'nullable|integer|min:1|max:100',
         ]);
 
-        $limit      = $request->query('limit', 20);
-        $outletId   = $request->query('outlet_id');
+        $limit = $request->query('limit', 20);
+        $outletId = $request->query('outlet_id');
         $searchTerm = $request->query('query') ?: $request->query('search');
 
         $products = Product::currentBusiness()
@@ -85,10 +85,10 @@ class ProductController extends Controller
      */
     public function searchByInventoryItem(Request $request)
     {
-        $search   = $request->get('search') ?: $request->get('query');
-        $search   = $request->get('check_promo', true) ?: $request->get('check_promo');
+        $search = $request->get('search') ?: $request->get('query');
+        $search = $request->get('check_promo', true) ?: $request->get('check_promo');
         $outletId = $request->get('outlet_id');
-        $limit    = $request->get('limit', 50);
+        $limit = $request->get('limit', 50);
 
         $items = \App\Models\Inventory\InventoryItem::currentBusiness()
             ->where('is_active', true)
@@ -134,17 +134,17 @@ class ProductController extends Controller
             ->get();
 
         $result = $items->map(function ($item) use ($outletId, $activeProductPromos) {
-            $product        = $item->product;
-            $productId      = $product?->id ?? $item->product_id;
-            $productName    = $item->name ?: ($product?->name ?? '');
-            $code           = $product?->code        ?? $item->sku ?? $item->barcode ?? '-';
+            $product = $item->product;
+            $productId = $product?->id ?? $item->product_id;
+            $productName = $item->name ?: ($product?->name ?? '');
+            $code = $product?->code ?? $item->sku ?? $item->barcode ?? '-';
             $trackInventory = $item->track_inventory ?? $product?->track_inventory ?? true;
 
             $price = 0;
             if ($product && $product->relationLoaded('prices')) {
-                $outletPrice  = $outletId ? $product->prices->firstWhere('outlet_id', $outletId) : null;
+                $outletPrice = $outletId ? $product->prices->firstWhere('outlet_id', $outletId) : null;
                 $generalPrice = $product->prices->firstWhere('outlet_id', null);
-                $price        = $outletPrice?->amount ?? $generalPrice?->amount ?? 0;
+                $price = $outletPrice?->amount ?? $generalPrice?->amount ?? 0;
             }
 
             $currentStock = 0;
@@ -155,31 +155,30 @@ class ProductController extends Controller
                 }
             }
 
-
             $matchingPromos = $activeProductPromos->filter(function ($promo) use ($item) {
                 return $promo->inventoryItems->contains('id', $item->id);
             })->map(fn ($p) => [
-                'id'             => $p->id,
-                'name'           => $p->name,
-                'promo_type'     => is_object($p->promo_type) ? $p->promo_type->value : $p->promo_type,
-                'target_type'    => is_object($p->target_type) ? $p->target_type->value : $p->target_type,
+                'id' => $p->id,
+                'name' => $p->name,
+                'promo_type' => is_object($p->promo_type) ? $p->promo_type->value : $p->promo_type,
+                'target_type' => is_object($p->target_type) ? $p->target_type->value : $p->target_type,
                 'discount_value' => floatval($p->discount_value),
-                'max_discount'   => $p->max_discount ? floatval($p->max_discount) : null,
+                'max_discount' => $p->max_discount ? floatval($p->max_discount) : null,
             ])->values()->toArray();
 
             return [
-                'id'                => $item->id,
+                'id' => $item->id,
                 'inventory_item_id' => $item->id,
-                'product_id'        => $productId,
-                'name'              => $productName,
-                'code'              => $code,
-                'sku'               => $item->sku,
-                'barcode'           => $item->barcode,
-                'uom'               => $item->uom?->name,
-                'price'             => floatval($price),
-                'track_inventory'   => (bool) $trackInventory,
-                'current_stock'     => $currentStock,
-                'active_promos'     => $matchingPromos,
+                'product_id' => $productId,
+                'name' => $productName,
+                'code' => $code,
+                'sku' => $item->sku,
+                'barcode' => $item->barcode,
+                'uom' => $item->uom?->name,
+                'price' => floatval($price),
+                'track_inventory' => (bool) $trackInventory,
+                'current_stock' => $currentStock,
+                'active_promos' => $matchingPromos,
             ];
         });
 

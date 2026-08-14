@@ -128,7 +128,9 @@ const form = useForm({
 
 const fetchPaymentMethods = async () => {
     try {
-        const res = await axios.get(route('api.payment-methods.index'));
+        const res = await axios.get(route('api.internal.payment-methods.index', {
+            outlet_id: props.transaction?.outlet_id,
+        }));
         paymentMethodOptions.value = res.data.data.map((pm) => ({
             value: pm.id,
             label: pm.name,

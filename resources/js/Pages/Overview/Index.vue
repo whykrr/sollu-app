@@ -2,9 +2,9 @@
     <MainPage>
         <template #header>
             <MainPageHeader title="Dashboard Ringkasan">
-                <div class="flex flex-wrap items-center gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full sm:w-auto">
                     <!-- Outlet Selector -->
-                    <div v-if="outletOptions.length > 0" class="w-48">
+                    <div v-if="outletOptions.length > 0" class="w-full sm:w-48">
                         <GroupDropdownIconField
                             id="outlet-filter"
                             v-model="formFilters.outlet"
@@ -19,7 +19,7 @@
                     </div>
 
                     <!-- Date Preset Filter -->
-                    <div class="w-44">
+                    <div class="w-full sm:w-44">
                         <GroupDropdownIconField
                             id="period-filter"
                             v-model="formFilters.period"
@@ -43,16 +43,18 @@
             v-if="auth?.email_verified_at === null"
             class="alert alert-warning mb-3 shadow-xs"
         >
-            <strong>Verifikasi Email</strong>
-            <div class="flex justify-between items-center mt-1">
-                <span class="text-sm">
-                    Cek email Anda untuk verifikasi sebelum menggunakan fitur lengkap aplikasi.
-                </span>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div>
+                    <strong class="block">Verifikasi Email</strong>
+                    <span class="text-xs sm:text-sm text-neutral-700">
+                        Cek email Anda untuk verifikasi sebelum menggunakan fitur lengkap aplikasi.
+                    </span>
+                </div>
                 <Link
                     as="button"
                     method="post"
                     :href="route('verification.send')"
-                    class="btn btn-highlight-warning btn-sm"
+                    class="btn btn-highlight-warning btn-sm shrink-0"
                 >
                     <FontAwesomeIcon :icon="faRotateRight" />
                     Kirim Ulang Email

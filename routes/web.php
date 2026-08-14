@@ -102,6 +102,7 @@ Route::middleware('auth:business')->group(function () {
         Route::get('/outlets', [\App\Http\Controllers\API\OutletController::class, 'index'])->name('outlets.index');
         Route::get('/customers/search', [\App\Http\Controllers\API\CustomerController::class, 'search'])->name('customers.search');
         Route::get('/promos/search', [\App\Http\Controllers\API\PromoController::class, 'search'])->name('promos.search');
+        Route::get('/payment-methods', [\App\Http\Controllers\API\PaymentMethodController::class, 'index'])->name('payment-methods.index');
     });
 
     Route::get('/exports/download', [\App\Http\Controllers\ExportDownloadController::class, 'download'])->name('exports.download');

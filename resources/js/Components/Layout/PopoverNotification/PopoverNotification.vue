@@ -2,8 +2,7 @@
     <transition name="fade-down" mode="in-out">
         <div
             v-if="props.isOpen"
-            class="absolute z-50 bg-white border border-neutral-100 rounded-xl w-[calc(100vw-2rem)] sm:w-[26rem] top-full mt-2 right-0 shadow-xl ring-1 ring-black/5 p-4 origin-top-right flex flex-col"
-            style="max-height: calc(100vh - 100px);"
+            class="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:top-full sm:mt-2 sm:right-0 sm:w-[26rem] z-50 bg-white border border-neutral-100 rounded-xl shadow-2xl ring-1 ring-black/5 p-4 origin-top-right flex flex-col max-h-[calc(100vh-5rem)]"
         >
             <div class="flex flex-col h-full w-full relative gap-2">
                 <!-- Close Button -->

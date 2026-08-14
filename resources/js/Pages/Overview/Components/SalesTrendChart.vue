@@ -1,13 +1,13 @@
 <template>
-    <div class="flex flex-col gap-2 p-4 bg-white rounded-md border">
-        <div class="flex flex-row justify-between gap-2 items-start">
+    <div class="flex flex-col gap-2 p-4 bg-white rounded-md border border-neutral-200 shadow-xs">
+        <div class="flex flex-col sm:flex-row justify-between gap-2 items-start sm:items-center">
             <div>
-                <h3 class="text-lg font-semibold">Tren Penjualan</h3>
-                <p class="text-sm text-gray-500">
+                <h3 class="text-base sm:text-lg font-semibold text-neutral-800">Tren Penjualan</h3>
+                <p class="text-xs sm:text-sm text-gray-500">
                     Performa penjualan berdasarkan waktu
                 </p>
             </div>
-            <div>
+            <div class="w-full sm:w-auto">
                 <GroupDropdownIconField
                     id="type"
                     v-model="type"
@@ -16,13 +16,15 @@
                     :options="[
                         { value: 'today', label: 'Hari Ini' },
                         { value: 'week', label: 'Minggu' },
-                        { value: 'month', label: 'Bulan', sele },
+                        { value: 'month', label: 'Bulan' },
                         { value: 'year', label: 'Tahun' },
                     ]"
                 />
             </div>
         </div>
-        <canvas id="chart-trend" height="350" />
+        <div class="relative w-full h-[260px] sm:h-[320px]">
+            <canvas id="chart-trend" class="w-full h-full" />
+        </div>
     </div>
 </template>
 
@@ -66,6 +68,8 @@ onMounted(() => {
             datasets: datasetChart,
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false,
             datasets: {
                 line: {
                     borderWidth: 2,
