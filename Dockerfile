@@ -32,10 +32,6 @@ COPY . .
 # Install PHP dependencies (tanpa dev package, optimize autoload)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Generate file ziggy.js untuk routing Vue/Inertia
-RUN php artisan ziggy:generate resources/js/ziggy.js
-
-
 # ==========================================
 # Stage 2: Build Node.js Assets (Vite)
 # ==========================================
@@ -49,7 +45,6 @@ COPY . .
 
 # Ambil vendor & file ziggy.js terbaru dari stage php-build
 COPY --from=php-build /var/www/html/vendor ./vendor
-COPY --from=php-build /var/www/html/resources/js/ziggy.js ./resources/js/ziggy.js
 
 RUN npm run build
 
