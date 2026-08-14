@@ -23,7 +23,10 @@ createInertiaApp({
     },
 
     setup({ el, App, props, plugin }) {
-        const ziggyConfig = typeof window !== 'undefined' && window.Ziggy ? window.Ziggy : Ziggy
+        const ziggyConfig = {
+            ...(typeof window !== 'undefined' && window.Ziggy ? window.Ziggy : Ziggy),
+            location: typeof window !== 'undefined' ? new URL(window.location.href) : undefined,
+        }
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue, ziggyConfig)

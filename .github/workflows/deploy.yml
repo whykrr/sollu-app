@@ -92,9 +92,6 @@ jobs:
             $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan migrate --force
             $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan db:seed --force
 
-            echo "=> Generating Ziggy routes..."
-            $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan ziggy:generate resources/js/ziggy.js
-
             echo "=> Clearing all Laravel caches (config, route, view, cache, compiled)..."
             $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan optimize:clear
             $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan cache:clear
