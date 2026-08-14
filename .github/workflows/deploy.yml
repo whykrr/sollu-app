@@ -3,14 +3,12 @@ name: Build and Deploy
 on:
   push:
     tags:
-      - 'v*'
-      - 'v*.*.*'
-    branches:
-      - master
+      - "v*"
+      - "v*.*.*"
     paths-ignore:
-      - 'README.md'
-      - 'docs/**'
-      - 'prd/**'
+      - "README.md"
+      - "docs/**"
+      - "prd/**"
   workflow_dispatch:
 
 env:
