@@ -17,9 +17,12 @@ class OutletDevice extends Model
 
     protected $fillable = ['outlet_id', 'device_name', 'device_type', 'serial_number', 'client_device_uuid', 'hardware_fingerprint', 'is_active'];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
 
     public function outlet(): BelongsTo
     {

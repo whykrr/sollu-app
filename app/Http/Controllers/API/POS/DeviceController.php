@@ -53,8 +53,8 @@ class DeviceController extends Controller
             'token' => $token,
             'device' => [
                 'id' => $device->id,
-                'name' => $device->name,
-                'type' => $device->type,
+                'name' => $device->device_name,
+                'type' => $device->device_type,
             ],
             'outlet' => [
                 'id' => $device->outlet->id,

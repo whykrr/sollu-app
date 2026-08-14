@@ -57,6 +57,11 @@ class OutletDeviceController extends Controller
     public function unpair(Request $request, Outlet $outlet, OutletDevice $device)
     {
         $device->tokens()->delete();
+        \Illuminate\Support\Facades\Cache::forget("pos_device_{$device->id}");
+        $device->update([
+            'client_device_uuid' => null,
+            'hardware_fingerprint' => null,
+        ]);
 
         return redirect()->back()->with('success', 'Perangkat berhasil diputuskan.');
     }
