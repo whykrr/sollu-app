@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Reports\DashboardService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-
-use App\Services\Reports\DashboardService;
 
 class OverviewController extends Controller
 {
