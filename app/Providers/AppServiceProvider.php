@@ -54,12 +54,14 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        DB::listen(function ($query) {
-            // Log query yang dijalankan
-            Log::channel('query_log')->info("Query executed: {$query->sql}", [
-                'bindings' => $query->bindings,
-                'time' => $query->time,
-            ]);
-        });
+        if (! $this->app->environment('production')) {
+            DB::listen(function ($query) {
+                // Log query yang dijalankan pada mode development
+                Log::channel('query_log')->info("Query executed: {$query->sql}", [
+                    'bindings' => $query->bindings,
+                    'time' => $query->time,
+                ]);
+            });
+        }
     }
 }
