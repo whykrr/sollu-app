@@ -93,7 +93,7 @@
                         </tbody>
                     </table>
                 </div>
-                <Pagination class="mt-4" :links="dailySales.links" />
+                    <Pagination class="mt-4" :links="dailySales.links" :from="dailySales.from" :to="dailySales.to" :total="dailySales.total" :per-page="dailySales.per_page" />
             </div>
 
             <div class="lg:col-span-1 card card-body">

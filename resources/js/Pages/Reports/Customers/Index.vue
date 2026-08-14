@@ -92,6 +92,7 @@
                     </tbody>
                 </table>
             </div>
+                <Pagination class="mt-4" :links="customers.links" :from="customers.from" :to="customers.to" :total="customers.total" :per-page="customers.per_page" />
         </div>
     </MainPage>
 </template>

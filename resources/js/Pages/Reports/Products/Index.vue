@@ -80,6 +80,7 @@
                     </tbody>
                 </table>
             </div>
+                <Pagination class="mt-4" :links="products.links" :from="products.from" :to="products.to" :total="products.total" :per-page="products.per_page" />
         </div>
     </MainPage>
 </template>

@@ -86,6 +86,7 @@
                     </tbody>
                 </table>
             </div>
+                <Pagination class="mt-4" :links="promotions.links" :from="promotions.from" :to="promotions.to" :total="promotions.total" :per-page="promotions.per_page" />
         </div>
     </MainPage>
 </template>

@@ -104,6 +104,7 @@
                     </tbody>
                 </table>
             </div>
+                <Pagination class="mt-4" :links="shifts.links" :from="shifts.from" :to="shifts.to" :total="shifts.total" :per-page="shifts.per_page" />
         </div>
     </MainPage>
 </template>

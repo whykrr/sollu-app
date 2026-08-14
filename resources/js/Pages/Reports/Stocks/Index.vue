@@ -87,6 +87,7 @@
                     </tbody>
                 </table>
             </div>
+                <Pagination class="mt-4" :links="stocks.links" :from="stocks.from" :to="stocks.to" :total="stocks.total" :per-page="stocks.per_page" />
         </div>
     </MainPage>
 </template>

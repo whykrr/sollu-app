@@ -43,24 +43,21 @@ class StockAssetReportService
             ->groupBy('inventory_items.id', 'inventory_items.name')
             ->get()->keyBy('item_id');
 
-        $report = [];
-        foreach ($movements as $m) {
+        $movements->getCollection()->transform(function ($m) use ($balances) {
             $currentStock = isset($balances[$m->item_id]) ? $balances[$m->item_id]->current_stock : 0;
-            // Approximate starting stock by subtracting net movement from current stock
-            // This is a naive approximation assuming we only query up to 'today'
             $netMovement = $m->total_in - $m->total_out;
             $startingStock = $currentStock - $netMovement;
 
-            $report[] = [
+            return (object) [
                 'item_name' => $m->item_name,
                 'starting_stock' => $startingStock,
                 'stock_in' => $m->total_in,
                 'stock_out' => $m->total_out,
                 'closing_stock' => $currentStock,
-                'asset_value' => 0, // Need cost for asset value, omitting for simplicity
+                'asset_value' => 0,
             ];
-        }
+        });
 
-        return $report;
+        return $movements;
     }
 }

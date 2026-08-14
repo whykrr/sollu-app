@@ -27,7 +27,7 @@ class SalesReportService
             )
             ->groupBy(DB::raw('DATE(created_at)'))
             ->orderBy('date', 'desc')
-            ->get();
+            ->paginate(15);
 
         // Breakdown Pembayaran
         $paymentMethods = DB::table('transaction_payments')
