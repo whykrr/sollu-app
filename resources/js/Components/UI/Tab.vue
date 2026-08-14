@@ -9,11 +9,11 @@
                 @click="toggleTab(key)"
             >
                 <button class="tab-toggle" type="button" role="tab">
-                    <FontAwesomeIcon :icon="page.icon" v-if="page.icon" />
+                    <FontAwesomeIcon v-if="page.icon" :icon="page.icon" />
                     {{ page.label }}
                     <span
-                        class="badge badge-main text-xs p-1!"
                         v-if="page.badge"
+                        class="badge badge-main text-xs p-1!"
                         >{{ page.badge }}</span
                     >
                 </button>

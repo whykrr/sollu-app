@@ -204,8 +204,8 @@
                     <button
                         type="button"
                         class="btn btn-danger btn-sm"
-                        @click="submitReject"
                         :disabled="rejectForm.processing || !rejectForm.notes"
+                        @click="submitReject"
                     >
                         Konfirmasi Tolak
                     </button>
@@ -233,19 +233,19 @@
                 <div class="flex gap-2">
                     <template v-if="transferData.status === 'pending'">
                         <button
+                            v-if="canApprove && !showRejectForm"
                             type="button"
                             class="btn btn-danger"
                             @click="showRejectForm = true"
-                            v-if="canApprove && !showRejectForm"
                         >
                             Tolak
                         </button>
                         <button
+                            v-if="canApprove"
                             type="button"
                             class="btn btn-main"
-                            @click="submitApprove"
                             :disabled="actionForm.processing"
-                            v-if="canApprove"
+                            @click="submitApprove"
                         >
                             Setujui
                         </button>
@@ -253,11 +253,11 @@
 
                     <template v-else-if="transferData.status === 'approved'">
                         <button
+                            v-if="canShip"
                             type="button"
                             class="btn btn-info"
-                            @click="submitShip"
                             :disabled="actionForm.processing"
-                            v-if="canShip"
+                            @click="submitShip"
                         >
                             Kirim Barang
                         </button>
@@ -265,10 +265,10 @@
 
                     <template v-else-if="transferData.status === 'in_transit'">
                         <button
+                            v-if="canReceive"
                             type="button"
                             class="btn btn-main"
                             @click="emit('openReceive', transferData)"
-                            v-if="canReceive"
                         >
                             Terima Barang
                         </button>

@@ -17,8 +17,8 @@
                 }}</span>
             </div>
             <div
-                class="flex justify-between text-success"
                 v-if="transaction.paid_amount > 0"
+                class="flex justify-between text-success"
             >
                 <span class="font-medium">Sudah Dibayar</span>
                 <span class="font-semibold">{{
@@ -51,8 +51,8 @@
             />
 
             <TextField
-                type="date"
                 v-model="form.payment_date"
+                type="date"
                 label="Tanggal Pembayaran"
                 :error="form.errors.payment_date"
                 required
@@ -78,12 +78,12 @@
                 <button
                     type="button"
                     class="btn btn-main"
-                    @click="submit"
                     :disabled="
                         form.processing ||
                         form.amount <= 0 ||
                         form.amount > balanceDue
                     "
+                    @click="submit"
                 >
                     Catat Pembayaran
                 </button>

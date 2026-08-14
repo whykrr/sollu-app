@@ -18,24 +18,30 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <input
-                            type="date"
                             v-model="formFilters.start_date"
+                            type="date"
                             class="form sm"
                             @change="applyFilters"
                         />
                         <span>-</span>
                         <input
-                            type="date"
                             v-model="formFilters.end_date"
+                            type="date"
                             class="form sm"
                             @change="applyFilters"
                         />
                     </div>
                     <div class="flex items-center gap-2 ml-auto">
-                        <a :href="route('reports.products.export.pdf', formFilters)" target="_blank" class="btn btn-outline-primary sm">
+                        <button
+                            class="btn btn-outline-primary btn-sm"
+                            @click="exportPdf"
+                        >
                             <FontAwesomeIcon :icon="faFilePdf" /> Ekspor PDF
-                        </a>
-                        <button @click="exportCsv" class="btn btn-outline-success sm">
+                        </button>
+                        <button
+                            class="btn btn-outline-success btn-sm"
+                            @click="exportCsv"
+                        >
                             <FontAwesomeIcon :icon="faFileCsv" /> Ekspor CSV
                         </button>
                     </div>
@@ -55,7 +61,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(item, index) in products" :key="index">
+                        <tr v-for="(item, index) in products.data" :key="index">
                             <td>{{ item.product_name }}</td>
                             <td>{{ item.category_name || '-' }}</td>
                             <td class="text-right">
@@ -65,7 +71,7 @@
                                 {{ formatIDR(item.total_sales) }}
                             </td>
                         </tr>
-                        <tr v-if="products.length === 0">
+                        <tr v-if="products.data.length === 0">
                             <td colspan="4" class="text-center text-muted py-4">
                                 Tidak ada data penjualan produk pada periode
                                 ini.
@@ -81,17 +87,23 @@
 <script setup>
 import { computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
-import { faStore } from '@fortawesome/free-solid-svg-icons';
+import {
+    faFileCsv,
+    faFilePdf,
+    faStore,
+} from '@fortawesome/free-solid-svg-icons';
 import MainPage from '@/Components/UI/MainPage.vue';
+import Pagination from '@/Components/Tables/Pagination.vue';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
 import { useAuth } from '@/Composable/useAuth';
 import { formatIDR } from '@/Composable/currency-format';
 import { formatNumberID } from '@/Composable/useNumberFormat';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 const props = defineProps({
     filters: Object,
-    products: Array,
+    products: Object,
 });
 
 const { outlets: userOutlets } = useAuth();
@@ -117,11 +129,17 @@ const applyFilters = () => {
     });
 };
 
+const exportPdf = () => {
+    router.post(route('reports.products.export.pdf'), formFilters.data(), {
+        preserveScroll: true,
+        preserveState: true,
+    });
+};
+
 const exportCsv = () => {
     router.post(route('reports.products.export.csv'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
     });
 };
-
 </script>

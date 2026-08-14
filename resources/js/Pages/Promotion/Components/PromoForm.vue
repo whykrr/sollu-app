@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="submit" class="space-y-4">
+    <form class="space-y-4" @submit.prevent="submit">
         <!-- Section 1: Informasi Dasar -->
         <div class="space-y-2">
             <h3 class="text-sm font-semibold text-slate-700 uppercase">
@@ -7,15 +7,15 @@
             </h3>
             <TextField
                 id="name"
-                label="Nama Promo"
                 v-model="form.name"
+                label="Nama Promo"
                 :error="form.errors.name"
                 required
             />
             <TextareaField
                 id="description"
-                label="Deskripsi"
                 v-model="form.description"
+                label="Deskripsi"
                 :error="form.errors.description"
             />
         </div>
@@ -28,15 +28,15 @@
             <div class="grid grid-cols-2 gap-2">
                 <DropdownField
                     id="target_type"
-                    label="Target Diskon"
                     v-model="form.target_type"
+                    label="Target Diskon"
                     :options="targetTypeOptions"
                     :error="form.errors.target_type"
                 />
                 <DropdownField
                     id="promo_type"
-                    label="Tipe Diskon"
                     v-model="form.promo_type"
+                    label="Tipe Diskon"
                     :options="promoTypeOptions"
                     :error="form.errors.promo_type"
                 />
@@ -45,16 +45,16 @@
             <div class="grid grid-cols-2 gap-2">
                 <NumberField
                     id="discount_value"
-                    label="Nilai Diskon"
                     v-model="form.discount_value"
+                    label="Nilai Diskon"
                     :error="form.errors.discount_value"
                     required
                 />
                 <NumberField
                     v-if="form.promo_type === 'percentage'"
                     id="max_discount"
-                    label="Batas Maksimum Diskon (Rp)"
                     v-model="form.max_discount"
+                    label="Batas Maksimum Diskon (Rp)"
                     :error="form.errors.max_discount"
                 />
             </div>
@@ -82,9 +82,9 @@
                 id="product_search"
                 label="Cari & Pilih Produk"
                 :api-url="route('api.internal.inventory-items.search')"
-                @select="addProduct"
                 placeholder="Ketik nama produk..."
                 :error="form.errors.inventory_item_ids"
+                @select="addProduct"
             />
 
             <div v-if="selectedProducts.length > 0" class="mt-2 space-y-1">
@@ -96,8 +96,8 @@
                     <span class="text-sm">{{ product.name }}</span>
                     <button
                         type="button"
-                        @click="removeProduct(product.id)"
                         class="text-danger hover:text-red-700"
+                        @click="removeProduct(product.id)"
                     >
                         <FontAwesomeIcon :icon="faTimes" />
                     </button>
@@ -113,17 +113,17 @@
             <div class="grid grid-cols-2 gap-2">
                 <TextField
                     id="start_date"
+                    v-model="form.start_date"
                     type="date"
                     label="Tanggal Mulai"
-                    v-model="form.start_date"
                     :error="form.errors.start_date"
                     required
                 />
                 <TextField
                     id="end_date"
+                    v-model="form.end_date"
                     type="date"
                     label="Tanggal Berakhir"
-                    v-model="form.end_date"
                     :error="form.errors.end_date"
                     required
                 />
@@ -131,16 +131,16 @@
             <div class="grid grid-cols-2 gap-2">
                 <TextField
                     id="start_time"
+                    v-model="form.start_time"
                     type="time"
                     label="Jam Mulai (Opsional)"
-                    v-model="form.start_time"
                     :error="form.errors.start_time"
                 />
                 <TextField
                     id="end_time"
+                    v-model="form.end_time"
                     type="time"
                     label="Jam Selesai (Opsional)"
-                    v-model="form.end_time"
                     :error="form.errors.end_time"
                 />
             </div>

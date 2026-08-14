@@ -19,7 +19,7 @@
             :data="transfers.data"
             :action="true"
             :sort="filters.sort"
-            :sortDirection="filters.direction"
+            :sort-direction="filters.direction"
         >
             <template #created_at="{ item }">
                 {{
@@ -44,8 +44,8 @@
                 <div class="flex items-center gap-2">
                     <button
                         class="btn btn-flat btn-sm"
-                        @click="openDetail(item)"
                         title="Detail"
+                        @click="openDetail(item)"
                     >
                         <FontAwesomeIcon :icon="faEye" /> Detail
                     </button>

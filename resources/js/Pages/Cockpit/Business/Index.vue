@@ -6,8 +6,8 @@
                     <TextField
                         v-model="params.search"
                         placeholder="Search name, email, ID..."
-                        @keyup.enter="applyFilters"
                         class="w-64"
+                        @keyup.enter="applyFilters"
                     />
                     <DropdownField
                         v-model="params.status"

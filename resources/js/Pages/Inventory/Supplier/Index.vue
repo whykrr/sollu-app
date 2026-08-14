@@ -14,7 +14,7 @@
             :data="suppliers.data"
             :action="true"
             :sort="route().params.sort"
-            :sortDirection="route().params.direction"
+            :sort-direction="route().params.direction"
             @sort="
                 (s, d) =>
                     router.get(

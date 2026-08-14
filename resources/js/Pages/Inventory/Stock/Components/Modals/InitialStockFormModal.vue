@@ -30,8 +30,8 @@
             <button
                 type="button"
                 class="btn btn-outline-secondary"
-                @click="emit('close')"
                 :disabled="saving"
+                @click="emit('close')"
             >
                 Batal
             </button>

@@ -56,8 +56,8 @@
                         <div class="text-xs text-gray-500 uppercase mb-1 flex items-center gap-2">
                             SKU
                             <button
-                                @click="openSkuModal"
                                 class="text-main hover:underline text-[10px]"
+                                @click="openSkuModal"
                             >
                                 {{ headerData?.sku ? 'Ubah' : 'Tambah' }}
                             </button>
@@ -74,8 +74,8 @@
                         >
                             Barcode
                             <button
-                                @click="openBarcodeModal"
                                 class="text-main hover:underline text-[10px]"
+                                @click="openBarcodeModal"
                             >
                                 {{ headerData?.barcode ? 'Ubah' : 'Tambah' }}
                             </button>
@@ -108,15 +108,15 @@
                         currentBalanceData.current_stock == 0 &&
                         movementsData.length === 0
                     "
-                    @click="openInitialStockModal"
                     class="btn btn-sm btn-outline-main"
+                    @click="openInitialStockModal"
                 >
                     Input Stok Awal
                 </button>
                 <button
                     v-if="!loading && movementsData.length > 0"
-                    @click="exportPdf"
                     class="btn btn-sm btn-outline-secondary"
+                    @click="exportPdf"
                 >
                     Ekspor PDF Riwayat
                 </button>

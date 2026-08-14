@@ -1,6 +1,6 @@
 <template>
     <div>
-        <form @submit.prevent="submit" class="space-y-2">
+        <form class="space-y-2" @submit.prevent="submit">
             <div v-if="transferData" class="mb-4 bg-gray-50 p-4 rounded-lg">
                 <p>
                     <strong>No Transfer:</strong>
@@ -83,16 +83,16 @@
             <button
                 type="button"
                 class="btn btn-flat"
-                @click="close"
                 :disabled="form.processing"
+                @click="close"
             >
                 Batal
             </button>
             <button
                 type="button"
                 class="btn btn-main"
-                @click="submit"
                 :disabled="form.processing || form.items.length === 0"
+                @click="submit"
             >
                 Konfirmasi Penerimaan
             </button>

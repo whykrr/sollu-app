@@ -156,8 +156,8 @@
             <button
                 type="button"
                 class="btn btn-flat"
-                @click="close"
                 :disabled="form.processing"
+                @click="close"
             >
                 Tutup
             </button>
@@ -165,16 +165,16 @@
                 <button
                     type="button"
                     class="btn btn-danger"
-                    @click="confirmAction('reject')"
                     :disabled="form.processing"
+                    @click="confirmAction('reject')"
                 >
                     Tolak
                 </button>
                 <button
                     type="button"
                     class="btn btn-main"
-                    @click="confirmAction('approve')"
                     :disabled="form.processing"
+                    @click="confirmAction('approve')"
                 >
                     Setujui & Sesuaikan Stok
                 </button>

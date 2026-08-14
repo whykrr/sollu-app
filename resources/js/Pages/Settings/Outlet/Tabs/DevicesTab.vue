@@ -12,9 +12,9 @@
                 </p>
             </div>
             <button
+                v-if="!showForm"
                 class="btn btn-main btn-sm px-4 py-2"
                 @click="openForm()"
-                v-if="!showForm"
             >
                 Tambah Perangkat
             </button>
@@ -31,26 +31,26 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <TextField
                     id="device_name"
+                    v-model="form.device_name"
                     label="Nama Perangkat"
                     placeholder="Contoh: Kasir Depan"
-                    v-model="form.device_name"
                     :error="form.errors.device_name"
                     :class="{ 'is-invalid': form.errors.device_name }"
                 />
                 <DropdownField
                     id="device_type"
+                    v-model="form.device_type"
                     label="Tipe Perangkat"
                     placeholder="Pilih Tipe"
-                    v-model="form.device_type"
                     :options="deviceTypes"
                     :error="form.errors.device_type"
                     :class="{ 'is-invalid': form.errors.device_type }"
                 />
                 <TextField
                     id="serial_number"
+                    v-model="form.serial_number"
                     label="Serial Number (Opsional)"
                     placeholder="S/N Perangkat"
-                    v-model="form.serial_number"
                     :error="form.errors.serial_number"
                     :class="{ 'is-invalid': form.errors.serial_number }"
                 />
@@ -68,15 +68,15 @@
             >
                 <button
                     class="btn btn-secondary px-4 py-2 rounded-lg"
-                    @click="closeForm"
                     :disabled="form.processing"
+                    @click="closeForm"
                 >
                     Batal
                 </button>
                 <button
                     class="btn btn-main px-4 py-2 rounded-lg"
-                    @click="submitForm"
                     :disabled="form.processing"
+                    @click="submitForm"
                 >
                     Simpan
                 </button>
@@ -119,30 +119,30 @@
                     <button
                         v-if="row.tokens_count > 0"
                         class="btn btn-highlight-danger btn-sm rounded-lg"
-                        @click="unpairDevice(row)"
                         title="Putuskan"
+                        @click="unpairDevice(row)"
                     >
                         <FontAwesomeIcon :icon="faUnlink" />
                     </button>
                     <button
                         v-else
                         class="btn btn-highlight-success btn-sm rounded-lg"
-                        @click="generateOtp(row)"
                         title="Hubungkan"
+                        @click="generateOtp(row)"
                     >
                         <FontAwesomeIcon :icon="faKey" />
                     </button>
                     <button
                         class="btn btn-highlight-main btn-sm rounded-lg"
-                        @click="openForm(row)"
                         title="Edit"
+                        @click="openForm(row)"
                     >
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
                         class="btn btn-highlight-danger btn-sm rounded-lg"
-                        @click="deleteDevice(row)"
                         title="Hapus"
+                        @click="deleteDevice(row)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>

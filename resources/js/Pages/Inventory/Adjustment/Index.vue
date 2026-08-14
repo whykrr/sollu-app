@@ -4,17 +4,17 @@
             <MainPageHeader title="Penyesuaian Stok">
                 <div class="flex items-end gap-2">
                     <button
+                        v-if="can('inventory.adjustment.freeze')"
                         class="btn btn-primary btn-sm"
                         @click="openFreezeModal()"
-                        v-if="can('inventory.adjustment.freeze')"
                     >
                         <FontAwesomeIcon :icon="faLock" />
                         Kelola Bekukan Stok
                     </button>
                     <button
+                        v-if="can('inventory.adjustment.create')"
                         class="btn btn-highlight-main"
                         @click="openForm()"
-                        v-if="can('inventory.adjustment.create')"
                     >
                         <FontAwesomeIcon :icon="faPlus" />
                         Buat Penyesuaian
@@ -29,7 +29,7 @@
             :data="adjustments.data"
             :action="true"
             :sort="filters.sort"
-            :sortDirection="filters.direction"
+            :sort-direction="filters.direction"
         >
             <template #status="{ item }">
                 <span
@@ -63,18 +63,18 @@
             </template>
             <template #actions="{ item }">
                 <button
-                    class="btn btn-flat btn-sm"
-                    @click="openDetail(item)"
-                    title="Lihat Detail"
                     v-if="can('inventory.adjustment.read')"
+                    class="btn btn-flat btn-sm"
+                    title="Lihat Detail"
+                    @click="openDetail(item)"
                 >
                     <FontAwesomeIcon :icon="faEye" />
                 </button>
                 <button
-                    class="btn btn-flat btn-sm text-danger"
-                    @click="exportPdf(item.id)"
                     v-if="can('inventory.adjustment.read')"
+                    class="btn btn-flat btn-sm text-danger"
                     title="Cetak Berita Acara"
+                    @click="exportPdf(item.id)"
                 >
                     <FontAwesomeIcon :icon="faFilePdf" />
                 </button>

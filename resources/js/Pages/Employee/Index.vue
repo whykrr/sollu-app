@@ -8,27 +8,32 @@
                                      :icon="faUpload" />
                     Impor CSV
                 </button>
-                <button class="btn btn-highlight-main"
+                <button
+class="btn btn-highlight-main"
                         @click="openForm()">
                     <FontAwesomeIcon
                                      :icon="faPlus" />
                     Tambah Baru
                 </button>
             </MainPageHeader>
-            <Filter :filters="params"
+            <Filter
+:filters="params"
                     :roles="roles" />
         </template>
 
-        <Table :headers="tableHeaders"
+        <Table
+:headers="tableHeaders"
                :data="users.data"
                :sort="params.sort ?? 'updated_at'"
                :sort-direction="params.direction ?? 'desc'"
                :action="true">
             <template #name="{ row }">
                 {{ row.name }}
-                <span v-if="row.deleted_at"
+                <span
+v-if="row.deleted_at"
                       class="badge badge-neutral-500 p-1 text-xs">Arsip</span>
-                <span v-if="row.is_root_user"
+                <span
+v-if="row.is_root_user"
                       class="badge badge-warning p-1 text-xs">Root</span>
             </template>
             <template #roles="{ row }">
@@ -36,11 +41,13 @@
             </template>
             <template #outlets="{ row }">
                 <div class="space-x-0.5">
-                    <label v-for="(outlet, index) in row.outlets.slice(0, 2)"
+                    <label
+v-for="(outlet, index) in row.outlets.slice(0, 2)"
                            :key="index"
                            class="badge text-sm badge-info text-nowrap">{{
                         outlet.name }}</label>
-                    <label v-if="row.outlets.length > 2"
+                    <label
+v-if="row.outlets.length > 2"
                            class="badge text-sm badge-info text-nowrap">+{{
                             row.outlets.length - 2 }}
                         Lainnya</label>
@@ -52,7 +59,8 @@
                 }}
             </template>
             <template #actions="{ row }">
-                <button v-if="!row.deleted_at"
+                <button
+v-if="!row.deleted_at"
                         class="btn btn-highlight-main btn-sm"
                         title="Ubah"
                         @click="getDetail(row.id)">
@@ -60,7 +68,8 @@
                                      :icon="faPencil" />
                 </button>
 
-                <ButtonIconGroupArchive v-if="!row.is_root_user"
+                <ButtonIconGroupArchive
+v-if="!row.is_root_user"
                                         :data="row"
                                         :url-delete="route('employees.delete', {
                                             user: row.id,
@@ -80,7 +89,8 @@
             </template>
         </Table>
         <template #footer>
-            <Pagination :links="users.links"
+            <Pagination
+:links="users.links"
                         :from="users.from"
                         :to="users.to"
                         :total="users.total"

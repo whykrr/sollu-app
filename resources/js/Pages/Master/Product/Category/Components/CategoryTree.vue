@@ -5,8 +5,8 @@
             group="root"
             item-key="id"
             handle=".drag-handle"
-            @change="onReorderRoot"
             class="space-y-2"
+            @change="onReorderRoot"
         >
             <template #item="{ element: category }">
                 <div class="bg-white border border-slate-200 rounded-xl">
@@ -31,22 +31,22 @@
                         <div class="flex items-center gap-2">
                             <button
                                 class="btn btn-outline-secondary btn-sm"
-                                @click="$emit('add-sub', category)"
                                 title="Tambah Sub-Kategori"
+                                @click="$emit('add-sub', category)"
                             >
                                 <FontAwesomeIcon :icon="faPlus" /> Sub
                             </button>
                             <button
                                 class="btn btn-outline-secondary btn-sm"
-                                @click="$emit('edit', category)"
                                 title="Edit"
+                                @click="$emit('edit', category)"
                             >
                                 <FontAwesomeIcon :icon="faPencil" />
                             </button>
                             <button
                                 class="btn btn-outline-danger btn-sm"
-                                @click="$emit('delete', category)"
                                 title="Hapus"
+                                @click="$emit('delete', category)"
                             >
                                 <FontAwesomeIcon :icon="faTrash" />
                             </button>
@@ -55,16 +55,16 @@
 
                     <!-- Sub Categories -->
                     <div
-                        class="p-2 pl-8"
                         v-if="category.children && category.children.length > 0"
+                        class="p-2 pl-8"
                     >
                         <draggable
                             v-model="category.children"
                             group="sub"
                             item-key="id"
                             handle=".drag-handle-sub"
-                            @change="onReorderSub(category)"
                             class="space-y-1"
+                            @change="onReorderSub(category)"
                         >
                             <template #item="{ element: subCategory }">
                                 <div
@@ -80,17 +80,17 @@
                                     <div class="flex items-center gap-2">
                                         <button
                                             class="btn btn-outline-secondary btn-sm"
-                                            @click="$emit('edit', subCategory)"
                                             title="Edit"
+                                            @click="$emit('edit', subCategory)"
                                         >
                                             <FontAwesomeIcon :icon="faPencil" />
                                         </button>
                                         <button
                                             class="btn btn-outline-danger btn-sm"
+                                            title="Hapus"
                                             @click="
                                                 $emit('delete', subCategory)
                                             "
-                                            title="Hapus"
                                         >
                                             <FontAwesomeIcon :icon="faTrash" />
                                         </button>

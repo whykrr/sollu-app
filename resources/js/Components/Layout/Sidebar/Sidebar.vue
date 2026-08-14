@@ -24,8 +24,8 @@
                         (appStore.sidebar.minimize || isMobile)
                     "
                     class="fixed inset-0 bg-black/20 backdrop-blur-sm z-20"
-                    @click="appStore.hide()"
                     aria-hidden="true"
+                    @click="appStore.hide()"
                 />
             </Transition>
         </Teleport>

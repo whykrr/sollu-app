@@ -24,7 +24,7 @@
             :data="opnames.data"
             :action="true"
             :sort="filters.sort"
-            :sortDirection="filters.direction"
+            :sort-direction="filters.direction"
         >
             <template #outlet="{ item }">
                 {{ item.outlet?.name || '-' }}
@@ -42,16 +42,16 @@
                     <button
                         v-if="item.status === 'in_progress'"
                         class="btn btn-highlight-main btn-sm"
-                        @click="openForm(item)"
                         title="Lanjutkan Opname"
+                        @click="openForm(item)"
                     >
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
                         v-if="item.status === 'pending_approval'"
                         class="btn btn-info btn-sm"
-                        @click="openDetail(item)"
                         title="Review & Approve"
+                        @click="openDetail(item)"
                     >
                         <FontAwesomeIcon :icon="faCheck" /> Review
                     </button>
@@ -61,16 +61,16 @@
                             item.status === 'rejected'
                         "
                         class="btn btn-main btn-sm"
-                        @click="openDetail(item)"
                         title="Lihat Detail"
+                        @click="openDetail(item)"
                     >
                         <FontAwesomeIcon :icon="faEye" />
                     </button>
                     <button
                         v-if="item.status === 'in_progress'"
                         class="btn btn-flat btn-sm text-danger"
-                        @click="confirmDelete(item)"
                         title="Batalkan Opname"
+                        @click="confirmDelete(item)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>

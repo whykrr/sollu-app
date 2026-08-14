@@ -9,8 +9,8 @@
         <div>
             <button
                 type="button"
-                @click="openModal"
                 class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
+                @click="openModal"
             >
                 <span>Filter</span>
                 <FontAwesomeIcon :icon="faSliders" />
@@ -84,9 +84,9 @@
                         >
                         <Switch
                             id="switch_regular"
+                            v-model="tempFilters.is_deleted"
                             name="switch_regular"
                             size="sm"
-                            v-model="tempFilters.is_deleted"
                         />
                     </div>
             </div>

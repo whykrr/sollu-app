@@ -173,8 +173,8 @@
 
                     <div class="flex justify-center p-0 relative">
                         <LogoCropper
-                            @action="saveLogo"
                             :url="auth.business.logo_url"
+                            @action="saveLogo"
                         />
                     </div>
                 </div>

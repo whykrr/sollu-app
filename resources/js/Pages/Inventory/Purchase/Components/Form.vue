@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="submit" class="space-y-2">
+    <form class="space-y-2" @submit.prevent="submit">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <DropdownField
                 id="supplier_id"
@@ -62,8 +62,8 @@
             <!-- Search Input -->
             <div class="mb-2">
                 <input
-                    type="text"
                     v-model="searchQuery"
+                    type="text"
                     class="form-input text-sm w-full rounded-lg border-gray-300"
                     placeholder="Cari nama barang atau bahan baku..."
                     @input="onSearchInput"
@@ -80,8 +80,8 @@
                     <div
                         v-for="item in searchResults"
                         :key="item.id"
-                        @click="selectItem(item)"
                         class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer border-b last:border-0 border-gray-100"
+                        @click="selectItem(item)"
                     >
                         <div>
                             <div class="font-medium text-sm text-slate-800">
@@ -197,16 +197,16 @@
         <button
             type="button"
             class="btn btn-flat"
-            @click="close"
             :disabled="form.processing"
+            @click="close"
         >
             Batal
         </button>
         <button
             type="button"
             class="btn btn-main"
-            @click="submit"
             :disabled="form.processing || form.items.length === 0"
+            @click="submit"
         >
             Simpan PO
         </button>

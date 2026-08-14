@@ -54,13 +54,13 @@
                         <div class="grid grid-cols-2 gap-4">
                             <!-- Monthly -->
                             <div
-                                @click="billingCycle = 'monthly'"
                                 class="border-2 rounded-lg p-4 cursor-pointer transition-colors relative"
                                 :class="
                                     billingCycle === 'monthly'
                                         ? 'border-main bg-main/5'
                                         : 'border-gray-200 hover:border-gray-300'
                                 "
+                                @click="billingCycle = 'monthly'"
                             >
                                 <div class="font-semibold text-gray-800">
                                     Bulanan
@@ -92,13 +92,13 @@
 
                             <!-- Yearly -->
                             <div
-                                @click="billingCycle = 'yearly'"
                                 class="border-2 rounded-lg p-4 cursor-pointer transition-colors relative"
                                 :class="
                                     billingCycle === 'yearly'
                                         ? 'border-main bg-main/5'
                                         : 'border-gray-200 hover:border-gray-300'
                                 "
+                                @click="billingCycle = 'yearly'"
                             >
                                 <div
                                     v-if="plan.yearly_discount_percent > 0"
@@ -139,13 +139,13 @@
                         <div class="space-y-3">
                             <!-- Midtrans -->
                             <div
-                                @click="paymentMethod = 'midtrans'"
                                 class="border-2 rounded-lg p-4 cursor-pointer transition-all relative flex items-start gap-4 animate-fadeIn"
                                 :class="
                                     paymentMethod === 'midtrans'
                                         ? 'border-main bg-main/5'
                                         : 'border-gray-200 hover:border-gray-300'
                                 "
+                                @click="paymentMethod = 'midtrans'"
                             >
                                 <div
                                     class="p-2.5 bg-blue-50 text-blue-600 rounded-lg mt-0.5"
@@ -185,13 +185,13 @@
 
                             <!-- Manual Bank Transfer -->
                             <div
-                                @click="paymentMethod = 'manual'"
                                 class="border-2 rounded-lg p-4 cursor-pointer transition-all relative flex items-start gap-4"
                                 :class="
                                     paymentMethod === 'manual'
                                         ? 'border-main bg-main/5'
                                         : 'border-gray-200 hover:border-gray-300'
                                 "
+                                @click="paymentMethod = 'manual'"
                             >
                                 <div
                                     class="p-2.5 bg-slate-50 text-slate-650 rounded-lg mt-0.5"

@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-4 pb-24" v-if="transaction">
+    <div v-if="transaction" class="space-y-4 pb-24">
         <!-- Status & Header Info -->
         <div
             class="flex justify-between items-start bg-slate-50 p-4 rounded-lg"
@@ -13,8 +13,8 @@
                     }}
                 </h2>
                 <div
-                    class="text-sm text-slate-500"
                     v-if="transaction.invoice_number"
+                    class="text-sm text-slate-500"
                 >
                     Ref: {{ transaction.transaction_number }}
                 </div>
@@ -122,8 +122,8 @@
                 }}</span>
             </div>
             <div
-                class="flex justify-between"
                 v-if="transaction.discount_amount > 0"
+                class="flex justify-between"
             >
                 <span class="text-slate-500">Diskon</span>
                 <span class="font-medium text-danger"
@@ -131,19 +131,19 @@
                 >
             </div>
             <div
-                class="flex justify-between"
                 v-if="transaction.shipping_fee > 0"
+                class="flex justify-between"
             >
                 <span class="text-slate-500">Biaya Pengiriman</span>
                 <span>{{ formatCurrency(transaction.shipping_fee) }}</span>
             </div>
-            <div class="flex justify-between" v-if="transaction.tax_amount > 0">
+            <div v-if="transaction.tax_amount > 0" class="flex justify-between">
                 <span class="text-slate-500">Pajak</span>
                 <span>{{ formatCurrency(transaction.tax_amount) }}</span>
             </div>
             <div
-                class="flex justify-between"
                 v-if="transaction.service_charge_amount > 0"
+                class="flex justify-between"
             >
                 <span class="text-slate-500">Service Charge</span>
                 <span>{{
@@ -160,8 +160,8 @@
             </div>
 
             <div
-                class="flex justify-between text-success pt-1"
                 v-if="transaction.paid_amount > 0"
+                class="flex justify-between text-success pt-1"
             >
                 <span class="font-medium">Sudah Dibayar</span>
                 <span class="font-bold">{{
@@ -170,11 +170,11 @@
             </div>
 
             <div
-                class="flex justify-between text-danger pt-1"
                 v-if="
                     transaction.status === 'unpaid' ||
                     transaction.status === 'partial'
                 "
+                class="flex justify-between text-danger pt-1"
             >
                 <span class="font-medium">Sisa Tagihan</span>
                 <span class="font-bold">{{
@@ -184,14 +184,14 @@
         </div>
 
         <hr
-            class="border-slate-200"
             v-if="transaction.payments && transaction.payments.length > 0"
+            class="border-slate-200"
         />
 
         <!-- Payments History -->
         <div
-            class="space-y-3"
             v-if="transaction.payments && transaction.payments.length > 0"
+            class="space-y-3"
         >
             <h3 class="text-sm font-semibold text-slate-700 uppercase">
                 Riwayat Pembayaran
@@ -229,57 +229,57 @@
                 </button>
                 <div class="flex gap-2">
                     <button
+                        v-if="can('transaction.view')"
                         class="btn btn-outline-main"
                         @click="exportPdf"
-                        v-if="can('transaction.view')"
                     >
                         <FontAwesomeIcon :icon="faFilePdf" />
                         Cetak PDF
                     </button>
 
                     <button
-                        class="btn btn-outline text-danger border-danger hover:bg-danger hover:text-white"
-                        @click="cancelTransaction"
                         v-if="
                             can('transaction.cancel') &&
                             (transaction.status === 'draft' ||
                                 transaction.status === 'unpaid' ||
                                 transaction.status === 'partial')
                         "
+                        class="btn btn-outline text-danger border-danger hover:bg-danger hover:text-white"
+                        @click="cancelTransaction"
                     >
                         Batalkan
                     </button>
 
                     <button
-                        class="btn btn-outline text-danger border-danger hover:bg-danger hover:text-white"
-                        @click="voidTransaction"
                         v-if="
                             can('transaction.void') &&
                             transaction.status === 'paid'
                         "
+                        class="btn btn-outline text-danger border-danger hover:bg-danger hover:text-white"
+                        @click="voidTransaction"
                     >
                         Void
                     </button>
 
                     <button
-                        class="btn btn-main"
-                        @click="issueInvoice"
                         v-if="
                             can('transaction.issue_invoice') &&
                             transaction.status === 'draft'
                         "
+                        class="btn btn-main"
+                        @click="issueInvoice"
                     >
                         Terbitkan Invoice
                     </button>
 
                     <button
-                        class="btn btn-main"
-                        @click="openPayment"
                         v-if="
                             can('transaction.record_payment') &&
                             (transaction.status === 'unpaid' ||
                                 transaction.status === 'partial')
                         "
+                        class="btn btn-main"
+                        @click="openPayment"
                     >
                         Catat Pelunasan
                     </button>

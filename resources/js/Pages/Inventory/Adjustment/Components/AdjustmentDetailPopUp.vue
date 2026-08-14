@@ -52,7 +52,7 @@
                         {{ formatReason(adjustment.reason) }}
                     </p>
                 </div>
-                <div class="col-span-2" v-if="adjustment.notes">
+                <div v-if="adjustment.notes" class="col-span-2">
                     <p class="text-gray-500">Catatan</p>
                     <p class="whitespace-pre-line">{{ adjustment.notes }}</p>
                 </div>
@@ -68,20 +68,20 @@
                                 <th class="p-3">Tipe</th>
                                 <th class="p-3 text-right">Perubahan Qty</th>
                                 <th
-                                    class="p-3 text-right"
                                     v-if="
                                         adjustment.status === 'approved' ||
                                         adjustment.status === 'voided'
                                     "
+                                    class="p-3 text-right"
                                 >
                                     Stok Sebelum
                                 </th>
                                 <th
-                                    class="p-3 text-right"
                                     v-if="
                                         adjustment.status === 'approved' ||
                                         adjustment.status === 'voided'
                                     "
+                                    class="p-3 text-right"
                                 >
                                     Stok Sesudah
                                 </th>
@@ -114,20 +114,20 @@
                                     }}{{ item.qty_change_formatted }}
                                 </td>
                                 <td
-                                    class="p-3 text-right"
                                     v-if="
                                         adjustment.status === 'approved' ||
                                         adjustment.status === 'voided'
                                     "
+                                    class="p-3 text-right"
                                 >
                                     {{ item.stock_before_formatted }}
                                 </td>
                                 <td
-                                    class="p-3 text-right"
                                     v-if="
                                         adjustment.status === 'approved' ||
                                         adjustment.status === 'voided'
                                     "
+                                    class="p-3 text-right"
                                 >
                                     {{ item.stock_after_formatted }}
                                 </td>
@@ -166,15 +166,15 @@
                     <template v-if="!showRejectInput">
                         <button
                             class="btn btn-success"
-                            @click="approve"
                             :disabled="isProcessing"
+                            @click="approve"
                         >
                             <FontAwesomeIcon :icon="faCheck" /> Setujui
                         </button>
                         <button
                             class="btn btn-danger"
-                            @click="showRejectInput = true"
                             :disabled="isProcessing"
+                            @click="showRejectInput = true"
                         >
                             <FontAwesomeIcon :icon="faTimes" /> Tolak
                         </button>
@@ -182,15 +182,15 @@
                     <template v-else>
                         <button
                             class="btn btn-danger"
-                            @click="reject"
                             :disabled="rejectForm.processing"
+                            @click="reject"
                         >
                             Konfirmasi Tolak
                         </button>
                         <button
                             class="btn btn-flat"
-                            @click="showRejectInput = false"
                             :disabled="rejectForm.processing"
+                            @click="showRejectInput = false"
                         >
                             Batal
                         </button>
@@ -204,8 +204,8 @@
             >
                 <button
                     class="btn btn-outline btn-danger"
-                    @click="voidAdjustment"
                     :disabled="isProcessing"
+                    @click="voidAdjustment"
                 >
                     <FontAwesomeIcon :icon="faBan" /> Batalkan Penyesuaian
                     (Void)
@@ -217,8 +217,8 @@
             <button
                 type="button"
                 class="btn btn-flat"
-                @click="close"
                 :disabled="isProcessing"
+                @click="close"
             >
                 Tutup
             </button>
@@ -239,15 +239,15 @@
             <div class="flex justify-end gap-2">
                 <button
                     class="btn btn-flat"
-                    @click="showApproveModal = false"
                     :disabled="isProcessing"
+                    @click="showApproveModal = false"
                 >
                     Batal
                 </button>
                 <button
                     class="btn btn-success"
-                    @click="executeApprove"
                     :disabled="isProcessing"
+                    @click="executeApprove"
                 >
                     <FontAwesomeIcon :icon="faCheck" /> Setujui
                 </button>
@@ -269,15 +269,15 @@
             <div class="flex justify-end gap-2">
                 <button
                     class="btn btn-flat"
-                    @click="showVoidModal = false"
                     :disabled="isProcessing"
+                    @click="showVoidModal = false"
                 >
                     Batal
                 </button>
                 <button
                     class="btn btn-danger"
-                    @click="executeVoid"
                     :disabled="isProcessing"
+                    @click="executeVoid"
                 >
                     <FontAwesomeIcon :icon="faBan" /> Batalkan Penyesuaian
                 </button>

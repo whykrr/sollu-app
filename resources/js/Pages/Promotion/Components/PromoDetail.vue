@@ -44,7 +44,7 @@
                     {{ formatDate(promo.end_date) }}
                 </p>
             </div>
-            <div class="space-y-1" v-if="promo.start_time || promo.end_time">
+            <div v-if="promo.start_time || promo.end_time" class="space-y-1">
                 <h4 class="text-xs font-semibold text-slate-500 uppercase">
                     Jam Operasional
                 </h4>
@@ -70,8 +70,8 @@
                 </p>
             </div>
             <div
-                class="space-y-1"
                 v-if="promo.promo_type === 'percentage' && promo.max_discount"
+                class="space-y-1"
             >
                 <h4 class="text-xs font-semibold text-slate-500 uppercase">
                     Batas Maksimum Diskon

@@ -30,15 +30,6 @@ class OutletController extends Controller
             ->paginate($req->get('perpage', 20))
             ->appends($req->query());
 
-        if ($outlet) {
-            $outlet->load([
-                'settings',
-                'operationalHours',
-                'devices' => fn ($q) => $q->withCount('tokens'),
-                'auditLogs' => fn ($q) => $q->with('user')->latest()->take(50),
-            ]);
-        }
-
         $business = $req->user()->business;
         $maxOutlets = $business->maxOutletsAllowed();
         $currentOutletsCount = $business->outlets()->count();

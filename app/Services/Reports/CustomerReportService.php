@@ -29,7 +29,7 @@ class CustomerReportService
             )
             ->groupBy('customers.id', 'customers.name', 'customers.phone', 'customers.email')
             ->orderBy('total_spent', 'desc')
-            ->get();
+            ->paginate(15);
 
         return $customers;
     }

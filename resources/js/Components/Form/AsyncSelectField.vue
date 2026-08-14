@@ -9,16 +9,16 @@
         <div class="relative">
             <input
                 :id="$attrs.id"
-                type="text"
                 v-model="searchQuery"
-                @input="debouncedSearch"
-                @focus="handleFocus"
+                type="text"
                 class="form w-full"
                 :class="{ 'border-danger': feedback, 'bg-gray-100': disabled }"
                 :placeholder="placeholder"
                 :disabled="disabled"
                 autocomplete="off"
                 v-bind="$attrs"
+                @input="debouncedSearch"
+                @focus="handleFocus"
             />
 
             <div
@@ -60,8 +60,8 @@
                     <div
                         v-for="(item, index) in results"
                         :key="index"
-                        @click="selectItem(item)"
                         class="p-2 border-b last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors"
+                        @click="selectItem(item)"
                     >
                         <slot name="option" :item="item">
                             <!-- Default option layout if slot is not provided -->
@@ -87,8 +87,8 @@
         <!-- Backdrop to close dropdown when clicking outside -->
         <div
             v-if="showDropdown"
-            @click="closeDropdown"
             class="fixed inset-0 z-40 bg-transparent"
+            @click="closeDropdown"
         ></div>
     </div>
 </template>

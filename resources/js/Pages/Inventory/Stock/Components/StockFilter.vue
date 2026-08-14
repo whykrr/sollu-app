@@ -12,8 +12,8 @@
         <div>
             <button
                 type="button"
-                @click="openModal"
                 class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
+                @click="openModal"
             >
                 <span>Filter</span>
                 <FontAwesomeIcon :icon="faSliders" />
@@ -70,9 +70,9 @@
             <!-- Impor Button -->
             <button
                 type="button"
-                @click="showImportModal = true"
                 class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white flex items-center gap-1.5"
                 title="Impor CSV"
+                @click="showImportModal = true"
             >
                 <FontAwesomeIcon :icon="faUpload" class="text-blue-600" />
                 <span>Impor CSV</span>
@@ -82,8 +82,8 @@
             <div class="relative inline-block text-left">
                 <button
                     type="button"
-                    @click="showExportDropdown = !showExportDropdown"
                     class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white flex items-center gap-1.5"
+                    @click="showExportDropdown = !showExportDropdown"
                 >
                     <FontAwesomeIcon :icon="faDownload" class="text-slate-600" />
                     <span>Ekspor</span>
@@ -95,16 +95,16 @@
                 >
                     <button
                         type="button"
-                        @click="exportPdf(); showExportDropdown = false"
                         class="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                        @click="exportPdf(); showExportDropdown = false"
                     >
                         <FontAwesomeIcon :icon="faFilePdf" class="text-red-600" />
                         <span>Ekspor PDF</span>
                     </button>
                     <button
                         type="button"
-                        @click="exportCsv(); showExportDropdown = false"
                         class="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                        @click="exportCsv(); showExportDropdown = false"
                     >
                         <FontAwesomeIcon :icon="faFileCsv" class="text-green-600" />
                         <span>Ekspor CSV</span>
@@ -187,8 +187,8 @@
                 <div class="flex items-center gap-4 pt-2">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input
-                            type="checkbox"
                             v-model="tempFilters.is_active_only"
+                            type="checkbox"
                             true-value="1"
                             false-value=""
                             class="form-checkbox text-main rounded border-gray-300"
@@ -197,8 +197,8 @@
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input
-                            type="checkbox"
                             v-model="tempFilters.in_stock_only"
+                            type="checkbox"
                             true-value="1"
                             false-value=""
                             class="form-checkbox text-main rounded border-gray-300"

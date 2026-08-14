@@ -1,6 +1,6 @@
 <template>
     <div>
-        <form @submit.prevent="submit" class="space-y-2">
+        <form class="space-y-2" @submit.prevent="submit">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div
                     class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
@@ -143,8 +143,8 @@
                         <button
                             type="button"
                             class="btn btn-highlight-danger"
-                            @click="removeItem(index)"
                             title="Hapus"
+                            @click="removeItem(index)"
                         >
                             <FontAwesomeIcon :icon="faTrash"></FontAwesomeIcon>
                         </button>
@@ -166,16 +166,16 @@
                     <button
                         type="button"
                         class="btn btn-flat"
-                        @click="close"
                         :disabled="form.processing"
+                        @click="close"
                     >
                         Batal
                     </button>
                     <button
                         type="button"
                         class="btn btn-main"
-                        @click="submit"
                         :disabled="form.processing || form.items.length === 0"
+                        @click="submit"
                     >
                         {{ isEdit ? 'Simpan Perubahan' : 'Simpan Permintaan' }}
                     </button>

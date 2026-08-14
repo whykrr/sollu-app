@@ -56,7 +56,7 @@
                         </transition>
                     </div>
 
-                    <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2 mb-4" v-if="currentStep === 1">
+                    <div v-if="currentStep === 1" class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2 mb-4">
                         <SelectionGroupField
                             v-model="form.business_type_id"
                             name="business_type"

@@ -9,8 +9,8 @@
                     'cursor-pointer': outlets.length > 1,
                     'cursor-default': outlets.length <= 1,
                 }"
-                @click.prevent="selectOutlet"
                 :aria-expanded="isOpen"
+                @click.prevent="selectOutlet"
             >
                 <div class="flex items-center gap-3 overflow-hidden">
                     <div

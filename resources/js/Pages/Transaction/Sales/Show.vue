@@ -2,7 +2,7 @@
     <MainPage>
         <template #header>
             <div class="flex items-center gap-4">
-                <button class="btn btn-flat" @click="goBack" title="Kembali">
+                <button class="btn btn-flat" title="Kembali" @click="goBack">
                     <FontAwesomeIcon :icon="faArrowLeft" />
                 </button>
                 <MainPageHeader title="Detail Transaksi" />
@@ -163,8 +163,8 @@
                             }}</span>
                         </div>
                         <div
-                            class="flex justify-between"
                             v-if="Number(transaction.discount_amount) > 0"
+                            class="flex justify-between"
                         >
                             <span class="text-gray-500">Diskon</span>
                             <span class="text-danger"
@@ -174,8 +174,8 @@
                             >
                         </div>
                         <div
-                            class="flex justify-between"
                             v-if="Number(transaction.service_charge_amount) > 0"
+                            class="flex justify-between"
                         >
                             <span class="text-gray-500">Service Charge</span>
                             <span>{{
@@ -185,8 +185,8 @@
                             }}</span>
                         </div>
                         <div
-                            class="flex justify-between"
                             v-if="Number(transaction.tax_amount) > 0"
+                            class="flex justify-between"
                         >
                             <span class="text-gray-500">Pajak</span>
                             <span>{{

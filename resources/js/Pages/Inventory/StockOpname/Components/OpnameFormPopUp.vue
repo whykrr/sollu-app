@@ -1,6 +1,6 @@
 <template>
     <div>
-        <form @submit.prevent="confirmSubmit('submit')" class="space-y-2">
+        <form class="space-y-2" @submit.prevent="confirmSubmit('submit')">
             <div
                 v-if="opname"
                 class="mb-4 bg-gray-50 p-4 rounded-lg flex justify-between"
@@ -82,10 +82,10 @@
                         <button
                             type="button"
                             class="btn btn-outline-main btn-sm"
-                            @click="loadAllItems(false)"
                             :disabled="
                                 (!form.outlet_id && !opname) || isLoadingItems
                             "
+                            @click="loadAllItems(false)"
                         >
                             {{
                                 isLoadingItems
@@ -177,8 +177,8 @@
                     <button
                         type="button"
                         class="btn btn-outline-main btn-sm"
-                        @click="loadAllItems(true)"
                         :disabled="isLoadingItems"
+                        @click="loadAllItems(true)"
                     >
                         {{ isLoadingItems ? 'Memuat...' : 'Muat Lebih Banyak' }}
                     </button>
@@ -194,8 +194,8 @@
             <button
                 type="button"
                 class="btn btn-flat"
-                @click="close"
                 :disabled="form.processing"
+                @click="close"
             >
                 Batal
             </button>
@@ -203,8 +203,8 @@
                 v-if="!opname"
                 type="button"
                 class="btn btn-main"
-                @click="confirmSubmit('save')"
                 :disabled="form.processing || form.items.length === 0"
+                @click="confirmSubmit('save')"
             >
                 Mulai Opname
             </button>
@@ -212,8 +212,8 @@
                 v-if="opname"
                 type="button"
                 class="btn btn-info"
-                @click="confirmSubmit('submit')"
                 :disabled="form.processing || form.items.length === 0"
+                @click="confirmSubmit('submit')"
             >
                 Ajukan Persetujuan
             </button>

@@ -240,8 +240,8 @@
 
                     <div class="flex justify-center p-0 relative">
                         <PhotoCropper
-                            @action="savePhoto"
                             :url="profile.photo"
+                            @action="savePhoto"
                         />
                     </div>
                 </div>

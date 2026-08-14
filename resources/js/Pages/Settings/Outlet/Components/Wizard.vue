@@ -54,16 +54,16 @@
             <div class="flex flex-col gap-2">
                 <TextField
                     id="name"
+                    v-model="formOutlet.name"
                     label="Nama Outlet"
                     placeholder="Contoh: Cabang Sudirman"
-                    v-model="formOutlet.name"
                     :class="{ 'is-invalid': formOutlet.errors.name }"
                     :error="formOutlet.errors.name"
                 />
                 <TextareaField
                     id="address"
-                    placeholder="Masukkan alamat lengkap outlet"
                     v-model="formOutlet.address"
+                    placeholder="Masukkan alamat lengkap outlet"
                     :class="{ 'is-invalid': formOutlet.errors.address }"
                     :error="formOutlet.errors.address"
                     label="Alamat Lengkap"

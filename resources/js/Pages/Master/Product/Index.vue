@@ -75,8 +75,8 @@
                                 Ubah Info Dasar
                             </button>
                             <button
-                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
                                 v-if="row.has_variant || row.track_inventory"
+                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
                                 @click="openEditInventory(row); activeDropdownId = null"
                             >
                                 Setup Inventori

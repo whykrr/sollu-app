@@ -9,8 +9,8 @@
                 <div class="absolute right-0 top-0">
                     <a
                         href="#"
-                        @click.prevent="closeNotification"
                         class="text-neutral-400 hover:text-neutral-600 transition-colors text-base"
+                        @click.prevent="closeNotification"
                     >
                         <FontAwesomeIcon :icon="faClose" />
                     </a>
@@ -22,9 +22,9 @@
                         Notifikasi
                     </div>
                     <button 
-                        @click="markAllAsRead"
                         :disabled="unreadCount === 0"
                         class="text-xs font-medium text-main hover:text-main/80 transition disabled:opacity-40 disabled:no-underline"
+                        @click="markAllAsRead"
                     >
                         Tandai semua dibaca
                     </button>
@@ -103,8 +103,8 @@
                     <div v-if="!isLoading && currentPage < lastPage" class="p-3 flex justify-center border-t border-neutral-100 bg-white">
                         <button 
                             class="btn btn-outline-main btn-sm rounded-lg text-xs" 
-                            @click="fetchNotifications(currentPage + 1, true)" 
-                            :disabled="isLoadingMore"
+                            :disabled="isLoadingMore" 
+                            @click="fetchNotifications(currentPage + 1, true)"
                         >
                             <span v-if="isLoadingMore">Memuat...</span>
                             <span v-else>Muat Lebih Banyak</span>

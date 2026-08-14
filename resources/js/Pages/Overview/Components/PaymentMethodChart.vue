@@ -32,7 +32,7 @@
                         <span class="text-xs font-bold text-neutral-900 block">
                             {{ paymentMethods.value?.[index] }}%
                         </span>
-                        <span class="text-[10px] text-neutral-500 block" v-if="paymentMethods.revenue?.[index]">
+                        <span v-if="paymentMethods.revenue?.[index]" class="text-[10px] text-neutral-500 block">
                             {{ formatIDR(paymentMethods.revenue[index]) }}
                         </span>
                     </div>

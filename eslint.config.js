@@ -4,6 +4,9 @@ import pluginVue from 'eslint-plugin-vue'
 import prettierConfig from 'eslint-config-prettier'
 
 export default [
+    {
+        ignores: ['resources/js/ziggy.js', 'public/**', 'vendor/**'],
+    },
     js.configs.recommended,
     ...pluginVue.configs['flat/recommended'],
     {

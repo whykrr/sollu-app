@@ -6,8 +6,8 @@
                 <h3 class="overlay-title">{{ title }}</h3>
                 <button
                     type="button"
-                    @click="$emit('close')"
                     class="overlay-close"
+                    @click="$emit('close')"
                 >
                     ✖
                 </button>

@@ -20,9 +20,9 @@
                 <div class="flex items-center gap-2 mt-6">
                     <Switch
                         id="is_required"
+                        v-model="form.is_required"
                         size="sm"
                         labeling="Wajib Dipilih"
-                        v-model="form.is_required"
                     />
                 </div>
                 <NumberField
@@ -38,8 +38,8 @@
                 <h3 class="font-bold">Opsi Item</h3>
                 <button
                     type="button"
-                    @click="addOption"
                     class="btn btn-secondary btn-sm"
+                    @click="addOption"
                 >
                     Tambah Opsi
                 </button>
@@ -67,14 +67,14 @@
                     <div class="flex items-center gap-2 mt-2">
                         <Switch
                             :id="'default_opt_' + index"
+                            v-model="opt.is_default"
                             size="sm"
                             labeling="Default"
-                            v-model="opt.is_default"
                         />
                         <button
                             type="button"
-                            @click="removeOption(index)"
                             class="text-red-500 font-bold px-2"
+                            @click="removeOption(index)"
                         >
                             &times;
                         </button>
@@ -90,16 +90,16 @@
             <div class="flex justify-end gap-2 w-full">
                 <button
                     type="button"
-                    @click="closeModal"
                     class="btn btn-secondary"
+                    @click="closeModal"
                 >
                     Batal
                 </button>
                 <button
                     type="button"
-                    @click="submit"
                     :disabled="form.processing"
                     class="btn btn-success"
+                    @click="submit"
                 >
                     Simpan
                 </button>

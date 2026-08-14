@@ -3,11 +3,11 @@
         <template #header>
             <MainPageHeader title="Data Outlet">
                 <button
-                    class="btn btn-main px-4 py-2 shadow-xs rounded-lg w-full sm:w-auto justify-center"
+                    class="btn btn-main px-4 py-2 shadow-xs rounded-lg w-full sm:w-auto justify-center flex items-center gap-2"
                     @click="handleAddOutlet"
                 >
                     <FontAwesomeIcon :icon="faPlus" />
-                    <span>Tambah Baru</span>
+                    <span>Tambah Outlet Baru</span>
                 </button>
             </MainPageHeader>
             <div
@@ -29,8 +29,6 @@
             </div>
         </template>
 
-        <!-- Dynamic popups will be handled by PopUpStore -->
-
         <!-- Modal Upgrade Limit -->
         <LimitUpgradeModal
             :show="showUpgradeModal"
@@ -46,6 +44,13 @@
             @close="showUnpaidModal = false"
         />
 
+        <!-- Modal Ubah Data Dasar Outlet -->
+        <EditOutletModal
+            :show="showEditModal"
+            :outlet="selectedOutletToEdit"
+            @close="showEditModal = false"
+        />
+
         <Table
             :headers="tableSetting"
             :data="outlets.data"
@@ -55,12 +60,10 @@
         >
             <template #name="{ row }">
                 <div class="flex items-center gap-2">
-                    <span class="font-medium text-slate-800">{{
-                        row.name
-                    }}</span>
+                    <span class="font-medium text-slate-800">{{ row.name }}</span>
                     <span
-                        class="badge badge-info text-xs font-semibold whitespace-nowrap"
                         v-if="row.is_main_outlet"
+                        class="badge badge-info text-xs font-semibold whitespace-nowrap"
                     >
                         Outlet Utama
                     </span>
@@ -74,9 +77,7 @@
                     v-if="row.is_active"
                     class="badge pill text-xs badge-success font-semibold px-2.5 py-0.5 inline-flex items-center gap-1"
                 >
-                    <span
-                        class="size-1.5 rounded-full bg-white animate-pulse"
-                    ></span>
+                    <span class="size-1.5 rounded-full bg-white animate-pulse"></span>
                     Aktif
                 </label>
                 <label
@@ -91,8 +92,8 @@
                 <div class="flex items-center gap-1.5">
                     <button
                         class="btn btn-highlight-main btn-sm rounded-lg"
-                        title="Ubah Outlet"
-                        @click="getDetail(row.id)"
+                        title="Ubah Data Outlet"
+                        @click="openEdit(row)"
                     >
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
@@ -133,7 +134,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { router, Link } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
     faPencil,
@@ -147,9 +148,9 @@ import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import Filter from './Components/Filter.vue';
 import Wizard from './Components/Wizard.vue';
-import Detail from './Components/Detail.vue';
 import LimitUpgradeModal from './Components/LimitUpgradeModal.vue';
 import UnpaidInvoiceModal from './Components/UnpaidInvoiceModal.vue';
+import EditOutletModal from './Components/EditOutletModal.vue';
 import { formatDateTimeSimple } from '@/Composable/date';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import { usePopUpStore } from '@/store/popup';
@@ -159,25 +160,15 @@ const popUpStore = usePopUpStore();
 const props = defineProps({
     outlets: Object,
     params: Object,
-    outlet: Object,
     limit: Object,
     subscription: Object,
 });
 
-const showForm = ref(false);
 const showUpgradeModal = ref(false);
 const showUnpaidModal = ref(false);
+const showEditModal = ref(false);
+const selectedOutletToEdit = ref(null);
 const unpaidInvoice = ref({ number: '', url: '' });
-
-if (props.outlet) {
-    popUpStore.open({
-        title: 'Detail Outlet',
-        subTitle: '#' + props.outlet.slug,
-        size: 'lg',
-        component: Detail,
-        props: { outlet: props.outlet },
-    });
-}
 
 const handleAddOutlet = () => {
     if (props.limit?.reached) {
@@ -191,6 +182,11 @@ const handleAddOutlet = () => {
     }
 };
 
+const openEdit = (outlet) => {
+    selectedOutletToEdit.value = outlet;
+    showEditModal.value = true;
+};
+
 const tableSetting = [
     { field: 'name', label: 'Nama', sortable: true, slot: 'name' },
     { field: 'address', label: 'Alamat' },
@@ -202,23 +198,6 @@ const tableSetting = [
         sortable: true,
     },
 ];
-
-const getDetail = (id) => {
-    router.visit(route('settings.outlets.show', { outlet: id }), {
-        only: ['outlet'],
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: (page) => {
-            popUpStore.open({
-                title: 'Detail Outlet',
-                subTitle: '#' + page.props.outlet.slug,
-                size: 'lg',
-                component: Detail,
-                props: { outlet: page.props.outlet },
-            });
-        },
-    });
-};
 
 const disabledOutlet = (id) => {
     router.delete(route('settings.outlets.disabled', { outlet: id }), {

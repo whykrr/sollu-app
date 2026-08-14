@@ -33,15 +33,15 @@
             <form class="mt-8 space-y-6" @submit.prevent="submit">
                 <div class="rounded-md shadow-sm space-y-4">
                     <EmailField
-                        label="Email address"
                         v-model="form.email"
+                        label="Email address"
                         :error="form.errors.email"
                         placeholder="admin@sollu.id"
                         required
                     />
                     <PasswordField
-                        label="Password"
                         v-model="form.password"
+                        label="Password"
                         :error="form.errors.password"
                         placeholder="••••••••"
                         required

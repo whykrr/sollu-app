@@ -63,10 +63,10 @@
                             <template v-else>-</template>
                         </td>
                         <td>
-                            <span class="text-sm" v-if="!action">
+                            <span v-if="!action" class="text-sm">
                                 <FontAwesomeIcon :icon="faEllipsis" />
                             </span>
-                            <div class="flex gap-1" v-else>
+                            <div v-else class="flex gap-1">
                                 <slot
                                     name="actions"
                                     :row="row"

@@ -7,17 +7,17 @@
                 <div class="col-span-1">
                     <NumberField
                         id="tax"
+                        v-model="form.financial_tax"
                         label="Pajak (%)"
                         placeholder="10"
-                        v-model="form.financial_tax"
                     />
                 </div>
                 <div class="col-span-1">
                     <NumberField
                         id="service_fee"
+                        v-model="form.financial_service_fee"
                         label="Service Fee (%)"
                         placeholder="5"
-                        v-model="form.financial_service_fee"
                     />
                 </div>
             </div>
@@ -44,9 +44,9 @@
                 <div class="col-span-1 md:col-span-2">
                     <DropdownField
                         id="receipt_format"
+                        v-model="form.pos_receipt_format"
                         label="Format Struk"
                         placeholder="Pilih format struk"
-                        v-model="form.pos_receipt_format"
                         :options="receiptFormats"
                     />
                 </div>

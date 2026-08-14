@@ -104,9 +104,9 @@
                     </div>
                     <input
                         :checked="form.has_variant"
-                        @change="handleVariantChange"
                         type="checkbox"
                         class="rounded h-5 w-5 text-primary cursor-pointer"
+                        @change="handleVariantChange"
                     />
                 </label>
 

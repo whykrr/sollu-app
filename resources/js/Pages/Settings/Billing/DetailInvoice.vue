@@ -230,8 +230,8 @@
                             </div>
                         </div>
                         <button
-                            @click="changePaymentMethod('manual')"
                             class="text-xs font-bold text-main hover:underline shrink-0 bg-transparent border-0 p-0"
+                            @click="changePaymentMethod('manual')"
                         >
                             Ubah ke Transfer Manual
                         </button>
@@ -274,8 +274,8 @@
                                     </div>
                                 </div>
                                 <button
-                                    @click="changePaymentMethod('midtrans')"
                                     class="text-xs font-bold text-main hover:underline shrink-0 bg-transparent border-0 p-0"
+                                    @click="changePaymentMethod('midtrans')"
                                 >
                                     Ubah ke Pembayaran Online
                                 </button>
@@ -448,8 +448,8 @@
 
                                 <!-- Upload form -->
                                 <form
-                                    @submit.prevent="uploadProof"
                                     class="space-y-3"
+                                    @submit.prevent="uploadProof"
                                 >
                                     <div
                                         class="flex flex-col sm:flex-row sm:items-center gap-4 border border-dashed border-rose-200 rounded-lg p-4 bg-rose-50/10"
@@ -457,8 +457,8 @@
                                         <input
                                             type="file"
                                             accept="image/*"
-                                            @change="handleFileChange"
                                             class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-main/5 file:text-main hover:file:bg-main/10"
+                                            @change="handleFileChange"
                                         />
                                         <button
                                             type="submit"
@@ -505,8 +505,8 @@
                                 </p>
 
                                 <form
-                                    @submit.prevent="uploadProof"
                                     class="space-y-3"
+                                    @submit.prevent="uploadProof"
                                 >
                                     <div
                                         class="flex flex-col sm:flex-row sm:items-center gap-4 border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50/50"
@@ -514,8 +514,8 @@
                                         <input
                                             type="file"
                                             accept="image/*"
-                                            @change="handleFileChange"
                                             class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-main/5 file:text-main hover:file:bg-main/10"
+                                            @change="handleFileChange"
                                         />
                                         <button
                                             type="submit"

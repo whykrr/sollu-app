@@ -18,8 +18,8 @@
         <FilterModal :show="showFilter" @close="closeFilter" @apply="applyFilter" @reset="resetFilter">
             <div class="space-y-4">
                 <DropdownField
-                    label="Status Shift"
                     v-model="tempFilters.status"
+                    label="Status Shift"
                     :options="statusOptions"
                     placeholder="Semua Status"
                 />

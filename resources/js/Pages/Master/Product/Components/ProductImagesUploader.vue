@@ -49,9 +49,9 @@
                         <div class="flex justify-end">
                             <button 
                                 type="button" 
-                                @click="removeImage(idx)" 
-                                class="bg-red-500 hover:bg-red-600 text-white rounded-lg p-1.5 text-xs cursor-pointer transition shadow"
+                                class="bg-red-500 hover:bg-red-600 text-white rounded-lg p-1.5 text-xs cursor-pointer transition shadow" 
                                 title="Hapus Foto"
+                                @click="removeImage(idx)"
                             >
                                 <FontAwesomeIcon :icon="faTrash" />
                             </button>
@@ -61,20 +61,20 @@
                         <div class="flex justify-between items-center text-white text-xs z-20">
                             <button 
                                 type="button" 
-                                @click="moveImage(idx, -1)" 
                                 :disabled="idx === 0" 
-                                class="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:pointer-events-none rounded-lg p-1.5 cursor-pointer transition"
+                                class="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:pointer-events-none rounded-lg p-1.5 cursor-pointer transition" 
                                 title="Pindah Kiri"
+                                @click="moveImage(idx, -1)"
                             >
                                 <FontAwesomeIcon :icon="faArrowLeft" />
                             </button>
                             <span class="font-bold bg-black/40 px-2 py-0.5 rounded-full text-[10px]">#{{ idx + 1 }}</span>
                             <button 
                                 type="button" 
-                                @click="moveImage(idx, 1)" 
                                 :disabled="idx === modelValue.length - 1" 
-                                class="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:pointer-events-none rounded-lg p-1.5 cursor-pointer transition"
+                                class="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:pointer-events-none rounded-lg p-1.5 cursor-pointer transition" 
                                 title="Pindah Kanan"
+                                @click="moveImage(idx, 1)"
                             >
                                 <FontAwesomeIcon :icon="faArrowRight" />
                             </button>
@@ -85,12 +85,12 @@
                 <!-- Add more upload card inside grid -->
                 <div 
                     v-if="modelValue.length < 8"
+                    class="uploader-dropzone aspect-square text-slate-400 hover:text-slate-600"
+                    :class="{ 'border-primary bg-primary/5 scale-[1.01]': dragging }"
                     @click="triggerFileInput"
                     @dragover.prevent="dragging = true"
                     @dragleave.prevent="dragging = false"
                     @drop.prevent="onDrop"
-                    class="uploader-dropzone aspect-square text-slate-400 hover:text-slate-600"
-                    :class="{ 'border-primary bg-primary/5 scale-[1.01]': dragging }"
                 >
                     <FontAwesomeIcon :icon="faPlus" class="text-lg mb-1" />
                     <span class="text-xs font-semibold">Tambah Foto</span>
@@ -99,8 +99,8 @@
         </div>
 
         <input 
-            type="file" 
             ref="fileInput" 
+            type="file" 
             class="hidden" 
             accept="image/png, image/jpeg, image/webp" 
             @change="onFileChange" 
@@ -114,7 +114,7 @@
                 <!-- Header -->
                 <div class="overlay-header">
                     <h3 class="overlay-title">Potong Gambar</h3>
-                    <button type="button" @click="closeCropper" class="overlay-close">✖</button>
+                    <button type="button" class="overlay-close" @click="closeCropper">✖</button>
                 </div>
                 <!-- Body -->
                 <div class="p-4 flex-1 overflow-hidden bg-slate-900 min-h-[300px]">

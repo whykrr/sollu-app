@@ -1,9 +1,11 @@
 <template>
     <div>
-        <form @submit.prevent="submit"
-              class="space-y-2">
+        <form
+class="space-y-2"
+              @submit.prevent="submit">
             <div class="grid grid-cols-2 gap-2">
-                <AsyncOutletDropdown id="outlet"
+                <AsyncOutletDropdown
+id="outlet"
                                      v-model="form.outlet_id"
                                      label="Pilih Outlet"
                                      placeholder="-- Pilih Outlet --"
@@ -12,7 +14,8 @@
                                      @loaded="onOutletsLoaded" />
 
 
-                <DropdownField id="reason"
+                <DropdownField
+id="reason"
                                v-model="form.reason"
                                label="Alasan Utama"
                                placeholder="Pilih alasan..."
@@ -22,7 +25,8 @@
                                required />
             </div>
 
-            <TextareaField id="notes"
+            <TextareaField
+id="notes"
                            v-model="form.notes"
                            label="Catatan Opsional"
                            :class="{ 'is-invalid': form.errors.notes }"
@@ -36,7 +40,8 @@
                         class="font-bold text-gray-700">
                         Daftar Item</h3>
                     <div class="w-72">
-                        <AsyncSelectField id="search_item"
+                        <AsyncSelectField
+id="search_item"
                                           label="Cari Item (Min. 3 huruf)"
                                           placeholder="Cari nama, SKU, barcode..."
                                           class="sm"
@@ -86,12 +91,14 @@
                     </div>
                 </div>
 
-                <div v-if="form.errors.items"
+                <div
+v-if="form.errors.items"
                      class="text-danger text-sm mb-2">
                     {{ form.errors.items }}
                 </div>
 
-                <div v-if="form.items.length === 0"
+                <div
+v-if="form.items.length === 0"
                      class="text-center py-2 text-gray-500 border border-dashed rounded-lg">
                     Belum ada item yang
                     ditambahkan. Silakan cari
@@ -99,9 +106,11 @@
                     kolom pencarian di atas.
                 </div>
 
-                <div v-else
+                <div
+v-else
                      class="space-y-2 max-h-96 overflow-y-auto pr-1">
-                    <div v-for="(item, index) in form.items"
+                    <div
+v-for="(item, index) in form.items"
                          :key="item.inventory_item_id || index"
                          class="p-2 border rounded-lg bg-white shadow-sm space-y-2">
                         <div
@@ -131,10 +140,11 @@
                                     </span>
                                 </div>
                             </div>
-                            <button type="button"
+                            <button
+type="button"
                                     class="btn btn-highlight-danger btn-sm"
-                                    @click="removeItem(index)"
-                                    title="Hapus Item">
+                                    title="Hapus Item"
+                                    @click="removeItem(index)">
                                 <FontAwesomeIcon
                                                  :icon="faTrash" />
                             </button>
@@ -142,11 +152,13 @@
 
                         <div
                              class="grid grid-cols-12 gap-2">
-                            <div :class="item.qty_change > 0
+                            <div
+:class="item.qty_change > 0
                                 ? 'col-span-12 md:col-span-6'
                                 : 'col-span-12'
                                 ">
-                                <NumberField :id="'qty_' + index"
+                                <NumberField
+:id="'qty_' + index"
                                              v-model="item.qty_change"
                                              label="Perubahan Qty (+/-)"
                                              placeholder="Misal: -2 atau 5"
@@ -162,9 +174,11 @@
                                              required />
                             </div>
 
-                            <div class="col-span-12 md:col-span-6"
-                                 v-if="item.qty_change > 0">
-                                <NumberField :id="'unit_cost_' + index"
+                            <div
+v-if="item.qty_change > 0"
+                                 class="col-span-12 md:col-span-6">
+                                <NumberField
+:id="'unit_cost_' + index"
                                              v-model="item.unit_cost"
                                              label="HPP / Unit Cost (Opsional)"
                                              placeholder="Auto (Moving Avg)"
@@ -182,7 +196,8 @@
 
                             <div
                                  class="col-span-12">
-                                <TextField :id="'desc_' + index"
+                                <TextField
+:id="'desc_' + index"
                                            v-model="item.description"
                                            label="Deskripsi / Alasan"
                                            placeholder="Detail alasan untuk item ini"
@@ -204,18 +219,21 @@
             </div>
         </form>
 
-        <Teleport v-if="isMounted"
+        <Teleport
+v-if="isMounted"
                   to="#popUpFooter">
-            <button type="button"
+            <button
+type="button"
                     class="btn btn-flat"
-                    @click="close"
-                    :disabled="form.processing">
+                    :disabled="form.processing"
+                    @click="close">
                 Batal
             </button>
-            <button type="button"
+            <button
+type="button"
                     class="btn btn-main"
-                    @click="submit"
-                    :disabled="form.processing || form.items.length === 0">
+                    :disabled="form.processing || form.items.length === 0"
+                    @click="submit">
                 Simpan Penyesuaian
             </button>
         </Teleport>

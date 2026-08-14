@@ -28,7 +28,7 @@ class StockAssetReportService
                 DB::raw('SUM(CASE WHEN inventory_movements.qty_change < 0 THEN ABS(inventory_movements.qty_change) ELSE 0 END) as total_out')
             )
             ->groupBy('inventory_items.id', 'inventory_items.name')
-            ->get();
+            ->paginate(15);
 
         $balances = DB::table('inventory_balances')
             ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')

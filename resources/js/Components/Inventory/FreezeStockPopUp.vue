@@ -68,16 +68,16 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <span
-                                class="text-xs text-gray-500 font-medium"
                                 v-if="processingId === outlet.id"
+                                class="text-xs text-gray-500 font-medium"
                             >
                                 Menyimpan...
                             </span>
                             <Switch
                                 :id="'freeze-switch-' + outlet.id"
-                                :modelValue="outlet.is_stock_frozen ? 1 : 0"
+                                :model-value="outlet.is_stock_frozen ? 1 : 0"
                                 :disabled="isProcessing || processingId === outlet.id"
-                                @update:modelValue="
+                                @update:model-value="
                                     (val) => toggleFreeze(outlet, val)
                                 "
                             />
@@ -91,8 +91,8 @@
             <button
                 type="button"
                 class="btn btn-flat"
-                @click="close"
                 :disabled="isProcessing"
+                @click="close"
             >
                 Tutup
             </button>
@@ -107,15 +107,15 @@
 
         <p class="text-gray-600">{{ confirmMessage }}</p>
         <template #footer>
-            <button type="button" class="btn btn-flat" @click="closeConfirm" :disabled="isProcessing">
+            <button type="button" class="btn btn-flat" :disabled="isProcessing" @click="closeConfirm">
                 Batal
             </button>
             <button
                 type="button"
                 class="btn"
                 :class="confirmActionType === 'freeze' ? 'btn-danger' : 'btn-success'"
-                @click="executeToggle"
                 :disabled="isProcessing"
+                @click="executeToggle"
             >
                 Ya, Lanjutkan
             </button>

@@ -10,9 +10,9 @@
             <div class="col-span-1 md:col-span-2">
                 <TextField
                     id="name"
+                    v-model="formOutlet.name"
                     label="Nama Outlet"
                     placeholder="Masukkan nama outlet"
-                    v-model="formOutlet.name"
                     :class="{ 'is-invalid': formOutlet.errors.name }"
                     :error="formOutlet.errors.name"
                 />
@@ -20,9 +20,9 @@
             <div class="col-span-1">
                 <TextField
                     id="phone"
+                    v-model="formOutlet.phone"
                     label="Nomor Telepon"
                     placeholder="08123456789"
-                    v-model="formOutlet.phone"
                     :class="{ 'is-invalid': formOutlet.errors.phone }"
                     :error="formOutlet.errors.phone"
                 />
@@ -30,9 +30,9 @@
             <div class="col-span-1">
                 <EmailField
                     id="email"
+                    v-model="formOutlet.email"
                     label="Email"
                     placeholder="outlet@example.com"
-                    v-model="formOutlet.email"
                     :class="{ 'is-invalid': formOutlet.errors.email }"
                     :error="formOutlet.errors.email"
                 />
@@ -40,8 +40,8 @@
             <div class="col-span-1 md:col-span-2">
                 <TextareaField
                     id="address"
-                    placeholder="Masukkan alamat outlet lengkap"
                     v-model="formOutlet.address"
+                    placeholder="Masukkan alamat outlet lengkap"
                     :class="{ 'is-invalid': formOutlet.errors.address }"
                     :error="formOutlet.errors.address"
                     label="Alamat"
@@ -51,9 +51,9 @@
             <div class="col-span-1">
                 <DropdownField
                     id="timezone"
+                    v-model="formOutlet.timezone"
                     label="Zona Waktu"
                     placeholder="Pilih zona waktu"
-                    v-model="formOutlet.timezone"
                     :options="timezones"
                     :class="{ 'is-invalid': formOutlet.errors.timezone }"
                     :error="formOutlet.errors.timezone"
@@ -62,9 +62,9 @@
             <div class="col-span-1">
                 <DropdownField
                     id="currency_code"
+                    v-model="formOutlet.currency_code"
                     label="Mata Uang"
                     placeholder="Pilih mata uang"
-                    v-model="formOutlet.currency_code"
                     :options="currencies"
                     :class="{ 'is-invalid': formOutlet.errors.currency_code }"
                     :error="formOutlet.errors.currency_code"

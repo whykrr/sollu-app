@@ -23,8 +23,8 @@
                 type="file"
                 accept=".csv,.txt"
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                @change="handleFileChange"
                 :disabled="form.processing"
+                @change="handleFileChange"
             />
 
             <FontAwesomeIcon
@@ -55,16 +55,16 @@
                 <button
                     type="button"
                     class="btn btn-outline-main"
-                    @click="close"
                     :disabled="form.processing"
+                    @click="close"
                 >
                     Batal
                 </button>
                 <button
                     type="button"
                     class="btn btn-main"
-                    @click="submit"
                     :disabled="!form.file || form.processing"
+                    @click="submit"
                 >
                     <span v-if="form.processing">Mengunggah...</span>
                     <span v-else>Mulai Impor</span>

@@ -27,7 +27,7 @@ class PromotionReportService
             )
             ->groupBy('promos.id', 'promos.name', 'promos.promo_type')
             ->orderBy('total_usage', 'desc')
-            ->get();
+            ->paginate(15);
 
         return $promotions;
     }

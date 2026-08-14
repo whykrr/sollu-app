@@ -31,6 +31,6 @@ class ProductReportService
             )
             ->groupBy('products.id', 'products.name', 'product_categories.name')
             ->orderByDesc('total_qty')
-            ->get();
+            ->paginate(15);
     }
 }

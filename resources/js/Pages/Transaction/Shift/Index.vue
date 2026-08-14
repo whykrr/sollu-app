@@ -10,7 +10,7 @@
             :data="shifts.data"
             :action="true"
             :sort="filters.sort"
-            :sortDirection="filters.direction"
+            :sort-direction="filters.direction"
         >
             <template #user="{ item }">
                 {{ item.user?.name || '-' }}
@@ -50,10 +50,10 @@
 
             <template #actions="{ item }">
                 <button
-                    class="btn btn-flat btn-sm"
-                    @click="openDetail(item)"
-                    title="Lihat Detail Shift"
                     v-if="can('transaction.view')"
+                    class="btn btn-flat btn-sm"
+                    title="Lihat Detail Shift"
+                    @click="openDetail(item)"
                 >
                     <FontAwesomeIcon :icon="faEye" />
                 </button>

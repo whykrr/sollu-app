@@ -95,4 +95,35 @@ Route::prefix('settings')
                 });
         });
 
+        Route::prefix('receipt')
+            ->name('receipt.')
+            ->group(function () {
+                Route::get('/', [\App\Http\Controllers\Settings\ReceiptSettingController::class, 'index'])->name('index');
+                Route::put('/', [\App\Http\Controllers\Settings\ReceiptSettingController::class, 'update'])->name('update');
+            });
+
+        Route::prefix('devices')
+            ->name('devices.')
+            ->group(function () {
+                Route::get('/', [\App\Http\Controllers\Settings\DeviceSettingController::class, 'index'])->name('index');
+                Route::post('/', [\App\Http\Controllers\Settings\DeviceSettingController::class, 'store'])->name('store');
+                Route::put('/{device}', [\App\Http\Controllers\Settings\DeviceSettingController::class, 'update'])->name('update');
+                Route::delete('/{device}', [\App\Http\Controllers\Settings\DeviceSettingController::class, 'destroy'])->name('destroy');
+                Route::post('/{device}/generate-otp', [\App\Http\Controllers\Settings\DeviceSettingController::class, 'generateOtp'])->name('generate-otp');
+                Route::post('/{device}/unpair', [\App\Http\Controllers\Settings\DeviceSettingController::class, 'unpair'])->name('unpair');
+            });
+
+        Route::prefix('taxes')
+            ->name('taxes.')
+            ->group(function () {
+                Route::get('/', [\App\Http\Controllers\Settings\TaxSettingController::class, 'index'])->name('index');
+                Route::put('/', [\App\Http\Controllers\Settings\TaxSettingController::class, 'update'])->name('update');
+            });
+
+        Route::prefix('operational')
+            ->name('operational.')
+            ->group(function () {
+                Route::get('/', [\App\Http\Controllers\Settings\OperationalSettingController::class, 'index'])->name('index');
+                Route::put('/', [\App\Http\Controllers\Settings\OperationalSettingController::class, 'update'])->name('update');
+            });
     });

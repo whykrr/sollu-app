@@ -39,9 +39,9 @@
                 >
                     <button
                         type="button"
-                        @click="deleteVariantGroup(gIdx)"
                         class="absolute top-2 right-2 text-danger hover:text-red-700 text-sm"
                         title="Hapus Grup Varian"
+                        @click="deleteVariantGroup(gIdx)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>
@@ -74,16 +74,16 @@
                                     />
                                     <button
                                         type="button"
-                                        @click="deleteVariantOption(gIdx, oIdx)"
                                         class="text-neutral-400 hover:text-danger text-xs"
+                                        @click="deleteVariantOption(gIdx, oIdx)"
                                     >
                                         ✖
                                     </button>
                                 </div>
                                 <button
                                     type="button"
-                                    @click="addVariantOption(gIdx)"
                                     class="btn btn-outline-secondary btn-xs py-1 px-2 text-xs"
+                                    @click="addVariantOption(gIdx)"
                                 >
                                     + Tambah Opsi
                                 </button>
@@ -94,8 +94,8 @@
 
                 <button
                     type="button"
-                    @click="addVariantGroup"
                     class="btn btn-outline-primary btn-sm"
+                    @click="addVariantGroup"
                 >
                     + Tambah Grup Varian
                 </button>
@@ -112,8 +112,8 @@
                     </div>
                     <button
                         type="button"
-                        @click="autoGenerateAllSkus"
                         class="btn btn-outline-secondary btn-xs"
+                        @click="autoGenerateAllSkus"
                     >
                         Generate SKU Otomatis
                     </button>

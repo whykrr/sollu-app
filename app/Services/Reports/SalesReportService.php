@@ -47,7 +47,7 @@ class SalesReportService
             ->get();
 
         return [
-            'daily_sales' => $dailySales,
+            'daily_sales'     => $dailySales,
             'payment_methods' => $paymentMethods,
         ];
     }

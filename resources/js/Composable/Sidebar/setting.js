@@ -1,4 +1,4 @@
-import { faArrowLeft, faBoxes, faCalculator, faCashRegister, faCog, faCreditCard, faGears, faHistory, faHome, faInfo, faMapMarkerAlt, faMarker, faMinus, faMinusSquare, faMoneyBill, faMoneyBills, faReceipt, faShop, faUser, faUserCircle, faUserShield, faWallet, faXmarkCircle } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faBoxes, faCalculator, faCashRegister, faClock, faCog, faCreditCard, faGears, faHistory, faHome, faInfo, faMapMarkerAlt, faMarker, faMinus, faMinusSquare, faMoneyBill, faMoneyBills, faReceipt, faShop, faUser, faUserCircle, faUserShield, faWallet, faXmarkCircle } from '@fortawesome/free-solid-svg-icons'
 
 export const settingSidebars = [
     {
@@ -45,40 +45,40 @@ export const settingSidebars = [
     },
     {
         type: 'section',
-        label: 'Pengaturan',
+        label: 'Pengaturan Operasional & POS',
         separator: true,
     },
     {
         type: 'item',
-        url: '#',
-        icon: faCog,
-        label: 'Konfigurasi Umum',
-        permissions: [],
-        activeRoute: 'settings.config',
+        url: route('settings.operational.index'),
+        icon: faClock,
+        label: 'Jam Operasional',
+        permissions: ['outlet.view'],
+        activeRoute: 'settings.operational',
     },
     {
         type: 'item',
-        url: '#',
+        url: route('settings.devices.index'),
         icon: faCashRegister,
         label: 'Perangkat',
-        permissions: [],
-        activeRoute: 'settings.cashier',
+        permissions: ['setting.device', 'outlet.view'],
+        activeRoute: 'settings.devices',
     },
     {
         type: 'item',
-        url: '#',
+        url: route('settings.receipt.index'),
         icon: faReceipt,
-        label: 'Nota',
-        permissions: [],
+        label: 'Layout Struk & Nota',
+        permissions: ['setting.receipt', 'outlet.view'],
         activeRoute: 'settings.receipt',
     },
     {
         type: 'item',
-        url: '#',
+        url: route('settings.taxes.index'),
         icon: faCalculator,
-        label: 'Pajak & Potongan',
-        permissions: [],
-        activeRoute: 'settings.inventory',
+        label: 'Pajak & Biaya',
+        permissions: ['setting.tax', 'outlet.view'],
+        activeRoute: 'settings.taxes',
     },
     {
         type: 'item',
@@ -102,6 +102,6 @@ export const settingSidebars = [
         icon: faHistory,
         label: 'Log Aktivitas',
         permissions: [],
-        activeRoute: 'settings.roles',
+        activeRoute: 'settings.audit-logs',
     },
 ]

@@ -332,8 +332,8 @@
                     </template>
                     <template #actions="{ row }">
                         <button
-                            @click="getDetail(row.invoice_number)"
                             class="btn btn-highlight-main btn-sm"
+                            @click="getDetail(row.invoice_number)"
                         >
                             Detail
                             <FontAwesomeIcon

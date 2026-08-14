@@ -4,18 +4,18 @@
             <MainPageHeader title="Daftar Transaksi Penjualan">
                 <div class="flex items-end gap-2">
                     <button
-                        class="btn btn-flat btn-sm"
-                        @click="exportCsv"
                         v-if="can('transaction.view')"
+                        class="btn btn-flat btn-sm"
                         title="Export CSV"
+                        @click="exportCsv"
                     >
                         <FontAwesomeIcon :icon="faFileCsv" />
                         Export CSV
                     </button>
                     <button
-                        @click="openCreate"
-                        class="btn btn-main"
                         v-if="can('transaction.create')"
+                        class="btn btn-main"
+                        @click="openCreate"
                     >
                         <FontAwesomeIcon :icon="faPlus" />
                         Tambah Penjualan
@@ -30,13 +30,13 @@
                 <button
                     v-for="tab in statusTabs"
                     :key="tab.value"
-                    @click="changeStatus(tab.value)"
                     class="px-4 py-2 text-sm font-medium border-b-2 transition-colors"
                     :class="[
                         filters.status === tab.value
                             ? 'border-primary text-primary'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
                     ]"
+                    @click="changeStatus(tab.value)"
                 >
                     {{ tab.label }}
                 </button>
@@ -48,7 +48,7 @@
             :data="transactions.data"
             :action="true"
             :sort="filters.sort"
-            :sortDirection="filters.direction"
+            :sort-direction="filters.direction"
         >
             <template #created_at="{ item }">
                 <span>{{ formatDateTimeSimple(item.created_at) }}</span>
@@ -59,8 +59,8 @@
                         item.transaction_number || item.receipt_number || '-'
                     }}</span>
                     <span
-                        class="text-xs text-gray-500"
                         v-if="item.invoice?.invoice_number"
+                        class="text-xs text-gray-500"
                     >
                         Inv: {{ item.invoice.invoice_number }}
                     </span>
@@ -71,7 +71,7 @@
             </template>
             <template #shift="{ item }">
                 <div class="flex flex-col">
-                    <span class="font-medium" v-if="item.shift?.user?.name">
+                    <span v-if="item.shift?.user?.name" class="font-medium">
                         {{ item.shift.user.name }}
                     </span>
                     <span class="text-xs text-slate-500 font-medium">
@@ -115,10 +115,10 @@
 
             <template #actions="{ item }">
                 <button
-                    class="btn btn-flat btn-sm"
-                    @click="openDetail(item)"
-                    title="Lihat Detail Transaksi"
                     v-if="can('transaction.view')"
+                    class="btn btn-flat btn-sm"
+                    title="Lihat Detail Transaksi"
+                    @click="openDetail(item)"
                 >
                     <FontAwesomeIcon :icon="faEye" />
                 </button>

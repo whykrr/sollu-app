@@ -16,14 +16,17 @@
                      class="text-slate-500 mt-1 flex items-center gap-4 text-sm">
                     <span
                           class="flex items-center gap-1">
-                        <FontAwesomeIcon :icon="faPhone"
+                        <FontAwesomeIcon
+:icon="faPhone"
                                          class="text-slate-400" />
                         {{ detail?.phone || '-'
                         }}
                     </span>
-                    <span v-if="detail?.email"
+                    <span
+v-if="detail?.email"
                           class="flex items-center gap-1">
-                        <FontAwesomeIcon :icon="faEnvelope"
+                        <FontAwesomeIcon
+:icon="faEnvelope"
                                          class="text-slate-400" />
                         {{ detail.email }}
                     </span>
@@ -31,9 +34,11 @@
             </div>
             <div
                  v-if="detail?.is_active !== undefined">
-                <span v-if="detail.is_active"
+                <span
+v-if="detail.is_active"
                       class="badge badge-success px-3 py-1">Aktif</span>
-                <span v-else
+                <span
+v-else
                       class="badge badge-neutral-500 px-3 py-1">Tidak
                     Aktif</span>
             </div>
@@ -55,7 +60,8 @@
                           class="font-medium text-slate-800">
                         {{ detail?.birthdate ||
                             '-' }}
-                        <span v-if="detail?.age"
+                        <span
+v-if="detail?.age"
                               class="text-slate-500 font-normal">({{
                                 detail.age }}
                             tahun)</span>
@@ -170,13 +176,15 @@
                            class="divide-y divide-slate-100">
                         <tr
                             v-if="!detail?.recent_transactions?.length">
-                            <td colspan="4"
+                            <td
+colspan="4"
                                 class="px-4 py-8 text-center text-slate-400">
                                 Belum ada riwayat
                                 transaksi
                             </td>
                         </tr>
-                        <tr v-for="tx in detail?.recent_transactions"
+                        <tr
+v-for="tx in detail?.recent_transactions"
                             :key="tx.id"
                             class="hover:bg-slate-50">
                             <td
@@ -201,16 +209,19 @@
         </div>
     </div>
 
-    <Teleport v-if="isMounted"
+    <Teleport
+v-if="isMounted"
               to="#popUpFooter">
         <div
              class="flex items-center justify-end w-full gap-2">
-            <button type="button"
+            <button
+type="button"
                     class="btn btn-flat"
                     @click="popUpStore.close()">
                 Tutup
             </button>
-            <button type="button"
+            <button
+type="button"
                     class="btn btn-outline-primary"
                     @click="handleEdit">
                 Ubah Data

@@ -20,10 +20,10 @@
                     <Switch :id="'closed_' + index" v-model="day.is_closed" size="sm" :labeling="day.is_closed ? 'Tutup' : 'Buka'" />
                 </div>
 
-                <div class="flex-1 flex items-center gap-2" v-if="!day.is_closed">
-                    <TextField type="time" v-model="day.open_time" class="w-24 md:w-32" />
+                <div v-if="!day.is_closed" class="flex-1 flex items-center gap-2">
+                    <TextField v-model="day.open_time" type="time" class="w-24 md:w-32" />
                     <span class="text-slate-400">-</span>
-                    <TextField type="time" v-model="day.close_time" class="w-24 md:w-32" />
+                    <TextField v-model="day.close_time" type="time" class="w-24 md:w-32" />
                 </div>
             </div>
         </div>

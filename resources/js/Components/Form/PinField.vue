@@ -1,11 +1,13 @@
 <template>
     <div class="pin-field-container">
-        <label v-if="label"
+        <label
+v-if="label"
                class="block text-sm font-medium mb-1"
                :class="error ? 'text-danger' : 'text-neutral-700'">{{
             label }}</label>
         <div class="flex gap-2">
-            <input v-for="(digit, index) in 6"
+            <input
+v-for="(digit, index) in 6"
                    :key="index"
                    ref="inputs"
                    v-model="pinValues[index]"
@@ -18,10 +20,12 @@
                    @keydown="onKeyDown(index, $event)"
                    @paste="onPaste" />
         </div>
-        <div v-if="error"
+        <div
+v-if="error"
              class="text-danger text-xs mt-1">{{
             error }}</div>
-        <div v-if="hint"
+        <div
+v-if="hint"
              class="text-neutral-400 text-xs mt-1">
             {{ hint }}</div>
     </div>

@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="submit" class="space-y-2">
+    <form class="space-y-2" @submit.prevent="submit">
         <div v-if="purchase" class="mb-2 bg-gray-100 p-4 rounded-lg">
             <p><strong>Supplier:</strong> {{ purchase.supplier?.name }}</p>
             <p><strong>Outlet:</strong> {{ purchase.outlet?.name }}</p>
@@ -30,12 +30,12 @@
                             {{ item.uom_name }}
                         </div>
                         <div
-                            class="text-xs text-blue-600 mt-1"
                             v-if="
                                 item.uom_name &&
                                 item.base_uom_name &&
                                 item.uom_name !== item.base_uom_name
                             "
+                            class="text-xs text-blue-600 mt-1"
                         >
                             Konversi: 1 {{ item.uom_name }} =
                             {{ item.conversion_factor ?? '1' }}
@@ -96,16 +96,16 @@
         <button
             type="button"
             class="btn btn-flat"
-            @click="close"
             :disabled="form.processing"
+            @click="close"
         >
             Batal
         </button>
         <button
             type="button"
             class="btn btn-main"
-            @click="submit"
             :disabled="form.processing || form.items.length === 0"
+            @click="submit"
         >
             Simpan Penerimaan
         </button>

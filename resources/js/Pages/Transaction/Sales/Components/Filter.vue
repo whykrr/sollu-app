@@ -38,27 +38,27 @@
         >
             <div class="space-y-4">
                 <DropdownField
-                    label="Status Transaksi / Invoice"
                     v-model="tempFilters.status"
+                    label="Status Transaksi / Invoice"
                     :options="statusOptions"
                     placeholder="Semua Status"
                 />
                 <DropdownField
-                    label="Channel Penjualan"
                     v-model="tempFilters.channel"
+                    label="Channel Penjualan"
                     :options="channelOptions"
                     placeholder="Semua Channel"
                 />
                 <div class="grid grid-cols-2 gap-4">
                     <TextField
+                        v-model="tempFilters.start_date"
                         type="date"
                         label="Dari Tanggal"
-                        v-model="tempFilters.start_date"
                     />
                     <TextField
+                        v-model="tempFilters.end_date"
                         type="date"
                         label="Sampai Tanggal"
-                        v-model="tempFilters.end_date"
                     />
                 </div>
             </div>

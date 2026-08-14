@@ -3,9 +3,9 @@
         <span><slot /></span>
         <button
             type="button"
-            @click="$emit('remove')"
             class="filter-badge-remove"
             title="Hapus filter"
+            @click="$emit('remove')"
         >
             ✕
         </button>

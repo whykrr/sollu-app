@@ -24,10 +24,10 @@
     
     <CreateEdit
         v-else
-        :editMode="editMode"
+        :edit-mode="editMode"
         :product="fetchedProduct"
-        :initialStep="initialStep"
-        :targetStepId="targetStepId"
+        :initial-step="initialStep"
+        :target-step-id="targetStepId"
         :categories="categories"
         :outlets="outlets"
         :uoms="uoms"

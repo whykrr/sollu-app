@@ -1,6 +1,6 @@
 <template>
     <div>
-        <form @submit.prevent="submit" class="space-y-2">
+        <form class="space-y-2" @submit.prevent="submit">
             <TextField
                 id="name"
                 v-model="form.name"
@@ -48,8 +48,8 @@
                 >
                 <!-- New Search Input -->
                 <input
-                    type="text"
                     v-model="searchQuery"
+                    type="text"
                     class="form-input text-sm w-full rounded-lg border-gray-200"
                     placeholder="Cari item inventory berdasarkan nama..."
                     @input="onSearchInput"
@@ -71,9 +71,9 @@
                         class="flex items-center gap-2 text-sm cursor-pointer hover:bg-white p-1.5 rounded transition-colors"
                     >
                         <input
+                            v-model="form.inventory_items"
                             type="checkbox"
                             :value="item.id"
-                            v-model="form.inventory_items"
                             class="form-check-input rounded border-gray-300 text-main focus:ring-main"
                         />
                         <span class="text-slate-700">{{ item.name }}</span>
@@ -99,9 +99,9 @@
                         <span>{{ item.name }}</span>
                         <button
                             type="button"
-                            @click="removeSelectedItem(item.id)"
                             class="filter-badge-remove"
                             title="Hapus item"
+                            @click="removeSelectedItem(item.id)"
                         >
                             ✕
                         </button>
@@ -116,8 +116,8 @@
             </div>
 
             <div
-                @click="form.is_active = form.is_active ? 0 : 1"
                 class="flex items-center justify-between border p-3 rounded-lg cursor-pointer hover:bg-slate-50 transition w-full mt-2"
+                @click="form.is_active = form.is_active ? 0 : 1"
             >
                 <div>
                     <div class="font-bold text-sm text-slate-700">
@@ -141,16 +141,16 @@
             <button
                 type="button"
                 class="btn btn-flat"
-                @click="close"
                 :disabled="form.processing"
+                @click="close"
             >
                 Batal
             </button>
             <button
                 type="button"
                 class="btn btn-main"
-                @click="submit"
                 :disabled="form.processing"
+                @click="submit"
             >
                 Simpan
             </button>

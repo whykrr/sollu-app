@@ -46,9 +46,9 @@
                         </div>
                         <button
                             type="button"
-                            @click="clearCustomer"
                             class="btn btn-ghost btn-xs text-slate-400 hover:text-rose-600"
                             title="Ganti Pelanggan"
+                            @click="clearCustomer"
                         >
                             <FontAwesomeIcon :icon="faTimes" />
                         </button>
@@ -74,8 +74,8 @@
                     required
                 />
                 <TextField
-                    type="date"
                     v-model="form.transaction_date"
+                    type="date"
                     label="Tanggal Transaksi"
                     :error="form.errors.transaction_date"
                     required
@@ -96,8 +96,8 @@
 
                 <TextField
                     v-if="form.payment_term === 'credit'"
-                    type="date"
                     v-model="form.due_date"
+                    type="date"
                     label="Tanggal Jatuh Tempo"
                     :error="form.errors.due_date"
                     :disabled="!can('transaction.edit_due_date')"
@@ -202,8 +202,8 @@
                         </div>
                         <button
                             type="button"
-                            @click="removeItem(index)"
                             class="btn btn-flat text-danger"
+                            @click="removeItem(index)"
                         >
                             <FontAwesomeIcon :icon="faTrash" />
                         </button>
@@ -214,19 +214,19 @@
                             v-model="item.price"
                             label="Harga"
                             prefix="Rp"
-                            @update:modelValue="calculateTotals"
+                            @update:model-value="calculateTotals"
                         />
                         <NumberField
                             v-model="item.qty"
                             label="Kuantitas"
-                            @update:modelValue="calculateTotals"
+                            @update:model-value="calculateTotals"
                         />
                         <NumberField
                             v-model="item.discount_amount"
                             label="Diskon (Rp)"
                             prefix="Rp"
                             :disabled="!can('transaction.discount_manual')"
-                            @update:modelValue="calculateTotals"
+                            @update:model-value="calculateTotals"
                         />
                         <NumberField
                             v-model="item.subtotal"
@@ -303,8 +303,8 @@
                         >
                         <button
                             type="button"
-                            @click="clearPromo"
                             class="text-rose-600 font-semibold hover:underline"
+                            @click="clearPromo"
                         >
                             Batalkan Promo
                         </button>
@@ -316,7 +316,7 @@
                         label="Diskon Manual Dokumen (Rp)"
                         prefix="Rp"
                         :disabled="!can('transaction.discount_manual')"
-                        @update:modelValue="calculateTotals"
+                        @update:model-value="calculateTotals"
                     />
                 </div>
             </div>
@@ -332,7 +332,7 @@
                     formatCurrency(form.subtotal)
                 }}</span>
             </div>
-            <div class="flex justify-between" v-if="form.discount_amount > 0">
+            <div v-if="form.discount_amount > 0" class="flex justify-between">
                 <span class="text-slate-500">Diskon</span>
                 <span class="font-medium text-danger"
                     >-{{ formatCurrency(form.discount_amount) }}</span
@@ -343,8 +343,8 @@
                 <div class="w-32">
                     <NumberField
                         v-model="form.shipping_fee"
-                        @update:modelValue="calculateTotals"
                         class="!py-1"
+                        @update:model-value="calculateTotals"
                     />
                 </div>
             </div>
@@ -353,8 +353,8 @@
                 <div class="w-32">
                     <NumberField
                         v-model="form.tax_amount"
-                        @update:modelValue="calculateTotals"
                         class="!py-1"
+                        @update:model-value="calculateTotals"
                     />
                 </div>
             </div>
@@ -363,8 +363,8 @@
                 <div class="w-32">
                     <NumberField
                         v-model="form.service_charge_amount"
-                        @update:modelValue="calculateTotals"
                         class="!py-1"
+                        @update:model-value="calculateTotals"
                     />
                 </div>
             </div>
@@ -410,20 +410,20 @@
                 </button>
                 <div class="flex gap-2">
                     <button
+                        v-if="can('transaction.create')"
                         type="button"
                         class="btn btn-outline"
-                        @click="submit('draft')"
                         :disabled="form.processing"
-                        v-if="can('transaction.create')"
+                        @click="submit('draft')"
                     >
                         Simpan Draf
                     </button>
                     <button
+                        v-if="can('transaction.issue_invoice')"
                         type="button"
                         class="btn btn-main"
-                        @click="submit('issue')"
                         :disabled="form.processing"
-                        v-if="can('transaction.issue_invoice')"
+                        @click="submit('issue')"
                     >
                         Terbitkan Invoice
                     </button>

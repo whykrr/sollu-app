@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- Stepper indicator -->
-        <div class="mb-2" v-if="!isEdit">
+        <div v-if="!isEdit" class="mb-2">
             <div class="flex items-center justify-between">
                 <template v-for="(step, index) in steps" :key="step.id">
                     <div class="flex flex-col items-center">

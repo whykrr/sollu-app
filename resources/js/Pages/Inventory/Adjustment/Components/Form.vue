@@ -1,6 +1,6 @@
 <template>
     <div>
-        <form @submit.prevent="submit" class="space-y-2">
+        <form class="space-y-2" @submit.prevent="submit">
             <div
                 class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2"
             >
@@ -63,16 +63,16 @@
             <button
                 type="button"
                 class="btn btn-flat"
-                @click="close"
                 :disabled="form.processing"
+                @click="close"
             >
                 Batal
             </button>
             <button
                 type="button"
                 class="btn btn-main"
-                @click="submit"
                 :disabled="form.processing"
+                @click="submit"
             >
                 Simpan Penyesuaian
             </button>

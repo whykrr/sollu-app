@@ -57,8 +57,8 @@
                         <FontAwesomeIcon :icon="faEye" />
                     </button>
                     <div
-                        class="relative"
                         v-if="row.status !== 'expired' && !isExpired(row)"
+                        class="relative"
                     >
                         <button
                             class="btn btn-flat btn-sm"

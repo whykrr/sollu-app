@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Reports;
 use App\Http\Controllers\Controller;
 use App\Jobs\Reports\ExportStockReportJob;
 use App\Services\Reports\StockAssetReportService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,27 +34,19 @@ class StockAssetReportController extends Controller
         ]);
     }
 
-    public function exportPdf(Request $request, \App\Services\Reports\StockAssetReportService $service)
+    public function exportPdf(Request $request)
     {
         $startDateParam = $request->get('start_date');
         $endDateParam = $request->get('end_date');
         $outletId = $request->get('outlet') ?? '';
 
-        $now = Carbon::now();
-        $startDate = $startDateParam ? Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();
-        $endDate = $endDateParam ? Carbon::parse($endDateParam)->endOfDay() : $now->copy()->endOfDay();
+        $now = \Carbon\Carbon::now();
+        $startDate = $startDateParam ? \Carbon\Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();
+        $endDate = $endDateParam ? \Carbon\Carbon::parse($endDateParam)->endOfDay() : $now->copy()->endOfDay();
 
-        $data = $service->getReport($outletId, $startDate, $endDate);
+        \App\Jobs\Reports\Pdf\ExportStockReportPdfJob::dispatch(\Illuminate\Support\Facades\Auth::user(), (array) $outletId, $startDate, $endDate);
 
-        $pdf = Pdf::loadView('pdf.reports.stocks', [
-            'data' => $data,
-            'business' => Auth::user()->business,
-            'outlet' => Auth::user()->activeOutlet,
-            'start_date' => $startDate->format('d M Y'),
-            'end_date' => $endDate->format('d M Y'),
-        ])->setPaper('a4', 'landscape');
-
-        return $pdf->download('stocks_report_'.now()->format('YmdHis').'.pdf');
+        return redirect()->back()->with('success', 'Proses ekspor PDF sedang berjalan di latar belakang. Anda akan menerima notifikasi jika sudah selesai.');
     }
 
     public function exportCsv(Request $request)

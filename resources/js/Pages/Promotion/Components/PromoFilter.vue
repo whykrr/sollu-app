@@ -9,8 +9,8 @@
         <div>
             <button
                 type="button"
-                @click="openModal"
                 class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
+                @click="openModal"
             >
                 <span>Filter</span>
                 <FontAwesomeIcon :icon="faSliders" />

@@ -1,30 +1,35 @@
 <template>
     <div class="flex items-center gap-2">
-        <FilterSearch v-model="filterForm.search"
+        <FilterSearch
+v-model="filterForm.search"
                       placeholder="Cari pelanggan..." />
 
         <!-- Filter Modal Toggle -->
-        <button class="btn btn-flat btn-sm bg-white"
+        <button
+class="btn btn-flat btn-sm bg-white"
                 @click="showFilterModal = true">
             <FontAwesomeIcon :icon="faSliders" />
             <span
                   class="hidden md:inline">Filter</span>
         </button>
 
-        <FilterBadge v-if="filterForm.is_active !== '' && filterForm.is_active !== null && filterForm.is_active !== undefined"
+        <FilterBadge
+v-if="filterForm.is_active !== '' && filterForm.is_active !== null && filterForm.is_active !== undefined"
                      @remove="filterForm.is_active = ''">
             Status: {{statusOptions.find((o) =>
                 o.value ==
             filterForm.is_active)?.label}}
         </FilterBadge>
 
-        <FilterModal :show="showFilterModal"
+        <FilterModal
+:show="showFilterModal"
                      title="Filter Pelanggan"
                      @close="showFilterModal = false"
                      @apply="applyFilters"
                      @reset="resetFilters">
             <div class="space-y-4">
-                <DropdownField v-model="tempFilters.is_active"
+                <DropdownField
+v-model="tempFilters.is_active"
                                label="Status"
                                :options="statusOptions" />
             </div>

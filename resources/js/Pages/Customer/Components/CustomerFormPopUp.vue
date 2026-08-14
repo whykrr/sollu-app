@@ -1,42 +1,50 @@
 <template>
-    <form @submit.prevent="submit"
-          class="space-y-2">
-        <TextField v-model="form.name"
+    <form
+class="space-y-2"
+          @submit.prevent="submit">
+        <TextField
+v-model="form.name"
                    label="Nama Lengkap"
                    placeholder="Masukkan nama pelanggan"
                    :feedback="form.errors.name"
                    required />
 
-        <TextField v-model="form.phone"
+        <TextField
+v-model="form.phone"
                    label="Nomor Telepon"
                    placeholder="Contoh: 08123456789"
                    :feedback="form.errors.phone"
                    type="tel"
                    required />
 
-        <TextField v-model="form.email"
+        <TextField
+v-model="form.email"
                    label="Email (Opsional)"
                    placeholder="email@contoh.com"
                    :feedback="form.errors.email"
                    type="email" />
 
-        <TextField v-model="form.birthdate"
+        <TextField
+v-model="form.birthdate"
                    label="Tanggal Lahir (Opsional)"
                    :feedback="form.errors.birthdate"
                    type="date" />
 
-        <SelectionGroupField v-model="form.gender"
+        <SelectionGroupField
+v-model="form.gender"
                              label="Jenis Kelamin (Opsional)"
                              :options="genderOptions"
                              :feedback="form.errors.gender" />
 
-        <TextareaField v-model="form.address"
+        <TextareaField
+v-model="form.address"
                        label="Alamat Lengkap (Opsional)"
                        placeholder="Masukkan alamat pelanggan"
                        :feedback="form.errors.address"
                        rows="2" />
 
-        <TextareaField v-model="form.notes"
+        <TextareaField
+v-model="form.notes"
                        label="Catatan Khusus (Opsional)"
                        placeholder="Alergi, preferensi, dll"
                        :feedback="form.errors.notes"
@@ -53,22 +61,26 @@
                         Pelanggan aktif dapat dicari pada transaksi penjualan (POS).
                     </div>
                 </div>
-                <input v-model="form.is_active"
+                <input
+v-model="form.is_active"
                        type="checkbox"
                        class="rounded h-5 w-5 text-primary cursor-pointer" />
             </label>
         </div>
 
-        <Teleport v-if="isMounted"
+        <Teleport
+v-if="isMounted"
                   to="#popUpFooter">
             <div
                  class="flex items-center justify-end w-full gap-2">
-                <button type="button"
+                <button
+type="button"
                         class="btn btn-flat"
                         @click="popUpStore.close()">
                     Batal
                 </button>
-                <button type="button"
+                <button
+type="button"
                         class="btn btn-highlight-main"
                         :disabled="form.processing"
                         @click="submit">

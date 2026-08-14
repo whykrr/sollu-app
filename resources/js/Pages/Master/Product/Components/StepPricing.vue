@@ -17,8 +17,8 @@
                 class="flex items-center gap-2 border p-3 rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100 transition"
             >
                 <input
-                    type="checkbox"
                     v-model="customizeOutletPrices"
+                    type="checkbox"
                     class="rounded text-primary cursor-pointer"
                 />
                 <span class="text-sm font-semibold text-slate-700"
@@ -35,8 +35,8 @@
                 </h3>
                 <div
                     v-for="outlet in outlets"
-                    :key="outlet.id"
                     v-show="outletStatusMap[outlet.id]"
+                    :key="outlet.id"
                     class="flex items-center gap-3"
                 >
                     <div class="w-1/3 text-sm font-medium text-slate-600">
@@ -73,8 +73,8 @@
                 class="flex items-center gap-2 border p-3 rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100 transition"
             >
                 <input
-                    type="checkbox"
                     v-model="customizeVariantPrices"
+                    type="checkbox"
                     class="rounded text-primary cursor-pointer"
                 />
                 <span class="text-sm font-semibold text-slate-700"
@@ -109,8 +109,8 @@
                             >
                             <div
                                 v-for="outlet in outlets"
-                                :key="outlet.id"
                                 v-show="outletStatusMap[outlet.id]"
+                                :key="outlet.id"
                                 class="flex items-center gap-2"
                             >
                                 <span

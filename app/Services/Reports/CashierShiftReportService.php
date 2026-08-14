@@ -29,7 +29,7 @@ class CashierShiftReportService
                 DB::raw('(COALESCE(shifts.closing_cash, 0) - COALESCE(shifts.expected_cash, 0)) as difference')
             )
             ->orderBy('shifts.created_at', 'desc')
-            ->get();
+            ->paginate(15);
 
         return $shifts;
     }

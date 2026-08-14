@@ -18,24 +18,30 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <input
-                            type="date"
                             v-model="formFilters.start_date"
-                            class="form-control form-control-sm"
+                            type="date"
+                            class="form sm"
                             @change="applyFilters"
                         />
                         <span>-</span>
                         <input
-                            type="date"
                             v-model="formFilters.end_date"
-                            class="form-control form-control-sm"
+                            type="date"
+                            class="form sm"
                             @change="applyFilters"
                         />
                     </div>
                     <div class="flex items-center gap-2 ml-auto">
-                        <a :href="route('reports.cashiers.export.pdf', formFilters)" target="_blank" class="btn btn-outline-primary sm">
+                        <button
+                            class="btn btn-outline-primary btn-sm"
+                            @click="exportPdf"
+                        >
                             <FontAwesomeIcon :icon="faFilePdf" /> Ekspor PDF
-                        </a>
-                        <button @click="exportCsv" class="btn btn-outline-success sm">
+                        </button>
+                        <button
+                            class="btn btn-outline-success btn-sm"
+                            @click="exportCsv"
+                        >
                             <FontAwesomeIcon :icon="faFileCsv" /> Ekspor CSV
                         </button>
                     </div>
@@ -58,7 +64,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(item, index) in shifts" :key="index">
+                        <tr v-for="(item, index) in shifts.data" :key="index">
                             <td>{{ formatDateTime(item.opened_at) }}</td>
                             <td>
                                 {{
@@ -90,7 +96,7 @@
                                 {{ formatIDR(item.difference) }}
                             </td>
                         </tr>
-                        <tr v-if="shifts.length === 0">
+                        <tr v-if="shifts.data.length === 0">
                             <td colspan="7" class="text-center text-muted py-4">
                                 Tidak ada data shift pada periode ini.
                             </td>
@@ -105,16 +111,22 @@
 <script setup>
 import { computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
-import { faStore } from '@fortawesome/free-solid-svg-icons';
+import {
+    faFileCsv,
+    faFilePdf,
+    faStore,
+} from '@fortawesome/free-solid-svg-icons';
 import MainPage from '@/Components/UI/MainPage.vue';
+import Pagination from '@/Components/Tables/Pagination.vue';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
 import { useAuth } from '@/Composable/useAuth';
 import { formatIDR } from '@/Composable/currency-format';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 const props = defineProps({
     filters: Object,
-    shifts: Array,
+    shifts: Object,
 });
 
 const { outlets: userOutlets } = useAuth();
@@ -152,11 +164,17 @@ const formatDateTime = (dateString) => {
     });
 };
 
+const exportPdf = () => {
+    router.post(route('reports.cashiers.export.pdf'), formFilters.data(), {
+        preserveScroll: true,
+        preserveState: true,
+    });
+};
+
 const exportCsv = () => {
     router.post(route('reports.cashiers.export.csv'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
     });
 };
-
 </script>

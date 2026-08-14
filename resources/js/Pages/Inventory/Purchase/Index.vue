@@ -19,7 +19,7 @@
             :data="purchases.data"
             :action="true"
             :sort="route().params.sort"
-            :sortDirection="route().params.direction || 'asc'"
+            :sort-direction="route().params.direction || 'asc'"
         >
             <template #order_date="{ item }">
                 {{ formatDateID(item.created_at) }}
@@ -43,32 +43,32 @@
                     <button
                         v-if="item.status === 'draft'"
                         class="btn btn-highlight-success btn-sm leading-0"
-                        @click="confirmOrder(item)"
                         title="Tandai sebagai Ordered"
+                        @click="confirmOrder(item)"
                     >
                         <FontAwesomeIcon :icon="faCheck" /> Order
                     </button>
                     <button
                         v-if="item.status === 'ordered'"
                         class="btn btn-highlight-success btn-sm"
-                        @click="openReceive(item)"
                         title="Terima Barang"
+                        @click="openReceive(item)"
                     >
                         <FontAwesomeIcon :icon="faBoxOpen" />
                     </button>
                     <button
                         v-if="item.status === 'ordered'"
                         class="btn btn-flat btn-sm text-danger"
-                        @click="confirmCancel(item)"
                         title="Batalkan PO"
+                        @click="confirmCancel(item)"
                     >
                         <FontAwesomeIcon :icon="faBan" />
                     </button>
                     <button
                         v-if="item.status === 'received'"
                         class="btn btn-flat btn-sm text-danger"
-                        @click="confirmVoid(item)"
                         title="Void PO"
+                        @click="confirmVoid(item)"
                     >
                         <FontAwesomeIcon :icon="faUndo" />
                     </button>
@@ -79,8 +79,8 @@
                             item.status === 'cancelled'
                         "
                         class="btn btn-flat btn-sm text-gray-500"
-                        @click="openDetail(item)"
                         title="Lihat Detail"
+                        @click="openDetail(item)"
                     >
                         <FontAwesomeIcon :icon="faEye" />
                     </button>
@@ -96,16 +96,16 @@
                     <button
                         v-if="item.status === 'draft'"
                         class="btn btn-highlight-main btn-sm"
-                        @click="openForm(item)"
                         title="Edit PO"
+                        @click="openForm(item)"
                     >
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
                         v-if="item.status === 'draft'"
                         class="btn btn-flat btn-sm text-danger"
-                        @click="confirmDelete(item)"
                         title="Hapus PO"
+                        @click="confirmDelete(item)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>

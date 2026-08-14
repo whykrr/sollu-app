@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="submit" class="space-y-2">
+    <form class="space-y-2" @submit.prevent="submit">
         <TextField
             v-model="form.name"
             label="Nama Metode Pembayaran"

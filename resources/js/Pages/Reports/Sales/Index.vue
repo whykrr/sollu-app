@@ -18,24 +18,30 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <input
-                            type="date"
                             v-model="formFilters.start_date"
+                            type="date"
                             class="form sm"
                             @change="applyFilters"
                         />
                         <span>-</span>
                         <input
-                            type="date"
                             v-model="formFilters.end_date"
+                            type="date"
                             class="form sm"
                             @change="applyFilters"
                         />
                     </div>
                     <div class="flex items-center gap-2 ml-auto">
-                        <a :href="route('reports.sales.export.pdf', formFilters)" target="_blank" class="btn btn-outline-primary sm">
+                        <button
+                            class="btn btn-outline-primary sm"
+                            @click="exportPdf"
+                        >
                             <FontAwesomeIcon :icon="faFilePdf" /> Ekspor PDF
-                        </a>
-                        <button @click="exportCsv" class="btn btn-outline-success sm">
+                        </button>
+                        <button
+                            class="btn btn-outline-success sm"
+                            @click="exportCsv"
+                        >
                             <FontAwesomeIcon :icon="faFileCsv" /> Ekspor CSV
                         </button>
                     </div>
@@ -59,7 +65,7 @@
                         </thead>
                         <tbody>
                             <tr
-                                v-for="(item, index) in dailySales"
+                                v-for="(item, index) in dailySales.data"
                                 :key="index"
                             >
                                 <td>{{ item.date }}</td>
@@ -76,7 +82,7 @@
                                     {{ formatIDR(item.net_sales) }}
                                 </td>
                             </tr>
-                            <tr v-if="dailySales.length === 0">
+                            <tr v-if="dailySales.data?.length === 0">
                                 <td
                                     colspan="5"
                                     class="text-center text-muted py-4"
@@ -87,6 +93,7 @@
                         </tbody>
                     </table>
                 </div>
+                <Pagination class="mt-4" :links="dailySales.links" />
             </div>
 
             <div class="lg:col-span-1 card card-body">
@@ -136,6 +143,7 @@ import { computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import { faStore } from '@fortawesome/free-solid-svg-icons';
 import MainPage from '@/Components/UI/MainPage.vue';
+import Pagination from '@/Components/Tables/Pagination.vue';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
 import { useAuth } from '@/Composable/useAuth';
@@ -144,7 +152,7 @@ import { formatNumberID } from '@/Composable/useNumberFormat';
 
 const props = defineProps({
     filters: Object,
-    dailySales: Array,
+    dailySales: Object,
     paymentMethods: Array,
 });
 
@@ -171,11 +179,17 @@ const applyFilters = () => {
     });
 };
 
+const exportPdf = () => {
+    router.post(route('reports.sales.export.pdf'), formFilters.data(), {
+        preserveScroll: true,
+        preserveState: true,
+    });
+};
+
 const exportCsv = () => {
     router.post(route('reports.sales.export.csv'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
     });
 };
-
 </script>

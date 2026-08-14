@@ -25,9 +25,10 @@ createInertiaApp({
     },
 
     setup({ el, App, props, plugin }) {
+        const ziggyConfig = typeof window !== 'undefined' && window.Ziggy ? window.Ziggy : Ziggy
         createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue, Ziggy)
+            .use(ZiggyVue, ziggyConfig)
             .use(createPinia())
             .use(AccessHandle)
             .mount(el)

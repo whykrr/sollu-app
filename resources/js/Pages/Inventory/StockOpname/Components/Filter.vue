@@ -12,8 +12,8 @@
         <div>
             <button
                 type="button"
-                @click="openModal"
                 class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
+                @click="openModal"
             >
                 <span>Filter</span>
                 <FontAwesomeIcon :icon="faSliders" />
@@ -84,8 +84,8 @@
                                 Dari Tanggal
                             </label>
                             <input
-                                type="date"
                                 v-model="tempFilters.date_from"
+                                type="date"
                                 class="form-input w-full rounded-lg border-gray-200"
                             />
                         </div>
@@ -96,8 +96,8 @@
                                 Sampai Tanggal
                             </label>
                             <input
-                                type="date"
                                 v-model="tempFilters.date_to"
+                                type="date"
                                 class="form-input w-full rounded-lg border-gray-200"
                             />
                         </div>

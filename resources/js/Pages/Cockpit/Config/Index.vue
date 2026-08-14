@@ -53,7 +53,7 @@
                                 Allow new merchants to register on the platform
                             </div>
                         </div>
-                        <Switch id="signups_allowed" :modelValue="1" />
+                        <Switch id="signups_allowed" :model-value="1" />
                     </div>
                 </div>
             </div>
@@ -89,7 +89,7 @@
                                 multi-outlets
                             </div>
                         </div>
-                        <Switch id="multi_outlet" :modelValue="1" />
+                        <Switch id="multi_outlet" :model-value="1" />
                     </div>
                 </div>
             </div>

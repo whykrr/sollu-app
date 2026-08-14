@@ -5,8 +5,8 @@
             class="form"
             :class="{ 'is-invalid': error, 'is-valid': success }"
             v-bind="$attrs"
-            @input="emit('update:modelValue', $event.target.value)"
             :value="modelValue"
+            @input="emit('update:modelValue', $event.target.value)"
         ></textarea>
         <span v-if="error" class="form-feedback text-danger">{{ error }}</span>
         <span v-else-if="success" class="form-feedback text-success">{{

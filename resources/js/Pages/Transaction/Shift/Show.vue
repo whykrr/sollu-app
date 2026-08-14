@@ -2,7 +2,7 @@
     <MainPage>
         <template #header>
             <div class="flex items-center gap-4">
-                <button class="btn btn-flat" @click="goBack" title="Kembali">
+                <button class="btn btn-flat" title="Kembali" @click="goBack">
                     <FontAwesomeIcon :icon="faArrowLeft" />
                 </button>
                 <MainPageHeader title="Rincian Shift Kasir" />
@@ -211,19 +211,19 @@
                                     }}</span>
                                 </div>
                                 <div
-                                    class="text-xs mt-1"
                                     v-if="discrepancyAmount > 0"
+                                    class="text-xs mt-1"
                                 >
                                     Uang fisik lebih besar dari sistem.
                                 </div>
                                 <div
-                                    class="text-xs mt-1"
                                     v-else-if="discrepancyAmount < 0"
+                                    class="text-xs mt-1"
                                 >
                                     Uang fisik lebih sedikit dari sistem
                                     (Minus).
                                 </div>
-                                <div class="text-xs mt-1" v-else>
+                                <div v-else class="text-xs mt-1">
                                     Saldo klop / seimbang.
                                 </div>
                             </div>
