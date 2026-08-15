@@ -93,6 +93,16 @@ class MasterDataSyncService
             ->whereIn('inventory_item_id', $inventoryItems->pluck('id'))
             ->get();
 
+        // 6. Promos Aktif untuk Outlet ini
+        $promos = \App\Models\Promo::where('business_id', $businessId)
+            ->where('status', \App\Enums\PromoStatus::Active->value)
+            ->where(function ($q) use ($outletId) {
+                $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $outletId))
+                    ->orWhere('applies_to_all_outlets', true);
+            })
+            ->get()
+            ->makeHidden('business_id');
+
         return [
             'products' => $products,
             'product_categories' => $productCategories,
@@ -110,6 +120,7 @@ class MasterDataSyncService
             'inventory_items' => $inventoryItems,
             'inventory_balances' => $inventoryBalances,
             'inventory_item_variant_group_options' => $inventoryItemVariantGroupOptions,
+            'promos' => $promos,
         ];
     }
 }

@@ -370,50 +370,55 @@ class TransactionService
     public function syncOfflineTransaction(array $data, ?\App\Models\OutletDevice $device = null): Transaction
     {
         return DB::transaction(function () use ($data, $device) {
-            // Check idempotency
-            $offlineId = $data['offline_id'] ?? null;
-            if ($offlineId) {
-                $existing = Transaction::where('offline_id', $offlineId)->first();
-                if ($existing) {
-                    return $existing;
-                }
+            $transactionNumber = $data['transaction_number'] ?? $data['receipt_number'] ?? $data['offline_id'] ?? $this->generateTransactionNumber();
+
+            // Check idempotency via transaction_number
+            $existing = Transaction::where('transaction_number', $transactionNumber)->first();
+            if ($existing) {
+                return $existing;
             }
 
             // Create transaction from offline data
             $transaction = Transaction::create([
                 'outlet_id' => $device->outlet_id,
+                'shift_id' => $data['shift_id'] ?? null,
                 'customer_id' => $data['customer_id'] ?? null,
                 'channel' => 'pos',
+                'transaction_number' => $transactionNumber,
                 'subtotal' => $data['subtotal'],
                 'discount_amount' => $data['discount_amount'],
+                'discount_type' => $data['discount_type'] ?? null,
+                'discount_value' => $data['discount_value'] ?? null,
+                'promo_name' => $data['promo_name'] ?? null,
                 'tax_amount' => $data['tax_amount'],
                 'service_charge_amount' => $data['service_charge_amount'],
                 'total' => $data['total'],
-                'payment_status' => $data['payment_status'],
-                'status' => $data['status'],
-                'is_offline' => true,
-                'offline_id' => $offlineId,
-                'receipt_number' => $data['receipt_number'] ?? null,
+                'payment_status' => $data['payment_status'] ?? 'paid',
+                'status' => in_array($data['status'], ['completed', 'paid', 'hold', 'void']) ? $data['status'] : 'completed',
+                'notes' => $data['notes'] ?? null,
             ]);
 
             foreach ($data['items'] as $item) {
                 $txItem = $transaction->items()->create([
-                    'product_id' => $item['product_id'],
+                    'product_id' => $item['product_id'] ?? null,
+                    'inventory_item_id' => $item['inventory_item_id'] ?? null,
                     'variant_group_option_id' => $item['variant_group_option_id'] ?? null,
                     'product_name' => $item['product_name'],
                     'price' => $item['price'],
                     'qty' => $item['qty'],
-                    'discount_amount' => $item['discount_amount'],
+                    'discount_amount' => $item['discount_amount'] ?? 0,
+                    'promo_name' => $item['promo_name'] ?? null,
                     'subtotal' => $item['subtotal'],
+                    'notes' => $item['notes'] ?? null,
                 ]);
 
                 if (! empty($item['modifiers'])) {
                     foreach ($item['modifiers'] as $mod) {
                         $txItem->modifiers()->create([
-                            'modifier_option_id' => $mod['modifier_option_id'],
+                            'modifier_option_id' => $mod['modifier_option_id'] ?? null,
                             'modifier_name' => $mod['modifier_name'],
                             'price' => $mod['price'],
-                            'qty' => $mod['qty'],
+                            'qty' => $mod['qty'] ?? 1,
                         ]);
                     }
                 }
@@ -422,16 +427,29 @@ class TransactionService
             if (! empty($data['payments'])) {
                 foreach ($data['payments'] as $payment) {
                     $transaction->payments()->create([
-                        'payment_method_id' => $payment['payment_method_id'],
+                        'payment_method_id' => $payment['payment_method_id'] ?? null,
                         'amount' => $payment['amount'],
-                        'change_amount' => $payment['change_amount'],
+                        'change_amount' => $payment['change_amount'] ?? 0,
                         'payment_reference' => $payment['payment_reference'] ?? null,
                     ]);
                 }
             }
 
+            if (! empty($data['promos'])) {
+                foreach ($data['promos'] as $p) {
+                    $transaction->promos()->create([
+                        'promo_id' => $p['promo_id'] ?? null,
+                        'promo_name' => $p['promo_name'],
+                        'promo_code' => $p['promo_code'] ?? null,
+                        'discount_type' => $p['discount_type'] ?? 'fixed',
+                        'discount_value' => $p['discount_value'] ?? 0,
+                        'discount_amount' => $p['discount_amount'] ?? 0,
+                    ]);
+                }
+            }
+
             // Deduct stock if completed
-            if ($transaction->status === 'completed') {
+            if (in_array($transaction->status, ['completed', 'paid'])) {
                 $this->inventoryDeductionService->deductFromTransaction($transaction);
             }
 

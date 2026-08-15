@@ -15,6 +15,7 @@ Route::prefix('pos')->name('api.pos.')->group(function () {
         Route::get('/sync/master', [\App\Http\Controllers\API\POS\SyncController::class, 'masterData'])->name('sync.master');
 
         Route::get('/employees', [\App\Http\Controllers\API\POS\EmployeeController::class, 'index'])->name('employees.index');
+        Route::put('/employees/pin', [\App\Http\Controllers\API\POS\EmployeeController::class, 'updatePin'])->name('employees.pin.update');
 
         Route::post('/transactions', [\App\Http\Controllers\API\POS\TransactionController::class, 'store'])->name('transactions.store');
 
