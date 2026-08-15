@@ -57,6 +57,9 @@ class ManageOutletDeviceService
                 'metadata' => ['device' => $device->toArray()],
             ]);
 
+            $device->tokens()->delete();
+            \Illuminate\Support\Facades\Cache::forget("pos_device_{$device->id}");
+
             $device->delete();
         });
     }
