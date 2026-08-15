@@ -18,17 +18,30 @@ class ExportCashierReportPdfJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    protected string $userId;
+
+    protected ?User $user = null;
+
     public function __construct(
-        public User $user,
+        User $user,
         public array $outletIds,
         public Carbon $startDate,
         public Carbon $endDate
     ) {
+        $this->userId = $user->id;
         $this->outletIds = array_filter($this->outletIds);
     }
 
     public function handle(): void
     {
+        $this->user = User::find($this->userId);
+
+        if (! $this->user) {
+            return;
+        }
+
+        Storage::disk('local')->makeDirectory('exports');
+
         $data = DB::table('shifts')
             ->join('users', 'shifts.user_id', '=', 'users.id')
             ->when(! empty($this->outletIds), function ($query) {

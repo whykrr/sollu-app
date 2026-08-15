@@ -5,6 +5,7 @@ namespace App\Jobs\Master;
 use App\Jobs\ImportExport\AbstractCsvImportJob;
 use App\Models\Master\ProductCategory;
 use App\Models\Uom;
+use App\Models\User;
 use App\Notifications\CsvImportCompleted;
 use App\Services\Master\ProductService;
 use Illuminate\Support\Facades\Storage;
@@ -33,6 +34,12 @@ class ImportProductJob extends AbstractCsvImportJob
 
     public function handle(): void
     {
+        $this->user = User::find($this->userId);
+
+        if (! $this->user) {
+            return;
+        }
+
         $this->productService = app(ProductService::class);
 
         if (! Storage::disk('local')->exists($this->filePath)) {
@@ -179,6 +186,7 @@ class ImportProductJob extends AbstractCsvImportJob
         $failedCount = count($failedRows);
 
         if ($failedCount > 0) {
+            Storage::disk('local')->makeDirectory('exports');
             $failedFileName = 'failed_import_'.time().'.csv';
             $failedFilePath = 'exports/'.$failedFileName;
 

@@ -36,7 +36,13 @@ class DocumentExportCompleted extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        $channels = ['database'];
+
+        if (! in_array(config('broadcasting.default'), ['log', 'null'])) {
+            $channels[] = 'broadcast';
+        }
+
+        return $channels;
     }
 
     /**

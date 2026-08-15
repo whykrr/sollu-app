@@ -4,7 +4,9 @@ namespace App\Jobs\Master;
 
 use App\Jobs\ImportExport\AbstractCsvExportJob;
 use App\Models\Master\Product;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class ExportProductJob extends AbstractCsvExportJob
 {
@@ -65,6 +67,14 @@ class ExportProductJob extends AbstractCsvExportJob
 
     public function handle(): void
     {
+        $this->user = User::find($this->userId);
+
+        if (! $this->user) {
+            return;
+        }
+
+        Storage::disk('local')->makeDirectory('exports');
+
         $fileName = $this->getFileName();
         $filePath = 'exports/'.$fileName;
 
@@ -169,7 +179,7 @@ class ExportProductJob extends AbstractCsvExportJob
         $content = stream_get_contents($file);
         fclose($file);
 
-        \Illuminate\Support\Facades\Storage::disk('local')->put($filePath, $content);
+        Storage::disk('local')->put($filePath, $content);
         $url = route('exports.download', ['file' => $fileName]);
 
         $expiresAt = now()->addDays(1);

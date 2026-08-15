@@ -15,11 +15,13 @@ abstract class AbstractCsvExportJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $user;
+    protected string $userId;
+
+    protected ?User $user = null;
 
     public function __construct(User $user)
     {
-        $this->user = $user;
+        $this->userId = $user->id;
     }
 
     /**
@@ -49,6 +51,14 @@ abstract class AbstractCsvExportJob implements ShouldQueue
 
     public function handle(): void
     {
+        $this->user = User::find($this->userId);
+
+        if (! $this->user) {
+            return;
+        }
+
+        Storage::disk('local')->makeDirectory('exports');
+
         $fileName = $this->getFileName();
         $filePath = 'exports/'.$fileName;
 
@@ -72,7 +82,6 @@ abstract class AbstractCsvExportJob implements ShouldQueue
         $content = stream_get_contents($file);
         fclose($file);
 
-        // Save to local disk so it can be securely downloaded
         Storage::disk('local')->put($filePath, $content);
         $url = route('exports.download', ['file' => $fileName]);
 

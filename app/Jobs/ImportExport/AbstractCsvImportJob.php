@@ -15,13 +15,15 @@ abstract class AbstractCsvImportJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $user;
+    protected string $userId;
+
+    protected ?User $user = null;
 
     protected $filePath;
 
     public function __construct(User $user, string $filePath)
     {
-        $this->user = $user;
+        $this->userId = $user->id;
         $this->filePath = $filePath; // Path in 'local' disk
     }
 
@@ -38,6 +40,12 @@ abstract class AbstractCsvImportJob implements ShouldQueue
 
     public function handle(): void
     {
+        $this->user = User::find($this->userId);
+
+        if (! $this->user) {
+            return;
+        }
+
         if (! Storage::disk('local')->exists($this->filePath)) {
             return; // File doesn't exist anymore
         }
@@ -110,6 +118,7 @@ abstract class AbstractCsvImportJob implements ShouldQueue
 
         // If there are failures, generate a failed rows CSV
         if ($failedCount > 0) {
+            Storage::disk('local')->makeDirectory('exports');
             $failedFileName = 'failed_import_'.time().'.csv';
             $failedFilePath = 'exports/'.$failedFileName; // Public directory
 
