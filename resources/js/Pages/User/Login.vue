@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="login" class="h-full flex flex-col justify-between">
+    <form class="h-full flex flex-col justify-between" @submit.prevent="login">
         <!-- Top: Logo -->
         <div class="w-full max-w-md shrink-0">
             <img

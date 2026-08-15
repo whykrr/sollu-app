@@ -127,6 +127,15 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'discord' => [
+            'driver' => 'slack',
+            'url' => env('LOG_DISCORD_WEBHOOK_URL'),
+            'username' => 'Sollu App Log',
+            'emoji' => ':boom:',
+            'level' => 'error',
+            'replace_placeholders' => true,
+        ],
+
         'query_log' => [
             'driver' => 'daily',
             'path' => storage_path('logs/query/query.log'),

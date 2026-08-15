@@ -1,22 +1,27 @@
 <template>
-    <form @submit.prevent="forgot" class="h-full flex flex-col justify-between">
+    <form class="h-full flex flex-col justify-between" @submit.prevent="forgot">
         <!-- Top: Logo -->
         <div class="w-full max-w-md shrink-0">
             <img
                 class="h-7 sm:h-9 object-contain"
-                src="img/logo-fit-color.png"
+                src="img/logo-colored.png"
                 alt="Logo"
             />
         </div>
 
         <!-- Middle: Form Inputs -->
-        <div class="flex flex-col justify-center my-auto py-2 sm:py-3 space-y-2 sm:space-y-3">
+        <div
+            class="flex flex-col justify-center my-auto py-2 sm:py-3 space-y-2 sm:space-y-3"
+        >
             <div class="space-y-0.5">
-                <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900 leading-tight">
+                <div
+                    class="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900 leading-tight"
+                >
                     Lupa Kata Sandi
                 </div>
                 <div class="text-xs sm:text-sm text-gray-600">
-                    Masukkan email Anda untuk atur ulang kata sandimu dan lanjutkan bisnismu.
+                    Masukkan email Anda untuk atur ulang kata sandimu dan
+                    lanjutkan bisnismu.
                 </div>
             </div>
 
@@ -43,9 +48,7 @@
                         />
                         <label for="email">Email</label>
                     </div>
-                    <span class="form-feedback">{{
-                        form.errors.email
-                    }}</span>
+                    <span class="form-feedback">{{ form.errors.email }}</span>
                 </div>
             </div>
         </div>
@@ -59,7 +62,10 @@
                 Kirim Tautan
             </button>
             <div class="text-xs sm:text-sm text-neutral-600">
-                <Link :href="route('login')" class="underline text-blue-800 font-medium inline-flex items-center gap-1.5">
+                <Link
+                    :href="route('login')"
+                    class="underline text-blue-800 font-medium inline-flex items-center gap-1.5"
+                >
                     <FontAwesomeIcon :icon="faArrowLeft" />
                     Kembali ke Login
                 </Link>

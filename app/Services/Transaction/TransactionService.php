@@ -407,6 +407,8 @@ class TransactionService
                     'price' => $item['price'],
                     'qty' => $item['qty'],
                     'discount_amount' => $item['discount_amount'] ?? 0,
+                    'discount_type' => $item['discount_type'] ?? null,
+                    'discount_value' => $item['discount_value'] ?? null,
                     'promo_name' => $item['promo_name'] ?? null,
                     'subtotal' => $item['subtotal'],
                     'notes' => $item['notes'] ?? null,

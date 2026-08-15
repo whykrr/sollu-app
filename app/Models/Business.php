@@ -21,7 +21,6 @@ use Spatie\Sluggable\SlugOptions;
  * @property-read Collection|User[] $users
  * @property-read Collection|ProductVariation[] $product_variations
  * @property-read Collection|Product[] $products
- *
  * @mixin \Eloquent
  * @mixin IdeHelperBusiness
  */

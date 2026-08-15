@@ -18,7 +18,6 @@ use Spatie\Sluggable\SlugOptions;
 /**
  * @property-read Collection|Business $business
  * @property-read Collection|User[] $users
- *
  * @mixin IdeHelperOutlet
  */
 class Outlet extends Model

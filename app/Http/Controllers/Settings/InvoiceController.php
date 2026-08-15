@@ -118,7 +118,7 @@ class InvoiceController extends Controller
         $invoice = Invoice::where('invoice_number', $invoice_number)->where('business_id', $business->id)->firstOrFail();
 
         // Save the uploaded proof
-        $path = $request->file('payment_proof')->store('invoices/payment_proof', 'public');
+        $path = $request->file('payment_proof')->store('invoices/payment_proof');
 
         // Create or update manual validation record
         PaymentManualValidation::updateOrCreate(

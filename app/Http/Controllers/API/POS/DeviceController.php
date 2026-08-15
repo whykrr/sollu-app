@@ -15,6 +15,8 @@ class DeviceController extends Controller
         $otp = $request->validated('otp');
         $deviceUuid = $request->validated('device_uuid');
         $fingerprint = $request->validated('hardware_fingerprint');
+        $appVersion = $request->validated('app_version');
+        $platformType = $request->validated('platform_type');
 
         $cacheKey = "device_otp_{$otp}";
         $deviceId = Cache::get($cacheKey);
@@ -36,6 +38,8 @@ class DeviceController extends Controller
         $device->update([
             'client_device_uuid' => $deviceUuid,
             'hardware_fingerprint' => $fingerprint,
+            'app_version' => $appVersion,
+            'platform_type' => $platformType,
             'is_active' => true,
         ]);
 
@@ -43,6 +47,8 @@ class DeviceController extends Controller
         Cache::put("pos_device_{$device->id}", [
             'client_device_uuid' => $deviceUuid,
             'hardware_fingerprint' => $fingerprint,
+            'app_version' => $appVersion,
+            'platform_type' => $platformType,
             'is_active' => true,
         ], now()->addDays(7));
 
@@ -72,6 +78,20 @@ class DeviceController extends Controller
     public function checkStatus(Request $request)
     {
         // Jika sudah lolos Middleware VerifyPosDevice, artinya device valid & aktif
+        $device = $request->user();
+        if ($device && ($request->filled('app_version') || $request->filled('platform_type'))) {
+            $device->update([
+                'app_version' => $request->input('app_version', $device->app_version),
+                'platform_type' => $request->input('platform_type', $device->platform_type),
+            ]);
+            
+            $cacheKey = "pos_device_{$device->id}";
+            $cached = Cache::get($cacheKey, []);
+            $cached['app_version'] = $device->app_version;
+            $cached['platform_type'] = $device->platform_type;
+            Cache::put($cacheKey, $cached, now()->addDays(7));
+        }
+
         return $this->successResponse(null, 'Device terkoneksi dan valid.');
     }
 }

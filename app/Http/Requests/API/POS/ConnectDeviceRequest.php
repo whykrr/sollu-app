@@ -17,6 +17,8 @@ class ConnectDeviceRequest extends FormRequest
             'otp' => ['required', 'string', 'size:8'],
             'device_uuid' => ['required', 'string'],
             'hardware_fingerprint' => ['required', 'string'],
+            'app_version' => ['nullable', 'string'],
+            'platform_type' => ['nullable', 'string'],
         ];
     }
 }

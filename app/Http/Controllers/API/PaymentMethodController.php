@@ -25,7 +25,8 @@ class PaymentMethodController extends Controller
                 'id' => $pm->id,
                 'name' => $pm->name,
                 'type' => $pm->type,
-                'is_active' => $pm->is_active,
+                'sort_order' => $pm->sort_order,
+                'is_enabled' => $pm->outletPaymentMethods->firstWhere('outlet_id', $outletId)?->is_enabled ?? true,
             ]),
         ]);
     }

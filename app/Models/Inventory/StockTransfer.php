@@ -22,7 +22,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read User|null $approver
  * @property-read User|null $receiver
  * @property-read Collection|StockTransferItem[] $items
- *
  * @mixin \Eloquent
  * @mixin IdeHelperStockTransfer
  */

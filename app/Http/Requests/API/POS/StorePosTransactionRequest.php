@@ -38,6 +38,8 @@ class StorePosTransactionRequest extends FormRequest
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.qty' => ['required', 'numeric', 'min:1'],
             'items.*.discount_amount' => ['required', 'numeric', 'min:0'],
+            'items.*.discount_type' => ['nullable', 'string', 'in:percentage,fixed'],
+            'items.*.discount_value' => ['nullable', 'numeric', 'min:0'],
             'items.*.promo_name' => ['nullable', 'string'],
             'items.*.subtotal' => ['required', 'numeric', 'min:0'],
             'items.*.modifiers' => ['nullable', 'array'],

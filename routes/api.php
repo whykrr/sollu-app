@@ -24,5 +24,7 @@ Route::prefix('pos')->name('api.pos.')->group(function () {
             Route::post('/close', [\App\Http\Controllers\API\POS\ShiftController::class, 'close'])->name('close');
             Route::post('/cash-log', [\App\Http\Controllers\API\POS\ShiftController::class, 'cashLog'])->name('cash-log');
         });
+
+        Route::post('/logs/error', [\App\Http\Controllers\API\POS\LogController::class, 'error'])->name('logs.error');
     });
 });

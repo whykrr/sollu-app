@@ -20,28 +20,7 @@
             </MainPageHeader>
         </template>
 
-        <!-- OTP Modal Notification / Dialog -->
-        <div
-            v-if="activeOtp"
-            class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in"
-        >
-            <div class="flex items-center gap-3">
-                <div class="size-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-lg">
-                    <FontAwesomeIcon :icon="faKey" />
-                </div>
-                <div>
-                    <div class="text-xs font-medium text-emerald-700">Kode OTP Pairing Kasir:</div>
-                    <div class="text-2xl font-mono font-bold tracking-widest text-emerald-900">{{ activeOtp.otp }}</div>
-                    <div class="text-xs text-emerald-600">Berlaku selama 5 menit. Masukkan kode ini pada aplikasi POS kasir Anda.</div>
-                </div>
-            </div>
-            <button
-                class="btn btn-sm btn-outline-emerald text-xs rounded-lg px-3 py-1.5"
-                @click="activeOtp = null"
-            >
-                Tutup
-            </button>
-        </div>
+
 
         <!-- Devices List -->
         <div v-if="devices && devices.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -239,6 +218,8 @@ import Modal from '@/Components/Notifications/Modal.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
 import Switch from '@/Components/Form/Switch.vue';
+import { useModalStore } from '@/store/notification';
+import OtpModalContent from './Components/OtpModalContent.vue';
 
 const props = defineProps({
     outlets: Array,
@@ -247,13 +228,23 @@ const props = defineProps({
     otpData: Object,
 });
 
-const activeOtp = ref(props.otpData ?? null);
+const modalStore = useModalStore();
 
 watch(
     () => props.otpData,
     (val) => {
-        if (val) activeOtp.value = val;
-    }
+        if (val) {
+            modalStore.open({
+                component: OtpModalContent,
+                title: '',
+                showFooter: false,
+                props: {
+                    otpData: val
+                }
+            });
+        }
+    },
+    { immediate: true }
 );
 
 const showDeviceModal = ref(false);

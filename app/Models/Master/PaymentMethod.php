@@ -27,7 +27,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection|Outlet[] $outlets
  * @property-read Collection|OutletPaymentMethod[] $outletPaymentMethods
  * @property-read Collection|TransactionPayment[] $transactionPayments
- *
  * @mixin IdeHelperPaymentMethod
  */
 class PaymentMethod extends Model
@@ -38,15 +37,8 @@ class PaymentMethod extends Model
         'business_id',
         'name',
         'type',
-        'is_active',
+        'sort_order',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-        ];
-    }
 
     public function business(): BelongsTo
     {
@@ -77,14 +69,13 @@ class PaymentMethod extends Model
      */
     public function scopeActiveForOutlet(Builder $query, string $outletId): Builder
     {
-        return $query->where('is_active', true)
-            ->where(function (Builder $q) use ($outletId) {
-                $q->whereHas('outletPaymentMethods', function (Builder $pivotQuery) use ($outletId) {
-                    $pivotQuery->where('outlet_id', $outletId)
-                        ->where('is_enabled', true);
-                })
-                    // Graceful fallback for backward compatibility if no outlet settings exist yet
-                    ->orWhereDoesntHave('outletPaymentMethods');
-            });
+        return $query->where(function (Builder $q) use ($outletId) {
+            $q->whereHas('outletPaymentMethods', function (Builder $pivotQuery) use ($outletId) {
+                $pivotQuery->where('outlet_id', $outletId)
+                    ->where('is_enabled', true);
+            })
+                // Graceful fallback for backward compatibility if no outlet settings exist yet
+                ->orWhereDoesntHave('outletPaymentMethods');
+        });
     }
 }

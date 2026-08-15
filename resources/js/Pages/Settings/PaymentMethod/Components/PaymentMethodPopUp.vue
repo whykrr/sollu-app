@@ -31,23 +31,7 @@
             </p>
         </div>
 
-        <div class="pt-2">
-            <label class="flex items-center justify-between border border-neutral-200 p-3 rounded-xl cursor-pointer hover:bg-neutral-50 transition w-full">
-                <div>
-                    <div class="font-medium text-sm text-neutral-800">
-                        Status Master (Global)
-                    </div>
-                    <div class="text-xs text-neutral-500">
-                        Jika dinonaktifkan, metode ini otomatis tidak aktif di semua cabang.
-                    </div>
-                </div>
-                <input
-                    v-model="form.is_active"
-                    type="checkbox"
-                    class="rounded h-5 w-5 text-primary cursor-pointer"
-                />
-            </label>
-        </div>
+
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex items-center justify-end w-full gap-2">
@@ -124,7 +108,6 @@ const getInitialSelectedOutlets = () => {
 const form = useForm({
     name: props.paymentMethod?.name || '',
     type: props.paymentMethod?.type || (props.types[0]?.value || 'cash'),
-    is_active: props.paymentMethod ? Boolean(props.paymentMethod.is_active) : true,
     outlet_ids: getInitialSelectedOutlets(),
 });
 

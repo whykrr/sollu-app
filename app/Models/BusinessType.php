@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property Collection|Business[] $merchants
  * @property Collection|ProductCategory[] $productCategories
- *
  * @mixin \Eloquent
  * @mixin IdeHelperBusinessType
  */

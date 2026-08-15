@@ -29,7 +29,7 @@ class PaymentMethodController extends Controller
         $this->authorize(PermissionEnum::SETTING_PAYMENT->value);
 
         $businessId = $request->user()->business_id;
-        $filters = $request->only(['search', 'type', 'is_active']);
+        $filters = $request->only(['search', 'type']);
 
         $paymentMethods = $this->paymentMethodService->getPaginated(
             $businessId,
@@ -78,15 +78,19 @@ class PaymentMethodController extends Controller
         );
     }
 
-    public function toggleStatus(Request $request, PaymentMethod $paymentMethod): RedirectResponse
+    public function reorder(Request $request): RedirectResponse
     {
         $this->authorize(PermissionEnum::SETTING_PAYMENT->value);
 
-        if ($paymentMethod->business_id !== $request->user()->business_id) {
-            abort(403);
-        }
+        $request->validate([
+            'ordered_ids' => 'required|array',
+            'ordered_ids.*' => 'required|uuid',
+        ]);
 
-        $this->paymentMethodService->toggleGlobalStatus($paymentMethod);
+        $this->paymentMethodService->reorder(
+            $request->input('ordered_ids'),
+            $request->user()->business_id
+        );
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

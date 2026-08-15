@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property-read PurchaseOrder $purchaseOrder
  * @property-read InventoryItem $inventoryItem
- *
  * @mixin \Eloquent
  * @mixin IdeHelperPurchaseOrderItem
  */

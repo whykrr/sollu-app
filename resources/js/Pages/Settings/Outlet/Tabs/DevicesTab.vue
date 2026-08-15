@@ -417,14 +417,32 @@ const closeOtpModal = () => {
     currentOtpData.value = null;
 };
 
-const copyOtp = () => {
-    if (!currentOtpData.value?.otp) return;
-    navigator.clipboard.writeText(currentOtpData.value.otp).then(() => {
+const copyOtp = async () => {
+    const textToCopy = currentOtpData.value?.otp;
+    if (!textToCopy) return;
+
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(textToCopy);
+        } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            textArea.remove();
+        }
+        
         isCopied.value = true;
         setTimeout(() => {
             isCopied.value = false;
         }, 2000);
-    });
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+    }
 };
 
 onUnmounted(() => {

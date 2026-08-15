@@ -11,7 +11,6 @@
                 </button>
             </MainPageHeader>
 
-            <!-- Filter & Search Bar -->
             <div class="flex flex-wrap items-center justify-between gap-2 mt-2">
                 <div class="flex flex-wrap items-center gap-2 flex-1">
                     <div class="w-64">
@@ -31,127 +30,123 @@
                             ]"
                         />
                     </div>
-                    <div class="w-44">
-                        <DropdownField
-                            v-model="filters.is_active"
-                            placeholder="Semua Status"
-                            :options="[
-                                { value: '', label: 'Semua Status' },
-                                { value: '1', label: 'Aktif di Pusat' },
-                                { value: '0', label: 'Non-Aktif di Pusat' },
-                            ]"
-                        />
-                    </div>
                 </div>
             </div>
         </template>
 
-        <Table
-            :headers="headers"
-            :data="paymentMethods.data"
-            :action="true"
-        >
-            <!-- Nama Metode -->
-            <template #name="{ row }">
-                <div class="flex flex-col">
-                    <span class="font-medium text-neutral-900">{{ row.name }}</span>
-                    <span
-                        v-if="row.transaction_payments_count > 0"
-                        class="text-[11px] text-neutral-500"
-                    >
-                        {{ row.transaction_payments_count }} transaksi tercatat
-                    </span>
-                </div>
-            </template>
-
-            <!-- Jenis Pembayaran -->
-            <template #type="{ row }">
-                <span
-                    :class="[
-                        'badge text-xs font-medium',
-                        getTypeBadgeClass(row.type),
-                    ]"
+        <div class="overflow-x-auto table-responsive mt-4 rounded-xl border border-neutral-200">
+            <table class="table table-hovered min-w-full">
+                <thead>
+                    <tr class="text-neutral-700 select-none bg-neutral-50/80 text-xs uppercase tracking-wider">
+                        <th width="40px" class="text-center font-medium"></th>
+                        <th class="font-medium text-left px-4 py-3">Metode Pembayaran</th>
+                        <th class="font-medium text-left px-4 py-3">Jenis</th>
+                        <th class="font-medium text-left px-4 py-3">Aktivasi per Outlet</th>
+                        <th width="1%" class="text-right px-4 py-3 font-medium">Aksi</th>
+                    </tr>
+                </thead>
+                <draggable
+                    v-model="localPaymentMethods"
+                    tag="tbody"
+                    item-key="id"
+                    handle=".drag-handle"
+                    @end="onDragEnd"
                 >
-                    {{ getTypeLabel(row.type) }}
-                </span>
-            </template>
-
-            <!-- Status Master / Pusat -->
-            <template #is_active="{ row }">
-                <button
-                    type="button"
-                    class="flex items-center gap-1.5 cursor-pointer transition focus:outline-none"
-                    :title="row.is_active ? 'Klik untuk nonaktifkan di pusat' : 'Klik untuk aktifkan di pusat'"
-                    @click="toggleGlobal(row)"
-                >
-                    <span
-                        :class="[
-                            'badge text-xs',
-                            row.is_active ? 'badge-success' : 'badge-neutral-500',
-                        ]"
-                    >
-                        {{ row.is_active ? 'Aktif' : 'Non-Aktif' }}
-                    </span>
-                </button>
-            </template>
-
-            <!-- Status Ketersediaan per Cabang / Outlet -->
-            <template #outlets="{ row }">
-                <div class="flex flex-wrap items-center gap-1">
-                    <template v-if="outlets.length === 0">
-                        <span class="text-xs text-neutral-400">Belum ada outlet</span>
-                    </template>
-                    <template v-else>
-                        <div
-                            v-for="outlet in outlets"
-                            :key="outlet.id"
-                            class="inline-flex items-center"
-                        >
-                            <button
-                                type="button"
-                                :class="[
-                                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border transition cursor-pointer',
-                                    isOutletActive(row, outlet.id)
-                                        ? 'bg-primary-50 text-primary-700 border-primary-200 hover:bg-primary-100'
-                                        : 'bg-neutral-100 text-neutral-400 border-neutral-200 line-through opacity-60 hover:opacity-100',
-                                ]"
-                                :title="`Klik untuk ubah status di outlet ${outlet.name}`"
-                                @click="toggleOutlet(row, outlet)"
-                            >
-                                <span
-                                    class="w-1.5 h-1.5 rounded-full"
-                                    :class="isOutletActive(row, outlet.id) ? 'bg-primary-600' : 'bg-neutral-400'"
+                    <template #item="{ element: row }">
+                        <tr class="group hover:bg-neutral-50 transition-colors">
+                            <td class="text-center border-b border-neutral-100 py-3">
+                                <FontAwesomeIcon
+                                    :icon="faGripVertical"
+                                    class="text-neutral-300 cursor-grab hover:text-neutral-600 drag-handle opacity-50 group-hover:opacity-100 transition-opacity"
                                 />
-                                {{ outlet.name }}
-                            </button>
-                        </div>
+                            </td>
+                            <td class="border-b border-neutral-100 px-4 py-3">
+                                <!-- Nama Metode -->
+                                <div class="flex flex-col">
+                                    <span class="font-medium text-neutral-900">{{ row.name }}</span>
+                                    <span
+                                        v-if="row.transaction_payments_count > 0"
+                                        class="text-[11px] text-neutral-500 mt-0.5"
+                                    >
+                                        {{ row.transaction_payments_count }} transaksi tercatat
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="border-b border-neutral-100 px-4 py-3">
+                                <!-- Jenis Pembayaran -->
+                                <span
+                                    :class="[
+                                        'badge text-xs font-medium',
+                                        getTypeBadgeClass(row.type),
+                                    ]"
+                                >
+                                    {{ getTypeLabel(row.type) }}
+                                </span>
+                            </td>
+                            <td class="border-b border-neutral-100 px-4 py-3">
+                                <!-- Status Ketersediaan per Cabang / Outlet -->
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <template v-if="outlets.length === 0">
+                                        <span class="text-xs text-neutral-400">Belum ada outlet</span>
+                                    </template>
+                                    <template v-else>
+                                        <div
+                                            v-for="outlet in outlets"
+                                            :key="outlet.id"
+                                            class="inline-flex items-center"
+                                        >
+                                            <button
+                                                type="button"
+                                                :class="[
+                                                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition cursor-pointer',
+                                                    isOutletActive(row, outlet.id)
+                                                        ? 'bg-primary-50 text-primary-700 border-primary-200 hover:bg-primary-100'
+                                                        : 'bg-neutral-100 text-neutral-400 border-neutral-200 line-through opacity-60 hover:opacity-100',
+                                                ]"
+                                                :title="`Klik untuk ubah status di outlet ${outlet.name}`"
+                                                @click="toggleOutlet(row, outlet)"
+                                            >
+                                                <span
+                                                    class="w-1.5 h-1.5 rounded-full"
+                                                    :class="isOutletActive(row, outlet.id) ? 'bg-primary-600' : 'bg-neutral-400'"
+                                                />
+                                                {{ outlet.name }}
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </td>
+                            <td class="border-b border-neutral-100 px-4 py-3 text-right">
+                                <!-- Aksi -->
+                                <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        type="button"
+                                        class="btn btn-flat btn-sm h-8 w-8 !p-0 inline-flex items-center justify-center"
+                                        title="Ubah Metode Pembayaran"
+                                        @click="openEdit(row)"
+                                    >
+                                        <FontAwesomeIcon :icon="faPencil" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-flat btn-sm h-8 w-8 !p-0 inline-flex items-center justify-center text-rose-600 hover:bg-rose-50"
+                                        :title="row.transaction_payments_count > 0 ? 'Tidak dapat dihapus karena telah digunakan pada transaksi' : 'Hapus Metode Pembayaran'"
+                                        :disabled="row.transaction_payments_count > 0"
+                                        @click="openDelete(row)"
+                                    >
+                                        <FontAwesomeIcon :icon="faTrash" />
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                     </template>
-                </div>
-            </template>
-
-            <!-- Aksi -->
-            <template #actions="{ row }">
-                <div class="flex items-center justify-end gap-1">
-                    <button
-                        type="button"
-                        class="btn btn-flat btn-sm"
-                        title="Ubah Metode Pembayaran"
-                        @click="openEdit(row)"
-                    >
-                        <FontAwesomeIcon :icon="faPencil" />
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-flat btn-sm text-rose-600 hover:bg-rose-50"
-                        :title="row.transaction_payments_count > 0 ? 'Tidak dapat dihapus karena telah digunakan pada transaksi' : 'Hapus Metode Pembayaran'"
-                        :disabled="row.transaction_payments_count > 0"
-                        @click="openDelete(row)"
-                    >
-                        <FontAwesomeIcon :icon="faTrash" />
-                    </button>
-                </div>
-            </template>
-        </Table>
+                </draggable>
+            </table>
+            
+            <div v-if="localPaymentMethods.length === 0" class="text-center text-neutral-400 py-8 bg-slate-50/50">
+                Data tidak ditemukan.
+            </div>
+        </div>
 
         <template #footer>
             <Pagination
@@ -165,18 +160,18 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue';
+import { reactive, watch, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import { usePopUpStore } from '@/store/popup';
 import { useModalStore } from '@/store/notification';
+import draggable from 'vuedraggable';
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faPencil, faTrash, faGripVertical } from '@fortawesome/free-solid-svg-icons';
 
 import MainPage from '@/Components/UI/MainPage.vue';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Table from '@/Components/Tables/Table.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import DropdownField from '@/Components/Form/DropdownField.vue';
@@ -204,18 +199,24 @@ const props = defineProps({
 const popUpStore = usePopUpStore();
 const modalStore = useModalStore();
 
+const localPaymentMethods = ref([]);
+
+watch(() => props.paymentMethods.data, (newData) => {
+    localPaymentMethods.value = [...newData];
+}, { immediate: true });
+
+const onDragEnd = () => {
+    const orderedIds = localPaymentMethods.value.map(pm => pm.id);
+    router.patch(route('settings.payment-methods.reorder'), { ordered_ids: orderedIds }, {
+        preserveScroll: true,
+        preserveState: true,
+    });
+};
+
 const filters = reactive({
     search: props.filters.search || '',
     type: props.filters.type || '',
-    is_active: props.filters.is_active ?? '',
 });
-
-const headers = [
-    { label: 'Metode Pembayaran', field: 'name', slot: 'name' },
-    { label: 'Jenis', field: 'type', slot: 'type' },
-    { label: 'Status Pusat', field: 'is_active', slot: 'is_active' },
-    { label: 'Aktivasi per Outlet', field: 'outlets', slot: 'outlets' },
-];
 
 const getTypeLabel = (type) => {
     const found = props.types.find((t) => t.value === type);
@@ -255,7 +256,6 @@ const updateQuery = debounce(() => {
     const query = {
         search: filters.search || undefined,
         type: filters.type || undefined,
-        is_active: filters.is_active !== '' ? filters.is_active : undefined,
     };
 
     router.get(route('settings.payment-methods.index'), query, {
@@ -266,7 +266,7 @@ const updateQuery = debounce(() => {
 }, 400);
 
 watch(
-    () => [filters.search, filters.type, filters.is_active],
+    () => [filters.search, filters.type],
     () => {
         updateQuery();
     }
@@ -297,16 +297,7 @@ const openEdit = (paymentMethod) => {
     });
 };
 
-const toggleGlobal = (paymentMethod) => {
-    router.patch(
-        route('settings.payment-methods.toggle-status', paymentMethod.id),
-        {},
-        {
-            preserveScroll: true,
-            preserveState: true,
-        }
-    );
-};
+
 
 const toggleOutlet = (paymentMethod, outlet) => {
     const currentlyActive = isOutletActive(paymentMethod, outlet.id);

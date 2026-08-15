@@ -34,33 +34,29 @@ class PaymentMethodService
             $query->where('type', $filters['type']);
         }
 
-        if (isset($filters['is_active']) && $filters['is_active'] !== '') {
-            $query->where('is_active', filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN));
-        }
-
-        return $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        return $query->orderBy('sort_order', 'asc')->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
     }
 
     public function getForInternalApi(string $businessId, ?string $outletId = null): Collection
     {
-        $query = PaymentMethod::where('business_id', $businessId)
-            ->where('is_active', true);
+        $query = PaymentMethod::where('business_id', $businessId);
 
         if (! empty($outletId)) {
             $query->activeForOutlet($outletId);
         }
 
-        return $query->orderBy('name', 'asc')->get();
+        return $query->orderBy('sort_order', 'asc')->orderBy('name', 'asc')->get();
     }
 
     public function create(array $data, string $businessId): PaymentMethod
     {
         return DB::transaction(function () use ($data, $businessId) {
+            $maxSort = PaymentMethod::where('business_id', $businessId)->max('sort_order') ?? 0;
             $paymentMethod = PaymentMethod::create([
                 'business_id' => $businessId,
                 'name' => $data['name'],
                 'type' => $data['type'],
-                'is_active' => $data['is_active'] ?? true,
+                'sort_order' => $maxSort + 1,
             ]);
 
             // All outlets in business
@@ -100,7 +96,6 @@ class PaymentMethodService
             $paymentMethod->update([
                 'name' => $data['name'] ?? $paymentMethod->name,
                 'type' => $data['type'] ?? $paymentMethod->type,
-                'is_active' => array_key_exists('is_active', $data) ? (bool) $data['is_active'] : $paymentMethod->is_active,
             ]);
 
             if (array_key_exists('outlet_ids', $data)) {
@@ -131,24 +126,14 @@ class PaymentMethodService
         });
     }
 
-    public function toggleGlobalStatus(PaymentMethod $paymentMethod): PaymentMethod
+    public function reorder(array $orderedIds, string $businessId): void
     {
-        return DB::transaction(function () use ($paymentMethod) {
-            $before = $paymentMethod->toArray();
-            $paymentMethod->update([
-                'is_active' => ! $paymentMethod->is_active,
-            ]);
-
-            $this->auditLogService->log(
-                $paymentMethod->business_id,
-                'payment_method',
-                $paymentMethod->id,
-                'toggle_global_status',
-                $before,
-                $paymentMethod->fresh()->toArray()
-            );
-
-            return $paymentMethod;
+        DB::transaction(function () use ($orderedIds, $businessId) {
+            foreach ($orderedIds as $index => $id) {
+                PaymentMethod::where('id', $id)
+                    ->where('business_id', $businessId)
+                    ->update(['sort_order' => $index]);
+            }
         });
     }
 

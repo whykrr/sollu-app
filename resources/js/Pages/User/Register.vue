@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="register" class="h-full flex flex-col justify-between">
+    <form class="h-full flex flex-col justify-between" @submit.prevent="register">
         <!-- Top: Stepper Bar -->
         <div class="shrink-0 space-y-1">
             <ol class="flex items-center w-full relative gap-1.5 sm:gap-2">

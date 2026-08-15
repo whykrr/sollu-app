@@ -35,7 +35,6 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property-read \App\Models\User|null $approver
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Inventory\StockAdjustmentItem[] $items
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Inventory\InventoryMovement[] $inventoryMovements
- *
  * @mixin IdeHelperStockAdjustment
  */
 class StockAdjustment extends Model

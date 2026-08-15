@@ -24,7 +24,6 @@ use Spatie\Permission\Traits\HasRoles;
 /**
  * @property-read Collection|Business $business
  * @property-read Collection|Outlet[] $outlets
- *
  * @mixin HasRoles
  * @mixin IdeHelperUser
  */
