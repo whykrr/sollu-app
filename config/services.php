@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'discord' => [
+        'webhook_url' => env('LOG_DISCORD_WEBHOOK_URL'),
+        'allow_non_prod' => env('LOG_DISCORD_ALLOW_NON_PROD', false),
+    ],
+
 ];

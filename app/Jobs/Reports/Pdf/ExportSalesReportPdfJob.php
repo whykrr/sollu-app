@@ -40,7 +40,7 @@ class ExportSalesReportPdfJob implements ShouldQueue
             return;
         }
 
-        Storage::disk('local')->makeDirectory('exports');
+        Storage::makeDirectory('exports');
 
         $dailySales = DB::table('transactions')
             ->when(! empty($this->outletIds), function ($query) {
@@ -92,7 +92,7 @@ class ExportSalesReportPdfJob implements ShouldQueue
             'end_date' => $this->endDate,
         ])->setPaper('a4', 'landscape');
 
-        Storage::disk('local')->put('exports/'.$fileName, $pdf->output());
+        Storage::put('exports/'.$fileName, $pdf->output());
 
         $this->user->notify(new DocumentExportCompleted(
             'Laporan Penjualan',

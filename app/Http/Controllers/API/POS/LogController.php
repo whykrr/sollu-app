@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class LogController extends Controller
 {
@@ -21,7 +22,7 @@ class LogController extends Controller
             'app_version' => 'nullable|string',
         ]);
 
-        if (config('app.env') !== 'production') {
+        if (config('app.env') !== 'production' && ! config('services.discord.allow_non_prod', false)) {
             return response()->json(['message' => 'Logs are only forwarded to Discord in production.'], 200);
         }
 
@@ -32,6 +33,8 @@ class LogController extends Controller
 
             return response()->json(['message' => 'Discord Webhook URL is not configured.'], 500);
         }
+
+        $cleanWebhookUrl = Str::before($webhookUrl, '/slack');
 
         $device = $request->user(); // Assuming authenticated via sanctum (pos.device middleware)
 
@@ -72,7 +75,7 @@ class LogController extends Controller
         }
 
         try {
-            Http::post($webhookUrl, [
+            Http::post($cleanWebhookUrl, [
                 'embeds' => [$embed],
             ]);
         } catch (\Exception $e) {

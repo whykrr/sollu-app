@@ -2,12 +2,12 @@
 
 namespace App\Jobs\Customer;
 
-use App\Jobs\ImportExport\AbstractCsvExportJob;
+use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\Master\Customer;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
-class ExportCustomerJob extends AbstractCsvExportJob
+class ExportCustomerJob extends AbstractExcelExportJob
 {
     public function __construct(
         User $user,
@@ -16,7 +16,7 @@ class ExportCustomerJob extends AbstractCsvExportJob
         parent::__construct($user);
     }
 
-    protected function getQuery(): Builder
+    public function getQuery(): Builder
     {
         $query = Customer::query()->where('business_id', $this->user->business_id);
 
@@ -36,12 +36,12 @@ class ExportCustomerJob extends AbstractCsvExportJob
         return $query;
     }
 
-    protected function getHeaders(): array
+    public function getHeaders(): array
     {
         return ['Nama Lengkap', 'Nomor Telepon', 'Email', 'Alamat', 'Tanggal Lahir', 'Jenis Kelamin', 'Catatan', 'Status'];
     }
 
-    protected function mapRow($row): array
+    public function mapRow($row): array
     {
         return [
             $row->name,
@@ -55,12 +55,12 @@ class ExportCustomerJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Pelanggan';
     }
 
-    protected function getFileName(): string
+    public function getFileName(): string
     {
         return 'pelanggan_export_'.time().'.csv';
     }

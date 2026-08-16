@@ -28,6 +28,8 @@ class MasterDataSyncService
 
         // 2. Data turunan produk
         $productCategories = ProductCategory::where('business_id', $businessId)
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('name', 'asc')
             ->get()
             ->makeHidden('business_id');
 

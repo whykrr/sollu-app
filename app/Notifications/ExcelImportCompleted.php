@@ -6,7 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class CsvImportCompleted extends Notification implements ShouldQueue
+class ExcelImportCompleted extends Notification implements ShouldQueue
 {
     use Queueable;
 

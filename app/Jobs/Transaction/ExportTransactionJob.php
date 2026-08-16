@@ -2,11 +2,11 @@
 
 namespace App\Jobs\Transaction;
 
-use App\Jobs\ImportExport\AbstractCsvExportJob;
+use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\Sales\Transaction;
 use App\Models\User;
 
-class ExportTransactionJob extends AbstractCsvExportJob
+class ExportTransactionJob extends AbstractExcelExportJob
 {
     protected $businessId;
 
@@ -19,7 +19,7 @@ class ExportTransactionJob extends AbstractCsvExportJob
         $this->filters = $filters;
     }
 
-    protected function getQuery()
+    public function getQuery()
     {
         $query = Transaction::query()->with(['customer', 'outlet', 'shift.user']);
 
@@ -36,7 +36,7 @@ class ExportTransactionJob extends AbstractCsvExportJob
         return $query;
     }
 
-    protected function getHeaders(): array
+    public function getHeaders(): array
     {
         return [
             'Tanggal',
@@ -55,7 +55,7 @@ class ExportTransactionJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function mapRow($row): array
+    public function mapRow($row): array
     {
         return [
             $row->created_at->format('Y-m-d H:i:s'),
@@ -74,12 +74,12 @@ class ExportTransactionJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Transaksi Penjualan';
     }
 
-    protected function getFileName(): string
+    public function getFileName(): string
     {
         return 'transaksi_export_'.time().'.csv';
     }

@@ -31,11 +31,12 @@ class SyncOfflineTransactionJob implements ShouldQueue
      */
     public function handle(TransactionService $transactionService): void
     {
-        if (!empty($this->data['shift_id'])) {
+        if (! empty($this->data['shift_id'])) {
             $shift = \App\Models\Sales\Shift::find($this->data['shift_id']);
-            if (!$shift) {
+            if (! $shift) {
                 // Delay execution for 60 seconds to wait for shift sync
                 $this->release(60);
+
                 return;
             }
         }

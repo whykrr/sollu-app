@@ -2,12 +2,12 @@
 
 namespace App\Jobs\Reports;
 
-use App\Jobs\ImportExport\AbstractCsvExportJob;
+use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class ExportProductReportJob extends AbstractCsvExportJob
+class ExportProductReportJob extends AbstractExcelExportJob
 {
     public function __construct(
         User $user,
@@ -19,7 +19,7 @@ class ExportProductReportJob extends AbstractCsvExportJob
         $this->outletIds = array_filter($this->outletIds);
     }
 
-    protected function getQuery()
+    public function getQuery()
     {
         return DB::table('transaction_items')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
@@ -40,7 +40,7 @@ class ExportProductReportJob extends AbstractCsvExportJob
             ->orderByDesc('total_qty');
     }
 
-    protected function getHeaders(): array
+    public function getHeaders(): array
     {
         return [
             'Nama Produk',
@@ -50,7 +50,7 @@ class ExportProductReportJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function mapRow($row): array
+    public function mapRow($row): array
     {
         return [
             $row->product_name ?? '-',
@@ -60,12 +60,12 @@ class ExportProductReportJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Laporan Produk';
     }
 
-    protected function getFileName(): string
+    public function getFileName(): string
     {
         return 'products_export_'.time().'.csv';
     }

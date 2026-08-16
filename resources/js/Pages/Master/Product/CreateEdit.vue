@@ -1,6 +1,6 @@
 <template>
     <div>
-        <!-- Stepper indicator -->
+        <!-- Stepper indicator for Create Mode -->
         <div v-if="!isEdit" class="mb-2">
             <div class="flex items-center justify-between">
                 <template v-for="(step, index) in steps" :key="step.id">
@@ -41,6 +41,34 @@
                     </div>
                 </template>
             </div>
+        </div>
+
+        <!-- Navigation Tabs for Edit Mode -->
+        <div v-else class="flex border-b border-slate-200 mb-4 gap-1">
+            <button
+                v-for="(step, index) in steps"
+                :key="step.id"
+                type="button"
+                class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px flex items-center gap-2"
+                :class="
+                    currentStepIndex === index
+                        ? 'border-main text-main font-semibold'
+                        : 'border-transparent text-slate-500 hover:text-slate-700'
+                "
+                @click="currentStepIndex = index"
+            >
+                <FontAwesomeIcon
+                    :icon="
+                        step.id === 'basic'
+                            ? faPencil
+                            : step.id === 'inventory'
+                            ? faBoxesStacked
+                            : faTag
+                    "
+                    class="text-xs"
+                />
+                {{ step.title }}
+            </button>
         </div>
 
         <!-- Dynamic Component -->
@@ -107,13 +135,15 @@ import {
     faChevronLeft,
     faChevronRight,
     faSave,
+    faPencil,
+    faBoxesStacked,
+    faTag,
 } from '@fortawesome/free-solid-svg-icons';
 import { usePopUpStore } from '@/store/popup';
 
 import StepBasicInfo from './Components/StepBasicInfo.vue';
 import StepInventorySetup from './Components/StepInventorySetup.vue';
 import StepPricing from './Components/StepPricing.vue';
-import { inject } from 'vue';
 
 const props = defineProps({
     editMode: { type: Boolean, default: false },

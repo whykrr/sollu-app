@@ -19,13 +19,22 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <FilterBadge v-if="filterForm.category" @remove="removeFilter('category')">
+            <FilterBadge
+                v-if="filterForm.category"
+                @remove="removeFilter('category')"
+            >
                 Kategori: {{ getCategoryLabel(filterForm.category) }}
             </FilterBadge>
-            <FilterBadge v-if="filterForm.outlet" @remove="removeFilter('outlet')">
+            <FilterBadge
+                v-if="filterForm.outlet"
+                @remove="removeFilter('outlet')"
+            >
                 Outlet: {{ getOutletLabel(filterForm.outlet) }}
             </FilterBadge>
-            <FilterBadge v-if="filterForm.is_deleted" @remove="removeFilter('is_deleted')">
+            <FilterBadge
+                v-if="filterForm.is_deleted"
+                @remove="removeFilter('is_deleted')"
+            >
                 Tampilkan Arsip
             </FilterBadge>
         </div>
@@ -40,57 +49,56 @@
         >
             <!-- Body -->
             <div class="space-y-4">
-                    <!-- Category Filter -->
-                    <div class="space-y-1">
-                        <label
-                            class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                            >Kategori</label
-                        >
-                        <GroupDropdownIconField
-                            id="category"
-                            v-slot="selectProps"
-                            v-model="tempFilters.category"
-                            :icon="faBox"
-                            placeholder="Semua Kategori"
-                            class="w-full"
-                            :options="categories"
+                <!-- Category Filter -->
+                <div class="space-y-1">
+                    <label
+                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                        >Kategori</label
+                    >
+                    <GroupDropdownIconField
+                        id="category"
+                        v-model="tempFilters.category"
+                        :icon="faBox"
+                        placeholder="Semua Kategori"
+                        class="w-full"
+                        :options="categories"
+                    />
+                </div>
+
+                <!-- Outlet Filter -->
+                <div
+                    v-if="outlets.length > 1 && selectedOutlet === null"
+                    class="space-y-1"
+                >
+                    <label
+                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                        >Outlet</label
+                    >
+                    <div
+                        class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
+                    >
+                        <SelectionGroupField
+                            id="outlets"
+                            v-model="tempFilters.outlet"
+                            name="outlet"
+                            class="sm btn-sm"
+                            :options="outlets"
                         />
                     </div>
+                </div>
 
-                    <!-- Outlet Filter -->
-                    <div
-                        v-if="outlets.length > 1 && selectedOutlet === null"
-                        class="space-y-1"
+                <!-- Show Archived Filter -->
+                <div class="flex items-center justify-between border-t pt-3">
+                    <span class="text-sm font-medium text-slate-700"
+                        >Tampilkan Arsip</span
                     >
-                        <label
-                            class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                            >Outlet</label
-                        >
-                        <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
-                            <SelectionGroupField
-                                id="outlets"
-                                v-model="tempFilters.outlet"
-                                name="outlet"
-                                class="sm btn-sm"
-                                :options="outlets"
-                            />
-                        </div>
-                    </div>
-
-                    <!-- Show Archived Filter -->
-                    <div
-                        class="flex items-center justify-between border-t pt-3"
-                    >
-                        <span class="text-sm font-medium text-slate-700"
-                            >Tampilkan Arsip</span
-                        >
-                        <Switch
-                            id="switch_regular"
-                            v-model="tempFilters.is_deleted"
-                            name="switch_regular"
-                            size="sm"
-                        />
-                    </div>
+                    <Switch
+                        id="switch_regular"
+                        v-model="tempFilters.is_deleted"
+                        name="switch_regular"
+                        size="sm"
+                    />
+                </div>
             </div>
         </FilterModal>
     </div>
@@ -101,11 +109,7 @@ import { ref, reactive, computed, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faBox,
-    faMapMarkerAlt,
-    faSliders,
-} from '@fortawesome/free-solid-svg-icons';
+import { faBox, faSliders } from '@fortawesome/free-solid-svg-icons';
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
 import Switch from '@/Components/Form/Switch.vue';
@@ -143,7 +147,7 @@ const tempFilters = reactive({
 // Watch search separately for immediate query trigger
 watch(
     () => filterForm.search,
-    debounce((newVal) => {
+    debounce(() => {
         updateQuery();
     }, 500),
 );

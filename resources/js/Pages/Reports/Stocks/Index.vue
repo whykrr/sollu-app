@@ -31,19 +31,8 @@
                             @change="applyFilters"
                         />
                     </div>
-                    <div class="flex items-center gap-2 ml-auto">
-                        <button
-                            class="btn btn-outline-primary btn-sm"
-                            @click="exportPdf"
-                        >
-                            <FontAwesomeIcon :icon="faFilePdf" /> Ekspor PDF
-                        </button>
-                        <button
-                            class="btn btn-outline-success btn-sm"
-                            @click="exportCsv"
-                        >
-                            <FontAwesomeIcon :icon="faFileCsv" /> Ekspor CSV
-                        </button>
+                    <div class="ml-auto">
+                        <ExportDropdown :items="exportItems" />
                     </div>
                 </div>
             </MainPageHeader>
@@ -96,7 +85,7 @@
 import { computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import {
-    faFileCsv,
+    faFileExcel,
     faFilePdf,
     faStore,
 } from '@fortawesome/free-solid-svg-icons';
@@ -104,10 +93,9 @@ import MainPage from '@/Components/UI/MainPage.vue';
 import Pagination from '@/Components/Tables/Pagination.vue';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
+import ExportDropdown from '@/Components/UI/ExportDropdown.vue';
 import { useAuth } from '@/Composable/useAuth';
-import { formatIDR } from '@/Composable/currency-format';
 import { formatNumberID } from '@/Composable/useNumberFormat';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 const props = defineProps({
     filters: Object,
@@ -150,4 +138,19 @@ const exportCsv = () => {
         preserveState: true,
     });
 };
+
+const exportItems = computed(() => [
+    {
+        label: 'Ekspor Excel / CSV',
+        icon: faFileExcel,
+        action: exportCsv,
+        class: 'text-emerald-600',
+    },
+    {
+        label: 'Ekspor PDF',
+        icon: faFilePdf,
+        action: exportPdf,
+        class: 'text-rose-600',
+    },
+]);
 </script>

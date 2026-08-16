@@ -16,11 +16,7 @@ return new class extends Migration
             $table->timestamps();
             $table->string('type');
             $table->uuidMorphs('notifiable');
-            if (\Illuminate\Support\Facades\DB::connection()->getDriverName() !== 'sqlite') {
-                $table->json('data')->fulltext();
-            } else {
-                $table->json('data');
-            }
+            $table->json('data');
             $table->timestamp('read_at')->nullable();
         });
     }

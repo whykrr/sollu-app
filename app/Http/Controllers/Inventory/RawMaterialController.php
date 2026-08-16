@@ -136,10 +136,32 @@ class RawMaterialController extends Controller
             fclose($file);
         };
 
-        return response()->stream($callback, 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="bahan_baku_template.csv"',
-        ]);
+        $export = new class($headers, $dummyData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings
+        {
+            private $headers;
+
+            private $dummyData;
+
+            public function __construct($headers, $dummyData)
+            {
+                $this->headers = $headers;
+                $this->dummyData = $dummyData;
+            }
+
+            public function array(): array
+            {
+                return [$this->dummyData];
+            }
+
+            public function headings(): array
+            {
+                return $this->headers;
+            }
+        };
+
+        $filename = 'template_'.strtolower(class_basename($this)).'.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
     }
 
     /**
@@ -148,7 +170,7 @@ class RawMaterialController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt|max:10240',
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
 
         $file = $request->file('file');

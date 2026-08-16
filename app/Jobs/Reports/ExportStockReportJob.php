@@ -2,12 +2,12 @@
 
 namespace App\Jobs\Reports;
 
-use App\Jobs\ImportExport\AbstractCsvExportJob;
+use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class ExportStockReportJob extends AbstractCsvExportJob
+class ExportStockReportJob extends AbstractExcelExportJob
 {
     public function __construct(
         User $user,
@@ -19,7 +19,7 @@ class ExportStockReportJob extends AbstractCsvExportJob
         $this->outletIds = array_filter($this->outletIds);
     }
 
-    protected function getQuery()
+    public function getQuery()
     {
         $outletIds = $this->outletIds;
 
@@ -50,7 +50,7 @@ class ExportStockReportJob extends AbstractCsvExportJob
             ->orderBy('inventory_items.name', 'asc');
     }
 
-    protected function getHeaders(): array
+    public function getHeaders(): array
     {
         return [
             'Nama Item',
@@ -61,7 +61,7 @@ class ExportStockReportJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function mapRow($row): array
+    public function mapRow($row): array
     {
         $stockIn = (float) $row->stock_in;
         $stockOut = (float) $row->stock_out;
@@ -78,12 +78,12 @@ class ExportStockReportJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Laporan Stok';
     }
 
-    protected function getFileName(): string
+    public function getFileName(): string
     {
         return 'stocks_export_'.time().'.csv';
     }

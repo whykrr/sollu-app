@@ -4,14 +4,14 @@
             <MainPageHeader title="Data Produk">
                 <button class="btn btn-flat btn-sm" @click="exportCsv">
                     <FontAwesomeIcon :icon="faDownload" />
-                    Ekspor CSV
+                    Ekspor Data
                 </button>
                 <button
                     class="btn btn-flat btn-sm"
                     @click="showImportModal = true"
                 >
                     <FontAwesomeIcon :icon="faUpload" />
-                    Impor CSV
+                    Impor Data
                 </button>
                 <button class="btn btn-highlight-main" @click="openCreate">
                     <FontAwesomeIcon :icon="faPlus" />
@@ -54,41 +54,14 @@
                 <span v-else class="badge badge-neutral-500">Non-Aktif</span>
             </template>
             <template #actions="{ row }">
-                <div class="flex items-center gap-2 justify-end">
-                    <!-- Dropdown Edit -->
-                    <div class="relative">
-                        <button
-                            class="btn btn-flat btn-sm"
-                            title="Ubah Produk"
-                            @click.stop="toggleDropdown(row.id)"
-                        >
-                            <FontAwesomeIcon :icon="faPencil" />
-                        </button>
-                        <div
-                            v-if="activeDropdownId === row.id"
-                            class="absolute right-0 top-8 bg-white border border-slate-200 shadow-lg rounded-lg py-1 z-10 w-48"
-                        >
-                            <button
-                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                                @click="openEditBase(row); activeDropdownId = null"
-                            >
-                                Ubah Info Dasar
-                            </button>
-                            <button
-                                v-if="row.has_variant || row.track_inventory"
-                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                                @click="openEditInventory(row); activeDropdownId = null"
-                            >
-                                Setup Inventori
-                            </button>
-                            <button
-                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                                @click="openEditPrice(row); activeDropdownId = null"
-                            >
-                                Atur Harga & Outlet
-                            </button>
-                        </div>
-                    </div>
+                <div class="flex items-center gap-1 justify-end">
+                    <button
+                        class="btn btn-flat btn-sm"
+                        title="Ubah Produk"
+                        @click="openEdit(row)"
+                    >
+                        <FontAwesomeIcon :icon="faPencil" />
+                    </button>
                     <button
                         class="btn btn-flat btn-sm text-danger"
                         title="Hapus"
@@ -121,7 +94,7 @@
 </template>
 
 <script setup>
-import { ref, watch, provide, computed, onMounted, onUnmounted } from 'vue';
+import { ref, watch, provide, computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import MainPage from '@/Components/UI/MainPage.vue';
 import Table from '@/Components/Tables/Table.vue';
@@ -141,8 +114,10 @@ import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import { usePopUpStore } from '@/store/popup';
 import CreateEditWrapper from './CreateEditWrapper.vue';
 import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue';
+import { useModalStore } from '@/store/notification.js';
 
 const popUpStore = usePopUpStore();
+const modalStore = useModalStore();
 const page = usePage();
 
 const props = defineProps({
@@ -200,23 +175,6 @@ const headers = [
 
 const search = ref('');
 const showImportModal = ref(false);
-const activeDropdownId = ref(null);
-
-const toggleDropdown = (id) => {
-    activeDropdownId.value = activeDropdownId.value === id ? null : id;
-};
-
-const closeDropdown = () => {
-    activeDropdownId.value = null;
-};
-
-onMounted(() => {
-    window.addEventListener('click', closeDropdown);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('click', closeDropdown);
-});
 
 watch(
     search,
@@ -240,9 +198,16 @@ const getBasePrice = (product) => {
 };
 
 const archiveProduct = (id) => {
-    if (confirm('Yakin ingin mengarsipkan produk ini?')) {
-        router.delete(route('master.products.destroy', id));
-    }
+    modalStore.confirm({
+        title: 'Konfirmasi Pengarsipan',
+        type: 'danger',
+        message: 'Apakah Anda yakin ingin mengarsipkan produk ini?',
+        confirmText: 'Ya, Arsipkan',
+        cancelText: 'Batal',
+        onConfirm: () => {
+            router.delete(route('master.products.destroy', id));
+        },
+    });
 };
 
 const exportCsv = () => {
@@ -266,58 +231,34 @@ const openCreate = () => {
             initialStep: 0,
             editMode: false,
             targetStepId: 'basic',
-            categories: page.props.rawCategories || page.props.categories || props.categories || [],
+            categories:
+                page.props.rawCategories ||
+                page.props.categories ||
+                props.categories ||
+                [],
             outlets: page.props.outlets || [],
             uoms: page.props.uoms || [],
         },
     });
 };
 
-const openEditBase = (row) => {
+const openEdit = (row, targetStepId = 'basic') => {
+    const stepIndexMap = { basic: 0, inventory: 1, pricing: 2 };
     popUpStore.open({
-        title: 'Ubah Info Dasar',
+        title: `${row.name}`,
+        subTitle: `#${row.code}`,
         size: 'xl',
         component: CreateEditWrapper,
         props: {
-            initialStep: 0,
+            initialStep: stepIndexMap[targetStepId] ?? 0,
             editMode: true,
-            targetStepId: 'basic',
+            targetStepId,
             product: row,
-            categories: page.props.rawCategories || page.props.categories || props.categories || [],
-            outlets: page.props.outlets || [],
-            uoms: page.props.uoms || [],
-        },
-    });
-};
-
-const openEditPrice = (row) => {
-    popUpStore.open({
-        title: 'Atur Harga & Outlet',
-        size: 'xl',
-        component: CreateEditWrapper,
-        props: {
-            initialStep: 2,
-            editMode: true,
-            targetStepId: 'pricing',
-            product: row,
-            categories: page.props.rawCategories || page.props.categories || props.categories || [],
-            outlets: page.props.outlets || [],
-            uoms: page.props.uoms || [],
-        },
-    });
-};
-
-const openEditInventory = (row) => {
-    popUpStore.open({
-        title: 'Setup Inventori',
-        size: 'xl',
-        component: CreateEditWrapper,
-        props: {
-            initialStep: 1,
-            editMode: true,
-            targetStepId: 'inventory',
-            product: row,
-            categories: page.props.rawCategories || page.props.categories || props.categories || [],
+            categories:
+                page.props.rawCategories ||
+                page.props.categories ||
+                props.categories ||
+                [],
             outlets: page.props.outlets || [],
             uoms: page.props.uoms || [],
         },

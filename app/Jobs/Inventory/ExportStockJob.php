@@ -2,11 +2,11 @@
 
 namespace App\Jobs\Inventory;
 
-use App\Jobs\ImportExport\AbstractCsvExportJob;
+use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\User;
 
-class ExportStockJob extends AbstractCsvExportJob
+class ExportStockJob extends AbstractExcelExportJob
 {
     protected $businessId;
 
@@ -19,7 +19,7 @@ class ExportStockJob extends AbstractCsvExportJob
         $this->filters = $filters;
     }
 
-    protected function getQuery()
+    public function getQuery()
     {
         $stockQuery = InventoryBalance::query()
             ->where('inventory_balances.business_id', $this->businessId)
@@ -89,7 +89,7 @@ class ExportStockJob extends AbstractCsvExportJob
         return $stockQuery->orderBy($sort, $direction);
     }
 
-    protected function getHeaders(): array
+    public function getHeaders(): array
     {
         return [
             'Outlet',
@@ -107,7 +107,7 @@ class ExportStockJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function mapRow($row): array
+    public function mapRow($row): array
     {
         $status = 'Aman';
         if ($row->current_stock <= 0) {
@@ -132,12 +132,12 @@ class ExportStockJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Stok Inventori';
     }
 
-    protected function getFileName(): string
+    public function getFileName(): string
     {
         return 'stok_export_'.time().'.csv';
     }

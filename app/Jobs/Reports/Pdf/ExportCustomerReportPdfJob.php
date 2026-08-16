@@ -40,7 +40,7 @@ class ExportCustomerReportPdfJob implements ShouldQueue
             return;
         }
 
-        Storage::disk('local')->makeDirectory('exports');
+        Storage::makeDirectory('exports');
 
         $data = DB::table('transactions')
             ->join('customers', 'transactions.customer_id', '=', 'customers.id')
@@ -73,7 +73,7 @@ class ExportCustomerReportPdfJob implements ShouldQueue
             'end_date' => $this->endDate,
         ])->setPaper('a4', 'landscape');
 
-        Storage::disk('local')->put('exports/'.$fileName, $pdf->output());
+        Storage::put('exports/'.$fileName, $pdf->output());
 
         $this->user->notify(new DocumentExportCompleted(
             'Laporan Pelanggan',

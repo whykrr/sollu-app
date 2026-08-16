@@ -2,12 +2,12 @@
 
 namespace App\Jobs\Reports;
 
-use App\Jobs\ImportExport\AbstractCsvExportJob;
+use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class ExportCustomerReportJob extends AbstractCsvExportJob
+class ExportCustomerReportJob extends AbstractExcelExportJob
 {
     public function __construct(
         User $user,
@@ -19,7 +19,7 @@ class ExportCustomerReportJob extends AbstractCsvExportJob
         $this->outletIds = array_filter($this->outletIds);
     }
 
-    protected function getQuery()
+    public function getQuery()
     {
         return DB::table('transactions')
             ->join('customers', 'transactions.customer_id', '=', 'customers.id')
@@ -41,7 +41,7 @@ class ExportCustomerReportJob extends AbstractCsvExportJob
             ->orderBy('total_spent', 'desc');
     }
 
-    protected function getHeaders(): array
+    public function getHeaders(): array
     {
         return [
             'Nama Pelanggan',
@@ -53,7 +53,7 @@ class ExportCustomerReportJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function mapRow($row): array
+    public function mapRow($row): array
     {
         return [
             $row->name ?? '-',
@@ -65,12 +65,12 @@ class ExportCustomerReportJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Laporan Pelanggan';
     }
 
-    protected function getFileName(): string
+    public function getFileName(): string
     {
         return 'customers_export_'.time().'.csv';
     }

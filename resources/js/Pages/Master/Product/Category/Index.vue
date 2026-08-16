@@ -2,10 +2,6 @@
     <MainPage>
         <template #header>
             <MainPageHeader title="Data Kategori Produk">
-                <button class="btn btn-flat btn-sm">
-                    <FontAwesomeIcon :icon="faUpload" />
-                    Impor CSV
-                </button>
                 <button class="btn btn-highlight-main" @click="openCreateForm">
                     <FontAwesomeIcon :icon="faPlus" />
                     Tambah Baru
@@ -25,10 +21,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import MainPage from '@/Components/UI/MainPage.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPlus, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import CategoryTree from './Components/CategoryTree.vue';
 import CategoryForm from './Components/CategoryForm.vue';
 import { useModalStore } from '@/store/notification';
@@ -50,8 +45,8 @@ const openCreateForm = () => {
         props: {
             category: null,
             parentCategory: null,
-            allCategories: props.categories
-        }
+            allCategories: props.categories,
+        },
     });
 };
 
@@ -63,8 +58,8 @@ const openEditForm = (category) => {
         props: {
             category: category,
             parentCategory: null,
-            allCategories: props.categories
-        }
+            allCategories: props.categories,
+        },
     });
 };
 
@@ -76,8 +71,8 @@ const openSubForm = (parentCategory) => {
         props: {
             category: null,
             parentCategory: parentCategory,
-            allCategories: props.categories
-        }
+            allCategories: props.categories,
+        },
     });
 };
 

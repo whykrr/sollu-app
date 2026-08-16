@@ -2,7 +2,7 @@
 
 namespace App\Jobs\Inventory;
 
-use App\Jobs\ImportExport\AbstractCsvImportJob;
+use App\Jobs\ImportExport\AbstractExcelImportJob;
 use App\Models\Business;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Uom;
@@ -10,7 +10,7 @@ use App\Models\User;
 use App\Services\Inventory\RawMaterialService;
 use Exception;
 
-class ImportRawMaterialJob extends AbstractCsvImportJob
+class ImportRawMaterialJob extends AbstractExcelImportJob
 {
     protected $businessId;
 
@@ -20,12 +20,12 @@ class ImportRawMaterialJob extends AbstractCsvImportJob
         $this->businessId = $businessId;
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Bahan Baku';
     }
 
-    protected function processRow(array $row): void
+    public function processRow(array $row): void
     {
         $name = trim($row['Nama'] ?? '');
         if (empty($name)) {

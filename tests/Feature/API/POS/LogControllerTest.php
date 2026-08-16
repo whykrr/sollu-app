@@ -34,6 +34,7 @@ class LogControllerTest extends TestCase
     public function test_it_does_not_forward_logs_in_non_production_environment()
     {
         Config::set('app.env', 'local');
+        Config::set('services.discord.allow_non_prod', false);
         Http::fake();
 
         $token = $this->device->createToken('test')->plainTextToken;
@@ -52,10 +53,37 @@ class LogControllerTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_it_forwards_logs_in_production_environment()
+    public function test_it_forwards_logs_in_non_production_environment_if_allow_non_prod_is_true()
+    {
+        Config::set('app.env', 'local');
+        Config::set('services.discord.allow_non_prod', true);
+        Config::set('services.discord.webhook_url', 'https://discord.com/api/webhooks/test/test');
+        Http::fake([
+            '*' => Http::response('ok', 200),
+        ]);
+
+        $token = $this->device->createToken('test')->plainTextToken;
+
+        $response = $this->postJson('/api/pos/logs/error', [
+            'error' => 'Test error message',
+        ], [
+            'Authorization' => 'Bearer '.$token,
+            'X-DEVICE-UUID' => 'test-uuid',
+            'X-HARDWARE-SIGNATURE' => 'test-fingerprint',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['message' => 'Error logged successfully.']);
+
+        Http::assertSent(function (\Illuminate\Http\Client\Request $request) {
+            return $request->url() == 'https://discord.com/api/webhooks/test/test';
+        });
+    }
+
+    public function test_it_forwards_logs_and_strips_slack_suffix_from_webhook_url()
     {
         Config::set('app.env', 'production');
-        Config::set('services.discord.webhook_url', 'https://discord.com/api/webhooks/test/test');
+        Config::set('services.discord.webhook_url', 'https://discord.com/api/webhooks/test/test/slack');
         Http::fake([
             '*' => Http::response('ok', 200),
         ]);

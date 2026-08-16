@@ -1,7 +1,7 @@
 <template>
     <Modal :show="show" :title="`Impor ${moduleName}`" @close="close">
         <p class="text-sm text-gray-600 mb-6">
-            Unduh template CSV, isi data Anda, lalu unggah kembali file tersebut
+            Unduh template Excel, isi data Anda, lalu unggah kembali file tersebut
             ke sini. Pastikan nama kolom pada baris pertama tidak diubah agar
             sistem dapat membaca data dengan benar.
         </p>
@@ -12,7 +12,7 @@
                 class="btn btn-outline-main btn-sm w-full text-center"
             >
                 <FontAwesomeIcon :icon="faDownload" class="mr-2" />
-                Unduh Template CSV
+                Unduh Template Excel
             </a>
         </div>
 
@@ -21,7 +21,7 @@
         >
             <input
                 type="file"
-                accept=".csv,.txt"
+                accept=".csv,.xls,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 :disabled="form.processing"
                 @change="handleFileChange"
@@ -34,7 +34,7 @@
 
             <div v-if="!form.file">
                 <p class="text-sm font-semibold">
-                    Klik atau seret file CSV ke sini
+                    Klik atau seret file Excel/CSV ke sini
                 </p>
                 <p class="text-xs text-gray-500">Maks. 10MB</p>
             </div>

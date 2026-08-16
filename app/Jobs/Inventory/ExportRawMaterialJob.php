@@ -2,11 +2,11 @@
 
 namespace App\Jobs\Inventory;
 
-use App\Jobs\ImportExport\AbstractCsvExportJob;
+use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\Inventory\InventoryItem;
 use App\Models\User;
 
-class ExportRawMaterialJob extends AbstractCsvExportJob
+class ExportRawMaterialJob extends AbstractExcelExportJob
 {
     protected $businessId;
 
@@ -19,7 +19,7 @@ class ExportRawMaterialJob extends AbstractCsvExportJob
         $this->filters = $filters;
     }
 
-    protected function getQuery()
+    public function getQuery()
     {
         return InventoryItem::where('business_id', $this->businessId)
             ->where('item_type', 'raw_material')
@@ -28,7 +28,7 @@ class ExportRawMaterialJob extends AbstractCsvExportJob
             ->latest();
     }
 
-    protected function getHeaders(): array
+    public function getHeaders(): array
     {
         return [
             'Nama',
@@ -41,7 +41,7 @@ class ExportRawMaterialJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function mapRow($row): array
+    public function mapRow($row): array
     {
         return [
             $row->name,
@@ -54,12 +54,12 @@ class ExportRawMaterialJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Bahan Baku';
     }
 
-    protected function getFileName(): string
+    public function getFileName(): string
     {
         return 'bahan_baku_export_'.time().'.csv';
     }

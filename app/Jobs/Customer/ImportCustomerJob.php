@@ -3,20 +3,20 @@
 namespace App\Jobs\Customer;
 
 use App\Enums\CustomerGender;
-use App\Jobs\ImportExport\AbstractCsvImportJob;
+use App\Jobs\ImportExport\AbstractExcelImportJob;
 use App\Models\Master\Customer;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class ImportCustomerJob extends AbstractCsvImportJob
+class ImportCustomerJob extends AbstractExcelImportJob
 {
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Pelanggan';
     }
 
-    protected function processRow(array $row): void
+    public function processRow(array $row): void
     {
         $validator = Validator::make($row, [
             'Nama Lengkap' => 'required|string|max:255',

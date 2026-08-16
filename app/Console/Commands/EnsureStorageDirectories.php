@@ -31,10 +31,8 @@ class EnsureStorageDirectories extends Command
             'imports',
         ];
 
-        $disk = Storage::disk('local');
-
         foreach ($directories as $directory) {
-            $disk->makeDirectory($directory);
+            Storage::makeDirectory($directory);
             $this->info("✓ Direktori '{$directory}' siap.");
         }
 

@@ -2,12 +2,12 @@
 
 namespace App\Jobs\Reports;
 
-use App\Jobs\ImportExport\AbstractCsvExportJob;
+use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class ExportPromotionReportJob extends AbstractCsvExportJob
+class ExportPromotionReportJob extends AbstractExcelExportJob
 {
     public function __construct(
         User $user,
@@ -19,7 +19,7 @@ class ExportPromotionReportJob extends AbstractCsvExportJob
         $this->outletIds = array_filter($this->outletIds);
     }
 
-    protected function getQuery()
+    public function getQuery()
     {
         return DB::table('transaction_promos')
             ->join('transactions', 'transaction_promos.transaction_id', '=', 'transactions.id')
@@ -39,7 +39,7 @@ class ExportPromotionReportJob extends AbstractCsvExportJob
             ->orderBy('total_usage', 'desc');
     }
 
-    protected function getHeaders(): array
+    public function getHeaders(): array
     {
         return [
             'Nama Promo',
@@ -49,7 +49,7 @@ class ExportPromotionReportJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function mapRow($row): array
+    public function mapRow($row): array
     {
         return [
             $row->promo_name ?? '-',
@@ -59,12 +59,12 @@ class ExportPromotionReportJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Laporan Promosi';
     }
 
-    protected function getFileName(): string
+    public function getFileName(): string
     {
         return 'promotions_export_'.time().'.csv';
     }

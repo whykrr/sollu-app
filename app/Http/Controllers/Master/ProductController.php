@@ -177,32 +177,44 @@ class ProductController extends Controller
             $dummy5[] = '';
         }
 
-        return response()->stream(function () use ($headers, $dummy1, $dummy2, $dummy3, $dummy4, $dummy5) {
-            $file = fopen('php://output', 'w');
-            fwrite($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($file, $headers);
-            fputcsv($file, $dummy1);
-            fputcsv($file, $dummy2);
-            fputcsv($file, $dummy3);
-            fputcsv($file, $dummy4);
-            fputcsv($file, $dummy5);
-            fclose($file);
-        }, 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="template_produk.csv"',
-        ]);
+        $export = new class($headers, $dummyData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings
+        {
+            private $headers;
+
+            private $dummyData;
+
+            public function __construct($headers, $dummyData)
+            {
+                $this->headers = $headers;
+                $this->dummyData = $dummyData;
+            }
+
+            public function array(): array
+            {
+                return [$this->dummyData];
+            }
+
+            public function headings(): array
+            {
+                return $this->headers;
+            }
+        };
+
+        $filename = 'template_'.strtolower(class_basename($this)).'.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
     }
 
     public function import(Request $request)
     {
-        $request->validate(['file' => 'required|mimes:csv,txt|max:10240']);
+        $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:10240']);
         $path = $request->file('file')->store('imports', 'local');
 
         \App\Jobs\Master\ImportProductJob::dispatch(auth()->user(), $path, auth()->user()->business_id);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
-            'Proses impor CSV sedang berjalan di latar belakang.'
+            'Proses impor data sedang berjalan di latar belakang.'
         );
     }
 }

@@ -67,17 +67,6 @@
             </FilterBadge>
         </div>
         <div class="flex items-center gap-1.5">
-            <!-- Impor Button -->
-            <button
-                type="button"
-                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white flex items-center gap-1.5"
-                title="Impor CSV"
-                @click="showImportModal = true"
-            >
-                <FontAwesomeIcon :icon="faUpload" class="text-blue-600" />
-                <span>Impor CSV</span>
-            </button>
-
             <!-- Export Dropdown -->
             <div class="relative inline-block text-left">
                 <button
@@ -85,9 +74,15 @@
                     class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white flex items-center gap-1.5"
                     @click="showExportDropdown = !showExportDropdown"
                 >
-                    <FontAwesomeIcon :icon="faDownload" class="text-slate-600" />
-                    <span>Ekspor</span>
-                    <FontAwesomeIcon :icon="faChevronDown" class="text-xs text-slate-400" />
+                    <FontAwesomeIcon
+                        :icon="faDownload"
+                        class="text-slate-600"
+                    />
+                    <span>Ekspor Data</span>
+                    <FontAwesomeIcon
+                        :icon="faChevronDown"
+                        class="text-xs text-slate-400"
+                    />
                 </button>
                 <div
                     v-if="showExportDropdown"
@@ -96,21 +91,44 @@
                     <button
                         type="button"
                         class="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                        @click="exportPdf(); showExportDropdown = false"
+                        @click="
+                            exportPdf();
+                            showExportDropdown = false;
+                        "
                     >
-                        <FontAwesomeIcon :icon="faFilePdf" class="text-red-600" />
+                        <FontAwesomeIcon
+                            :icon="faFilePdf"
+                            class="text-red-600"
+                        />
                         <span>Ekspor PDF</span>
                     </button>
                     <button
                         type="button"
                         class="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                        @click="exportCsv(); showExportDropdown = false"
+                        @click="
+                            exportCsv();
+                            showExportDropdown = false;
+                        "
                     >
-                        <FontAwesomeIcon :icon="faFileCsv" class="text-green-600" />
-                        <span>Ekspor CSV</span>
+                        <FontAwesomeIcon
+                            :icon="faFileExcel"
+                            class="text-green-600"
+                        />
+                        <span>Ekspor Excel</span>
                     </button>
                 </div>
             </div>
+
+            <!-- Impor Button -->
+            <button
+                type="button"
+                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white flex items-center gap-1.5"
+                title="Impor CSV"
+                @click="showImportModal = true"
+            >
+                <FontAwesomeIcon :icon="faUpload" class="text-blue-600" />
+                <span>Impor Data</span>
+            </button>
         </div>
 
         <!-- Filter Modal Overlay -->
@@ -230,11 +248,11 @@ import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
 import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue';
 import {
     faSliders,
-    faFileCsv,
     faFilePdf,
     faDownload,
     faUpload,
     faChevronDown,
+    faFileExcel,
 } from '@fortawesome/free-solid-svg-icons';
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
 

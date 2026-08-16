@@ -106,7 +106,7 @@ class ShiftController extends Controller
                     ]
                 );
 
-                if (!empty($shiftData['cash_logs'])) {
+                if (! empty($shiftData['cash_logs'])) {
                     foreach ($shiftData['cash_logs'] as $logData) {
                         $shift->cashLogs()->updateOrCreate(
                             ['id' => $logData['id']],

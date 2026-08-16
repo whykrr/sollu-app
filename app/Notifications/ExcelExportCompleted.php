@@ -6,7 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class CsvExportCompleted extends Notification implements ShouldQueue
+class ExcelExportCompleted extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -55,7 +55,7 @@ class CsvExportCompleted extends Notification implements ShouldQueue
         return [
             'type' => 'success',
             'title' => 'Ekspor '.$this->moduleName.' Selesai',
-            'message' => 'File ekspor Anda sudah siap diunduh.',
+            'message' => 'File ekspor Excel Anda sudah siap diunduh.',
             'action_url' => $this->downloadUrl,
             'action_text' => 'Unduh File',
             'expires_at' => $this->expiresAt,

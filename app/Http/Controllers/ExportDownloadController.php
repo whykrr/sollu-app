@@ -22,12 +22,28 @@ class ExportDownloadController extends Controller
 
         $filePath = 'exports/'.$fileName;
 
-        if (! Storage::disk('local')->exists($filePath)) {
+        if (! Storage::exists($filePath)) {
             abort(404, 'File not found or has expired.');
         }
 
-        $absolutePath = Storage::disk('local')->path($filePath);
+        // Stream file content from default/cloud storage to local temporary file
+        $stream = Storage::readStream($filePath);
+        $tempPath = tempnam(sys_get_temp_dir(), 'sollu_export_');
+        $localStream = fopen($tempPath, 'w');
 
-        return response()->download($absolutePath)->deleteFileAfterSend(true);
+        stream_copy_to_stream($stream, $localStream);
+
+        if (is_resource($localStream)) {
+            fclose($localStream);
+        }
+        if (is_resource($stream)) {
+            fclose($stream);
+        }
+
+        // Delete the original file from cloud storage
+        Storage::delete($filePath);
+
+        // Download the local temporary file and delete it after sending
+        return response()->download($tempPath, $fileName)->deleteFileAfterSend(true);
     }
 }

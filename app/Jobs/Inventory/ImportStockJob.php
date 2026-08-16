@@ -3,7 +3,7 @@
 namespace App\Jobs\Inventory;
 
 use App\Enums\InventoryMovementType;
-use App\Jobs\ImportExport\AbstractCsvImportJob;
+use App\Jobs\ImportExport\AbstractExcelImportJob;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryCostLayer;
 use App\Models\Inventory\InventoryItem;
@@ -13,7 +13,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
-class ImportStockJob extends AbstractCsvImportJob
+class ImportStockJob extends AbstractExcelImportJob
 {
     protected $businessId;
 
@@ -23,12 +23,12 @@ class ImportStockJob extends AbstractCsvImportJob
         $this->businessId = $businessId;
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Stok Inventori';
     }
 
-    protected function processRow(array $row): void
+    public function processRow(array $row): void
     {
         $outletName = trim($row['Outlet'] ?? '');
         $name = trim($row['Nama'] ?? '');

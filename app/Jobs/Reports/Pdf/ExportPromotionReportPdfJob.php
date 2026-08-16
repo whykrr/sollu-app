@@ -40,7 +40,7 @@ class ExportPromotionReportPdfJob implements ShouldQueue
             return;
         }
 
-        Storage::disk('local')->makeDirectory('exports');
+        Storage::makeDirectory('exports');
 
         $data = DB::table('transaction_promos')
             ->join('transactions', 'transaction_promos.transaction_id', '=', 'transactions.id')
@@ -71,7 +71,7 @@ class ExportPromotionReportPdfJob implements ShouldQueue
             'end_date' => $this->endDate,
         ])->setPaper('a4', 'landscape');
 
-        Storage::disk('local')->put('exports/'.$fileName, $pdf->output());
+        Storage::put('exports/'.$fileName, $pdf->output());
 
         $this->user->notify(new DocumentExportCompleted(
             'Laporan Promosi',

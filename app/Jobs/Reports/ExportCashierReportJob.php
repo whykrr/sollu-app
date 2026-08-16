@@ -2,12 +2,12 @@
 
 namespace App\Jobs\Reports;
 
-use App\Jobs\ImportExport\AbstractCsvExportJob;
+use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class ExportCashierReportJob extends AbstractCsvExportJob
+class ExportCashierReportJob extends AbstractExcelExportJob
 {
     public function __construct(
         User $user,
@@ -19,7 +19,7 @@ class ExportCashierReportJob extends AbstractCsvExportJob
         $this->outletIds = array_filter($this->outletIds);
     }
 
-    protected function getQuery()
+    public function getQuery()
     {
         return DB::table('shifts')
             ->join('users', 'shifts.user_id', '=', 'users.id')
@@ -41,7 +41,7 @@ class ExportCashierReportJob extends AbstractCsvExportJob
             ->orderBy('shifts.created_at', 'desc');
     }
 
-    protected function getHeaders(): array
+    public function getHeaders(): array
     {
         return [
             'Buka',
@@ -54,7 +54,7 @@ class ExportCashierReportJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function mapRow($row): array
+    public function mapRow($row): array
     {
         return [
             $row->opened_at ? Carbon::parse($row->opened_at)->format('Y-m-d H:i:s') : '-',
@@ -67,12 +67,12 @@ class ExportCashierReportJob extends AbstractCsvExportJob
         ];
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Laporan Kasir';
     }
 
-    protected function getFileName(): string
+    public function getFileName(): string
     {
         return 'cashiers_export_'.time().'.csv';
     }

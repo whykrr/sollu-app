@@ -40,9 +40,9 @@
                         </button>
                         <button
                             class="btn btn-outline-success btn-sm"
-                            @click="exportCsv"
+                            @click="exportExcel"
                         >
-                            <FontAwesomeIcon :icon="faFileCsv" /> Ekspor CSV
+                            <FontAwesomeIcon :icon="faFileExcel" /> Ekspor Excel
                         </button>
                     </div>
                 </div>
@@ -92,7 +92,14 @@
                     </tbody>
                 </table>
             </div>
-                <Pagination class="mt-4" :links="customers.links" :from="customers.from" :to="customers.to" :total="customers.total" :per-page="customers.per_page" />
+            <Pagination
+                class="mt-4"
+                :links="customers.links"
+                :from="customers.from"
+                :to="customers.to"
+                :total="customers.total"
+                :per-page="customers.per_page"
+            />
         </div>
     </MainPage>
 </template>
@@ -101,7 +108,7 @@
 import { computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import {
-    faFileCsv,
+    faFileExcel,
     faFilePdf,
     faStore,
 } from '@fortawesome/free-solid-svg-icons';
@@ -159,7 +166,7 @@ const exportPdf = () => {
     });
 };
 
-const exportCsv = () => {
+const exportExcel = () => {
     router.post(route('reports.customers.export.csv'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,

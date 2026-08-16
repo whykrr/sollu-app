@@ -2,13 +2,16 @@
 
 namespace App\Jobs\Master;
 
-use App\Jobs\ImportExport\AbstractCsvExportJob;
+use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\Master\Product;
 use App\Models\User;
+use App\Notifications\ExcelExportCompleted;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Facades\Excel;
 
-class ExportProductJob extends AbstractCsvExportJob
+class ExportProductJob extends AbstractExcelExportJob
 {
     /**
      * @var array<string, mixed>
@@ -24,7 +27,7 @@ class ExportProductJob extends AbstractCsvExportJob
         $this->filters = $filters;
     }
 
-    protected function getQuery(): Builder
+    public function getQuery(): Builder
     {
         return Product::where('business_id', $this->businessId)
             ->with(['category', 'variantGroups.options', 'inventoryItems.uom', 'prices', 'outlets'])
@@ -32,7 +35,7 @@ class ExportProductJob extends AbstractCsvExportJob
             ->orderByDesc('created_at');
     }
 
-    protected function getHeaders(): array
+    public function getHeaders(): array
     {
         $headers = [
             'SKU',
@@ -60,7 +63,7 @@ class ExportProductJob extends AbstractCsvExportJob
         return $headers;
     }
 
-    protected function mapRow($row): array
+    public function mapRow($row): array
     {
         return [];
     }
@@ -73,19 +76,23 @@ class ExportProductJob extends AbstractCsvExportJob
             return;
         }
 
-        Storage::disk('local')->makeDirectory('exports');
+        Storage::makeDirectory('exports');
 
         $fileName = $this->getFileName();
+        if (! str_ends_with($fileName, '.xlsx')) {
+            $fileName = str_replace('.csv', '.xlsx', $fileName);
+            if (! str_ends_with($fileName, '.xlsx')) {
+                $fileName .= '.xlsx';
+            }
+        }
         $filePath = 'exports/'.$fileName;
-
-        $file = fopen('php://temp', 'w+');
-        fwrite($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
         $outlets = \App\Models\Outlet::where('business_id', $this->businessId)->active()->get();
         $headers = $this->getHeaders();
-        fputcsv($file, $headers);
 
-        $this->getQuery()->chunk(500, function ($products) use ($file, $outlets) {
+        $rows = [$headers];
+
+        $this->getQuery()->chunk(500, function ($products) use (&$rows, $outlets) {
             foreach ($products as $product) {
                 $uomName = $product->inventoryItems->first()?->uom?->name ?? '';
 
@@ -118,7 +125,7 @@ class ExportProductJob extends AbstractCsvExportJob
                     $variantGroups = $product->variantGroups;
 
                     $parentRow[13] = ''; // Parent min stock is empty for variant products
-                    fputcsv($file, $parentRow);
+                    $rows[] = $parentRow;
 
                     foreach ($variants as $variant) {
                         $v1Name = '';
@@ -164,35 +171,41 @@ class ExportProductJob extends AbstractCsvExportJob
                             $childRow[] = '';
                         }
 
-                        fputcsv($file, $childRow);
+                        $rows[] = $childRow;
                     }
                 } else {
                     $inv = $product->inventoryItems->where('item_type', 'variant_sku')->first();
                     $parentRow[1] = $inv ? ($inv->barcode ?? '') : '';
                     $parentRow[13] = $inv ? $inv->min_stock : 0;
-                    fputcsv($file, $parentRow);
+                    $rows[] = $parentRow;
                 }
             }
         });
 
-        rewind($file);
-        $content = stream_get_contents($file);
-        fclose($file);
+        $export = new class($rows) implements FromArray
+        {
+            public function __construct(private array $rows) {}
 
-        Storage::disk('local')->put($filePath, $content);
+            public function array(): array
+            {
+                return $this->rows;
+            }
+        };
+
+        Excel::store($export, $filePath, 'public', \Maatwebsite\Excel\Excel::XLSX);
         $url = route('exports.download', ['file' => $fileName]);
 
         $expiresAt = now()->addDays(1);
-        $this->user->notify(new \App\Notifications\CsvExportCompleted($this->getModuleName(), $fileName, $url, $expiresAt));
+        $this->user->notify(new ExcelExportCompleted($this->getModuleName(), $fileName, $url, $expiresAt));
     }
 
-    protected function getModuleName(): string
+    public function getModuleName(): string
     {
         return 'Produk';
     }
 
-    protected function getFileName(): string
+    public function getFileName(): string
     {
-        return 'produk_export_'.time().'.csv';
+        return 'produk_export_'.time().'.xlsx';
     }
 }

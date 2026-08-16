@@ -40,7 +40,7 @@ class ExportStockReportPdfJob implements ShouldQueue
             return;
         }
 
-        Storage::disk('local')->makeDirectory('exports');
+        Storage::makeDirectory('exports');
 
         $movements = DB::table('inventory_movements')
             ->join('inventory_items', 'inventory_movements.inventory_item_id', '=', 'inventory_items.id')
@@ -98,7 +98,7 @@ class ExportStockReportPdfJob implements ShouldQueue
             'end_date' => $this->endDate,
         ])->setPaper('a4', 'landscape');
 
-        Storage::disk('local')->put('exports/'.$fileName, $pdf->output());
+        Storage::put('exports/'.$fileName, $pdf->output());
 
         $this->user->notify(new DocumentExportCompleted(
             'Laporan Stok',

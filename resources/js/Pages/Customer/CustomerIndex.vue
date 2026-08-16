@@ -4,14 +4,14 @@
             <MainPageHeader title="Daftar Pelanggan">
                 <button class="btn btn-flat btn-sm" @click="exportCsv">
                     <FontAwesomeIcon :icon="faDownload" />
-                    Ekspor CSV
+                    Ekspor Data
                 </button>
                 <button
                     class="btn btn-flat btn-sm"
                     @click="showImportModal = true"
                 >
                     <FontAwesomeIcon :icon="faUpload" />
-                    Impor CSV
+                    Impor Data
                 </button>
                 <button
                     dusk="create-customer-button"
@@ -36,7 +36,9 @@
                 {{ row.email || '-' }}
             </template>
             <template #status="{ row }">
-                <span v-if="row.is_active" class="badge badge-success">Aktif</span>
+                <span v-if="row.is_active" class="badge badge-success"
+                    >Aktif</span
+                >
                 <span v-else class="badge badge-neutral-500">Tidak Aktif</span>
             </template>
             <template #actions="{ row }">
@@ -133,7 +135,16 @@ const headers = [
 ];
 
 const tableData = computed(() => {
-    return props.customers || { data: [], links: [], from: 1, to: 1, total: 0, per_page: 20 };
+    return (
+        props.customers || {
+            data: [],
+            links: [],
+            from: 1,
+            to: 1,
+            total: 0,
+            per_page: 20,
+        }
+    );
 });
 
 // Actions
@@ -164,8 +175,8 @@ const openDetail = (customer) => {
             edit: (cust) => {
                 // When "Ubah Data" is clicked inside Detail Popup
                 openEdit(cust);
-            }
-        }
+            },
+        },
     });
 };
 
@@ -174,22 +185,15 @@ const archiveCustomer = (id) => {
 };
 
 const exportCsv = () => {
-    router.get(route('customers.export', props.filters), {}, { preserveScroll: true, preserveState: true });
-};
-
-// Check if route function throws error when routes are not defined yet
-// A safe wrapper for route() during UI implementation
-const safeRoute = (name, params = {}, absolute = true) => {
-    try {
-        return route(name, params, absolute);
-    } catch (e) {
-        return '#';
-    }
+    router.get(
+        route('customers.export', props.filters),
+        {},
+        { preserveScroll: true, preserveState: true },
+    );
 };
 
 const modal = useModalStore();
 
 // We overwrite the native route in template context for safe testing
-window.route = window.route || ((name) => '#');
-
+// window.route = window.route || ((name) => '#');
 </script>
