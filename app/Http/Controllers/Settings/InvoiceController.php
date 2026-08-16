@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Constants\FlashDataVariable;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -105,7 +106,7 @@ class InvoiceController extends Controller
         }
 
         return redirect()->route('settings.billing.invoices.show', $invoice_number)
-            ->with('success', 'Metode pembayaran berhasil diubah.');
+            ->with(FlashDataVariable::SUCCESS->value, 'Metode pembayaran berhasil diubah.');
     }
 
     public function uploadProof(Request $request, $invoice_number)
@@ -132,7 +133,7 @@ class InvoiceController extends Controller
         );
 
         return redirect()->route('settings.billing.invoices.show', $invoice_number)
-            ->with('success', 'Bukti transfer berhasil diunggah. Tim kami akan segera melakukan verifikasi.');
+            ->with(FlashDataVariable::SUCCESS->value, 'Bukti transfer berhasil diunggah. Tim kami akan segera melakukan verifikasi.');
     }
 
     public function cancel(Request $req, $invoice_number, \App\Services\Outlet\ManageOutletStatusService $manageStatusService)
@@ -173,9 +174,12 @@ class InvoiceController extends Controller
             }
         }
 
-        return redirect()->route('settings.billing.index')->with('success', $isOutletAddition
-            ? 'Tagihan berhasil dibatalkan dan outlet terkait telah dihapus.'
-            : 'Tagihan berhasil dibatalkan.');
+        return redirect()->route('settings.billing.index')->with(
+            FlashDataVariable::SUCCESS->value,
+            $isOutletAddition
+                ? 'Tagihan berhasil dibatalkan dan outlet terkait telah dihapus.'
+                : 'Tagihan berhasil dibatalkan.'
+        );
     }
 
     public function error(Request $req, $invoice_number)
@@ -185,7 +189,10 @@ class InvoiceController extends Controller
             'status' => 'failed',
         ]);
 
-        return redirect()->route('settings.billing.invoices.show', $invoice_number)->with('success', 'Request pembayaran gagal/kadaluarsa, silahkan ulangi.');
+        return redirect()->route('settings.billing.invoices.show', $invoice_number)->with(
+            FlashDataVariable::WARNING->value,
+            'Request pembayaran gagal/kadaluarsa, silahkan ulangi.'
+        );
     }
 
     public function finish(Request $req, $invoice_number)
@@ -203,7 +210,10 @@ class InvoiceController extends Controller
             ]);
         }
 
-        return redirect()->route('settings.billing.invoices.show', $invoice_number)->with('success', 'Tagihan berhasil dibayarkan.');
+        return redirect()->route('settings.billing.invoices.show', $invoice_number)->with(
+            FlashDataVariable::SUCCESS->value,
+            'Tagihan berhasil dibayarkan.'
+        );
     }
 
     public function download(Request $req, $invoice_number)

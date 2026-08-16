@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection|Outlet[] $outlets
  * @property-read Collection|OutletPaymentMethod[] $outletPaymentMethods
  * @property-read Collection|TransactionPayment[] $transactionPayments
+ *
  * @mixin IdeHelperPaymentMethod
  */
 class PaymentMethod extends Model

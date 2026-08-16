@@ -2,45 +2,43 @@
 
 namespace App\Http\Controllers\Settings;
 
-use App\Constants\AuthorizationMessage;
+use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\PermissionEnum;
 use App\Helpers\SummaryUser;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Business\SaveBusinessLogoRequest;
 use App\Http\Requests\BusinessUpdateRequest;
 use App\Models\Business;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class BusinessInfoController extends Controller
 {
-    public function index(Request $req)
+    public function index(Request $req): Response
     {
-        if (! $req->user()->can(PermissionEnum::BUSINESS_VIEW->value)) {
-            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
-        }
+        $this->authorize(PermissionEnum::BUSINESS_VIEW->value);
 
         $business = Auth::user()->business;
 
-        return inertia('Settings/Business/Detail', [
+        return Inertia::render('Settings/Business/Detail', [
             'business' => $business,
         ]);
     }
 
     public function save(BusinessUpdateRequest $req)
     {
-        if (! Auth::user()->can(PermissionEnum::BUSINESS_UPDATE->value)) {
-            throw new AuthorizationException(AuthorizationMessage::EDIT_DATA_NOT_ALLOWED);
-        }
+        $this->authorize(PermissionEnum::BUSINESS_UPDATE->value);
 
         $business_id = Auth::user()->business_id;
 
         /**
          * @var Business
          */
-        $business = Business::find($business_id);
+        $business = Business::findOrFail($business_id);
         $business->name = $req->validated('name');
         $business->email = $req->validated('email');
         $business->phone = $req->validated('phone');
@@ -50,26 +48,30 @@ class BusinessInfoController extends Controller
 
         SummaryUser::cacheDelete();
 
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 
-    public function saveLogo(Request $request)
+    public function saveLogo(SaveBusinessLogoRequest $request)
     {
-        if (! Auth::user()->can(PermissionEnum::BUSINESS_UPDATE->value)) {
-            throw new AuthorizationException(AuthorizationMessage::EDIT_DATA_NOT_ALLOWED);
-        }
-
         $business_id = Auth::user()->business_id;
-        $business = Business::find($business_id);
+        $business = Business::findOrFail($business_id);
 
         if (! $request->hasFile('logo')) {
+            if ($business->logo && Storage::exists($business->logo)) {
+                Storage::delete($business->logo);
+            }
             $business->logo = null;
-
-            SummaryUser::cacheDelete();
             $business->save();
 
-            return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
+            SummaryUser::cacheDelete();
 
+            return redirect()->back()->with(
+                FlashDataVariable::SUCCESS->value,
+                ResourceMessage::UPDATE_SUCCESS
+            );
         }
 
         $path = $request->file('logo')->store('business/image');
@@ -83,7 +85,9 @@ class BusinessInfoController extends Controller
 
         SummaryUser::cacheDelete();
 
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
-
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 }

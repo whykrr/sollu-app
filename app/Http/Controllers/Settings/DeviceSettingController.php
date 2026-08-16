@@ -7,6 +7,8 @@ use App\Constants\ResourceMessage;
 use App\Enums\PermissionEnum;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Outlet\CreateOutletDeviceRequest;
+use App\Http\Requests\Outlet\UpdateOutletDeviceRequest;
 use App\Models\Outlet;
 use App\Models\OutletDevice;
 use App\Services\Outlet\ManageOutletDeviceService;
@@ -55,20 +57,15 @@ class DeviceSettingController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(CreateOutletDeviceRequest $request): RedirectResponse
     {
         $this->authorize(PermissionEnum::SETTING_DEVICE->value);
 
-        $validated = $request->validate([
-            'outlet_id' => ['required', 'uuid'],
-            'device_name' => ['required', 'string', 'max:255'],
-            'device_type' => ['required', 'string', 'max:50'],
-            'serial_number' => ['nullable', 'string', 'max:255'],
-            'is_active' => ['boolean'],
-        ]);
+        $validated = $request->validated();
+        $outletId = $validated['outlet_id'] ?? $request->input('outlet_id');
 
         $outlet = Outlet::where('business_id', $request->user()->business_id)
-            ->findOrFail($validated['outlet_id']);
+            ->findOrFail($outletId);
 
         $this->service->createDevice($outlet, $validated, $request->user());
 
@@ -78,7 +75,7 @@ class DeviceSettingController extends Controller
         );
     }
 
-    public function update(Request $request, OutletDevice $device): RedirectResponse
+    public function update(UpdateOutletDeviceRequest $request, OutletDevice $device): RedirectResponse
     {
         $this->authorize(PermissionEnum::SETTING_DEVICE->value);
 
@@ -87,14 +84,7 @@ class DeviceSettingController extends Controller
             abort(403);
         }
 
-        $validated = $request->validate([
-            'device_name' => ['required', 'string', 'max:255'],
-            'device_type' => ['required', 'string', 'max:50'],
-            'serial_number' => ['nullable', 'string', 'max:255'],
-            'is_active' => ['boolean'],
-        ]);
-
-        $this->service->updateDevice($device, $validated, $request->user());
+        $this->service->updateDevice($device, $request->validated(), $request->user());
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

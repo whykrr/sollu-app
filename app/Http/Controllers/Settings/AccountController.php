@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Helpers\SummaryUser;
 use App\Http\Controllers\Controller;
@@ -41,7 +42,10 @@ class AccountController extends Controller
         SummaryUser::cacheDelete();
         Cache::delete("auth:user:{$user->id}:info");
 
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 
     public function changePassword(AccountChangePasswordRequest $req)
@@ -61,7 +65,10 @@ class AccountController extends Controller
         $user->password = $req->validated('new_password');
         $user->save();
 
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 
     public function savePhoto(ChangePhotoRequest $request)
@@ -79,8 +86,10 @@ class AccountController extends Controller
 
         SummaryUser::cacheDelete();
 
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
-
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 
     public function removePhoto(Request $req)
@@ -96,6 +105,9 @@ class AccountController extends Controller
 
         SummaryUser::cacheDelete();
 
-        return redirect()->back()->with('success', ResourceMessage::DELETE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::DELETE_SUCCESS
+        );
     }
 }

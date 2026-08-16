@@ -1,70 +1,153 @@
+<template>
+    <div class="space-y-4 w-full">
+        <!-- Existing Logo -->
+        <div v-if="hasLogo && !image" class="flex flex-col items-center gap-4">
+            <div class="relative">
+                <img :src="preview" class="size-48 rounded-2xl object-contain p-2 border-2 border-slate-200 bg-slate-50 shadow-xs" />
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button
+                    type="button"
+                    class="btn btn-outline-main btn-sm text-xs rounded-lg px-3 py-1.5 flex items-center gap-1.5"
+                    @click="editImage"
+                >
+                    <FontAwesomeIcon :icon="faPen" />
+                    <span>Ubah Logo</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-danger btn-sm text-xs rounded-lg px-3 py-1.5 flex items-center gap-1.5"
+                    @click="removeImage"
+                >
+                    <FontAwesomeIcon :icon="faTrash" />
+                    <span>Hapus</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Area -->
+        <div v-if="!hasLogo || image" class="space-y-4">
+            <!-- Cropper / Drop Area -->
+            <div class="overflow-hidden">
+                <!-- Empty Dropzone -->
+                <div
+                    v-if="!image"
+                    class="relative overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-200 cursor-pointer"
+                    :class="[
+                        dragging
+                            ? 'border-main bg-main/5 scale-[1.01]'
+                            : 'border-slate-300 hover:border-main hover:bg-slate-50',
+                    ]"
+                    @dragover.prevent="dragging = true"
+                    @dragleave.prevent="dragging = false"
+                    @drop.prevent="onDrop"
+                >
+                    <input
+                        type="file"
+                        accept="image/*"
+                        class="absolute inset-0 z-10 cursor-pointer opacity-0"
+                        @change="onFileChange"
+                    />
+
+                    <div class="flex flex-col items-center gap-3 p-6 text-center">
+                        <div class="flex size-14 items-center justify-center rounded-full bg-main/10 text-main">
+                            <FontAwesomeIcon :icon="faCloudArrowUp" class="text-2xl" />
+                        </div>
+
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-semibold text-slate-800">
+                                Unggah Logo Usaha
+                            </h4>
+                            <p class="text-xs text-slate-500">
+                                Drag & drop logo atau klik untuk memilih file
+                            </p>
+                        </div>
+
+                        <div class="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-500">
+                            PNG, JPG, WEBP (Maks. 2MB)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cropper Canvas -->
+                <div
+                    v-if="image"
+                    class="relative aspect-square max-h-[280px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-900"
+                >
+                    <Cropper
+                        ref="cropper"
+                        :src="image"
+                        :auto-zoom="true"
+                        :stencil-component="CircleStencil"
+                        :stencil-props="{
+                            aspectRatio: 1,
+                        }"
+                        class="h-full w-full"
+                        :canvas="{
+                            maxWidth: 300,
+                            maxHeight: 300,
+                        }"
+                    />
+
+                    <div class="absolute left-2 top-2 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur-xs">
+                        Sesuaikan area crop logo
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action -->
+            <div v-if="image" class="flex items-center gap-2">
+                <button
+                    type="button"
+                    class="btn btn-main flex-1 rounded-lg text-xs py-2 font-medium flex items-center justify-center gap-2"
+                    @click="cropImage"
+                >
+                    <FontAwesomeIcon :icon="faCamera" />
+                    <span>Simpan Logo</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-danger size-9 rounded-lg flex items-center justify-center"
+                    title="Batal"
+                    @click="cancelImage"
+                >
+                    <FontAwesomeIcon :icon="faTrash" />
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
 <script setup>
+import { computed, ref, watch } from 'vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
     faCamera,
-    faCheck,
     faCloudArrowUp,
-    faImage,
     faPen,
     faTrash,
 } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { computed, ref, watch } from 'vue';
 import { CircleStencil, Cropper } from 'vue-advanced-cropper';
-
 import 'vue-advanced-cropper/dist/style.css';
 
-/*
-|--------------------------------------------------------------------------
-| Props
-|--------------------------------------------------------------------------
-*/
-
 const props = defineProps({
-    /*
-    |--------------------------------------------------------------------------
-    | Existing image url
-    |--------------------------------------------------------------------------
-    */
-
     url: {
         type: String,
         default: null,
     },
 });
 
-/*
-|--------------------------------------------------------------------------
-| Emit
-|--------------------------------------------------------------------------
-*/
-
 const emit = defineEmits(['action']);
 
-/*
-|--------------------------------------------------------------------------
-| State
-|--------------------------------------------------------------------------
-*/
-
 const cropper = ref(null);
-
 const image = ref(null);
 const preview = ref(null);
 const dragging = ref(false);
 
-/*
-|--------------------------------------------------------------------------
-| Computed
-|--------------------------------------------------------------------------
-*/
-
 const hasLogo = computed(() => !!preview.value);
-
-/*
-|--------------------------------------------------------------------------
-| Watch Existing URL
-|--------------------------------------------------------------------------
-*/
 
 watch(
     () => props.url,
@@ -78,55 +161,27 @@ watch(
     },
 );
 
-/*
-|--------------------------------------------------------------------------
-| Handle File
-|--------------------------------------------------------------------------
-*/
-
 const handleFile = (file) => {
     if (!file) return;
 
     const reader = new FileReader();
-
     reader.onload = (event) => {
         image.value = event.target.result;
     };
-
     reader.readAsDataURL(file);
 };
-
-/*
-|--------------------------------------------------------------------------
-| File Change
-|--------------------------------------------------------------------------
-*/
 
 const onFileChange = (e) => {
     handleFile(e.target.files[0]);
 };
 
-/*
-|--------------------------------------------------------------------------
-| Drop File
-|--------------------------------------------------------------------------
-*/
-
 const onDrop = (e) => {
     dragging.value = false;
-
     handleFile(e.dataTransfer.files[0]);
 };
 
-/*
-|--------------------------------------------------------------------------
-| Crop Image
-|--------------------------------------------------------------------------
-*/
-
 const cropImage = () => {
     const { canvas } = cropper.value.getResult();
-
     if (!canvas) return;
 
     preview.value = canvas.toDataURL('image/png');
@@ -135,187 +190,22 @@ const cropImage = () => {
         const file = new File([blob], 'logo.png', {
             type: 'image/png',
         });
-
         emit('action', file);
-
         image.value = null;
     }, 'image/png');
 };
 
-/*
-|--------------------------------------------------------------------------
-| Remove Image
-|--------------------------------------------------------------------------
-*/
-
 const removeImage = () => {
     image.value = null;
     preview.value = null;
-
     emit('action', null);
 };
 
-/*
-|--------------------------------------------------------------------------
-| Edit Existing Image
-|--------------------------------------------------------------------------
-*/
+const cancelImage = () => {
+    image.value = null;
+};
 
 const editImage = () => {
     image.value = preview.value;
 };
 </script>
-
-<template>
-    <div class="space-y-5">
-        <!-- Existing Logo -->
-        <div v-if="hasLogo && !image" class="flex flex-col items-center gap-5">
-            <div class="relative">
-                <img :src="preview" class="size-60 rounded-full object-cover" />
-            </div>
-
-            <div class="flex gap-2">
-                <button
-                    type="button"
-                    class="btn btn-success rounded-lg"
-                    @click="editImage"
-                >
-                    <FontAwesomeIcon :icon="faPen" />
-
-                    Ubah Logo
-                </button>
-
-                <button
-                    type="button"
-                    class="btn btn-outline-danger rounded-lg"
-                    @click="removeImage"
-                >
-                    <FontAwesomeIcon :icon="faTrash" />
-
-                    Hapus
-                </button>
-            </div>
-        </div>
-
-        <!-- Upload Area -->
-        <div v-if="!hasLogo || image" class="space-y-5">
-            <div
-                class="relative overflow-hidden rounded-3xl border-2 border-dashed transition-all duration-300"
-                :class="[
-                    dragging
-                        ? 'border-primary bg-primary/5 scale-[1.01]'
-                        : 'border-neutral-300 hover:border-primary hover:bg-neutral-50',
-                ]"
-                @dragover.prevent="dragging = true"
-                @dragleave.prevent="dragging = false"
-                @drop.prevent="onDrop"
-            >
-                <input
-                    type="file"
-                    accept="image/*"
-                    class="absolute inset-0 z-10 cursor-pointer opacity-0"
-                    @change="onFileChange"
-                />
-
-                <div class="flex flex-col items-center gap-4 p-8 text-center">
-                    <div
-                        class="flex size-18 items-center justify-center rounded-full bg-primary/10"
-                    >
-                        <FontAwesomeIcon
-                            :icon="faCloudArrowUp"
-                            class="text-primary text-3xl"
-                        />
-                    </div>
-
-                    <div class="space-y-1">
-                        <h3 class="text-lg font-semibold text-neutral-800">
-                            Upload Logo
-                        </h3>
-
-                        <p class="text-sm text-neutral-500">
-                            Drag & drop gambar atau klik untuk memilih file
-                        </p>
-                    </div>
-
-                    <div
-                        class="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-500"
-                    >
-                        PNG, JPG, WEBP
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cropper -->
-            <div class="overflow-hidden rounded-3xl border bg-white">
-                <!-- Empty -->
-                <div
-                    v-if="!image"
-                    class="flex aspect-square flex-col items-center justify-center gap-4 bg-neutral-50"
-                >
-                    <div
-                        class="flex size-50 items-center justify-center rounded-full border-4 border-dashed border-neutral-300"
-                    >
-                        <FontAwesomeIcon
-                            :icon="faImage"
-                            class="text-6xl text-neutral-300"
-                        />
-                    </div>
-
-                    <div class="text-center">
-                        <p class="text-sm text-neutral-400">
-                            Belum ada logo di upload
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Cropper -->
-                <div
-                    v-if="image"
-                    class="relative w-full aspect-square max-h-[300px] overflow-hidden"
-                >
-                    <Cropper
-                        ref="cropper"
-                        :src="image"
-                        :auto-zoom="true"
-                        :stencil-component="CircleStencil"
-                        :stencil-props="{
-                            aspectRatio: 1,
-                        }"
-                        class="h-full w-full"
-                        :canvas="{
-                            maxWidth: 200,
-                            maxHeight: 200,
-                        }"
-                    />
-
-                    <div
-                        class="absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1 text-xs text-white backdrop-blur"
-                    >
-                        Geser untuk menyesuaikan logo
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action -->
-            <div v-if="image" class="flex gap-3">
-                <button
-                    type="button"
-                    class="btn btn-main flex-1 rounded-2xl"
-                    @click="cropImage"
-                >
-                    <FontAwesomeIcon :icon="faCamera" class="mr-2" />
-
-                    Simpan Logo
-                </button>
-
-                <button
-                    type="button"
-                    class="flex size-12 items-center justify-center rounded-2xl border border-red-200 bg-red-50 text-red-500 transition hover:bg-red-100"
-                    @click="removeImage"
-                >
-                    <FontAwesomeIcon :icon="faTrash" />
-                </button>
-            </div>
-        </div>
-    </div>
-</template>

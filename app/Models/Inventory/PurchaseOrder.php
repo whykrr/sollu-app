@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read User|null $creator
  * @property-read User|null $approver
  * @property-read Collection|PurchaseOrderItem[] $items
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperPurchaseOrder
  */

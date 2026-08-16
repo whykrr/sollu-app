@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Outlet\UpdateOutletSettingRequest;
@@ -18,6 +19,9 @@ class OutletSettingController extends Controller
     {
         $this->service->upsertSettings($outlet, $request->validated('settings'), $request->user());
 
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 }

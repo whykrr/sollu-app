@@ -130,74 +130,12 @@
                 <span>Tambah Perangkat Sekarang</span>
             </button>
         </div>
-
-        <!-- Modal Tambah / Edit Perangkat -->
-        <Modal
-            :show="showDeviceModal"
-            :title="isEditing ? 'Ubah Perangkat' : 'Tambah Perangkat Baru'"
-            size="md"
-            @close="showDeviceModal = false"
-        >
-            <form class="flex flex-col gap-4" @submit.prevent="submitDeviceForm">
-                <TextField
-                    id="device_name"
-                    v-model="deviceForm.device_name"
-                    label="Nama Perangkat"
-                    placeholder="Contoh: Kasir Utama / Kasir Depan"
-                    :error="deviceForm.errors.device_name"
-                    required
-                />
-
-                <DropdownField
-                    id="device_type"
-                    v-model="deviceForm.device_type"
-                    label="Tipe Perangkat"
-                    placeholder="Pilih tipe perangkat"
-                    :options="deviceTypeOptions"
-                    :error="deviceForm.errors.device_type"
-                    required
-                />
-
-                <TextField
-                    id="serial_number"
-                    v-model="deviceForm.serial_number"
-                    label="Nomor Seri / S/N (Opsional)"
-                    placeholder="Contoh: SN-12345678"
-                    :error="deviceForm.errors.serial_number"
-                />
-
-                <div class="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
-                    <div>
-                        <div class="font-medium text-sm text-slate-700">Status Perangkat</div>
-                        <div class="text-xs text-slate-500">Aktifkan agar dapat digunakan untuk transaksi</div>
-                    </div>
-                    <Switch id="is_active" v-model="deviceForm.is_active" size="md" />
-                </div>
-
-                <div class="flex justify-end gap-2 pt-4 border-t border-slate-100 mt-2">
-                    <button
-                        type="button"
-                        class="btn btn-secondary px-4 py-2 rounded-lg text-sm"
-                        @click="showDeviceModal = false"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="submit"
-                        class="btn btn-main px-5 py-2 rounded-lg text-sm font-medium shadow-sm"
-                        :disabled="deviceForm.processing"
-                    >
-                        {{ isEditing ? 'Simpan Perubahan' : 'Tambah Perangkat' }}
-                    </button>
-                </div>
-            </form>
-        </Modal>
     </MainPage>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
     faCashRegister,
@@ -214,12 +152,10 @@ import {
 import MainPage from '@/Components/UI/MainPage.vue';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import SettingOutletSelector from '../Components/SettingOutletSelector.vue';
-import Modal from '@/Components/Notifications/Modal.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import Switch from '@/Components/Form/Switch.vue';
-import { useModalStore } from '@/store/notification';
+import DevicePopUp from './Components/DevicePopUp.vue';
 import OtpModalContent from './Components/OtpModalContent.vue';
+import { usePopUpStore } from '@/store/popup';
+import { useModalStore } from '@/store/notification';
 
 const props = defineProps({
     outlets: Array,
@@ -228,6 +164,7 @@ const props = defineProps({
     otpData: Object,
 });
 
+const popUpStore = usePopUpStore();
 const modalStore = useModalStore();
 
 watch(
@@ -239,25 +176,13 @@ watch(
                 title: '',
                 showFooter: false,
                 props: {
-                    otpData: val
-                }
+                    otpData: val,
+                },
             });
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
-
-const showDeviceModal = ref(false);
-const isEditing = ref(false);
-const editingDeviceId = ref(null);
-
-const deviceForm = useForm({
-    outlet_id: props.selectedOutlet?.id ?? '',
-    device_name: '',
-    device_type: 'pos',
-    serial_number: '',
-    is_active: true,
-});
 
 const deviceTypeOptions = [
     { value: 'pos', label: 'POS Terminal / Kasir' },
@@ -293,42 +218,26 @@ const changeOutlet = (newOutletId) => {
 };
 
 const openCreateModal = () => {
-    isEditing.value = false;
-    editingDeviceId.value = null;
-    deviceForm.reset();
-    deviceForm.outlet_id = props.selectedOutlet?.id ?? '';
-    deviceForm.is_active = true;
-    showDeviceModal.value = true;
+    popUpStore.open({
+        title: 'Tambah Perangkat Baru',
+        size: 'md',
+        component: DevicePopUp,
+        props: {
+            outletId: props.selectedOutlet?.id || '',
+        },
+    });
 };
 
 const openEditModal = (device) => {
-    isEditing.value = true;
-    editingDeviceId.value = device.id;
-    deviceForm.device_name = device.device_name;
-    deviceForm.device_type = device.device_type;
-    deviceForm.serial_number = device.serial_number ?? '';
-    deviceForm.is_active = !!device.is_active;
-    deviceForm.outlet_id = device.outlet_id;
-    showDeviceModal.value = true;
-};
-
-const submitDeviceForm = () => {
-    if (isEditing.value && editingDeviceId.value) {
-        deviceForm.put(route('settings.devices.update', { device: editingDeviceId.value }), {
-            preserveScroll: true,
-            onSuccess: () => {
-                showDeviceModal.value = false;
-            },
-        });
-    } else {
-        deviceForm.outlet_id = props.selectedOutlet?.id;
-        deviceForm.post(route('settings.devices.store'), {
-            preserveScroll: true,
-            onSuccess: () => {
-                showDeviceModal.value = false;
-            },
-        });
-    }
+    popUpStore.open({
+        title: 'Ubah Data Perangkat',
+        size: 'md',
+        component: DevicePopUp,
+        props: {
+            device,
+            outletId: props.selectedOutlet?.id || '',
+        },
+    });
 };
 
 const generateOtp = (deviceId) => {
@@ -337,27 +246,41 @@ const generateOtp = (deviceId) => {
         {},
         {
             preserveScroll: true,
-        }
+        },
     );
 };
 
 const unpairDevice = (deviceId) => {
-    if (confirm('Apakah Anda yakin ingin memutuskan koneksi perangkat ini?')) {
-        router.post(
-            route('settings.devices.unpair', { device: deviceId }),
-            {},
-            {
-                preserveScroll: true,
-            }
-        );
-    }
+    modalStore.confirm({
+        title: 'Putuskan Koneksi Perangkat',
+        message: 'Apakah Anda yakin ingin memutuskan koneksi perangkat ini? Perangkat akan dilogout secara paksa.',
+        confirmText: 'Ya, Putuskan',
+        cancelText: 'Batal',
+        type: 'warning',
+        onConfirm: () => {
+            router.post(
+                route('settings.devices.unpair', { device: deviceId }),
+                {},
+                {
+                    preserveScroll: true,
+                },
+            );
+        },
+    });
 };
 
 const deleteDevice = (deviceId) => {
-    if (confirm('Hapus perangkat ini secara permanen?')) {
-        router.delete(route('settings.devices.destroy', { device: deviceId }), {
-            preserveScroll: true,
-        });
-    }
+    modalStore.confirm({
+        title: 'Hapus Perangkat',
+        message: 'Hapus perangkat ini secara permanen dari sistem?',
+        confirmText: 'Ya, Hapus',
+        cancelText: 'Batal',
+        type: 'danger',
+        onConfirm: () => {
+            router.delete(route('settings.devices.destroy', { device: deviceId }), {
+                preserveScroll: true,
+            });
+        },
+    });
 };
 </script>

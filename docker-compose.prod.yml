@@ -22,6 +22,7 @@ services:
     image: redis:7-alpine
     container_name: sollu-redis
     restart: always
+    command: redis-server --appendonly yes
     volumes:
       - sollu-redis-data:/data
     networks:

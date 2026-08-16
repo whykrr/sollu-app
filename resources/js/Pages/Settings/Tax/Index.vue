@@ -21,14 +21,14 @@
                         Pajak & Biaya Operasional
                     </h3>
 
-                    <div class="flex flex-col gap-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <NumberField
                                 id="financial_tax"
                                 v-model="form.financial_tax"
                                 label="Pajak Restoran / PB1 / PPN (%)"
                                 placeholder="10"
-                                :error="form.errors.financial_tax"
+                                :feedback="form.errors.financial_tax"
                                 min="0"
                                 max="100"
                                 step="0.1"
@@ -38,20 +38,23 @@
                                 v-model="form.financial_service_fee"
                                 label="Biaya Layanan / Service Charge (%)"
                                 placeholder="5"
-                                :error="form.errors.financial_service_fee"
+                                :feedback="form.errors.financial_service_fee"
                                 min="0"
                                 max="100"
                                 step="0.1"
                             />
                         </div>
 
-                        <div class="flex items-center justify-between p-3.5 border border-slate-200 rounded-lg">
+                        <label
+                            for="tax_included_in_price"
+                            class="flex items-center justify-between p-3.5 border border-slate-200 rounded-lg cursor-pointer select-none hover:bg-slate-50/80 hover:border-slate-300 transition-colors"
+                        >
                             <div>
                                 <div class="font-medium text-sm text-slate-700">Harga Produk Sudah Termasuk Pajak</div>
                                 <div class="text-xs text-slate-500">Pajak dihitung secara inklusif ke dalam harga barang</div>
                             </div>
                             <Switch id="tax_included_in_price" v-model="form.tax_included_in_price" size="md" />
-                        </div>
+                        </label>
                     </div>
                 </div>
 
@@ -62,42 +65,26 @@
                         Pembulatan Nominal Transaksi
                     </h3>
 
-                    <div class="flex flex-col gap-4">
-                        <div class="flex items-center justify-between p-3.5 border border-slate-200 rounded-lg">
+                    <div class="space-y-2">
+                        <label
+                            for="rounding_enabled"
+                            class="flex items-center justify-between p-3.5 border border-slate-200 rounded-lg cursor-pointer select-none hover:bg-slate-50/80 hover:border-slate-300 transition-colors"
+                        >
                             <div>
                                 <div class="font-medium text-sm text-slate-700">Aktifkan Pembulatan Otomatis</div>
                                 <div class="text-xs text-slate-500">Membulatkan total tagihan akhir ke kelipatan ratusan rupiah</div>
                             </div>
                             <Switch id="rounding_enabled" v-model="form.rounding_enabled" size="md" />
-                        </div>
+                        </label>
 
-                        <div v-if="form.rounding_enabled" class="flex flex-col gap-2 pt-2">
-                            <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                                Aturan Pembulatan
-                            </label>
-                            <div class="grid grid-cols-3 gap-3">
-                                <label
-                                    class="flex items-center justify-center p-3 rounded-lg border text-center cursor-pointer text-xs font-medium transition-all"
-                                    :class="form.rounding_mode === 'nearest' ? 'border-main bg-main/5 text-main font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
-                                >
-                                    <input v-model="form.rounding_mode" type="radio" value="nearest" class="sr-only" />
-                                    <span>Terdekat (Rp 100)</span>
-                                </label>
-                                <label
-                                    class="flex items-center justify-center p-3 rounded-lg border text-center cursor-pointer text-xs font-medium transition-all"
-                                    :class="form.rounding_mode === 'up' ? 'border-main bg-main/5 text-main font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
-                                >
-                                    <input v-model="form.rounding_mode" type="radio" value="up" class="sr-only" />
-                                    <span>Ke Atas (Ceil)</span>
-                                </label>
-                                <label
-                                    class="flex items-center justify-center p-3 rounded-lg border text-center cursor-pointer text-xs font-medium transition-all"
-                                    :class="form.rounding_mode === 'down' ? 'border-main bg-main/5 text-main font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
-                                >
-                                    <input v-model="form.rounding_mode" type="radio" value="down" class="sr-only" />
-                                    <span>Ke Bawah (Floor)</span>
-                                </label>
-                            </div>
+                        <div v-if="form.rounding_enabled" class="pt-1">
+                            <SelectionGroupField
+                                id="rounding_mode"
+                                v-model="form.rounding_mode"
+                                label="Aturan Pembulatan"
+                                :options="roundingModeOptions"
+                                :feedback="form.errors.rounding_mode"
+                            />
                         </div>
                     </div>
                 </div>
@@ -175,12 +162,19 @@ import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import SettingOutletSelector from '../Components/SettingOutletSelector.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
 import Switch from '@/Components/Form/Switch.vue';
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
 
 const props = defineProps({
     outlets: Array,
     selectedOutlet: Object,
     taxSettings: Object,
 });
+
+const roundingModeOptions = [
+    { label: 'Terdekat (Rp 100)', value: 'nearest' },
+    { label: 'Ke Atas (Ceil)', value: 'up' },
+    { label: 'Ke Bawah (Floor)', value: 'down' },
+];
 
 const form = useForm({
     outlet_id: props.selectedOutlet?.id ?? '',

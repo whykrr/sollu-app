@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read Business $business
  * @property-read Outlet $outlet
  * @property-read InventoryItem $inventoryItem
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperInventoryBalance
  */

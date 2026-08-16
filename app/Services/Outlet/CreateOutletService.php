@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class CreateOutletService
 {
-    public function __construct(protected BillingEngine $billingEngine) {}
+    public function __construct(
+        protected BillingEngine $billingEngine,
+        protected OutletProvisioningService $provisioningService
+    ) {}
 
     public function execute(array $data, User $user): array
     {
@@ -36,6 +39,9 @@ class CreateOutletService
                     $root_user->outlets()->attach($outlet->id);
                 }
             }
+
+            // Provision default settings & payment methods
+            $this->provisioningService->provisionAll($outlet);
 
             // Audit log
             OutletAuditLog::create([

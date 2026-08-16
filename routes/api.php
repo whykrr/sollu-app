@@ -20,10 +20,13 @@ Route::prefix('pos')->name('api.pos.')->group(function () {
         Route::post('/transactions', [\App\Http\Controllers\API\POS\TransactionController::class, 'store'])->name('transactions.store');
 
         Route::prefix('shifts')->name('shifts.')->group(function () {
+            Route::post('/sync', [\App\Http\Controllers\API\POS\ShiftController::class, 'sync'])->name('sync');
             Route::post('/open', [\App\Http\Controllers\API\POS\ShiftController::class, 'open'])->name('open');
             Route::post('/close', [\App\Http\Controllers\API\POS\ShiftController::class, 'close'])->name('close');
             Route::post('/cash-log', [\App\Http\Controllers\API\POS\ShiftController::class, 'cashLog'])->name('cash-log');
         });
+
+        Route::put('/settings/printer', [\App\Http\Controllers\API\POS\SettingController::class, 'updatePrinter'])->name('settings.printer.update');
 
         Route::post('/logs/error', [\App\Http\Controllers\API\POS\LogController::class, 'error'])->name('logs.error');
     });

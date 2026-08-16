@@ -16,6 +16,12 @@ class OutletTest extends TestCase
     {
         parent::setUp();
         $this->seed(DatabaseSeeder::class);
+
+        // Keep only 1 outlet for clean limit testing
+        $user = User::first();
+        if ($user && $user->business) {
+            $user->business->outlets()->skip(1)->take(10)->get()->each->forceDelete();
+        }
     }
 
     public function test_user_can_view_outlets()

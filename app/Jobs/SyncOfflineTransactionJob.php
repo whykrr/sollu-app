@@ -2,18 +2,19 @@
 
 namespace App\Jobs;
 
+use App\Services\Transaction\TransactionService;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Foundation\Bus\Dispatchable;
-use App\Services\Transaction\TransactionService;
 
 class SyncOfflineTransactionJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected array $data;
+
     protected $device;
 
     /**
@@ -30,6 +31,15 @@ class SyncOfflineTransactionJob implements ShouldQueue
      */
     public function handle(TransactionService $transactionService): void
     {
+        if (!empty($this->data['shift_id'])) {
+            $shift = \App\Models\Sales\Shift::find($this->data['shift_id']);
+            if (!$shift) {
+                // Delay execution for 60 seconds to wait for shift sync
+                $this->release(60);
+                return;
+            }
+        }
+
         $transactionService->syncOfflineTransaction($this->data, $this->device);
     }
 }

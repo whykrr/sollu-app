@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read Outlet $outlet
  * @property-read InventoryItem $inventoryItem
  * @property-read User|null $creator
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperInventoryMovement
  */

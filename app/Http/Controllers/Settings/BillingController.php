@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers\Settings;
 
-use App\Constants\AuthorizationMessage;
+use App\Constants\FlashDataVariable;
+use App\Enums\PermissionEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\SubscriptionPlan;
 use Carbon\Carbon;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class BillingController extends Controller
 {
-    public function index(Request $req)
+    public function index(Request $req): Response
     {
-        if (! $req->user()->can('business.billing')) {
-            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
-        }
+        $this->authorize(PermissionEnum::BUSINESS_BILLING->value);
 
         $business = $req->user()->business;
 
@@ -26,17 +26,15 @@ class BillingController extends Controller
 
         $activeSubscription = $business->subscriptions()->with('plan')->where('status', 'active')->first();
 
-        return inertia('Settings/Billing/Index', [
+        return Inertia::render('Settings/Billing/Index', [
             'subscription' => $activeSubscription,
             'invoices' => $invoices->paginate($req->get('perpage', 20)),
         ]);
     }
 
-    public function plans(Request $req)
+    public function plans(Request $req): Response
     {
-        if (! $req->user()->can('business.billing')) {
-            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
-        }
+        $this->authorize(PermissionEnum::BUSINESS_BILLING->value);
 
         $business = $req->user()->business;
         $subscription = $business->subscriptions()
@@ -52,7 +50,7 @@ class BillingController extends Controller
 
         $plans = SubscriptionPlan::orderBy('price_per_outlet', 'asc')->get();
 
-        return inertia('Settings/Billing/Plans', [
+        return Inertia::render('Settings/Billing/Plans', [
             'subscription' => $subscription,
             'plans' => $plans,
             'invoice' => $invoice,
@@ -61,9 +59,7 @@ class BillingController extends Controller
 
     public function checkout(Request $req, $plan_id)
     {
-        if (! $req->user()->can('business.billing')) {
-            throw new AuthorizationException(AuthorizationMessage::CANT_ACCESS_PAGE);
-        }
+        $this->authorize(PermissionEnum::BUSINESS_BILLING->value);
 
         $business = $req->user()->business;
         $subscription = $business->subscriptions()
@@ -79,12 +75,12 @@ class BillingController extends Controller
 
         if ($invoice) {
             return redirect()->route('settings.billing.plans')
-                ->with('error', 'Anda masih memiliki tagihan yang belum dibayar.');
+                ->with(FlashDataVariable::WARNING->value, 'Anda masih memiliki tagihan yang belum dibayar.');
         }
 
         $plan = SubscriptionPlan::findOrFail($plan_id);
 
-        return inertia('Settings/Billing/Checkout', [
+        return Inertia::render('Settings/Billing/Checkout', [
             'subscription' => $subscription,
             'plan' => $plan,
         ]);

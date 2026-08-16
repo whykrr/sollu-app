@@ -1,9 +1,9 @@
 <template>
-    <div class="flex flex-col gap-6 p-4">
+    <div class="flex flex-col gap-4 p-4">
         <!-- Financial -->
         <div>
-            <h3 class="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">Pengaturan Finansial</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h3 class="text-base font-semibold text-slate-800 border-b pb-2 mb-3">Pengaturan Finansial</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div class="col-span-1">
                     <NumberField
                         id="tax"
@@ -25,8 +25,8 @@
 
         <!-- POS -->
         <div>
-            <h3 class="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">Pengaturan POS</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h3 class="text-base font-semibold text-slate-800 border-b pb-2 mb-3">Pengaturan POS</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div class="col-span-1 flex items-center justify-between p-3 border rounded-lg">
                     <div>
                         <div class="font-medium text-slate-700">Auto Print Struk</div>
@@ -55,8 +55,8 @@
 
         <!-- Inventory -->
         <div>
-            <h3 class="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">Pengaturan Inventori</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h3 class="text-base font-semibold text-slate-800 border-b pb-2 mb-3">Pengaturan Inventori</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div class="col-span-1 flex items-center justify-between p-3 border rounded-lg">
                     <div>
                         <div class="font-medium text-slate-700">Stock Tracking</div>

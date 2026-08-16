@@ -1,52 +1,68 @@
 <template>
-    <div class="inline-flex items-center cursor-pointer select-none group">
+    <div
+        class="relative inline-flex items-center cursor-pointer select-none group"
+        :class="{ 'opacity-50 cursor-not-allowed': disabled }"
+    >
         <input
-            :id
+            :id="id"
             type="checkbox"
-            class="sr-only"
-            :checked="Number(modelValue) === 1"
+            class="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer pointer-events-auto"
+            :checked="isChecked"
             :disabled="disabled"
-            @change="updateValue($event.target.checked ? 1 : 0)"
+            tabindex="-1"
+            @change="handleChange"
         />
-        <label
-            :for="id"
-            class="w-8 h-5 flex items-center bg-gray-300 rounded-full p-1 transition-colors duration-300 ease-in-out group-has-checked:bg-main group/switch"
-            :class="{
-                'w-6! h-4!': size === 'sm',
-                'w-10! h-6!': size === 'lg',
-                'opacity-50 cursor-not-allowed': disabled
-            }"
+        <span
+            class="flex items-center bg-slate-300 rounded-full p-0.5 transition-colors duration-200 ease-in-out peer-checked:bg-main shrink-0 pointer-events-none"
+            :class="[
+                size === 'sm' ? 'w-7 h-4' : size === 'lg' ? 'w-11 h-6' : 'w-9 h-5',
+                { '!bg-main': isChecked }
+            ]"
         >
             <span
-                class="bg-white w-3 h-3 rounded-full shadow-md transform transition-transform duration-300 ease-in-out group-has-checked:translate-x-3"
-                :class="{
-                    'w-2.5! h-2.5! group-has-checked:!translate-x-1.5':
-                        size === 'sm',
-                    'w-4! h-4! group-has-checked:!translate-x-4': size === 'lg',
-                }"
+                class="bg-white rounded-full shadow-xs transform transition-transform duration-200 ease-in-out pointer-events-none"
+                :class="[
+                    size === 'sm' ? 'w-3 h-3' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4',
+                    isChecked
+                        ? (size === 'sm' ? 'translate-x-3' : size === 'lg' ? 'translate-x-5' : 'translate-x-4')
+                        : 'translate-x-0'
+                ]"
             />
-        </label>
+        </span>
 
-        <label
-            :for="id"
-            class="ml-1 text-gray-700 cursor-pointer"
+        <span
+            v-if="labeling"
+            class="ml-2 text-slate-700 font-medium cursor-pointer pointer-events-none"
             :class="{
-                'text-sm': size === 'sm',
-                'text-lg': size === 'lg',
-                'opacity-50 cursor-not-allowed': disabled
+                'text-xs': size === 'sm',
+                'text-sm': !size || size === 'md',
+                'text-base': size === 'lg',
             }"
-            >{{ labeling }}</label
         >
+            {{ labeling }}
+        </span>
     </div>
 </template>
+
 <script setup>
-defineProps({
-    id: String,
-    labeling: String,
-    size: String,
+import { computed } from 'vue';
+
+const props = defineProps({
+    id: {
+        type: String,
+        default: () => `switch-${Math.random().toString(36).substring(2, 9)}`,
+    },
+    labeling: {
+        type: String,
+        default: '',
+    },
+    size: {
+        type: String,
+        default: 'md',
+    },
     modelValue: {
-        type: Number,
-        default: 0,
+        type: [Boolean, Number, String],
+        default: false,
     },
     disabled: {
         type: Boolean,
@@ -54,10 +70,29 @@ defineProps({
     },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'change']);
 
-const updateValue = (value) => {
-    // Emit the `update:modelValue` event for two-way binding
-    emit('update:modelValue', value);
+const isChecked = computed(() => {
+    if (typeof props.modelValue === 'boolean') {
+        return props.modelValue;
+    }
+    if (typeof props.modelValue === 'number') {
+        return props.modelValue === 1;
+    }
+    return props.modelValue === '1' || props.modelValue === 'true';
+});
+
+const handleChange = (event) => {
+    const checked = event.target.checked;
+    let emittedValue;
+    if (typeof props.modelValue === 'boolean') {
+        emittedValue = checked;
+    } else if (typeof props.modelValue === 'number') {
+        emittedValue = checked ? 1 : 0;
+    } else {
+        emittedValue = checked;
+    }
+    emit('update:modelValue', emittedValue);
+    emit('change', emittedValue);
 };
 </script>

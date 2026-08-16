@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Outlet\CreateOutletRequest;
@@ -59,10 +60,13 @@ class OutletController extends Controller
 
         if (! empty($result['invoice'])) {
             return redirect()->route('settings.billing.invoices.show', $result['invoice']->invoice_number)
-                ->with('success', 'Outlet berhasil dibuat. Silakan selesaikan pembayaran tagihan prorasi untuk mengaktifkan outlet.');
+                ->with(FlashDataVariable::SUCCESS->value, 'Outlet berhasil dibuat. Silakan selesaikan pembayaran tagihan prorasi untuk mengaktifkan outlet.');
         }
 
-        return redirect()->back()->with('success', ResourceMessage::CREATE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::CREATE_SUCCESS
+        );
     }
 
     /**
@@ -72,28 +76,40 @@ class OutletController extends Controller
     {
         $this->updateOutletService->execute($outlet, $request->validated(), $request->user());
 
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 
     public function disabled(Request $request, Outlet $outlet)
     {
         $this->manageStatusService->toggleStatus($outlet, false, $request->user());
 
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 
     public function enabled(Request $request, Outlet $outlet)
     {
         $this->manageStatusService->toggleStatus($outlet, true, $request->user());
 
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 
     public function destroy(Request $request, Outlet $outlet)
     {
         $this->manageStatusService->delete($outlet, $request->user());
 
-        return redirect()->route('settings.outlets.index')->with('success', ResourceMessage::DELETE_SUCCESS);
+        return redirect()->route('settings.outlets.index')->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::DELETE_SUCCESS
+        );
     }
 
     public function restore(Request $request, string $id)
@@ -107,6 +123,9 @@ class OutletController extends Controller
 
         $this->manageStatusService->restore($id, $request->user());
 
-        return redirect()->back()->with('success', ResourceMessage::UPDATE_SUCCESS);
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::UPDATE_SUCCESS
+        );
     }
 }

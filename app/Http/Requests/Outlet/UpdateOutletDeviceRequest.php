@@ -2,16 +2,19 @@
 
 namespace App\Http\Requests\Outlet;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\PermissionEnum;
+use App\Http\Requests\BaseInertiaFormRequest;
 
-class UpdateOutletDeviceRequest extends FormRequest
+class UpdateOutletDeviceRequest extends BaseInertiaFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()?->can('outlet.update') ?? false;
+        return $this->user()?->can(PermissionEnum::SETTING_DEVICE->value)
+            || $this->user()?->can(PermissionEnum::OUTLET_UPDATE->value)
+            || false;
     }
 
     public function rules(): array

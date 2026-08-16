@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Constants\FlashDataVariable;
 use App\Http\Controllers\Controller;
 use App\Models\SubscriptionPlan;
 use App\Services\BillingEngine;
@@ -46,7 +47,10 @@ class SubscriptionController extends Controller
                     'status' => 'active',
                 ]);
 
-                return redirect()->route('settings.billing.index')->with('success', 'Berhasil berlangganan paket.');
+                return redirect()->route('settings.billing.index')->with(
+                    FlashDataVariable::SUCCESS->value,
+                    'Berhasil berlangganan paket.'
+                );
             }
 
             if ($request->payment_method === 'manual') {
@@ -59,7 +63,10 @@ class SubscriptionController extends Controller
             }
 
             return redirect()->route('settings.billing.invoices.show', $invoice->invoice_number)
-                ->with('success', 'Berhasil berlangganan. Silakan selesaikan pembayaran tagihan awal.');
+                ->with(
+                    FlashDataVariable::SUCCESS->value,
+                    'Berhasil berlangganan. Silakan selesaikan pembayaran tagihan awal.'
+                );
         }
 
         // Auto-activate since there are no active outlets
@@ -67,7 +74,10 @@ class SubscriptionController extends Controller
             'status' => 'active',
         ]);
 
-        return redirect()->route('settings.billing.index')->with('success', 'Berhasil berlangganan paket.');
+        return redirect()->route('settings.billing.index')->with(
+            FlashDataVariable::SUCCESS->value,
+            'Berhasil berlangganan paket.'
+        );
     }
 
     public function changePlan(Request $request)
@@ -94,7 +104,10 @@ class SubscriptionController extends Controller
                 'status' => 'active',
             ]);
 
-            return redirect()->route('settings.billing.index')->with('success', 'Paket berhasil diubah.');
+            return redirect()->route('settings.billing.index')->with(
+                FlashDataVariable::SUCCESS->value,
+                'Paket berhasil diubah.'
+            );
         }
 
         if ($request->payment_method === 'manual') {
@@ -107,7 +120,10 @@ class SubscriptionController extends Controller
         }
 
         return redirect()->route('settings.billing.invoices.show', $invoice->invoice_number)
-            ->with('success', 'Paket berhasil diubah. Silakan selesaikan pembayaran.');
+            ->with(
+                FlashDataVariable::SUCCESS->value,
+                'Paket berhasil diubah. Silakan selesaikan pembayaran.'
+            );
     }
 
     public function cancel(Request $request)
@@ -119,6 +135,9 @@ class SubscriptionController extends Controller
             $this->subscriptionService->cancel($subscription);
         }
 
-        return redirect()->route('settings.billing.index')->with('success', 'Berlangganan berhasil dibatalkan.');
+        return redirect()->route('settings.billing.index')->with(
+            FlashDataVariable::SUCCESS->value,
+            'Berlangganan berhasil dibatalkan.'
+        );
     }
 }

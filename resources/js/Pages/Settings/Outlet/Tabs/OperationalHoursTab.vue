@@ -5,11 +5,11 @@
             <p class="text-sm text-slate-500 mb-4">Atur jadwal operasional outlet ini setiap harinya.</p>
         </div>
 
-        <div class="flex flex-col gap-3">
+        <div class="space-y-2">
             <div
                 v-for="(day, index) in form.hours"
                 :key="index"
-                class="flex items-center gap-4 p-3 border rounded-lg transition-colors"
+                class="flex items-center gap-4 p-2.5 border rounded-lg transition-colors"
                 :class="{ 'bg-slate-50': day.is_closed }"
             >
                 <div class="w-24 md:w-32 font-medium" :class="day.is_closed ? 'text-slate-400' : 'text-slate-700'">

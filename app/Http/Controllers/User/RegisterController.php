@@ -67,6 +67,9 @@ class RegisterController extends Controller
             $user->assignRole('owner');
             $user->outlets()->attach($outlet->id);
 
+            // Provision default settings & payment methods
+            app(\App\Services\Outlet\OutletProvisioningService::class)->provisionAll($outlet);
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();

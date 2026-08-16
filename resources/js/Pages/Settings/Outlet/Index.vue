@@ -44,13 +44,6 @@
             @close="showUnpaidModal = false"
         />
 
-        <!-- Modal Ubah Data Dasar Outlet -->
-        <EditOutletModal
-            :show="showEditModal"
-            :outlet="selectedOutletToEdit"
-            @close="showEditModal = false"
-        />
-
         <Table
             :headers="tableSetting"
             :data="outlets.data"
@@ -150,7 +143,7 @@ import Filter from './Components/Filter.vue';
 import Wizard from './Components/Wizard.vue';
 import LimitUpgradeModal from './Components/LimitUpgradeModal.vue';
 import UnpaidInvoiceModal from './Components/UnpaidInvoiceModal.vue';
-import EditOutletModal from './Components/EditOutletModal.vue';
+import EditOutletPopUp from './Components/EditOutletPopUp.vue';
 import { formatDateTimeSimple } from '@/Composable/date';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import { usePopUpStore } from '@/store/popup';
@@ -166,8 +159,6 @@ const props = defineProps({
 
 const showUpgradeModal = ref(false);
 const showUnpaidModal = ref(false);
-const showEditModal = ref(false);
-const selectedOutletToEdit = ref(null);
 const unpaidInvoice = ref({ number: '', url: '' });
 
 const handleAddOutlet = () => {
@@ -183,8 +174,14 @@ const handleAddOutlet = () => {
 };
 
 const openEdit = (outlet) => {
-    selectedOutletToEdit.value = outlet;
-    showEditModal.value = true;
+    popUpStore.open({
+        title: 'Ubah Data Outlet',
+        size: 'md',
+        component: EditOutletPopUp,
+        props: {
+            outlet,
+        },
+    });
 };
 
 const tableSetting = [

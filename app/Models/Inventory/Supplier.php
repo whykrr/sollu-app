@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read Business $business
  * @property-read Collection|InventoryItem[] $inventoryItems
  * @property-read Collection|PurchaseOrder[] $purchaseOrders
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperSupplier
  */

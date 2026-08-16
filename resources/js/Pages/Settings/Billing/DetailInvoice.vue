@@ -733,7 +733,11 @@ const createPayment = () => {
                 );
             },
             onClose: function () {
-                alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                modalStore.alert({
+                    title: 'Pembayaran Belum Selesai',
+                    message: 'Anda menutup jendela transaksi sebelum menyelesaikan pembayaran.',
+                    type: 'info',
+                });
             },
         });
     } else if (!props.payment) {

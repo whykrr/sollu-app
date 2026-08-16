@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $description
  * @property-read \App\Models\Inventory\StockAdjustment $adjustment
  * @property-read \App\Models\Inventory\InventoryItem $inventoryItem
+ *
  * @mixin IdeHelperStockAdjustmentItem
  */
 class StockAdjustmentItem extends Model

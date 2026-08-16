@@ -84,7 +84,7 @@ class DeviceController extends Controller
                 'app_version' => $request->input('app_version', $device->app_version),
                 'platform_type' => $request->input('platform_type', $device->platform_type),
             ]);
-            
+
             $cacheKey = "pos_device_{$device->id}";
             $cached = Cache::get($cacheKey, []);
             $cached['app_version'] = $device->app_version;

@@ -1,181 +1,108 @@
 <template>
     <MainPage>
-        <div
-            class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-start p-1"
-        >
-            <!-- Left Column: Form -->
-            <div class="lg:col-span-2 space-y-6">
-                <!-- Informasi Usaha Card -->
-                <div
-                    class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6"
-                >
-                    <!-- Header -->
-                    <div
-                        class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6"
-                    >
-                        <div
-                            class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main"
-                        >
-                            <FontAwesomeIcon
-                                :icon="faBriefcase"
-                                class="text-lg"
-                            />
-                        </div>
-                        <div>
-                            <h2
-                                class="text-lg font-semibold text-slate-800 leading-tight"
-                            >
-                                Informasi Usaha
-                            </h2>
-                            <p class="text-xs text-slate-500 mt-0.5">
-                                Kelola identitas dan informasi utama usaha Anda
-                            </p>
-                        </div>
-                    </div>
+        <template #header>
+            <MainPageHeader title="Informasi Usaha" />
+        </template>
 
-                    <!-- Form -->
-                    <div class="space-y-4">
-                        <!-- Business Name -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
+            <!-- Left Column: Business Form -->
+            <div class="lg:col-span-7 flex flex-col gap-6">
+                <!-- Card 1: Identitas Usaha -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+                    <h3 class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+                        <FontAwesomeIcon :icon="faBriefcase" class="text-main" />
+                        <span>Identitas & Informasi Usaha</span>
+                    </h3>
+
+                    <div class="space-y-2">
                         <div>
                             <TextField
+                                id="name"
                                 v-model="business.name"
                                 label="Nama Usaha"
                                 placeholder="Contoh: Sollu Coffee"
-                                :class="{
-                                    'is-invalid': business.errors.name,
-                                }"
-                                :error="business.errors.name"
+                                :feedback="business.errors.name"
                             />
-                            <p
-                                class="text-xs leading-relaxed text-slate-400 mt-1.5"
-                            >
-                                Nama usaha akan tampil pada struk, invoice,
-                                laporan, dan halaman pelanggan.
+                            <p class="text-xs text-slate-400 mt-0.5">
+                                Nama usaha akan tampil pada struk belanja, invoice, dan laporan.
                             </p>
                         </div>
 
-                        <!-- Email -->
                         <div>
                             <EmailField
+                                id="email"
                                 v-model="business.email"
                                 label="Email Usaha"
                                 placeholder="business@email.com"
-                                :class="{
-                                    'is-invalid': business.errors.email,
-                                }"
-                                :error="business.errors.email"
+                                :feedback="business.errors.email"
                             />
-                            <p
-                                class="text-xs leading-relaxed text-slate-400 mt-1.5"
-                            >
-                                Digunakan untuk notifikasi sistem, invoice, dan
-                                informasi tagihan.
+                            <p class="text-xs text-slate-400 mt-0.5">
+                                Digunakan untuk notifikasi sistem, invoice, dan informasi tagihan.
                             </p>
                         </div>
 
-                        <!-- Owner -->
-                        <div>
-                            <TextField
-                                v-model="business.owner_name"
-                                label="Nama Pemilik"
-                                placeholder="Nama pemilik usaha"
-                                :class="{
-                                    'is-invalid': business.errors.owner_name,
-                                }"
-                                :error="business.errors.owner_name"
-                            />
-                        </div>
+                        <TextField
+                            id="owner_name"
+                            v-model="business.owner_name"
+                            label="Nama Pemilik"
+                            placeholder="Nama pemilik usaha"
+                            :feedback="business.errors.owner_name"
+                        />
 
-                        <!-- Phone -->
-                        <div>
-                            <NumberField
-                                v-model="business.phone"
-                                label="Nomor Telepon"
-                                placeholder="Contoh: 081234567890"
-                                :class="{
-                                    'is-invalid': business.errors.phone,
-                                }"
-                                :error="business.errors.phone"
-                            />
-                        </div>
+                        <NumberField
+                            id="phone"
+                            v-model="business.phone"
+                            label="Nomor Telepon Usaha"
+                            placeholder="Contoh: 081234567890"
+                            :feedback="business.errors.phone"
+                        />
 
-                        <!-- Address -->
                         <div>
                             <TextareaField
                                 id="address"
                                 v-model="business.address"
-                                label="Alamat Usaha"
-                                placeholder="Masukkan alamat usaha lengkap"
-                                rows="4"
-                                :class="{
-                                    'is-invalid': business.errors.address,
-                                }"
-                                :error="business.errors.address"
+                                label="Alamat Lengkap Usaha"
+                                placeholder="Masukkan alamat lengkap usaha"
+                                rows="3"
+                                :feedback="business.errors.address"
                             />
-                            <p
-                                class="text-xs leading-relaxed text-slate-400 mt-1.5"
-                            >
-                                Alamat dapat digunakan untuk kebutuhan invoice,
-                                pengiriman, dan profil usaha.
+                            <p class="text-xs text-slate-400 mt-0.5">
+                                Alamat dapat digunakan untuk kebutuhan struk belanja dan profil usaha.
                             </p>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Footer Action -->
-                    <div
-                        class="border-t border-slate-100 pt-5 mt-6 flex justify-end"
+                <!-- Sticky Bottom Action Bar -->
+                <div class="flex justify-end sticky bottom-4 z-10 bg-white/90 backdrop-blur-xs p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <button
+                        class="btn btn-main px-6 py-2.5 rounded-lg shadow-sm font-medium flex items-center gap-2"
+                        :disabled="business.processing"
+                        @click="saveDetail"
                     >
-                        <button
-                            class="btn btn-success px-6 justify-center rounded-lg w-full sm:w-auto"
-                            :disabled="business.processing"
-                            @click="saveDetail"
-                        >
-                            <FontAwesomeIcon
-                                v-if="business.processing"
-                                :icon="faSpinner"
-                                class="animate-spin"
-                            />
-                            <span>{{
-                                business.processing
-                                    ? 'Menyimpan...'
-                                    : 'Simpan Perubahan'
-                            }}</span>
-                        </button>
-                    </div>
+                        <FontAwesomeIcon :icon="faSave" />
+                        <span>{{ business.processing ? 'Menyimpan...' : 'Simpan Informasi Usaha' }}</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Right Column: Logo -->
-            <div class="lg:col-span-1">
-                <div
-                    class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 sticky top-4"
-                >
-                    <!-- Header -->
-                    <div
-                        class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6"
-                    >
-                        <div
-                            class="flex size-10 items-center justify-center rounded-lg bg-main/10 text-main"
-                        >
-                            <FontAwesomeIcon :icon="faImage" class="text-lg" />
-                        </div>
-                        <div>
-                            <h2
-                                class="text-lg font-semibold text-slate-800 leading-tight"
-                            >
-                                Logo Usaha
-                            </h2>
-                            <p class="text-xs text-slate-500 mt-0.5">
-                                Perbarui logo resmi usaha Anda
-                            </p>
-                        </div>
-                    </div>
+            <!-- Right Column: Logo Card -->
+            <div class="lg:col-span-5">
+                <div class="sticky top-20 bg-white rounded-xl border border-slate-200 shadow-xs p-5 flex flex-col gap-4">
+                    <h3 class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-2 flex items-center gap-2">
+                        <FontAwesomeIcon :icon="faImage" class="text-main" />
+                        <span>Logo Usaha</span>
+                    </h3>
 
                     <div class="flex justify-center p-0 relative">
                         <LogoCropper
-                            :url="auth.business.logo_url"
+                            :url="auth.business?.logo_url"
                             @action="saveLogo"
                         />
+                    </div>
+
+                    <div class="mt-2 p-3 rounded-lg bg-blue-50/70 border border-blue-100 text-[11px] text-blue-800 leading-relaxed">
+                        <strong>Petunjuk:</strong> Logo usaha akan otomatis diterapkan pada kop struk transaksi kasir thermal, faktur tagihan pelanggan, dan laporan cetak.
                     </div>
                 </div>
             </div>
@@ -190,21 +117,22 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
     faBriefcase,
     faImage,
-    faSpinner,
+    faSave,
 } from '@fortawesome/free-solid-svg-icons';
 
 import MainPage from '@/Components/UI/MainPage.vue';
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import EmailField from '@/Components/Form/EmailField.vue';
 import NumberField from '@/Components/Form/NumberField.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import LogoCropper from './Components/LogoCropper.vue';
 
-const auth = computed(() => usePage().props.auth);
-
 const props = defineProps({
     business: Object,
 });
+
+const auth = computed(() => usePage().props.auth);
 
 const business = useForm({
     id: props.business.id,

@@ -6,15 +6,15 @@
                 Ubah informasi dasar tentang outlet ini.
             </p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div class="col-span-1 md:col-span-2">
                 <TextField
                     id="name"
                     v-model="formOutlet.name"
                     label="Nama Outlet"
                     placeholder="Masukkan nama outlet"
-                    :class="{ 'is-invalid': formOutlet.errors.name }"
-                    :error="formOutlet.errors.name"
+                    :feedback="formOutlet.errors.name"
+                    required
                 />
             </div>
             <div class="col-span-1">
@@ -23,8 +23,7 @@
                     v-model="formOutlet.phone"
                     label="Nomor Telepon"
                     placeholder="08123456789"
-                    :class="{ 'is-invalid': formOutlet.errors.phone }"
-                    :error="formOutlet.errors.phone"
+                    :feedback="formOutlet.errors.phone"
                 />
             </div>
             <div class="col-span-1">
@@ -33,8 +32,7 @@
                     v-model="formOutlet.email"
                     label="Email"
                     placeholder="outlet@example.com"
-                    :class="{ 'is-invalid': formOutlet.errors.email }"
-                    :error="formOutlet.errors.email"
+                    :feedback="formOutlet.errors.email"
                 />
             </div>
             <div class="col-span-1 md:col-span-2">
@@ -42,8 +40,7 @@
                     id="address"
                     v-model="formOutlet.address"
                     placeholder="Masukkan alamat outlet lengkap"
-                    :class="{ 'is-invalid': formOutlet.errors.address }"
-                    :error="formOutlet.errors.address"
+                    :feedback="formOutlet.errors.address"
                     label="Alamat"
                     rows="4"
                 />
@@ -55,8 +52,7 @@
                     label="Zona Waktu"
                     placeholder="Pilih zona waktu"
                     :options="timezones"
-                    :class="{ 'is-invalid': formOutlet.errors.timezone }"
-                    :error="formOutlet.errors.timezone"
+                    :feedback="formOutlet.errors.timezone"
                 />
             </div>
             <div class="col-span-1">
@@ -66,8 +62,7 @@
                     label="Mata Uang"
                     placeholder="Pilih mata uang"
                     :options="currencies"
-                    :class="{ 'is-invalid': formOutlet.errors.currency_code }"
-                    :error="formOutlet.errors.currency_code"
+                    :feedback="formOutlet.errors.currency_code"
                 />
             </div>
         </div>

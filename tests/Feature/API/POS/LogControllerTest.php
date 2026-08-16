@@ -19,15 +19,15 @@ class LogControllerTest extends TestCase
         parent::setUp();
         $this->seed(DatabaseSeeder::class);
 
-        $outlet       = Outlet::first();
+        $outlet = Outlet::first();
         $this->device = OutletDevice::create([
-            'outlet_id'            => $outlet->id,
-            'device_name'          => 'Test Device',
-            'device_type'          => 'pos',
-            'serial_number'        => 'POS-001',
-            'client_device_uuid'   => 'test-uuid',
+            'outlet_id' => $outlet->id,
+            'device_name' => 'Test Device',
+            'device_type' => 'pos',
+            'serial_number' => 'POS-001',
+            'client_device_uuid' => 'test-uuid',
             'hardware_fingerprint' => 'test-fingerprint',
-            'is_active'            => true,
+            'is_active' => true,
         ]);
     }
 
@@ -41,8 +41,8 @@ class LogControllerTest extends TestCase
         $response = $this->postJson('/api/pos/logs/error', [
             'error' => 'Test error message',
         ], [
-            'Authorization'        => 'Bearer ' . $token,
-            'X-DEVICE-UUID'        => 'test-uuid',
+            'Authorization' => 'Bearer '.$token,
+            'X-DEVICE-UUID' => 'test-uuid',
             'X-HARDWARE-SIGNATURE' => 'test-fingerprint',
         ]);
 
@@ -63,13 +63,13 @@ class LogControllerTest extends TestCase
         $token = $this->device->createToken('test')->plainTextToken;
 
         $response = $this->postJson('/api/pos/logs/error', [
-            'error'       => 'Test error message',
+            'error' => 'Test error message',
             'stack_trace' => 'Test stack trace',
             'device_info' => ['os' => 'android'],
             'app_version' => '1.0.0',
         ], [
-            'Authorization'        => 'Bearer ' . $token,
-            'X-DEVICE-UUID'        => 'test-uuid',
+            'Authorization' => 'Bearer '.$token,
+            'X-DEVICE-UUID' => 'test-uuid',
             'X-HARDWARE-SIGNATURE' => 'test-fingerprint',
         ]);
 
@@ -86,8 +86,8 @@ class LogControllerTest extends TestCase
         $token = $this->device->createToken('test')->plainTextToken;
 
         $response = $this->postJson('/api/pos/logs/error', [], [
-            'Authorization'        => 'Bearer ' . $token,
-            'X-DEVICE-UUID'        => 'test-uuid',
+            'Authorization' => 'Bearer '.$token,
+            'X-DEVICE-UUID' => 'test-uuid',
             'X-HARDWARE-SIGNATURE' => 'test-fingerprint',
         ]);
 

@@ -69,6 +69,72 @@ class MasterDataSyncService
             ->get()
             ->makeHidden('outlet_id');
 
+        // Auto-provision if either payment methods or outlet settings are completely missing
+        if ($paymentMethods->isEmpty() || $outletSettings->isEmpty()) {
+            app(\App\Services\Outlet\OutletProvisioningService::class)->provisionAll($device->outlet);
+
+            $paymentMethods = PaymentMethod::where('business_id', $businessId)
+                ->activeForOutlet($outletId)
+                ->get()
+                ->makeHidden('business_id');
+
+            $outletSettings = \App\Models\OutletSetting::where('outlet_id', $outletId)
+                ->get()
+                ->makeHidden('outlet_id');
+        }
+
+        // Build structured settings object
+        $financialTax = (float) ($outletSettings->firstWhere('key', 'tax')?->value ?? 0.0);
+        $financialServiceFee = (float) ($outletSettings->firstWhere('key', 'service_fee')?->value ?? 0.0);
+        $taxIncluded = (bool) ($outletSettings->firstWhere('key', 'tax_included_in_price')?->value ?? false);
+        $roundingEnabled = (bool) ($outletSettings->firstWhere('key', 'rounding_enabled')?->value ?? false);
+        $roundingMode = (string) ($outletSettings->firstWhere('key', 'rounding_mode')?->value ?? 'nearest');
+
+        $receiptSetting = $outletSettings->where('category', 'receipt')->firstWhere('key', 'layout_config')?->value ?? [
+            'paper_size' => '58mm',
+            'auto_print' => true,
+            'print_kitchen_copy' => false,
+            'print_checker_copy' => false,
+            'show_logo' => true,
+            'custom_header_title' => null,
+            'header_notes' => 'Terima kasih atas kunjungan Anda!',
+            'show_address' => true,
+            'show_phone' => true,
+            'show_email' => false,
+            'show_cashier_name' => true,
+            'show_customer_name' => true,
+            'show_order_type' => true,
+            'show_modifiers' => true,
+            'show_item_notes' => true,
+            'show_tax_detail' => true,
+            'show_service_charge' => false,
+            'footer_notes' => 'Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan.',
+            'social_media_info' => null,
+            'wifi_info' => null,
+            'show_qr_code' => false,
+            'qr_type' => 'invoice',
+        ];
+
+        $outlet = $device->outlet;
+        $business = $outlet->business;
+        $logoUrl = null;
+        if ($outlet->logo_url) {
+            $logoUrl = str_starts_with($outlet->logo_url, 'http') ? $outlet->logo_url : url($outlet->logo_url);
+        } elseif ($business?->logo) {
+            $logoUrl = url(\Illuminate\Support\Facades\Storage::url($business->logo));
+        }
+
+        $receiptSetting['logo_url'] = $logoUrl;
+
+        $structuredSettings = [
+            'tax_percentage' => $financialTax,
+            'service_charge_percentage' => $financialServiceFee,
+            'tax_included_in_price' => $taxIncluded,
+            'rounding_enabled' => $roundingEnabled,
+            'rounding_mode' => $roundingMode,
+            'receipt' => $receiptSetting,
+        ];
+
         $outletProducts = DB::table('outlet_product')
             ->where('outlet_id', $outletId)
             ->whereIn('product_id', $productIds)
@@ -104,6 +170,14 @@ class MasterDataSyncService
             ->makeHidden('business_id');
 
         return [
+            'outlet' => [
+                'id' => $outlet->id,
+                'name' => $outlet->name,
+                'address' => $outlet->address,
+                'phone' => $outlet->phone,
+                'email' => $outlet->email,
+                'logo_url' => $logoUrl,
+            ],
             'products' => $products,
             'product_categories' => $productCategories,
             'product_prices' => $productPrices,
@@ -116,6 +190,7 @@ class MasterDataSyncService
             'customers' => $customers,
             'payment_methods' => $paymentMethods,
             'outlet_settings' => $outletSettings,
+            'settings' => $structuredSettings,
             'outlet_products' => $outletProducts,
             'inventory_items' => $inventoryItems,
             'inventory_balances' => $inventoryBalances,

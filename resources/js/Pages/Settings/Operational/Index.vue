@@ -60,17 +60,19 @@
                             </div>
 
                             <div v-if="!day.is_closed" class="flex items-center gap-2 ml-auto">
-                                <input
+                                <TextField
+                                    :id="'open_' + day.day_of_week"
                                     v-model="day.open_time"
                                     type="time"
-                                    class="form-input text-xs py-1.5 px-2.5 rounded-lg border-slate-300 focus:border-main focus:ring-main"
+                                    class="w-28"
                                     required
                                 />
                                 <span class="text-slate-400 text-xs">-</span>
-                                <input
+                                <TextField
+                                    :id="'close_' + day.day_of_week"
                                     v-model="day.close_time"
                                     type="time"
-                                    class="form-input text-xs py-1.5 px-2.5 rounded-lg border-slate-300 focus:border-main focus:ring-main"
+                                    class="w-28"
                                     required
                                 />
                             </div>
@@ -106,6 +108,7 @@ import MainPage from '@/Components/UI/MainPage.vue';
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
 import SettingOutletSelector from '../Components/SettingOutletSelector.vue';
 import Switch from '@/Components/Form/Switch.vue';
+import TextField from '@/Components/Form/TextField.vue';
 
 const props = defineProps({
     outlets: Array,

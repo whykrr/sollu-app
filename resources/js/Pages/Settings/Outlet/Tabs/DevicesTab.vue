@@ -28,14 +28,14 @@
             <h4 class="font-medium text-slate-800 mb-4">
                 {{ editingDevice ? 'Edit' : 'Tambah' }} Perangkat
             </h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <TextField
                     id="device_name"
                     v-model="form.device_name"
                     label="Nama Perangkat"
                     placeholder="Contoh: Kasir Depan"
-                    :error="form.errors.device_name"
-                    :class="{ 'is-invalid': form.errors.device_name }"
+                    :feedback="form.errors.device_name"
+                    required
                 />
                 <DropdownField
                     id="device_type"
@@ -43,18 +43,17 @@
                     label="Tipe Perangkat"
                     placeholder="Pilih Tipe"
                     :options="deviceTypes"
-                    :error="form.errors.device_type"
-                    :class="{ 'is-invalid': form.errors.device_type }"
+                    :feedback="form.errors.device_type"
+                    required
                 />
                 <TextField
                     id="serial_number"
                     v-model="form.serial_number"
                     label="Serial Number (Opsional)"
                     placeholder="S/N Perangkat"
-                    :error="form.errors.serial_number"
-                    :class="{ 'is-invalid': form.errors.serial_number }"
+                    :feedback="form.errors.serial_number"
                 />
-                <div class="flex items-center gap-2 mt-6">
+                <div class="flex items-center gap-2 mt-4">
                     <Switch
                         id="is_active"
                         v-model="form.is_active"
@@ -218,7 +217,7 @@
 
 <script setup>
 import { ref, computed, onUnmounted } from 'vue';
-import { useForm, router, usePage } from '@inertiajs/vue3';
+import { useForm, router } from '@inertiajs/vue3';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
     faPencil,
@@ -314,18 +313,29 @@ const submitForm = () => {
     }
 };
 
+import { useModalStore } from '@/store/notification';
+
+const modalStore = useModalStore();
+
 const deleteDevice = (device) => {
-    if (confirm('Apakah Anda yakin ingin menghapus perangkat ini?')) {
-        router.delete(
-            route('settings.outlets.devices.destroy', {
-                outlet: props.outlet.id,
-                device: device.id,
-            }),
-            {
-                preserveScroll: true,
-            },
-        );
-    }
+    modalStore.confirm({
+        title: 'Hapus Perangkat',
+        message: 'Apakah Anda yakin ingin menghapus perangkat ini?',
+        confirmText: 'Ya, Hapus',
+        cancelText: 'Batal',
+        type: 'danger',
+        onConfirm: () => {
+            router.delete(
+                route('settings.outlets.devices.destroy', {
+                    outlet: props.outlet.id,
+                    device: device.id,
+                }),
+                {
+                    preserveScroll: true,
+                },
+            );
+        },
+    });
 };
 
 // --- OTP Logic ---
@@ -364,22 +374,26 @@ const generateOtp = (device) => {
 };
 
 const unpairDevice = (device) => {
-    if (
-        confirm(
+    modalStore.confirm({
+        title: 'Putuskan Perangkat',
+        message:
             'Apakah Anda yakin ingin memutuskan perangkat ini? Perangkat akan dilogout secara paksa.',
-        )
-    ) {
-        router.post(
-            route('settings.outlets.devices.unpair', {
-                outlet: props.outlet.id,
-                device: device.id,
-            }),
-            {},
-            {
-                preserveScroll: true,
-            },
-        );
-    }
+        confirmText: 'Ya, Putuskan',
+        cancelText: 'Batal',
+        type: 'warning',
+        onConfirm: () => {
+            router.post(
+                route('settings.outlets.devices.unpair', {
+                    outlet: props.outlet.id,
+                    device: device.id,
+                }),
+                {},
+                {
+                    preserveScroll: true,
+                },
+            );
+        },
+    });
 };
 
 const startTimer = (expiresAtString) => {
@@ -435,7 +449,7 @@ const copyOtp = async () => {
             document.execCommand('copy');
             textArea.remove();
         }
-        
+
         isCopied.value = true;
         setTimeout(() => {
             isCopied.value = false;
