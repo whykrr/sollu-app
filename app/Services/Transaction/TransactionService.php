@@ -378,11 +378,16 @@ class TransactionService
                 return $existing;
             }
 
+            $isValidUuid = fn ($id) => ! empty($id) && \Illuminate\Support\Str::isUuid($id);
+
+            $shiftId = ($isValidUuid($data['shift_id'] ?? null) && \App\Models\Sales\Shift::where('id', $data['shift_id'])->exists()) ? $data['shift_id'] : null;
+            $customerId = ($isValidUuid($data['customer_id'] ?? null) && \App\Models\Master\Customer::where('id', $data['customer_id'])->exists()) ? $data['customer_id'] : null;
+
             // Create transaction from offline data
             $transaction = Transaction::create([
                 'outlet_id' => $device->outlet_id,
-                'shift_id' => $data['shift_id'] ?? null,
-                'customer_id' => $data['customer_id'] ?? null,
+                'shift_id' => $shiftId,
+                'customer_id' => $customerId,
                 'channel' => 'pos',
                 'transaction_number' => $transactionNumber,
                 'subtotal' => $data['subtotal'],
@@ -399,10 +404,14 @@ class TransactionService
             ]);
 
             foreach ($data['items'] as $item) {
+                $productId = ($isValidUuid($item['product_id'] ?? null) && \App\Models\Master\Product::where('id', $item['product_id'])->exists()) ? $item['product_id'] : null;
+                $inventoryItemId = ($isValidUuid($item['inventory_item_id'] ?? null) && \App\Models\Master\InventoryItem::where('id', $item['inventory_item_id'])->exists()) ? $item['inventory_item_id'] : null;
+                $variantOptionId = ($isValidUuid($item['variant_group_option_id'] ?? null) && \App\Models\Master\VariantGroupOption::where('id', $item['variant_group_option_id'])->exists()) ? $item['variant_group_option_id'] : null;
+
                 $txItem = $transaction->items()->create([
-                    'product_id' => $item['product_id'] ?? null,
-                    'inventory_item_id' => $item['inventory_item_id'] ?? null,
-                    'variant_group_option_id' => $item['variant_group_option_id'] ?? null,
+                    'product_id' => $productId,
+                    'inventory_item_id' => $inventoryItemId,
+                    'variant_group_option_id' => $variantOptionId,
                     'product_name' => $item['product_name'],
                     'price' => $item['price'],
                     'qty' => $item['qty'],
@@ -416,8 +425,10 @@ class TransactionService
 
                 if (! empty($item['modifiers'])) {
                     foreach ($item['modifiers'] as $mod) {
+                        $modOptionId = ($isValidUuid($mod['modifier_option_id'] ?? null) && \App\Models\Master\ModifierOption::where('id', $mod['modifier_option_id'])->exists()) ? $mod['modifier_option_id'] : null;
+
                         $txItem->modifiers()->create([
-                            'modifier_option_id' => $mod['modifier_option_id'] ?? null,
+                            'modifier_option_id' => $modOptionId,
                             'modifier_name' => $mod['modifier_name'],
                             'price' => $mod['price'],
                             'qty' => $mod['qty'] ?? 1,
@@ -428,8 +439,10 @@ class TransactionService
 
             if (! empty($data['payments'])) {
                 foreach ($data['payments'] as $payment) {
+                    $paymentMethodId = ($isValidUuid($payment['payment_method_id'] ?? null) && \App\Models\Master\PaymentMethod::where('id', $payment['payment_method_id'])->exists()) ? $payment['payment_method_id'] : null;
+
                     $transaction->payments()->create([
-                        'payment_method_id' => $payment['payment_method_id'] ?? null,
+                        'payment_method_id' => $paymentMethodId,
                         'amount' => $payment['amount'],
                         'change_amount' => $payment['change_amount'] ?? 0,
                         'payment_reference' => $payment['payment_reference'] ?? null,
@@ -439,8 +452,10 @@ class TransactionService
 
             if (! empty($data['promos'])) {
                 foreach ($data['promos'] as $p) {
+                    $promoId = ($isValidUuid($p['promo_id'] ?? null) && \App\Models\Promo::where('id', $p['promo_id'])->exists()) ? $p['promo_id'] : null;
+
                     $transaction->promos()->create([
-                        'promo_id' => $p['promo_id'] ?? null,
+                        'promo_id' => $promoId,
                         'promo_name' => $p['promo_name'],
                         'promo_code' => $p['promo_code'] ?? null,
                         'discount_type' => $p['discount_type'] ?? 'fixed',

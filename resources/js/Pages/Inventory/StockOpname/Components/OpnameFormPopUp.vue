@@ -219,40 +219,21 @@
             </button>
         </Teleport>
     </div>
-    <Modal
-        :class="{ show: showConfirm, hide: !showConfirm }"
-        :title="confirmTitle"
-        @close="showConfirm = false"
-    >
-        <p class="text-gray-600">{{ confirmMessage }}</p>
-        <template #footer>
-            <button class="btn btn-flat" @click="showConfirm = false">
-                Batal
-            </button>
-            <button
-                class="btn"
-                :class="
-                    confirmActionType === 'submit' ? 'btn-info' : 'btn-main'
-                "
-                @click="executeSubmit"
-            >
-                Ya, Lanjutkan
-            </button>
-        </template>
-    </Modal>
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';
-import Modal from '@/Components/Notifications/Modal.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import NumberField from '@/Components/Form/NumberField.vue';
+import { useModalStore } from '@/store/notification';
+
+const modal = useModalStore();
 
 const props = defineProps({
     opname: Object,
@@ -409,13 +390,27 @@ const close = () => {
 const confirmSubmit = (type) => {
     confirmActionType.value = type;
     if (type === 'save') {
-        confirmTitle.value = 'Mulai Opname';
-        confirmMessage.value =
-            'Sesi opname baru akan dibuat. Pastikan outlet sudah dibekukan jika diperlukan. Lanjutkan?';
+        modal.open({
+            title: 'Konfirmasi Mulai Opname',
+            message:
+                'Apakah Anda yakin ingin memulai opname stok ini? Data tidak bisa diubah lagi setelah disimpan.',
+            confirmText: 'Mulai Opname',
+            confirmButtonClass: 'btn btn-main',
+            onConfirm: () => {
+                executeSubmit();
+            },
+        });
     } else {
-        confirmTitle.value = 'Ajukan Persetujuan';
-        confirmMessage.value =
-            'Apakah Anda yakin ingin mengajukan hasil opname ini untuk disetujui? Data tidak bisa diubah lagi setelah diajukan.';
+        modal.open({
+            title: 'Konfirmasi Ajukan Persetujuan',
+            message:
+                'Apakah Anda yakin ingin mengajukan opname stok ini untuk persetujuan? Data tidak bisa diubah lagi setelah diajukan.',
+            confirmText: 'Ajukan Persetujuan',
+            confirmButtonClass: 'btn btn-info',
+            onConfirm: () => {
+                executeSubmit();
+            },
+        });
     }
     showConfirm.value = true;
 };

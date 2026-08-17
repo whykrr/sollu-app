@@ -295,9 +295,11 @@ import TextareaField from '@/Components/Form/TextareaField.vue';
 import Modal from '@/Components/Notifications/Modal.vue';
 import { formatDateTimeSimple } from '@/Composable/date.js';
 import { usePopUpStore } from '@/store/popup';
+import { useModalStore } from '@/store/notification';
 
 const page = usePage();
 const popUpStore = usePopUpStore();
+const modalStore = useModalStore();
 
 const isMounted = ref(false);
 onMounted(() => {
@@ -343,6 +345,16 @@ const close = () => {
 };
 
 const approve = () => {
+    modalStore.open({
+        title: 'Konfirmasi Persetujuan',
+        message:
+            'Apakah Anda yakin ingin menyetujui penyesuaian ini? Stok akan diperbarui.',
+        confirmText: 'Setujui Penyesuaian',
+        confirmButtonClass: 'btn btn-danger',
+        onConfirm: () => {
+            executeApprove();
+        },
+    });
     showApproveModal.value = true;
 };
 
@@ -383,7 +395,16 @@ const reject = () => {
 };
 
 const voidAdjustment = () => {
-    showVoidModal.value = true;
+    modalStore.open({
+        title: 'Konfirmasi Batal (Void)',
+        message:
+            'Apakah Anda yakin ingin membatalkan (VOID) penyesuaian ini? Stok akan dikembalikan ke keadaan sebelum penyesuaian.',
+        confirmText: 'Batalkan Penyesuaian',
+        confirmButtonClass: 'btn btn-danger',
+        onConfirm: () => {
+            executeVoid();
+        },
+    });
 };
 
 const executeVoid = () => {

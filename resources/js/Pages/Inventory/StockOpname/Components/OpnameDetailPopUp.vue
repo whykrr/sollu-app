@@ -215,12 +215,15 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import Modal from '@/Components/Notifications/Modal.vue';
 import TextareaField from '@/Components/Form/TextareaField.vue';
 import { formatDateTimeID } from '@/Composable/date';
 import { formatNumberID } from '@/Composable/useNumberFormat';
+import { useModalStore } from '@/store/notification';
+
+const modal = useModalStore();
 
 const props = defineProps({
     opname: Object,
@@ -310,21 +313,34 @@ const confirmAction = (type) => {
     form.clearErrors();
 
     if (type === 'approve') {
-        confirmTitle.value = 'Setujui & Sesuaikan Stok';
-        confirmMessage.value =
-            'Stok sistem akan langsung disesuaikan dengan hasil penghitungan fisik ini. Apakah Anda yakin?';
+        modal.open({
+            title: 'Setujui & Sesuaikan Stok',
+            message:
+                'Stok sistem akan langsung disesuaikan dengan hasil penghitungan fisik ini. Apakah Anda yakin?',
+            confirmText: 'Setujui & Sesuaikan Stok',
+            confirmButtonClass: 'btn btn-main',
+            onConfirm: () => {
+                form.items = props.opname.items.map((i) => ({
+                    inventory_item_id: i.inventory_item_id,
+                    system_qty: i.system_qty,
+                    actual_qty: i.actual_qty,
+                }));
 
-        // Prepare items array for validation
-        form.items = props.opname.items.map((i) => ({
-            inventory_item_id: i.inventory_item_id,
-            system_qty: i.system_qty,
-            actual_qty: i.actual_qty,
-        }));
+                executeAction();
+            },
+        });
     } else {
-        confirmTitle.value = 'Tolak Opname';
-        confirmMessage.value =
-            'Opname akan ditolak dan stok tidak akan disesuaikan. Silakan beri alasan.';
-        form.notes = '';
+        modal.open({
+            title: 'Tolak Opname',
+            message:
+                'Opname akan ditolak dan stok tidak akan disesuaikan. Silakan beri alasan.',
+            confirmText: 'Tolak Opname',
+            confirmButtonClass: 'btn btn-danger',
+            onConfirm: () => {
+                form.notes = '';
+                executeAction();
+            },
+        });
     }
     showConfirm.value = true;
 };

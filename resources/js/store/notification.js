@@ -64,7 +64,7 @@ export const useModalStore = defineStore('modal', {
         /**
          * Shortcut for a confirmation dialog
          */
-        confirm({ title = 'Konfirmasi Tindakan', message, type = 'warning', confirmText = 'Ya, Lanjutkan', cancelText = 'Batal', confirmClass, onConfirm, onCancel }) {
+    confirm({ title = 'Konfirmasi Tindakan', message, type = 'warning', confirmText = 'Ya, Lanjutkan', cancelText = 'Batal', confirmClass, onConfirm, onCancel }) {
             this.open({
                 type,
                 title,

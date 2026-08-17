@@ -22,19 +22,34 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <FilterBadge v-if="filterForm.status !== ''" @remove="removeFilter('status')">
+            <FilterBadge
+                v-if="filterForm.status !== ''"
+                @remove="removeFilter('status')"
+            >
                 Status: {{ getStatusName(filterForm.status) }}
             </FilterBadge>
-            <FilterBadge v-if="filterForm.reason !== ''" @remove="removeFilter('reason')">
+            <FilterBadge
+                v-if="filterForm.reason !== ''"
+                @remove="removeFilter('reason')"
+            >
                 Alasan: {{ getReasonName(filterForm.reason) }}
             </FilterBadge>
-            <FilterBadge v-if="filterForm.outlet_id !== ''" @remove="removeFilter('outlet_id')">
+            <FilterBadge
+                v-if="filterForm.outlet_id !== ''"
+                @remove="removeFilter('outlet_id')"
+            >
                 Outlet: {{ getOutletName(filterForm.outlet_id) }}
             </FilterBadge>
-            <FilterBadge v-if="filterForm.date_from !== ''" @remove="removeFilter('date_from')">
+            <FilterBadge
+                v-if="filterForm.date_from !== ''"
+                @remove="removeFilter('date_from')"
+            >
                 Dari: {{ filterForm.date_from }}
             </FilterBadge>
-            <FilterBadge v-if="filterForm.date_to !== ''" @remove="removeFilter('date_to')">
+            <FilterBadge
+                v-if="filterForm.date_to !== ''"
+                @remove="removeFilter('date_to')"
+            >
                 Sampai: {{ filterForm.date_to }}
             </FilterBadge>
         </div>
@@ -56,76 +71,75 @@
                         Status
                     </label>
                     <select
-                            v-model="tempFilters.status"
-                            class="form-input w-full rounded-lg border-gray-200"
+                        v-model="tempFilters.status"
+                        class="form-input w-full rounded-lg border-gray-200"
+                    >
+                        <option value="">Semua Status</option>
+                        <option
+                            v-for="status in statusOptions"
+                            :key="status.value"
+                            :value="status.value"
                         >
-                            <option value="">Semua Status</option>
-                            <option
-                                v-for="status in statusOptions"
-                                :key="status.value"
-                                :value="status.value"
-                            >
-                                {{ status.label }}
-                            </option>
-                        </select>
-                    </div>
+                            {{ status.label }}
+                        </option>
+                    </select>
+                </div>
 
+                <div class="space-y-1">
+                    <label
+                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                    >
+                        Alasan
+                    </label>
+                    <select
+                        v-model="tempFilters.reason"
+                        class="form-input w-full rounded-lg border-gray-200"
+                    >
+                        <option value="">Semua Alasan</option>
+                        <option
+                            v-for="reason in reasonOptions"
+                            :key="reason.value"
+                            :value="reason.value"
+                        >
+                            {{ reason.label }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <AsyncOutletDropdown
+                        v-model="tempFilters.outlet_id"
+                        placeholder="Semua Outlet"
+                        @loaded="onOutletsLoaded"
+                    />
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
                     <div class="space-y-1">
                         <label
                             class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
                         >
-                            Alasan
+                            Dari Tanggal
                         </label>
-                        <select
-                            v-model="tempFilters.reason"
+                        <input
+                            v-model="tempFilters.date_from"
+                            type="date"
                             class="form-input w-full rounded-lg border-gray-200"
-                        >
-                            <option value="">Semua Alasan</option>
-                            <option
-                                v-for="reason in reasonOptions"
-                                :key="reason.value"
-                                :value="reason.value"
-                            >
-                                {{ reason.label }}
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-1">
-                        <AsyncOutletDropdown
-                            v-model="tempFilters.outlet_id"
-                            placeholder="Semua Outlet"
-                            @loaded="onOutletsLoaded"
                         />
                     </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="space-y-1">
-                            <label
-                                class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                            >
-                                Dari Tanggal
-                            </label>
-                            <input
-                                v-model="tempFilters.date_from"
-                                type="date"
-                                class="form-input w-full rounded-lg border-gray-200"
-                            />
-                        </div>
-                        <div class="space-y-1">
-                            <label
-                                class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                            >
-                                Sampai Tanggal
-                            </label>
-                            <input
-                                v-model="tempFilters.date_to"
-                                type="date"
-                                class="form-input w-full rounded-lg border-gray-200"
-                            />
-                        </div>
+                    <div class="space-y-1">
+                        <label
+                            class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                        >
+                            Sampai Tanggal
+                        </label>
+                        <input
+                            v-model="tempFilters.date_to"
+                            type="date"
+                            class="form-input w-full rounded-lg border-gray-200"
+                        />
                     </div>
-
+                </div>
             </div>
         </FilterModal>
     </div>

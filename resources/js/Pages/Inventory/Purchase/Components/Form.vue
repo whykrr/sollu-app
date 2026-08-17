@@ -13,14 +13,15 @@
             />
 
             <div>
-                <label class="block text-sm font-medium text-gray-700"
-                    >Outlet Tujuan <span class="text-danger">*</span></label
-                >
                 <AsyncOutletDropdown
+                    id="outlet"
                     v-model="form.outlet_id"
-                    placeholder="Pilih Outlet Tujuan"
+                    label="Pilih Outlet"
+                    placeholder="-- Pilih Outlet --"
                     :class="{ 'is-invalid': form.errors.outlet_id }"
+                    :error="form.errors.outlet_id"
                     required
+                    @loaded="onOutletsLoaded"
                 />
                 <div v-if="form.errors.outlet_id" class="invalid-feedback">
                     {{ form.errors.outlet_id }}
@@ -242,6 +243,16 @@ const props = defineProps({
         default: () => [],
     },
 });
+
+const loadedOutlets = ref([]);
+
+const onOutletsLoaded = (outlets) => {
+    console.log(outlets);
+    loadedOutlets.value = outlets;
+    if (!form.outlet_id && outlets.length === 1) {
+        form.outlet_id = outlets[0].id;
+    }
+};
 
 const isMounted = ref(false);
 onMounted(() => {
