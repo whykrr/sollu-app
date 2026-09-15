@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             BusinessTypeSeeder::class,
             RolePermissionSeeder::class,
+            \Database\Seeders\Production\FeatureSeeder::class,
             SubscriptionPlanSeeder::class,
             UomSeeder::class,
             CockpitUserSeeder::class,

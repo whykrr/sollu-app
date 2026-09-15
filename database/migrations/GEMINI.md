@@ -4,7 +4,7 @@ trigger: always_on
 
 # Wajib Perhatikan: Standar Database Migrations & Indexing
 
-Saat bekerja di `database/migrations`, Anda **WAJIB** menerapkan standar dari skill `sollu-backend`, `sollu-core-architecture`, dan `sollu-code-quality`:
+Saat bekerja di `database/migrations`, Anda **WAJIB** menerapkan standar dari skill `sollu`:
 
 1. **Mandatory Live Database Verification:** Sebelum menulis migration baru atau mengubah tabel, **WAJIB** gunakan tool MCP `sollu-db` untuk memeriksa skema nyata database (`information_schema`, kolom, dan indeks yang sudah ada).
 2. **Indexing Kolom Relasi & Tenant:** Seluruh kolom Foreign Key dan isolasi tenant (contoh: `business_id`, `outlet_id`, `user_id`, `{entity}_id`) **WAJIB** memiliki index (`$table->index('outlet_id')` atau `$table->foreignUuid('outlet_id')->index()`).

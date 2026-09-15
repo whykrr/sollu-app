@@ -12,9 +12,11 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
@@ -55,6 +57,35 @@ class ExceptionHandler
      */
     protected function registerRenderers(Exceptions $exceptions): void
     {
+        // CSRF Token Mismatch / Expired Form
+        $exceptions->render(function (TokenMismatchException|HttpException $e, Request $request) {
+            if ($e instanceof TokenMismatchException || ($e instanceof HttpException && $e->getStatusCode() === 419)) {
+                $request->session()->regenerateToken();
+
+                if ($this->shouldRenderJson($request) || $request->header('X-Inertia')) {
+                    $cookie = cookie(
+                        'XSRF-TOKEN',
+                        $request->session()->token(),
+                        (int) config('session.lifetime', 120),
+                        '/',
+                        config('session.domain'),
+                        config('session.secure'),
+                        false,
+                        false,
+                        config('session.same_site', 'lax')
+                    );
+
+                    return response()->json([
+                        'message' => 'Sesi formulir telah diperbarui.',
+                        'csrf_token' => $request->session()->token(),
+                        'authenticated' => $request->user() !== null,
+                    ], 419)->withCookie($cookie);
+                }
+
+                return redirect()->back()->withInput($request->input())->with(FlashDataVariable::FAILED->value, 'Sesi formulir telah kedaluwarsa. Silakan coba kirim kembali.');
+            }
+        });
+
         // Authorization & Access Denied
         $exceptions->render(function (AccessDeniedHttpException|AuthorizationException $e, Request $request) {
             $message = $e->getMessage();

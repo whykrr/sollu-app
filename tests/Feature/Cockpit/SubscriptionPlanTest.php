@@ -5,8 +5,6 @@ namespace Tests\Feature\Cockpit;
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\PermissionEnum;
-use App\Models\Business;
-use App\Models\BusinessType;
 use App\Models\CockpitUser;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
@@ -143,28 +141,7 @@ class SubscriptionPlanTest extends TestCase
 
     public function test_merchant_cannot_checkout_deactivated_plan(): void
     {
-        $type = BusinessType::first() ?? BusinessType::create([
-            'name' => 'F&B',
-            'code' => 'fnb_test',
-            'is_visible' => true,
-        ]);
-
-        $business = Business::create([
-            'name' => 'Merchant Test Deactivated',
-            'owner_name' => 'Test Owner',
-            'email' => 'merchant_deact@sollu.test',
-            'phone' => '081234567800',
-            'business_type_id' => $type->id,
-            'status' => 'active',
-            'trial_end_at' => now()->addDays(14),
-        ]);
-
-        $merchantUser = User::create([
-            'business_id' => $business->id,
-            'name' => 'Merchant User Deact',
-            'email' => 'owner_deact@sollu.test',
-            'password' => bcrypt('password'),
-        ]);
+        $merchantUser = User::first();
         $merchantUser->givePermissionTo(PermissionEnum::BUSINESS_BILLING->value);
 
         $plan = SubscriptionPlan::first();

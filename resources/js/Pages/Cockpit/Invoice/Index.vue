@@ -91,13 +91,14 @@ import Pagination from '@/Components/Tables/Pagination.vue';
 import TextField from '@/Components/Form/TextField.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faEye } from '@fortawesome/free-solid-svg-icons';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import InvoiceDetailDrawer from './Components/InvoiceDetailDrawer.vue';
 import RejectReasonModal from './Components/RejectReasonModal.vue';
 import { usePopUpStore } from '@/store/popup';
 
 const props = defineProps({
     invoices: Object,
+    filters: Object,
 });
 
 const popUpStore = usePopUpStore();
@@ -133,4 +134,14 @@ const openRejectModal = (invoice) => {
     selectedInvoice.value = invoice;
     showRejectModal.value = true;
 };
+
+onMounted(() => {
+    const targetInvoiceNumber = props.filters?.open_invoice || new URLSearchParams(window.location.search).get('open_invoice');
+    if (targetInvoiceNumber && props.invoices?.data) {
+        const found = props.invoices.data.find(inv => inv.invoice_number === targetInvoiceNumber);
+        if (found) {
+            openDetails(found);
+        }
+    }
+});
 </script>

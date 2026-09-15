@@ -4,6 +4,7 @@ namespace Tests\Unit\Services\App\Invoice;
 
 use App\Enums\SubscriptionInvoice\Status;
 use App\Enums\SubscriptionStatus;
+use App\Events\Invoice\InvoicePaid;
 use App\Models\Business;
 use App\Models\Invoice;
 use App\Models\Subscription;
@@ -14,6 +15,7 @@ use App\Services\App\Invoice\CompleteInvoiceService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Mockery;
 use Tests\TestCase;
@@ -29,6 +31,7 @@ class CompleteInvoiceServiceTest extends TestCase
         parent::setUp();
         $this->service = new CompleteInvoiceService;
         Notification::fake();
+        Event::fake([InvoicePaid::class]);
     }
 
     public function test_it_marks_invoice_paid_and_activates_subscription_and_sends_notification()
@@ -260,6 +263,20 @@ class CompleteInvoiceServiceTest extends TestCase
 
         $result = $this->service->execute($invoiceMock);
         $this->assertSame($invoiceMock, $result);
+        Event::assertDispatched(InvoicePaid::class);
+    }
+
+    public function test_it_returns_early_if_invoice_is_already_paid()
+    {
+        $invoiceMock = Mockery::mock(Invoice::class)->makePartial();
+        $invoiceMock->status = Status::Paid;
+
+        DB::shouldReceive('transaction')->never();
+
+        $result = $this->service->execute($invoiceMock);
+
+        $this->assertSame($invoiceMock, $result);
+        Event::assertNotDispatched(InvoicePaid::class);
     }
 
     protected function tearDown(): void

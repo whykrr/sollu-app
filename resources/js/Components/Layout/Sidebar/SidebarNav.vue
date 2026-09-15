@@ -1,9 +1,9 @@
 <template>
     <nav class="sidebar-navigation">
-        <div class="navigation-list">
+        <div :key="isSetting ? 'setting-nav' : 'main-nav'" class="navigation-list">
             <NavigationNode
                 v-for="(sidebar, index) in sidebars"
-                :key="index"
+                :key="`${isSetting ? 'setting' : 'main'}-${sidebar.url || sidebar.label || index}`"
                 :item="sidebar"
                 :is-active="isActive"
             />
@@ -18,6 +18,11 @@ import { useSidebar } from '@/Composable/Sidebar/useSidebar';
 import NavigationNode from './NavigationNode.vue';
 
 const { sidebars } = useSidebar();
+
+const isSetting = computed(() => {
+    const url = usePage().url || '';
+    return url.startsWith('/settings');
+});
 
 const activeMenu = computed(() => {
     // Mengakses usePage().url mendaftarkan dependency ini pada Vue's reactivity system.

@@ -4,7 +4,7 @@ trigger: always_on
 
 # Wajib Perhatikan: Standar Penggunaan Komponen UI Sollu App
 
-Saat membuat atau mengedit komponen UI di `resources/js/Components`, Anda **WAJIB** mematuhi standar dari skill `sollu-frontend`, `sollu-integration-testing`, dan `sollu-code-quality`:
+Saat membuat atau mengedit komponen UI di `resources/js/Components`, Anda **WAJIB** mematuhi standar dari skill `sollu`:
 
 ## 1. Aturan Penggunaan Komponen Formulir (`@/Components/Form/`)
 - **DILARANG MENGGUNAKAN RAW HTML FORM:** Semua input formulir wajib menggunakan komponen dari `@/Components/Form/` (`TextField`, `TextareaField`, `DropdownField`, `NumberField`, `Switch`, `CheckboxField`, `RadioField`, `SelectionGroupField`, `AsyncSelectField`, `AsyncOutletDropdown`).
@@ -22,5 +22,5 @@ Saat membuat atau mengedit komponen UI di `resources/js/Components`, Anda **WAJI
 - **`<Modal>`:** STRICTLY hanya digunakan untuk dialog konfirmasi singkat (contoh: Konfirmasi Hapus Data, Archive, Alert Peringatan).
 
 ## 4. Verifikasi Visual & Fungsional (Mandatori)
-- Setiap penambahan atau modifikasi komponen UI WAJIB diverifikasi secara visual dan fungsional menggunakan MCP Web `browsermcp` (navigasi URL, screenshot, DOM snapshot, dan inspeksi console logs via skill `sollu-integration-testing`).
+- Setiap penambahan atau modifikasi komponen UI WAJIB diverifikasi secara visual dan fungsional menggunakan MCP Web `browsermcp` (navigasi URL, screenshot, DOM snapshot, dan inspeksi console logs via skill `sollu`).
 - Jalankan `npm run fix:eslint` dan `npm run build` sebelum menyelesaikan tugas.

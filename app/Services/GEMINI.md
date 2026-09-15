@@ -4,7 +4,7 @@ trigger: always_on
 
 # Wajib Perhatikan: Standar Domain Service & Unit Testing
 
-Saat bekerja di `app/Services`, Anda **WAJIB** menerapkan standar dari skill `sollu-modular`, `sollu-unit-testing`, `sollu-backend`, dan `sollu-code-quality`:
+Saat bekerja di `app/Services`, Anda **WAJIB** menerapkan standar dari skill `sollu`:
 
 1. **Mandatory Service Unit Test:** Setiap kali membuat, mengubah, atau memperbarui logika Service Class, **WAJIB** membuat atau memperbarui Unit Test di `tests/Unit/Services/...`.
 2. **100% Pure Mocking (No DB):** Test Service Layer **DILARANG KERAS** menyentuh database fisik. Wajib gunakan Mockery / `sqlite:memory` dan `RefreshDatabase`.

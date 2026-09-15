@@ -11,7 +11,6 @@ use App\Services\App\Outlet\OutletProvisioningService;
 use App\Services\App\User\RegisterBusinessService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class RegisterBusinessServiceTest extends TestCase
@@ -26,6 +25,7 @@ class RegisterBusinessServiceTest extends TestCase
     {
         parent::setUp();
 
+        $this->seed(\Database\Seeders\Production\RolePermissionSeeder::class);
         $this->provisioningServiceMock = Mockery::mock(OutletProvisioningService::class);
         $this->service = new RegisterBusinessService($this->provisioningServiceMock);
     }
@@ -38,15 +38,8 @@ class RegisterBusinessServiceTest extends TestCase
 
     public function test_it_successfully_registers_business_outlet_and_owner(): void
     {
-        // Setup role
-        Role::create(['name' => RoleEnum::OWNER->value, 'guard_name' => 'business']);
-
         // Setup business type
-        $type = BusinessType::create([
-            'name' => 'F&B',
-            'code' => 'fnb',
-            'is_visible' => true,
-        ]);
+        $type = BusinessType::factory()->forType('coffee_shop')->create();
 
         $this->provisioningServiceMock->shouldReceive('provisionAll')
             ->once()
@@ -128,13 +121,7 @@ class RegisterBusinessServiceTest extends TestCase
 
     public function test_it_rolls_back_database_transaction_on_failure(): void
     {
-        Role::create(['name' => RoleEnum::OWNER->value, 'guard_name' => 'business']);
-
-        $type = BusinessType::create([
-            'name' => 'Retail',
-            'code' => 'retail',
-            'is_visible' => true,
-        ]);
+        $type = BusinessType::factory()->forType('minimarket')->create();
 
         $this->provisioningServiceMock->shouldReceive('provisionAll')
             ->once()

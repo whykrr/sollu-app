@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/csrf-token', [\App\Http\Controllers\Support\CsrfTokenController::class, 'show'])->name('csrf.token');
 Route::get('/impersonate/{token}', [ImpersonateController::class, 'authenticate'])->name('impersonate.authenticate');
 
 Route::middleware('guest')->group(function () {

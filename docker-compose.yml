@@ -1,41 +1,4 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.dev
-    container_name: sollu-app-dev
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "8088:8088"
-    volumes:
-      - .:/var/www/html
-    environment:
-      - WWWUSER=1000
-      - WWWGROUP=1000
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    networks:
-      - sollu-dev-network
-
-  vite:
-    image: node:22-alpine
-    container_name: sollu-vite-dev
-    restart: unless-stopped
-    working_dir: /app
-    ports:
-      - "5173:5173"
-    volumes:
-      - .:/app
-    command: sh -c "npm run dev -- --host 0.0.0.0"
-    depends_on:
-      - app
-    networks:
-      - sollu-dev-network
-
   postgres:
     image: postgres:17-alpine
     container_name: sollu-postgres-dev

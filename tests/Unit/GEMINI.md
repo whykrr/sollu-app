@@ -4,7 +4,7 @@ trigger: always_on
 
 # Wajib Perhatikan: Standar Unit Testing Service Layer
 
-Saat bekerja di `tests/Unit`, Anda **WAJIB** menerapkan standar dari skill `sollu-unit-testing`, `sollu-backend`, dan `laravel-expert`:
+Saat bekerja di `tests/Unit`, Anda **WAJIB** menerapkan standar dari skill `sollu` dan `laravel-expert`:
 
 1. **Service Layer Testing Only:** Unit testing difokuskan khusus untuk Service Layer (`tests/Unit/Services/...`).
 2. **100% Pure Isolation & In-Memory:** Dilarang keras menyentuh database fisik. Wajib gunakan `RefreshDatabase` dengan `sqlite:memory` dan Mockery untuk dependensi eksternal.

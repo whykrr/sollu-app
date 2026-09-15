@@ -38,6 +38,11 @@ return [
     'discord' => [
         'webhook_url' => env('LOG_DISCORD_WEBHOOK_URL'),
         'allow_non_prod' => env('LOG_DISCORD_ALLOW_NON_PROD', false),
+        'channels' => [
+            'default' => env('DISCORD_NOTIFICATION_WEBHOOK_URL'),
+            'merchant_registration' => env('DISCORD_MERCHANT_REGISTRATION_WEBHOOK_URL', env('DISCORD_NOTIFICATION_WEBHOOK_URL')),
+            'payment_validation' => env('DISCORD_PAYMENT_VALIDATION_WEBHOOK_URL', env('DISCORD_NOTIFICATION_WEBHOOK_URL')),
+        ],
     ],
 
 ];

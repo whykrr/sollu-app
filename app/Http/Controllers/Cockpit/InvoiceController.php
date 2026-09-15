@@ -14,9 +14,23 @@ class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
-        $invoices = Invoice::with(['business', 'payments', 'paymentManualValidation', 'items'])
-            ->orderBy('created_at', 'desc')
+        $query = Invoice::with(['business', 'payments', 'paymentManualValidation', 'items']);
+
+        if ($request->filled('open_invoice')) {
+            $query->where('invoice_number', $request->open_invoice);
+        } elseif ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                    ->orWhereHas('business', function ($b) use ($search) {
+                        $b->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $invoices = $query->orderBy('created_at', 'desc')
             ->paginate(20)
+            ->withQueryString()
             ->through(function ($invoice) {
                 // Map outlet name if present in items metadata
                 $outletNames = $invoice->items->map(function ($item) {
@@ -55,6 +69,10 @@ class InvoiceController extends Controller
 
         return Inertia::render('Cockpit/Invoice/Index', [
             'invoices' => $invoices,
+            'filters' => [
+                'search' => $request->search,
+                'open_invoice' => $request->open_invoice,
+            ],
         ]);
     }
 

@@ -52,6 +52,7 @@ class Business extends Model
     {
         return [
             'settings' => 'json',
+            'trial_end_at' => 'datetime',
         ];
     }
 
@@ -140,20 +141,7 @@ class Business extends Model
      */
     public function activePlanFeatures(): array
     {
-        $activeSubscription = $this->subscriptions()
-            ->where('status', 'active')
-            ->first();
-
-        $planFeatures = [];
-        if ($activeSubscription && $activeSubscription->plan) {
-            $planEnum = \App\Enums\PlanEnum::tryFrom($activeSubscription->plan->code);
-            if ($planEnum) {
-                $planFeatures = $planEnum->systemFeatures();
-            }
-        } else {
-            $isTrial = $this->trial_end_at ? \Carbon\Carbon::parse($this->trial_end_at)->isFuture() : false;
-            $planFeatures = $isTrial ? \App\Enums\PlanEnum::trialFeatures() : \App\Enums\PlanEnum::freeFeatures();
-        }
+        $planFeatures = $this->getAvailablePlanFeatures();
 
         // Get user personalized features if exists
         $userFeatures = $this->settings['active_features'] ?? null;
@@ -166,7 +154,10 @@ class Business extends Model
         // Map strings to FeatureEnum and intersect with plan features
         $activeFeatures = [];
         foreach ($userFeatures as $featureString) {
-            $featureEnum = \App\Enums\FeatureEnum::tryFrom($featureString);
+            $featureEnum = $featureString instanceof \App\Enums\FeatureEnum
+                ? $featureString
+                : \App\Enums\FeatureEnum::tryFrom((string) $featureString);
+
             if ($featureEnum && in_array($featureEnum, $planFeatures, true)) {
                 $activeFeatures[] = $featureEnum;
             }
@@ -179,18 +170,24 @@ class Business extends Model
     {
         $activeSubscription = $this->subscriptions()
             ->where('status', 'active')
+            ->with(['plan.systemFeatures'])
             ->first();
 
         if ($activeSubscription && $activeSubscription->plan) {
-            $planEnum = \App\Enums\PlanEnum::tryFrom($activeSubscription->plan->code);
-            if ($planEnum) {
-                return $planEnum->systemFeatures();
-            }
+            return $activeSubscription->plan->activeFeatureEnums();
         }
 
         $isTrial = $this->trial_end_at ? \Carbon\Carbon::parse($this->trial_end_at)->isFuture() : false;
 
-        return $isTrial ? \App\Enums\PlanEnum::trialFeatures() : \App\Enums\PlanEnum::freeFeatures();
+        if ($isTrial) {
+            $trialPlan = SubscriptionPlan::with('systemFeatures')
+                ->where('code', \App\Enums\PlanEnum::MICRO->value)
+                ->first();
+
+            return $trialPlan ? $trialPlan->activeFeatureEnums() : [];
+        }
+
+        return [];
     }
 
     /**

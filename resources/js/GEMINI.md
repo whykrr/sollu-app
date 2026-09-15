@@ -4,7 +4,7 @@ trigger: always_on
 
 # Wajib Perhatikan: Standar Frontend Vue 3 / Inertia / Tailwind v4
 
-Saat bekerja di `resources/js`, Anda **WAJIB** menerapkan standar dari skill `sollu-modular`, `sollu-frontend`, `sollu-integration-testing`, `sollu-roles-permissions`, `sollu-feature-plan`, dan `sollu-code-quality`:
+Saat bekerja di `resources/js`, Anda **WAJIB** menerapkan standar dari skill `sollu`:
 
 1. **Komponen Form Standar:** Dilarang menggunakan raw HTML form inputs. Wajib gunakan `@/Components/Form/` (`TextField`, `DropdownField`, `SelectionGroupField`, `Switch`, dll).
 2. **Layout & Drawer Mandatori:** Selalu gunakan `<MainPage>` untuk halaman utama, dan `<PopUpPage>` / `usePopUpStore()` untuk drawer formulir/sub-page (Create/Edit/Detail).

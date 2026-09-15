@@ -2,16 +2,23 @@
 
 namespace App\Models;
 
-use App\Models\Product\ProductCategory;
+use App\Enums\FeatureEnum;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 /**
- * @property Collection|Business[] $merchants
- * @property Collection|ProductCategory[] $productCategories
+ * @property int $id
+ * @property string $code
+ * @property string $name
+ * @property string $category
+ * @property string $category_label
+ * @property bool $is_visible
+ * @property int $sort_order
+ * @property array<string>|null $features
+ * @property-read Collection|Business[] $businesses
  *
  * @mixin \Eloquent
  * @mixin IdeHelperBusinessType
@@ -23,11 +30,25 @@ class BusinessType extends Model
     protected $fillable = [
         'code',
         'name',
+        'category',
+        'category_label',
         'is_visible',
+        'sort_order',
         'features',
     ];
 
     public $timestamps = false;
+
+    /**
+     * Cache key for business types list.
+     */
+    public const CACHE_KEY = 'business_types:all';
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => static::clearCache());
+        static::deleted(fn () => static::clearCache());
+    }
 
     /**
      * @return array<string, string>
@@ -36,6 +57,7 @@ class BusinessType extends Model
     {
         return [
             'is_visible' => 'boolean',
+            'sort_order' => 'integer',
             'features' => 'array',
         ];
     }
@@ -45,8 +67,90 @@ class BusinessType extends Model
         return $this->hasMany(Business::class);
     }
 
-    public function productCategories(): BelongsToMany
+    /**
+     * Get all cached business types ordered by sort_order.
+     *
+     * @return Collection<int, BusinessType>
+     */
+    public static function getAllCached(): Collection
     {
-        return $this->belongsToMany(ProductCategory::class);
+        return Cache::rememberForever(self::CACHE_KEY, function () {
+            return static::orderBy('sort_order')->orderBy('name')->get();
+        });
+    }
+
+    /**
+     * Clear the business types cache.
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+    }
+
+    /**
+     * Mengembalikan daftar instance FeatureEnum untuk jenis bisnis ini.
+     *
+     * @return array<FeatureEnum>
+     */
+    public function featureEnums(): array
+    {
+        if (! is_array($this->features)) {
+            return [];
+        }
+
+        $enums = [];
+        foreach ($this->features as $featureString) {
+            $enum = FeatureEnum::tryFrom($featureString);
+            if ($enum) {
+                $enums[] = $enum;
+            }
+        }
+
+        return $enums;
+    }
+
+    /**
+     * Memeriksa apakah fitur tertentu didukung oleh jenis bisnis ini.
+     */
+    public function hasFeature(FeatureEnum $feature): bool
+    {
+        if (! is_array($this->features)) {
+            return false;
+        }
+
+        return in_array($feature->value, $this->features, true);
+    }
+
+    /**
+     * Array opsi [code => name] untuk form dropdown.
+     *
+     * @return array<string, string>
+     */
+    public static function options(): array
+    {
+        return static::getAllCached()
+            ->pluck('name', 'code')
+            ->toArray();
+    }
+
+    /**
+     * Daftar jenis bisnis terkelompok berdasarkan klaster kategori.
+     *
+     * @return array<string, array<int, array{value: string, label: string, is_visible: bool}>>
+     */
+    public static function grouped(): array
+    {
+        $result = [];
+
+        foreach (static::getAllCached() as $type) {
+            $groupName = $type->category_label ?: 'Lainnya';
+            $result[$groupName][] = [
+                'value' => $type->code,
+                'label' => $type->name,
+                'is_visible' => (bool) $type->is_visible,
+            ];
+        }
+
+        return $result;
     }
 }

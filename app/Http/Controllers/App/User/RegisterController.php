@@ -41,6 +41,8 @@ class RegisterController extends Controller
         $result['user']->sendEmailVerificationNotification();
         $result['user']->notify(new WelcomeUser($result['user']));
 
+        \App\Events\User\BusinessRegistered::dispatch($result['business'], $result['user'], $result['outlet']);
+
         return redirect()->route('overview')->with(
             FlashDataVariable::SUCCESS->value,
             ResourceMessage::REGISTER_SUCCESS

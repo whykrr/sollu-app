@@ -13,11 +13,10 @@ Route::prefix('master')
             Route::post('categories/reorder', [ProductCategoryController::class, 'reorder'])->name('categories.reorder');
             Route::resource('categories', ProductCategoryController::class)->except(['create', 'edit', 'show']);
         });
-        Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_IMPORT_EXPORT->value)->group(function () {
-            Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
-            Route::get('products/import-template', [ProductController::class, 'importTemplate'])->name('products.importTemplate');
-            Route::post('products/import', [ProductController::class, 'import'])->name('products.import');
-        });
+        Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
+        Route::get('products/import-template', [ProductController::class, 'importTemplate'])->name('products.importTemplate');
+        Route::post('products/import', [ProductController::class, 'import'])->name('products.import');
+
         Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_CATALOG->value)->group(function () {
             Route::get('products/form-options', [ProductController::class, 'formOptions'])->name('products.formOptions');
             Route::resource('products', ProductController::class);

@@ -95,6 +95,52 @@ class FrontendEnumProvider
         $meta = [];
         $options = [];
 
+        // Special handling for FeatureEnum: metadata & grouping come from database
+        if ($enumClass === FeatureEnum::class && class_exists(\App\Models\Feature::class)) {
+            $features = \App\Models\Feature::getAllCached()->keyBy('code');
+            $grouped = [];
+
+            foreach ($enumClass::cases() as $case) {
+                $value = $case->value;
+                $name = $case->name;
+
+                $data[$name] = $value;
+                $upperName = strtoupper($name);
+                if ($upperName !== $name) {
+                    $data[$upperName] = $value;
+                }
+
+                $featureModel = $features->get($value);
+                $label = $featureModel?->name ?? $name;
+                $description = $featureModel?->description ?? '';
+                $groupLabel = $featureModel?->group_label ?? 'Lainnya';
+
+                $meta[$value] = [
+                    'label' => $label,
+                    'description' => $description,
+                    'group' => $featureModel?->group ?? 'other',
+                    'group_label' => $groupLabel,
+                ];
+
+                $options[] = [
+                    'value' => $value,
+                    'label' => $label,
+                ];
+
+                $grouped[$groupLabel][] = [
+                    'value' => $value,
+                    'label' => $label,
+                    'description' => $description,
+                ];
+            }
+
+            $data['_meta'] = $meta;
+            $data['_options'] = $options;
+            $data['_grouped'] = $grouped;
+
+            return $data;
+        }
+
         foreach ($enumClass::cases() as $case) {
             $value = $case->value;
             $name = $case->name;

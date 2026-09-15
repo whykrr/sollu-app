@@ -4,7 +4,6 @@ namespace Tests\Feature\App\User;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
-use App\Enums\RoleEnum;
 use App\Models\BusinessType;
 use App\Notifications\VerifyEmailBusiness;
 use App\Notifications\WelcomeUser;
@@ -13,7 +12,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 use Mockery;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class RegisterTest extends TestCase
@@ -22,11 +20,7 @@ class RegisterTest extends TestCase
 
     public function test_register_page_can_be_rendered(): void
     {
-        BusinessType::create([
-            'name' => 'F&B',
-            'code' => 'fnb',
-            'is_visible' => true,
-        ]);
+        BusinessType::factory()->forType('restaurant')->create();
 
         $response = $this->get(route('register'));
 
@@ -36,14 +30,11 @@ class RegisterTest extends TestCase
     public function test_user_can_register_business_and_notifications_are_queued(): void
     {
         Notification::fake();
+        \Illuminate\Support\Facades\Event::fake([\App\Events\User\BusinessRegistered::class]);
 
-        Role::create(['name' => RoleEnum::OWNER->value, 'guard_name' => 'business']);
+        $this->seed(\Database\Seeders\Production\RolePermissionSeeder::class);
 
-        $type = BusinessType::create([
-            'name' => 'Retail',
-            'code' => 'retail',
-            'is_visible' => true,
-        ]);
+        $type = BusinessType::factory()->forType('minimarket')->create();
 
         $provisioningMock = Mockery::mock(OutletProvisioningService::class);
         $provisioningMock->shouldReceive('provisionAll')->once()->andReturnNull();
@@ -78,6 +69,8 @@ class RegisterTest extends TestCase
             Auth::guard('business')->user(),
             WelcomeUser::class
         );
+
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\User\BusinessRegistered::class);
     }
 
     public function test_registration_validation_fails_with_invalid_data(): void

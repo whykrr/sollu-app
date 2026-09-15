@@ -18,6 +18,10 @@ class CompleteInvoiceService
      */
     public function execute(Invoice $invoice): Invoice
     {
+        if ($invoice->status === Status::Paid || (is_string($invoice->status) && $invoice->status === Status::Paid->value)) {
+            return $invoice;
+        }
+
         /** @var Invoice $invoice */
         $invoice = DB::transaction(function () use ($invoice): Invoice {
             $now = Carbon::now();
@@ -27,6 +31,8 @@ class CompleteInvoiceService
                 'status' => Status::Paid,
                 'paid_at' => $now,
             ]);
+
+            \App\Events\Invoice\InvoicePaid::dispatch($invoice);
 
             $business = $invoice->business;
 

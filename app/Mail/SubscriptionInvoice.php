@@ -2,52 +2,68 @@
 
 namespace App\Mail;
 
+use App\Models\Invoice;
+use App\Models\Payment;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class SubscriptionInvoice extends Mailable
+class SubscriptionInvoice extends Mailable implements ShouldQueue
 {
-    use Queueable;
-    use SerializesModels;
+    use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct()
-    {
-        //
+    public function __construct(
+        public Invoice $invoice,
+        public ?Payment $payment = null
+    ) {
+        $this->invoice->loadMissing(['business', 'items', 'payments']);
+
+        if (! $this->payment) {
+            $this->payment = $this->invoice->payments()->latest()->first();
+        }
     }
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Subscription Invoice',
+            subject: 'Invoice Pembayaran Langganan #'.$this->invoice->invoice_number,
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
-            markdown: 'mail.subscription-invoice',
+            markdown: 'emails.invoices.subscription_invoice',
+            with: [
+                'invoice' => $this->invoice,
+                'business' => $this->invoice->business,
+                'payment' => $this->payment,
+            ],
         );
     }
 
     /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {
-        return [];
+        $this->invoice->loadMissing(['business', 'items', 'payments']);
+
+        $pdf = Pdf::loadView('pdf.invoice', [
+            'invoice' => $this->invoice,
+            'payment' => $this->payment,
+        ])->setPaper('a4', 'portrait');
+
+        return [
+            Attachment::fromData(
+                fn () => $pdf->output(),
+                "Invoice-{$this->invoice->invoice_number}.pdf"
+            )->withMime('application/pdf'),
+        ];
     }
 }

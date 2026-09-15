@@ -12,6 +12,8 @@ use App\Http\Controllers\Cockpit\UomController;
 use Illuminate\Support\Facades\Route;
 
 Route::name('cockpit.')->group(function () {
+    Route::get('/csrf-token', [\App\Http\Controllers\Support\CsrfTokenController::class, 'show'])->name('csrf.token');
+
     Route::middleware('guest:cockpit')->group(function () {
         Route::get('/login', [AuthenticationController::class, 'index'])->name('login');
         Route::post('/login', [AuthenticationController::class, 'store'])->name('login.attempt');
@@ -35,6 +37,7 @@ Route::name('cockpit.')->group(function () {
         Route::post('/invoices/{invoice}/reject', [InvoiceController::class, 'reject'])->name('invoices.reject');
 
         Route::get('/subscription-plans', [SubscriptionPlanController::class, 'index'])->name('subscription-plans.index');
+        Route::post('/subscription-plans', [SubscriptionPlanController::class, 'store'])->name('subscription-plans.store');
         Route::get('/subscription-plans/{id}', [SubscriptionPlanController::class, 'show'])->name('subscription-plans.show');
         Route::put('/subscription-plans/{id}', [SubscriptionPlanController::class, 'update'])->name('subscription-plans.update');
         Route::post('/subscription-plans/{id}/toggle-status', [SubscriptionPlanController::class, 'toggleStatus'])->name('subscription-plans.toggle-status');

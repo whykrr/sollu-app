@@ -2,6 +2,7 @@
 
 namespace Database\Seeders\Production;
 
+use App\Enums\FeatureEnum;
 use App\Models\BusinessType;
 use Illuminate\Database\Seeder;
 
@@ -12,87 +13,223 @@ class BusinessTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        $featuresRetail = [
-            'pos_cashier', 'shift_management', 'cash_drawer', 'split_payment', 'invoice_debt', 'void_refund',
-            'product_catalog', 'product_categories', 'product_variants', 'product_bundles', 'product_import_export',
-            'inventory_management', 'stock_movements', 'stock_adjustments', 'stock_freeze', 'stock_opname', 'stock_transfers', 'supplier_management', 'purchase_orders', 'inventory_import_export',
-            'promo_management', 'discount_vouchers', 'customer_management', 'customer_loyalty', 'customer_import_export',
-            'basic_reports', 'advanced_reports', 'sales_reports', 'product_reports', 'stock_reports', 'cashier_reports', 'promo_reports', 'customer_reports', 'report_export',
-            'multi_outlet', 'operational_hours', 'receipt_customization', 'tax_and_service_charge', 'device_management', 'custom_payment_methods',
-            'employee_management', 'role_permissions', 'unlimited_users', 'audit_logs',
-            'payment_gateway', 'pos_device_sync', 'developer_api',
+        $commonFeatures = [
+            // Penjualan & Kasir
+            FeatureEnum::POS_CASHIER->value,
+            FeatureEnum::SHIFT_MANAGEMENT->value,
+            FeatureEnum::CASH_DRAWER->value,
+            FeatureEnum::SPLIT_PAYMENT->value,
+            FeatureEnum::INVOICE_DEBT->value,
+            FeatureEnum::VOID_REFUND->value,
+
+            // Produk & Katalog
+            FeatureEnum::PRODUCT_CATALOG->value,
+            FeatureEnum::PRODUCT_CATEGORIES->value,
+            FeatureEnum::PRODUCT_VARIANTS->value,
+            FeatureEnum::PRODUCT_BUNDLES->value,
+
+            // Inventori & Rantai Pasok
+            FeatureEnum::INVENTORY_MANAGEMENT->value,
+            FeatureEnum::STOCK_MOVEMENTS->value,
+            FeatureEnum::STOCK_ADJUSTMENTS->value,
+            FeatureEnum::STOCK_FREEZE->value,
+            FeatureEnum::STOCK_OPNAME->value,
+            FeatureEnum::STOCK_TRANSFERS->value,
+            FeatureEnum::SUPPLIER_MANAGEMENT->value,
+            FeatureEnum::PURCHASE_ORDERS->value,
+
+            // Promosi & Pemasaran
+            FeatureEnum::PROMO_MANAGEMENT->value,
+            FeatureEnum::DISCOUNT_VOUCHERS->value,
+
+            // Pelanggan & CRM
+            FeatureEnum::CUSTOMER_MANAGEMENT->value,
+            FeatureEnum::CUSTOMER_LOYALTY->value,
+
+            // Laporan & Analitik
+            FeatureEnum::BASIC_REPORTS->value,
+            FeatureEnum::ADVANCED_REPORTS->value,
+            FeatureEnum::SALES_REPORTS->value,
+            FeatureEnum::PRODUCT_REPORTS->value,
+            FeatureEnum::STOCK_REPORTS->value,
+            FeatureEnum::CASHIER_REPORTS->value,
+            FeatureEnum::PROMO_REPORTS->value,
+            FeatureEnum::CUSTOMER_REPORTS->value,
+
+            // Outlet & Operasional
+            FeatureEnum::MULTI_OUTLET->value,
+            FeatureEnum::OPERATIONAL_HOURS->value,
+            FeatureEnum::RECEIPT_CUSTOMIZATION->value,
+            FeatureEnum::TAX_AND_SERVICE_CHARGE->value,
+            FeatureEnum::DEVICE_MANAGEMENT->value,
+            FeatureEnum::CUSTOM_PAYMENT_METHODS->value,
+
+            // Karyawan & Keamanan
+            FeatureEnum::EMPLOYEE_MANAGEMENT->value,
+            FeatureEnum::ROLE_PERMISSIONS->value,
+            FeatureEnum::UNLIMITED_USERS->value,
+            FeatureEnum::AUDIT_LOGS->value,
+
+            // Integrasi & Platform
+            FeatureEnum::PAYMENT_GATEWAY->value,
+            FeatureEnum::POS_DEVICE_SYNC->value,
+            FeatureEnum::DEVELOPER_API->value,
         ];
 
-        $featuresFnB = [
-            'pos_cashier', 'shift_management', 'cash_drawer', 'split_payment', 'invoice_debt', 'void_refund',
-            'product_catalog', 'product_categories', 'product_variants', 'product_modifiers', 'product_bundles', 'recipe_management', 'product_import_export',
-            'inventory_management', 'raw_materials', 'stock_movements', 'stock_adjustments', 'stock_freeze', 'stock_opname', 'stock_transfers', 'supplier_management', 'purchase_orders', 'inventory_import_export',
-            'promo_management', 'discount_vouchers', 'customer_management', 'customer_loyalty', 'customer_import_export',
-            'basic_reports', 'advanced_reports', 'sales_reports', 'product_reports', 'stock_reports', 'cashier_reports', 'promo_reports', 'customer_reports', 'report_export',
-            'multi_outlet', 'operational_hours', 'receipt_customization', 'tax_and_service_charge', 'device_management', 'custom_payment_methods',
-            'employee_management', 'role_permissions', 'unlimited_users', 'audit_logs',
-            'payment_gateway', 'pos_device_sync', 'developer_api',
+        $fnbFeatures = array_merge($commonFeatures, [
+            FeatureEnum::PRODUCT_MODIFIERS->value,
+            FeatureEnum::RECIPE_MANAGEMENT->value,
+            FeatureEnum::RAW_MATERIALS->value,
+        ]);
+
+        $types = [
+            // Ritel & Toko (Retail)
+            [
+                'code' => 'minimarket',
+                'name' => 'Minimarket',
+                'category' => 'retail',
+                'category_label' => 'Ritel & Toko',
+                'is_visible' => true,
+                'sort_order' => 1,
+                'features' => $commonFeatures,
+            ],
+            [
+                'code' => 'grocery',
+                'name' => 'Grocery / Sembako',
+                'category' => 'retail',
+                'category_label' => 'Ritel & Toko',
+                'is_visible' => true,
+                'sort_order' => 2,
+                'features' => $commonFeatures,
+            ],
+            [
+                'code' => 'convenience_store',
+                'name' => 'Toserba',
+                'category' => 'retail',
+                'category_label' => 'Ritel & Toko',
+                'is_visible' => true,
+                'sort_order' => 3,
+                'features' => $commonFeatures,
+            ],
+            [
+                'code' => 'fashion_store',
+                'name' => 'Toko Fesyen',
+                'category' => 'retail',
+                'category_label' => 'Ritel & Toko',
+                'is_visible' => true,
+                'sort_order' => 4,
+                'features' => $commonFeatures,
+            ],
+            [
+                'code' => 'pharmacy',
+                'name' => 'Apotek',
+                'category' => 'retail',
+                'category_label' => 'Ritel & Toko',
+                'is_visible' => false,
+                'sort_order' => 5,
+                'features' => $commonFeatures,
+            ],
+            [
+                'code' => 'vape_store',
+                'name' => 'Vape Store',
+                'category' => 'retail',
+                'category_label' => 'Ritel & Toko',
+                'is_visible' => false,
+                'sort_order' => 6,
+                'features' => $commonFeatures,
+            ],
+            [
+                'code' => 'thrift_store',
+                'name' => 'Toko Thrift',
+                'category' => 'retail',
+                'category_label' => 'Ritel & Toko',
+                'is_visible' => false,
+                'sort_order' => 7,
+                'features' => $commonFeatures,
+            ],
+
+            // Makanan & Minuman (F&B)
+            [
+                'code' => 'coffee_shop',
+                'name' => 'Coffee Shop',
+                'category' => 'fnb',
+                'category_label' => 'Makanan & Minuman (F&B)',
+                'is_visible' => true,
+                'sort_order' => 8,
+                'features' => $fnbFeatures,
+            ],
+            [
+                'code' => 'restaurant',
+                'name' => 'Restoran',
+                'category' => 'fnb',
+                'category_label' => 'Makanan & Minuman (F&B)',
+                'is_visible' => true,
+                'sort_order' => 9,
+                'features' => $fnbFeatures,
+            ],
+            [
+                'code' => 'food_stall',
+                'name' => 'Kedai Makanan',
+                'category' => 'fnb',
+                'category_label' => 'Makanan & Minuman (F&B)',
+                'is_visible' => true,
+                'sort_order' => 10,
+                'features' => $fnbFeatures,
+            ],
+            [
+                'code' => 'bakery',
+                'name' => 'Bakery',
+                'category' => 'fnb',
+                'category_label' => 'Makanan & Minuman (F&B)',
+                'is_visible' => true,
+                'sort_order' => 11,
+                'features' => $fnbFeatures,
+            ],
+
+            // Jasa & Layanan (Service)
+            [
+                'code' => 'laundry',
+                'name' => 'Laundry',
+                'category' => 'service',
+                'category_label' => 'Jasa & Layanan',
+                'is_visible' => false,
+                'sort_order' => 12,
+                'features' => $commonFeatures,
+            ],
+            [
+                'code' => 'barbershop',
+                'name' => 'Barbershop',
+                'category' => 'service',
+                'category_label' => 'Jasa & Layanan',
+                'is_visible' => false,
+                'sort_order' => 13,
+                'features' => $commonFeatures,
+            ],
+            [
+                'code' => 'salon',
+                'name' => 'Salon, Spa & Beauty',
+                'category' => 'service',
+                'category_label' => 'Jasa & Layanan',
+                'is_visible' => false,
+                'sort_order' => 14,
+                'features' => $commonFeatures,
+            ],
+            [
+                'code' => 'repair_shop',
+                'name' => 'Bengkel',
+                'category' => 'service',
+                'category_label' => 'Jasa & Layanan',
+                'is_visible' => false,
+                'sort_order' => 15,
+                'features' => $commonFeatures,
+            ],
         ];
 
-        $featuresService = [
-            'pos_cashier', 'shift_management', 'cash_drawer', 'split_payment', 'invoice_debt', 'void_refund',
-            'product_catalog', 'product_categories', 'product_variants', 'product_bundles', 'product_import_export',
-            'inventory_management', 'stock_movements', 'stock_adjustments', 'stock_freeze', 'stock_opname', 'stock_transfers', 'supplier_management', 'purchase_orders', 'inventory_import_export',
-            'promo_management', 'discount_vouchers', 'customer_management', 'customer_loyalty', 'customer_import_export',
-            'basic_reports', 'advanced_reports', 'sales_reports', 'product_reports', 'stock_reports', 'cashier_reports', 'promo_reports', 'customer_reports', 'report_export',
-            'multi_outlet', 'operational_hours', 'receipt_customization', 'tax_and_service_charge', 'device_management', 'custom_payment_methods',
-            'employee_management', 'role_permissions', 'unlimited_users', 'audit_logs',
-            'payment_gateway', 'pos_device_sync', 'developer_api',
-        ];
-
-        $businessTypes = [
-            ['code' => 'minimarket', 'name' => 'Minimarket', 'is_visible' => true, 'features' => $featuresRetail],
-            ['code' => 'grocery', 'name' => 'Grocery / Sembako', 'is_visible' => true, 'features' => $featuresRetail],
-            ['code' => 'convenience_store', 'name' => 'Toserba', 'is_visible' => true, 'features' => $featuresRetail],
-            ['code' => 'fashion_store', 'name' => 'Toko Fesyen', 'is_visible' => true, 'features' => $featuresRetail],
-            ['code' => 'coffee_shop', 'name' => 'Coffee Shop', 'is_visible' => true, 'features' => $featuresFnB],
-            ['code' => 'restaurant', 'name' => 'Restoran', 'is_visible' => true, 'features' => $featuresFnB],
-            ['code' => 'food_stall', 'name' => 'Kedai Makanan', 'is_visible' => true, 'features' => $featuresFnB],
-            ['code' => 'bakery', 'name' => 'Bakery', 'is_visible' => true, 'features' => $featuresFnB],
-            ['code' => 'laundry', 'name' => 'Laundry', 'is_visible' => false, 'features' => $featuresService],
-            ['code' => 'barbershop', 'name' => 'Barbershop', 'is_visible' => false, 'features' => $featuresService],
-            ['code' => 'salon', 'name' => 'Salon, Spa & Beauty', 'is_visible' => false, 'features' => $featuresService],
-            ['code' => 'repair_shop', 'name' => 'Bengkel', 'is_visible' => false, 'features' => $featuresService],
-            ['code' => 'pharmacy', 'name' => 'Apotek', 'is_visible' => false, 'features' => $featuresRetail],
-            ['code' => 'vape_store', 'name' => 'Vape Store', 'is_visible' => false, 'features' => $featuresRetail],
-            ['code' => 'thrift_store', 'name' => 'Toko Thrift', 'is_visible' => false, 'features' => $featuresRetail],
-        ];
-
-        foreach ($businessTypes as $type) {
+        foreach ($types as $typeData) {
             BusinessType::updateOrCreate(
-                ['code' => $type['code']],
-                [
-                    'name' => $type['name'],
-                    'is_visible' => $type['is_visible'],
-                    'features' => $type['features'],
-                ]
+                ['code' => $typeData['code']],
+                $typeData
             );
         }
-
-        /*
-        $businessTypes->updateOrCreate(['code' => 'car_wash', 'name' => 'Car Wash', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'repair_shop', 'name' => 'Toko Reparasi', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'photo_studio', 'name' => 'Studio Foto', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'electronic_store', 'name' => 'Toko Elektronik', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'phone_store', 'name' => 'Toko HP & Gadget', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'computer_store', 'name' => 'Toko Komputer', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'book_store', 'name' => 'Toko Buku', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'toy_store', 'name' => 'Toko Mainan', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'cosmetic_store', 'name' => 'Toko Kosmetik', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'hardware_store', 'name' => 'Toko Bangunan / Hardware', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'furniture_store', 'name' => 'Furniture & Home Living', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'jewelry_store', 'name' => 'Toko Perhiasan', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'sports_store', 'name' => 'Toko Olahraga', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'automotive_store', 'name' => 'Toko Otomotif', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'florist', 'name' => 'Toko Bunga', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'souvenir_store', 'name' => 'Toko Souvenir', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'optical_store', 'name' => 'Optik', 'is_visible' => true]);
-        $businessTypes->updateOrCreate(['code' => 'baby_store', 'name' => 'Toko Bayi', 'is_visible' => true]);
-         */
     }
 }

@@ -4,7 +4,7 @@ trigger: always_on
 
 # Wajib Perhatikan: Standar Eloquent Model
 
-Saat bekerja di `app/Models`, Anda **WAJIB** menerapkan standar dari skill `sollu-backend` dan `sollu-code-quality`:
+Saat bekerja di `app/Models`, Anda **WAJIB** menerapkan standar dari skill `sollu`:
 
 1. **Mandatory Live Database Verification:** Sebelum/saat mengedit model, **WAJIB** gunakan tool MCP `sollu-db` (`information_schema`) atau `laravel-boost` (`DatabaseSchema`) untuk memeriksa skema nyata database. Jangan pernah mengira-ngira nama kolom atau tipe data.
 2. **Casts Method (Laravel 11):** Gunakan method `casts(): array` (bukan `$casts` array property).

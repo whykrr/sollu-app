@@ -3,21 +3,14 @@
     "php.validate.executablePath": "/opt/homebrew/bin/php",
 
     // === Official Laravel Extension (laravel.vscode-laravel) ===
-    "Laravel.phpEnvironment": "docker",
-    "Laravel.phpCommand": [
-        "docker",
-        "compose",
-        "exec",
-        "-T",
-        "app",
-        "php"
-    ],
+    "Laravel.phpEnvironment": "local",
+    "Laravel.phpCommand": [ ],
     "Laravel.pint.runOnSave": true,
 
     // === Laravel Extra Intellisense (amiralizadeh9480.laravel-extra-intellisense) ===
-    "LaravelExtraIntellisense.basePath": "",
-    "LaravelExtraIntellisense.basePathForCode": "/var/www/html",
-    "LaravelExtraIntellisense.phpCommand": "docker compose exec -T app php -r \"{code}\"",
+    "LaravelExtraIntellisense.basePath": "/",
+    "LaravelExtraIntellisense.basePathForCode": "/",
+    "LaravelExtraIntellisense.phpCommand": "php -r \"{code}\"",
     "LaravelExtraIntellisense.modelVariables": {
         "user": "App\\Models\\User"
     },

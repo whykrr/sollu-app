@@ -20,6 +20,7 @@
 
         <Link
             v-if="!isSetting"
+            key="btn-settings"
             :href="route('settings.account.profile')"
             class="flex items-center gap-2 py-1.5 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
         >
@@ -31,6 +32,7 @@
         </Link>
         <Link
             v-else
+            key="btn-back"
             :href="route('overview')"
             class="flex items-center gap-2 py-1.5 px-3 cursor-pointer rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100/80 transition-all duration-200 group"
         >
@@ -71,5 +73,7 @@ defineProps({
 
 const page = usePage();
 const helpCenterUrl = computed(() => page.props.app?.help_center_url || '#');
-const isExternalLink = computed(() => Boolean(helpCenterUrl.value && helpCenterUrl.value !== '#'));
+const isExternalLink = computed(() =>
+    Boolean(helpCenterUrl.value && helpCenterUrl.value !== '#'),
+);
 </script>

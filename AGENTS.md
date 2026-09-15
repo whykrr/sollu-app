@@ -14,6 +14,17 @@ Before relying on a package's API, confirm its installed version:
 - PHP packages: run `composer show --direct` to list direct dependencies with versions, or `composer show <vendor/package>` for a single package.
 - JS packages: check `package.json` for the installed versions.
 
+## Architecture & Project Documentation (MUST READ FIRST)
+
+When diving into this project, you MUST refer to the official architecture documentation in the `docs/` directory:
+
+- [docs/architecture.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/architecture.md) — System Overview, Subdomain Routing, Modular Monolith & Decoupling Patterns, Execution Flow, Performance & On-Demand Data Loading Baseline.
+- [docs/database.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/database.md) — Multi-Tenant Data Isolation (`business_id`, `outlet_id`), Model Standards (Laravel 11 `casts(): array`), Core Bounded Context Schemas, and Query Optimization.
+- [docs/authorization.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/authorization.md) — Dual-Layer Authorization: User RBAC (Spatie Permissions scoped to `business_id`, `useAuth`) and SaaS Feature Plan Gating (`FeatureEnum`, `PlanEnum`, `<FeatureLock>`, `usePlanFeature`).
+- [docs/frontend.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/frontend.md) — Frontend Standards: Vue 3 (`<script setup>`), Inertia.js 1.2, Tailwind CSS v4, `@/Components/Form/` (Zero Raw HTML inputs), `<PopUpPage>` & `usePopUpStore` Drawer Pattern, Enum-Driven UI.
+- [docs/api.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/api.md) — API Standards: `snake_case`, pure HTTP status codes, strict `(float)` numeric casting, Response Constants (`ResourceMessage`), Async Excel & PDF Generation, and OpenAPI/Postman synchronization.
+- [docs/testing.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/testing.md) — Automated Testing: Service Unit Tests (100% Mocking, `sqlite:memory`), Feature/Tenant Isolation Tests, E2E Testing via `browsermcp`, Linters (Pint, ESLint), and Definition of Done (DoD).
+
 ## Skills Activation
 
 This project has domain-specific skills available in `**/skills/**`. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.

@@ -7,8 +7,10 @@ import AppLayout from '@/Layout/AppCockpitLayout.vue'
 import { createPinia } from 'pinia'
 import AccessHandle from '@/access-handle.js'
 import { registerSW } from 'virtual:pwa-register'
+import { initCsrfManager } from '@/Support/csrf-manager'
 
 registerSW({ immediate: true })
+initCsrfManager()
 
 createInertiaApp({
     progress: {

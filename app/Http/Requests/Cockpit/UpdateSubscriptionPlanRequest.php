@@ -23,6 +23,10 @@ class UpdateSubscriptionPlanRequest extends BaseInertiaFormRequest
             'features.*.title' => ['required_with:features', 'string', 'max:255'],
             'features.*.detail' => ['nullable', 'string', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
+            'is_public' => ['nullable', 'boolean'],
+            'is_custom' => ['nullable', 'boolean'],
+            'system_feature_ids' => ['nullable', 'array'],
+            'system_feature_ids.*' => ['exists:features,id'],
         ];
     }
 }

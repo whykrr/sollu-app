@@ -29,7 +29,7 @@
         >
             <Link
                 v-for="(submenu, subIndex) in item.items"
-                :key="subIndex"
+                :key="submenu.url || submenu.label || subIndex"
                 v-can="submenu.permissions"
                 v-feature="submenu.feature || submenu.features"
                 :href="submenu.url"

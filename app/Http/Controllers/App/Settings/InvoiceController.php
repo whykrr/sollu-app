@@ -147,7 +147,7 @@ class InvoiceController extends Controller
         $path = $request->file('payment_proof')->store('invoices/payment_proof');
 
         // Create or update manual validation record
-        PaymentManualValidation::updateOrCreate(
+        $validation = PaymentManualValidation::updateOrCreate(
             ['invoice_id' => $invoice->id],
             [
                 'payment_proof_url' => $path,
@@ -168,6 +168,8 @@ class InvoiceController extends Controller
                 'payment_reference' => "{$invoice->invoice_number}-MANUAL-".\Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
             ]);
         }
+
+        \App\Events\Invoice\PaymentProofUploaded::dispatch($invoice, $validation);
 
         return redirect()->route('settings.billing.index', ['open_invoice' => $invoice_number])
             ->with(FlashDataVariable::SUCCESS->value, 'Bukti transfer berhasil diunggah. Tim kami akan segera melakukan verifikasi.');

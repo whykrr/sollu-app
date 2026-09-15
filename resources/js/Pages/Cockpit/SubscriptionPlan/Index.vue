@@ -12,31 +12,41 @@
                         Kelola harga per outlet, fitur, kuota, serta status aktif/nonaktif paket langganan
                     </div>
                 </div>
-                <div class="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg text-xs font-medium self-stretch sm:self-auto justify-center">
+                <div class="flex flex-wrap items-center gap-2 self-stretch sm:self-auto">
                     <button
                         type="button"
-                        class="px-3 py-1 rounded-md transition-colors"
-                        :class="statusFilter === 'all' ? 'bg-white shadow-xs text-neutral-800 font-bold' : 'text-neutral-500 hover:text-neutral-800'"
-                        @click="statusFilter = 'all'"
+                        class="btn btn-main btn-sm"
+                        @click="openCreate"
                     >
-                        Semua ({{ plans.length }})
+                        <FontAwesomeIcon :icon="faPlus" class="mr-1.5" />
+                        Tambah Paket
                     </button>
-                    <button
-                        type="button"
-                        class="px-3 py-1 rounded-md transition-colors"
-                        :class="statusFilter === 'active' ? 'bg-white shadow-xs text-success font-bold' : 'text-neutral-500 hover:text-neutral-800'"
-                        @click="statusFilter = 'active'"
-                    >
-                        Aktif ({{ activeCount }})
-                    </button>
-                    <button
-                        type="button"
-                        class="px-3 py-1 rounded-md transition-colors"
-                        :class="statusFilter === 'inactive' ? 'bg-white shadow-xs text-danger font-bold' : 'text-neutral-500 hover:text-neutral-800'"
-                        @click="statusFilter = 'inactive'"
-                    >
-                        Nonaktif ({{ inactiveCount }})
-                    </button>
+                    <div class="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg text-xs font-medium justify-center">
+                        <button
+                            type="button"
+                            class="px-3 py-1 rounded-md transition-colors"
+                            :class="statusFilter === 'all' ? 'bg-white shadow-xs text-neutral-800 font-bold' : 'text-neutral-500 hover:text-neutral-800'"
+                            @click="statusFilter = 'all'"
+                        >
+                            Semua ({{ plans.length }})
+                        </button>
+                        <button
+                            type="button"
+                            class="px-3 py-1 rounded-md transition-colors"
+                            :class="statusFilter === 'active' ? 'bg-white shadow-xs text-success font-bold' : 'text-neutral-500 hover:text-neutral-800'"
+                            @click="statusFilter = 'active'"
+                        >
+                            Aktif ({{ activeCount }})
+                        </button>
+                        <button
+                            type="button"
+                            class="px-3 py-1 rounded-md transition-colors"
+                            :class="statusFilter === 'inactive' ? 'bg-white shadow-xs text-danger font-bold' : 'text-neutral-500 hover:text-neutral-800'"
+                            @click="statusFilter = 'inactive'"
+                        >
+                            Nonaktif ({{ inactiveCount }})
+                        </button>
+                    </div>
                 </div>
             </div>
         </template>
@@ -62,10 +72,24 @@
                     <!-- Header Info & Badges -->
                     <div class="flex items-start justify-between gap-2 mb-3">
                         <div>
-                            <span class="text-xs font-mono uppercase tracking-wider text-neutral-400 font-semibold">
-                                {{ plan.code }}
-                            </span>
-                            <h2 class="text-xl font-bold text-neutral-800">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-xs font-mono uppercase tracking-wider text-neutral-400 font-semibold">
+                                    {{ plan.code }}
+                                </span>
+                                <span
+                                    v-if="plan.is_custom"
+                                    class="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-bold uppercase tracking-wider"
+                                >
+                                    Custom
+                                </span>
+                                <span
+                                    v-if="!plan.is_public"
+                                    class="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-bold uppercase tracking-wider"
+                                >
+                                    Privat
+                                </span>
+                            </div>
+                            <h2 class="text-xl font-bold text-neutral-800 mt-0.5">
                                 {{ plan.name }}
                             </h2>
                         </div>
@@ -109,6 +133,12 @@
                             <span class="text-neutral-500">Batas Outlet:</span>
                             <span class="font-semibold text-neutral-800">
                                 {{ plan.max_outlet ? `${plan.max_outlet} Outlet` : 'Tanpa Batas' }}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-neutral-500">Fitur Sistem Aktif:</span>
+                            <span class="font-semibold text-main">
+                                {{ plan.system_features?.length || 0 }} Fitur
                             </span>
                         </div>
                         <div class="flex justify-between">
@@ -187,7 +217,7 @@ import { ref, computed } from 'vue';
 import MainPage from '@/Components/UI/MainPage.vue';
 import { formatIDR } from '@/Composable/currency-format';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faCheckCircle, faPencil, faBan, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faPencil, faBan, faCheck, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { router } from '@inertiajs/vue3';
 import { usePopUpStore } from '@/store/popup';
 import { useModalStore } from '@/store/notification.js';
@@ -195,6 +225,7 @@ import SubscriptionPlanEditPopUp from './Components/SubscriptionPlanEditPopUp.vu
 
 const props = defineProps({
     plans: Array,
+    allFeatures: Array,
 });
 
 const popUpStore = usePopUpStore();
@@ -228,12 +259,27 @@ const gridClass = computed(() => {
     return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
 });
 
+const openCreate = () => {
+    popUpStore.open({
+        title: 'Tambah Paket Langganan',
+        size: 'xl',
+        component: SubscriptionPlanEditPopUp,
+        props: {
+            planId: null,
+            allFeatures: props.allFeatures,
+        },
+    });
+};
+
 const openEdit = (planId) => {
     popUpStore.open({
         title: 'Edit Paket Langganan',
-        size: 'lg',
+        size: 'xl',
         component: SubscriptionPlanEditPopUp,
-        props: { planId },
+        props: {
+            planId,
+            allFeatures: props.allFeatures,
+        },
     });
 };
 

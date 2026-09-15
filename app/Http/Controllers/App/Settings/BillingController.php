@@ -58,8 +58,9 @@ class BillingController extends Controller
             ->first();
 
         $plans = SubscriptionPlan::query()
+            ->where('is_active', true)
             ->where(function ($query) use ($subscription) {
-                $query->where('is_active', true);
+                $query->where('is_public', true);
                 if ($subscription?->plan_id) {
                     $query->orWhere('id', $subscription->plan_id);
                 }
