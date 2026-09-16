@@ -212,21 +212,21 @@ class FeatureSeeder extends Seeder
             [
                 'code' => 'promo_management',
                 'name' => 'Manajemen Promosi & Diskon',
-                'description' => 'Pembuatan diskon persentase, nominal, buy X get Y, bundling, dengan jadwal dan kuota penggunaan.',
+                'description' => 'Pembuatan diskon persentase, nominal dengan jadwal dan kuota penggunaan.',
                 'module' => 'promo',
                 'group' => 'promotions_and_marketing',
                 'group_label' => 'Promosi & Pemasaran',
                 'sort_order' => 220,
             ],
-            [
-                'code' => 'discount_vouchers',
-                'name' => 'Kupon & Voucher Diskon',
-                'description' => 'Penerbitan kode kupon dan voucher diskon khusus untuk program kampanye pemasaran.',
-                'module' => 'promo',
-                'group' => 'promotions_and_marketing',
-                'group_label' => 'Promosi & Pemasaran',
-                'sort_order' => 230,
-            ],
+            // [
+            //     'code' => 'discount_vouchers',
+            //     'name' => 'Kupon & Voucher Diskon',
+            //     'description' => 'Penerbitan kode kupon dan voucher diskon khusus untuk program kampanye pemasaran.',
+            //     'module' => 'promo',
+            //     'group' => 'promotions_and_marketing',
+            //     'group_label' => 'Promosi & Pemasaran',
+            //     'sort_order' => 230,
+            // ],
 
             // Pelanggan & CRM
             [
@@ -236,17 +236,17 @@ class FeatureSeeder extends Seeder
                 'module' => 'crm',
                 'group' => 'customers_and_crm',
                 'group_label' => 'Pelanggan & CRM',
-                'sort_order' => 240,
+                'sort_order' => 230,
             ],
-            [
-                'code' => 'customer_loyalty',
-                'name' => 'Program Loyalitas & Poin',
-                'description' => 'Sistem akumulasi poin belanja, tingkatan membership pelanggan, dan penukaran reward loyalitas.',
-                'module' => 'crm',
-                'group' => 'customers_and_crm',
-                'group_label' => 'Pelanggan & CRM',
-                'sort_order' => 250,
-            ],
+            // [
+            //     'code' => 'customer_loyalty',
+            //     'name' => 'Program Loyalitas & Poin',
+            //     'description' => 'Sistem akumulasi poin belanja, tingkatan membership pelanggan, dan penukaran reward loyalitas.',
+            //     'module' => 'crm',
+            //     'group' => 'customers_and_crm',
+            //     'group_label' => 'Pelanggan & CRM',
+            //     'sort_order' => 250,
+            // ],
 
             // Laporan & Analitik
             [
@@ -256,7 +256,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'report',
                 'group' => 'reports_and_analytics',
                 'group_label' => 'Laporan & Analitik',
-                'sort_order' => 260,
+                'sort_order' => 240,
             ],
             [
                 'code' => 'advanced_reports',
@@ -265,7 +265,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'report',
                 'group' => 'reports_and_analytics',
                 'group_label' => 'Laporan & Analitik',
-                'sort_order' => 270,
+                'sort_order' => 250,
             ],
             [
                 'code' => 'sales_reports',
@@ -274,7 +274,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'report',
                 'group' => 'reports_and_analytics',
                 'group_label' => 'Laporan & Analitik',
-                'sort_order' => 280,
+                'sort_order' => 260,
             ],
             [
                 'code' => 'product_reports',
@@ -283,7 +283,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'report',
                 'group' => 'reports_and_analytics',
                 'group_label' => 'Laporan & Analitik',
-                'sort_order' => 290,
+                'sort_order' => 270,
             ],
             [
                 'code' => 'stock_reports',
@@ -292,7 +292,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'report',
                 'group' => 'reports_and_analytics',
                 'group_label' => 'Laporan & Analitik',
-                'sort_order' => 300,
+                'sort_order' => 280,
             ],
             [
                 'code' => 'cashier_reports',
@@ -301,7 +301,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'report',
                 'group' => 'reports_and_analytics',
                 'group_label' => 'Laporan & Analitik',
-                'sort_order' => 310,
+                'sort_order' => 290,
             ],
             [
                 'code' => 'promo_reports',
@@ -310,7 +310,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'report',
                 'group' => 'reports_and_analytics',
                 'group_label' => 'Laporan & Analitik',
-                'sort_order' => 320,
+                'sort_order' => 300,
             ],
             [
                 'code' => 'customer_reports',
@@ -319,7 +319,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'report',
                 'group' => 'reports_and_analytics',
                 'group_label' => 'Laporan & Analitik',
-                'sort_order' => 330,
+                'sort_order' => 310,
             ],
 
             // Outlet & Operasional
@@ -330,7 +330,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'outlet',
                 'group' => 'outlets_and_operations',
                 'group_label' => 'Outlet & Operasional',
-                'sort_order' => 340,
+                'sort_order' => 320,
             ],
             [
                 'code' => 'outlet_management',
@@ -339,7 +339,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'outlet',
                 'group' => 'outlets_and_operations',
                 'group_label' => 'Outlet & Operasional',
-                'sort_order' => 350,
+                'sort_order' => 330,
             ],
             [
                 'code' => 'multi_device',
@@ -348,52 +348,7 @@ class FeatureSeeder extends Seeder
                 'module' => 'outlet',
                 'group' => 'outlets_and_operations',
                 'group_label' => 'Outlet & Operasional',
-                'sort_order' => 360,
-            ],
-            [
-                'code' => 'operational_hours',
-                'name' => 'Pengaturan Jam Operasional',
-                'description' => 'Pengaturan jadwal jam buka dan tutup outlet per hari kerja untuk operasional kasir.',
-                'module' => 'outlet',
-                'group' => 'outlets_and_operations',
-                'group_label' => 'Outlet & Operasional',
-                'sort_order' => 370,
-            ],
-            [
-                'code' => 'receipt_customization',
-                'name' => 'Kustomisasi Layout Struk',
-                'description' => 'Kustomisasi logo bisnis, header, catatan kaki nota, dan format cetak kertas struk belanja kasir.',
-                'module' => 'outlet',
-                'group' => 'outlets_and_operations',
-                'group_label' => 'Outlet & Operasional',
-                'sort_order' => 380,
-            ],
-            [
-                'code' => 'tax_and_service_charge',
-                'name' => 'Pajak & Biaya Layanan',
-                'description' => 'Konfigurasi persentase pajak (PPN/PB1), service charge, dan aturan pembulatan transaksi otomatis.',
-                'module' => 'outlet',
-                'group' => 'outlets_and_operations',
-                'group_label' => 'Outlet & Operasional',
-                'sort_order' => 390,
-            ],
-            [
-                'code' => 'device_management',
-                'name' => 'Manajemen Perangkat Kasir & Printer',
-                'description' => 'Pairing mesin kasir POS via kode OTP, koneksi printer thermal Bluetooth/LAN, dan cash drawer.',
-                'module' => 'outlet',
-                'group' => 'outlets_and_operations',
-                'group_label' => 'Outlet & Operasional',
-                'sort_order' => 400,
-            ],
-            [
-                'code' => 'custom_payment_methods',
-                'name' => 'Kustomisasi Metode Pembayaran',
-                'description' => 'Penambahan opsi metode pembayaran kustom (transfer bank, EDC merchant, e-wallet, piutang).',
-                'module' => 'outlet',
-                'group' => 'outlets_and_operations',
-                'group_label' => 'Outlet & Operasional',
-                'sort_order' => 410,
+                'sort_order' => 340,
             ],
 
             // Karyawan & Keamanan
@@ -404,34 +359,16 @@ class FeatureSeeder extends Seeder
                 'module' => 'employee',
                 'group' => 'employees_and_security',
                 'group_label' => 'Karyawan & Hak Akses',
-                'sort_order' => 420,
+                'sort_order' => 350,
             ],
             [
                 'code' => 'custom_role',
-                'name' => 'Peran Kustom Staf',
+                'name' => 'Peran Kustom Karyawan',
                 'description' => 'Pembuatan peran/role khusus sesuai kebutuhan jabatan internal bisnis.',
                 'module' => 'employee',
                 'group' => 'employees_and_security',
                 'group_label' => 'Karyawan & Hak Akses',
-                'sort_order' => 430,
-            ],
-            [
-                'code' => 'role_permissions',
-                'name' => 'Hak Akses Berjenjang (RBAC)',
-                'description' => 'Pembatasan hak akses staf secara terperinci berbasis jabatan/role (Kasir, Supervisor, Manager).',
-                'module' => 'employee',
-                'group' => 'employees_and_security',
-                'group_label' => 'Karyawan & Hak Akses',
-                'sort_order' => 440,
-            ],
-            [
-                'code' => 'unlimited_users',
-                'name' => 'Pengguna Tanpa Batas',
-                'description' => 'Bebas menambahkan staf kasir dan admin tanpa batasan kuota jumlah pengguna.',
-                'module' => 'employee',
-                'group' => 'employees_and_security',
-                'group_label' => 'Karyawan & Hak Akses',
-                'sort_order' => 450,
+                'sort_order' => 360,
             ],
             [
                 'code' => 'audit_logs',
@@ -440,38 +377,12 @@ class FeatureSeeder extends Seeder
                 'module' => 'employee',
                 'group' => 'employees_and_security',
                 'group_label' => 'Karyawan & Hak Akses',
-                'sort_order' => 460,
-            ],
-
-            // Integrasi & Platform
-            [
-                'code' => 'payment_gateway',
-                'name' => 'Integrasi Pembayaran Digital (QRIS & VA)',
-                'description' => 'Penerimaan pembayaran digital QRIS dinamis dan transfer otomatis via payment gateway terintegrasi.',
-                'module' => 'integration',
-                'group' => 'integrations_and_platform',
-                'group_label' => 'Integrasi & Platform',
-                'sort_order' => 470,
-            ],
-            [
-                'code' => 'pos_device_sync',
-                'name' => 'Sinkronisasi Otomatis Data POS',
-                'description' => 'Sinkronisasi real-time katalog produk, pelanggan, dan transaksi antara cloud server dan mesin POS.',
-                'module' => 'integration',
-                'group' => 'integrations_and_platform',
-                'group_label' => 'Integrasi & Platform',
-                'sort_order' => 480,
-            ],
-            [
-                'code' => 'developer_api',
-                'name' => 'Akses API Pengembang (Developer API)',
-                'description' => 'Akses API publik dan integrasi eksternal untuk sinkronisasi sistem akuntansi pihak ketiga atau marketplace.',
-                'module' => 'integration',
-                'group' => 'integrations_and_platform',
-                'group_label' => 'Integrasi & Platform',
-                'sort_order' => 490,
+                'sort_order' => 370,
             ],
         ];
+
+        // set active feature for production is false
+        Feature::update(['is_active' => false]);
 
         foreach ($features as $item) {
             Feature::updateOrCreate(

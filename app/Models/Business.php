@@ -121,13 +121,84 @@ class Business extends Model
     }
 
     /**
+     * Memoized active subscription instance with plan and system features loaded.
+     */
+    protected ?Subscription $memoizedActiveSubscription = null;
+
+    /**
+     * Memoized available plan features.
+     *
+     * @var array<\App\Enums\FeatureEnum>|null
+     */
+    protected ?array $memoizedAvailablePlanFeatures = null;
+
+    /**
+     * Memoized active plan features.
+     *
+     * @var array<\App\Enums\FeatureEnum>|null
+     */
+    protected ?array $memoizedActivePlanFeatures = null;
+
+    /**
+     * Clear memoized subscription and feature caches on this model instance.
+     */
+    public function clearMemoizedFeatures(): void
+    {
+        $this->memoizedActiveSubscription = null;
+        $this->memoizedAvailablePlanFeatures = null;
+        $this->memoizedActivePlanFeatures = null;
+    }
+
+    /**
+     * Get the active subscription with loaded plan and system features.
+     */
+    public function getActiveSubscriptionWithPlan(): ?Subscription
+    {
+        if ($this->memoizedActiveSubscription !== null) {
+            return $this->memoizedActiveSubscription;
+        }
+
+        if ($this->relationLoaded('subscriptions')) {
+            $subscription = $this->subscriptions
+                ->where('status', 'active')
+                ->first();
+
+            if ($subscription) {
+                if (! $subscription->relationLoaded('plan')) {
+                    $cachedPlan = $subscription->plan_id ? SubscriptionPlan::findCached($subscription->plan_id) : null;
+                    if ($cachedPlan) {
+                        $subscription->setRelation('plan', $cachedPlan);
+                    } else {
+                        $subscription->load(['plan.systemFeatures']);
+                    }
+                }
+
+                return $this->memoizedActiveSubscription = $subscription;
+            }
+        }
+
+        $subscription = $this->subscriptions()
+            ->where('status', 'active')
+            ->first();
+
+        if ($subscription) {
+            $cachedPlan = $subscription->plan_id ? SubscriptionPlan::findCached($subscription->plan_id) : null;
+            if ($cachedPlan) {
+                $subscription->setRelation('plan', $cachedPlan);
+            } else {
+                $subscription->load(['plan.systemFeatures']);
+            }
+        }
+
+        return $this->memoizedActiveSubscription = $subscription;
+    }
+
+    /**
      * Get the maximum number of outlets allowed for this business.
      */
     public function maxOutletsAllowed(): int
     {
-        $activeSubscription = $this->subscriptions()
-            ->where('status', 'active')
-            ->first();
+        $activeSubscription = $this->getActiveSubscriptionWithPlan();
 
         if (! $activeSubscription || ! $activeSubscription->plan) {
             return 1;
@@ -138,17 +209,28 @@ class Business extends Model
 
     /**
      * Get the active plan features for this business.
+     *
+     * @param  array<\App\Enums\FeatureEnum>|null  $planFeatures
+     * @return array<\App\Enums\FeatureEnum>
      */
-    public function activePlanFeatures(): array
+    public function activePlanFeatures(?array $planFeatures = null): array
     {
-        $planFeatures = $this->getAvailablePlanFeatures();
+        if ($planFeatures === null && $this->memoizedActivePlanFeatures !== null) {
+            return $this->memoizedActivePlanFeatures;
+        }
+
+        $planFeatures = $planFeatures ?? $this->getAvailablePlanFeatures();
 
         // Get user personalized features if exists
         $userFeatures = $this->settings['active_features'] ?? null;
 
         if (is_null($userFeatures)) {
-            // Fallback to BusinessType defaults
-            $userFeatures = $this->type?->features ?? array_map(fn ($f) => $f->value, $planFeatures);
+            // Fallback to BusinessType defaults without triggering extra lazy SQL queries
+            $type = $this->relationLoaded('type')
+                ? $this->type
+                : ($this->business_type_id ? BusinessType::getAllCached()->firstWhere('id', $this->business_type_id) : null);
+
+            $userFeatures = $type?->features ?? array_map(fn ($f) => $f->value, $planFeatures);
         }
 
         // Map strings to FeatureEnum and intersect with plan features
@@ -163,31 +245,35 @@ class Business extends Model
             }
         }
 
-        return $activeFeatures;
+        return $this->memoizedActivePlanFeatures = $activeFeatures;
     }
 
+    /**
+     * Get all available features granted by the business plan.
+     *
+     * @return array<\App\Enums\FeatureEnum>
+     */
     public function getAvailablePlanFeatures(): array
     {
-        $activeSubscription = $this->subscriptions()
-            ->where('status', 'active')
-            ->with(['plan.systemFeatures'])
-            ->first();
+        if ($this->memoizedAvailablePlanFeatures !== null) {
+            return $this->memoizedAvailablePlanFeatures;
+        }
+
+        $activeSubscription = $this->getActiveSubscriptionWithPlan();
 
         if ($activeSubscription && $activeSubscription->plan) {
-            return $activeSubscription->plan->activeFeatureEnums();
+            return $this->memoizedAvailablePlanFeatures = $activeSubscription->plan->activeFeatureEnums();
         }
 
         $isTrial = $this->trial_end_at ? \Carbon\Carbon::parse($this->trial_end_at)->isFuture() : false;
 
         if ($isTrial) {
-            $trialPlan = SubscriptionPlan::with('systemFeatures')
-                ->where('code', \App\Enums\PlanEnum::MICRO->value)
-                ->first();
+            $trialPlan = SubscriptionPlan::findByCodeCached(\App\Enums\PlanEnum::MICRO->value);
 
-            return $trialPlan ? $trialPlan->activeFeatureEnums() : [];
+            return $this->memoizedAvailablePlanFeatures = ($trialPlan ? $trialPlan->activeFeatureEnums() : []);
         }
 
-        return [];
+        return $this->memoizedAvailablePlanFeatures = [];
     }
 
     /**

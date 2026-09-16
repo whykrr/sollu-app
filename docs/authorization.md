@@ -119,9 +119,11 @@ const { can, canAny, isOwner, hasRole } = useAuth()
 
 ## 3. Layer 2: SaaS Feature Plan Gating
 
-### 3.1. Master Fitur & Paket (`FeatureEnum` & `PlanEnum`)
-- Daftar fitur terdaftar di `App\Enums\FeatureEnum`.
-- Pemetaan fitur ke paket langganan (Basic, Pro, Enterprise) didefinisikan di `App\Enums\PlanEnum::systemFeatures()`.
+### 3.1. Master Fitur & Paket (`FeatureEnum`, `Feature`, & `SubscriptionPlan`)
+- Daftar kode fitur standar terdaftar di `App\Enums\FeatureEnum` (murni sebagai string keys untuk type-safety).
+- Metadata fitur lengkap (nama, deskripsi, modul, grup) disimpan di tabel database `features` via model `App\Models\Feature` dan di-seed melalui `FeatureSeeder.php`.
+- Paket langganan standar didefinisikan di `App\Enums\PlanEnum` (Micro, Basic, Pro), serta mendukung Custom Plan dinamis (`is_custom: true`, `is_public: false`) pada tabel `subscription_plans`.
+- Pemetaan fitur ke paket langganan dikelola melalui tabel pivot database `plan_features` (`SubscriptionPlan::systemFeatures(): BelongsToMany`), BUKAN hardcoded di PHP enum.
 
 ```php
 namespace App\Enums;
@@ -193,7 +195,7 @@ if (hasFeature(enums.FeatureEnum.PROMO_MANAGEMENT)) {
 
 1. **Definisikan Permission RBAC:** Tambahkan case baru di `App\Enums\PermissionEnum.php`.
 2. **Assign ke Default Role:** Daftarkan permission baru ke role `owner` / `manager` di `App\Services\App\Role\RoleProvisioningService.php`.
-3. **Definisikan SaaS Feature (jika berbayar):** Tambahkan case di `App\Enums\FeatureEnum.php` dan petakan ke paket di `App\Enums\PlanEnum.php`.
+3. **Definisikan SaaS Feature (jika berbayar):** Tambahkan case di `App\Enums\FeatureEnum.php`, daftarkan metadata di `FeatureSeeder.php` (tabel `features`), lalu sinkronisasikan relasi paket di `SubscriptionPlanSeeder.php` atau Cockpit UI (tabel `plan_features`). *(Catatan: Fitur ekspor/impor diatur murni via RBAC langkah 1-2, bukan SaaS feature plan).*
 4. **Jalankan Seeder Permission:**
    ```bash
    php artisan db:seed --class="Database\Seeders\Production\RolePermissionSeeder"

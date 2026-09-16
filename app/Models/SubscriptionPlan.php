@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\FeatureEnum;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,10 @@ class SubscriptionPlan extends Model
 {
     use HasFactory;
     use HasUuids;
+
+    public const CACHE_KEY_ALL = 'system:subscription_plans:all';
+
+    public const CACHE_KEY_ACTIVE = 'system:subscription_plans:active';
 
     protected $fillable = [
         'code',
@@ -66,6 +71,58 @@ class SubscriptionPlan extends Model
     }
 
     /**
+     * Get all cached subscription plans with system features loaded.
+     *
+     * @return Collection<int, SubscriptionPlan>
+     */
+    public static function getAllCached(): Collection
+    {
+        return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
+            return static::query()
+                ->with(['systemFeatures'])
+                ->orderBy('price_per_outlet', 'asc')
+                ->get();
+        });
+    }
+
+    /**
+     * Get all active cached subscription plans.
+     *
+     * @return Collection<int, SubscriptionPlan>
+     */
+    public static function getActiveCached(): Collection
+    {
+        return static::getAllCached()
+            ->filter(fn (self $plan) => $plan->is_active)
+            ->values();
+    }
+
+    /**
+     * Find a subscription plan by code from cache.
+     */
+    public static function findByCodeCached(string $code): ?self
+    {
+        return static::getAllCached()->firstWhere('code', $code);
+    }
+
+    /**
+     * Find a subscription plan by ID from cache.
+     */
+    public static function findCached(string $id): ?self
+    {
+        return static::getAllCached()->firstWhere('id', $id);
+    }
+
+    /**
+     * Clear all subscription plan list caches.
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY_ALL);
+        Cache::forget(self::CACHE_KEY_ACTIVE);
+    }
+
+    /**
      * Get active system feature codes for this plan.
      *
      * @return array<string>
@@ -98,11 +155,16 @@ class SubscriptionPlan extends Model
     public function clearFeatureCache(): void
     {
         Cache::forget("plan:{$this->id}:active_features");
+        static::clearCache();
     }
 
     protected static function booted(): void
     {
-        static::saved(fn (self $plan) => $plan->clearFeatureCache());
-        static::deleted(fn (self $plan) => $plan->clearFeatureCache());
+        static::saved(function (self $plan) {
+            $plan->clearFeatureCache();
+        });
+        static::deleted(function (self $plan) {
+            $plan->clearFeatureCache();
+        });
     }
 }

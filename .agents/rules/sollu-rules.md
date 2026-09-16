@@ -18,13 +18,16 @@ Enum didistribusikan otomatis via Inertia Shared Props (`$enums`). Daftarkan enu
 - **Script Setup:** Gunakan composable: `const { enums, getOptions, getLabel, getColor } = useEnum()`.
 - **Form/Dropdown:** Gunakan `getOptions('NamaEnum')` untuk properti `:options` komponen `DropdownField` / `SelectionGroupField`. Jangan hardcode array opsi!
 
+**4. Dynamic Entities (Bukan Enum)**
+Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types` table). DILARANG KERAS mencari/membuat `BusinessTypeEnum`. Ambil opsi dropdown/grup via `BusinessType::getAllCached()`, `BusinessType::options()`, atau `BusinessType::grouped()`.
+
 ---
 
 ## B. Validasi Feature Plan (SaaS Entitlement)
 
 **1. Dual-Layer Auth**
 
-- **User RBAC:** Hak akses jabatan (`PermissionEnum`, `v-can`). UI: Sembunyikan elemen.
+- **User RBAC:** Hak akses jabatan (`PermissionEnum`, `v-can`). UI: Sembunyikan elemen. Operasional ekspor/impor data diatur murni via RBAC (`permission: product.export`, dsb.), DILARANG di-gate oleh `plan.feature`.
 - **Tenant Feature:** Kuota/paket bisnis (`FeatureEnum`, `v-feature`). UI: Tampilkan elemen terkunci (upsell). DILARANG pakai fungsi permission (RBAC) untuk cek fitur paket.
 
 **2. Standar Frontend**
@@ -35,5 +38,7 @@ Enum didistribusikan otomatis via Inertia Shared Props (`$enums`). Daftarkan enu
 
 **3. Standar Backend**
 
-- Definisikan di `app/Enums/FeatureEnum.php`, lalu mapping paketnya di `app/Enums/PlanEnum.php` (`systemFeatures()`).
+- Definisikan key konstan di `app/Enums/FeatureEnum.php`, simpan metadata fitur (nama, deskripsi, modul, grup) di tabel database `features` (`FeatureSeeder.php`), dan petakan fitur ke paket melalui tabel pivot database `plan_features` (`SubscriptionPlanSeeder.php` atau Cockpit UI). DILARANG meng-hardcode relasi fitur di `PlanEnum.php`.
 - Proteksi route dengan `middleware('plan.feature:' . FeatureEnum::NAME->value)`.
+- Dukungan Custom Plan (`is_custom: true`, `is_public: false`) berjalan secara native: resolusi fitur tenant membaca langsung relasi database `plan->systemFeatures` tanpa perlu mendaftarkan kode paket baru ke PHP Enum.
+

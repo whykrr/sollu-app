@@ -69,6 +69,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Outlet::observe(\App\Observers\UserCacheObserver::class);
         \App\Models\Subscription::observe(\App\Observers\UserCacheObserver::class);
         \App\Models\SubscriptionPlan::observe(\App\Observers\UserCacheObserver::class);
+        \App\Models\Feature::observe(\App\Observers\UserCacheObserver::class);
         \Spatie\Permission\Models\Role::observe(\App\Observers\UserCacheObserver::class);
         \Spatie\Permission\Models\Permission::observe(\App\Observers\UserCacheObserver::class);
 

@@ -79,7 +79,7 @@ class EmployeeServiceTest extends TestCase
 
         $data = [
             'name' => 'Updated Employee',
-            'role' => 'waiter', // Assuming 'waiter' role exists from seeder
+            'role' => 'manager',
             'outlets' => [$outlet->id],
             'pin' => '9999',
         ];
@@ -90,7 +90,7 @@ class EmployeeServiceTest extends TestCase
         $this->assertTrue(\Illuminate\Support\Facades\Hash::check('9999', $updated->pin));
 
         $updated->refresh();
-        $this->assertTrue($updated->hasRole('waiter'));
+        $this->assertTrue($updated->hasRole('manager'));
         $this->assertFalse($updated->hasRole('cashier'));
 
         $this->assertCount(1, $updated->outlets);

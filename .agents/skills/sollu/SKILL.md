@@ -46,11 +46,11 @@ app/
 ├── Http/
 │   ├── Controllers/     # Thin controllers handling request, authorization & response
 │   └── Requests/        # Form Requests extending BaseInertiaFormRequest
-├── Models/              # Eloquent models using HasUuids trait and casts() method
+├── Models/              # Eloquent models using HasUuids trait and casts() method (including BusinessType, Feature, SubscriptionPlan)
 ├── Services/            # Domain service logic (Single-file <= 500 lines or Split-file > 500 lines)
 ├── Jobs/
 │   └── ImportExport/    # Async CSV/Excel jobs (AbstractExcelExportJob & AbstractExcelImportJob)
-├── Enums/               # PermissionEnum, RoleEnum, FeatureEnum, PlanEnum, Status enums
+├── Enums/               # PermissionEnum, RoleEnum, FeatureEnum (keys only), PlanEnum (standard tiers), Status enums (NO BusinessTypeEnum)
 resources/
 ├── js/
 │   ├── Components/      # Shared UI & Form inputs (@/Components/Form/)
@@ -466,6 +466,11 @@ const statusOptions = getOptions('AdjustmentStatus')
 2. **Daftarkan di `app/Support/Enums/FrontendEnumProvider.php`:** Tambahkan ke array `$frontendEnums`.
 3. **Gunakan di Model, Route, dan Frontend.**
 
+### 5.5. Batasan Enum vs Database-Driven Entities
+- **Kapan Menggunakan Enum:** Gunakan PHP Backed Enum HANYA untuk status, peran statis, atau tipe diskrit yang menjadi percabangan logika kode backend secara permanen (misal: `AdjustmentStatus`, `RoleEnum`, `InvoiceStatus`, `PaymentMethodType`, dsb.).
+- **Tipe Bisnis (`BusinessType`):** 100% database-driven di tabel `business_types`. **DILARANG KERAS** membuat atau mencari `BusinessTypeEnum`. Pengambilan daftar tipe bisnis pada form registrasi/pengaturan WAJIB menggunakan `BusinessType::getAllCached()`, `BusinessType::options()`, atau `BusinessType::grouped()`.
+- **Fitur SaaS (`FeatureEnum` vs Database `features`):** `FeatureEnum` hanya menampung case/keys untuk type-safety (`plan.feature:` dan `$enums.FeatureEnum.*`). Seluruh metadata tampilan (nama, deskripsi, modul, grup, urutan, status aktif) dikelola di tabel `features` dan ditransformasikan otomatis ke frontend via `FrontendEnumProvider` (`$enums.FeatureEnum._meta` dan `$enums.FeatureEnum._grouped`).
+
 ---
 
 ## 6. Role-Based Access Control (RBAC & Spatie Permissions)
@@ -523,8 +528,9 @@ if (can('settings.outlets.create')) {
 
 ### 7.2. Backend Feature Registration Workflow
 1. **Daftarkan Key Fitur:** Tambahkan case di `app/Enums/FeatureEnum.php` (e.g. `case RECIPE_MANAGEMENT = 'recipe_management';`).
-2. **Petakan Hak Paket Langganan:** Tambahkan case ke `systemFeatures()` di `app/Enums/PlanEnum.php`.
-3. **Pasang Middleware pada Route:**
+2. **Daftarkan Metadata Fitur di Database:** Tambahkan metadata (code, name, description, module, group, group_label, sort_order) di `database/seeders/Production/FeatureSeeder.php` dan tabel database `features`.
+3. **Petakan ke Paket Langganan:** Tambahkan relasi fitur ke paket di `database/seeders/Production/SubscriptionPlanSeeder.php` atau atur langsung melalui antarmuka Cockpit Super Admin via tabel pivot `plan_features` (`SubscriptionPlan::systemFeatures(): BelongsToMany`). DILARANG meng-hardcode pemetaan paket di `PlanEnum.php`.
+4. **Pasang Middleware pada Route:**
    ```php
    Route::prefix('recipes')
        ->middleware('plan.feature:' . FeatureEnum::RECIPE_MANAGEMENT->value)
@@ -532,7 +538,7 @@ if (can('settings.outlets.create')) {
            Route::resource('recipes', RecipeController::class);
        });
    ```
-4. **Response Otomatis Jika Terkunci:** AJAX/JSON mengembalikan HTTP 403 `is_feature_locked: true`. Inertia/Web me-redirect back dengan flash `feature_locked` yang memicu `FeatureLockedModal.vue`.
+5. **Response Otomatis Jika Terkunci:** AJAX/JSON mengembalikan HTTP 403 `is_feature_locked: true`. Inertia/Web me-redirect back dengan flash `feature_locked` yang memicu `FeatureLockedModal.vue`.
 
 ### 7.3. Frontend Validation Standards
 - **Directive `v-feature`:**
@@ -558,6 +564,11 @@ if (can('settings.outlets.create')) {
   ```
 - **Strict Prohibitions:** Dilarang mengecek string nama paket mentah (`plan.name === 'Paket Pro'`), dilarang membuat Spatie permission untuk tier paket langganan.
 
+### 7.4. Dynamic Custom Plan & Modular SaaS Packaging
+- **Dukungan Custom Plan (Enterprise/B2B):** Tabel `subscription_plans` mendukung paket kustom non-publik (`is_custom: true`, `is_public: false`). Paket kustom tidak muncul pada katalog paket publik merchant (`/settings/billing/plans`), namun dapat dibuat dan di-assign langsung oleh Super Admin melalui Cockpit.
+- **Resolusi Fitur Tenant Otomatis:** Method `Business::getAvailablePlanFeatures()` dan `Business::activePlanFeatures()` membaca langsung relasi `plan->systemFeatures` dari database/cache. Seluruh otorisasi fitur (`hasFeature`, `middleware('plan.feature:...')`, `v-feature`) berjalan secara dinamis tanpa perlu mendaftarkan kode paket baru ke PHP Enum.
+- **De-Gating Operasional Ekspor/Impor:** Fungsi ekspor dan impor data (produk, pelanggan, stok, transaksi) adalah hak akses operasional internal merchant yang diatur oleh **Spatie RBAC** (`PermissionEnum`), BUKAN fitur berbayar yang di-gate oleh paket SaaS (`plan.feature`). DILARANG memasang middleware `plan.feature` pada route ekspor/impor.
+
 ---
 
 ## 8. Code Quality, Linters & Definition of Done (DoD)
@@ -576,6 +587,9 @@ if (can('settings.outlets.create')) {
 6. **NO Unoptimized Queries / N+1:** Hindari lazy loading di dalam loop, jangan gunakan `count() > 0` untuk pengecekan eksistensi, dan hindari mutasi loop per model.
 7. **NO Dead Code Leftovers:** Hapus seluruh commented-out code, unused imports, orphaned methods/variables, dan file/route usang.
 8. **NO Magic Strings for Status/Types/Features:** Selalu gunakan PHP Backed Enum dan `$enums`.
+9. **NO BusinessTypeEnum:** Dilarang membuat atau mencari `BusinessTypeEnum`. Tipe bisnis dikelola 100% dinamis di database (`business_types` table). Gunakan `BusinessType::getAllCached()` atau `BusinessType::options()`.
+10. **NO Hardcoded Plan Features in Enums:** Dilarang meng-hardcode pemetaan paket di `PlanEnum.php`. Seluruh relasi paket-fitur disimpan di tabel database `plan_features` (`SubscriptionPlan::systemFeatures()`).
+11. **NO SaaS Gating on Operational Export/Import:** Dilarang memasang middleware `plan.feature` pada route ekspor dan impor. Gunakan otorisasi Spatie RBAC (`PermissionEnum`).
 
 ### 8.3. Definition of Done (DoD) Checklist
 - [ ] Backend logic & endpoints tested and returning accurate HTTP status codes.
@@ -588,6 +602,8 @@ if (can('settings.outlets.create')) {
 - [ ] Code formatted with `vendor/bin/pint` and `npm run fix:eslint`.
 - [ ] `npm run build` executes cleanly with zero syntax or bundling errors.
 - [ ] All permissions registered in `PermissionEnum.php` & `RolePermissionSeeder.php` (if applicable).
+- [ ] Fitur paket SaaS terdaftar di `FeatureEnum.php`, `FeatureSeeder.php`, dan terpetakan di `plan_features` (bukan hardcoded di `PlanEnum.php`).
+- [ ] Tipe bisnis menggunakan model database `BusinessType` dinamis tanpa dependensi enum.
 
 ---
 

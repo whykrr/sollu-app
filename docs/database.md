@@ -122,7 +122,7 @@ class StockAdjustment extends Model
 
 ### 3.1. Tenant & Core Identity (`App\Models`)
 - `Business`: Entitas induk penyewa/merchant SaaS. Menyimpan tipe bisnis, paket langganan aktif, dan status bisnis.
-- `BusinessType`: Klasifikasi jenis industri bisnis (Retail, F&B, Service, Pharmacy).
+- `BusinessType`: Klasifikasi jenis industri bisnis dinamis (tabel `business_types` dengan kolom `category`: `retail`, `fnb`, `service`, `category_label`, `sort_order`, `is_visible`, `features`). Tidak menggunakan enum.
 - `Outlet`: Unit gerai/cabang fisik di bawah satu bisnis.
 - `OutletSetting`: Konfigurasi operasional per gerai (pajak, service charge, printer, footer struk).
 - `User`: Pengguna sistem (pemilik, manajer, kasir) yang terikat ke `business_id`.
@@ -161,8 +161,9 @@ class StockAdjustment extends Model
 - `TransactionInvoice`: Nomor faktur/struk resmi yang diterbitkan.
 
 ### 3.5. Subscription & Cockpit Domain (`App\Models`)
-- `SubscriptionPlan`: Master paket langganan SaaS (Basic, Pro, Enterprise).
-- `Feature`: Master daftar fitur sistem yang dapat diaktifkan per paket.
+- `SubscriptionPlan`: Master paket langganan SaaS (Micro, Basic, Pro, serta Custom Plan via atribut `is_public` dan `is_custom`).
+- `Feature`: Master daftar fitur sistem modular (tabel `features` dengan `module`, `group`, `group_label`, `sort_order`, `is_active`).
+- `plan_features`: Tabel pivot relasi many-to-many antara `subscription_plans` dan `features`.
 - `Subscription`: Status langganan aktif suatu bisnis, tanggal kedaluwarsa, dan kuota outlet.
 - `Invoice` & `InvoiceItem`: Tagihan pembayaran langganan SaaS.
 - `Payment`: Pembayaran faktur langganan.

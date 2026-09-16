@@ -139,6 +139,121 @@ class SubscriptionPlanTest extends TestCase
         $this->assertTrue($plan->is_active);
     }
 
+    public function test_admin_can_create_subscription_plan(): void
+    {
+        $payload = [
+            'code' => 'starter-plus',
+            'name' => 'Paket Starter Plus',
+            'price_per_outlet' => 89000,
+            'yearly_discount_percent' => 15,
+            'max_outlet' => 3,
+            'is_active' => true,
+            'is_public' => true,
+            'is_custom' => false,
+            'features' => [
+                ['title' => 'Cetak Struk Bluetooth', 'detail' => 'Kompatibel dengan semua printer thermal 58/80mm'],
+            ],
+        ];
+
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->post("http://{$this->cockpitHost}/subscription-plans", $payload);
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::CREATE_SUCCESS);
+
+        $this->assertDatabaseHas('subscription_plans', [
+            'code' => 'starter-plus',
+            'name' => 'Paket Starter Plus',
+            'is_active' => true,
+            'is_public' => true,
+        ]);
+    }
+
+    public function test_admin_can_toggle_plan_visibility(): void
+    {
+        $plan = SubscriptionPlan::first();
+        $this->assertTrue($plan->is_public);
+
+        // Hide from catalog
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->post("http://{$this->cockpitHost}/subscription-plans/{$plan->id}/toggle-visibility");
+
+        $response->assertRedirect();
+        $plan->refresh();
+        $this->assertFalse($plan->is_public);
+
+        // Show back in catalog
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->post("http://{$this->cockpitHost}/subscription-plans/{$plan->id}/toggle-visibility");
+
+        $response->assertRedirect();
+        $plan->refresh();
+        $this->assertTrue($plan->is_public);
+    }
+
+    public function test_admin_can_update_plan_features_in_separate_endpoint(): void
+    {
+        $plan = SubscriptionPlan::first();
+        $features = \App\Models\Feature::take(3)->get();
+        $featureIds = $features->pluck('id')->all();
+
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->put("http://{$this->cockpitHost}/subscription-plans/{$plan->id}/features", [
+                'feature_ids' => $featureIds,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value);
+
+        $this->assertCount(3, $plan->fresh()->systemFeatures);
+        $this->assertEqualsCanonicalizing($featureIds, $plan->fresh()->systemFeatures->pluck('id')->all());
+    }
+
+    public function test_admin_cannot_delete_plan_with_existing_subscriptions(): void
+    {
+        $plan = SubscriptionPlan::first();
+        // Create an active subscription on this plan
+        $business = \App\Models\Business::first();
+        \App\Models\Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->delete("http://{$this->cockpitHost}/subscription-plans/{$plan->id}");
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::FAILED->value);
+        $this->assertDatabaseHas('subscription_plans', ['id' => $plan->id]);
+    }
+
+    public function test_admin_can_delete_unused_plan(): void
+    {
+        $plan = SubscriptionPlan::create([
+            'code' => 'temporary-plan',
+            'name' => 'Temporary Plan To Delete',
+            'price_per_outlet' => 10000,
+            'yearly_discount_percent' => 0,
+            'is_active' => false,
+            'is_public' => false,
+        ]);
+
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->delete("http://{$this->cockpitHost}/subscription-plans/{$plan->id}");
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::PURGE_SUCCESS);
+        $this->assertDatabaseMissing('subscription_plans', ['id' => $plan->id]);
+    }
+
     public function test_merchant_cannot_checkout_deactivated_plan(): void
     {
         $merchantUser = User::first();

@@ -122,7 +122,7 @@ export const getMainSidebars = (enums = { FeatureEnum: {} }) => [
             //     type: 'item',
             //     url: route('master.modifiers.index'),
             //     label: 'Opsi Tambahan',
-            // feature: enums.FeatureEnum.PRODUCT_MODIFIERS,
+            //     feature: enums.FeatureEnum.PRODUCT_MODIFIERS,
             //     permissions: [],
             //     activeRoute: 'master.modifiers.',
             // },
@@ -133,6 +133,7 @@ export const getMainSidebars = (enums = { FeatureEnum: {} }) => [
         url: '#',
         icon: faBoxes,
         label: 'Inventori',
+        feature: enums.FeatureEnum.INVENTORY_MANAGEMENT,
         permissions: [],
         activeRoute: 'inventories.',
         items: [
@@ -220,65 +221,6 @@ export const getMainSidebars = (enums = { FeatureEnum: {} }) => [
         permissions: ['user.view'],
         activeRoute: 'employees',
     },
-
-    // {
-    //     type: 'dropdown',
-    //     url: '#',
-    //     icon: faHashtag,
-    //     label: 'Template',
-    //     permissions: [],
-    //     activeRoute: 'template',
-    //     items: [
-    //         {
-    //             type: 'item',
-    //             url: route('template.form'),
-    //             label: 'Form',
-    //             permissions: [],
-    //             activeRoute: 'template.form',
-    //         },
-    //         {
-    //             type: 'item',
-    //             url: route('template.cards'),
-    //             label: 'Card',
-    //             permissions: [],
-    //             activeRoute: 'template.cards',
-    //         },
-    //         {
-    //             type: 'item',
-    //             url: route('template.navigation'),
-    //             label: 'Navigation & Tab',
-    //             permissions: [],
-    //             activeRoute: 'template.navigation',
-    //         },
-    //         {
-    //             type: 'item',
-    //             url: route('template.buttons'),
-    //             label: 'Buttons',
-    //             permissions: [],
-    //             activeRoute: 'template.buttons',
-    //         },
-    //         {
-    //             type: 'item',
-    //             url: route('template.charts'),
-    //             label: 'Charts',
-    //             permissions: [],
-    //             activeRoute: 'template.charts',
-    //         },
-    //         {
-    //             type: 'item',
-    //             url: route('template.notifications'),
-    //             label: 'Notifications',
-    //             permissions: [],
-    //             activeRoute: 'template.notifications',
-    //         },
-    //         {
-    //             type: 'item',
-    //             url: route('template.widgets'),
-    //             label: 'Widgets',
-    //             permissions: [],
-    //             activeRoute: 'template.widgets',
-    //         },
-    //     ],
 ]
 
 export function useMainSidebar() {

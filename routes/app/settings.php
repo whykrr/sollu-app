@@ -57,7 +57,7 @@ Route::prefix('settings')
 
         Route::middleware([
             'can:'.\App\Enums\PermissionEnum::ROLE_VIEW->value,
-            'plan.feature:'.FeatureEnum::ROLE_PERMISSIONS->value,
+            'plan.feature:'.FeatureEnum::CUSTOM_ROLE->value,
         ])->group(function () {
             Route::resource('roles', \App\Http\Controllers\App\Settings\RoleController::class)->except(['create', 'edit']);
         });
@@ -96,7 +96,7 @@ Route::prefix('settings')
         });
 
         Route::middleware(['can:'.\App\Enums\PermissionEnum::SETTING_PAYMENT->value])->group(function () {
-            Route::middleware('plan.feature:'.FeatureEnum::CUSTOM_PAYMENT_METHODS->value)
+            Route::middleware('plan.feature:'.FeatureEnum::OUTLET_MANAGEMENT->value)
                 ->prefix('payment-methods')
                 ->name('payment-methods.')
                 ->group(function () {
@@ -109,7 +109,7 @@ Route::prefix('settings')
                 });
         });
 
-        Route::middleware('plan.feature:'.FeatureEnum::RECEIPT_CUSTOMIZATION->value)
+        Route::middleware('plan.feature:'.FeatureEnum::OUTLET_MANAGEMENT->value)
             ->prefix('receipt')
             ->name('receipt.')
             ->group(function () {
@@ -117,7 +117,7 @@ Route::prefix('settings')
                 Route::put('/', [\App\Http\Controllers\App\Settings\ReceiptSettingController::class, 'update'])->name('update');
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::DEVICE_MANAGEMENT->value)
+        Route::middleware('plan.feature:'.FeatureEnum::OUTLET_MANAGEMENT->value)
             ->prefix('devices')
             ->name('devices.')
             ->group(function () {
@@ -129,7 +129,7 @@ Route::prefix('settings')
                 Route::post('/{device}/unpair', [\App\Http\Controllers\App\Settings\DeviceSettingController::class, 'unpair'])->name('unpair');
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::TAX_AND_SERVICE_CHARGE->value)
+        Route::middleware('plan.feature:'.FeatureEnum::OUTLET_MANAGEMENT->value)
             ->prefix('taxes')
             ->name('taxes.')
             ->group(function () {
@@ -137,7 +137,7 @@ Route::prefix('settings')
                 Route::put('/', [\App\Http\Controllers\App\Settings\TaxSettingController::class, 'update'])->name('update');
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::OPERATIONAL_HOURS->value)
+        Route::middleware('plan.feature:'.FeatureEnum::OUTLET_MANAGEMENT->value)
             ->prefix('operational')
             ->name('operational.')
             ->group(function () {

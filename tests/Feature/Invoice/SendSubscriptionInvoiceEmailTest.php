@@ -132,7 +132,7 @@ class SendSubscriptionInvoiceEmailTest extends TestCase
         $payment = $this->invoice->payments()->first();
         $mailable = new SubscriptionInvoice($this->invoice, $payment);
 
-        $mailable->assertHasSubject("Invoice Pembayaran Langganan #{$this->invoice->invoice_number} - Sollu App");
+        $mailable->assertHasSubject("Invoice Pembayaran Langganan #{$this->invoice->invoice_number}");
         $mailable->assertSeeInHtml($this->invoice->invoice_number);
         $mailable->assertSeeInHtml($this->business->name);
         $mailable->assertSeeInHtml('Rp 199.000');

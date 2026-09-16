@@ -1,4 +1,5 @@
 {
+    "editor.wordWrap": "off",
     // === PHP Executable (Points to Docker App Container via global/project wrapper) ===
     "php.validate.executablePath": "/opt/homebrew/bin/php",
 

@@ -65,9 +65,45 @@ class Feature extends Model
         });
     }
 
+    /**
+     * Get all active features grouped by group_label for UI.
+     *
+     * @return array<string, array<int, array{value: string, label: string, description: string}>>
+     */
+    public static function grouped(): array
+    {
+        $features = static::getAllCached()->where('is_active', true);
+        $groups = [];
+
+        foreach ($features as $feature) {
+            $groupName = $feature->group_label ?: ($feature->group ?: 'Lainnya');
+            $groups[$groupName][] = [
+                'value' => $feature->code,
+                'label' => $feature->name,
+                'description' => $feature->description ?? '',
+            ];
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Get key-value options [code => name] of active features.
+     *
+     * @return array<string, string>
+     */
+    public static function options(): array
+    {
+        return static::getAllCached()
+            ->where('is_active', true)
+            ->pluck('name', 'code')
+            ->toArray();
+    }
+
     public static function clearCache(): void
     {
         Cache::forget('system:features:all');
+        SubscriptionPlan::clearCache();
     }
 
     protected static function booted(): void

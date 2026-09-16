@@ -57,16 +57,11 @@ class BillingController extends Controller
             ->where('due_date', '>', Carbon::now())
             ->first();
 
-        $plans = SubscriptionPlan::query()
-            ->where('is_active', true)
-            ->where(function ($query) use ($subscription) {
-                $query->where('is_public', true);
-                if ($subscription?->plan_id) {
-                    $query->orWhere('id', $subscription->plan_id);
-                }
+        $plans = SubscriptionPlan::getAllCached()
+            ->filter(function ($plan) use ($subscription) {
+                return $plan->is_active && ($plan->is_public || ($subscription?->plan_id && $plan->id === $subscription->plan_id));
             })
-            ->orderBy('price_per_outlet', 'asc')
-            ->get();
+            ->values();
 
         return Inertia::render('Settings/Billing/Plans', [
             'subscription' => $subscription,

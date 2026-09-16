@@ -40,7 +40,10 @@ Route::name('cockpit.')->group(function () {
         Route::post('/subscription-plans', [SubscriptionPlanController::class, 'store'])->name('subscription-plans.store');
         Route::get('/subscription-plans/{id}', [SubscriptionPlanController::class, 'show'])->name('subscription-plans.show');
         Route::put('/subscription-plans/{id}', [SubscriptionPlanController::class, 'update'])->name('subscription-plans.update');
+        Route::delete('/subscription-plans/{id}', [SubscriptionPlanController::class, 'destroy'])->name('subscription-plans.destroy');
         Route::post('/subscription-plans/{id}/toggle-status', [SubscriptionPlanController::class, 'toggleStatus'])->name('subscription-plans.toggle-status');
+        Route::post('/subscription-plans/{id}/toggle-visibility', [SubscriptionPlanController::class, 'toggleVisibility'])->name('subscription-plans.toggle-visibility');
+        Route::put('/subscription-plans/{id}/features', [SubscriptionPlanController::class, 'updateFeatures'])->name('subscription-plans.update-features');
 
         Route::get('/payment-methods', [\App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController::class, 'index'])->name('payment-methods.index');
         Route::post('/payment-methods', [\App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController::class, 'store'])->name('payment-methods.store');

@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('promotions')
     ->middleware('plan.feature:'.FeatureEnum::PROMO_MANAGEMENT->value)
-    ->name('promotions.')->group(function () {
+    ->name('promotions.')
+    ->group(function () {
         Route::post('/{promotion}/publish', [PromotionController::class, 'publish'])->name('publish');
         Route::post('/{promotion}/unpublish', [PromotionController::class, 'unpublish'])->name('unpublish');
     });

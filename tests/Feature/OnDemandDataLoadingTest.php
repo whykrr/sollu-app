@@ -30,7 +30,7 @@ class OnDemandDataLoadingTest extends TestCase
         $this->appDomain = config('domain.app', 'app.sollu.test');
     }
 
-    protected function subscribeBusinessToPlan(User $user, PlanEnum $planEnum = PlanEnum::ULTIMATE): void
+    protected function subscribeBusinessToPlan(User $user, PlanEnum $planEnum = PlanEnum::PRO): void
     {
         setPermissionsTeamId($user->business_id);
         $plan = SubscriptionPlan::where('code', $planEnum->value)->first();

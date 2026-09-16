@@ -6,6 +6,7 @@ use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cockpit\StoreSubscriptionPlanRequest;
+use App\Http\Requests\Cockpit\UpdatePlanFeaturesRequest;
 use App\Http\Requests\Cockpit\UpdateSubscriptionPlanRequest;
 use App\Models\Feature;
 use App\Models\SubscriptionPlan;
@@ -102,6 +103,58 @@ class SubscriptionPlanController extends Controller
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
             "Paket langganan {$plan->name} berhasil {$statusText}."
+        );
+    }
+
+    public function toggleVisibility(Request $request, string $id): RedirectResponse
+    {
+        $plan = SubscriptionPlan::findOrFail($id);
+
+        $plan->update([
+            'is_public' => ! $plan->is_public,
+        ]);
+
+        $visibilityText = $plan->is_public ? 'ditampilkan di katalog publik' : 'disembunyikan dari katalog publik';
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            "Paket langganan {$plan->name} berhasil {$visibilityText}."
+        );
+    }
+
+    public function updateFeatures(UpdatePlanFeaturesRequest $request, string $id): RedirectResponse
+    {
+        $plan = SubscriptionPlan::findOrFail($id);
+        $validated = $request->validated();
+        $featureIds = $validated['feature_ids'] ?? [];
+
+        $plan->systemFeatures()->sync($featureIds);
+        $plan->clearFeatureCache();
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            "Hak akses fitur sistem untuk paket {$plan->name} berhasil diperbarui!"
+        );
+    }
+
+    public function destroy(string $id): RedirectResponse
+    {
+        $plan = SubscriptionPlan::withCount('subscriptions')->findOrFail($id);
+
+        if ($plan->subscriptions_count > 0) {
+            return redirect()->back()->with(
+                FlashDataVariable::FAILED->value,
+                "Paket langganan {$plan->name} tidak dapat dihapus karena masih memiliki riwayat langganan merchant. Anda dapat menonaktifkannya."
+            );
+        }
+
+        $plan->systemFeatures()->detach();
+        $plan->delete();
+        SubscriptionPlan::clearCache();
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::PURGE_SUCCESS
         );
     }
 }

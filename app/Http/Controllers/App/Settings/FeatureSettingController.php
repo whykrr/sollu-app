@@ -4,10 +4,10 @@ namespace App\Http\Controllers\App\Settings;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
-use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
+use App\Models\Feature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -21,17 +21,18 @@ class FeatureSettingController extends Controller
 
         /** @var Business */
         $business = Auth::user()->business;
+        $business->loadMissing('type');
 
         // Base Plan Features (used to determine what's locked vs available to toggle)
         $availableFeatures = $business->getAvailablePlanFeatures();
 
         // Actual Toggled ON features (taking into account user settings & defaults & plan intersection)
-        $activeFeatures = $business->activePlanFeatures();
+        $activeFeatures = $business->activePlanFeatures($availableFeatures);
 
         return Inertia::render('Settings/Business/Features', [
             'availableFeatures' => array_map(fn ($f) => $f->value, $availableFeatures),
             'activeFeatures' => array_map(fn ($f) => $f->value, $activeFeatures),
-            'featureGroups' => FeatureEnum::grouped(),
+            'featureGroups' => Feature::grouped(),
         ]);
     }
 

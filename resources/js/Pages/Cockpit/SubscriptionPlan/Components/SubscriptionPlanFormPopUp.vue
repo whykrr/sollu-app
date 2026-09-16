@@ -85,84 +85,12 @@
             </div>
         </div>
 
-        <!-- Hak Akses Fitur Sistem (System Features) -->
-        <div class="bg-white border border-slate-200 rounded-lg p-3 flex flex-col gap-2.5">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-2">
-                <div>
-                    <h4 class="text-sm font-bold text-slate-800">Hak Akses Fitur Sistem</h4>
-                    <p class="text-xs text-slate-500">
-                        Pilih fitur teknis yang diaktifkan untuk paket ini ({{ form.system_feature_ids.length }} fitur terpilih)
-                    </p>
-                </div>
-                <div class="flex items-center gap-1.5 text-xs">
-                    <button
-                        type="button"
-                        class="btn btn-outline-main btn-xs"
-                        @click="selectAllFeatures"
-                    >
-                        Pilih Semua
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-outline-slate-400 btn-xs"
-                        @click="deselectAllFeatures"
-                    >
-                        Hapus Semua
-                    </button>
-                </div>
-            </div>
-
-            <!-- Grouped System Features -->
-            <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
-                <div
-                    v-for="(features, groupName) in groupedFeatures"
-                    :key="groupName"
-                    class="border border-slate-200 rounded-lg p-2.5 bg-slate-50/50"
-                >
-                    <div class="flex items-center justify-between mb-2 pb-1 border-b border-slate-200/60">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-slate-800">{{ groupName }}</span>
-                            <span class="text-[11px] px-1.5 py-0.2 bg-slate-200 text-slate-700 rounded-full font-medium">
-                                {{ getSelectedCountInGroup(features) }}/{{ features.length }}
-                            </span>
-                        </div>
-                        <button
-                            type="button"
-                            class="text-[11px] text-main hover:underline font-medium"
-                            @click="toggleGroup(features)"
-                        >
-                            {{ isGroupAllSelected(features) ? 'Batal Pilih' : 'Pilih Grup Ini' }}
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                        <label
-                            v-for="feat in features"
-                            :key="feat.id"
-                            class="flex items-start gap-2 p-1.5 rounded hover:bg-white transition-colors cursor-pointer border border-transparent hover:border-slate-200"
-                        >
-                            <input
-                                v-model="form.system_feature_ids"
-                                type="checkbox"
-                                :value="feat.id"
-                                class="mt-0.5 rounded border-slate-300 text-main focus:ring-main h-4 w-4"
-                            />
-                            <div class="text-xs leading-tight">
-                                <div class="font-medium text-slate-800">{{ feat.name }}</div>
-                                <div class="text-[11px] text-slate-500 line-clamp-1">{{ feat.description }}</div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Poin Marketing / Tampilan Fitur di Brosur (Features List) -->
         <div class="bg-white border border-slate-200 rounded-lg p-3 flex flex-col gap-2">
             <div class="flex justify-between items-center border-b border-slate-100 pb-1.5">
                 <div>
-                    <h4 class="text-sm font-bold text-slate-800">Daftar Poin Fitur (Tampilan Brosur)</h4>
-                    <p class="text-xs text-slate-500">Teks poin-poin yang tampil di kartu paket merchant</p>
+                    <h4 class="text-sm font-bold text-slate-800">Daftar Poin Brosur Pemasaran</h4>
+                    <p class="text-xs text-slate-500">Poin ringkas fitur yang tampil pada kartu brosur merchant</p>
                 </div>
                 <button
                     type="button"
@@ -183,19 +111,19 @@
                     <div class="flex-1 space-y-2">
                         <TextField
                             v-model="feature.title"
-                            placeholder="Judul Fitur (cth. Multi Outlet)"
+                            placeholder="Judul Poin (cth. Multi Outlet)"
                             :feedback="form.errors[`features.${index}.title`]"
                         />
                         <TextField
                             v-model="feature.detail"
-                            placeholder="Detail Fitur (cth. Kelola banyak outlet dalam 1 akun)"
+                            placeholder="Detail Poin (cth. Kelola banyak cabang dalam 1 sistem)"
                             :feedback="form.errors[`features.${index}.detail`]"
                         />
                     </div>
                     <button
                         type="button"
                         class="text-danger hover:text-danger/80 p-2 text-sm transition-colors"
-                        title="Hapus Fitur"
+                        title="Hapus Poin"
                         @click="removeFeature(index)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
@@ -204,7 +132,7 @@
             </div>
 
             <div v-else class="text-center py-4 text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg">
-                Belum ada poin fitur ditambahkan untuk brosur paket ini.
+                Belum ada poin brosur ditambahkan untuk paket ini.
             </div>
         </div>
 
@@ -247,10 +175,6 @@ const props = defineProps({
         type: String,
         default: null,
     },
-    allFeatures: {
-        type: Array,
-        default: () => [],
-    },
 });
 
 const popUpStore = usePopUpStore();
@@ -268,50 +192,8 @@ const form = useForm({
     is_active: true,
     is_public: true,
     is_custom: false,
-    system_feature_ids: [],
     features: [],
 });
-
-const groupedFeatures = computed(() => {
-    const groups = {};
-    (props.allFeatures || []).forEach((feat) => {
-        const groupLabel = feat.group_label || feat.group || 'Umum';
-        if (!groups[groupLabel]) {
-            groups[groupLabel] = [];
-        }
-        groups[groupLabel].push(feat);
-    });
-    return groups;
-});
-
-const getSelectedCountInGroup = (features) => {
-    const ids = features.map((f) => f.id);
-    return form.system_feature_ids.filter((id) => ids.includes(id)).length;
-};
-
-const isGroupAllSelected = (features) => {
-    return features.length > 0 && features.every((f) => form.system_feature_ids.includes(f.id));
-};
-
-const toggleGroup = (features) => {
-    const allSelected = isGroupAllSelected(features);
-    const featureIds = features.map((f) => f.id);
-
-    if (allSelected) {
-        form.system_feature_ids = form.system_feature_ids.filter((id) => !featureIds.includes(id));
-    } else {
-        const set = new Set([...form.system_feature_ids, ...featureIds]);
-        form.system_feature_ids = Array.from(set);
-    }
-};
-
-const selectAllFeatures = () => {
-    form.system_feature_ids = (props.allFeatures || []).map((f) => f.id);
-};
-
-const deselectAllFeatures = () => {
-    form.system_feature_ids = [];
-};
 
 onMounted(async () => {
     isMounted.value = true;
@@ -328,7 +210,6 @@ onMounted(async () => {
             form.is_active = Boolean(data.is_active);
             form.is_public = Boolean(data.is_public ?? true);
             form.is_custom = Boolean(data.is_custom ?? false);
-            form.system_feature_ids = (data.system_features || []).map((f) => f.id);
             form.features = Array.isArray(data.features) ? data.features.map((f) => ({ ...f })) : [];
         } catch (err) {
             console.error('Failed to load plan details:', err);

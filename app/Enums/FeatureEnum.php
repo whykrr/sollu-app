@@ -53,7 +53,6 @@ enum FeatureEnum: string
     */
 
     case PROMO_MANAGEMENT = 'promo_management';
-    case DISCOUNT_VOUCHERS = 'discount_vouchers';
 
     /*
     |--------------------------------------------------------------------------
@@ -62,7 +61,6 @@ enum FeatureEnum: string
     */
 
     case CUSTOMER_MANAGEMENT = 'customer_management';
-    case CUSTOMER_LOYALTY = 'customer_loyalty';
 
     /*
     |--------------------------------------------------------------------------
@@ -88,11 +86,6 @@ enum FeatureEnum: string
     case MULTI_OUTLET = 'multi_outlet';
     case OUTLET_MANAGEMENT = 'outlet_management';
     case MULTI_DEVICE = 'multi_device';
-    case OPERATIONAL_HOURS = 'operational_hours';
-    case RECEIPT_CUSTOMIZATION = 'receipt_customization';
-    case TAX_AND_SERVICE_CHARGE = 'tax_and_service_charge';
-    case DEVICE_MANAGEMENT = 'device_management';
-    case CUSTOM_PAYMENT_METHODS = 'custom_payment_methods';
 
     /*
     |--------------------------------------------------------------------------
@@ -102,27 +95,5 @@ enum FeatureEnum: string
 
     case EMPLOYEE_MANAGEMENT = 'employee_management';
     case CUSTOM_ROLE = 'custom_role';
-    case ROLE_PERMISSIONS = 'role_permissions';
-    case UNLIMITED_USERS = 'unlimited_users';
     case AUDIT_LOGS = 'audit_logs';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Integrasi & Platform (Integrations & Platform)
-    |--------------------------------------------------------------------------
-    */
-
-    case PAYMENT_GATEWAY = 'payment_gateway';
-    case POS_DEVICE_SYNC = 'pos_device_sync';
-    case DEVELOPER_API = 'developer_api';
-
-    /**
-     * Seluruh nilai string dari fitur.
-     *
-     * @return array<string>
-     */
-    public static function values(): array
-    {
-        return array_column(self::cases(), 'value');
-    }
 }

@@ -15,6 +15,26 @@ class UserCacheObserver
             return;
         }
 
+        if ($model instanceof \App\Models\SubscriptionPlan) {
+            \App\Models\SubscriptionPlan::clearCache();
+            if ($model->relationLoaded('subscriptions') || $model->subscriptions()->exists()) {
+                $businessIds = $model->subscriptions()->pluck('business_id')->unique();
+                $userIds = \App\Models\User::whereIn('business_id', $businessIds)->pluck('id');
+                foreach ($userIds as $userId) {
+                    SummaryUser::cacheDelete($userId);
+                }
+            }
+
+            return;
+        }
+
+        if ($model instanceof \App\Models\Feature) {
+            \App\Models\Feature::clearCache();
+            \App\Models\SubscriptionPlan::clearCache();
+
+            return;
+        }
+
         if (method_exists($model, 'users')) {
             foreach ($model->users as $user) {
                 SummaryUser::cacheDelete($user->id);
