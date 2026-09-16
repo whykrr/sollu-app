@@ -14,8 +14,7 @@
             </div>
         </div>
         <p v-if="description" class="text-sm text-gray-500">
-            Kelola paket langganan bisnis Anda dan lihat riwayat pembayaran
-            invoice.
+            {{ description }}
         </p>
     </div>
 </template>

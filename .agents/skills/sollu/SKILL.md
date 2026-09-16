@@ -329,11 +329,14 @@ public function store(StoreOutletRequest $request)
 ### 4.1. 🚨 10 Anti-Hallucination Core Rules
 1. **NO RAW HTML FORMS & MANDATORY REUSABLE COMPONENTS:** Selalu gunakan komponen `@/Components/Form/` (`TextField`, `TextareaField`, `DropdownField`, `NumberField`, `Switch`, `CheckboxField`, `RadioField`, `SelectionGroupField`, `AsyncSelectField`, `AsyncOutletDropdown`). DILARANG KERAS menggunakan tag `<input>`, `<select>`, atau `<textarea>` mentah!
 2. **PROJECT-SPECIFIC TAILWIND STYLES:** Gunakan utility class yang sudah didefinisikan di `app.css` (`btn`, `btn-main`, `btn-outline-main`, `btn-danger`, `form`, `form-group`).
-3. **NO HARDCODED PAGE LAYOUTS:** Selalu gunakan `<MainPage>` (`#header`, default slot, `#footer`).
-4. **PRECISE PROPS:** Komponen form menggunakan `v-model`, `label`, `placeholder`, dan `feedback` (pesan error validasi). Dilarang mengikat `is-invalid` secara manual.
-5. **NO TAILWIND CLUTTER:** Ekstrak kelompok class berulang (5+ class) ke `@utility` di `resources/css/app.css`.
-6. **MANDATORY POPUPPAGE FOR SUB-PAGES & FORMS:** Seluruh alur kerja *Create*, *Edit*, *Detail*, dan *Sub-page* WAJIB menggunakan `<PopUpPage>` (side-panel drawer) atau `usePopUpStore()`. DILARANG menggunakan *full page redirect* (`router.get()`) untuk formulir sub-halaman.
-7. **FORM SPACING LIMIT (MAX SCALE 2):** Jarak antar-input formulir DILARANG melebihi scale 2 Tailwind (`space-y-2`, `space-x-2`, `gap-2`, `gap-y-2`, `gap-x-2`).
+3. **MANDATORY MAINPAGE & NON-SCROLLING HEADER:** Selalu gunakan `<MainPage>`. Seluruh kartu ringkasan (*cards*), widget analitik (*widgets*), bar pencarian & filter (*filters*), dan tombol aksi WAJIB diletakkan di slot `<template #header>` (atau `<MainPageHeader>`) agar tetap sticky di atas dan **TIDAK ikut ter-scroll** saat tabel/konten di default slot digulir.
+4. **SPACING SCALE 2 PADA MAINPAGE & MAKSIMAL SCALE 3 PADA KOMPONEN BARU:**
+   - Jarak/gap antar-komponen di atas wrapper `<MainPage>` dan di dalam slot-nya WAJIB berskala 2 (`gap-2`, `space-y-2`, `m-2`, `my-2`, `mt-2`, `mb-2`).
+   - Margin dan padding pada komponen baru DILARANG melebihi skala 3 (`p-3`, `px-3`, `py-3`, `m-3`, `mx-3`, `my-3`).
+   - Jarak antar-input formulir DILARANG melebihi skala 2 (`space-y-2`, `gap-2`).
+5. **MANDATORY POPUPPAGE FOR SUB-PAGES & FORMS (ZERO CHILD OUTER PADDING):** Seluruh alur kerja *Create*, *Edit*, *Detail*, dan *Sub-page* WAJIB menggunakan `<PopUpPage>` (side-panel drawer) atau `usePopUpStore()`. DILARANG menggunakan *full page redirect* (`router.get()`) untuk formulir sub-halaman. Container body `PopUpPage.vue` sudah memiliki padding bawaan di level komponen, sehingga child form/view di dalamnya **DILARANG** menambahkan wrapper padding/margin luar lagi.
+6. **MANDATORY `<Table>` COMPONENT & CENTRALIZED EMPTY STATE:** Seluruh tampilan data tabular WAJIB menggunakan `@/Components/Tables/Table.vue`. Dilarang menulis tag `<table>` mentah. Penanganan *empty state* ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`, DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
+7. **MANDATORY FILTER COMPONENT EXTRACTION:** Setiap halaman yang memiliki filter data (search bar, filter status, filter kategori, date picker, dsb.) **WAJIB diekstrak ke file komponen terpisah** (misal: `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`), bukan ditulis inline di file `Index.vue`.
 8. **STANDARISASI ON-DEMAND DATA LOADING:** Data detail entitas lengkap dan data sekunder (opsi dropdown) WAJIB diambil secara *on-demand / async* via API internal (`axios.get`) saat drawer/modal dibuka. DILARANG memuat relasi berat di props `index()`. Selalu gunakan skeleton loader atau spinner saat menunggu data async.
 9. **MANDATORY ENUM FOR CONDITIONS & FORM OPTIONS (NO MAGIC STRINGS):** DILARANG meng-hardcode string literal status/tipe. WAJIB gunakan `$enums.<EnumName>.<Case>` di template atau composable `useEnum()` (`enums.<EnumName>.<Case>`, `getOptions('EnumName')`).
 10. **MANDATORY BROWSERMCP UI VERIFICATION:** Setiap pembuatan/perubahan komponen Vue WAJIB diverifikasi visual dan fungsional via `browsermcp` (navigasi URL, screenshot, snapshot DOM, inspeksi console logs).
@@ -343,39 +346,77 @@ public function store(StoreOutletRequest $request)
 - **Import Order:** 1. Vue core (`ref`, `computed`) → 2. Inertia (`router`, `useForm`) → 3. Third-party (`lodash`, `FontAwesomeIcon`) → 4. Global components (`@/Components/`) → 5. Stores/Composables → 6. Local components (`./Components/`).
 - **Script Setup Order:** `defineOptions` → `defineProps`/`defineEmits` → Stores/Composables → Reactive state (`ref`, `reactive`) → `computed` → Methods → Watchers → Lifecycle hooks.
 
-### 4.3. PopUpPage vs Modal (Distingsi Ketat)
+### 4.3. Standard Page Layout Pattern (`MainPage` & `MainPageHeader`)
+Seluruh halaman utama modul menerapkan arsitektur layout terstandarisasi berikut:
+
+```vue
+<template>
+    <MainPage>
+        <!-- 1. Slot Widgets (Opsional: Metrik Analitik KPI) -->
+        <template v-if="$slots.widgets" #widgets>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <Widget ... />
+            </div>
+        </template>
+
+        <!-- 2. Slot Header (NON-SCROLLABLE: Judul, Aksi, Filter Bar, Kartu Ringkasan) -->
+        <template #header>
+            <MainPageHeader title="Data Produk" description="Kelola seluruh katalog dan harga barang">
+                <button class="btn btn-flat btn-sm" @click="exportCsv">
+                    <FontAwesomeIcon :icon="faDownload" /> Ekspor Data
+                </button>
+                <button class="btn btn-highlight-main" @click="openCreate">
+                    <FontAwesomeIcon :icon="faPlus" /> Tambah Produk
+                </button>
+            </MainPageHeader>
+            <!-- Komponen filter yang diekstrak terpisah -->
+            <ProductFilter :filters="filters" :categories="categories" />
+        </template>
+
+        <!-- 3. Default Slot (SCROLLABLE CONTAINER: Tabel Data) -->
+        <Table :headers="headers" :data="products.data" :action="true">
+            <template #status="{ row }">
+                <span class="badge" :class="$enums.ProductStatus._meta[row.status]?.color">
+                    {{ $enums.ProductStatus._meta[row.status]?.label }}
+                </span>
+            </template>
+            <template #actions="{ row }">
+                <button class="btn btn-flat btn-sm" @click="openEdit(row)">
+                    <FontAwesomeIcon :icon="faPen" />
+                </button>
+            </template>
+        </Table>
+
+        <!-- 4. Slot Footer (Pagination Bar) -->
+        <template #footer>
+            <Pagination :meta="products.meta || products" />
+        </template>
+    </MainPage>
+</template>
+```
+
+### 4.4. Side Drawer (`PopUpPage`) vs Center Dialog (`Modal`)
 - **`<PopUpPage>` / `usePopUpStore()` (Side Drawer Kanan):** WAJIB untuk formulir input, tampilan detail, sub-halaman, dan alur langkah berikutnya.
+  - **Zero Outer Child Padding:** Body `.modal-body` di `PopUpPage.vue` sudah menerapkan padding komponen. Child form yang dirender di dalam drawer DILARANG menambahkan wrapper padding/margin luar lagi.
   - **Teleport Footer Pattern:** Komponen di dalam `PopUpPage` menggunakan `<Teleport v-if="isMounted" to="#popUpFooter">` untuk mengirim tombol aksi ke footer sticky drawer.
-- **`<Modal>` / `useModalStore()` (Center Dialog):** STRICTLY khusus untuk konfirmasi singkat (Hapus, Archive, Alert Peringatan).
+- **`<Modal>` / `useModalStore()` (Center Dialog):** STRICTLY khusus untuk konfirmasi singkat (Hapus Data, Archive, Alert Peringatan).
 
-### 4.4. UI Components & Formatting Standards
-- **Quantity Display (`HasQuantityFormatter`):** Selalu tampilkan kuantitas dari properti trait backend (`item.qty_formatted`, `item.qty_received_formatted`). Dilarang memformat angka kuantitas secara manual di frontend.
-- **Partial Loading & Skeleton:** Selalu sertakan skeleton loader / spinner / teks `"Memuat..."` (`animate-pulse bg-gray-200 rounded`) saat menunggu fetch data async.
-
-### 4.5. Table Filter Pattern
-- **Layout:** `flex items-center gap-2`, `<FilterSearch>`, tombol Filter (`faSliders`) untuk membuka `<FilterModal>`, dan badge filter aktif via `<FilterBadge>`.
+### 4.5. Table Filter Pattern & Ekstraksi Komponen
+- Setiap filter halaman WAJIB diekstrak ke file terpisah (misal: `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue`).
+- **Layout Filter:** `flex items-center gap-2`, `<FilterSearch>`, tombol Filter (`faSliders`) untuk membuka `<FilterModal>`, dan badge filter aktif via `<FilterBadge>`.
 - **Workflow & Debouncing:** Inisialisasi `filterForm` dari `props.filters`, watcher 500ms debounce pada `filterForm.search` yang memanggil `updateQuery()`.
 - **`updateQuery`:** Merge `route().params` dengan filter aktif, konversi string kosong `''` menjadi `undefined`, reset `page: 1`, lalu panggil `router.get(location.pathname, query, { preserveState: true, preserveScroll: true })`.
 
-### 4.6. SelectionGroupField (`@/Components/Form/SelectionGroupField.vue`)
-
-```html
-<!-- Single Select (Radio Button Style) -->
-<SelectionGroupField
-    v-model="form.gender"
-    label="Jenis Kelamin"
-    :options="[{ value: 'male', label: 'Laki-laki' }, { value: 'female', label: 'Perempuan' }]"
-/>
-
-<!-- Multi Select (Checkbox Button Style with Select All) -->
-<SelectionGroupField
-    v-model="form.outlets"
-    label="Pilih Outlet"
-    :options="outlets"
-    multiple
-    show-select-all
-/>
-```
+### 4.6. Built-in Component Catalog Matrix (`@/Components/`)
+Seluruh AI Agent WAJIB memprioritaskan dan memaksimalkan penggunaan komponen bawaan proyek:
+- **Layout & UI (`@/Components/UI/`):** `MainPage`, `MainPageHeader`, `PopUpPage`, `PopUpContainer`, `Card`, `CardFade`, `ExportDropdown`, `Tab`, `FeatureLock`, `FeatureLockOverlay`, `FilterSearch`, `FilterModal`, `FilterBadge`, `FilterStatus`, `FilterTrashData`.
+- **Formulir (`@/Components/Form/`):** `TextField`, `TextareaField`, `NumberField`, `PasswordField`, `PinField`, `EmailField`, `DropdownField`, `AsyncSelectField`, `AsyncOutletDropdown`, `Switch`, `CheckboxField`, `RadioField`, `SelectionGroupField`, `QuillEditor`, `GroupTextIconField`, `GroupDropdownIconField`.
+- **Tabel (`@/Components/Tables/`):** `Table` (dengan empty state otomatis), `Pagination`, `DraggableTable`.
+- **Widgets (`@/Components/Widgets/`):** `Widget` (KPI trend), `WidgetChart` (grafik sparkline), `WidgetProgress` (progress bar).
+- **Tombol (`@/Components/Button/`):** `ButtonBack`, `ButtonGroupArchive`, `ButtonIconGroupArchive`.
+- **Notifikasi & Modal (`@/Components/Notifications/` & `@/Components/Modals/`):** `Modal`, `ModalContainer`, `Toast`, `ToastContainer`, `FeatureLockedModal`, `ImportCsvModal`.
+- **Kartu Transparan (`@/Components/Cards/`):** `CardTransparent`.
+- *Lihat panduan lengkap di file `resources/js/Components/AGENTS.md` dan `AGENTS.md` pada setiap folder komponen.*
 
 ### 4.7. Frontend Dead Code Removal Standards
 1. **Clean Unused Imports:** Hapus semua `import` komponen, ikon, composable, atau helper yang tidak dipanggil. Jalankan `npm run fix:eslint`.
@@ -590,6 +631,11 @@ if (can('settings.outlets.create')) {
 9. **NO BusinessTypeEnum:** Dilarang membuat atau mencari `BusinessTypeEnum`. Tipe bisnis dikelola 100% dinamis di database (`business_types` table). Gunakan `BusinessType::getAllCached()` atau `BusinessType::options()`.
 10. **NO Hardcoded Plan Features in Enums:** Dilarang meng-hardcode pemetaan paket di `PlanEnum.php`. Seluruh relasi paket-fitur disimpan di tabel database `plan_features` (`SubscriptionPlan::systemFeatures()`).
 11. **NO SaaS Gating on Operational Export/Import:** Dilarang memasang middleware `plan.feature` pada route ekspor dan impor. Gunakan otorisasi Spatie RBAC (`PermissionEnum`).
+12. **NO Raw HTML Forms & Tables:** Dilarang keras memakai `<input>`, `<select>`, `<textarea>`, atau `<table>` mentah. Wajib gunakan `@/Components/Form/` dan `@/Components/Tables/Table.vue`.
+13. **NO Spacing Violation:** Dilarang menggunakan spacing melebihi scale 2 pada `MainPage` / form inputs, dan dilarang melebihi scale 3 pada margin/padding komponen baru.
+14. **NO Redundant PopUpPage Child Padding:** Dilarang menambahkan wrapper padding/margin luar pada child view yang dirender di dalam `PopUpPage`.
+15. **NO Inline Table Filters:** Dilarang menuliskan filter bar panjang inline di `Index.vue`; wajib diekstrak ke komponen terpisah (`Components/{Entity}Filter.vue`).
+16. **NO Manual Empty State Duplication:** Dilarang membuat blok `v-if="data.length === 0"` manual; penanganan empty state wajib terpusat di komponen `<Table>`.
 
 ### 8.3. Definition of Done (DoD) Checklist
 - [ ] Backend logic & endpoints tested and returning accurate HTTP status codes.
@@ -597,6 +643,11 @@ if (can('settings.outlets.create')) {
 - [ ] Dokumentasi framework & package diverifikasi via MCP `laravel-boost` (`search-docs`).
 - [ ] Controller response messages use `App\Constants\*` (`ResourceMessage`, `FlashDataVariable`) or translation files without hardcoded strings.
 - [ ] Query & Eloquent teroptimasi (Eager loading, kolom spesifik, `exists()`, batch `insert`/`upsert`, batas query).
+- [ ] Frontend layout mematuhi standarisasi `<MainPage>` (`#header` untuk non-scrolling card/widget/filter, default slot untuk `<Table>`, `#footer` untuk `<Pagination>`).
+- [ ] Header halaman menggunakan `<MainPageHeader>` dengan title, description, dan action buttons konsisten.
+- [ ] Seluruh filter diekstrak ke komponen terpisah (`Components/{Entity}Filter.vue`).
+- [ ] Seluruh tampilan data tabel menggunakan `@/Components/Tables/Table.vue` dengan empty state terpusat di level Table.
+- [ ] Spacing mematuhi batas (MainPage & form scale 2, komponen baru margin/padding max scale 3, PopUpPage child zero outer padding).
 - [ ] Frontend UI verified visually and functionally via `browsermcp` (navigasi URL, screenshot, snapshot, console log check).
 - [ ] Semua dead code (commented-out code, unused imports, orphaned methods, obsolete routes) telah dihapus.
 - [ ] Code formatted with `vendor/bin/pint` and `npm run fix:eslint`.

@@ -68,4 +68,31 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 - **Commands:** Jalankan `npm run format` untuk auto-format dan `npm run lint` untuk cek kode.
 - **VS Code:** Selalu gunakan setting workspace yang telah dikonfigurasi (`editor.formatOnSave: true`, formatters per bahasa).
 
+---
+
+## D. Frontend Page Creation & Spacing Standards
+
+**1. Layout `MainPage` & Non-Scrolling Header**
+- Seluruh halaman modul wajib menggunakan `<MainPage>`.
+- Seluruh kartu (*cards*), widget KPI (*widgets*), bar pencarian & filter (*filters*), serta tombol aksi WAJIB berada di slot `<template #header>` (atau `<MainPageHeader>`), BUKAN di default slot. Default slot HANYA untuk tabel data / konten scrollable.
+
+**2. Batasan Spacing & Skala Tailwind**
+- Jarak antar-komponen di atas `<MainPage>` dan di dalam slot-nya WAJIB berskala 2 (`gap-2`, `gap-y-2`, `gap-x-2`, `space-y-2`, `space-x-2`, `m-2`, `my-2`, `mt-2`, `mb-2`).
+- Margin dan padding pada komponen baru DILARANG melebihi skala 3 (`p-3`, `px-3`, `py-3`, `m-3`, `mx-3`, `my-3`).
+- Jarak antar-input formulir DILARANG melebihi skala 2 (`space-y-2`, `gap-2`).
+
+**3. Isolasi Spacing `PopUpPage`**
+- Body `.modal-body` di `PopUpPage.vue` sudah memiliki padding bawaan. Child form/view yang dirender di dalam PopUpPage DILARANG menambahkan wrapper padding atau margin luar lagi.
+
+**4. Ekstraksi Wajib Komponen Filter**
+- Seluruh filter halaman WAJIB diekstrak ke komponen terpisah di `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`. DILARANG menulis filter inline di `Index.vue`.
+
+**5. Wajib Menggunakan Komponen `<Table>` & Empty State Terpusat**
+- Seluruh data tabel WAJIB ditampilkan melalui `@/Components/Tables/Table.vue`. DILARANG menggunakan tag `<table>` mentah.
+- Penanganan *empty state* ("data tidak ditemukan") dikelola terpusat di level komponen `<Table>`. DILARANG menduplikasi blok `v-if="data.length === 0"` manual di masing-masing page.
+
+**6. Pemanfaatan Maksimal Komponen Bawaan Proyek**
+- AI Agent WAJIB membaca dan mematuhi panduan `AGENTS.md` di folder `resources/js/Components/` dan mengutamakan komponen bawaan (`TextField`, `DropdownField`, `NumberField`, `SelectionGroupField`, `Switch`, `Table`, `Pagination`, `Widget`, `Modal`, dll) sebelum membuat markup baru.
+
+
 

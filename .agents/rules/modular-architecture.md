@@ -24,5 +24,5 @@ Aplikasi dibagi dalam modul mandiri (Inventory, Master, Sales, dll). Setiap modu
 **4. Struktur Anatomi File**
 
 - **Backend:** `Controllers`, `Services`, `Events`, `Listeners`, `Models`, dan `Requests` diletakkan dalam namespace `App\...\App\{Module}`.
-- **Frontend:** `resources/js/Pages/App/{Module}/Components` bersifat PRIVAT untuk modul itu saja.
+- **Frontend:** `resources/js/Pages/App/{Module}/Components` bersifat PRIVAT untuk modul itu saja (e.g. `{Entity}FormPopUp.vue`, `{Entity}DetailPopUp.vue`, `{Entity}Filter.vue`). Kontrol filter WAJIB diekstrak ke komponen privat modul ini.
 - **Testing:** Unit test Service WAJIB 100% Mocking (`tests/Unit/Services/{Module}`).

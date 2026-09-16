@@ -6,13 +6,16 @@ Standar pengembangan frontend **Sollu App** berbasis **Vue 3 (Composition API `<
 
 ## 1. 🚨 10 Anti-Hallucination Core Rules
 
-1. **NO RAW HTML FORMS:** Dilarang keras menuliskan tag `<input>`, `<select>`, atau `<textarea>` mentah. Wajib menggunakan komponen dari `@/Components/Form/`.
+1. **NO RAW HTML FORMS & TABLES:** Dilarang keras menuliskan tag `<input>`, `<select>`, `<textarea>`, atau `<table>` mentah. Wajib menggunakan komponen dari `@/Components/Form/` dan `@/Components/Tables/Table.vue`.
 2. **PROJECT-SPECIFIC TAILWIND STYLES:** Gunakan utility class bawaan proyek di `app.css` (`btn`, `btn-main`, `btn-outline-main`, `btn-danger`, `form`, `form-group`, dll).
-3. **NO HARDCODED PAGE LAYOUTS:** Seluruh halaman utama wajib dibungkus dengan komponen `<MainPage>` (`#header`, default slot, `#footer`).
-4. **PRECISE COMPONENT PROPS:** Komponen form standar menerima `v-model`, `label`, `placeholder`, dan `feedback` (pesan error validasi). Dilarang mengikat class `is-invalid` manual.
-5. **NO TAILWIND CLUTTER:** Ekstrak kelompok class berulang (5+ class) menjadi `@utility` di `resources/css/app.css`.
-6. **MANDATORY POPUPPAGE FOR SUB-PAGES & FORMS:** Seluruh alur kerja Create, Edit, Detail, dan Sub-page **WAJIB** menggunakan `<PopUpPage>` (side-drawer kanan) atau `usePopUpStore()`. DILARANG menggunakan *full page redirect* (`router.get()`) untuk form sub-halaman.
-7. **FORM SPACING LIMIT (MAX SCALE 2):** Jarak antar-input formulir DILARANG melebihi scale 2 Tailwind (`space-y-2`, `space-x-2`, `gap-2`, `gap-y-2`, `gap-x-2`).
+3. **MANDATORY MAINPAGE & NON-SCROLLING HEADER:** Seluruh halaman utama wajib dibungkus dengan komponen `<MainPage>`. Seluruh kartu (*cards*), widget KPI (*widgets*), bar pencarian & filter (*filters*), serta tombol aksi WAJIB diletakkan di slot `<template #header>` (atau `<MainPageHeader>`) agar tetap sticky di atas dan **TIDAK ikut ter-scroll** saat tabel/konten di default slot digulir.
+4. **SPACING SCALE 2 PADA MAINPAGE & MAKSIMAL SCALE 3 PADA KOMPONEN BARU:**
+   - Jarak antar-komponen di atas `<MainPage>` dan di dalam slot-nya WAJIB berskala 2 (`gap-2`, `gap-y-2`, `gap-x-2`, `space-y-2`, `space-x-2`, `m-2`, `my-2`, `mt-2`, `mb-2`).
+   - Margin dan padding pada komponen baru DILARANG melebihi skala 3 (`p-3`, `px-3`, `py-3`, `m-3`, `mx-3`, `my-3`).
+   - Jarak antar-input formulir DILARANG melebihi skala 2 (`space-y-2`, `gap-2`).
+5. **MANDATORY POPUPPAGE (ZERO CHILD OUTER PADDING):** Seluruh alur kerja Create, Edit, Detail, dan Sub-page **WAJIB** menggunakan `<PopUpPage>` (side-drawer kanan) atau `usePopUpStore()`. DILARANG menggunakan *full page redirect* (`router.get()`) untuk form sub-halaman. Container body `PopUpPage.vue` sudah memiliki padding bawaan di level komponen, sehingga child form/view di dalamnya **DILARANG** menambahkan wrapper padding/margin luar lagi.
+6. **MANDATORY `<Table>` COMPONENT & CENTRALIZED EMPTY STATE:** Seluruh tampilan data tabular WAJIB menggunakan `@/Components/Tables/Table.vue`. Dilarang menulis tag `<table>` mentah. Penanganan *empty state* ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`, DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
+7. **MANDATORY FILTER COMPONENT EXTRACTION:** Setiap halaman yang memiliki filter data (search bar, filter status, filter kategori, date picker, dsb.) **WAJIB diekstrak ke file komponen terpisah** (misal: `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`), bukan ditulis inline di file `Index.vue`.
 8. **STANDARISASI ON-DEMAND DATA LOADING:** Data detail entitas lengkap dan data lookup form (opsi dropdown) WAJIB dimuat secara *asynchronous* (Axios) hanya saat drawer dibuka. Wajib menyertakan skeleton loader / spinner saat fetching.
 9. **MANDATORY ENUM FOR CONDITIONS & FORM OPTIONS:** Dilarang keras menggunakan string literal/hardcode. Selalu gunakan `$enums.<EnumName>.<Case>` atau `useEnum()`.
 10. **MANDATORY BROWSERMCP UI VERIFICATION:** Setiap pembuatan/perubahan komponen Vue WAJIB diverifikasi visual dan fungsional via `browsermcp` (navigasi URL, snapshot DOM, screenshot, dan console logs).
@@ -23,63 +26,77 @@ Standar pengembangan frontend **Sollu App** berbasis **Vue 3 (Composition API `<
 
 ```
 resources/js/
-├── Components/          # Global reusable UI & Form components
+├── Components/          # Global reusable UI & Form components (Lihat AGENTS.md)
+│   ├── Button/          # ButtonBack.vue, ButtonGroupArchive.vue, ButtonIconGroupArchive.vue
+│   ├── Cards/           # CardTransparent.vue
 │   ├── Form/            # TextField, DropdownField, NumberField, SelectionGroupField, etc.
-│   ├── Modal/           # Modal.vue, ConfirmModal.vue
-│   ├── PopUpPage/       # PopUpPage.vue, PopUpPageHeader.vue
-│   ├── Table/           # Table.vue, Pagination.vue, FilterSearch.vue, FilterBadge.vue
-│   └── FeatureLock/     # FeatureLock.vue, FeatureLockOverlay.vue, FeatureLockedModal.vue
-├── Composable/          # Vue composables (useAuth, useEnum, usePlanFeature, useDebounce)
+│   ├── Modals/          # FeatureLockedModal.vue, ImportCsvModal.vue
+│   ├── Notifications/   # Modal.vue, ModalContainer.vue, Toast.vue, ToastContainer.vue
+│   ├── Tables/          # Table.vue, Pagination.vue, DraggableTable.vue
+│   ├── UI/              # MainPage.vue, MainPageHeader.vue, PopUpPage.vue, Tab.vue, Filter/*
+│   └── Widgets/         # Widget.vue, WidgetChart.vue, WidgetProgress.vue
+├── Composable/          # Vue composables (useAuth, useEnum, usePlanFeature, useDropdown)
 ├── Pages/               # Inertia page views
 │   ├── App/             # Merchant application modules
-│   │   ├── Inventory/   # Index.vue, Components/ (PopUp form, detail, filter privat)
+│   │   ├── Inventory/   # Index.vue, Components/ ({Entity}FormPopUp, Detail, Filter)
 │   │   ├── Master/      # Index.vue, Components/
 │   │   └── ...          # Modul lainnya
 │   └── Cockpit/         # Admin panel pages
 ├── store/               # Pinia state stores (usePopUpStore, useModalStore, useToastStore)
-├── Layout/              # Master layouts (MainPage.vue, AuthLayout.vue)
+├── Layout/              # Master layouts (AppLayout.vue, AuthLayout.vue)
 └── app.js               # Inertia client bootstrap & plugin registrations
 ```
 
 ---
 
-## 3. Form Components System (`@/Components/Form/`)
+## 3. Standard Page Layout (`MainPage` & `MainPageHeader`)
 
-Seluruh input form wajib menggunakan komponen resmi berikut:
+Pola struktur utama untuk seluruh halaman modul:
 
-| Komponen Form | Deskripsi & Contoh Penggunaan |
-| :--- | :--- |
-| **`TextField`** | Input teks standar (`type="text"`, `"email"`, `"password"`). `<TextField v-model="form.name" label="Nama Barang" :feedback="form.errors.name" />` |
-| **`NumberField`** | Input numerik dengan auto formatting mata uang / desimal. `<NumberField v-model="form.price" label="Harga Jual" prefix="Rp" />` |
-| **`TextareaField`** | Input area teks multiline. `<TextareaField v-model="form.notes" label="Catatan" rows="3" />` |
-| **`DropdownField`** | Dropdown pilihan statis/enum. `<DropdownField v-model="form.status" :options="getOptions('AdjustmentStatus')" label="Status" />` |
-| **`AsyncSelectField`** | Dropdown pencarian async untuk dataset besar (produk, bahan, pelanggan). |
-| **`AsyncOutletDropdown`** | Dropdown khusus untuk pemilihan outlet tenant secara async. |
-| **`Switch`** | Toggle switch boolean aktif/non-aktif. `<Switch v-model="form.is_active" label="Aktifkan Menu" />` |
-| **`CheckboxField`** | Pilihan kotak centang tunggal. |
-| **`RadioField`** | Pilihan tombol radio tunggal. |
-| **`SelectionGroupField`** | Grup tombol pilihan (pola pill/segmented radio atau checkbox multi-select dengan *Select All*). |
-
-### 3.1. Contoh SelectionGroupField
 ```vue
-<!-- Single Select (Segmented Radio) -->
-<SelectionGroupField
-    v-model="form.type"
-    label="Tipe Penyesuaian"
-    :options="[
-        { value: 'addition', label: 'Penambahan (+)' },
-        { value: 'reduction', label: 'Pengurangan (-)' }
-    ]"
-/>
+<template>
+    <MainPage>
+        <!-- 1. Slot Widgets (Opsional: Metrik Analitik KPI) -->
+        <template v-if="$slots.widgets" #widgets>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <Widget ... />
+            </div>
+        </template>
 
-<!-- Multi Select (Checkbox Buttons dengan Select All) -->
-<SelectionGroupField
-    v-model="form.outlet_ids"
-    label="Pilih Outlet Berlaku"
-    :options="outletOptions"
-    multiple
-    show-select-all
-/>
+        <!-- 2. Slot Header (NON-SCROLLABLE: Judul, Aksi, Filter Bar, Kartu Ringkasan) -->
+        <template #header>
+            <MainPageHeader title="Data Produk" description="Kelola seluruh katalog dan harga barang">
+                <button class="btn btn-flat btn-sm" @click="exportCsv">
+                    <FontAwesomeIcon :icon="faDownload" /> Ekspor Data
+                </button>
+                <button class="btn btn-highlight-main" @click="openCreate">
+                    <FontAwesomeIcon :icon="faPlus" /> Tambah Produk
+                </button>
+            </MainPageHeader>
+            <!-- Komponen filter yang diekstrak terpisah -->
+            <ProductFilter :filters="filters" :categories="categories" />
+        </template>
+
+        <!-- 3. Default Slot (SCROLLABLE CONTAINER: Tabel Data) -->
+        <Table :headers="headers" :data="products.data" :action="true">
+            <template #status="{ row }">
+                <span class="badge" :class="$enums.ProductStatus._meta[row.status]?.color">
+                    {{ $enums.ProductStatus._meta[row.status]?.label }}
+                </span>
+            </template>
+            <template #actions="{ row }">
+                <button class="btn btn-flat btn-sm" @click="openEdit(row)">
+                    <FontAwesomeIcon :icon="faPen" />
+                </button>
+            </template>
+        </Table>
+
+        <!-- 4. Slot Footer (Pagination Bar) -->
+        <template #footer>
+            <Pagination :meta="products.meta || products" />
+        </template>
+    </MainPage>
+</template>
 ```
 
 ---
@@ -95,8 +112,10 @@ Sollu App membedakan dengan tegas fungsi antara drawer samping dan modal tengah:
     │         Main Page Content            │   (Side Drawer Kanan) │
     │         (<MainPage>)                 │                       │
     │                                      │   - Form Create/Edit  │
-    │         - Tabel Data                 │   - Detail Entitas    │
-    │         - Filter Bar                 │   - Sub-page Flows    │
+    │         - Tabel Data (Scrollable)    │   - Detail Entitas    │
+    │         - Non-scroll Header (Sticky) │   - Sub-page Flows    │
+    │                                      │   - Zero Outer Child  │
+    │                                      │     Padding           │
     │                                      │   - Sticky Footer:    │
     │                                      │     #popUpFooter      │
     │                                      │                       │
@@ -112,6 +131,7 @@ Sollu App membedakan dengan tegas fungsi antara drawer samping dan modal tengah:
 ```vue
 <template>
     <PopUpPage :show="isOpen" :title="isEdit ? 'Edit Barang' : 'Tambah Barang'" @close="closeDrawer">
+        <!-- Zero outer padding (modal-body sudah memiliki padding bawaan) -->
         <form class="space-y-2" @submit.prevent="submit">
             <TextField v-model="form.name" label="Nama Barang" :feedback="form.errors.name" />
             <DropdownField v-model="form.uom_id" :options="uomOptions" label="Satuan" />
@@ -119,7 +139,7 @@ Sollu App membedakan dengan tegas fungsi antara drawer samping dan modal tengah:
 
             <!-- Sticky Footer Action via Teleport -->
             <Teleport v-if="isMounted" to="#popUpFooter">
-                <div class="flex items-center justify-end gap-2 p-3 bg-white border-t border-gray-100">
+                <div class="flex items-center justify-end gap-2">
                     <button type="button" class="btn btn-outline-secondary" @click="closeDrawer">
                         Batal
                     </button>
@@ -135,7 +155,7 @@ Sollu App membedakan dengan tegas fungsi antara drawer samping dan modal tengah:
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import PopUpPage from '@/Components/PopUpPage/PopUpPage.vue'
+import PopUpPage from '@/Components/UI/PopUpPage.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
@@ -196,20 +216,40 @@ if (item.status === enums.AdjustmentStatus.Draft) {
 
 ---
 
-## 6. Table Filter & URL Sync Pattern
+## 6. Table Filter & URL Sync Pattern (Diekstrak ke Komponen)
 
-Setiap halaman modul dengan tabel menerapkan pola filter responsif dan ter-debounce:
+Setiap filter modul diekstrak ke file komponen terpisah (`Components/{Entity}Filter.vue`):
 
 ```vue
+<template>
+    <div class="flex flex-wrap items-center gap-2">
+        <FilterSearch v-model="filterForm.search" />
+        <div class="w-44">
+            <DropdownField
+                v-model="filterForm.status"
+                :options="[{ value: '', label: 'Semua Status' }, ...statusOptions]"
+                placeholder="Pilih Status"
+            />
+        </div>
+        <FilterBadge v-if="filterForm.status" @remove="filterForm.status = ''">
+            Status: {{ getLabel('ProductStatus', filterForm.status) }}
+        </FilterBadge>
+    </div>
+</template>
+
 <script setup>
 import { reactive, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import debounce from 'lodash/debounce'
-import FilterSearch from '@/Components/Table/FilterSearch.vue'
-import FilterBadge from '@/Components/Table/FilterBadge.vue'
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import { useEnum } from '@/Composable/useEnum'
+
+const { getOptions, getLabel } = useEnum()
+const statusOptions = getOptions('ProductStatus')
 
 const props = defineProps({
-    items: Object,
     filters: Object,
 })
 
@@ -229,6 +269,6 @@ const updateQuery = debounce(() => {
     })
 }, 500)
 
-watch(() => filterForm.search, () => updateQuery())
+watch(() => [filterForm.search, filterForm.status], () => updateQuery())
 </script>
 ```
