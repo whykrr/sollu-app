@@ -64,6 +64,7 @@ class BusinessTypeController extends Controller
 
     public function update(UpdateBusinessTypeRequest $request, int $id): RedirectResponse
     {
+        /** @var BusinessType */
         $businessType = BusinessType::findOrFail($id);
 
         $this->businessTypeService->update($businessType, $request->validated());
@@ -76,6 +77,7 @@ class BusinessTypeController extends Controller
 
     public function toggleVisibility(Request $request, int $id): RedirectResponse
     {
+        /** @var BusinessType */
         $businessType = BusinessType::findOrFail($id);
 
         $this->businessTypeService->toggleVisibility($businessType);
@@ -90,6 +92,7 @@ class BusinessTypeController extends Controller
 
     public function updateFeatures(UpdateBusinessTypeFeaturesRequest $request, int $id): RedirectResponse
     {
+        /** @var BusinessType */
         $businessType = BusinessType::findOrFail($id);
 
         $this->businessTypeService->updateFeatures(

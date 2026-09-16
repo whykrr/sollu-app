@@ -68,7 +68,7 @@ class BusinessType extends Model
      *
      * @return Collection<int, BusinessType>
      */
-    public static function getAllCached(): Collection
+    public static function getAllCached()
     {
         return Cache::rememberForever(self::CACHE_KEY, function () {
             return static::orderBy('sort_order')->orderBy('name')->get();
