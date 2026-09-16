@@ -26,7 +26,6 @@
                 v-model:search="searchQuery"
                 v-model:status="statusFilter"
                 v-model:visibility="visibilityFilter"
-                v-model:sort="sortBy"
                 :plans-count="plans.length"
                 :active-count="activeCount"
                 :inactive-count="inactiveCount"
@@ -35,7 +34,13 @@
                 :custom-count="customCount"
             />
         </template>
-        <Table :headers="tableHeaders" :data="displayedPlans" :action="true">
+        <Table
+            :headers="tableHeaders"
+            :data="displayedPlans"
+            :action="true"
+            :sort="typeof params?.sort === 'string' ? params.sort : 'price_per_outlet'"
+            :sort-direction="typeof params?.direction === 'string' ? params.direction : 'asc'"
+        >
             <template #code_name="{ row }">
                 <div class="py-1">
                     <div class="flex items-center gap-1.5 flex-wrap">
@@ -100,7 +105,7 @@
                     @click="openManageFeatures(row)"
                 >
                     <FontAwesomeIcon :icon="faSliders" class="text-[10px]" />
-                    <span>{{ row.system_features?.length || 0 }} Fitur</span>
+                    <span>{{ row.features_count ?? row.system_features?.length ?? 0 }} Fitur</span>
                 </button>
             </template>
 
@@ -166,29 +171,30 @@
                 <div class="flex items-center gap-1 justify-end">
                     <button
                         type="button"
-                        class="btn btn-outline-main btn-xs text-[11px] px-2 py-1"
+                        class="btn btn-outline-main btn-xs"
                         title="Atur Hak Akses Fitur Sistem"
                         @click="openManageFeatures(row)"
                     >
-                        <FontAwesomeIcon :icon="faSliders" class="mr-1 text-[10px]" />
+                        <FontAwesomeIcon :icon="faSliders" class="text-[10px]" />
                         Fitur
                     </button>
                     <button
                         type="button"
-                        class="btn btn-outline-main btn-xs text-[11px] px-2 py-1"
+                        class="btn btn-outline-warning btn-xs"
                         title="Edit Data Dasar Paket"
                         @click="openEdit(row.id)"
                     >
-                        <FontAwesomeIcon :icon="faPencil" class="mr-1 text-[10px]" />
+                        <FontAwesomeIcon :icon="faPencil" class="text-[10px]" />
                         Edit
                     </button>
                     <button
                         type="button"
-                        class="btn btn-outline-danger btn-xs text-[11px] px-2 py-1"
+                        class="btn btn-outline-danger btn-xs"
                         title="Hapus Paket"
                         @click="confirmDelete(row)"
                     >
                         <FontAwesomeIcon :icon="faTrash" class="text-[10px]" />
+                        Hapus
                     </button>
                 </div>
             </template>
@@ -226,9 +232,9 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-    allFeatures: {
-        type: Array,
-        default: () => [],
+    params: {
+        type: Object,
+        default: () => ({}),
     },
 })
 
@@ -239,15 +245,14 @@ const modalStore = useModalStore()
 const searchQuery = ref('')
 const statusFilter = ref('all')
 const visibilityFilter = ref('all')
-const sortBy = ref('price_asc')
 
 const tableHeaders = [
-    { field: 'name', label: 'Paket & Kode', slot: 'code_name' },
-    { field: 'price_per_outlet', label: 'Harga / Outlet', slot: 'price' },
-    { field: 'features_count', label: 'Fitur Sistem', slot: 'features' },
-    { field: 'subscriptions_count', label: 'Pelanggan Aktif', slot: 'subscribers' },
-    { field: 'is_public', label: 'Katalog', slot: 'is_public' },
-    { field: 'is_active', label: 'Status', slot: 'is_active' },
+    { field: 'name', label: 'Paket & Kode', slot: 'code_name', sortable: true },
+    { field: 'price_per_outlet', label: 'Harga / Outlet', slot: 'price', sortable: true },
+    { field: 'features_count', label: 'Fitur Sistem', slot: 'features', sortable: true },
+    { field: 'subscriptions_count', label: 'Pelanggan Aktif', slot: 'subscribers', sortable: true },
+    { field: 'is_public', label: 'Katalog', slot: 'is_public', sortable: true },
+    { field: 'is_active', label: 'Status', slot: 'is_active', sortable: true },
 ]
 
 // Metrics Overview
@@ -264,9 +269,9 @@ const totalSubscribersCount = computed(() => {
     return (props.plans || []).reduce((acc, p) => acc + (p.subscriptions_count || 0), 0)
 })
 
-// Filtered & Sorted Plans
+// Filtered Plans
 const displayedPlans = computed(() => {
-    const list = (props.plans || []).filter(p => {
+    return (props.plans || []).filter(p => {
         // Search Filter
         if (searchQuery.value.trim()) {
             const query = searchQuery.value.trim().toLowerCase()
@@ -299,26 +304,6 @@ const displayedPlans = computed(() => {
 
         return true
     })
-
-    // Sort
-    return list.slice().sort((a, b) => {
-        if (sortBy.value === 'price_asc') {
-            return Number(a.price_per_outlet) - Number(b.price_per_outlet)
-        }
-        if (sortBy.value === 'price_desc') {
-            return Number(b.price_per_outlet) - Number(a.price_per_outlet)
-        }
-        if (sortBy.value === 'name_asc') {
-            return (a.name || '').localeCompare(b.name || '')
-        }
-        if (sortBy.value === 'subscribers_desc') {
-            return (b.subscriptions_count || 0) - (a.subscriptions_count || 0)
-        }
-        if (sortBy.value === 'features_desc') {
-            return (b.system_features?.length || 0) - (a.system_features?.length || 0)
-        }
-        return 0
-    })
 })
 
 const openCreate = () => {
@@ -350,7 +335,6 @@ const openManageFeatures = plan => {
         component: SubscriptionPlanFeaturesPopUp,
         props: {
             planId: plan.id,
-            allFeatures: props.allFeatures,
         },
     })
 }

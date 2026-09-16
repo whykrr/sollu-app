@@ -69,6 +69,33 @@ class SubscriptionPlanTest extends TestCase
         );
     }
 
+    public function test_admin_can_sort_subscription_plans_by_price_and_name(): void
+    {
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->get("http://{$this->cockpitHost}/subscription-plans?sort=name&direction=desc");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Cockpit/SubscriptionPlan/Index')
+            ->where('params.sort', 'name')
+            ->where('params.direction', 'desc')
+            ->has('plans')
+        );
+
+        $responseAsc = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->get("http://{$this->cockpitHost}/subscription-plans?sort=price_per_outlet&direction=asc");
+
+        $responseAsc->assertStatus(200);
+        $responseAsc->assertInertia(fn (Assert $page) => $page
+            ->component('Cockpit/SubscriptionPlan/Index')
+            ->where('params.sort', 'price_per_outlet')
+            ->where('params.direction', 'asc')
+            ->has('plans')
+        );
+    }
+
     public function test_admin_can_view_single_plan_json(): void
     {
         $plan = SubscriptionPlan::first();

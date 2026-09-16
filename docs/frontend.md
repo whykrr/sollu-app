@@ -14,7 +14,7 @@ Standar pengembangan frontend **Sollu App** berbasis **Vue 3 (Composition API `<
    - Margin dan padding pada komponen baru DILARANG melebihi skala 3 (`p-3`, `px-3`, `py-3`, `m-3`, `mx-3`, `my-3`).
    - Jarak antar-input formulir DILARANG melebihi skala 2 (`space-y-2`, `gap-2`).
 5. **MANDATORY POPUPPAGE (ZERO CHILD OUTER PADDING):** Seluruh alur kerja Create, Edit, Detail, dan Sub-page **WAJIB** menggunakan `<PopUpPage>` (side-drawer kanan) atau `usePopUpStore()`. DILARANG menggunakan *full page redirect* (`router.get()`) untuk form sub-halaman. Container body `PopUpPage.vue` sudah memiliki padding bawaan di level komponen, sehingga child form/view di dalamnya **DILARANG** menambahkan wrapper padding/margin luar lagi.
-6. **MANDATORY `<Table>` COMPONENT, SORTABLE HEADERS & CENTRALIZED EMPTY STATE:** Seluruh tampilan data tabular WAJIB menggunakan `@/Components/Tables/Table.vue`. Dilarang menulis tag `<table>` mentah. Kolom yang dapat diurutkan wajib didefinisikan dengan `sortable: true` pada `headers` dan meneruskan props `:sort="params?.sort"` serta `:sort-direction="params?.direction"` ke `<Table>`. Penanganan *empty state* ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`, DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
+6. **MANDATORY `<Table>` COMPONENT, ROW LINK (SINGLE ACTION), SORTABLE HEADERS & CENTRALIZED EMPTY STATE:** Seluruh tampilan data tabular WAJIB menggunakan `@/Components/Tables/Table.vue`. Dilarang menulis tag `<table>` mentah. Untuk tabel dengan **single action** (misal hanya buka Detail/Edit), WAJIB gunakan event bawaan `@row-click="openDetail"` dan biarkan `:action="false"` (default). Gunakan `:action="true"` dengan slot `#actions` HANYA jika terdapat lebih dari 1 aksi per baris. Kolom yang dapat diurutkan wajib didefinisikan dengan `sortable: true` pada `headers` dan meneruskan props `:sort="params?.sort"` serta `:sort-direction="params?.direction"` ke `<Table>`. Penanganan *empty state* ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`, DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
 7. **MANDATORY FILTER COMPONENT EXTRACTION:** Setiap halaman yang memiliki filter data (search bar, filter status, filter kategori, date picker, dsb.) **WAJIB diekstrak ke file komponen terpisah** (misal: `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`), bukan ditulis inline di file `Index.vue`.
 8. **STANDARISASI ON-DEMAND DATA LOADING:** Data detail entitas lengkap dan data lookup form (opsi dropdown) WAJIB dimuat secara *asynchronous* (Axios) hanya saat drawer dibuka. Wajib menyertakan skeleton loader / spinner saat fetching.
 9. **MANDATORY ENUM FOR CONDITIONS & FORM OPTIONS:** Dilarang keras menggunakan string literal/hardcode. Selalu gunakan `$enums.<EnumName>.<Case>` atau `useEnum()`.
@@ -77,23 +77,18 @@ Pola struktur utama untuk seluruh halaman modul:
             <ProductFilter :filters="params" :categories="categories" />
         </template>
 
-        <!-- 3. Default Slot (SCROLLABLE CONTAINER: Tabel Data dengan Sortable) -->
+        <!-- 3. Default Slot (SCROLLABLE CONTAINER: Tabel Data dengan Single Action Row Link) -->
         <Table
             :headers="headers"
             :data="products.data"
             :sort="params?.sort ?? 'updated_at'"
             :sort-direction="params?.direction ?? 'desc'"
-            :action="true"
+            @row-click="openDetail"
         >
             <template #status="{ row }">
                 <span class="badge" :class="$enums.ProductStatus._meta[row.status]?.color">
                     {{ $enums.ProductStatus._meta[row.status]?.label }}
                 </span>
-            </template>
-            <template #actions="{ row }">
-                <button class="btn btn-flat btn-sm" @click="openEdit(row)">
-                    <FontAwesomeIcon :icon="faPen" />
-                </button>
             </template>
         </Table>
 
@@ -278,3 +273,17 @@ const updateQuery = debounce(() => {
 watch(() => [filterForm.search, filterForm.status], () => updateQuery())
 </script>
 ```
+
+---
+
+## 7. Button Utility Classes & Sizing Standards (`app.css`)
+
+Semua elemen tombol menggunakan kelas basis `.btn` dengan modifier ukuran dan style:
+
+| Modifier Ukuran | Dimensi | Font Size | Rekomendasi Penggunaan |
+| :--- | :--- | :--- | :--- |
+| **`.btn-xs`** | `px-2 py-1 gap-1` | `text-xs` (12px) | Aksi tabel sangat sempit / padat, badge inline action, nested list item. |
+| **`.btn-sm`** | `px-2 py-1.5 gap-1` | `text-xs` (12px) | Standar aksi header (`MainPageHeader`), toolbar, filter, dan tabel action umum. |
+| **`.btn`** (Regular) | `px-4 py-2 gap-2` | `text-sm` (14px) | Form submit, modal action buttons, drawer footer buttons. |
+| **`.btn-lg`** | `px-6 py-3` | `text-base` (16px) | CTA landing page, hero banners, POS checkout action utama. |
+

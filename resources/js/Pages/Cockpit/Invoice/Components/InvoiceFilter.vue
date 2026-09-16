@@ -2,7 +2,7 @@
     <div
         class="bg-white p-2.5 rounded-xl border border-neutral-200/70 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2"
     >
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 w-full justify-between">
             <FilterSearch
                 v-model="filterForm.search"
                 placeholder="Cari nomor invoice, merchant..."

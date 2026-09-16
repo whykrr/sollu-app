@@ -47,3 +47,25 @@ Versi tombol ikon ringkas dari `ButtonGroupArchive` untuk digunakan pada kolom t
     :urlDelete="route('products.force-delete', row.id)"
 />
 ```
+
+---
+
+## 2. Standar Utility Class & Ukuran Button (`app.css`)
+
+Semua elemen `<button>` atau tautan tombol styling wajib menggunakan kelas dasar `.btn` dipadukan dengan modifier ukuran dan varian warna:
+
+### A. Hierarki Ukuran (`Button Sizes`)
+
+| Kelas                | Padding       | Gap     | Font Size          | Penggunaan / Konteks Rekomendasi                                          |
+| :------------------- | :------------ | :------ | :----------------- | :------------------------------------------------------------------------ |
+| **`.btn-xs`**        | `px-2 py-1`   | `gap-1` | `text-xs` (12px)   | Aksi tabel padat/sempit, badge toggle kecil, nested drawer action.        |
+| **`.btn-sm`**        | `px-2 py-1.5` | `gap-1` | `text-xs` (12px)   | Standar aksi header (`MainPageHeader`), filter toolbar, row action biasa. |
+| **`.btn`** (Regular) | `px-4 py-2`   | `gap-2` | `text-sm` (14px)   | Form submit, modal confirmation footer, tombol aksi utama halaman.        |
+| **`.btn-lg`**        | `px-6 py-3`   | `gap-2` | `text-base` (16px) | Hero banner, POS primary checkout button, call-to-action besar.           |
+
+### B. Varian Gaya Tombol
+
+- **Solid:** `.btn .btn-main`, `.btn-secondary`, `.btn-success`, `.btn-danger`, `.btn-warning`, `.btn-info`
+- **Outline:** `.btn .btn-outline-main`, `.btn-outline-danger`, `.btn-outline-secondary`
+- **Highlight (Soft Tint):** `.btn .btn-highlight-main`, `.btn-highlight-success`, `.btn-highlight-danger`
+- **Flat (Bordered Neutral):** `.btn .btn-flat` (Border abu-abu halus, hover background tipis)

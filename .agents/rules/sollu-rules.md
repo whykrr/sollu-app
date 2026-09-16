@@ -87,11 +87,15 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 **4. Ekstraksi Wajib Komponen Filter**
 - Seluruh filter halaman WAJIB diekstrak ke komponen terpisah di `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`. DILARANG menulis filter inline di `Index.vue`.
 
-**5. Wajib Menggunakan Komponen `<Table>`, Sortable Header, & Empty State Terpusat**
+**5. Wajib Menggunakan Komponen `<Table>`, Row Link (Single Action), Sortable Header, & Empty State Terpusat**
 - Seluruh data tabel WAJIB ditampilkan melalui `@/Components/Tables/Table.vue`. DILARANG menggunakan tag `<table>` mentah.
+- **Standar Aksi Baris (Single Action vs Multiple Actions):**
+  - **Single Action (Aksi Tunggal):** Jika baris tabel hanya memiliki 1 aksi utama (seperti membuka Drawer Detail atau Form Edit), **WAJIB** gunakan event bawaan `@row-click="openDetail"` atau `@row-click="openEdit"`, dan biarkan properti `:action` bernilai `false` (default). **DILARANG** mengaktifkan `:action="true"` dengan slot `#actions` yang hanya berisi satu tombol tunggal.
+  - **Multiple Actions (Banyak Aksi):** Gunakan `:action="true"` dan definisikan slot `<template #actions="{ row }">` HANYA jika terdapat lebih dari 1 tombol aksi independen pada setiap baris (misal: Download PDF + Hapus, atau Print Struk + Void).
+  - **Read-Only:** Gunakan `:action="false"` tanpa listener `@row-click` jika tabel murni menampilkan data tanpa interaksi klik baris.
 - **Sortable Header Standard:**
   - Aktifkan `sortable: true` pada kolom header yang dapat disortir (`headers: [{ label: 'Nama', field: 'name', sortable: true }]`).
-  - Teruskan properti sort aktif ke komponen: `<Table :headers="headers" :data="items.data" :sort="params?.sort" :sort-direction="params?.direction" :action="true">`.
+  - Teruskan properti sort aktif ke komponen: `<Table :headers="headers" :data="items.data" :sort="params?.sort" :sort-direction="params?.direction" @row-click="openDetail">`.
   - Komponen `<Table>` secara otomatis menangani toggle sorting (asc/desc), visual ikon (`faSort`, `faSortUp`, `faSortDown`), dan request navigasi Inertia (`router.get`) dengan mempertahankan query filter dan scroll.
 - **Backend Sortable Integration:**
   - Model Eloquent WAJIB menggunakan trait `App\Trait\SortableModel` dan mendeklarasikan whitelist kolom yang dapat diurutkan pada properti `protected array $sortable = [...]`.
@@ -101,3 +105,11 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 
 **6. Pemanfaatan Maksimal Komponen Bawaan Proyek**
 - AI Agent WAJIB membaca dan mematuhi panduan `AGENTS.md` di folder `resources/js/Components/` dan mengutamakan komponen bawaan (`TextField`, `DropdownField`, `NumberField`, `SelectionGroupField`, `Switch`, `Table`, `Pagination`, `Widget`, `Modal`, dll) sebelum membuat markup baru.
+
+**7. Standar Ukuran Tombol (`.btn`, `.btn-xs`, `.btn-sm`, `.btn-lg`)**
+- Gunakan hierarki ukuran tombol bawaan proyek di `app.css` secara konsisten:
+  - **`.btn-xs` (`px-2 py-1 gap-1 text-xs`):** Khusus aksi baris tabel yang sangat padat, inline badge/tag toggle, atau sub-item aksi di dalam drawer/nested card.
+  - **`.btn-sm` (`px-2 py-1.5 gap-1 text-xs`):** Tombol aksi standar pada `MainPageHeader`, toolbar filter, dan aksi baris tabel umum.
+  - **`.btn` / Regular (`px-4 py-2 gap-2 text-sm`):** Tombol utama form submit, modal confirmation, dan CTA standar.
+  - **`.btn-lg` (`px-6 py-3 text-base`):** Tombol aksi hero / landing banner / checkout POS utama.
+

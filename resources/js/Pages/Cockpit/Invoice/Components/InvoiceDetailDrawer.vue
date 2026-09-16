@@ -49,7 +49,9 @@
                 </div>
                 <div>
                     <div class="text-neutral-400">Outlet Terkait</div>
-                    <div class="font-semibold text-neutral-800">{{ detail.outlet_name || '-' }}</div>
+                    <div class="font-semibold text-neutral-800">
+                        {{ detail.outlet_name || '-' }}
+                    </div>
                 </div>
                 <div>
                     <div class="text-neutral-400">Kontak Merchant</div>
@@ -72,7 +74,9 @@
                 <FontAwesomeIcon :icon="faList" class="text-neutral-400" />
                 Rincian Item Tagihan
             </h4>
-            <div class="divide-y divide-neutral-100 border border-neutral-100 rounded-lg overflow-hidden">
+            <div
+                class="divide-y divide-neutral-100 border border-neutral-100 rounded-lg overflow-hidden"
+            >
                 <div
                     v-for="item in detail.items || []"
                     :key="item.id"
@@ -118,7 +122,9 @@
             </h4>
 
             <div v-if="detail.proof_url" class="space-y-2">
-                <div class="border border-neutral-200 rounded-lg overflow-hidden bg-neutral-900/5 p-1 flex justify-center">
+                <div
+                    class="border border-neutral-200 rounded-lg overflow-hidden bg-neutral-900/5 p-1 flex justify-center"
+                >
                     <img
                         :src="detail.proof_url"
                         alt="Bukti Transfer"

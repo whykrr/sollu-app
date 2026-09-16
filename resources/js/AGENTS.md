@@ -23,9 +23,12 @@ Saat membuat atau memodifikasi antarmuka di `resources/js`, Anda **WAJIB** memat
 
 - Setiap halaman yang memiliki filter data (search bar, dropdown status, date range picker, dsb.) **WAJIB diekstrak ke file komponen terpisah** (misal: `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`). Dilarang menuliskan kontrol filter panjang secara inline di file `Index.vue`.
 
-## 4. Standarisasi Tampilan Data Tabular (`<Table>`), Sortable Header & Empty State
+## 4. Standarisasi Tampilan Data Tabular (`<Table>`), Row Link & Sortable Header
 
 - **Wajib Komponen `<Table>`:** Seluruh data tabular WAJIB menggunakan `@/Components/Tables/Table.vue`. Dilarang menulis tag `<table>` mentah.
+- **Standar Single Action vs Multi Actions:**
+    - **Single Action (Aksi Tunggal):** Jika tabel hanya memerlukan 1 aksi baris (membuka detail/edit), WAJIB gunakan event bawaan `@row-click="openDetail"` dan biarkan `:action="false"` (default). Dilarang mengaktifkan `:action="true"` untuk satu tombol saja.
+    - **Multiple Actions (Banyak Aksi):** Gunakan `:action="true"` dengan `<template #actions="{ row }">` hanya jika terdapat lebih dari 1 aksi per baris.
 - **Sortable Header Standard:** Setiap kolom yang dapat disortir WAJIB didefinisikan dengan `sortable: true` pada array `headers` dan meneruskan props `:sort="params?.sort"` serta `:sort-direction="params?.direction"` ke `<Table>`. Komponen akan menangani interaksi klik sort dan URL sync Inertia secara otomatis.
 - **Empty State Terpusat:** Penanganan _empty state_ ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`. DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
 
@@ -48,7 +51,15 @@ Saat membuat atau memodifikasi antarmuka di `resources/js`, Anda **WAJIB** memat
 - **Feature Plan Gating:** Gunakan directive `v-feature="$enums.FeatureEnum.NAME"` atau komponen `<FeatureLock :feature="$enums.FeatureEnum.NAME">`.
 - **RBAC Permission:** Gunakan `v-can="'permission.name'"` atau `useAuth().can('permission.name')`.
 
-## 8. Linter, Build & Clean Code
+## 8. Standar Ukuran Tombol (`.btn-xs`, `.btn-sm`, `.btn`, `.btn-lg`)
+
+- Gunakan modifier ukuran tombol bawaan proyek:
+    - `.btn-xs` (`px-2 py-1 gap-1 text-xs`): Tabel padat, badge inline action, sub-item drawer.
+    - `.btn-sm` (`px-2 py-1.5 gap-1 text-xs`): Header actions (`MainPageHeader`), filter bar, aksi tabel umum.
+    - `.btn` (Regular, `px-4 py-2 gap-2 text-sm`): Form submit, drawer footer, dialog modal utama.
+    - `.btn-lg` (`px-6 py-3 text-base`): Hero CTA, POS primary checkout.
+
+## 9. Linter, Build & Clean Code
 
 - Hapus semua _dead code_ (unused imports, unused state/props, commented-out code).
 - Jalankan `npm run fix:eslint` dan pastikan `npm run build` berhasil tanpa error.

@@ -6,7 +6,7 @@
                     <th
                         v-for="head in headers"
                         :key="head.field"
-                        :class="[getResponsiveClass(head.show), 'sticky top-0 z-10 bg-slate-200']"
+                        :class="[getResponsiveClass(head.show), 'sticky top-0 z-5 bg-slate-200']"
                         @click="toggleSort(head)"
                     >
                         <div
@@ -30,7 +30,7 @@
                             </div>
                         </div>
                     </th>
-                    <th width="1%" class="sticky top-0 z-10 bg-slate-200" />
+                    <th width="1%" class="sticky top-0 z-5 bg-slate-200" />
                 </tr>
             </thead>
             <tbody>
@@ -79,7 +79,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import Card from '../UI/Card/Card.vue'
 import TextField from '../Form/TextField.vue'
 
@@ -122,6 +122,20 @@ function getResponsiveClass(show) {
 const emit = defineEmits(['row-click'])
 const sortKey = ref(props.sort)
 const sortOrder = ref(props.sortDirection)
+
+watch(
+    () => props.sort,
+    val => {
+        sortKey.value = val
+    }
+)
+
+watch(
+    () => props.sortDirection,
+    val => {
+        sortOrder.value = val
+    }
+)
 
 function toggleSort(col) {
     if (!col.sortable) return

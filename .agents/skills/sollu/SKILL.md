@@ -361,8 +361,12 @@ public function store(StoreOutletRequest $request)
    - Margin dan padding pada komponen baru DILARANG melebihi skala 3 (`p-3`, `px-3`, `py-3`, `m-3`, `mx-3`, `my-3`).
    - Jarak antar-input formulir DILARANG melebihi skala 2 (`space-y-2`, `gap-2`).
 5. **MANDATORY POPUPPAGE FOR SUB-PAGES & FORMS (ZERO CHILD OUTER PADDING):** Seluruh alur kerja *Create*, *Edit*, *Detail*, dan *Sub-page* WAJIB menggunakan `<PopUpPage>` (side-panel drawer) atau `usePopUpStore()`. DILARANG menggunakan *full page redirect* (`router.get()`) untuk formulir sub-halaman. Container body `PopUpPage.vue` sudah memiliki padding bawaan di level komponen, sehingga child form/view di dalamnya **DILARANG** menambahkan wrapper padding/margin luar lagi.
-6. **MANDATORY `<Table>` COMPONENT, SORTABLE HEADERS & CENTRALIZED EMPTY STATE:**
+6. **MANDATORY `<Table>` COMPONENT, ROW LINK (SINGLE ACTION), SORTABLE HEADERS & CENTRALIZED EMPTY STATE:**
    - Seluruh tampilan data tabular WAJIB menggunakan `@/Components/Tables/Table.vue`. Dilarang menulis tag `<table>` mentah.
+   - **Standar Single Action vs Multiple Actions:**
+     - **Single Action (Aksi Tunggal):** Jika baris tabel hanya memiliki 1 jenis aksi (seperti membuka Drawer Detail atau Form Edit), **WAJIB** gunakan event bawaan `@row-click="openDetail"` atau `@row-click="openEdit"` dan biarkan properti `:action` bernilai `false` (default). **DILARANG** mengeset `:action="true"` dengan slot `#actions` yang hanya berisi 1 tombol tunggal.
+     - **Multiple Actions (Banyak Aksi):** Gunakan `:action="true"` dengan slot `<template #actions="{ row }">` HANYA jika terdapat lebih dari 1 tombol aksi independen pada setiap baris.
+     - **Read-Only:** Gunakan default `:action="false"` tanpa listener `@row-click` jika tabel murni menampilkan data statis tanpa klik baris.
    - **Sortable Header Standard:** Setiap kolom yang dapat disortir WAJIB didefinisikan dengan `sortable: true` pada array `headers` (contoh: `{ label: 'Nama', field: 'name', sortable: true }`).
    - **Passing Props Sort:** Teruskan props `:sort="params?.sort"` dan `:sort-direction="params?.direction"` ke `<Table>`. Komponen akan menangani ikon sorting dan request navigasi Inertia (`router.get`) secara terpusat.
    - **Empty State Terpusat:** Penanganan *empty state* ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`, DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
@@ -403,23 +407,18 @@ Seluruh halaman utama modul menerapkan arsitektur layout terstandarisasi berikut
             <ProductFilter :filters="params" :categories="categories" />
         </template>
 
-        <!-- 3. Default Slot (SCROLLABLE CONTAINER: Tabel Data dengan Sortable) -->
+        <!-- 3. Default Slot (SCROLLABLE CONTAINER: Tabel Data dengan Single Action Row Link) -->
         <Table
             :headers="headers"
             :data="products.data"
             :sort="params?.sort ?? 'updated_at'"
             :sort-direction="params?.direction ?? 'desc'"
-            :action="true"
+            @row-click="openDetail"
         >
             <template #status="{ row }">
                 <span class="badge" :class="$enums.ProductStatus._meta[row.status]?.color">
                     {{ $enums.ProductStatus._meta[row.status]?.label }}
                 </span>
-            </template>
-            <template #actions="{ row }">
-                <button class="btn btn-flat btn-sm" @click="openEdit(row)">
-                    <FontAwesomeIcon :icon="faPen" />
-                </button>
             </template>
         </Table>
 
@@ -447,7 +446,7 @@ Seluruh halaman utama modul menerapkan arsitektur layout terstandarisasi berikut
 Seluruh AI Agent WAJIB memprioritaskan dan memaksimalkan penggunaan komponen bawaan proyek:
 - **Layout & UI (`@/Components/UI/`):** `MainPage`, `MainPageHeader`, `PopUpPage`, `PopUpContainer`, `Card`, `CardFade`, `ExportDropdown`, `Tab`, `FeatureLock`, `FeatureLockOverlay`, `FilterSearch`, `FilterModal`, `FilterBadge`, `FilterStatus`, `FilterTrashData`.
 - **Formulir (`@/Components/Form/`):** `TextField`, `TextareaField`, `NumberField`, `PasswordField`, `PinField`, `EmailField`, `DropdownField`, `AsyncSelectField`, `AsyncOutletDropdown`, `Switch`, `CheckboxField`, `RadioField`, `SelectionGroupField`, `QuillEditor`, `GroupTextIconField`, `GroupDropdownIconField`.
-- **Tabel (`@/Components/Tables/`):** `Table` (dengan sortable header otomatis, props `:sort` & `:sort-direction`, dan empty state terpusat), `Pagination`, `DraggableTable`.
+- **Tabel (`@/Components/Tables/`):** `Table` (dengan sortable header otomatis, single action `@row-click`, multi-action slot `:action="true"`, dan empty state terpusat), `Pagination`, `DraggableTable`.
 - **Widgets (`@/Components/Widgets/`):** `Widget` (KPI trend), `WidgetChart` (grafik sparkline), `WidgetProgress` (progress bar).
 - **Tombol (`@/Components/Button/`):** `ButtonBack`, `ButtonGroupArchive`, `ButtonIconGroupArchive`.
 - **Notifikasi & Modal (`@/Components/Notifications/` & `@/Components/Modals/`):** `Modal`, `ModalContainer`, `Toast`, `ToastContainer`, `FeatureLockedModal`, `ImportCsvModal`.
@@ -682,7 +681,7 @@ if (can('settings.outlets.create')) {
 - [ ] Frontend layout mematuhi standarisasi `<MainPage>` (`#header` untuk non-scrolling card/widget/filter, default slot untuk `<Table>`, `#footer` untuk `<Pagination>`).
 - [ ] Header halaman menggunakan `<MainPageHeader>` dengan title, description, dan action buttons konsisten.
 - [ ] Seluruh filter diekstrak ke komponen terpisah (`Components/{Entity}Filter.vue`).
-- [ ] Seluruh tampilan data tabel menggunakan `@/Components/Tables/Table.vue` dengan empty state terpusat di level Table.
+- [ ] Seluruh tampilan data tabel menggunakan `@/Components/Tables/Table.vue` (single action via `@row-click` tanpa slot `#actions`, multiple actions via `:action="true"`, empty state terpusat).
 - [ ] Spacing mematuhi batas (MainPage & form scale 2, komponen baru margin/padding max scale 3, PopUpPage child zero outer padding).
 - [ ] Frontend UI verified visually and functionally via `browsermcp` (navigasi URL, screenshot, snapshot, console log check).
 - [ ] Semua dead code (commented-out code, unused imports, orphaned methods, obsolete routes) telah dihapus.

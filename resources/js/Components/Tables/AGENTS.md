@@ -16,11 +16,69 @@ Saat menggunakan atau mengedit komponen di `resources/js/Components/Tables`, And
     - `data` (Array, required): Array data baris (biasanya `items.data`).
     - `sort` (String, optional): Key field yang sedang aktif diurutkan (biasanya `params?.sort ?? 'updated_at'`).
     - `sortDirection` (String, optional): Arah pengurutan aktif `'asc'` atau `'desc'` (biasanya `params?.direction ?? 'desc'`).
-    - `action` (Boolean, optional): Jika `true`, kolom aksi di sisi kanan akan diaktifkan.
+    - `action` (Boolean, optional, default: `false`):
+        - Jika `false` (default): Menampilkan indikator ikon elipsis (`faEllipsis`) di kolom terakhir dan mengandalkan event `@row-click` untuk interaksi baris.
+        - Jika `true`: Mengaktifkan slot `#actions` di kolom sisi kanan untuk merender banyak tombol aksi (`.btn-sm` / `.btn-xs`).
 
 ---
 
-## 2. Fitur Sortable Table (Frontend & Backend Integration)
+## 2. Standar Interaksi Baris: Single Action vs Multiple Actions
+
+### A. Single Action (Aksi Tunggal: Wajib Gunakan Row Link / Row Click)
+
+- **Aturan Utama:** Jika tabel hanya membutuhkan **1 jenis aksi utama** (misalnya membuka drawer detail, membuka form edit, atau navigasi ke sub-halaman), Anda **WAJIB** menggunakan event bawaan `@row-click`.
+- **DILARANG** mengeset `:action="true"` lalu membuat tombol sendirian di slot `#actions` (seperti hanya tombol mata/edit sendirian).
+- Biarkan prop `:action` bernilai `false` (default). Komponen `<Table>` secara otomatis menampilkan indikator elipsis di kolom terakhir dan memicu event `@row-click` saat baris mana saja diklik.
+
+```vue
+<!-- CONTOH BENAR: Single Action via @row-click -->
+<Table
+    :headers="headers"
+    :data="products.data"
+    :sort="params?.sort ?? 'updated_at'"
+    :sort-direction="params?.direction ?? 'desc'"
+    @row-click="openDetail"
+>
+    <!-- Slot kustom isi cell -->
+    <template #status="{ row }">
+        <span class="badge" :class="$enums.ProductStatus._meta[row.status]?.color">
+            {{ $enums.ProductStatus._meta[row.status]?.label }}
+        </span>
+    </template>
+</Table>
+```
+
+### B. Multiple Actions (Banyak Tombol Aksi)
+
+- Gunakan `:action="true"` dan definisikan slot `<template #actions="{ row }">` **HANYA jika terdapat lebih dari 1 tombol aksi independen** pada setiap baris (misal: Download PDF + Hapus, atau Print Struk + Batalkan Transaksi).
+
+```vue
+<!-- CONTOH: Multiple Actions -->
+<Table
+    :headers="headers"
+    :data="transactions.data"
+    :sort="params?.sort ?? 'updated_at'"
+    :sort-direction="params?.direction ?? 'desc'"
+    :action="true"
+>
+    <template #actions="{ row }">
+        <button class="btn btn-flat btn-sm" title="Cetak" @click.stop="printReceipt(row)">
+            <FontAwesomeIcon :icon="faPrint" />
+        </button>
+        <button class="btn btn-flat btn-sm text-danger" title="Void" @click.stop="openVoidModal(row)">
+            <FontAwesomeIcon :icon="faBan" />
+        </button>
+    </template>
+</Table>
+```
+
+### C. Read-Only Table (Tanpa Aksi)
+
+- Jika tabel bersifat murni tampilan informasi (read-only) tanpa interaksi drawer/klik baris, gunakan default `:action="false"` tanpa listener `@row-click`.
+
+---
+
+## 3. Fitur Sortable Table (Frontend & Backend Integration)
 
 ### A. Konfigurasi Header Kolom
 
@@ -83,14 +141,14 @@ Teruskan parameter sort aktif dari server (`params`):
 
 ---
 
-## 3. Empty State Terpusat (Di Level Komponen `<Table>`)
+## 4. Empty State Terpusat (Di Level Komponen `<Table>`)
 
 - **Penanganan Otomatis:** Komponen `<Table>` sudah secara native merender tampilan _empty state_ ("data tidak ditemukan.") ketika `data.length === 0`.
 - **Larangan Duplikasi Manual:** DILARANG membuat blok `v-if="data.length === 0"` manual atau banner kosong di masing-masing page. Percayakan sepenuhnya kepada komponen `<Table>`.
 
 ---
 
-## 4. Slotting Kustom pada `<Table>`
+## 5. Slotting Kustom pada `<Table>`
 
 ```vue
 <Table
@@ -98,7 +156,7 @@ Teruskan parameter sort aktif dari server (`params`):
     :data="products.data"
     :sort="params?.sort ?? 'updated_at'"
     :sort-direction="params?.direction ?? 'desc'"
-    :action="true"
+    @row-click="openDetail"
 >
     <!-- Kustomisasi cell kolom tertentu berdasarkan key header.slot -->
     <template #status="{ row }">
@@ -106,19 +164,12 @@ Teruskan parameter sort aktif dari server (`params`):
             {{ $enums.ProductStatus._meta[row.status]?.label }}
         </span>
     </template>
-
-    <!-- Kustomisasi kolom aksi -->
-    <template #actions="{ row }">
-        <button class="btn btn-flat btn-sm" title="Edit" @click="openEdit(row)">
-            <FontAwesomeIcon :icon="faPen" />
-        </button>
-    </template>
 </Table>
 ```
 
 ---
 
-## 5. Navigasi Halaman (`<Pagination>`)
+## 6. Navigasi Halaman (`<Pagination>`)
 
 - Diletakkan pada slot `<template #footer>` di dalam `<MainPage>`:
     ```vue
@@ -129,7 +180,7 @@ Teruskan parameter sort aktif dari server (`params`):
 
 ---
 
-## 6. Live Search & Debounced Filter Sync
+## 7. Live Search & Debounced Filter Sync
 
 - Seluruh filter tabel dikelola dengan watcher ter-debounce (500ms):
     ```javascript

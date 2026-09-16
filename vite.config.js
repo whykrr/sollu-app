@@ -1,27 +1,13 @@
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import vue from '@vitejs/plugin-vue';
-import path from 'path';
-import { VitePWA } from 'vite-plugin-pwa';
+import { defineConfig } from 'vite'
+import laravel from 'laravel-vite-plugin'
+import vue from '@vitejs/plugin-vue'
+import path from 'path'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-    server: {
-        host: '0.0.0.0',
-        port: 5173,
-        hmr: {
-            host: 'app.sollu.test',
-        },
-        watch: {
-            ignored: ['**/storage/**', '**/vendor/**', '**/.git/**'],
-        },
-    },
     plugins: [
         laravel({
-            input: [
-                'resources/css/app.css',
-                'resources/js/app.js',
-                'resources/js/cockpit.js',
-            ],
+            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/cockpit.js'],
             refresh: true,
         }),
         vue({
@@ -49,20 +35,20 @@ export default defineConfig({
                     {
                         src: '/img/pwa-192x192.png',
                         sizes: '192x192',
-                        type: 'image/png'
-                    },
-                    {
-                        src: '/img/pwa-512x512.png',
-                        sizes: '512x512',
-                        type: 'image/png'
+                        type: 'image/png',
                     },
                     {
                         src: '/img/pwa-512x512.png',
                         sizes: '512x512',
                         type: 'image/png',
-                        purpose: 'any maskable'
-                    }
-                ]
+                    },
+                    {
+                        src: '/img/pwa-512x512.png',
+                        sizes: '512x512',
+                        type: 'image/png',
+                        purpose: 'any maskable',
+                    },
+                ],
             },
             workbox: {
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
@@ -76,12 +62,12 @@ export default defineConfig({
                             cacheName: 'google-fonts-cache',
                             expiration: {
                                 maxEntries: 10,
-                                maxAgeSeconds: 60 * 60 * 24 * 365
+                                maxAgeSeconds: 60 * 60 * 24 * 365,
                             },
                             cacheableResponse: {
-                                statuses: [0, 200]
-                            }
-                        }
+                                statuses: [0, 200],
+                            },
+                        },
                     },
                     {
                         urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
@@ -90,19 +76,19 @@ export default defineConfig({
                             cacheName: 'images-cache',
                             expiration: {
                                 maxEntries: 50,
-                                maxAgeSeconds: 60 * 60 * 24 * 30
-                            }
-                        }
-                    }
-                ]
-            }
-        })
+                                maxAgeSeconds: 60 * 60 * 24 * 30,
+                            },
+                        },
+                    },
+                ],
+            },
+        }),
     ],
     resolve: {
         alias: {
             'ziggy-js': path.resolve('vendor/tightenco/ziggy'),
             '@': path.resolve(__dirname, 'resources/js'),
-        }
+        },
     },
     build: {
         rollupOptions: {
@@ -110,8 +96,8 @@ export default defineConfig({
                 manualChunks: {
                     vue: ['vue', '@inertiajs/vue3', 'pinia'],
                     chart: ['chart.js'],
-                }
-            }
-        }
-    }
-});
+                },
+            },
+        },
+    },
+})

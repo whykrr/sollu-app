@@ -1,6 +1,6 @@
 <template>
     <header
-        class="flex items-center px-3 sm:px-4 py-0 gap-1.5 sm:gap-2 top-0 z-10 h-14 select-none bg-white/95 backdrop-blur-md border-b border-slate-100 shrink-0"
+        class="flex items-center px-3 sm:px-4 py-0 gap-1.5 sm:gap-2 top-0 z-20 h-14 select-none bg-white/95 backdrop-blur-md border-b border-slate-100 shrink-0"
     >
         <div v-if="appStore.sidebar.minimize" class="hidden sm:block">
             <div

@@ -44,7 +44,8 @@
                             sebesar
                             <strong>{{ formatIDR(pendingInvoice.total_amount) }}</strong>
                             jatuh tempo pada
-                            <strong>{{ formatDateID(pendingInvoice.due_date) }}</strong>.
+                            <strong>{{ formatDateID(pendingInvoice.due_date) }}</strong
+                            >.
                         </p>
                     </div>
                 </div>
@@ -60,10 +61,7 @@
             </div>
 
             <!-- TAMPILAN JIKA BELUM BERLANGGANAN (MASA UJI COBA / TRIAL) -->
-            <div
-                v-if="!subscription"
-                class="bg-white border border-slate-200 rounded-xl p-3"
-            >
+            <div v-if="!subscription" class="bg-white border border-slate-200 rounded-xl p-3">
                 <div
                     class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-100 pb-3 mb-3"
                 >
@@ -327,13 +325,19 @@
                     </template>
                     <template #status="{ row }">
                         <span
-                            v-if="row.payment_manual_validation?.validation_status === $enums.PaymentManualValidationStatus.Pending"
+                            v-if="
+                                row.payment_manual_validation?.validation_status ===
+                                $enums.PaymentManualValidationStatus.Pending
+                            "
                             class="badge pill text-xs badge-warning"
                         >
                             Verifikasi Tertunda
                         </span>
                         <span
-                            v-else-if="row.payment_manual_validation?.validation_status === $enums.PaymentManualValidationStatus.Rejected"
+                            v-else-if="
+                                row.payment_manual_validation?.validation_status ===
+                                $enums.PaymentManualValidationStatus.Rejected
+                            "
                             class="badge pill text-xs badge-danger"
                         >
                             Bukti Ditolak

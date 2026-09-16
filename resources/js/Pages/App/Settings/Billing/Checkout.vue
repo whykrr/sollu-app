@@ -50,7 +50,9 @@
                                 @click="billingCycle = 'monthly'"
                             >
                                 <div class="font-semibold text-gray-800 text-xs">Bulanan</div>
-                                <div class="text-[11px] text-gray-500 mt-0.5">Bayar setiap bulan</div>
+                                <div class="text-[11px] text-gray-500 mt-0.5">
+                                    Bayar setiap bulan
+                                </div>
                                 <div class="mt-2 text-base font-bold text-gray-900">
                                     {{ formatIDR(plan.price_per_outlet * activeOutlets) }}
                                 </div>
@@ -81,7 +83,9 @@
                                     Hemat {{ plan.yearly_discount_percent }}%
                                 </div>
                                 <div class="font-semibold text-gray-800 text-xs">Tahunan</div>
-                                <div class="text-[11px] text-gray-500 mt-0.5">Bayar untuk 1 tahun</div>
+                                <div class="text-[11px] text-gray-500 mt-0.5">
+                                    Bayar untuk 1 tahun
+                                </div>
                                 <div class="mt-2 text-base font-bold text-gray-900">
                                     {{ formatIDR(yearlyTotal) }}
                                 </div>
@@ -99,7 +103,9 @@
 
                     <!-- Payment Method Selector -->
                     <div class="bg-white border rounded-xl p-3">
-                        <h4 class="font-bold text-gray-900 text-xs mb-3">Pilih Metode Pembayaran</h4>
+                        <h4 class="font-bold text-gray-900 text-xs mb-3">
+                            Pilih Metode Pembayaran
+                        </h4>
                         <div class="space-y-2.5">
                             <!-- Midtrans -->
                             <div
@@ -112,7 +118,9 @@
                                 "
                                 @click="paymentMethod = 'midtrans'"
                             >
-                                <div class="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0 mt-0.5">
+                                <div
+                                    class="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0 mt-0.5"
+                                >
                                     <FontAwesomeIcon :icon="faCreditCard" class="w-4 h-4" />
                                 </div>
                                 <div class="flex-1 pr-5">
@@ -149,7 +157,9 @@
                                 "
                                 @click="paymentMethod = 'manual'"
                             >
-                                <div class="p-2 bg-slate-50 text-slate-650 rounded-lg shrink-0 mt-0.5">
+                                <div
+                                    class="p-2 bg-slate-50 text-slate-650 rounded-lg shrink-0 mt-0.5"
+                                >
                                     <FontAwesomeIcon :icon="faBuildingColumns" class="w-4 h-4" />
                                 </div>
                                 <div class="flex-1 pr-5">
@@ -158,7 +168,8 @@
                                     </div>
                                     <p class="text-[11px] text-gray-500 mt-0.5 leading-relaxed">
                                         Lakukan transfer ke rekening bank resmi perusahaan kami.
-                                        Unggah bukti transfer setelah membayar untuk diverifikasi admin (1-24 jam).
+                                        Unggah bukti transfer setelah membayar untuk diverifikasi
+                                        admin (1-24 jam).
                                     </p>
 
                                     <!-- Daftar Bank Dinamis -->
@@ -184,7 +195,8 @@
                                                     bank.bank_name
                                                 }}</span>
                                                 <span class="text-[11px] text-gray-500"
-                                                    >{{ bank.account_number }} (a/n {{ bank.account_name }})</span
+                                                    >{{ bank.account_number }} (a/n
+                                                    {{ bank.account_name }})</span
                                                 >
                                             </div>
                                         </div>

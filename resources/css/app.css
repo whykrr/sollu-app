@@ -844,6 +844,9 @@
             @apply rounded-none -mt-px first-of-type:rounded-t first-of-type:mt-0! last-of-type:rounded-b;
         }
 
+        &.btn-xs {
+            @apply !text-xs !py-1 !px-2 !gap-1;
+        }
         &.btn-sm {
             @apply !text-xs !py-1.5 !px-2 !gap-1;
         }

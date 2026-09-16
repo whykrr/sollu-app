@@ -7,7 +7,7 @@
         <transition name="fade-down" mode="in-out">
             <div
                 v-if="isOpen"
-                class="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:top-[48px] z-50 bg-white border border-neutral-100 rounded-xl shadow-2xl ring-1 ring-black/5 p-4 max-h-[calc(100vh-5rem)] overflow-y-auto floating-scroll"
+                class="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:top-[48px] z-100 bg-white border border-neutral-100 rounded-xl shadow-2xl ring-1 ring-black/5 p-4 max-h-[calc(100vh-5rem)] overflow-y-auto floating-scroll"
                 :class="[
                     align === 'left' ? 'sm:left-0 origin-top-left' : 'sm:right-0 origin-top-right',
                     widthClass,

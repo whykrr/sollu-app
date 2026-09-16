@@ -24,8 +24,8 @@ class SubscriptionRenewalMail extends Mailable
     public function envelope(): Envelope
     {
         $subject = $this->daysRemaining > 0
-            ? "Pengingat Perpanjangan Langganan ({$this->daysRemaining} hari lagi) - Sollu App"
-            : 'Langganan Anda Telah Berakhir - Sollu App';
+            ? "Pengingat Perpanjangan Langganan ({$this->daysRemaining} hari lagi)"
+            : 'Langganan Anda Telah Berakhir';
 
         return new Envelope(
             subject: $subject,

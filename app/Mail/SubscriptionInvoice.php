@@ -31,7 +31,7 @@ class SubscriptionInvoice extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Invoice Pembayaran Langganan #'.$this->invoice->invoice_number,
+            subject: 'Invoice Pembayaran Langganan',
         );
     }
 

@@ -20,29 +20,36 @@ use Inertia\Response;
 
 class SubscriptionPlanController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $plans = SubscriptionPlan::query()
-            ->with(['systemFeatures', 'business:id,name,owner_name,email'])
-            ->withCount(['subscriptions' => function ($query) {
-                $query->where('status', SubscriptionStatus::Active->value)
-                    ->where(function ($q) {
-                        $q->whereNull('expired_at')
-                            ->orWhere('expired_at', '>=', now());
-                    })
-                    ->whereHas('business', function ($b) {
-                        $b->where('status', 'active');
-                    })
-                    ->select(DB::raw('count(distinct business_id)'));
-            }])
-            ->orderBy('price_per_outlet', 'asc')
-            ->get();
+        $sort = $request->get('sort', 'price_per_outlet');
+        $direction = $request->get('direction', 'asc');
 
-        $allFeatures = Feature::getAllCached();
+        $plans = SubscriptionPlan::query()
+            ->with(['business:id,name,owner_name,email'])
+            ->withCount([
+                'systemFeatures as features_count',
+                'subscriptions' => function ($query) {
+                    $query->where('status', SubscriptionStatus::Active->value)
+                        ->where(function ($q) {
+                            $q->whereNull('expired_at')
+                                ->orWhere('expired_at', '>=', now());
+                        })
+                        ->whereHas('business', function ($b) {
+                            $b->where('status', 'active');
+                        })
+                        ->select(DB::raw('count(distinct business_id)'));
+                },
+            ])
+            ->sortable($sort, $direction)
+            ->get();
 
         return Inertia::render('Cockpit/SubscriptionPlan/Index', [
             'plans' => $plans,
-            'allFeatures' => $allFeatures,
+            'params' => [
+                'sort' => $request->query('sort'),
+                'direction' => $request->query('direction'),
+            ],
         ]);
     }
 

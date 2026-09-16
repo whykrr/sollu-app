@@ -5,7 +5,7 @@
 
     // === Official Laravel Extension (laravel.vscode-laravel) ===
     "Laravel.phpEnvironment": "local",
-    "Laravel.phpCommand": [ ],
+    "Laravel.phpCommand": [],
     "Laravel.pint.runOnSave": true,
 
     // === Laravel Extra Intellisense (amiralizadeh9480.laravel-extra-intellisense) ===
@@ -55,11 +55,7 @@
     "intelephense.diagnostics.undefinedMethods": false,
     "intelephense.diagnostics.undefinedProperties": false,
     "intelephense.codeLens.references.enable": true,
-    "intelephense.files.associations": [
-        "*.php",
-        "*.module",
-        "*.inc"
-    ],
+    "intelephense.files.associations": ["*.php", "*.module", "*.inc"],
     "intelephense.environment.includePaths": [
         "app",
         "bootstrap",
@@ -69,15 +65,11 @@
         "tests"
     ],
     "intelephense.files.maxSize": 5000000,
-    "intelephense.files.exclude": [
-        "**/node_modules/**",
-        "**/storage/**",
-        "**/cache/**"
-    ],
+    "intelephense.files.exclude": ["**/node_modules/**", "**/storage/**", "**/cache/**"],
 
     // === Editor & General Suggestions ===
     "editor.parameterHints.enabled": true,
     "editor.quickSuggestions": {
         "strings": true
-    },
+    }
 }

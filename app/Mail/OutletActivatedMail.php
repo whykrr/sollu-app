@@ -19,7 +19,7 @@ class OutletActivatedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Berhasil: Penambahan Outlet Anda Telah Aktif - Sollu App',
+            subject: 'Penambahan Outlet Anda Telah Aktif',
         );
     }
 

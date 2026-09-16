@@ -69,11 +69,11 @@
                 <div class="flex items-center gap-1 justify-end">
                     <button
                         type="button"
-                        class="btn btn-outline-main btn-xs text-[11px] px-2 py-1"
+                        class="btn btn-flat btn-xs"
                         title="Lihat Detail Invoice"
                         @click="openDetails(row)"
                     >
-                        <FontAwesomeIcon :icon="faEye" class="mr-1 text-[10px]" />
+                        <FontAwesomeIcon :icon="faEye" class="text-[10px]" />
                         Detail
                     </button>
                 </div>

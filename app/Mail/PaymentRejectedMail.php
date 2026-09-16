@@ -22,7 +22,7 @@ class PaymentRejectedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Pemberitahuan: Pembayaran Invoice Ditolak ('.$this->invoice->invoice_number.')',
+            subject: 'Pemberitahuan: Pembayaran Invoice Ditolak',
         );
     }
 

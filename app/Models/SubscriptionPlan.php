@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\FeatureEnum;
+use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -20,10 +21,24 @@ class SubscriptionPlan extends Model
 {
     use HasFactory;
     use HasUuids;
+    use SortableModel;
 
     public const CACHE_KEY_ALL = 'system:subscription_plans:all';
 
     public const CACHE_KEY_ACTIVE = 'system:subscription_plans:active';
+
+    protected array $sortable = [
+        'name',
+        'code',
+        'price_per_outlet',
+        'yearly_discount_percent',
+        'is_active',
+        'is_public',
+        'subscriptions_count',
+        'features_count',
+        'created_at',
+        'updated_at',
+    ];
 
     protected $fillable = [
         'code',

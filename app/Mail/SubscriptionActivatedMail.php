@@ -23,7 +23,7 @@ class SubscriptionActivatedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Langganan Anda Telah Aktif - Sollu App',
+            subject: 'Langganan Anda Telah Aktif',
         );
     }
 
