@@ -40,11 +40,9 @@ class BusinessTypeSeeder extends Seeder
 
             // Promosi & Pemasaran
             FeatureEnum::PROMO_MANAGEMENT->value,
-            FeatureEnum::DISCOUNT_VOUCHERS->value,
 
             // Pelanggan & CRM
             FeatureEnum::CUSTOMER_MANAGEMENT->value,
-            FeatureEnum::CUSTOMER_LOYALTY->value,
 
             // Laporan & Analitik
             FeatureEnum::BASIC_REPORTS->value,
@@ -58,22 +56,13 @@ class BusinessTypeSeeder extends Seeder
 
             // Outlet & Operasional
             FeatureEnum::MULTI_OUTLET->value,
-            FeatureEnum::OPERATIONAL_HOURS->value,
-            FeatureEnum::RECEIPT_CUSTOMIZATION->value,
-            FeatureEnum::TAX_AND_SERVICE_CHARGE->value,
-            FeatureEnum::DEVICE_MANAGEMENT->value,
-            FeatureEnum::CUSTOM_PAYMENT_METHODS->value,
+            FeatureEnum::OUTLET_MANAGEMENT->value,
+            FeatureEnum::MULTI_DEVICE->value,
 
             // Karyawan & Keamanan
             FeatureEnum::EMPLOYEE_MANAGEMENT->value,
-            FeatureEnum::ROLE_PERMISSIONS->value,
-            FeatureEnum::UNLIMITED_USERS->value,
+            FeatureEnum::CUSTOM_ROLE->value,
             FeatureEnum::AUDIT_LOGS->value,
-
-            // Integrasi & Platform
-            FeatureEnum::PAYMENT_GATEWAY->value,
-            FeatureEnum::POS_DEVICE_SYNC->value,
-            FeatureEnum::DEVELOPER_API->value,
         ];
 
         $fnbFeatures = array_merge($commonFeatures, [

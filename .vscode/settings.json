@@ -16,8 +16,29 @@
         "user": "App\\Models\\User"
     },
 
-    // === PHP CS Fixer / Pint Code Formatter ===
-    "php-cs-fixer.executablePath": "${workspaceFolder}/bin/pint",
+    // === Code Formatting & On Save ===
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "[php]": {
+        "editor.defaultFormatter": "laravel.vscode-laravel"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[vue]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[blade]": {
+        "editor.defaultFormatter": "shufo.vscode-blade-formatter"
+    },
 
     // === Run on Save Commands ===
     "emeraldwalk.runonsave": {

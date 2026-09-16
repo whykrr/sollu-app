@@ -12,7 +12,7 @@
                         Kelola data paket, harga, visibilitas katalog, hak akses fitur, serta status aktif/nonaktif
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 self-stretch sm:self-auto">
+                <div class="flex items-center gap-2 self-stretch sm:self-auto">
                     <button
                         type="button"
                         class="btn btn-main btn-sm"
@@ -21,290 +21,281 @@
                         <FontAwesomeIcon :icon="faPlus" class="mr-1.5" />
                         Tambah Paket
                     </button>
-
-                    <!-- Filter Status Aktif -->
-                    <div class="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg text-xs font-medium justify-center">
-                        <button
-                            type="button"
-                            class="px-2.5 py-1 rounded-md transition-colors"
-                            :class="statusFilter === 'all' ? 'bg-white shadow-xs text-neutral-800 font-bold' : 'text-neutral-500 hover:text-neutral-800'"
-                            @click="statusFilter = 'all'"
-                        >
-                            Semua ({{ plans.length }})
-                        </button>
-                        <button
-                            type="button"
-                            class="px-2.5 py-1 rounded-md transition-colors"
-                            :class="statusFilter === 'active' ? 'bg-white shadow-xs text-success font-bold' : 'text-neutral-500 hover:text-neutral-800'"
-                            @click="statusFilter = 'active'"
-                        >
-                            Aktif ({{ activeCount }})
-                        </button>
-                        <button
-                            type="button"
-                            class="px-2.5 py-1 rounded-md transition-colors"
-                            :class="statusFilter === 'inactive' ? 'bg-white shadow-xs text-danger font-bold' : 'text-neutral-500 hover:text-neutral-800'"
-                            @click="statusFilter = 'inactive'"
-                        >
-                            Nonaktif ({{ inactiveCount }})
-                        </button>
-                    </div>
-
-                    <!-- Filter Visibilitas Katalog -->
-                    <div class="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg text-xs font-medium justify-center">
-                        <button
-                            type="button"
-                            class="px-2.5 py-1 rounded-md transition-colors"
-                            :class="visibilityFilter === 'all' ? 'bg-white shadow-xs text-neutral-800 font-bold' : 'text-neutral-500 hover:text-neutral-800'"
-                            @click="visibilityFilter = 'all'"
-                        >
-                            Semua Katalog
-                        </button>
-                        <button
-                            type="button"
-                            class="px-2.5 py-1 rounded-md transition-colors"
-                            :class="visibilityFilter === 'public' ? 'bg-white shadow-xs text-sky-700 font-bold' : 'text-neutral-500 hover:text-neutral-800'"
-                            @click="visibilityFilter = 'public'"
-                        >
-                            Publik ({{ publicCount }})
-                        </button>
-                        <button
-                            type="button"
-                            class="px-2.5 py-1 rounded-md transition-colors"
-                            :class="visibilityFilter === 'hidden' ? 'bg-white shadow-xs text-amber-700 font-bold' : 'text-neutral-500 hover:text-neutral-800'"
-                            @click="visibilityFilter = 'hidden'"
-                        >
-                            Tersembunyi ({{ hiddenCount }})
-                        </button>
-                    </div>
                 </div>
             </div>
         </template>
 
-        <!-- Grid Responsif Paket Langganan -->
-        <div v-if="displayedPlans.length" class="grid gap-4" :class="gridClass">
-            <div
-                v-for="plan in displayedPlans"
-                :key="plan.id"
-                class="bg-white rounded-xl border flex flex-col h-full shadow-xs hover:shadow-md transition-shadow relative overflow-hidden"
-                :class="{
-                    'border-neutral-200': plan.is_active,
-                    'border-neutral-300 bg-neutral-50/50 opacity-90': !plan.is_active,
-                }"
-            >
-                <!-- Top Status Stripe -->
-                <div
-                    class="h-1.5 w-full"
-                    :class="plan.is_active ? (plan.is_public ? 'bg-main' : 'bg-amber-400') : 'bg-neutral-300'"
-                />
-
-                <div class="p-4 flex-1 flex flex-col">
-                    <!-- Header Info & Badges -->
-                    <div class="flex items-start justify-between gap-2 mb-3">
-                        <div>
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <span class="text-xs font-mono uppercase tracking-wider text-neutral-400 font-semibold">
-                                    {{ plan.code }}
-                                </span>
-                                <span
-                                    v-if="plan.is_custom"
-                                    class="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-bold uppercase tracking-wider"
-                                >
-                                    Custom
-                                </span>
-                            </div>
-                            <h2 class="text-xl font-bold text-neutral-800 mt-0.5">
-                                {{ plan.name }}
-                            </h2>
-                        </div>
-                        <div class="flex flex-col items-end gap-1">
-                            <!-- Status Aktif / Nonaktif Badge -->
-                            <span
-                                v-if="plan.is_active"
-                                class="px-2.5 py-0.5 bg-success/10 text-success text-[11px] rounded-full font-semibold inline-flex items-center gap-1"
-                            >
-                                <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
-                                Aktif
-                            </span>
-                            <span
-                                v-else
-                                class="px-2.5 py-0.5 bg-neutral-200 text-neutral-600 text-[11px] rounded-full font-semibold inline-flex items-center gap-1"
-                            >
-                                <span class="w-1.5 h-1.5 rounded-full bg-neutral-400"></span>
-                                Nonaktif
-                            </span>
-
-                            <!-- Visibilitas Katalog Badge -->
-                            <span
-                                v-if="plan.is_public"
-                                class="px-2 py-0.5 bg-sky-50 text-sky-700 border border-sky-200 text-[10px] rounded-full font-semibold inline-flex items-center gap-1"
-                                title="Tampil di katalog langganan publik merchant"
-                            >
-                                <FontAwesomeIcon :icon="faEye" class="text-[9px]" />
-                                Katalog Publik
-                            </span>
-                            <span
-                                v-else
-                                class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] rounded-full font-semibold inline-flex items-center gap-1"
-                                title="Disembunyikan dari katalog publik (Paket Khusus/Privat)"
-                            >
-                                <FontAwesomeIcon :icon="faEyeSlash" class="text-[9px]" />
-                                Tersembunyi
-                            </span>
-                        </div>
+        <!-- Mini KPI Overview Metrics -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <div class="bg-white p-3.5 rounded-xl border border-neutral-200/70 shadow-xs flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-main/10 text-main flex items-center justify-center text-base shrink-0">
+                    <FontAwesomeIcon :icon="faLayerGroup" />
+                </div>
+                <div>
+                    <div class="text-xs text-neutral-500 font-medium">Total Paket</div>
+                    <div class="text-lg font-bold text-neutral-800 leading-tight">{{ plans.length }} Varian</div>
+                </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-neutral-200/70 shadow-xs flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-success/10 text-success flex items-center justify-center text-base shrink-0">
+                    <FontAwesomeIcon :icon="faCheckCircle" />
+                </div>
+                <div>
+                    <div class="text-xs text-neutral-500 font-medium">Paket Aktif</div>
+                    <div class="text-lg font-bold text-success leading-tight">
+                        {{ activeCount }} Aktif <span class="text-xs text-neutral-400 font-normal">({{ inactiveCount }} nonaktif)</span>
                     </div>
-
-                    <!-- Pricing Info -->
-                    <div class="py-3 border-y border-neutral-100 mb-3 text-center">
-                        <div class="text-2xl font-black text-main">
-                            {{ formatIDR(plan.price_per_outlet) }}
-                        </div>
-                        <div class="text-xs text-neutral-500 font-medium mt-0.5">
-                            per bulan / outlet
-                        </div>
-                        <div
-                            v-if="plan.yearly_discount_percent > 0"
-                            class="mt-2 text-xs font-bold text-success bg-success/10 py-0.5 px-2 rounded-md inline-block"
-                        >
-                            Diskon Tahunan {{ plan.yearly_discount_percent }}%
-                        </div>
+                </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-neutral-200/70 shadow-xs flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-base shrink-0">
+                    <FontAwesomeIcon :icon="faEye" />
+                </div>
+                <div>
+                    <div class="text-xs text-neutral-500 font-medium">Katalog Publik</div>
+                    <div class="text-lg font-bold text-sky-700 leading-tight">
+                        {{ publicCount }} Tampil <span class="text-xs text-neutral-400 font-normal">({{ hiddenCount }} hidden)</span>
                     </div>
-
-                    <!-- Meta Specs -->
-                    <div class="space-y-1.5 text-xs text-neutral-600 mb-3 bg-neutral-50 p-2.5 rounded-lg border border-neutral-100">
-                        <div class="flex justify-between">
-                            <span class="text-neutral-500">Batas Outlet:</span>
-                            <span class="font-semibold text-neutral-800">
-                                {{ plan.max_outlet ? `${plan.max_outlet} Outlet` : 'Tanpa Batas' }}
-                            </span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-neutral-500">Fitur Sistem Aktif:</span>
-                            <span class="font-bold text-main">
-                                {{ plan.system_features?.length || 0 }} Fitur
-                            </span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-neutral-500">Pelanggan Aktif:</span>
-                            <span class="font-semibold text-neutral-800">
-                                {{ plan.subscriptions_count || 0 }} Bisnis
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Poin Brosur Pemasaran -->
-                    <div class="flex-1 mb-4">
-                        <div class="text-xs font-bold text-neutral-700 uppercase tracking-wider mb-2">
-                            Poin Brosur Pemasaran:
-                        </div>
-                        <ul v-if="plan.features && plan.features.length" class="space-y-1.5">
-                            <li
-                                v-for="(feature, fIndex) in plan.features"
-                                :key="fIndex"
-                                class="flex items-start gap-2 text-xs text-neutral-700"
-                            >
-                                <FontAwesomeIcon
-                                    :icon="faCheckCircle"
-                                    class="text-success mt-0.5 shrink-0 text-[11px]"
-                                />
-                                <div>
-                                    <div class="font-medium text-neutral-800 leading-tight">{{ feature.title }}</div>
-                                    <div v-if="feature.detail" class="text-neutral-500 text-[11px]">{{ feature.detail }}</div>
-                                </div>
-                            </li>
-                        </ul>
-                        <div v-else class="text-xs text-neutral-400 italic">
-                            Belum ada poin brosur dicatat
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="pt-3 border-t border-neutral-100 flex flex-col gap-2">
-                        <!-- Primary Action: Atur Fitur Sistem (Form Terpisah) -->
-                        <button
-                            type="button"
-                            class="btn btn-main btn-sm w-full"
-                            @click="openManageFeatures(plan)"
-                        >
-                            <FontAwesomeIcon :icon="faSliders" class="mr-1.5" />
-                            Atur Fitur ({{ plan.system_features?.length || 0 }})
-                        </button>
-
-                        <!-- Edit Data Paket Dasar -->
-                        <button
-                            type="button"
-                            class="btn btn-outline-main btn-sm w-full"
-                            @click="openEdit(plan.id)"
-                        >
-                            <FontAwesomeIcon :icon="faPencil" class="mr-1.5" />
-                            Edit Paket
-                        </button>
-
-                        <!-- Secondary Actions: Toggle Visibility & Status -->
-                        <div class="grid grid-cols-2 gap-1.5 pt-1">
-                            <!-- Toggle Visibility (Show / Hide Katalog) -->
-                            <button
-                                v-if="plan.is_public"
-                                type="button"
-                                class="btn btn-outline-slate-400 btn-xs text-[11px] text-amber-700 border-amber-300 hover:bg-amber-50"
-                                title="Sembunyikan dari katalog publik merchant"
-                                @click="confirmToggleVisibility(plan)"
-                            >
-                                <FontAwesomeIcon :icon="faEyeSlash" class="mr-1" />
-                                Hide Katalog
-                            </button>
-                            <button
-                                v-else
-                                type="button"
-                                class="btn btn-outline-slate-400 btn-xs text-[11px] text-sky-700 border-sky-300 hover:bg-sky-50"
-                                title="Tampilkan di katalog publik merchant"
-                                @click="confirmToggleVisibility(plan)"
-                            >
-                                <FontAwesomeIcon :icon="faEye" class="mr-1" />
-                                Show Katalog
-                            </button>
-
-                            <!-- Toggle Status (Aktif / Nonaktif) -->
-                            <button
-                                v-if="plan.is_active"
-                                type="button"
-                                class="btn btn-outline-danger btn-xs text-[11px] text-danger border-danger/30 hover:bg-danger/10"
-                                title="Nonaktifkan paket langganan"
-                                @click="confirmToggleStatus(plan)"
-                            >
-                                <FontAwesomeIcon :icon="faBan" class="mr-1" />
-                                Nonaktifkan
-                            </button>
-                            <button
-                                v-else
-                                type="button"
-                                class="btn btn-outline-success btn-xs text-[11px] text-success border-success/30 hover:bg-success/10"
-                                title="Aktifkan paket langganan"
-                                @click="confirmToggleStatus(plan)"
-                            >
-                                <FontAwesomeIcon :icon="faCheck" class="mr-1" />
-                                Aktifkan
-                            </button>
-                        </div>
-
-                        <!-- Hapus Paket Button -->
-                        <div class="pt-1">
-                            <button
-                                type="button"
-                                class="w-full text-center text-xs text-neutral-400 hover:text-danger py-1 transition-colors flex items-center justify-center gap-1"
-                                @click="confirmDelete(plan)"
-                            >
-                                <FontAwesomeIcon :icon="faTrash" class="text-[10px]" />
-                                Hapus Paket
-                            </button>
-                        </div>
-                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-neutral-200/70 shadow-xs flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0">
+                    <FontAwesomeIcon :icon="faStore" />
+                </div>
+                <div>
+                    <div class="text-xs text-neutral-500 font-medium">Pelanggan Aktif</div>
+                    <div class="text-lg font-bold text-neutral-800 leading-tight">{{ totalSubscribersCount }} Merchant</div>
                 </div>
             </div>
         </div>
 
-        <div v-else class="text-center py-16 bg-white rounded-xl border border-neutral-200 text-neutral-400">
-            Tidak ada paket yang sesuai dengan filter yang dipilih.
+        <!-- Toolbar: Search, Filters, Sorters, and View Switcher -->
+        <div class="bg-white p-3.5 rounded-xl border border-neutral-200/70 shadow-xs mb-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            <!-- Left Controls: Search & Filters -->
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Search Input -->
+                <FilterSearch
+                    v-model="searchQuery"
+                    placeholder="Cari nama atau kode paket..."
+                    class="w-full sm:w-60"
+                />
+
+                <!-- Status Filter Segmented -->
+                <div class="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg text-xs font-medium">
+                    <button
+                        type="button"
+                        class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                        :class="statusFilter === 'all' ? 'bg-white shadow-xs text-neutral-800 font-bold' : 'text-neutral-500 hover:text-neutral-800'"
+                        @click="statusFilter = 'all'"
+                    >
+                        Semua
+                    </button>
+                    <button
+                        type="button"
+                        class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                        :class="statusFilter === 'active' ? 'bg-white shadow-xs text-success font-bold' : 'text-neutral-500 hover:text-neutral-800'"
+                        @click="statusFilter = 'active'"
+                    >
+                        Aktif ({{ activeCount }})
+                    </button>
+                    <button
+                        type="button"
+                        class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                        :class="statusFilter === 'inactive' ? 'bg-white shadow-xs text-danger font-bold' : 'text-neutral-500 hover:text-neutral-800'"
+                        @click="statusFilter = 'inactive'"
+                    >
+                        Nonaktif ({{ inactiveCount }})
+                    </button>
+                </div>
+
+                <!-- Visibility Filter Segmented -->
+                <div class="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg text-xs font-medium">
+                    <button
+                        type="button"
+                        class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                        :class="visibilityFilter === 'all' ? 'bg-white shadow-xs text-neutral-800 font-bold' : 'text-neutral-500 hover:text-neutral-800'"
+                        @click="visibilityFilter = 'all'"
+                    >
+                        Semua Katalog
+                    </button>
+                    <button
+                        type="button"
+                        class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                        :class="visibilityFilter === 'public' ? 'bg-white shadow-xs text-sky-700 font-bold' : 'text-neutral-500 hover:text-neutral-800'"
+                        @click="visibilityFilter = 'public'"
+                    >
+                        Publik ({{ publicCount }})
+                    </button>
+                    <button
+                        type="button"
+                        class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                        :class="visibilityFilter === 'hidden' ? 'bg-white shadow-xs text-amber-700 font-bold' : 'text-neutral-500 hover:text-neutral-800'"
+                        @click="visibilityFilter = 'hidden'"
+                    >
+                        Tersembunyi ({{ hiddenCount }})
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Controls: Sorter -->
+            <div class="flex items-center gap-2 justify-end">
+                <div class="w-44">
+                    <DropdownField
+                        v-model="sortBy"
+                        :options="sortOptions"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div v-if="displayedPlans.length" class="bg-white rounded-xl border border-neutral-200/80 shadow-xs overflow-hidden">
+            <Table
+                :headers="tableHeaders"
+                :data="displayedPlans"
+                :action="true"
+            >
+                <template #code_name="{ row }">
+                    <div class="py-1">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-bold text-neutral-800 text-sm hover:text-main transition-colors">
+                                {{ row.name }}
+                            </span>
+                            <span
+                                v-if="row.is_custom"
+                                class="px-1.5 py-0.2 bg-purple-100 text-purple-700 text-[9px] rounded font-bold uppercase tracking-wider"
+                            >
+                                Custom
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-semibold">
+                                {{ row.code }}
+                            </span>
+                            <span v-if="row.features && row.features.length" class="text-[10px] text-neutral-400">
+                                • {{ row.features.length }} poin brosur
+                            </span>
+                        </div>
+                    </div>
+                </template>
+
+                <template #price="{ row }">
+                    <div>
+                        <span class="font-bold text-main text-sm">
+                            {{ formatIDR(row.price_per_outlet) }}
+                        </span>
+                        <span class="text-[11px] text-neutral-500 font-normal"> / bln</span>
+                        <div v-if="row.yearly_discount_percent > 0" class="mt-0.5">
+                            <span class="text-[10px] font-bold text-success bg-success/10 px-1.5 py-0.5 rounded">
+                                Diskon {{ row.yearly_discount_percent }}% Tahunan
+                            </span>
+                        </div>
+                    </div>
+                </template>
+
+                <template #max_outlet="{ row }">
+                    <span class="text-xs font-semibold text-neutral-700">
+                        {{ row.max_outlet ? `${row.max_outlet} Outlet` : 'Tanpa Batas' }}
+                    </span>
+                </template>
+
+                <template #features="{ row }">
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-main/10 text-main hover:bg-main hover:text-white transition-colors cursor-pointer"
+                        title="Klik untuk membuka drawer konfigurasi fitur sistem"
+                        @click="openManageFeatures(row)"
+                    >
+                        <FontAwesomeIcon :icon="faSliders" class="text-[10px]" />
+                        <span>{{ row.system_features?.length || 0 }} Fitur</span>
+                    </button>
+                </template>
+
+                <template #subscribers="{ row }">
+                    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-700">
+                        <FontAwesomeIcon :icon="faStore" class="text-neutral-400 text-[11px]" />
+                        <span class="font-bold text-neutral-800">{{ row.subscriptions_count || 0 }}</span> Bisnis
+                    </span>
+                </template>
+
+                <template #is_public="{ row }">
+                    <button
+                        type="button"
+                        class="px-2.5 py-0.5 text-[11px] rounded-full font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                        :class="row.is_public ? 'bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100' : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'"
+                        :title="row.is_public ? 'Paket tampil di katalog publik. Klik untuk sembunyikan.' : 'Paket disembunyikan. Klik untuk tampilkan di katalog publik.'"
+                        @click="confirmToggleVisibility(row)"
+                    >
+                        <FontAwesomeIcon :icon="row.is_public ? faEye : faEyeSlash" class="text-[9px]" />
+                        {{ row.is_public ? 'Publik' : 'Tersembunyi' }}
+                    </button>
+                </template>
+
+                <template #is_active="{ row }">
+                    <button
+                        type="button"
+                        class="px-2.5 py-0.5 text-[11px] rounded-full font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                        :class="row.is_active ? 'bg-success/10 text-success hover:bg-success/20' : 'bg-neutral-200 text-neutral-600 hover:bg-neutral-300'"
+                        :title="row.is_active ? 'Paket aktif. Klik untuk menonaktifkan.' : 'Paket nonaktif. Klik untuk mengaktifkan.'"
+                        @click="confirmToggleStatus(row)"
+                    >
+                        <span class="w-1.5 h-1.5 rounded-full" :class="row.is_active ? 'bg-success' : 'bg-neutral-400'"></span>
+                        {{ row.is_active ? 'Aktif' : 'Nonaktif' }}
+                    </button>
+                </template>
+
+                <template #actions="{ row }">
+                    <div class="flex items-center gap-1 justify-end">
+                        <button
+                            type="button"
+                            class="btn btn-outline-main btn-xs text-[11px] px-2 py-1"
+                            title="Atur Hak Akses Fitur Sistem"
+                            @click="openManageFeatures(row)"
+                        >
+                            <FontAwesomeIcon :icon="faSliders" class="mr-1 text-[10px]" />
+                            Fitur
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline-main btn-xs text-[11px] px-2 py-1"
+                            title="Edit Data Dasar Paket"
+                            @click="openEdit(row.id)"
+                        >
+                            <FontAwesomeIcon :icon="faPencil" class="mr-1 text-[10px]" />
+                            Edit
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline-danger btn-xs text-[11px] px-2 py-1"
+                            title="Hapus Paket"
+                            @click="confirmDelete(row)"
+                        >
+                            <FontAwesomeIcon :icon="faTrash" class="text-[10px]" />
+                        </button>
+                    </div>
+                </template>
+            </Table>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else class="text-center py-16 bg-white rounded-xl border border-neutral-200 shadow-xs">
+            <div class="w-12 h-12 mx-auto rounded-full bg-neutral-100 flex items-center justify-center text-neutral-400 mb-3 text-lg">
+                <FontAwesomeIcon :icon="faBoxOpen" />
+            </div>
+            <h3 class="text-base font-bold text-neutral-700 mb-1">
+                Tidak Ada Paket yang Sesuai
+            </h3>
+            <p class="text-xs text-neutral-400 max-w-sm mx-auto mb-4">
+                Tidak ditemukan paket langganan dengan kriteria pencarian dan filter yang Anda pilih.
+            </p>
+            <button
+                type="button"
+                class="btn btn-outline-main btn-sm inline-flex items-center gap-1.5 cursor-pointer"
+                @click="resetFilters"
+            >
+                <FontAwesomeIcon :icon="faRotateRight" class="text-xs" />
+                Reset Filter
+            </button>
         </div>
     </MainPage>
 </template>
@@ -312,18 +303,23 @@
 <script setup>
 import { ref, computed } from 'vue';
 import MainPage from '@/Components/UI/MainPage.vue';
+import Table from '@/Components/Tables/Table.vue';
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
+import DropdownField from '@/Components/Form/DropdownField.vue';
 import { formatIDR } from '@/Composable/currency-format';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
     faCheckCircle,
     faPencil,
-    faBan,
-    faCheck,
     faPlus,
     faSliders,
     faEye,
     faEyeSlash,
     faTrash,
+    faStore,
+    faLayerGroup,
+    faRotateRight,
+    faBoxOpen,
 } from '@fortawesome/free-solid-svg-icons';
 import { router } from '@inertiajs/vue3';
 import { usePopUpStore } from '@/store/popup';
@@ -345,16 +341,52 @@ const props = defineProps({
 const popUpStore = usePopUpStore();
 const modalStore = useModalStore();
 
+// Filters & Search State
+const searchQuery = ref('');
 const statusFilter = ref('all');
 const visibilityFilter = ref('all');
+const sortBy = ref('price_asc');
 
+const sortOptions = [
+    { value: 'price_asc', label: 'Harga: Termurah' },
+    { value: 'price_desc', label: 'Harga: Termahal' },
+    { value: 'name_asc', label: 'Nama Paket (A - Z)' },
+    { value: 'subscribers_desc', label: 'Pelanggan Terbanyak' },
+    { value: 'features_desc', label: 'Fitur Terbanyak' },
+];
+
+const tableHeaders = [
+    { field: 'name', label: 'Paket & Kode', slot: 'code_name' },
+    { field: 'price_per_outlet', label: 'Harga / Outlet', slot: 'price' },
+    { field: 'max_outlet', label: 'Batas Outlet', slot: 'max_outlet' },
+    { field: 'features_count', label: 'Fitur Sistem', slot: 'features' },
+    { field: 'subscriptions_count', label: 'Pelanggan Aktif', slot: 'subscribers' },
+    { field: 'is_public', label: 'Katalog', slot: 'is_public' },
+    { field: 'is_active', label: 'Status', slot: 'is_active' },
+];
+
+// Metrics Overview
 const activeCount = computed(() => (props.plans || []).filter((p) => p.is_active).length);
 const inactiveCount = computed(() => (props.plans || []).filter((p) => !p.is_active).length);
 const publicCount = computed(() => (props.plans || []).filter((p) => p.is_public).length);
 const hiddenCount = computed(() => (props.plans || []).filter((p) => !p.is_public).length);
+const totalSubscribersCount = computed(() => {
+    return (props.plans || []).reduce((acc, p) => acc + (p.subscriptions_count || 0), 0);
+});
 
+// Filtered & Sorted Plans
 const displayedPlans = computed(() => {
-    return (props.plans || []).filter((p) => {
+    const list = (props.plans || []).filter((p) => {
+        // Search Filter
+        if (searchQuery.value.trim()) {
+            const query = searchQuery.value.trim().toLowerCase();
+            const nameMatch = (p.name || '').toLowerCase().includes(query);
+            const codeMatch = (p.code || '').toLowerCase().includes(query);
+            if (!nameMatch && !codeMatch) {
+                return false;
+            }
+        }
+
         // Status Filter
         if (statusFilter.value === 'active' && !p.is_active) {
             return false;
@@ -373,21 +405,34 @@ const displayedPlans = computed(() => {
 
         return true;
     });
+
+    // Sort
+    return list.slice().sort((a, b) => {
+        if (sortBy.value === 'price_asc') {
+            return Number(a.price_per_outlet) - Number(b.price_per_outlet);
+        }
+        if (sortBy.value === 'price_desc') {
+            return Number(b.price_per_outlet) - Number(a.price_per_outlet);
+        }
+        if (sortBy.value === 'name_asc') {
+            return (a.name || '').localeCompare(b.name || '');
+        }
+        if (sortBy.value === 'subscribers_desc') {
+            return (b.subscriptions_count || 0) - (a.subscriptions_count || 0);
+        }
+        if (sortBy.value === 'features_desc') {
+            return (b.system_features?.length || 0) - (a.system_features?.length || 0);
+        }
+        return 0;
+    });
 });
 
-const gridClass = computed(() => {
-    const count = displayedPlans.value.length;
-    if (count <= 1) {
-        return 'grid-cols-1 max-w-md mx-auto';
-    }
-    if (count === 2) {
-        return 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto';
-    }
-    if (count === 3) {
-        return 'grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto';
-    }
-    return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
-});
+const resetFilters = () => {
+    searchQuery.value = '';
+    statusFilter.value = 'all';
+    visibilityFilter.value = 'all';
+    sortBy.value = 'price_asc';
+};
 
 const openCreate = () => {
     popUpStore.open({

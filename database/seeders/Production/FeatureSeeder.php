@@ -382,7 +382,7 @@ class FeatureSeeder extends Seeder
         ];
 
         // set active feature for production is false
-        Feature::update(['is_active' => false]);
+        Feature::query()->update(['is_active' => false]);
 
         foreach ($features as $item) {
             Feature::updateOrCreate(

@@ -172,6 +172,6 @@ Sebelum menyelesaikan tugas atau membuat commit:
 - [ ] **On-Demand Loading Followed:** Props `index()` ringan, detail dimuat async saat drawer dibuka.
 - [ ] **UI Verified:** Komponen Vue diverifikasi visual & console log bersih via `browsermcp`.
 - [ ] **No Dead Code:** Komentar kode lama, import tidak terpakai, dan method yatim telah dibersihkan.
-- [ ] **PHP Formatted:** `vendor/bin/pint` dijalankan dengan sukses.
-- [ ] **Frontend Linted & Built:** `npm run fix:eslint` dan `npm run build` sukses tanpa warning/error.
+- [ ] **PHP Formatted:** `composer run format` (`vendor/bin/pint`) dijalankan dengan sukses (method chaining multiline terjaga).
+- [ ] **Frontend Formatted & Linted:** `npm run format`, `npm run lint`, dan `npm run build` sukses tanpa error.
 - [ ] **API Docs Updated:** Perubahan endpoint diperbarui di `docs/openapi.yaml` dan `docs/postman_collection.json`.

@@ -5,6 +5,8 @@
         "bmewburn.vscode-intelephense-client",
         "xdebug.php-debug",
         "emeraldwalk.runonsave",
-        "shufo.vscode-blade-formatter"
+        "shufo.vscode-blade-formatter",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint"
     ]
 }

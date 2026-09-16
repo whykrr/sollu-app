@@ -42,3 +42,30 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 - Proteksi route dengan `middleware('plan.feature:' . FeatureEnum::NAME->value)`.
 - Dukungan Custom Plan (`is_custom: true`, `is_public: false`) berjalan secara native: resolusi fitur tenant membaca langsung relasi database `plan->systemFeatures` tanpa perlu mendaftarkan kode paket baru ke PHP Enum.
 
+---
+
+## C. Code Formatting & Style Standards
+
+**1. PHP Standards (Laravel Pint)**
+- **Formatter:** Gunakan `composer run format` (`vendor/bin/pint`) sebagai standar tunggal berbasis `pint.json`.
+- **Method Chaining:** Pemanggilan berantai lebih dari 1 method (misal pada Eloquent Query Builder, Collection, atau fluent interface) **WAJIB dipecah multiline (satu method per baris)** untuk mencegah kode horizontal yang terlalu panjang:
+  ```php
+  // BENAR
+  $users = User::query()
+      ->where('business_id', $businessId)
+      ->where('is_active', true)
+      ->orderBy('name')
+      ->get();
+
+  // SALAH (terlalu panjang secara horizontal)
+  $users = User::query()->where('business_id', $businessId)->where('is_active', true)->orderBy('name')->get();
+  ```
+- **Ruleset:** Diatur otomatis oleh `pint.json` dengan `method_chaining_indentation: true`.
+
+**2. Frontend Standards (Prettier & ESLint)**
+- **Formatter:** Prettier (`.prettierrc`) adalah penentu tata letak visual: `tabWidth: 4`, `useTabs: false`, `singleQuote: true`, `semi: false` (tanpa semicolon), `printWidth: 100`.
+- **Linter:** ESLint (`eslint.config.js`) fokus pada deteksi logic error, unused variables, dan Vue template rules.
+- **Commands:** Jalankan `npm run format` untuk auto-format dan `npm run lint` untuk cek kode.
+- **VS Code:** Selalu gunakan setting workspace yang telah dikonfigurasi (`editor.formatOnSave: true`, formatters per bahasa).
+
+

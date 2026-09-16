@@ -1,0 +1,11 @@
+node_modules/
+vendor/
+public/
+storage/
+resources/js/ziggy.js
+coverage-report/
+.phpunit.result.cache
+composer.lock
+package-lock.json
+*.min.js
+*.min.css
