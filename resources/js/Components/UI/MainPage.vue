@@ -7,7 +7,7 @@
             <slot name="header" />
         </div>
         <div
-            class="flex-1 overflow-scroll [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:h-0"
+            class="flex-1 min-h-0 overflow-auto flex flex-col [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:h-0"
         >
             <slot />
         </div>

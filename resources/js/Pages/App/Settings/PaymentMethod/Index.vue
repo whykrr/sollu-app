@@ -21,17 +21,14 @@
                         <DropdownField
                             v-model="filters.type"
                             placeholder="Semua Jenis"
-                            :options="[
-                                { value: '', label: 'Semua Jenis' },
-                                ...types,
-                            ]"
+                            :options="[{ value: '', label: 'Semua Jenis' }, ...types]"
                         />
                     </div>
                 </div>
             </div>
         </template>
 
-        <div class="">
+        <div class="h-full flex-1 min-h-0 flex flex-col">
             <DraggableTable
                 v-model="localPaymentMethods"
                 :headers="headers"
@@ -40,26 +37,18 @@
             >
                 <template #name="{ row }">
                     <div class="flex flex-col">
-                        <span class="font-medium text-neutral-900">{{
-                            row.name
-                        }}</span>
+                        <span class="font-medium text-neutral-900">{{ row.name }}</span>
                         <span
                             v-if="row.transaction_payments_count > 0"
                             class="text-[11px] text-neutral-500 mt-0.5"
                         >
-                            {{ row.transaction_payments_count }} transaksi
-                            tercatat
+                            {{ row.transaction_payments_count }} transaksi tercatat
                         </span>
                     </div>
                 </template>
 
                 <template #type="{ row }">
-                    <span
-                        :class="[
-                            'badge text-xs font-medium',
-                            getTypeBadgeClass(row.type),
-                        ]"
-                    >
+                    <span :class="['badge text-xs font-medium', getTypeBadgeClass(row.type)]">
                         {{ getTypeLabel(row.type) }}
                     </span>
                 </template>
@@ -67,9 +56,7 @@
                 <template #outlets="{ row }">
                     <div class="flex flex-wrap items-center gap-1.5">
                         <template v-if="outlets.length === 0">
-                            <span class="text-xs text-neutral-400"
-                                >Belum ada outlet</span
-                            >
+                            <span class="text-xs text-neutral-400">Belum ada outlet</span>
                         </template>
                         <template v-else>
                             <div
@@ -141,28 +128,28 @@
 </template>
 
 <script setup>
-import { reactive, watch, ref } from 'vue';
-import { router } from '@inertiajs/vue3';
-import { debounce } from 'lodash';
-import { usePopUpStore } from '@/store/popup';
-import { useModalStore } from '@/store/notification';
+import { reactive, watch, ref } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { debounce } from 'lodash'
+import { usePopUpStore } from '@/store/popup'
+import { useModalStore } from '@/store/notification'
 
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons'
 
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import DraggableTable from '@/Components/Tables/DraggableTable.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import PaymentMethodPopUp from './Components/PaymentMethodPopUp.vue';
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import DraggableTable from '@/Components/Tables/DraggableTable.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import PaymentMethodPopUp from './Components/PaymentMethodPopUp.vue'
 
 const headers = [
     { field: 'name', label: 'Metode Pembayaran', slot: 'name' },
     { field: 'type', label: 'Jenis', slot: 'type' },
     { field: 'outlets', label: 'Aktivasi per Outlet', slot: 'outlets' },
-];
+]
 
 const props = defineProps({
     paymentMethods: {
@@ -181,91 +168,91 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
-const popUpStore = usePopUpStore();
-const modalStore = useModalStore();
+const popUpStore = usePopUpStore()
+const modalStore = useModalStore()
 
-const localPaymentMethods = ref([]);
+const localPaymentMethods = ref([])
 
 watch(
     () => props.paymentMethods.data,
-    (newData) => {
-        localPaymentMethods.value = [...newData];
+    newData => {
+        localPaymentMethods.value = [...newData]
     },
-    { immediate: true },
-);
+    { immediate: true }
+)
 
 const onDragEnd = () => {
-    const orderedIds = localPaymentMethods.value.map((pm) => pm.id);
+    const orderedIds = localPaymentMethods.value.map(pm => pm.id)
     router.patch(
         route('settings.payment-methods.reorder'),
         { ordered_ids: orderedIds },
         {
             preserveScroll: true,
             preserveState: true,
-        },
-    );
-};
+        }
+    )
+}
 
 const filters = reactive({
     search: props.filters.search || '',
     type: props.filters.type || '',
-});
+})
 
-const getTypeLabel = (type) => {
-    const found = props.types.find((t) => t.value === type);
-    return found ? found.label : type;
-};
+const getTypeLabel = type => {
+    const found = props.types.find(t => t.value === type)
+    return found ? found.label : type
+}
 
-const getTypeBadgeClass = (type) => {
+const getTypeBadgeClass = type => {
     switch (type) {
         case 'cash':
-            return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+            return 'bg-emerald-50 text-emerald-700 border border-emerald-200'
         case 'qris':
-            return 'bg-blue-50 text-blue-700 border border-blue-200';
+            return 'bg-blue-50 text-blue-700 border border-blue-200'
         case 'bank_transfer':
-            return 'bg-indigo-50 text-indigo-700 border border-indigo-200';
+            return 'bg-indigo-50 text-indigo-700 border border-indigo-200'
         case 'edc':
-            return 'bg-amber-50 text-amber-700 border border-amber-200';
+            return 'bg-amber-50 text-amber-700 border border-amber-200'
         case 'ewallet':
-            return 'bg-cyan-50 text-cyan-700 border border-cyan-200';
+            return 'bg-cyan-50 text-cyan-700 border border-cyan-200'
         default:
-            return 'bg-neutral-100 text-neutral-700 border border-neutral-200';
+            return 'bg-neutral-100 text-neutral-700 border border-neutral-200'
     }
-};
+}
 
 const isOutletActive = (paymentMethod, outletId) => {
     if (!paymentMethod.outlets || paymentMethod.outlets.length === 0) {
         // Fallback: active for all if no pivot yet
-        return true;
+        return true
     }
-    const matched = paymentMethod.outlets.find((o) => o.id === outletId);
+    const matched = paymentMethod.outlets.find(o => o.id === outletId)
     if (!matched) {
-        return false;
+        return false
     }
-    return matched.pivot ? matched.pivot.is_enabled : true;
-};
+    return matched.pivot ? matched.pivot.is_enabled : true
+}
 
 const updateQuery = debounce(() => {
     const query = {
         search: filters.search || undefined,
         type: filters.type || undefined,
-    };
+    }
 
     router.get(route('settings.payment-methods.index'), query, {
         preserveState: true,
         preserveScroll: true,
         replace: true,
-    });
-}, 400);
+    })
+}, 400)
 
 watch(
     () => [filters.search, filters.type],
     () => {
-        updateQuery();
-    },
-);
+        updateQuery()
+    }
+)
 
 const openCreate = () => {
     popUpStore.open({
@@ -276,10 +263,10 @@ const openCreate = () => {
             outlets: props.outlets,
             types: props.types,
         },
-    });
-};
+    })
+}
 
-const openEdit = (paymentMethod) => {
+const openEdit = paymentMethod => {
     popUpStore.open({
         title: 'Ubah Metode Pembayaran',
         size: 'md',
@@ -289,11 +276,11 @@ const openEdit = (paymentMethod) => {
             outlets: props.outlets,
             types: props.types,
         },
-    });
-};
+    })
+}
 
 const toggleOutlet = (paymentMethod, outlet) => {
-    const currentlyActive = isOutletActive(paymentMethod, outlet.id);
+    const currentlyActive = isOutletActive(paymentMethod, outlet.id)
     router.patch(
         route('settings.payment-methods.toggle-outlet', {
             paymentMethod: paymentMethod.id,
@@ -305,13 +292,11 @@ const toggleOutlet = (paymentMethod, outlet) => {
         {
             preserveScroll: true,
             preserveState: true,
-        },
-    );
-};
+        }
+    )
+}
 
-const openDelete = (paymentMethod) => {
-    modalStore.openModalDelete(
-        route('settings.payment-methods.destroy', paymentMethod.id),
-    );
-};
+const openDelete = paymentMethod => {
+    modalStore.openModalDelete(route('settings.payment-methods.destroy', paymentMethod.id))
+}
 </script>

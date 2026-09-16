@@ -24,27 +24,14 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <FilterBadge
-                v-if="filterForm.outlet_id !== ''"
-                @remove="removeFilter('outlet_id')"
-            >
+            <FilterBadge v-if="filterForm.outlet_id !== ''" @remove="removeFilter('outlet_id')">
                 Outlet: {{ getOutletName(filterForm.outlet_id) }}
             </FilterBadge>
-            <FilterBadge
-                v-if="filterForm.item_type !== ''"
-                @remove="removeFilter('item_type')"
-            >
+            <FilterBadge v-if="filterForm.item_type !== ''" @remove="removeFilter('item_type')">
                 Tipe:
-                {{
-                    filterForm.item_type == 'raw_material'
-                        ? 'Bahan Baku'
-                        : 'Produk'
-                }}
+                {{ filterForm.item_type == 'raw_material' ? 'Bahan Baku' : 'Produk' }}
             </FilterBadge>
-            <FilterBadge
-                v-if="filterForm.category_id !== ''"
-                @remove="removeFilter('category_id')"
-            >
+            <FilterBadge v-if="filterForm.category_id !== ''" @remove="removeFilter('category_id')">
                 Kategori: {{ getCategoryName(filterForm.category_id) }}
             </FilterBadge>
             <FilterBadge
@@ -74,15 +61,9 @@
                     class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white flex items-center gap-1.5"
                     @click="showExportDropdown = !showExportDropdown"
                 >
-                    <FontAwesomeIcon
-                        :icon="faDownload"
-                        class="text-slate-600"
-                    />
+                    <FontAwesomeIcon :icon="faDownload" class="text-slate-600" />
                     <span>Ekspor Data</span>
-                    <FontAwesomeIcon
-                        :icon="faChevronDown"
-                        class="text-xs text-slate-400"
-                    />
+                    <FontAwesomeIcon :icon="faChevronDown" class="text-xs text-slate-400" />
                 </button>
                 <div
                     v-if="showExportDropdown"
@@ -91,29 +72,17 @@
                     <button
                         type="button"
                         class="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                        @click="
-                            exportPdf();
-                            showExportDropdown = false;
-                        "
+                        @click="handleExportPdf"
                     >
-                        <FontAwesomeIcon
-                            :icon="faFilePdf"
-                            class="text-red-600"
-                        />
+                        <FontAwesomeIcon :icon="faFilePdf" class="text-red-600" />
                         <span>Ekspor PDF</span>
                     </button>
                     <button
                         type="button"
                         class="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                        @click="
-                            exportCsv();
-                            showExportDropdown = false;
-                        "
+                        @click="handleExportCsv"
                     >
-                        <FontAwesomeIcon
-                            :icon="faFileExcel"
-                            class="text-green-600"
-                        />
+                        <FontAwesomeIcon :icon="faFileExcel" class="text-green-600" />
                         <span>Ekspor Excel</span>
                     </button>
                 </div>
@@ -238,14 +207,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
-import { debounce } from 'lodash';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
-import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
-import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
-import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue';
+import { ref, reactive, watch } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { debounce } from 'lodash'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue'
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
+import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue'
 import {
     faSliders,
     faFilePdf,
@@ -253,13 +222,13 @@ import {
     faUpload,
     faChevronDown,
     faFileExcel,
-} from '@fortawesome/free-solid-svg-icons';
-import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
+} from '@fortawesome/free-solid-svg-icons'
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 
 const props = defineProps({
     filters: Object,
     categories: Array,
-});
+})
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
@@ -269,12 +238,12 @@ const filterForm = reactive({
     stock_status: props.filters?.stock_status ?? '',
     is_active_only: props.filters?.is_active_only ?? '',
     in_stock_only: props.filters?.in_stock_only ?? '',
-});
+})
 
 // Modal & Dropdown State
-const showFilterModal = ref(false);
-const showExportDropdown = ref(false);
-const showImportModal = ref(false);
+const showFilterModal = ref(false)
+const showExportDropdown = ref(false)
+const showImportModal = ref(false)
 const tempFilters = reactive({
     outlet_id: '',
     item_type: '',
@@ -282,139 +251,130 @@ const tempFilters = reactive({
     stock_status: '',
     is_active_only: '',
     in_stock_only: '',
-});
+})
 
-const loadedOutlets = ref([]);
+const loadedOutlets = ref([])
 
-const onOutletsLoaded = (outlets) => {
-    loadedOutlets.value = outlets;
-};
+const onOutletsLoaded = outlets => {
+    loadedOutlets.value = outlets
+}
 
 // Watch search separately for immediate query trigger
 watch(
     () => filterForm.search,
     debounce(() => {
-        updateQuery();
-    }, 500),
-);
+        updateQuery()
+    }, 500)
+)
 
-const getOutletName = (id) => {
-    return loadedOutlets.value.find((o) => o.id == id)?.name || id;
-};
+const getOutletName = id => {
+    return loadedOutlets.value.find(o => o.id == id)?.name || id
+}
 
-const getCategoryName = (id) => {
-    return props.categories?.find((c) => c.id == id)?.name || id;
-};
+const getCategoryName = id => {
+    return props.categories?.find(c => c.id == id)?.name || id
+}
 
-const getStockStatusName = (status) => {
-    const statuses = { aman: 'Aman', menipis: 'Menipis', habis: 'Habis' };
-    return statuses[status] || status;
-};
+const getStockStatusName = status => {
+    const statuses = { aman: 'Aman', menipis: 'Menipis', habis: 'Habis' }
+    return statuses[status] || status
+}
 
 const openModal = () => {
-    tempFilters.outlet_id = filterForm.outlet_id;
-    tempFilters.item_type = filterForm.item_type;
-    tempFilters.category_id = filterForm.category_id;
-    tempFilters.stock_status = filterForm.stock_status;
-    tempFilters.is_active_only = filterForm.is_active_only;
-    tempFilters.in_stock_only = filterForm.in_stock_only;
-    showFilterModal.value = true;
-};
+    tempFilters.outlet_id = filterForm.outlet_id
+    tempFilters.item_type = filterForm.item_type
+    tempFilters.category_id = filterForm.category_id
+    tempFilters.stock_status = filterForm.stock_status
+    tempFilters.is_active_only = filterForm.is_active_only
+    tempFilters.in_stock_only = filterForm.in_stock_only
+    showFilterModal.value = true
+}
 
 const closeModal = () => {
-    showFilterModal.value = false;
-};
+    showFilterModal.value = false
+}
 
 const resetTempFilters = () => {
-    tempFilters.outlet_id = '';
-    tempFilters.item_type = '';
-    tempFilters.category_id = '';
-    tempFilters.stock_status = '';
-    tempFilters.is_active_only = '';
-    tempFilters.in_stock_only = '';
-};
+    tempFilters.outlet_id = ''
+    tempFilters.item_type = ''
+    tempFilters.category_id = ''
+    tempFilters.stock_status = ''
+    tempFilters.is_active_only = ''
+    tempFilters.in_stock_only = ''
+}
 
 const applyFilters = () => {
-    filterForm.outlet_id = tempFilters.outlet_id;
-    filterForm.item_type = tempFilters.item_type;
-    filterForm.category_id = tempFilters.category_id;
-    filterForm.stock_status = tempFilters.stock_status;
-    filterForm.is_active_only = tempFilters.is_active_only;
-    filterForm.in_stock_only = tempFilters.in_stock_only;
-    showFilterModal.value = false;
-    updateQuery();
-};
+    filterForm.outlet_id = tempFilters.outlet_id
+    filterForm.item_type = tempFilters.item_type
+    filterForm.category_id = tempFilters.category_id
+    filterForm.stock_status = tempFilters.stock_status
+    filterForm.is_active_only = tempFilters.is_active_only
+    filterForm.in_stock_only = tempFilters.in_stock_only
+    showFilterModal.value = false
+    updateQuery()
+}
 
-const removeFilter = (key) => {
-    filterForm[key] = '';
-    updateQuery();
-};
+const removeFilter = key => {
+    filterForm[key] = ''
+    updateQuery()
+}
 
 const updateQuery = () => {
     const query = {
         ...route().params,
         search: filterForm.search || undefined,
-        outlet_id:
-            filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
-        item_type:
-            filterForm.item_type !== '' ? filterForm.item_type : undefined,
-        category_id:
-            filterForm.category_id !== '' ? filterForm.category_id : undefined,
-        stock_status:
-            filterForm.stock_status !== ''
-                ? filterForm.stock_status
-                : undefined,
+        outlet_id: filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
+        item_type: filterForm.item_type !== '' ? filterForm.item_type : undefined,
+        category_id: filterForm.category_id !== '' ? filterForm.category_id : undefined,
+        stock_status: filterForm.stock_status !== '' ? filterForm.stock_status : undefined,
         is_active_only: filterForm.is_active_only === '1' ? '1' : undefined,
         in_stock_only: filterForm.in_stock_only === '1' ? '1' : undefined,
         page: 1,
-    };
+    }
 
     router.get(route('inventories.stocks.index'), query, {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 
 const exportCsv = () => {
     const query = {
         search: filterForm.search || undefined,
-        outlet_id:
-            filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
-        item_type:
-            filterForm.item_type !== '' ? filterForm.item_type : undefined,
-        category_id:
-            filterForm.category_id !== '' ? filterForm.category_id : undefined,
-        stock_status:
-            filterForm.stock_status !== ''
-                ? filterForm.stock_status
-                : undefined,
+        outlet_id: filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
+        item_type: filterForm.item_type !== '' ? filterForm.item_type : undefined,
+        category_id: filterForm.category_id !== '' ? filterForm.category_id : undefined,
+        stock_status: filterForm.stock_status !== '' ? filterForm.stock_status : undefined,
         is_active_only: filterForm.is_active_only === '1' ? '1' : undefined,
         in_stock_only: filterForm.in_stock_only === '1' ? '1' : undefined,
-    };
+    }
 
     router.get(route('inventories.stocks.export-csv'), query, {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 
 const exportPdf = () => {
-    const params = new URLSearchParams();
-    if (filterForm.search) params.append('search', filterForm.search);
-    if (filterForm.outlet_id !== '')
-        params.append('outlet_id', filterForm.outlet_id);
-    if (filterForm.item_type !== '')
-        params.append('item_type', filterForm.item_type);
-    if (filterForm.category_id !== '')
-        params.append('category_id', filterForm.category_id);
-    if (filterForm.stock_status !== '')
-        params.append('stock_status', filterForm.stock_status);
-    if (filterForm.is_active_only === '1') params.append('is_active_only', '1');
-    if (filterForm.in_stock_only === '1') params.append('in_stock_only', '1');
+    const params = new URLSearchParams()
+    if (filterForm.search) params.append('search', filterForm.search)
+    if (filterForm.outlet_id !== '') params.append('outlet_id', filterForm.outlet_id)
+    if (filterForm.item_type !== '') params.append('item_type', filterForm.item_type)
+    if (filterForm.category_id !== '') params.append('category_id', filterForm.category_id)
+    if (filterForm.stock_status !== '') params.append('stock_status', filterForm.stock_status)
+    if (filterForm.is_active_only === '1') params.append('is_active_only', '1')
+    if (filterForm.in_stock_only === '1') params.append('in_stock_only', '1')
 
-    window.open(
-        route('inventories.stocks.export-pdf-list') + '?' + params.toString(),
-        '_blank',
-    );
-};
+    window.open(route('inventories.stocks.export-pdf-list') + '?' + params.toString(), '_blank')
+}
+
+const handleExportPdf = () => {
+    exportPdf()
+    showExportDropdown.value = false
+}
+
+const handleExportCsv = () => {
+    exportCsv()
+    showExportDropdown.value = false
+}
 </script>

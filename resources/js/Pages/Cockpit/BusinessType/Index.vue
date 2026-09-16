@@ -2,7 +2,7 @@
     <MainPage>
         <template #header>
             <div
-                class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-xl shadow-xs border border-neutral-200/60 mb-4 gap-3"
+                class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-xl border border-neutral-200/60 gap-3"
             >
                 <div>
                     <h1 class="text-xl font-bold text-neutral-800">Manajemen Jenis Bisnis</h1>
@@ -18,140 +18,137 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Mini KPI Overview Metrics -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                <div
+                    class="bg-white p-3.5 rounded-xl border border-neutral-200/70 flex items-center gap-3"
+                >
+                    <div
+                        class="w-10 h-10 rounded-lg bg-main/10 text-main flex items-center justify-center text-base shrink-0"
+                    >
+                        <FontAwesomeIcon :icon="faBriefcase" />
+                    </div>
+                    <div>
+                        <div class="text-xs text-neutral-500 font-medium">Total Jenis Bisnis</div>
+                        <div class="text-lg font-bold text-neutral-800 leading-tight">
+                            {{ businessTypes.length }} Tipe
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="bg-white p-3.5 rounded-xl border border-neutral-200/70 flex items-center gap-3"
+                >
+                    <div
+                        class="w-10 h-10 rounded-lg bg-success/10 text-success flex items-center justify-center text-base shrink-0"
+                    >
+                        <FontAwesomeIcon :icon="faEye" />
+                    </div>
+                    <div>
+                        <div class="text-xs text-neutral-500 font-medium">Tampil di Registrasi</div>
+                        <div class="text-lg font-bold text-success leading-tight">
+                            {{ visibleCount }} Aktif
+                            <span class="text-xs text-neutral-400 font-normal"
+                                >({{ hiddenCount }} hidden)</span
+                            >
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="bg-white p-3.5 rounded-xl border border-neutral-200/70 flex items-center gap-3"
+                >
+                    <div
+                        class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-base shrink-0"
+                    >
+                        <FontAwesomeIcon :icon="faSliders" />
+                    </div>
+                    <div>
+                        <div class="text-xs text-neutral-500 font-medium">Rata-Rata Fitur</div>
+                        <div class="text-lg font-bold text-sky-700 leading-tight">
+                            {{ averageFeaturesCount }} Fitur / Tipe
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="bg-white p-3.5 rounded-xl border border-neutral-200/70 flex items-center gap-3"
+                >
+                    <div
+                        class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0"
+                    >
+                        <FontAwesomeIcon :icon="faStore" />
+                    </div>
+                    <div>
+                        <div class="text-xs text-neutral-500 font-medium">Total Merchant</div>
+                        <div class="text-lg font-bold text-neutral-800 leading-tight">
+                            {{ totalMerchantsCount }} Terdaftar
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbar: Search, Filters, and Sorters -->
+            <div
+                class="bg-white p-3.5 rounded-xl border border-neutral-200/70 mb-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
+            >
+                <div class="flex flex-wrap items-center gap-2">
+                    <FilterSearch
+                        v-model="searchQuery"
+                        placeholder="Cari nama atau kode jenis bisnis..."
+                        class="w-full sm:w-64"
+                    />
+
+                    <div
+                        class="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg text-xs font-medium"
+                    >
+                        <button
+                            type="button"
+                            class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                            :class="
+                                visibilityFilter === 'all'
+                                    ? 'bg-white text-neutral-800 font-bold'
+                                    : 'text-neutral-500 hover:text-neutral-800'
+                            "
+                            @click="visibilityFilter = 'all'"
+                        >
+                            Semua Status
+                        </button>
+                        <button
+                            type="button"
+                            class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                            :class="
+                                visibilityFilter === 'visible'
+                                    ? 'bg-white text-success font-bold'
+                                    : 'text-neutral-500 hover:text-neutral-800'
+                            "
+                            @click="visibilityFilter = 'visible'"
+                        >
+                            Tampil ({{ visibleCount }})
+                        </button>
+                        <button
+                            type="button"
+                            class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                            :class="
+                                visibilityFilter === 'hidden'
+                                    ? 'bg-white text-neutral-600 font-bold'
+                                    : 'text-neutral-500 hover:text-neutral-800'
+                            "
+                            @click="visibilityFilter = 'hidden'"
+                        >
+                            Tersembunyi ({{ hiddenCount }})
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 justify-end">
+                    <div class="w-48">
+                        <DropdownField v-model="sortBy" :options="sortOptions" />
+                    </div>
+                </div>
+            </div>
         </template>
 
-        <!-- Mini KPI Overview Metrics -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            <div
-                class="bg-white p-3.5 rounded-xl border border-neutral-200/70 shadow-xs flex items-center gap-3"
-            >
-                <div
-                    class="w-10 h-10 rounded-lg bg-main/10 text-main flex items-center justify-center text-base shrink-0"
-                >
-                    <FontAwesomeIcon :icon="faBriefcase" />
-                </div>
-                <div>
-                    <div class="text-xs text-neutral-500 font-medium">Total Jenis Bisnis</div>
-                    <div class="text-lg font-bold text-neutral-800 leading-tight">
-                        {{ businessTypes.length }} Tipe
-                    </div>
-                </div>
-            </div>
-            <div
-                class="bg-white p-3.5 rounded-xl border border-neutral-200/70 shadow-xs flex items-center gap-3"
-            >
-                <div
-                    class="w-10 h-10 rounded-lg bg-success/10 text-success flex items-center justify-center text-base shrink-0"
-                >
-                    <FontAwesomeIcon :icon="faEye" />
-                </div>
-                <div>
-                    <div class="text-xs text-neutral-500 font-medium">Tampil di Registrasi</div>
-                    <div class="text-lg font-bold text-success leading-tight">
-                        {{ visibleCount }} Aktif
-                        <span class="text-xs text-neutral-400 font-normal"
-                            >({{ hiddenCount }} hidden)</span
-                        >
-                    </div>
-                </div>
-            </div>
-            <div
-                class="bg-white p-3.5 rounded-xl border border-neutral-200/70 shadow-xs flex items-center gap-3"
-            >
-                <div
-                    class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-base shrink-0"
-                >
-                    <FontAwesomeIcon :icon="faSliders" />
-                </div>
-                <div>
-                    <div class="text-xs text-neutral-500 font-medium">Rata-Rata Fitur</div>
-                    <div class="text-lg font-bold text-sky-700 leading-tight">
-                        {{ averageFeaturesCount }} Fitur / Tipe
-                    </div>
-                </div>
-            </div>
-            <div
-                class="bg-white p-3.5 rounded-xl border border-neutral-200/70 shadow-xs flex items-center gap-3"
-            >
-                <div
-                    class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0"
-                >
-                    <FontAwesomeIcon :icon="faStore" />
-                </div>
-                <div>
-                    <div class="text-xs text-neutral-500 font-medium">Total Merchant</div>
-                    <div class="text-lg font-bold text-neutral-800 leading-tight">
-                        {{ totalMerchantsCount }} Terdaftar
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Toolbar: Search, Filters, and Sorters -->
-        <div
-            class="bg-white p-3.5 rounded-xl border border-neutral-200/70 shadow-xs mb-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
-        >
-            <div class="flex flex-wrap items-center gap-2">
-                <FilterSearch
-                    v-model="searchQuery"
-                    placeholder="Cari nama atau kode jenis bisnis..."
-                    class="w-full sm:w-64"
-                />
-
-                <div
-                    class="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg text-xs font-medium"
-                >
-                    <button
-                        type="button"
-                        class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                        :class="
-                            visibilityFilter === 'all'
-                                ? 'bg-white shadow-xs text-neutral-800 font-bold'
-                                : 'text-neutral-500 hover:text-neutral-800'
-                        "
-                        @click="visibilityFilter = 'all'"
-                    >
-                        Semua Status
-                    </button>
-                    <button
-                        type="button"
-                        class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                        :class="
-                            visibilityFilter === 'visible'
-                                ? 'bg-white shadow-xs text-success font-bold'
-                                : 'text-neutral-500 hover:text-neutral-800'
-                        "
-                        @click="visibilityFilter = 'visible'"
-                    >
-                        Tampil ({{ visibleCount }})
-                    </button>
-                    <button
-                        type="button"
-                        class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                        :class="
-                            visibilityFilter === 'hidden'
-                                ? 'bg-white shadow-xs text-neutral-600 font-bold'
-                                : 'text-neutral-500 hover:text-neutral-800'
-                        "
-                        @click="visibilityFilter = 'hidden'"
-                    >
-                        Tersembunyi ({{ hiddenCount }})
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 justify-end">
-                <div class="w-48">
-                    <DropdownField v-model="sortBy" :options="sortOptions" />
-                </div>
-            </div>
-        </div>
-
         <!-- Table View -->
-        <div
-            v-if="displayedTypes.length"
-            class="bg-white rounded-xl border border-neutral-200/80 shadow-xs overflow-hidden"
-        >
+        <div v-if="displayedTypes.length" class="h-full flex-1 min-h-0 flex flex-col">
             <Table :headers="tableHeaders" :data="displayedTypes" :action="true">
                 <template #code_name="{ row }">
                     <div class="py-1">
@@ -260,10 +257,7 @@
         </div>
 
         <!-- Empty State -->
-        <div
-            v-else
-            class="text-center py-16 bg-white rounded-xl border border-neutral-200 shadow-xs"
-        >
+        <div v-else class="text-center py-16 bg-white rounded-xl border border-neutral-200">
             <div
                 class="w-12 h-12 mx-auto rounded-full bg-neutral-100 flex items-center justify-center text-neutral-400 mb-3 text-lg"
             >

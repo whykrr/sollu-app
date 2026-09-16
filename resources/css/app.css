@@ -590,10 +590,10 @@
             @apply mb-0;
         }
         & thead tr {
-            @apply bg-transparent backdrop-blur-lg;
+            @apply bg-transparent;
         }
         & thead tr th {
-            @apply px-3 py-3 text-left font-semibold text-neutral-700 bg-slate-200 first:rounded-l-lg last:rounded-r-lg;
+            @apply px-3 py-3 text-left font-semibold text-neutral-700 bg-slate-200 first:rounded-l-lg last:rounded-r-lg sticky top-0 z-10;
         }
         & tbody tr {
             @apply transition-all duration-150 ease-in-out first:pt-2;
@@ -1014,4 +1014,3 @@
         @apply transition-all duration-300;
     }
 }
-

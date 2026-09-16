@@ -1,20 +1,24 @@
 <template>
-    <div class="overflow-x-auto table-responsive">
+    <div class="overflow-auto table-responsive floating-scroll h-full flex-1">
         <table class="table table-hovered min-w-full">
             <thead>
-                <tr
-                    class="text-neutral-700 select-none sticky top-0 left-0 z-auto overflow-hidden"
-                >
-                    <th width="40px" class="text-center font-medium sticky top-0 z-10"></th>
+                <tr class="text-neutral-700 select-none">
+                    <th
+                        width="40px"
+                        class="text-center font-medium sticky top-0 z-10 bg-slate-200"
+                    ></th>
                     <th
                         v-for="head in headers"
                         :key="head.field"
-                        :class="getResponsiveClass(head.show)"
+                        :class="[getResponsiveClass(head.show), 'sticky top-0 z-10 bg-slate-200']"
                         @click="toggleSort(head)"
                     >
                         <div
                             class="flex flex-row items-center gap-2"
-                            :class="{ 'cursor-pointer hover:text-neutral-900 transition-colors duration-150': head.sortable }"
+                            :class="{
+                                'cursor-pointer hover:text-neutral-900 transition-colors duration-150':
+                                    head.sortable,
+                            }"
                         >
                             <span>{{ head.label }}</span>
                             <div
@@ -28,17 +32,17 @@
                                 />
                                 <FontAwesomeIcon
                                     v-else
-                                    :icon="
-                                        sortOrder === 'asc'
-                                            ? faSortUp
-                                            : faSortDown
-                                    "
+                                    :icon="sortOrder === 'asc' ? faSortUp : faSortDown"
                                     class="text-neutral-800 transition-colors duration-150"
                                 />
                             </div>
                         </div>
                     </th>
-                    <th v-if="action" width="1%" class="sticky top-0 z-10 text-right" />
+                    <th
+                        v-if="action"
+                        width="1%"
+                        class="sticky top-0 z-10 bg-slate-200 text-right"
+                    />
                 </tr>
             </thead>
             <draggable
@@ -70,24 +74,13 @@
                             :key="col.field"
                             :class="getResponsiveClass(col.show)"
                         >
-                            <slot
-                                v-if="col.slot"
-                                :name="col.slot"
-                                :row="row"
-                                :item="row"
-                            />
-                            <template v-else-if="row[col.field]">{{
-                                row[col.field]
-                            }}</template>
+                            <slot v-if="col.slot" :name="col.slot" :row="row" :item="row" />
+                            <template v-else-if="row[col.field]">{{ row[col.field] }}</template>
                             <template v-else>-</template>
                         </td>
                         <td v-if="action" class="text-right">
                             <div class="flex gap-1 justify-end">
-                                <slot
-                                    name="actions"
-                                    :row="row"
-                                    :item="row"
-                                ></slot>
+                                <slot name="actions" :row="row" :item="row"></slot>
                             </div>
                         </td>
                     </tr>
@@ -108,20 +101,15 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
-import draggable from 'vuedraggable';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faGripVertical,
-    faSort,
-    faSortDown,
-    faSortUp,
-} from '@fortawesome/free-solid-svg-icons';
-import { router } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue'
+import draggable from 'vuedraggable'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faGripVertical, faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons'
+import { router } from '@inertiajs/vue3'
 
 defineOptions({
     name: 'DraggableTable',
-});
+})
 
 const props = defineProps({
     modelValue: {
@@ -157,60 +145,55 @@ const props = defineProps({
         type: String,
         default: 'asc',
     },
-});
+})
 
-const emit = defineEmits([
-    'update:modelValue',
-    'drag-end',
-    'change',
-    'row-click',
-]);
+const emit = defineEmits(['update:modelValue', 'drag-end', 'change', 'row-click'])
 
 const list = computed({
     get: () => props.modelValue,
-    set: (value) => {
-        emit('update:modelValue', value);
+    set: value => {
+        emit('update:modelValue', value)
     },
-});
+})
 
-const sortKey = ref(props.sort);
-const sortOrder = ref(props.sortDirection);
+const sortKey = ref(props.sort)
+const sortOrder = ref(props.sortDirection)
 
 watch(
     () => props.sort,
-    (val) => {
-        sortKey.value = val;
-    },
-);
+    val => {
+        sortKey.value = val
+    }
+)
 
 watch(
     () => props.sortDirection,
-    (val) => {
-        sortOrder.value = val;
-    },
-);
+    val => {
+        sortOrder.value = val
+    }
+)
 
 function getResponsiveClass(show) {
-    if (!show) return '';
+    if (!show) return ''
 
     const map = {
         sm: 'hidden sm:table-cell',
         md: 'hidden md:table-cell',
         lg: 'hidden lg:table-cell',
         xl: 'hidden xl:table-cell',
-    };
+    }
 
-    return map[show] || '';
+    return map[show] || ''
 }
 
 function toggleSort(col) {
-    if (!col.sortable) return;
+    if (!col.sortable) return
 
     if (sortKey.value === col.field) {
-        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
     } else {
-        sortKey.value = col.field;
-        sortOrder.value = 'asc';
+        sortKey.value = col.field
+        sortOrder.value = 'asc'
     }
 
     router.get(
@@ -224,24 +207,24 @@ function toggleSort(col) {
         {
             preserveState: true,
             preserveScroll: true,
-        },
-    );
+        }
+    )
 }
 
 function onDragEnd(event) {
-    const orderedIds = list.value.map((item) => item[props.itemKey]);
+    const orderedIds = list.value.map(item => item[props.itemKey])
     emit('drag-end', {
         orderedIds,
         list: list.value,
         event,
-    });
+    })
 }
 
 function onChange(event) {
-    emit('change', event);
+    emit('change', event)
 }
 
 function handleRowClick(row) {
-    emit('row-click', row);
+    emit('row-click', row)
 }
 </script>

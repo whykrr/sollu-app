@@ -1,14 +1,12 @@
 <template>
-    <div class="overflow-x-auto table-responsive">
+    <div class="overflow-auto table-responsive floating-scroll h-full flex-1">
         <table class="table table-hovered min-w-full">
             <thead>
-                <tr
-                    class="text-neutral-700 select-none sticky top-0 left-0 z-auto overflow-hidden"
-                >
+                <tr class="text-neutral-700 select-none">
                     <th
                         v-for="head in headers"
                         :key="head.field"
-                        :class="getResponsiveClass(head.show)"
+                        :class="[getResponsiveClass(head.show), 'sticky top-0 z-10 bg-slate-200']"
                         @click="toggleSort(head)"
                     >
                         <div
@@ -26,40 +24,25 @@
                                 />
                                 <FontAwesomeIcon
                                     v-else
-                                    :icon="
-                                        sortOrder === 'asc'
-                                            ? faSortUp
-                                            : faSortDown
-                                    "
+                                    :icon="sortOrder === 'asc' ? faSortUp : faSortDown"
                                     class="text-neutral-800 transition-colors duration-150"
                                 />
                             </div>
                         </div>
                     </th>
-                    <th width="1%" class="sticky top-0 z-10" />
+                    <th width="1%" class="sticky top-0 z-10 bg-slate-200" />
                 </tr>
             </thead>
             <tbody>
                 <template v-if="data.length > 0">
-                    <tr
-                        v-for="row in data"
-                        :key="row.id"
-                        @click="handleRowClick(row)"
-                    >
+                    <tr v-for="row in data" :key="row.id" @click="handleRowClick(row)">
                         <td
                             v-for="col in headers"
                             :key="col.field"
                             :class="getResponsiveClass(col.show)"
                         >
-                            <slot
-                                v-if="col.slot"
-                                :name="col.slot"
-                                :row="row"
-                                :item="row"
-                            />
-                            <template v-else-if="row[col.field]">{{
-                                row[col.field]
-                            }}</template>
+                            <slot v-if="col.slot" :name="col.slot" :row="row" :item="row" />
+                            <template v-else-if="row[col.field]">{{ row[col.field] }}</template>
                             <template v-else>-</template>
                         </td>
                         <td>
@@ -67,11 +50,7 @@
                                 <FontAwesomeIcon :icon="faEllipsis" />
                             </span>
                             <div v-else class="flex gap-1">
-                                <slot
-                                    name="actions"
-                                    :row="row"
-                                    :item="row"
-                                ></slot>
+                                <slot name="actions" :row="row" :item="row"></slot>
                             </div>
                         </td>
                     </tr>
@@ -97,12 +76,12 @@ import {
     faSort,
     faSortDown,
     faSortUp,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { router } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import Card from '../UI/Card/Card.vue';
-import TextField from '../Form/TextField.vue';
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { router } from '@inertiajs/vue3'
+import { ref } from 'vue'
+import Card from '../UI/Card/Card.vue'
+import TextField from '../Form/TextField.vue'
 
 const props = defineProps({
     headers: {
@@ -125,33 +104,33 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-});
+})
 
 function getResponsiveClass(show) {
-    if (!show) return ''; // tampil di semua ukuran
+    if (!show) return '' // tampil di semua ukuran
 
     const map = {
         sm: 'hidden sm:table-cell',
         md: 'hidden md:table-cell',
         lg: 'hidden lg:table-cell',
         xl: 'hidden xl:table-cell',
-    };
+    }
 
-    return map[show] || '';
+    return map[show] || ''
 }
 
-const emit = defineEmits(['row-click']);
-const sortKey = ref(props.sort);
-const sortOrder = ref(props.sortDirection);
+const emit = defineEmits(['row-click'])
+const sortKey = ref(props.sort)
+const sortOrder = ref(props.sortDirection)
 
 function toggleSort(col) {
-    if (!col.sortable) return;
+    if (!col.sortable) return
 
     if (sortKey.value === col.field) {
-        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
     } else {
-        sortKey.value = col.field;
-        sortOrder.value = 'asc';
+        sortKey.value = col.field
+        sortOrder.value = 'asc'
     }
 
     router.get(
@@ -165,11 +144,11 @@ function toggleSort(col) {
         {
             preserveState: true,
             preserveScroll: true,
-        },
-    );
+        }
+    )
 }
 
 function handleRowClick(row) {
-    emit('row-click', row);
+    emit('row-click', row)
 }
 </script>

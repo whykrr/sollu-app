@@ -18,10 +18,7 @@
             <template #promo_value="{ row }">
                 <div v-if="row.promo_type === 'percentage'">
                     {{ row.discount_value }}%
-                    <span
-                        v-if="row.max_discount"
-                        class="text-xs text-slate-500 block"
-                    >
+                    <span v-if="row.max_discount" class="text-xs text-slate-500 block">
                         (Max {{ formatCurrency(row.max_discount) }})
                     </span>
                 </div>
@@ -34,10 +31,7 @@
                     {{ formatDate(row.start_date) }} -
                     {{ formatDate(row.end_date) }}
                 </div>
-                <div
-                    v-if="row.start_time && row.end_time"
-                    class="text-xs text-slate-500"
-                >
+                <div v-if="row.start_time && row.end_time" class="text-xs text-slate-500">
                     {{ formatTime(row.start_time) }} -
                     {{ formatTime(row.end_time) }}
                 </div>
@@ -56,10 +50,7 @@
                     >
                         <FontAwesomeIcon :icon="faEye" />
                     </button>
-                    <div
-                        v-if="row.status !== 'expired' && !isExpired(row)"
-                        class="relative"
-                    >
+                    <div v-if="row.status !== 'expired' && !isExpired(row)" class="relative">
                         <button
                             class="btn btn-flat btn-sm"
                             title="Opsi"
@@ -74,43 +65,28 @@
                             <button
                                 v-if="row.status === 'draft'"
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                                @click="
-                                    openEdit(row);
-                                    activeDropdownId = null;
-                                "
+                                @click="openEdit(row); closeDropdown();"
                             >
                                 Ubah
                             </button>
                             <button
-                                v-if="
-                                    row.status === 'draft' ||
-                                    row.status === 'inactive'
-                                "
+                                v-if="row.status === 'draft' || row.status === 'inactive'"
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 text-success"
-                                @click="
-                                    publishPromo(row.id);
-                                    activeDropdownId = null;
-                                "
+                                @click="publishPromo(row.id); closeDropdown();"
                             >
                                 Publish
                             </button>
                             <button
                                 v-if="row.status === 'active'"
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 text-warning"
-                                @click="
-                                    unpublishPromo(row.id);
-                                    activeDropdownId = null;
-                                "
+                                @click="unpublishPromo(row.id); closeDropdown();"
                             >
                                 Nonaktifkan
                             </button>
                             <button
                                 v-if="row.status === 'draft'"
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 text-danger"
-                                @click="
-                                    deletePromo(row.id);
-                                    activeDropdownId = null;
-                                "
+                                @click="deletePromo(row.id); closeDropdown();"
                             >
                                 Hapus
                             </button>
@@ -133,26 +109,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { router } from '@inertiajs/vue3';
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faPlus,
-    faEye,
-    faEllipsisVertical,
-} from '@fortawesome/free-solid-svg-icons';
-import PromoFilter from './Components/PromoFilter.vue';
-import PromoForm from './Components/PromoForm.vue';
-import PromoDetail from './Components/PromoDetail.vue';
-import { usePopUpStore } from '@/store/popup';
-import { useModalStore } from '@/store/notification.js';
+import { ref, onMounted, onUnmounted } from 'vue'
+import { router } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faPlus, faEye, faEllipsisVertical } from '@fortawesome/free-solid-svg-icons'
+import PromoFilter from './Components/PromoFilter.vue'
+import PromoForm from './Components/PromoForm.vue'
+import PromoDetail from './Components/PromoDetail.vue'
+import { usePopUpStore } from '@/store/popup'
+import { useModalStore } from '@/store/notification.js'
 
-const popUpStore = usePopUpStore();
-const modal = useModalStore();
+const popUpStore = usePopUpStore()
+const modal = useModalStore()
 
 const props = defineProps({
     promos: {
@@ -163,7 +135,7 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
 const headers = [
     { label: 'Nama Promo', field: 'name', sortable: true },
@@ -181,95 +153,95 @@ const headers = [
     },
     { label: 'Periode', field: 'start_date', slot: 'period', sortable: true },
     { label: 'Status', field: 'status', slot: 'status', sortable: false },
-];
+]
 
-const activeDropdownId = ref(null);
+const activeDropdownId = ref(null)
 
-const toggleDropdown = (id) => {
-    activeDropdownId.value = activeDropdownId.value === id ? null : id;
-};
+const toggleDropdown = id => {
+    activeDropdownId.value = activeDropdownId.value === id ? null : id
+}
 
 const closeDropdown = () => {
-    activeDropdownId.value = null;
-};
+    activeDropdownId.value = null
+}
 
 onMounted(() => {
-    window.addEventListener('click', closeDropdown);
-});
+    window.addEventListener('click', closeDropdown)
+})
 
 onUnmounted(() => {
-    window.removeEventListener('click', closeDropdown);
-});
+    window.removeEventListener('click', closeDropdown)
+})
 
-const formatCurrency = (value) => {
+const formatCurrency = value => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-    }).format(value || 0);
-};
+    }).format(value || 0)
+}
 
-const formatDate = (dateString) => {
-    if (!dateString) return '-';
+const formatDate = dateString => {
+    if (!dateString) return '-'
     return new Date(dateString).toLocaleDateString('id-ID', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
-    });
-};
+    })
+}
 
-const formatTime = (timeString) => {
-    if (!timeString) return '';
-    return timeString.substring(0, 5);
-};
+const formatTime = timeString => {
+    if (!timeString) return ''
+    return timeString.substring(0, 5)
+}
 
-const isExpired = (promo) => {
-    if (!promo.end_date) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const endDate = new Date(promo.end_date);
-    endDate.setHours(0, 0, 0, 0);
-    return endDate < today;
-};
+const isExpired = promo => {
+    if (!promo.end_date) return false
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const endDate = new Date(promo.end_date)
+    endDate.setHours(0, 0, 0, 0)
+    return endDate < today
+}
 
-const getComputedStatus = (promo) => {
+const getComputedStatus = promo => {
     if (promo.status === 'active' && isExpired(promo)) {
-        return 'expired';
+        return 'expired'
     }
-    return promo.status;
-};
+    return promo.status
+}
 
-const getStatusBadge = (promo) => {
-    const status = getComputedStatus(promo);
+const getStatusBadge = promo => {
+    const status = getComputedStatus(promo)
     switch (status) {
         case 'active':
-            return 'badge badge-success';
+            return 'badge badge-success'
         case 'inactive':
-            return 'badge badge-warning';
+            return 'badge badge-warning'
         case 'expired':
-            return 'badge badge-danger';
+            return 'badge badge-danger'
         case 'draft':
         default:
-            return 'badge badge-neutral';
+            return 'badge badge-neutral'
     }
-};
+}
 
-const getStatusLabel = (promo) => {
-    const status = getComputedStatus(promo);
+const getStatusLabel = promo => {
+    const status = getComputedStatus(promo)
     switch (status) {
         case 'active':
-            return 'Aktif';
+            return 'Aktif'
         case 'inactive':
-            return 'Nonaktif';
+            return 'Nonaktif'
         case 'expired':
-            return 'Kedaluwarsa';
+            return 'Kedaluwarsa'
         case 'draft':
-            return 'Draf';
+            return 'Draf'
         default:
-            return status;
+            return status
     }
-};
+}
 
 const openCreate = () => {
     popUpStore.open({
@@ -279,10 +251,10 @@ const openCreate = () => {
         props: {
             promo: null,
         },
-    });
-};
+    })
+}
 
-const openEdit = (promo) => {
+const openEdit = promo => {
     popUpStore.open({
         title: 'Ubah Promo',
         component: PromoForm,
@@ -290,10 +262,10 @@ const openEdit = (promo) => {
         props: {
             promo,
         },
-    });
-};
+    })
+}
 
-const openDetail = (promo) => {
+const openDetail = promo => {
     popUpStore.open({
         title: 'Detail Promo',
         component: PromoDetail,
@@ -303,10 +275,10 @@ const openDetail = (promo) => {
             computedStatus: getComputedStatus(promo),
             isExpired: isExpired(promo),
         },
-    });
-};
+    })
+}
 
-const publishPromo = (id) => {
+const publishPromo = id => {
     modal.open({
         title: 'Konfirmasi Publish Promo',
         message:
@@ -321,13 +293,13 @@ const publishPromo = (id) => {
                     preserveScroll: true,
                     preserveState: true,
                     onSuccess: () => popUpStore.close(),
-                },
-            );
+                }
+            )
         },
-    });
-};
+    })
+}
 
-const unpublishPromo = (id) => {
+const unpublishPromo = id => {
     modal.open({
         title: 'Konfirmasi Nonaktifkan Promo',
         type: 'warning',
@@ -343,13 +315,13 @@ const unpublishPromo = (id) => {
                     preserveScroll: true,
                     preserveState: true,
                     onSuccess: () => popUpStore.close(),
-                },
-            );
+                }
+            )
         },
-    });
-};
+    })
+}
 
-const deletePromo = (id) => {
+const deletePromo = id => {
     modal.open({
         title: 'Konfirmasi Hapus Promo',
         type: 'danger',
@@ -362,8 +334,8 @@ const deletePromo = (id) => {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => popUpStore.close(),
-            });
+            })
         },
-    });
-};
+    })
+}
 </script>

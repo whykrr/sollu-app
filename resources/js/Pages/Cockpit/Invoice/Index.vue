@@ -3,10 +3,7 @@
         <template #header>
             <div class="flex flex-row justify-between gap-2">
                 <div class="flex gap-2">
-                    <TextField
-                        placeholder="Search invoice or merchant..."
-                        class="w-64"
-                    />
+                    <TextField placeholder="Search invoice or merchant..." class="w-64" />
                 </div>
             </div>
         </template>
@@ -79,29 +76,29 @@
             :show="showRejectModal"
             :invoice-id="selectedInvoice?.id"
             @close="showRejectModal = false"
-            @success="selectedInvoice = null; showRejectModal = false; popUpStore.close()"
+            @success="handleRejectSuccess"
         />
     </MainPage>
 </template>
 
 <script setup>
-import MainPage from '@/Components/UI/MainPage.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons';
-import { ref, onMounted } from 'vue';
-import InvoiceDetailDrawer from './Components/InvoiceDetailDrawer.vue';
-import RejectReasonModal from './Components/RejectReasonModal.vue';
-import { usePopUpStore } from '@/store/popup';
+import MainPage from '@/Components/UI/MainPage.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faEye } from '@fortawesome/free-solid-svg-icons'
+import { ref, onMounted } from 'vue'
+import InvoiceDetailDrawer from './Components/InvoiceDetailDrawer.vue'
+import RejectReasonModal from './Components/RejectReasonModal.vue'
+import { usePopUpStore } from '@/store/popup'
 
 const props = defineProps({
     invoices: Object,
     filters: Object,
-});
+})
 
-const popUpStore = usePopUpStore();
+const popUpStore = usePopUpStore()
 
 const tableHeaders = [
     { field: 'date', label: 'Date', slot: 'date' },
@@ -110,13 +107,13 @@ const tableHeaders = [
     { field: 'outlet_name', label: 'Outlet', slot: 'outlet_name' },
     { field: 'amount', label: 'Amount', slot: 'amount' },
     { field: 'status', label: 'Status', slot: 'status' },
-];
+]
 
-const selectedInvoice = ref(null);
-const showRejectModal = ref(false);
+const selectedInvoice = ref(null)
+const showRejectModal = ref(false)
 
-const openDetails = (invoice) => {
-    selectedInvoice.value = invoice;
+const openDetails = invoice => {
+    selectedInvoice.value = invoice
     popUpStore.open({
         title: 'Detail Invoice',
         description: 'Detail tagihan dan bukti pembayaran.',
@@ -124,24 +121,32 @@ const openDetails = (invoice) => {
         props: { invoice: invoice },
         events: {
             reject: () => openRejectModal(invoice),
-            onReject: () => openRejectModal(invoice)
-        }
-    });
-};
+            onReject: () => openRejectModal(invoice),
+        },
+    })
+}
 
-const openRejectModal = (invoice) => {
-    popUpStore.close();
-    selectedInvoice.value = invoice;
-    showRejectModal.value = true;
-};
+const openRejectModal = invoice => {
+    popUpStore.close()
+    selectedInvoice.value = invoice
+    showRejectModal.value = true
+}
+
+const handleRejectSuccess = () => {
+    selectedInvoice.value = null
+    showRejectModal.value = false
+    popUpStore.close()
+}
 
 onMounted(() => {
-    const targetInvoiceNumber = props.filters?.open_invoice || new URLSearchParams(window.location.search).get('open_invoice');
+    const targetInvoiceNumber =
+        props.filters?.open_invoice ||
+        new URLSearchParams(window.location.search).get('open_invoice')
     if (targetInvoiceNumber && props.invoices?.data) {
-        const found = props.invoices.data.find(inv => inv.invoice_number === targetInvoiceNumber);
+        const found = props.invoices.data.find(inv => inv.invoice_number === targetInvoiceNumber)
         if (found) {
-            openDetails(found);
+            openDetails(found)
         }
     }
-});
+})
 </script>
