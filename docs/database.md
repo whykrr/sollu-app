@@ -48,6 +48,7 @@ use App\Enums\AdjustmentStatus;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\Traits\HasQuantityFormatter;
+use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -66,9 +67,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class StockAdjustment extends Model
 {
     // 1. Traits
-    use HasFactory, HasUuids, SoftDeletes, HasQuantityFormatter;
+    use HasFactory, HasUuids, SoftDeletes, HasQuantityFormatter, SortableModel;
 
-    // 2. Table & Fillable Properties
+    // 2. Table, Fillable & Sortable Properties
     protected $table = 'stock_adjustments';
 
     protected $fillable = [
@@ -78,6 +79,17 @@ class StockAdjustment extends Model
         'status',
         'notes',
         'adjusted_at',
+    ];
+
+    /**
+     * Whitelist kolom yang diizinkan untuk di-sort dari tabel frontend.
+     */
+    protected array $sortable = [
+        'adjustment_number',
+        'status',
+        'adjusted_at',
+        'created_at',
+        'updated_at',
     ];
 
     // 3. Laravel 11 casts() Method (Bukan properti $casts)
@@ -161,10 +173,10 @@ class StockAdjustment extends Model
 - `TransactionInvoice`: Nomor faktur/struk resmi yang diterbitkan.
 
 ### 3.5. Subscription & Cockpit Domain (`App\Models`)
-- `SubscriptionPlan`: Master paket langganan SaaS (Micro, Basic, Pro, serta Custom Plan via atribut `is_public` dan `is_custom`).
+- `SubscriptionPlan`: Master paket langganan SaaS (Micro, Basic, Pro, serta Custom Plan via penugasan `business_id` dan `is_public`).
 - `Feature`: Master daftar fitur sistem modular (tabel `features` dengan `module`, `group`, `group_label`, `sort_order`, `is_active`).
 - `plan_features`: Tabel pivot relasi many-to-many antara `subscription_plans` dan `features`.
-- `Subscription`: Status langganan aktif suatu bisnis, tanggal kedaluwarsa, dan kuota outlet.
+- `Subscription`: Status langganan aktif suatu bisnis, tanggal kedaluwarsa, dan siklus penagihan.
 - `Invoice` & `InvoiceItem`: Tagihan pembayaran langganan SaaS.
 - `Payment`: Pembayaran faktur langganan.
 - `CockpitUser`: Pengguna tim internal admin platform Sollu.

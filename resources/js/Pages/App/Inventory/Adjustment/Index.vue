@@ -89,34 +89,28 @@
                 :total="adjustments.total"
             />
         </template>
-
     </MainPage>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import {
-    faEye,
-    faPlus,
-    faLock,
-    faFilePdf,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { router, usePage } from '@inertiajs/vue3';
-import axios from 'axios';
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import Filter from './Components/Filter.vue';
-import AdjustmentFormPopUp from './Components/AdjustmentFormPopUp.vue';
-import AdjustmentDetailPopUp from './Components/AdjustmentDetailPopUp.vue';
-import FreezeStockPopUp from '@/Components/Inventory/FreezeStockPopUp.vue';
-import { formatDateTimeSimple } from '@/Composable/date.js';
-import { usePopUpStore } from '@/store/popup';
+import { ref } from 'vue'
+import { faEye, faPlus, faLock, faFilePdf } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { router, usePage } from '@inertiajs/vue3'
+import axios from 'axios'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import Filter from './Components/Filter.vue'
+import AdjustmentFormPopUp from './Components/AdjustmentFormPopUp.vue'
+import AdjustmentDetailPopUp from './Components/AdjustmentDetailPopUp.vue'
+import FreezeStockPopUp from '@/Components/Inventory/FreezeStockPopUp.vue'
+import { formatDateTimeSimple } from '@/Composable/date.js'
+import { usePopUpStore } from '@/store/popup'
 
-const page = usePage();
-const popUpStore = usePopUpStore();
+const page = usePage()
+const popUpStore = usePopUpStore()
 
 const props = defineProps({
     adjustments: {
@@ -127,14 +121,14 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
-const can = (permission) => {
+const can = permission => {
     return (
         page.props.auth.permissions.includes(permission) ||
         page.props.auth.permissions.includes('inventory.*')
-    );
-};
+    )
+}
 
 const headers = [
     { label: 'Nomor', field: 'adjustment_number', sortable: true },
@@ -154,19 +148,19 @@ const headers = [
     },
     { label: 'Status', field: 'status', slot: 'status', sortable: false },
     { label: 'Dibuat Oleh', slot: 'creator', sortable: false },
-];
+]
 
-const formatStatus = (status) => {
+const formatStatus = status => {
     const map = {
         draft: 'Draf',
         approved: 'Disetujui',
         rejected: 'Ditolak',
         voided: 'Dibatalkan',
-    };
-    return map[status] || status;
-};
+    }
+    return map[status] || status
+}
 
-const formatReason = (reason) => {
+const formatReason = reason => {
     const map = {
         waste: 'Rusak / Terbuang',
         expired: 'Kedaluwarsa',
@@ -174,48 +168,46 @@ const formatReason = (reason) => {
         correction: 'Koreksi',
         production: 'Produksi',
         other: 'Lainnya',
-    };
-    return map[reason] || reason;
-};
+    }
+    return map[reason] || reason
+}
 
-const isLoadingDetail = ref(false);
+const isLoadingDetail = ref(false)
 
 const openForm = () => {
     popUpStore.open({
         title: 'Buat Draft Penyesuaian Stok',
         size: 'xl',
         component: AdjustmentFormPopUp,
-    });
-};
+    })
+}
 
-const exportPdf = (id) => {
-    window.open(route('inventory.adjustments.export.pdf', id), '_blank');
-};
+const exportPdf = id => {
+    window.open(route('inventory.adjustments.export.pdf', id), '_blank')
+}
 
-const openDetail = async (item) => {
-    isLoadingDetail.value = true;
+const openDetail = async item => {
+    isLoadingDetail.value = true
     try {
-        const response = await axios.get(
-            route('inventory.adjustments.show', item.id),
-        );
+        const response = await axios.get(route('inventory.adjustments.show', item.id))
         popUpStore.open({
             title: 'Detail Penyesuaian Stok',
             size: 'lg',
             component: AdjustmentDetailPopUp,
             props: { adjustment: response.data },
-        });
+        })
     } catch (error) {
-        console.error('Failed to load detail:', error);
+        console.error('Failed to load detail:', error)
     } finally {
-        isLoadingDetail.value = false;
+        isLoadingDetail.value = false
     }
-};
+}
 
 const openFreezeModal = () => {
     popUpStore.open({
         title: 'Kelola Pembekuan Stok',
         size: 'lg',
         component: FreezeStockPopUp,
-    });
-};
+    })
+}
 </script>

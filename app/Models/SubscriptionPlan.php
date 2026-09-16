@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
@@ -28,12 +29,11 @@ class SubscriptionPlan extends Model
         'code',
         'name',
         'price_per_outlet',
-        'max_outlet',
         'yearly_discount_percent',
         'features',
         'is_active',
         'is_public',
-        'is_custom',
+        'business_id',
     ];
 
     protected function casts(): array
@@ -41,12 +41,16 @@ class SubscriptionPlan extends Model
         return [
             'price_per_outlet' => 'decimal:2',
             'yearly_discount_percent' => 'integer',
-            'max_outlet' => 'integer',
             'features' => 'json',
             'is_active' => 'boolean',
             'is_public' => 'boolean',
-            'is_custom' => 'boolean',
+            'business_id' => 'string',
         ];
+    }
+
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class, 'business_id');
     }
 
     public function subscriptions(): HasMany
@@ -70,8 +74,23 @@ class SubscriptionPlan extends Model
         return $query->where('is_public', true);
     }
 
+    public function scopeForBusiness(Builder $query, ?string $businessId): Builder
+    {
+        return $query->where('business_id', $businessId);
+    }
+
+    public function isAssignedTo(?string $businessId): bool
+    {
+        return $this->business_id !== null && $this->business_id === $businessId;
+    }
+
+    public function isCustomForMerchant(): bool
+    {
+        return ! empty($this->business_id);
+    }
+
     /**
-     * Get all cached subscription plans with system features loaded.
+     * Get all cached subscription plans with system features and assigned business loaded.
      *
      * @return Collection<int, SubscriptionPlan>
      */
@@ -79,7 +98,7 @@ class SubscriptionPlan extends Model
     {
         return Cache::rememberForever(self::CACHE_KEY_ALL, function () {
             return static::query()
-                ->with(['systemFeatures'])
+                ->with(['systemFeatures', 'business:id,name,email,owner_name'])
                 ->orderBy('price_per_outlet', 'asc')
                 ->get();
         });

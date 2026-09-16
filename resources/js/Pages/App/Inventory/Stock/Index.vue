@@ -10,26 +10,14 @@
                 <Widget title="Total Produk" :icon="faBox" class="widget-main">
                     {{ summary.total_item }} Barang
                 </Widget>
-                <Widget
-                    title="Total Nilai Stok"
-                    :icon="faMoneyBillWave"
-                    class="widget-teal"
-                >
+                <Widget title="Total Nilai Stok" :icon="faMoneyBillWave" class="widget-teal">
                     Rp
                     {{ summary.total_nilai_stok?.toLocaleString('id-ID') || 0 }}
                 </Widget>
-                <Widget
-                    title="Stok Menipis"
-                    :icon="faExclamationTriangle"
-                    class="widget-warning"
-                >
+                <Widget title="Stok Menipis" :icon="faExclamationTriangle" class="widget-warning">
                     {{ summary.stok_menipis }} Item
                 </Widget>
-                <Widget
-                    title="Stok Habis"
-                    :icon="faTimesCircle"
-                    class="widget-danger"
-                >
+                <Widget title="Stok Habis" :icon="faTimesCircle" class="widget-danger">
                     {{ summary.stok_habis }} Item
                 </Widget>
             </div>
@@ -37,12 +25,7 @@
             <StockFilter :filters="filters" :categories="categories" />
         </template>
 
-        <Table
-            :headers="headers"
-            :data="stocks.data"
-            :action="false"
-            @row-click="openDetail"
-        >
+        <Table :headers="headers" :data="stocks.data" :action="false" @row-click="openDetail">
             <template #category_name="{ item }">
                 {{ item.category_name || '-' }}
             </template>
@@ -62,18 +45,12 @@
                     "
                 >
                     {{ item.current_stock_formatted }}
-                    <span class="text-xs text-gray-500 font-normal">{{
-                        item.uom
-                    }}</span>
+                    <span class="text-xs text-gray-500 font-normal">{{ item.uom }}</span>
                 </span>
             </template>
             <template #status="{ item }">
-                <span v-if="item.current_stock <= 0" class="badge badge-danger"
-                    >Habis</span
-                >
-                <span v-else-if="item.is_low_stock" class="badge badge-warning"
-                    >Menipis</span
-                >
+                <span v-if="item.current_stock <= 0" class="badge badge-danger">Habis</span>
+                <span v-else-if="item.is_low_stock" class="badge badge-warning">Menipis</span>
                 <span v-else class="badge badge-success">Aman</span>
             </template>
         </Table>
@@ -90,14 +67,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { router } from '@inertiajs/vue3';
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import Widget from '@/Components/Widgets/Widget.vue';
-import ExportDropdown from '@/Components/UI/ExportDropdown.vue';
+import { computed } from 'vue'
+import { router } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import Widget from '@/Components/Widgets/Widget.vue'
+import ExportDropdown from '@/Components/UI/ExportDropdown.vue'
 import {
     faBox,
     faMoneyBillWave,
@@ -105,12 +82,12 @@ import {
     faTimesCircle,
     faFileExcel,
     faFilePdf,
-} from '@fortawesome/free-solid-svg-icons';
-import StockFilter from './Components/StockFilter.vue';
-import Detail from './Components/Detail.vue';
-import { usePopUpStore } from '@/store/popup';
+} from '@fortawesome/free-solid-svg-icons'
+import StockFilter from './Components/StockFilter.vue'
+import Detail from './Components/Detail.vue'
+import { usePopUpStore } from '@/store/popup'
 
-const popUpStore = usePopUpStore();
+const popUpStore = usePopUpStore()
 
 const props = defineProps({
     stocks: {
@@ -129,23 +106,23 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
 const exportCsv = () => {
     router.get(
         route('inventories.stocks.export-csv', props.filters),
         {},
-        { preserveScroll: true, preserveState: true },
-    );
-};
+        { preserveScroll: true, preserveState: true }
+    )
+}
 
 const exportPdf = () => {
     router.get(
         route('inventories.stocks.export-pdf-list', props.filters),
         {},
-        { preserveScroll: true, preserveState: true },
-    );
-};
+        { preserveScroll: true, preserveState: true }
+    )
+}
 
 const exportItems = computed(() => [
     {
@@ -160,7 +137,7 @@ const exportItems = computed(() => [
         action: exportPdf,
         class: 'text-rose-600',
     },
-]);
+])
 
 const headers = [
     { label: 'Outlet', field: 'outlet_name', sortable: false },
@@ -185,15 +162,15 @@ const headers = [
         sortable: true,
     },
     { label: 'Status', field: 'status', slot: 'status', sortable: false },
-];
+]
 
-const openDetail = (item) => {
+const openDetail = item => {
     popUpStore.open({
         title: item.item_name,
         subTitle: '#' + item.sku,
         size: 'xl',
         component: Detail,
         props: { item },
-    });
-};
+    })
+}
 </script>

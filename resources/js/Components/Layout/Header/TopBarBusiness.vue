@@ -20,9 +20,9 @@
                 <span class="text-sm font-medium text-neutral-800 hidden lg:inline">{{
                     auth.business.name
                 }}</span>
-                <span
-                    class="text-sm font-medium text-neutral-800 hidden sm:inline lg:hidden"
-                >{{ initials }}</span>
+                <span class="text-sm font-medium text-neutral-800 hidden sm:inline lg:hidden">{{
+                    initials
+                }}</span>
             </a>
         </template>
 
@@ -39,10 +39,7 @@
                                 v-if="!auth.business.logo"
                                 class="flex w-full h-full items-center justify-center bg-secondary/5 rounded"
                             >
-                                <FontAwesomeIcon
-                                    :icon="faShop"
-                                    class="text-secondary text-xl"
-                                />
+                                <FontAwesomeIcon :icon="faShop" class="text-secondary text-xl" />
                             </div>
                             <img
                                 v-else
@@ -53,46 +50,32 @@
                         </div>
                     </div>
 
-                    <div
-                        class="text-lg font-medium text-neutral-800 leading-tight"
-                    >
+                    <div class="text-lg font-medium text-neutral-800 leading-tight">
                         {{ auth.business.name }}
                     </div>
                 </div>
                 <div class="h-px bg-neutral-200 w-full" />
-                <div
-                    v-if="!businessInfo"
-                    class="grid grid-flow-row gap-2 animate-pulse"
-                >
+                <div v-if="!businessInfo" class="grid grid-flow-row gap-2 animate-pulse">
                     <div class="placeholder w-[50%] mb-0 h-4" />
                     <div class="placeholder w-[75%] mb-0 h-4" />
                     <div class="placeholder w-[75%] mb-0 h-4" />
                     <div class="placeholder w-[75%] mb-0 h-4" />
                 </div>
-                <div
-                    v-else
-                    class="grid grid-flow-row gap-2 text-sm text-neutral-600"
-                >
+                <div v-else class="grid grid-flow-row gap-2 text-sm text-neutral-600">
                     <div class="flex flex-row justify-between items-center">
-                        <div class="font-medium text-neutral-500">
-                            Jenis Usaha
-                        </div>
+                        <div class="font-medium text-neutral-500">Jenis Usaha</div>
                         <div class="font-medium text-neutral-800">
                             {{ businessInfo.business_type }}
                         </div>
                     </div>
                     <div class="flex flex-row justify-between items-center">
-                        <div class="font-medium text-neutral-500">
-                            Langganan
-                        </div>
+                        <div class="font-medium text-neutral-500">Langganan</div>
                         <div class="font-medium text-neutral-800">
                             {{ businessInfo.plan_name }}
                         </div>
                     </div>
                     <div class="flex flex-row justify-between items-center">
-                        <div class="font-medium text-neutral-500">
-                            Aktif Sampai
-                        </div>
+                        <div class="font-medium text-neutral-500">Aktif Sampai</div>
                         <div class="font-medium text-neutral-800">
                             <template v-if="businessInfo.expired_at">
                                 {{ formatDateID(businessInfo.expired_at) }}
@@ -101,9 +84,7 @@
                         </div>
                     </div>
                     <div class="flex flex-row justify-between items-center">
-                        <div class="font-medium text-neutral-500">
-                            Jumlah Outlet
-                        </div>
+                        <div class="font-medium text-neutral-500">Jumlah Outlet</div>
                         <div class="font-medium text-neutral-800">
                             {{ businessInfo.outlet_count }}
                             Outlet
@@ -112,9 +93,7 @@
                 </div>
             </div>
 
-            <div
-                class="bg-neutral-50 border border-neutral-100 rounded-xl overflow-hidden mt-1"
-            >
+            <div class="bg-neutral-50 border border-neutral-100 rounded-xl overflow-hidden mt-1">
                 <ol>
                     <li
                         v-for="(item, index) in businessLinks"
@@ -142,31 +121,27 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
-import axios from 'axios';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faCog,
-    faCreditCard,
-    faShop,
-} from '@fortawesome/free-solid-svg-icons';
-import { formatDateID } from '@/Composable/date';
-import TopBarDropdown from '@/Components/Layout/Header/TopBarDropdown.vue';
+import { computed, ref } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import axios from 'axios'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faCog, faCreditCard, faShop } from '@fortawesome/free-solid-svg-icons'
+import { formatDateID } from '@/Composable/date'
+import TopBarDropdown from '@/Components/Layout/Header/TopBarDropdown.vue'
 
-const businessInfo = ref(null);
-const page = usePage();
-const auth = computed(() => page.props.auth);
+const businessInfo = ref(null)
+const page = usePage()
+const auth = computed(() => page.props.auth)
 
 const initials = computed(() => {
-    const name = page.props.auth?.business?.name || '';
+    const name = page.props.auth?.business?.name || ''
     return name
         .split(' ')
-        .map((word) => word[0])
+        .map(word => word[0])
         .join('')
         .substring(0, 2)
-        .toUpperCase();
-});
+        .toUpperCase()
+})
 
 const businessLinks = [
     {
@@ -181,19 +156,19 @@ const businessLinks = [
         link: route('settings.business.detail'),
         method: 'get',
     },
-];
+]
 
 const fetchBusinessInfo = async () => {
     try {
-        const response = await axios.get(route('api.internal.business-info'));
-        businessInfo.value = response.data;
+        const response = await axios.get(route('api.internal.business-info'))
+        businessInfo.value = response.data
     } catch (error) {
-        console.error('Failed to fetch business info:', error);
+        console.error('Failed to fetch business info:', error)
     }
-};
+}
 
 const onDropdownOpen = () => {
-    businessInfo.value = null;
-    fetchBusinessInfo();
-};
+    businessInfo.value = null
+    fetchBusinessInfo()
+}
 </script>

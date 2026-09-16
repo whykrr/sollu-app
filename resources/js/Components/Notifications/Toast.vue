@@ -1,73 +1,56 @@
 <template>
-  <div
-    class="toast-card group relative flex w-80 sm:w-96 items-start gap-3 rounded-xl border bg-white p-3.5 shadow-xl border-l-4 backdrop-blur-md transition-all duration-300 pointer-events-auto"
-    :class="variantClasses[toastType]"
-  >
-    <!-- Left Icon Badge -->
     <div
-      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105"
-      :class="iconBadgeClasses[toastType]"
+        class="toast-card group relative flex w-80 sm:w-96 items-start gap-3 rounded-xl border bg-white p-3.5 shadow-xl border-l-4 backdrop-blur-md transition-all duration-300 pointer-events-auto"
+        :class="variantClasses[toastType]"
     >
-      <FontAwesomeIcon
-        :icon="computedIcon"
-        class="text-sm"
-      />
-    </div>
-
-    <!-- Main Content -->
-    <div class="flex-1 min-w-0 pr-4 pt-0.5">
-      <h4
-        v-if="title"
-        class="text-sm font-bold text-slate-800 leading-tight mb-0.5"
-      >
-        {{ title }}
-      </h4>
-
-      <div class="text-xs text-slate-500 leading-relaxed break-words font-medium">
-        <slot>{{ message }}</slot>
-      </div>
-
-      <!-- Action Button / Link if provided -->
-      <div
-        v-if="action"
-        class="mt-1.5"
-      >
-        <button
-          type="button"
-          class="inline-flex items-center text-xs font-semibold underline underline-offset-2 hover:opacity-80 transition cursor-pointer"
-          :class="actionColorClasses[toastType]"
-          @click="handleAction"
+        <!-- Left Icon Badge -->
+        <div
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105"
+            :class="iconBadgeClasses[toastType]"
         >
-          {{ action.text }}
-        </button>
-      </div>
-    </div>
+            <FontAwesomeIcon :icon="computedIcon" class="text-sm" />
+        </div>
 
-    <!-- Dismiss Button -->
-    <button
-      v-if="dismissible"
-      type="button"
-      class="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
-      aria-label="Tutup"
-      @click="dismiss"
-    >
-      <FontAwesomeIcon
-        :icon="faXmark"
-        class="text-xs"
-      />
-    </button>
-  </div>
+        <!-- Main Content -->
+        <div class="flex-1 min-w-0 pr-4 pt-0.5">
+            <h4 v-if="title" class="text-sm font-bold text-slate-800 leading-tight mb-0.5">
+                {{ title }}
+            </h4>
+
+            <div class="text-xs text-slate-500 leading-relaxed break-words font-medium">
+                <slot>{{ message }}</slot>
+            </div>
+
+            <!-- Action Button / Link if provided -->
+            <div v-if="action" class="mt-1.5">
+                <button
+                    type="button"
+                    class="inline-flex items-center text-xs font-semibold underline underline-offset-2 hover:opacity-80 transition cursor-pointer"
+                    :class="actionColorClasses[toastType]"
+                    @click="handleAction"
+                >
+                    {{ action.text }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Dismiss Button -->
+        <button
+            v-if="dismissible"
+            type="button"
+            class="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
+            aria-label="Tutup"
+            @click="dismiss"
+        >
+            <FontAwesomeIcon :icon="faXmark" class="text-xs" />
+        </button>
+    </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import {
-    faCheck,
-    faInfo,
-    faExclamation,
-    faXmark,
-} from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faInfo, faExclamation, faXmark } from '@fortawesome/free-solid-svg-icons'
 
 const props = defineProps({
     title: {

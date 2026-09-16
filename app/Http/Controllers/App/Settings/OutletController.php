@@ -44,10 +44,7 @@ class OutletController extends Controller
             ->appends($req->query());
 
         $business = $req->user()->business;
-        $maxOutlets = $business->maxOutletsAllowed();
-        $currentOutletsCount = $business->outlets()->count();
         $subscription = $business->subscriptions()->with('plan')->where('status', 'active')->first();
-        $isTrial = $business->trial_end_at ? \Carbon\Carbon::parse($business->trial_end_at)->isFuture() : false;
 
         $proratedAmount = $subscription ? $this->billingEngine->calculateProratedCost($subscription) : 0;
 
@@ -55,12 +52,6 @@ class OutletController extends Controller
             'outlets' => $outlets,
             'params' => array_merge(['sort' => $sort, 'direction' => $direction], $req->all()),
             'outlet' => fn () => $outlet,
-            'limit' => [
-                'max' => $maxOutlets,
-                'current' => $currentOutletsCount,
-                'reached' => $currentOutletsCount >= $maxOutlets,
-                'is_trial' => $isTrial,
-            ],
             'subscription' => $subscription,
             'proratedAmount' => $proratedAmount,
         ]);
@@ -129,13 +120,6 @@ class OutletController extends Controller
 
     public function restore(Request $request, string $id)
     {
-        $business = $request->user()->business;
-        if ($business && $business->outlets()->count() >= $business->maxOutletsAllowed()) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'name' => ['Batas maksimum outlet untuk paket langganan Anda telah tercapai. Harap upgrade paket Anda untuk mengembalikan outlet ini.'],
-            ]);
-        }
-
         $this->manageStatusService->restore($id, $request->user());
 
         return redirect()->back()->with(

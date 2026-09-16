@@ -2,7 +2,9 @@
     <div class="flex items-center min-w-0">
         <!-- Desktop Breadcrumbs -->
         <nav aria-label="breadcrumb" class="hidden lg:block">
-            <ol class="flex items-center bg-transparent p-0 m-0 list-none text-base font-medium text-neutral-500 gap-2">
+            <ol
+                class="flex items-center bg-transparent p-0 m-0 list-none text-base font-medium text-neutral-500 gap-2"
+            >
                 <li class="flex items-center">
                     <Link :href="route('overview')" class="hover:text-main transition-colors">
                         <FontAwesomeIcon :icon="faHome" />
@@ -21,10 +23,7 @@
                     >
                         {{ crumb.label }}
                     </Link>
-                    <span
-                        v-else
-                        class="text-neutral-800 font-semibold"
-                    >
+                    <span v-else class="text-neutral-800 font-semibold">
                         {{ crumb.label }}
                     </span>
                 </li>
@@ -33,7 +32,9 @@
 
         <!-- Mobile & Tablet Active Page Indicator -->
         <div class="lg:hidden truncate">
-            <span class="text-sm font-semibold text-neutral-800 truncate block max-w-[130px] sm:max-w-xs">
+            <span
+                class="text-sm font-semibold text-neutral-800 truncate block max-w-[130px] sm:max-w-xs"
+            >
                 {{ activePageTitle }}
             </span>
         </div>
@@ -41,16 +42,16 @@
 </template>
 
 <script setup>
-import { faHome, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { faHome, faChevronRight } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { Link, usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
-const breadcrumbs = computed(() => usePage().props.app.breadcrumbs || []);
+const breadcrumbs = computed(() => usePage().props.app.breadcrumbs || [])
 const activePageTitle = computed(() => {
     if (breadcrumbs.value.length > 0) {
-        return breadcrumbs.value[breadcrumbs.value.length - 1].label;
+        return breadcrumbs.value[breadcrumbs.value.length - 1].label
     }
-    return '';
-});
+    return ''
+})
 </script>

@@ -15,13 +15,8 @@
                 class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900"
             >
                 <div class="flex items-start gap-3">
-                    <div
-                        class="p-2 bg-amber-100 rounded-lg text-amber-700 shrink-0 mt-0.5"
-                    >
-                        <FontAwesomeIcon
-                            :icon="faCircleExclamation"
-                            class="text-base"
-                        />
+                    <div class="p-2 bg-amber-100 rounded-lg text-amber-700 shrink-0 mt-0.5">
+                        <FontAwesomeIcon :icon="faCircleExclamation" class="text-base" />
                     </div>
                     <div>
                         <h4 class="font-bold text-amber-955 text-sm">
@@ -29,33 +24,22 @@
                         </h4>
                         <p class="text-amber-800 text-xs mt-0.5">
                             Invoice
-                            <strong
-                                >#{{ pendingInvoice.invoice_number }}</strong
-                            >
+                            <strong>#{{ pendingInvoice.invoice_number }}</strong>
                             sebesar
-                            <strong>{{
-                                formatIDR(pendingInvoice.total_amount)
-                            }}</strong>
+                            <strong>{{ formatIDR(pendingInvoice.total_amount) }}</strong>
                             jatuh tempo pada
-                            <strong>{{
-                                formatDateID(pendingInvoice.due_date)
-                            }}</strong
+                            <strong>{{ formatDateID(pendingInvoice.due_date) }}</strong
                             >.
                         </p>
                     </div>
                 </div>
-                <div
-                    class="flex items-center gap-2 self-end sm:self-auto shrink-0"
-                >
+                <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
                     <button
                         class="btn btn-warning btn-sm font-semibold"
                         @click="getDetail(pendingInvoice.invoice_number)"
                     >
                         Bayar Tagihan
-                        <FontAwesomeIcon
-                            :icon="faArrowRight"
-                            class="text-[10px]"
-                        />
+                        <FontAwesomeIcon :icon="faArrowRight" class="text-[10px]" />
                     </button>
                 </div>
             </div>
@@ -82,26 +66,21 @@
                                 <span
                                     class="badge text-xs"
                                     :class="
-                                        gapDaysFromNow(
-                                            auth.business?.trial_end_at,
-                                        ) > 0
+                                        gapDaysFromNow(auth.business?.trial_end_at) > 0
                                             ? 'badge-info'
                                             : 'badge-danger'
                                     "
                                 >
                                     {{
-                                        gapDaysFromNow(
-                                            auth.business?.trial_end_at,
-                                        ) > 0
+                                        gapDaysFromNow(auth.business?.trial_end_at) > 0
                                             ? 'Aktif'
                                             : 'Berakhir'
                                     }}
                                 </span>
                             </div>
                             <p class="text-xs text-gray-500 mt-0.5">
-                                Tingkatkan ke paket berbayar untuk menikmati
-                                akses penuh dan kelola multi-outlet tanpa
-                                batasan.
+                                Tingkatkan ke paket berbayar untuk menikmati akses penuh dan kelola
+                                multi-outlet tanpa batasan.
                             </p>
                         </div>
                     </div>
@@ -121,42 +100,27 @@
                         class="border border-slate-100 rounded-lg p-3.5 bg-slate-50/50 flex items-start gap-3"
                     >
                         <div class="p-2 bg-slate-100 rounded-lg text-slate-500">
-                            <FontAwesomeIcon
-                                :icon="faCalendarDays"
-                                class="w-4 h-4"
-                            />
+                            <FontAwesomeIcon :icon="faCalendarDays" class="w-4 h-4" />
                         </div>
                         <div>
-                            <span
-                                class="block text-xs font-medium text-gray-500"
-                            >
+                            <span class="block text-xs font-medium text-gray-500">
                                 Masa Berlaku Uji Coba
                             </span>
-                            <span
-                                class="block text-sm font-bold text-gray-800 mt-0.5"
-                            >
+                            <span class="block text-sm font-bold text-gray-800 mt-0.5">
                                 {{
                                     auth.business?.trial_end_at
-                                        ? formatDateID(
-                                              auth.business.trial_end_at,
-                                          )
+                                        ? formatDateID(auth.business.trial_end_at)
                                         : '-'
                                 }}
                                 <span
                                     v-if="
                                         auth.business?.trial_end_at &&
-                                        gapDaysFromNow(
-                                            auth.business.trial_end_at,
-                                        ) > 0
+                                        gapDaysFromNow(auth.business.trial_end_at) > 0
                                     "
                                     class="text-xs font-normal text-amber-600 ml-1"
                                 >
                                     (tersisa
-                                    {{
-                                        gapDaysFromNow(
-                                            auth.business.trial_end_at,
-                                        )
-                                    }}
+                                    {{ gapDaysFromNow(auth.business.trial_end_at) }}
                                     hari)
                                 </span>
                                 <span
@@ -177,16 +141,11 @@
                             <FontAwesomeIcon :icon="faShop" class="w-4 h-4" />
                         </div>
                         <div>
-                            <span
-                                class="block text-xs font-medium text-gray-500"
-                            >
+                            <span class="block text-xs font-medium text-gray-500">
                                 Penggunaan Outlet
                             </span>
-                            <span
-                                class="block text-sm font-bold text-gray-800 mt-0.5"
-                            >
-                                {{ auth.outlets ? auth.outlets.length : 0 }} /
-                                {{ maxOutlets ?? 1 }} Outlet Digunakan
+                            <span class="block text-sm font-bold text-gray-800 mt-0.5">
+                                {{ auth.outlets?.length ?? 0 }} Outlet Terdaftar
                             </span>
                         </div>
                     </div>
@@ -194,10 +153,7 @@
             </div>
 
             <!-- TAMPILAN JIKA SUDAH BERLANGGANAN AKTIF -->
-            <div
-                v-else
-                class="bg-white border border-slate-200 rounded-xl p-4 md:p-5"
-            >
+            <div v-else class="bg-white border border-slate-200 rounded-xl p-4 md:p-5">
                 <div
                     class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4 mb-4"
                 >
@@ -205,10 +161,7 @@
                         <div
                             class="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center text-main shadow-xs"
                         >
-                            <FontAwesomeIcon
-                                :icon="faCreditCard"
-                                class="text-lg"
-                            />
+                            <FontAwesomeIcon :icon="faCreditCard" class="text-lg" />
                         </div>
                         <div>
                             <div class="flex flex-wrap items-center gap-2">
@@ -232,11 +185,7 @@
                                             : 'badge-warning'
                                     "
                                 >
-                                    {{
-                                        subscription.status === 'active'
-                                            ? 'Aktif'
-                                            : 'Tidak Aktif'
-                                    }}
+                                    {{ subscription.status === 'active' ? 'Aktif' : 'Tidak Aktif' }}
                                 </span>
                             </div>
                         </div>
@@ -262,22 +211,13 @@
                         class="text-amber-600 text-base mt-0.5 shrink-0"
                     />
                     <div class="flex-1 text-xs sm:text-sm">
-                        <h4 class="font-bold text-amber-955">
-                            Masa Langganan Hampir Habis!
-                        </h4>
+                        <h4 class="font-bold text-amber-955">Masa Langganan Hampir Habis!</h4>
                         <p class="text-amber-800 mt-0.5">
                             Paket Anda akan berakhir pada
-                            <strong>{{
-                                formatDateID(subscription.expired_at)
-                            }}</strong>
+                            <strong>{{ formatDateID(subscription.expired_at) }}</strong>
                             (tersisa
-                            <strong
-                                >{{
-                                    gapDaysFromNow(subscription.expired_at)
-                                }}
-                                hari</strong
-                            >). Segera perpanjang agar operasional outlet tidak
-                            terganggu.
+                            <strong>{{ gapDaysFromNow(subscription.expired_at) }} hari</strong>).
+                            Segera perpanjang agar operasional outlet tidak terganggu.
                         </p>
                         <div class="mt-2">
                             <Link
@@ -290,10 +230,7 @@
                                 class="inline-flex items-center gap-1 text-xs font-bold text-amber-955 hover:underline"
                             >
                                 Perpanjang Sekarang
-                                <FontAwesomeIcon
-                                    :icon="faArrowRight"
-                                    class="text-[10px]"
-                                />
+                                <FontAwesomeIcon :icon="faArrowRight" class="text-[10px]" />
                             </Link>
                         </div>
                     </div>
@@ -305,20 +242,13 @@
                         class="border border-slate-100 rounded-lg p-3.5 bg-slate-50/50 flex items-start gap-3"
                     >
                         <div class="p-2 bg-slate-100 rounded-lg text-slate-500">
-                            <FontAwesomeIcon
-                                :icon="faCalendarDays"
-                                class="w-4 h-4"
-                            />
+                            <FontAwesomeIcon :icon="faCalendarDays" class="w-4 h-4" />
                         </div>
                         <div>
-                            <span
-                                class="block text-xs font-medium text-gray-500"
-                            >
+                            <span class="block text-xs font-medium text-gray-500">
                                 Masa Berlaku
                             </span>
-                            <span
-                                class="block text-sm font-bold text-gray-800 mt-0.5"
-                            >
+                            <span class="block text-sm font-bold text-gray-800 mt-0.5">
                                 {{
                                     subscription.expired_at
                                         ? formatDateID(subscription.expired_at)
@@ -329,9 +259,7 @@
                                     class="text-xs font-normal text-gray-500 ml-1"
                                 >
                                     (tersisa
-                                    {{
-                                        gapDaysFromNow(subscription.expired_at)
-                                    }}
+                                    {{ gapDaysFromNow(subscription.expired_at) }}
                                     hari)
                                 </span>
                             </span>
@@ -346,21 +274,11 @@
                             <FontAwesomeIcon :icon="faShop" class="w-4 h-4" />
                         </div>
                         <div>
-                            <span
-                                class="block text-xs font-medium text-gray-500"
-                            >
+                            <span class="block text-xs font-medium text-gray-500">
                                 Penggunaan Outlet
                             </span>
-                            <span
-                                class="block text-sm font-bold text-gray-800 mt-0.5"
-                            >
-                                {{ auth.outlets ? auth.outlets.length : 0 }} /
-                                {{
-                                    maxOutlets ??
-                                    subscription.plan?.max_outlet ??
-                                    1
-                                }}
-                                Outlet Digunakan
+                            <span class="block text-sm font-bold text-gray-800 mt-0.5">
+                                {{ auth.outlets?.length ?? 0 }} Outlet Terdaftar
                             </span>
                         </div>
                     </div>
@@ -370,19 +288,11 @@
             <!-- TABEL INVOICE -->
             <div>
                 <div class="flex items-center gap-2 mb-4">
-                    <h3 class="text-base font-bold text-gray-900">
-                        Riwayat Pembayaran & Invoice
-                    </h3>
+                    <h3 class="text-base font-bold text-gray-900">Riwayat Pembayaran & Invoice</h3>
                 </div>
-                <Table
-                    :headers="tableSetting"
-                    :data="invoices.data"
-                    :action="true"
-                >
+                <Table :headers="tableSetting" :data="invoices.data" :action="true">
                     <template #invoice_number="{ row }">
-                        <span class="font-bold text-gray-900">{{
-                            row.invoice_number
-                        }}</span>
+                        <span class="font-bold text-gray-900">{{ row.invoice_number }}</span>
                     </template>
                     <template #created_at="{ row }">
                         <span class="text-gray-600 text-sm">
@@ -412,8 +322,7 @@
                         </label>
                         <label
                             v-else-if="
-                                row.payment_manual_validation
-                                    ?.validation_status === 'pending'
+                                row.payment_manual_validation?.validation_status === 'pending'
                             "
                             class="badge pill text-xs badge-warning"
                         >
@@ -421,8 +330,7 @@
                         </label>
                         <label
                             v-else-if="
-                                row.payment_manual_validation
-                                    ?.validation_status === 'rejected'
+                                row.payment_manual_validation?.validation_status === 'rejected'
                             "
                             class="badge pill text-xs badge-danger"
                         >
@@ -434,22 +342,13 @@
                         >
                             Menunggu Pembayaran
                         </label>
-                        <label
-                            v-else
-                            class="badge pill text-xs badge-info capitalize"
-                        >
+                        <label v-else class="badge pill text-xs badge-info capitalize">
                             {{ row.status }}
                         </label>
                     </template>
                     <template #actions="{ row }">
-                        <button
-                            class="btn btn-flat btn-sm"
-                            @click="getDetail(row.invoice_number)"
-                        >
-                            <FontAwesomeIcon
-                                :icon="faEye"
-                                class="text-[10px]"
-                            />
+                        <button class="btn btn-flat btn-sm" @click="getDetail(row.invoice_number)">
+                            <FontAwesomeIcon :icon="faEye" class="text-[10px]" />
                             Detail
                         </button>
                     </template>
@@ -471,10 +370,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
-import axios from 'axios';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { computed, onMounted, watch } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import axios from 'axios'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faArrowRight,
     faBolt,
@@ -484,44 +383,43 @@ import {
     faEye,
     faGem,
     faShop,
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/free-solid-svg-icons'
 
-import MainPage from '@/Components/UI/MainPage.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
+import MainPage from '@/Components/UI/MainPage.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
 
-import { usePopUpStore } from '@/store/popup';
-import { formatDateID, gapDaysFromNow } from '@/Composable/date';
-import { formatIDR } from '@/Composable/currency-format';
+import { usePopUpStore } from '@/store/popup'
+import { formatDateID, gapDaysFromNow } from '@/Composable/date'
+import { formatIDR } from '@/Composable/currency-format'
 
-import DetailInvoice from './DetailInvoice.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
+import DetailInvoice from './DetailInvoice.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 
 defineProps({
     subscription: Object,
     pendingInvoice: Object,
-    maxOutlets: Number,
     invoices: Object,
-});
+})
 
-const page = usePage();
-const auth = computed(() => page.props.auth);
-const popUpStore = usePopUpStore();
+const page = usePage()
+const auth = computed(() => page.props.auth)
+const popUpStore = usePopUpStore()
 
 const tableSetting = [
     { field: 'invoice_number', label: 'No Invoice', slot: 'invoice_number' },
     { field: 'created_at', label: 'Tanggal', slot: 'created_at' },
     { field: 'total_amount', label: 'Total', slot: 'total_amount' },
     { field: 'status', label: 'Status', slot: 'status' },
-];
+]
 
-const getDetail = (invoice_number) => {
+const getDetail = invoice_number => {
     axios
         .get(route('settings.billing.invoices.show', invoice_number), {
             headers: { Accept: 'application/json' },
         })
-        .then((response) => {
-            const data = response.data;
+        .then(response => {
+            const data = response.data
             popUpStore.open({
                 title: 'Detail Invoice',
                 size: 'xl',
@@ -534,43 +432,40 @@ const getDetail = (invoice_number) => {
                     manualPaymentMethods: data.manualPaymentMethods,
                     isMidtransEnabled: data.isMidtransEnabled,
                 },
-            });
+            })
         })
-        .catch((error) => {
-            console.error(error);
-        });
-};
+        .catch(error => {
+            console.error(error)
+        })
+}
 
 watch(
     () => page.url,
-    (url) => {
+    url => {
         if (url.includes('open_invoice=')) {
-            const urlParams = new URLSearchParams(url.split('?')[1]);
-            const openInvoice = urlParams.get('open_invoice');
+            const urlParams = new URLSearchParams(url.split('?')[1])
+            const openInvoice = urlParams.get('open_invoice')
             if (openInvoice) {
-                getDetail(openInvoice);
+                getDetail(openInvoice)
                 const newUrl =
                     window.location.protocol +
                     '//' +
                     window.location.host +
-                    window.location.pathname;
-                window.history.replaceState({ path: newUrl }, '', newUrl);
+                    window.location.pathname
+                window.history.replaceState({ path: newUrl }, '', newUrl)
             }
         }
-    },
-);
+    }
+)
 
 onMounted(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const openInvoice = urlParams.get('open_invoice');
+    const urlParams = new URLSearchParams(window.location.search)
+    const openInvoice = urlParams.get('open_invoice')
     if (openInvoice) {
-        getDetail(openInvoice);
+        getDetail(openInvoice)
         const newUrl =
-            window.location.protocol +
-            '//' +
-            window.location.host +
-            window.location.pathname;
-        window.history.replaceState({ path: newUrl }, '', newUrl);
+            window.location.protocol + '//' + window.location.host + window.location.pathname
+        window.history.replaceState({ path: newUrl }, '', newUrl)
     }
-});
+})
 </script>

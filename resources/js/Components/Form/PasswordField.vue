@@ -14,12 +14,12 @@
 <script setup>
 defineOptions({
     inheritAttrs: false,
-});
+})
 
 const props = defineProps({
     label: String,
     feedback: String,
     modelValue: String,
-});
-const emit = defineEmits(['update:modelValue']);
+})
+const emit = defineEmits(['update:modelValue'])
 </script>

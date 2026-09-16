@@ -219,26 +219,33 @@ class PromoEvaluationService
 
 ### 3.3. Model Standards (Laravel 11)
 - **Member Ordering:**
-  1. `use` Traits (satu per baris: `use HasFactory, HasUuids, SoftDeletes;`)
+  1. `use` Traits (satu per baris: `use HasFactory, HasUuids, SoftDeletes, SortableModel;`)
   2. Properti: `$fillable`, `$hidden`, `$sortable`, `$appends`
   3. Method `casts(): array` (Style Laravel 11 dengan panah `=>` rapi)
   4. Method Notifikasi Custom
   5. Relationships (Urutan: `BelongsTo` → `HasMany` → `BelongsToMany` → `HasOne`; return type explicit `: BelongsTo`)
-  6. `scopeFilters()` & Scopes lainnya
+  6. `scopeFilters()`, `scopeSortable()` (dari `SortableModel`), & Scopes lainnya
   7. Custom Helpers / Methods
+- **Sortable Model Trait (`App\Trait\SortableModel`):**
+  - Seluruh Model yang ditampilkan pada tabel UI WAJIB menggunakan trait `App\Trait\SortableModel`.
+  - Deklarasikan whitelist kolom yang diizinkan untuk disortir pada properti `protected array $sortable = ['name', 'code', 'created_at', 'updated_at'];`. Jika properti `$sortable` tidak didefinisikan, trait otomatis fallback ke array `$fillable`.
 - **PHPDoc:** Selalu tambahkan `@property-read Collection|Outlet[] $outlets` untuk membantu Autocomplete IDE / Larstan.
 
 ### 3.4. Form Requests (`BaseInertiaFormRequest`)
 - **Base Class:** Semua Form Request wajib menginduk ke `App\Http\Requests\BaseInertiaFormRequest`.
 - **Naming:** `Get{Entity}Request`, `Store{Entity}Request`, `Update{Entity}Request`.
 - **Authorization:** Kembalikan cek permission pada method `authorize()`.
-- **Validation Rules:** Format rules dalam bentuk array dengan panah `=>` sejajar:
+- **Validation Rules (Termasuk Query Sorting pada `Get...Request`):**
+  Format rules dalam bentuk array dengan panah `=>` sejajar. Khusus request index/list (`Get{Entity}Request`), WAJIB sertakan validasi parameter `sort` dan `direction`:
   ```php
   public function rules(): array
   {
       return [
-          'name' => ['required', 'string', 'max:255'],
-          'sku'  => ['nullable', 'string', 'max:100'],
+          'search'    => ['nullable', 'string', 'max:255'],
+          'status'    => ['nullable', 'string'],
+          'sort'      => ['nullable', 'string'],
+          'direction' => ['nullable', 'in:asc,desc'],
+          'perpage'   => ['nullable', 'integer', 'min:1', 'max:100'],
       ];
   }
   ```
@@ -249,8 +256,27 @@ class PromoEvaluationService
 - **Database Transactions:** Bungkus setiap mutasi multi-tabel dalam `DB::transaction(function () { ... });`.
 - **Audit Log:** Catat perubahan data penting menggunakan `AuditLogService`.
 
-### 3.6. Query Optimization & On-Demand Data Loading (Max 5s)
+### 3.6. Query Optimization, Sorting & On-Demand Data Loading (Max 5s)
 - **Waktu Eksekusi Query/Response:** Dilarang melebihi **5 detik**.
+- **Standarisasi Controller Index Query (`sortable` & `paginate`):**
+  Rantai query tabel pada Controller WAJIB mengintegrasikan `filters()`, `sortable()`, dan `paginate()`, serta meneruskan array `params` ke Inertia props:
+  ```php
+  public function index(GetProductRequest $request)
+  {
+      $products = Product::query()
+          ->currentBusiness()
+          ->filters($request->safe()->only(['search', 'category_id', 'status']))
+          ->sortable($request->validated('sort', 'updated_at'), $request->validated('direction', 'desc'))
+          ->with(['category:id,name'])
+          ->paginate($request->validated('perpage', 20))
+          ->appends($request->query());
+
+      return inertia('Master/Product/Index', [
+          'products' => $products,
+          'params'   => $request->validated(),
+      ]);
+  }
+  ```
 - **Standarisasi On-Demand Data Loading:**
   - **Inertia `index()` HANYA Memuat Data Esensial Tabel:** Dilarang keras memuat data relasi berat (children, items, recipes, logs) atau lookup master massal (semua kategori, semua item, semua opsi modifier) ke dalam props Inertia `index()`.
   - **Offload Detail ke Endpoint On-Demand (`show`):** Detail lengkap entitas (untuk drawer/PopUpPage/modal view & edit) WAJIB disediakan melalui endpoint API/controller tersendiri (misal: `show(Entity $entity)` yang mengembalikan JSON atau `JsonResource`) dan diambil secara *asynchronous* (Axios) hanya saat drawer/popup dibuka.
@@ -335,7 +361,11 @@ public function store(StoreOutletRequest $request)
    - Margin dan padding pada komponen baru DILARANG melebihi skala 3 (`p-3`, `px-3`, `py-3`, `m-3`, `mx-3`, `my-3`).
    - Jarak antar-input formulir DILARANG melebihi skala 2 (`space-y-2`, `gap-2`).
 5. **MANDATORY POPUPPAGE FOR SUB-PAGES & FORMS (ZERO CHILD OUTER PADDING):** Seluruh alur kerja *Create*, *Edit*, *Detail*, dan *Sub-page* WAJIB menggunakan `<PopUpPage>` (side-panel drawer) atau `usePopUpStore()`. DILARANG menggunakan *full page redirect* (`router.get()`) untuk formulir sub-halaman. Container body `PopUpPage.vue` sudah memiliki padding bawaan di level komponen, sehingga child form/view di dalamnya **DILARANG** menambahkan wrapper padding/margin luar lagi.
-6. **MANDATORY `<Table>` COMPONENT & CENTRALIZED EMPTY STATE:** Seluruh tampilan data tabular WAJIB menggunakan `@/Components/Tables/Table.vue`. Dilarang menulis tag `<table>` mentah. Penanganan *empty state* ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`, DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
+6. **MANDATORY `<Table>` COMPONENT, SORTABLE HEADERS & CENTRALIZED EMPTY STATE:**
+   - Seluruh tampilan data tabular WAJIB menggunakan `@/Components/Tables/Table.vue`. Dilarang menulis tag `<table>` mentah.
+   - **Sortable Header Standard:** Setiap kolom yang dapat disortir WAJIB didefinisikan dengan `sortable: true` pada array `headers` (contoh: `{ label: 'Nama', field: 'name', sortable: true }`).
+   - **Passing Props Sort:** Teruskan props `:sort="params?.sort"` dan `:sort-direction="params?.direction"` ke `<Table>`. Komponen akan menangani ikon sorting dan request navigasi Inertia (`router.get`) secara terpusat.
+   - **Empty State Terpusat:** Penanganan *empty state* ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`, DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
 7. **MANDATORY FILTER COMPONENT EXTRACTION:** Setiap halaman yang memiliki filter data (search bar, filter status, filter kategori, date picker, dsb.) **WAJIB diekstrak ke file komponen terpisah** (misal: `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`), bukan ditulis inline di file `Index.vue`.
 8. **STANDARISASI ON-DEMAND DATA LOADING:** Data detail entitas lengkap dan data sekunder (opsi dropdown) WAJIB diambil secara *on-demand / async* via API internal (`axios.get`) saat drawer/modal dibuka. DILARANG memuat relasi berat di props `index()`. Selalu gunakan skeleton loader atau spinner saat menunggu data async.
 9. **MANDATORY ENUM FOR CONDITIONS & FORM OPTIONS (NO MAGIC STRINGS):** DILARANG meng-hardcode string literal status/tipe. WAJIB gunakan `$enums.<EnumName>.<Case>` di template atau composable `useEnum()` (`enums.<EnumName>.<Case>`, `getOptions('EnumName')`).
@@ -370,11 +400,17 @@ Seluruh halaman utama modul menerapkan arsitektur layout terstandarisasi berikut
                 </button>
             </MainPageHeader>
             <!-- Komponen filter yang diekstrak terpisah -->
-            <ProductFilter :filters="filters" :categories="categories" />
+            <ProductFilter :filters="params" :categories="categories" />
         </template>
 
-        <!-- 3. Default Slot (SCROLLABLE CONTAINER: Tabel Data) -->
-        <Table :headers="headers" :data="products.data" :action="true">
+        <!-- 3. Default Slot (SCROLLABLE CONTAINER: Tabel Data dengan Sortable) -->
+        <Table
+            :headers="headers"
+            :data="products.data"
+            :sort="params?.sort ?? 'updated_at'"
+            :sort-direction="params?.direction ?? 'desc'"
+            :action="true"
+        >
             <template #status="{ row }">
                 <span class="badge" :class="$enums.ProductStatus._meta[row.status]?.color">
                     {{ $enums.ProductStatus._meta[row.status]?.label }}
@@ -404,14 +440,14 @@ Seluruh halaman utama modul menerapkan arsitektur layout terstandarisasi berikut
 ### 4.5. Table Filter Pattern & Ekstraksi Komponen
 - Setiap filter halaman WAJIB diekstrak ke file terpisah (misal: `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue`).
 - **Layout Filter:** `flex items-center gap-2`, `<FilterSearch>`, tombol Filter (`faSliders`) untuk membuka `<FilterModal>`, dan badge filter aktif via `<FilterBadge>`.
-- **Workflow & Debouncing:** Inisialisasi `filterForm` dari `props.filters`, watcher 500ms debounce pada `filterForm.search` yang memanggil `updateQuery()`.
+- **Workflow & Debouncing:** Inisialisasi `filterForm` dari `props.filters` (atau `props.params`), watcher 500ms debounce pada `filterForm.search` yang memanggil `updateQuery()`.
 - **`updateQuery`:** Merge `route().params` dengan filter aktif, konversi string kosong `''` menjadi `undefined`, reset `page: 1`, lalu panggil `router.get(location.pathname, query, { preserveState: true, preserveScroll: true })`.
 
 ### 4.6. Built-in Component Catalog Matrix (`@/Components/`)
 Seluruh AI Agent WAJIB memprioritaskan dan memaksimalkan penggunaan komponen bawaan proyek:
 - **Layout & UI (`@/Components/UI/`):** `MainPage`, `MainPageHeader`, `PopUpPage`, `PopUpContainer`, `Card`, `CardFade`, `ExportDropdown`, `Tab`, `FeatureLock`, `FeatureLockOverlay`, `FilterSearch`, `FilterModal`, `FilterBadge`, `FilterStatus`, `FilterTrashData`.
 - **Formulir (`@/Components/Form/`):** `TextField`, `TextareaField`, `NumberField`, `PasswordField`, `PinField`, `EmailField`, `DropdownField`, `AsyncSelectField`, `AsyncOutletDropdown`, `Switch`, `CheckboxField`, `RadioField`, `SelectionGroupField`, `QuillEditor`, `GroupTextIconField`, `GroupDropdownIconField`.
-- **Tabel (`@/Components/Tables/`):** `Table` (dengan empty state otomatis), `Pagination`, `DraggableTable`.
+- **Tabel (`@/Components/Tables/`):** `Table` (dengan sortable header otomatis, props `:sort` & `:sort-direction`, dan empty state terpusat), `Pagination`, `DraggableTable`.
 - **Widgets (`@/Components/Widgets/`):** `Widget` (KPI trend), `WidgetChart` (grafik sparkline), `WidgetProgress` (progress bar).
 - **Tombol (`@/Components/Button/`):** `ButtonBack`, `ButtonGroupArchive`, `ButtonIconGroupArchive`.
 - **Notifikasi & Modal (`@/Components/Notifications/` & `@/Components/Modals/`):** `Modal`, `ModalContainer`, `Toast`, `ToastContainer`, `FeatureLockedModal`, `ImportCsvModal`.
@@ -606,7 +642,7 @@ if (can('settings.outlets.create')) {
 - **Strict Prohibitions:** Dilarang mengecek string nama paket mentah (`plan.name === 'Paket Pro'`), dilarang membuat Spatie permission untuk tier paket langganan.
 
 ### 7.4. Dynamic Custom Plan & Modular SaaS Packaging
-- **Dukungan Custom Plan (Enterprise/B2B):** Tabel `subscription_plans` mendukung paket kustom non-publik (`is_custom: true`, `is_public: false`). Paket kustom tidak muncul pada katalog paket publik merchant (`/settings/billing/plans`), namun dapat dibuat dan di-assign langsung oleh Super Admin melalui Cockpit.
+- **Dukungan Custom Plan (Enterprise/B2B):** Tabel `subscription_plans` mendukung paket kustom non-publik (penugasan `business_id`, `is_public: false`). Paket kustom hanya dapat diakses oleh bisnis yang ditugaskan dan tidak muncul pada katalog paket publik merchant umum (`/settings/billing/plans`), serta dapat dibuat dan di-assign langsung oleh Super Admin melalui Cockpit.
 - **Resolusi Fitur Tenant Otomatis:** Method `Business::getAvailablePlanFeatures()` dan `Business::activePlanFeatures()` membaca langsung relasi `plan->systemFeatures` dari database/cache. Seluruh otorisasi fitur (`hasFeature`, `middleware('plan.feature:...')`, `v-feature`) berjalan secara dinamis tanpa perlu mendaftarkan kode paket baru ke PHP Enum.
 - **De-Gating Operasional Ekspor/Impor:** Fungsi ekspor dan impor data (produk, pelanggan, stok, transaksi) adalah hak akses operasional internal merchant yang diatur oleh **Spatie RBAC** (`PermissionEnum`), BUKAN fitur berbayar yang di-gate oleh paket SaaS (`plan.feature`). DILARANG memasang middleware `plan.feature` pada route ekspor/impor.
 

@@ -2,18 +2,11 @@
     <div>
         <div class="flex justify-between items-center px-2 min-h-14 relative">
             <Link :href="route('overview')">
-                <img
-                    src="img/logo-colored.png"
-                    class="h-8 w-auto"
-                    alt="Sollu"
-                />
+                <img src="img/logo-colored.png" class="h-8 w-auto" alt="Sollu" />
             </Link>
-            
+
             <!-- Mobile Close Button -->
-            <div
-                class="block sm:hidden text-sm cursor-pointer"
-                @click="appStore.hide()"
-            >
+            <div class="block sm:hidden text-sm cursor-pointer" @click="appStore.hide()">
                 <FontAwesomeIcon :icon="faClose" />
             </div>
 
@@ -40,10 +33,10 @@
 </template>
 
 <script setup>
-import { useAppStore } from '@/store/app';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faChevronLeft, faClose, faLock } from '@fortawesome/free-solid-svg-icons';
-import { Link } from '@inertiajs/vue3';
+import { useAppStore } from '@/store/app'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faChevronLeft, faClose, faLock } from '@fortawesome/free-solid-svg-icons'
+import { Link } from '@inertiajs/vue3'
 
-const appStore = useAppStore();
+const appStore = useAppStore()
 </script>

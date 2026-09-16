@@ -2,7 +2,9 @@
     <div class="flex flex-col gap-4 p-4">
         <!-- Financial -->
         <div>
-            <h3 class="text-base font-semibold text-slate-800 border-b pb-2 mb-3">Pengaturan Finansial</h3>
+            <h3 class="text-base font-semibold text-slate-800 border-b pb-2 mb-3">
+                Pengaturan Finansial
+            </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div class="col-span-1">
                     <NumberField
@@ -25,7 +27,9 @@
 
         <!-- POS -->
         <div>
-            <h3 class="text-base font-semibold text-slate-800 border-b pb-2 mb-3">Pengaturan POS</h3>
+            <h3 class="text-base font-semibold text-slate-800 border-b pb-2 mb-3">
+                Pengaturan POS
+            </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div class="col-span-1 flex items-center justify-between p-3 border rounded-lg">
                     <div>
@@ -55,21 +59,31 @@
 
         <!-- Inventory -->
         <div>
-            <h3 class="text-base font-semibold text-slate-800 border-b pb-2 mb-3">Pengaturan Inventori</h3>
+            <h3 class="text-base font-semibold text-slate-800 border-b pb-2 mb-3">
+                Pengaturan Inventori
+            </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div class="col-span-1 flex items-center justify-between p-3 border rounded-lg">
                     <div>
                         <div class="font-medium text-slate-700">Stock Tracking</div>
                         <div class="text-xs text-slate-500">Pantau stok produk</div>
                     </div>
-                    <Switch id="inv_stock_tracking" v-model="form.inventory_stock_tracking" size="lg" />
+                    <Switch
+                        id="inv_stock_tracking"
+                        v-model="form.inventory_stock_tracking"
+                        size="lg"
+                    />
                 </div>
                 <div class="col-span-1 flex items-center justify-between p-3 border rounded-lg">
                     <div>
                         <div class="font-medium text-slate-700">Boleh Stok Minus</div>
                         <div class="text-xs text-slate-500">Izinkan penjualan jika stok kosong</div>
                     </div>
-                    <Switch id="inv_negative_stock" v-model="form.inventory_negative_stock" size="lg" />
+                    <Switch
+                        id="inv_negative_stock"
+                        v-model="form.inventory_negative_stock"
+                        size="lg"
+                    />
                 </div>
             </div>
         </div>
@@ -87,15 +101,15 @@
 </template>
 
 <script setup>
-import { watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import NumberField from '@/Components/Form/NumberField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import Switch from '@/Components/Form/Switch.vue';
+import { watch } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import NumberField from '@/Components/Form/NumberField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import Switch from '@/Components/Form/Switch.vue'
 
 const props = defineProps({
     outlet: Object,
-});
+})
 
 const form = useForm({
     financial_tax: '',
@@ -105,34 +119,41 @@ const form = useForm({
     pos_receipt_format: '',
     inventory_stock_tracking: 1,
     inventory_negative_stock: 0,
-});
+})
 
 const receiptFormats = [
     { value: 'standard', label: 'Standar (58mm)' },
     { value: 'large', label: 'Besar (80mm)' },
-];
+]
 
 watch(
     () => props.outlet,
-    (outlet) => {
+    outlet => {
         if (outlet && outlet.settings) {
             outlet.settings.forEach(setting => {
-                const mapKey = `${setting.category}_${setting.key}`;
+                const mapKey = `${setting.category}_${setting.key}`
                 if (form[mapKey] !== undefined) {
-                    if (['pos_auto_print', 'pos_kitchen_display', 'inventory_stock_tracking', 'inventory_negative_stock'].includes(mapKey)) {
-                        form[mapKey] = setting.value == '1' || setting.value === true ? 1 : 0;
+                    if (
+                        [
+                            'pos_auto_print',
+                            'pos_kitchen_display',
+                            'inventory_stock_tracking',
+                            'inventory_negative_stock',
+                        ].includes(mapKey)
+                    ) {
+                        form[mapKey] = setting.value == '1' || setting.value === true ? 1 : 0
                     } else {
-                        form[mapKey] = setting.value;
+                        form[mapKey] = setting.value
                     }
                 }
-            });
+            })
         }
     },
-    { immediate: true },
-);
+    { immediate: true }
+)
 
 const submitForm = () => {
-    if (!props.outlet) return;
+    if (!props.outlet) return
 
     const settingsArray = [
         { category: 'financial', key: 'tax', value: form.financial_tax },
@@ -142,7 +163,7 @@ const submitForm = () => {
         { category: 'pos', key: 'receipt_format', value: form.pos_receipt_format },
         { category: 'inventory', key: 'stock_tracking', value: form.inventory_stock_tracking },
         { category: 'inventory', key: 'negative_stock', value: form.inventory_negative_stock },
-    ];
+    ]
 
     form.transform(() => ({ settings: settingsArray })).put(
         route('settings.outlets.settings.update', { outlet: props.outlet.id }),
@@ -150,6 +171,6 @@ const submitForm = () => {
             preserveScroll: true,
             preserveState: true,
         }
-    );
-};
+    )
+}
 </script>

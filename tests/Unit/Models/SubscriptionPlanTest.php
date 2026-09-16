@@ -24,7 +24,6 @@ class SubscriptionPlanTest extends TestCase
             'code' => 'basic',
             'name' => 'Basic Plan',
             'price_per_outlet' => 50000,
-            'max_outlet' => 5,
             'is_active' => true,
             'is_public' => true,
         ]);
@@ -34,7 +33,6 @@ class SubscriptionPlanTest extends TestCase
             'code' => 'legacy',
             'name' => 'Legacy Plan',
             'price_per_outlet' => 25000,
-            'max_outlet' => 1,
             'is_active' => false,
             'is_public' => false,
         ]);
@@ -53,7 +51,6 @@ class SubscriptionPlanTest extends TestCase
             'code' => 'pro',
             'name' => 'Pro Plan',
             'price_per_outlet' => 150000,
-            'max_outlet' => 20,
             'is_active' => true,
             'is_public' => true,
         ]);
@@ -125,5 +122,39 @@ class SubscriptionPlanTest extends TestCase
         $plan->delete();
         $emptyCached = SubscriptionPlan::getAllCached();
         $this->assertCount(0, $emptyCached);
+    }
+
+    public function test_business_relationship_and_custom_helpers(): void
+    {
+        $type = \App\Models\BusinessType::create([
+            'code' => 'retail',
+            'name' => 'Retail',
+            'sort_order' => 1,
+            'is_visible' => true,
+        ]);
+
+        $business = \App\Models\Business::create([
+            'name' => 'Custom Retailer',
+            'owner_name' => 'Owner A',
+            'email' => 'retailer@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $customPlan = SubscriptionPlan::factory()->create([
+            'code' => 'custom-plan',
+            'name' => 'Custom Plan',
+            'business_id' => $business->id,
+            'is_public' => false,
+        ]);
+
+        $this->assertTrue($customPlan->isCustomForMerchant());
+        $this->assertTrue($customPlan->isAssignedTo($business->id));
+        $this->assertFalse($customPlan->isAssignedTo('random-uuid'));
+        $this->assertSame($business->id, $customPlan->business->id);
+        $this->assertCount(1, $business->customSubscriptionPlans);
+        $this->assertSame($customPlan->id, $business->customSubscriptionPlans->first()->id);
     }
 }

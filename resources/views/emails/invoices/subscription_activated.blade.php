@@ -8,7 +8,6 @@ Terima kasih atas pembayaran Anda. Kami ingin menginformasikan bahwa langganan p
 <x-mail::panel>
 **Detail Langganan:**
 - **Paket:** {{ $plan->name }}
-- **Batas Outlet:** {{ $plan->max_outlet ?? 'Tidak Terbatas' }}
 - **Masa Berlaku Hingga:** {{ $expiredAt }}
 </x-mail::panel>
 

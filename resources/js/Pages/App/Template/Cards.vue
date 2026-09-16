@@ -13,13 +13,9 @@
                     >
                         {{ product.description }}
                         <template #footer>
-                            <div class="text-xs">
-                                <FontAwesomeIcon :icon="faBox" /> 20 Pcs
-                            </div>
+                            <div class="text-xs"><FontAwesomeIcon :icon="faBox" /> 20 Pcs</div>
                             <div>
-                                <button class="btn btn-outline-main btn-sm">
-                                    Detail
-                                </button>
+                                <button class="btn btn-outline-main btn-sm">Detail</button>
                             </div>
                         </template>
                     </Card>
@@ -37,18 +33,12 @@
                     >
                         {{ product.description }}
                         <template #footer>
-                            <div class="text-xs">
-                                <FontAwesomeIcon :icon="faBox" /> 20 Pcs
-                            </div>
+                            <div class="text-xs"><FontAwesomeIcon :icon="faBox" /> 20 Pcs</div>
                             <div class="space-x-1">
-                                <button
-                                    class="btn btn-highlight-success btn-sm rounded-full p-2!"
-                                >
+                                <button class="btn btn-highlight-success btn-sm rounded-full p-2!">
                                     <FontAwesomeIcon :icon="faPencil" />
                                 </button>
-                                <button
-                                    class="btn btn-highlight-main btn-sm rounded-full p-2!"
-                                >
+                                <button class="btn btn-highlight-main btn-sm rounded-full p-2!">
                                     <FontAwesomeIcon :icon="faSearch" />
                                 </button>
                             </div>
@@ -60,11 +50,11 @@
     </MainPage>
 </template>
 <script setup>
-import Card from '@/Components/UI/Card/Card.vue';
-import CardFade from '@/Components/UI/Card/CardFade.vue';
-import MainPage from '@/Components/UI/MainPage.vue';
-import { faBox, faPencil, faSearch } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import Card from '@/Components/UI/Card/Card.vue'
+import CardFade from '@/Components/UI/Card/CardFade.vue'
+import MainPage from '@/Components/UI/MainPage.vue'
+import { faBox, faPencil, faSearch } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 const products = [
     {
@@ -117,5 +107,5 @@ const products = [
         description: 'Product description',
         colors: 'info',
     },
-];
+]
 </script>

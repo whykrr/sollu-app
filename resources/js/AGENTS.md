@@ -7,39 +7,48 @@ trigger: always_on
 Saat membuat atau memodifikasi antarmuka di `resources/js`, Anda **WAJIB** mematuhi aturan baku berikut:
 
 ## 1. Standar Spacing & Margin/Padding Antarmuka
+
 - **Spacing Skala 2 pada Layout & Halaman (`MainPage`):** Jarak antar-elemen/komponen di atas wrapper `<MainPage>` dan di dalam slot-nya WAJIB menggunakan skala 2 Tailwind (`gap-2`, `gap-y-2`, `gap-x-2`, `space-y-2`, `space-x-2`, `m-2`, `my-2`, `mt-2`, `mb-2`).
 - **Batas Spacing Komponen Baru (Maksimal Skala 3):** Margin dan padding pada komponen baru atau child komponen DILARANG melebihi skala 3 (`p-3`, `px-3`, `py-3`, `m-3`, `mx-3`, `my-3`). Hindari padding/margin berlebih (`p-4`, `p-5`, `p-6` pada elemen interior).
 - **Form Input Spacing (Skala 2):** Jarak antar-input formulir DILARANG melebihi skala 2 (`space-y-2`, `gap-2`).
 
 ## 2. Struktur Halaman Utama (`<MainPage>`) & Keseragaman Header
+
 - **Wrapper Utama:** Semua halaman modul wajib menggunakan `<MainPage>`.
 - **Keseragaman Header (`<MainPageHeader>`):** Wajib menggunakan `<MainPageHeader :title="..." :description="...">` dengan tombol aksi di slot default pada `<template #header>`.
-- **Elemen Non-Scrolling di Slot `#header`:** Kartu ringkasan (*cards*), widget analitik (*widgets*), bar pencarian/filter (*filters*), atau tombol aksi WAJIB diletakkan di slot `<template #header>` agar tetap sticky di atas dan **TIDAK ikut ter-scroll** saat tabel/konten di default slot digulir.
+- **Elemen Non-Scrolling di Slot `#header`:** Kartu ringkasan (_cards_), widget analitik (_widgets_), bar pencarian/filter (_filters_), atau tombol aksi WAJIB diletakkan di slot `<template #header>` agar tetap sticky di atas dan **TIDAK ikut ter-scroll** saat tabel/konten di default slot digulir.
 - **Scrollable Content (Default Slot):** Komponen `<Table>` dan daftar data diletakkan di default slot `<MainPage>`.
 
 ## 3. Ekstraksi Wajib Komponen Filter
+
 - Setiap halaman yang memiliki filter data (search bar, dropdown status, date range picker, dsb.) **WAJIB diekstrak ke file komponen terpisah** (misal: `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`). Dilarang menuliskan kontrol filter panjang secara inline di file `Index.vue`.
 
-## 4. Standarisasi Tampilan Data Tabular (`<Table>`) & Empty State
+## 4. Standarisasi Tampilan Data Tabular (`<Table>`), Sortable Header & Empty State
+
 - **Wajib Komponen `<Table>`:** Seluruh data tabular WAJIB menggunakan `@/Components/Tables/Table.vue`. Dilarang menulis tag `<table>` mentah.
-- **Empty State Terpusat:** Penanganan *empty state* ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`. DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
+- **Sortable Header Standard:** Setiap kolom yang dapat disortir WAJIB didefinisikan dengan `sortable: true` pada array `headers` dan meneruskan props `:sort="params?.sort"` serta `:sort-direction="params?.direction"` ke `<Table>`. Komponen akan menangani interaksi klik sort dan URL sync Inertia secara otomatis.
+- **Empty State Terpusat:** Penanganan _empty state_ ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`. DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
 
 ## 5. Side Drawer (`<PopUpPage>` / `usePopUpStore()`) vs Modal Konfirmasi
-- **`<PopUpPage>` / `usePopUpStore()` (Drawer Samping):** WAJIB untuk formulir *Create*, *Edit*, *Detail*, dan *Sub-page*. Dilarang menggunakan *full page redirect* (`router.get()`) untuk sub-halaman.
+
+- **`<PopUpPage>` / `usePopUpStore()` (Drawer Samping):** WAJIB untuk formulir _Create_, _Edit_, _Detail_, dan _Sub-page_. Dilarang menggunakan _full page redirect_ (`router.get()`) untuk sub-halaman.
 - **Isolasi Padding PopUpPage:** Slot default / body `PopUpPage.vue` sudah memiliki padding bawaan di tingkat komponen. Child view yang dirender di dalam PopUpPage **TIDAK BOLEH** menambahkan wrapper padding/margin luar lagi (cukup `<form class="space-y-2">` atau `<div>`).
 - **Sticky Footer Teleport:** Kirim tombol aksi di PopUpPage ke footer sticky drawer menggunakan `<Teleport v-if="isMounted" to="#popUpFooter">`.
 - **`<Modal>` / `useModalStore()` (Center Dialog):** STRICTLY khusus untuk konfirmasi singkat (Hapus Data, Archive, Alert Peringatan).
 
 ## 6. Komponen Form Resmi (`@/Components/Form/`)
+
 - Dilarang keras menggunakan tag raw HTML `<input>`, `<select>`, atau `<textarea>`. Wajib gunakan komponen dari `@/Components/Form/` (`TextField`, `DropdownField`, `NumberField`, `SelectionGroupField`, `Switch`, dll).
 - Selalu bind `v-model` dan teruskan pesan error validasi ke `:feedback="form.errors.field"`.
 
 ## 7. PHP Enums & SaaS Feature Plan (No Magic Strings)
+
 - **Kondisi Status & Tipe:** Gunakan `$enums.<EnumName>.<Case>` di template atau `useEnum()` di script setup.
 - **Opsi Dropdown:** Gunakan `:options="getOptions('EnumName')"` via `useEnum()`.
 - **Feature Plan Gating:** Gunakan directive `v-feature="$enums.FeatureEnum.NAME"` atau komponen `<FeatureLock :feature="$enums.FeatureEnum.NAME">`.
 - **RBAC Permission:** Gunakan `v-can="'permission.name'"` atau `useAuth().can('permission.name')`.
 
 ## 8. Linter, Build & Clean Code
-- Hapus semua *dead code* (unused imports, unused state/props, commented-out code).
+
+- Hapus semua _dead code_ (unused imports, unused state/props, commented-out code).
 - Jalankan `npm run fix:eslint` dan pastikan `npm run build` berhasil tanpa error.

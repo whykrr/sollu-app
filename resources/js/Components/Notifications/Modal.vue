@@ -1,66 +1,65 @@
 <template>
-  <Teleport to="body">
-    <Transition name="modal">
-      <div
-        v-if="show"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto"
-        @click.self="handleBackdropClick"
-      >
-        <div
-          class="relative w-full rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden transform transition-all"
-          :class="size"
-        >
-          <!-- Modal Header -->
-          <div
-            v-if="title || $slots.header || showClose"
-            class="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50"
-          >
-            <slot name="header">
-              <div class="flex items-center gap-2.5">
-                <!-- Optional Icon Header Badge -->
-                <div
-                  v-if="type && type !== 'default'"
-                  class="flex h-7 w-7 items-center justify-center rounded-lg text-xs"
-                  :class="iconHeaderClasses[type]"
-                >
-                  <FontAwesomeIcon :icon="computedIcon" />
-                </div>
-                <h3 class="text-base font-bold text-slate-800 leading-tight">
-                  {{ title }}
-                </h3>
-              </div>
-            </slot>
-
-            <button
-              v-if="showClose"
-              type="button"
-              class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 transition cursor-pointer"
-              aria-label="Tutup"
-              @click="closeModal"
+    <Teleport to="body">
+        <Transition name="modal">
+            <div
+                v-if="show"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto"
+                @click.self="handleBackdropClick"
             >
-              <FontAwesomeIcon
-                :icon="faXmark"
-                class="text-sm"
-              />
-            </button>
-          </div>
+                <div
+                    class="relative w-full rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden transform transition-all"
+                    :class="size"
+                >
+                    <!-- Modal Header -->
+                    <div
+                        v-if="title || $slots.header || showClose"
+                        class="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50"
+                    >
+                        <slot name="header">
+                            <div class="flex items-center gap-2.5">
+                                <!-- Optional Icon Header Badge -->
+                                <div
+                                    v-if="type && type !== 'default'"
+                                    class="flex h-7 w-7 items-center justify-center rounded-lg text-xs"
+                                    :class="iconHeaderClasses[type]"
+                                >
+                                    <FontAwesomeIcon :icon="computedIcon" />
+                                </div>
+                                <h3 class="text-base font-bold text-slate-800 leading-tight">
+                                    {{ title }}
+                                </h3>
+                            </div>
+                        </slot>
 
-          <!-- Modal Body -->
-          <div class="p-5 max-h-[75vh] overflow-y-auto text-slate-600 text-sm leading-relaxed">
-            <slot />
-          </div>
+                        <button
+                            v-if="showClose"
+                            type="button"
+                            class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 transition cursor-pointer"
+                            aria-label="Tutup"
+                            @click="closeModal"
+                        >
+                            <FontAwesomeIcon :icon="faXmark" class="text-sm" />
+                        </button>
+                    </div>
 
-          <!-- Modal Footer -->
-          <div
-            v-if="$slots.footer"
-            class="flex items-center justify-end gap-2.5 px-5 py-3.5 border-t border-slate-100 bg-slate-50/50"
-          >
-            <slot name="footer" />
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+                    <!-- Modal Body -->
+                    <div
+                        class="p-5 max-h-[75vh] overflow-y-auto text-slate-600 text-sm leading-relaxed"
+                    >
+                        <slot />
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div
+                        v-if="$slots.footer"
+                        class="flex items-center justify-end gap-2.5 px-5 py-3.5 border-t border-slate-100 bg-slate-50/50"
+                    >
+                        <slot name="footer" />
+                    </div>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
 </template>
 
 <script setup>
@@ -113,7 +112,7 @@ const handleBackdropClick = () => {
     }
 }
 
-const handleKeyDown = (e) => {
+const handleKeyDown = e => {
     if (e.key === 'Escape' && props.show) {
         closeModal()
     }
@@ -152,7 +151,9 @@ const iconHeaderClasses = {
 <style scoped>
 .modal-enter-active,
 .modal-leave-active {
-    transition: opacity 0.25s ease, transform 0.25s ease;
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
 }
 
 .modal-enter-from,

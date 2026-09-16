@@ -13,5 +13,5 @@
 </template>
 
 <script setup>
-defineEmits(['remove']);
+defineEmits(['remove'])
 </script>

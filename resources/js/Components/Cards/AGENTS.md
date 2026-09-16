@@ -11,9 +11,12 @@ Panduan penggunaan komponen kartu di `@/Components/Cards/` dan `@/Components/UI/
 ## 1. Komponen Kartu Tersedia
 
 ### A. `<Card>` (`@/Components/UI/Card/Card.vue`)
-Kartu berbatas (*bordered card*) untuk mengelompokkan form input, widget ringkas, atau informasi detail entitas.
+
+Kartu berbatas (_bordered card_) untuk mengelompokkan form input, widget ringkas, atau informasi detail entitas.
+
 - **Props:** `title` (String), `image` (String).
 - **Slots:** default slot, `#footer`.
+
 ```vue
 <Card title="Pengaturan Umum">
     <TextField v-model="form.name" label="Nama" />
@@ -24,7 +27,9 @@ Kartu berbatas (*bordered card*) untuk mengelompokkan form input, widget ringkas
 ```
 
 ### B. `<CardTransparent>` (`@/Components/Cards/CardTransparent.vue`)
+
 Container kartu berlatar belakang transparan dengan slot header & tombol.
+
 ```vue
 <CardTransparent title="Riwayat Aktivitas">
     <template #buttons>
@@ -35,7 +40,9 @@ Container kartu berlatar belakang transparan dengan slot header & tombol.
 ```
 
 ### C. `<CardFade>` (`@/Components/UI/Card/CardFade.vue`)
+
 Kartu promosi atau banner dengan latar blur visual.
+
 ```vue
 <CardFade :image="promoImage" title="Paket Hemat Ramadhan">
     <p>Diskon hingga 30% untuk semua menu.</p>

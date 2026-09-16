@@ -2,7 +2,9 @@
     <MainPage>
         <template #header>
             <MainPageHeader title="Perangkat (POS & Kasir)">
-                <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <div
+                    class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end"
+                >
                     <SettingOutletSelector
                         v-if="outlets && outlets.length > 1"
                         :outlets="outlets"
@@ -20,10 +22,11 @@
             </MainPageHeader>
         </template>
 
-
-
         <!-- Devices List -->
-        <div v-if="devices && devices.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+            v-if="devices && devices.length > 0"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
             <div
                 v-for="device in devices"
                 :key="device.id"
@@ -32,12 +35,18 @@
                 <div>
                     <div class="flex items-start justify-between gap-2 mb-3">
                         <div class="flex items-center gap-2.5">
-                            <div class="size-9 rounded-lg bg-main/10 text-main flex items-center justify-center">
+                            <div
+                                class="size-9 rounded-lg bg-main/10 text-main flex items-center justify-center"
+                            >
                                 <FontAwesomeIcon :icon="getDeviceIcon(device.device_type)" />
                             </div>
                             <div>
-                                <h4 class="font-semibold text-slate-800 text-sm leading-snug">{{ device.device_name }}</h4>
-                                <span class="text-xs text-slate-500 capitalize">{{ formatDeviceType(device.device_type) }}</span>
+                                <h4 class="font-semibold text-slate-800 text-sm leading-snug">
+                                    {{ device.device_name }}
+                                </h4>
+                                <span class="text-xs text-slate-500 capitalize">{{
+                                    formatDeviceType(device.device_type)
+                                }}</span>
                             </div>
                         </div>
                         <span
@@ -46,28 +55,32 @@
                         >
                             Aktif
                         </span>
-                        <span
-                            v-else
-                            class="badge badge-danger text-[11px] font-semibold"
-                        >
+                        <span v-else class="badge badge-danger text-[11px] font-semibold">
                             Nonaktif
                         </span>
                     </div>
 
-                    <div class="space-y-1.5 text-xs text-slate-600 py-2 border-t border-b border-slate-100 my-3">
+                    <div
+                        class="space-y-1.5 text-xs text-slate-600 py-2 border-t border-b border-slate-100 my-3"
+                    >
                         <div class="flex justify-between">
                             <span class="text-slate-400">Serial Number:</span>
-                            <span class="font-mono text-slate-700">{{ device.serial_number || '-' }}</span>
+                            <span class="font-mono text-slate-700">{{
+                                device.serial_number || '-'
+                            }}</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-slate-400">Status Koneksi:</span>
-                            <span v-if="device.tokens_count > 0" class="text-emerald-600 font-medium inline-flex items-center gap-1">
-                                <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span
+                                v-if="device.tokens_count > 0"
+                                class="text-emerald-600 font-medium inline-flex items-center gap-1"
+                            >
+                                <span
+                                    class="size-1.5 rounded-full bg-emerald-500 animate-pulse"
+                                ></span>
                                 Terhubung
                             </span>
-                            <span v-else class="text-slate-400">
-                                Belum Terhubung
-                            </span>
+                            <span v-else class="text-slate-400"> Belum Terhubung </span>
                         </div>
                     </div>
                 </div>
@@ -115,12 +128,17 @@
             v-else
             class="bg-white rounded-xl border border-slate-200 p-12 text-center flex flex-col items-center justify-center"
         >
-            <div class="size-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-2xl mb-4">
+            <div
+                class="size-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-2xl mb-4"
+            >
                 <FontAwesomeIcon :icon="faCashRegister" />
             </div>
-            <h3 class="text-base font-semibold text-slate-800 mb-1">Belum Ada Perangkat Terdaftar</h3>
+            <h3 class="text-base font-semibold text-slate-800 mb-1">
+                Belum Ada Perangkat Terdaftar
+            </h3>
             <p class="text-xs text-slate-500 max-w-sm mb-6">
-                Daftarkan perangkat POS kasir, printer dapur, atau EDC untuk outlet ini agar dapat terhubung dengan sistem.
+                Daftarkan perangkat POS kasir, printer dapur, atau EDC untuk outlet ini agar dapat
+                terhubung dengan sistem.
             </p>
             <button
                 class="btn btn-main px-4 py-2 rounded-lg flex items-center gap-2"
@@ -134,9 +152,9 @@
 </template>
 
 <script setup>
-import { watch } from 'vue';
-import { router } from '@inertiajs/vue3';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { watch } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faCashRegister,
     faDesktop,
@@ -147,29 +165,29 @@ import {
     faTabletAlt,
     faTrash,
     faUnlink,
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/free-solid-svg-icons'
 
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import SettingOutletSelector from '../Components/SettingOutletSelector.vue';
-import DevicePopUp from './Components/DevicePopUp.vue';
-import OtpModalContent from './Components/OtpModalContent.vue';
-import { usePopUpStore } from '@/store/popup';
-import { useModalStore } from '@/store/notification';
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import SettingOutletSelector from '../Components/SettingOutletSelector.vue'
+import DevicePopUp from './Components/DevicePopUp.vue'
+import OtpModalContent from './Components/OtpModalContent.vue'
+import { usePopUpStore } from '@/store/popup'
+import { useModalStore } from '@/store/notification'
 
 const props = defineProps({
     outlets: Array,
     selectedOutlet: Object,
     devices: Array,
     otpData: Object,
-});
+})
 
-const popUpStore = usePopUpStore();
-const modalStore = useModalStore();
+const popUpStore = usePopUpStore()
+const modalStore = useModalStore()
 
 watch(
     () => props.otpData,
-    (val) => {
+    val => {
         if (val) {
             modalStore.open({
                 component: OtpModalContent,
@@ -178,11 +196,11 @@ watch(
                 props: {
                     otpData: val,
                 },
-            });
+            })
         }
     },
-    { immediate: true },
-);
+    { immediate: true }
+)
 
 const deviceTypeOptions = [
     { value: 'pos', label: 'POS Terminal / Kasir' },
@@ -190,32 +208,32 @@ const deviceTypeOptions = [
     { value: 'printer', label: 'Printer Thermal / Jaringan' },
     { value: 'edc', label: 'Mesin Pembayaran EDC' },
     { value: 'customer_display', label: 'Customer Facing Display' },
-];
+]
 
-const getDeviceIcon = (type) => {
+const getDeviceIcon = type => {
     switch (type) {
         case 'pos':
-            return faCashRegister;
+            return faCashRegister
         case 'kitchen_display':
-            return faDesktop;
+            return faDesktop
         case 'printer':
-            return faPrint;
+            return faPrint
         default:
-            return faTabletAlt;
+            return faTabletAlt
     }
-};
+}
 
-const formatDeviceType = (type) => {
-    const found = deviceTypeOptions.find((o) => o.value === type);
-    return found ? found.label : type;
-};
+const formatDeviceType = type => {
+    const found = deviceTypeOptions.find(o => o.value === type)
+    return found ? found.label : type
+}
 
-const changeOutlet = (newOutletId) => {
+const changeOutlet = newOutletId => {
     router.visit(route('settings.devices.index', { outlet_id: newOutletId }), {
         preserveState: false,
         preserveScroll: true,
-    });
-};
+    })
+}
 
 const openCreateModal = () => {
     popUpStore.open({
@@ -225,10 +243,10 @@ const openCreateModal = () => {
         props: {
             outletId: props.selectedOutlet?.id || '',
         },
-    });
-};
+    })
+}
 
-const openEditModal = (device) => {
+const openEditModal = device => {
     popUpStore.open({
         title: 'Ubah Data Perangkat',
         size: 'md',
@@ -237,23 +255,24 @@ const openEditModal = (device) => {
             device,
             outletId: props.selectedOutlet?.id || '',
         },
-    });
-};
+    })
+}
 
-const generateOtp = (deviceId) => {
+const generateOtp = deviceId => {
     router.post(
         route('settings.devices.generate-otp', { device: deviceId }),
         {},
         {
             preserveScroll: true,
-        },
-    );
-};
+        }
+    )
+}
 
-const unpairDevice = (deviceId) => {
+const unpairDevice = deviceId => {
     modalStore.confirm({
         title: 'Putuskan Koneksi Perangkat',
-        message: 'Apakah Anda yakin ingin memutuskan koneksi perangkat ini? Perangkat akan dilogout secara paksa.',
+        message:
+            'Apakah Anda yakin ingin memutuskan koneksi perangkat ini? Perangkat akan dilogout secara paksa.',
         confirmText: 'Ya, Putuskan',
         cancelText: 'Batal',
         type: 'warning',
@@ -263,13 +282,13 @@ const unpairDevice = (deviceId) => {
                 {},
                 {
                     preserveScroll: true,
-                },
-            );
+                }
+            )
         },
-    });
-};
+    })
+}
 
-const deleteDevice = (deviceId) => {
+const deleteDevice = deviceId => {
     modalStore.confirm({
         title: 'Hapus Perangkat',
         message: 'Hapus perangkat ini secara permanen dari sistem?',
@@ -279,8 +298,8 @@ const deleteDevice = (deviceId) => {
         onConfirm: () => {
             router.delete(route('settings.devices.destroy', { device: deviceId }), {
                 preserveScroll: true,
-            });
+            })
         },
-    });
-};
+    })
+}
 </script>

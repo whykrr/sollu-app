@@ -10,13 +10,10 @@
             <template #qty_change="{ item }">
                 <span
                     :class="
-                        item.qty_change > 0
-                            ? 'text-success font-bold'
-                            : 'text-danger font-bold'
+                        item.qty_change > 0 ? 'text-success font-bold' : 'text-danger font-bold'
                     "
                 >
-                    {{ item.qty_change > 0 ? '+' : ''
-                    }}{{ item.qty_change_formatted }}
+                    {{ item.qty_change > 0 ? '+' : '' }}{{ item.qty_change_formatted }}
                 </span>
             </template>
             <template #stock_before="{ item }">
@@ -26,10 +23,7 @@
                 {{ item.stock_after_formatted }}
             </template>
             <template #movement_type="{ item }">
-                <span
-                    class="badge"
-                    :class="movementTypeColor(item.movement_type)"
-                >
+                <span class="badge" :class="movementTypeColor(item.movement_type)">
                     {{ item.movement_type.replace('_', ' ').toUpperCase() }}
                 </span>
             </template>
@@ -47,11 +41,11 @@
 </template>
 
 <script setup>
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import { formatDateTimeSimple } from '@/Composable/date.js';
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import { formatDateTimeSimple } from '@/Composable/date.js'
 
 const props = defineProps({
     movements: {
@@ -70,7 +64,7 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
 const headers = [
     {
@@ -107,9 +101,9 @@ const headers = [
     },
     { label: 'Keterangan', field: 'description', sortable: false },
     { label: 'Oleh', field: 'creator.name', sortable: false },
-];
+]
 
-const movementTypeColor = (type) => {
+const movementTypeColor = type => {
     const colors = {
         purchase: 'badge-success',
         sale: 'badge-info',
@@ -119,7 +113,7 @@ const movementTypeColor = (type) => {
         adjustment: 'badge-gray',
         waste: 'badge-danger',
         opname: 'badge-gray',
-    };
-    return colors[type] || 'badge-gray';
-};
+    }
+    return colors[type] || 'badge-gray'
+}
 </script>

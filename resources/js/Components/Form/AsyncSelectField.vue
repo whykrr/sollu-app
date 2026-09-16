@@ -1,11 +1,8 @@
 <template>
     <div class="relative">
-        <label
-            v-if="label"
-            :for="$attrs.id"
-            class="block text-sm font-medium mb-1"
-            >{{ label }}</label
-        >
+        <label v-if="label" :for="$attrs.id" class="block text-sm font-medium mb-1">{{
+            label
+        }}</label>
         <div class="relative">
             <input
                 :id="$attrs.id"
@@ -21,10 +18,7 @@
                 @focus="handleFocus"
             />
 
-            <div
-                v-if="isLoading"
-                class="absolute right-3 top-1/2 -translate-y-1/2"
-            >
+            <div v-if="isLoading" class="absolute right-3 top-1/2 -translate-y-1/2">
                 <svg
                     class="animate-spin h-4 w-4 text-gray-500"
                     xmlns="http://www.w3.org/2000/svg"
@@ -51,8 +45,7 @@
             <div
                 v-if="
                     showDropdown &&
-                    (results.length > 0 ||
-                        (searchQuery.length >= minChars && !isLoading))
+                    (results.length > 0 || (searchQuery.length >= minChars && !isLoading))
                 "
                 class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow-lg mt-1 max-h-60 overflow-y-auto"
             >
@@ -71,9 +64,7 @@
                         </slot>
                     </div>
                 </template>
-                <template
-                    v-else-if="!isLoading && searchQuery.length >= minChars"
-                >
+                <template v-else-if="!isLoading && searchQuery.length >= minChars">
                     <div class="p-3 text-center text-sm text-gray-500">
                         Pencarian tidak ditemukan.
                     </div>
@@ -94,8 +85,8 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted, computed } from 'vue';
-import axios from 'axios';
+import { ref, watch, onUnmounted, computed } from 'vue'
+import axios from 'axios'
 
 const props = defineProps({
     modelValue: [String, Number, Object],
@@ -116,89 +107,89 @@ const props = defineProps({
 
     // Fallback display if not using slot
     optionLabel: { type: [String, Function], default: 'name' },
-});
+})
 
-const feedbackMessage = computed(() => props.feedback || props.error || '');
+const feedbackMessage = computed(() => props.feedback || props.error || '')
 
-const emit = defineEmits(['update:modelValue', 'select']);
+const emit = defineEmits(['update:modelValue', 'select'])
 
-const searchQuery = ref('');
-const results = ref([]);
-const showDropdown = ref(false);
-const isLoading = ref(false);
-let searchTimeout = null;
+const searchQuery = ref('')
+const results = ref([])
+const showDropdown = ref(false)
+const isLoading = ref(false)
+let searchTimeout = null
 
-const getLabel = (item) => {
+const getLabel = item => {
     if (typeof props.optionLabel === 'function') {
-        return props.optionLabel(item);
+        return props.optionLabel(item)
     }
-    return item[props.optionLabel] || 'Unknown';
-};
+    return item[props.optionLabel] || 'Unknown'
+}
 
 const handleFocus = () => {
     if (results.value.length > 0) {
-        showDropdown.value = true;
+        showDropdown.value = true
     }
-};
+}
 
 const closeDropdown = () => {
-    showDropdown.value = false;
-};
+    showDropdown.value = false
+}
 
-const selectItem = (item) => {
-    const val = item.value !== undefined ? item.value : (item.id !== undefined ? item.id : item);
-    emit('update:modelValue', val);
-    emit('select', item);
-    showDropdown.value = false;
-    searchQuery.value = ''; // Reset input after selection
-    results.value = [];
-};
+const selectItem = item => {
+    const val = item.value !== undefined ? item.value : item.id !== undefined ? item.id : item
+    emit('update:modelValue', val)
+    emit('select', item)
+    showDropdown.value = false
+    searchQuery.value = '' // Reset input after selection
+    results.value = []
+}
 
 const debouncedSearch = () => {
-    clearTimeout(searchTimeout);
+    clearTimeout(searchTimeout)
 
     if (searchQuery.value.length >= props.minChars) {
-        isLoading.value = true;
-        showDropdown.value = true;
+        isLoading.value = true
+        showDropdown.value = true
 
         searchTimeout = setTimeout(() => {
-            fetchResults();
-        }, props.debounceTime);
+            fetchResults()
+        }, props.debounceTime)
     } else {
-        results.value = [];
-        showDropdown.value = false;
+        results.value = []
+        showDropdown.value = false
     }
-};
+}
 
 const fetchResults = async () => {
     try {
         const params = {
             ...props.apiParams,
             [props.searchParamName]: searchQuery.value,
-        };
+        }
 
-        const res = await axios.get(props.apiUrl, { params });
+        const res = await axios.get(props.apiUrl, { params })
 
         // Handle Laravel standard pagination vs direct array vs custom wrapping
         if (Array.isArray(res.data)) {
-            results.value = res.data;
+            results.value = res.data
         } else if (res.data.data && Array.isArray(res.data.data)) {
-            results.value = res.data.data;
+            results.value = res.data.data
         } else {
-            results.value = [];
+            results.value = []
         }
     } catch (e) {
-        console.error('AsyncSelect search error:', e);
-        results.value = [];
+        console.error('AsyncSelect search error:', e)
+        results.value = []
     } finally {
-        isLoading.value = false;
+        isLoading.value = false
     }
-};
+}
 
 // Cancel any pending timeout if component is destroyed
 onUnmounted(() => {
-    clearTimeout(searchTimeout);
-});
+    clearTimeout(searchTimeout)
+})
 </script>
 <style scoped>
 /* Ensure dropdown appears above other elements */

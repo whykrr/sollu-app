@@ -17,14 +17,10 @@
                     v-if="hasFrozenOutlet"
                     class="bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm p-3 rounded-lg flex items-start gap-2"
                 >
-                    <FontAwesomeIcon
-                        :icon="faInfoCircle"
-                        class="mt-0.5 text-yellow-500"
-                    />
+                    <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5 text-yellow-500" />
                     <p>
-                        Beberapa outlet saat ini sedang dibekukan stoknya.
-                        Transaksi terkait stok pada outlet tersebut tidak dapat
-                        dilakukan hingga dicairkan.
+                        Beberapa outlet saat ini sedang dibekukan stoknya. Transaksi terkait stok
+                        pada outlet tersebut tidak dapat dilakukan hingga dicairkan.
                     </p>
                 </div>
 
@@ -33,11 +29,7 @@
                         v-for="outlet in outlets"
                         :key="outlet.id"
                         class="p-4 border-b last:border-b-0 flex justify-between items-center transition-colors"
-                        :class="
-                            outlet.is_stock_frozen
-                                ? 'bg-red-50/50'
-                                : 'hover:bg-gray-50'
-                        "
+                        :class="outlet.is_stock_frozen ? 'bg-red-50/50' : 'hover:bg-gray-50'"
                     >
                         <div>
                             <p class="font-bold text-gray-800">
@@ -52,18 +44,10 @@
                                 "
                             >
                                 <FontAwesomeIcon
-                                    :icon="
-                                        outlet.is_stock_frozen
-                                            ? faLock
-                                            : faUnlock
-                                    "
+                                    :icon="outlet.is_stock_frozen ? faLock : faUnlock"
                                     class="mr-1"
                                 />
-                                {{
-                                    outlet.is_stock_frozen
-                                        ? 'Stok Dibekukan'
-                                        : 'Stok Cair'
-                                }}
+                                {{ outlet.is_stock_frozen ? 'Stok Dibekukan' : 'Stok Cair' }}
                             </p>
                         </div>
                         <div class="flex items-center gap-3">
@@ -77,9 +61,7 @@
                                 :id="'freeze-switch-' + outlet.id"
                                 :model-value="outlet.is_stock_frozen ? 1 : 0"
                                 :disabled="isProcessing || processingId === outlet.id"
-                                @update:model-value="
-                                    (val) => toggleFreeze(outlet, val)
-                                "
+                                @update:model-value="val => toggleFreeze(outlet, val)"
                             />
                         </div>
                     </div>
@@ -88,26 +70,21 @@
         </div>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button
-                type="button"
-                class="btn btn-flat"
-                :disabled="isProcessing"
-                @click="close"
-            >
+            <button type="button" class="btn btn-flat" :disabled="isProcessing" @click="close">
                 Tutup
             </button>
         </Teleport>
     </div>
 
-    <Modal
-        :show="showConfirm"
-        :title="confirmTitle"
-        @close="closeConfirm"
-    >
-
+    <Modal :show="showConfirm" :title="confirmTitle" @close="closeConfirm">
         <p class="text-gray-600">{{ confirmMessage }}</p>
         <template #footer>
-            <button type="button" class="btn btn-flat" :disabled="isProcessing" @click="closeConfirm">
+            <button
+                type="button"
+                class="btn btn-flat"
+                :disabled="isProcessing"
+                @click="closeConfirm"
+            >
                 Batal
             </button>
             <button
@@ -124,17 +101,13 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
-import { router } from '@inertiajs/vue3';
-import {
-    faLock,
-    faUnlock,
-    faInfoCircle,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import Modal from '@/Components/Notifications/Modal.vue';
-import Switch from '@/Components/Form/Switch.vue';
-import { useOutlets } from '@/Composable/useOutlets.js';
+import { ref, watch, computed, onMounted } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { faLock, faUnlock, faInfoCircle } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import Modal from '@/Components/Notifications/Modal.vue'
+import Switch from '@/Components/Form/Switch.vue'
+import { useOutlets } from '@/Composable/useOutlets.js'
 
 const props = defineProps({
     title: {
@@ -146,67 +119,65 @@ const props = defineProps({
         default:
             'Pembekuan stok akan memblokir fitur penyesuaian stok pada outlet yang dipilih hingga stok dicairkan kembali.',
     },
-});
+})
 
-const emit = defineEmits(['close']);
-const isProcessing = ref(false);
-const processingId = ref(null);
+const emit = defineEmits(['close'])
+const isProcessing = ref(false)
+const processingId = ref(null)
 
-const showConfirm = ref(false);
-const confirmTitle = ref('');
-const confirmMessage = ref('');
-const confirmActionType = ref('');
-const pendingOutlet = ref(null);
-const pendingValue = ref(null);
+const showConfirm = ref(false)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const confirmActionType = ref('')
+const pendingOutlet = ref(null)
+const pendingValue = ref(null)
 
-const { outlets, isLoading, fetchOutlets } = useOutlets();
+const { outlets, isLoading, fetchOutlets } = useOutlets()
 
 const hasFrozenOutlet = computed(() => {
-    return outlets.value.some((o) => o.is_stock_frozen);
-});
+    return outlets.value.some(o => o.is_stock_frozen)
+})
 
-const isMounted = ref(false);
+const isMounted = ref(false)
 
 onMounted(() => {
-    isMounted.value = true;
-    fetchOutlets();
-});
+    isMounted.value = true
+    fetchOutlets()
+})
 
 const close = () => {
-    emit('close');
-};
+    emit('close')
+}
 
 const closeConfirm = () => {
-    showConfirm.value = false;
-    pendingOutlet.value = null;
-    pendingValue.value = null;
-};
+    showConfirm.value = false
+    pendingOutlet.value = null
+    pendingValue.value = null
+}
 
 const toggleFreeze = (outlet, newValue) => {
-    const actionText = newValue ? 'membekukan' : 'mencairkan';
+    const actionText = newValue ? 'membekukan' : 'mencairkan'
 
-    confirmTitle.value = newValue ? 'Konfirmasi Pembekuan' : 'Konfirmasi Pencairan';
-    confirmMessage.value = `Apakah Anda yakin ingin ${actionText} stok pada outlet ${outlet.name}?`;
-    confirmActionType.value = newValue ? 'freeze' : 'unfreeze';
-    
-    pendingOutlet.value = outlet;
-    pendingValue.value = newValue;
-    showConfirm.value = true;
-};
+    confirmTitle.value = newValue ? 'Konfirmasi Pembekuan' : 'Konfirmasi Pencairan'
+    confirmMessage.value = `Apakah Anda yakin ingin ${actionText} stok pada outlet ${outlet.name}?`
+    confirmActionType.value = newValue ? 'freeze' : 'unfreeze'
+
+    pendingOutlet.value = outlet
+    pendingValue.value = newValue
+    showConfirm.value = true
+}
 
 const executeToggle = () => {
-    if (!pendingOutlet.value) return;
-    
-    const outlet = pendingOutlet.value;
-    const newValue = pendingValue.value;
+    if (!pendingOutlet.value) return
 
-    isProcessing.value = true;
-    processingId.value = outlet.id;
-    showConfirm.value = false;
+    const outlet = pendingOutlet.value
+    const newValue = pendingValue.value
 
-    const routeName = newValue
-        ? 'inventory.outlets.freeze'
-        : 'inventory.outlets.unfreeze';
+    isProcessing.value = true
+    processingId.value = outlet.id
+    showConfirm.value = false
+
+    const routeName = newValue ? 'inventory.outlets.freeze' : 'inventory.outlets.unfreeze'
 
     router.post(
         route(routeName),
@@ -215,15 +186,15 @@ const executeToggle = () => {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
-                fetchOutlets(true);
+                fetchOutlets(true)
             },
             onFinish: () => {
-                isProcessing.value = false;
-                processingId.value = null;
-                pendingOutlet.value = null;
-                pendingValue.value = null;
+                isProcessing.value = false
+                processingId.value = null
+                pendingOutlet.value = null
+                pendingValue.value = null
             },
-        },
-    );
-};
+        }
+    )
+}
 </script>

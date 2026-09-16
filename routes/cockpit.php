@@ -29,6 +29,7 @@ Route::name('cockpit.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/business', [BusinessController::class, 'index'])->name('merchants.index');
+        Route::get('/merchants/search', [BusinessController::class, 'search'])->name('merchants.search');
         Route::post('/business/{id}/toggle-status', [BusinessController::class, 'toggleStatus'])->name('merchants.toggle-status');
         Route::get('/business/{id}', [BusinessController::class, 'show'])->name('merchants.show');
         Route::get('/business/{id}/impersonate/{userId}', [BusinessController::class, 'impersonate'])->name('merchants.impersonate');

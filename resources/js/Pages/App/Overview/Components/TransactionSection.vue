@@ -11,8 +11,6 @@
             <p class="text-lg font-bold text-neutral-900">{{ formatIDR(totalSales.now) }}</p>
         </Widget>
 
-
-
         <Widget
             title="Total Transaksi"
             :icon="faReceipt"
@@ -38,15 +36,15 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import Widget from '@/Components/Widgets/Widget.vue';
-import { formatIDR } from '@/Composable/currency-format';
+import { computed } from 'vue'
+import Widget from '@/Components/Widgets/Widget.vue'
+import { formatIDR } from '@/Composable/currency-format'
 import {
     faChartLine,
     faCoins,
     faMoneyBill1Wave,
     faReceipt,
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/free-solid-svg-icons'
 
 const props = defineProps({
     totalSales: {
@@ -66,16 +64,16 @@ const props = defineProps({
         type: String,
         default: 'bulan ini',
     },
-});
+})
 
-const descriptors = computed(() => `vs ${props.periodLabel}`);
+const descriptors = computed(() => `vs ${props.periodLabel}`)
 
 const getTraction = (now, previous) => {
-    return now >= previous ? 'up' : 'down';
-};
+    return now >= previous ? 'up' : 'down'
+}
 
 const getPercentage = (now, previous) => {
-    if (!previous || previous === 0) return 0;
-    return Math.abs(Math.round(((now - previous) / previous) * 100));
-};
+    if (!previous || previous === 0) return 0
+    return Math.abs(Math.round(((now - previous) / previous) * 100))
+}
 </script>

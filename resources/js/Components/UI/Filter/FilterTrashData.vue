@@ -1,19 +1,19 @@
 <script setup>
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 defineProps({
     modelValue: {
         type: Number,
         default: 0,
     },
-});
+})
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 
-const onChange = (event) => {
-    emit('update:modelValue', event.target.checked ? 1 : 0);
-};
+const onChange = event => {
+    emit('update:modelValue', event.target.checked ? 1 : 0)
+}
 </script>
 
 <template>

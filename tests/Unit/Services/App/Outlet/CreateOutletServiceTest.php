@@ -41,10 +41,36 @@ class CreateOutletServiceTest extends TestCase
         parent::tearDown();
     }
 
+    protected function createMerchantUser(): User
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Merchant Test Business',
+            'owner_name' => 'Merchant Owner',
+            'email' => 'merchant_'.uniqid().'@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        return User::create([
+            'business_id' => $business->id,
+            'name' => 'Merchant User',
+            'email' => 'user_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+            'is_root_user' => true,
+        ]);
+    }
+
     public function test_it_creates_outlet_without_active_subscription()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first(); // First user is usually root user from seeder
+        $user = $this->createMerchantUser();
 
         $data = [
             'name' => 'New Outlet',
@@ -66,7 +92,7 @@ class CreateOutletServiceTest extends TestCase
         $this->assertFalse($result['outlet']->is_active);
 
         // Assert it was attached to root user
-        $this->assertTrue($user->outlets->contains($result['outlet']->id));
+        $this->assertTrue($user->fresh()->outlets->contains($result['outlet']->id));
 
         $this->assertDatabaseHas('outlet_audit_logs', [
             'outlet_id' => $result['outlet']->id,
@@ -78,7 +104,7 @@ class CreateOutletServiceTest extends TestCase
     public function test_it_creates_outlet_and_generates_invoice_for_active_subscription()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $business = $user->business;
 
         // Mock active subscription

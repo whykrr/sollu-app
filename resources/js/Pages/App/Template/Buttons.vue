@@ -24,22 +24,12 @@
             <Card title="Button Outline">
                 <div class="flex flex-row gap-1">
                     <button class="btn btn-outline-main">Button Outline</button>
-                    <button class="btn btn-outline-secondary">
-                        Button Outline
-                    </button>
-                    <button class="btn btn-outline-success">
-                        Button Outline
-                    </button>
+                    <button class="btn btn-outline-secondary">Button Outline</button>
+                    <button class="btn btn-outline-success">Button Outline</button>
                     <button class="btn btn-outline-info">Button Outline</button>
-                    <button class="btn btn-outline-warning">
-                        Button Outline
-                    </button>
-                    <button class="btn btn-outline-danger">
-                        Button Outline
-                    </button>
-                    <button class="btn btn-outline-danger" disabled>
-                        Button Outline
-                    </button>
+                    <button class="btn btn-outline-warning">Button Outline</button>
+                    <button class="btn btn-outline-danger">Button Outline</button>
+                    <button class="btn btn-outline-danger" disabled>Button Outline</button>
                 </div>
             </Card>
 
@@ -52,9 +42,7 @@
                     <button class="btn btn-highlight-warning">Button</button>
                     <button class="btn btn-highlight-danger">Button</button>
                     <button class="btn btn-highlight-red-600">Button</button>
-                    <button class="btn btn-highlight-red-600" disabled>
-                        Button
-                    </button>
+                    <button class="btn btn-highlight-red-600" disabled>Button</button>
                 </div>
             </Card>
 
@@ -136,8 +124,8 @@
     </MainPage>
 </template>
 <script setup>
-import Card from '@/Components/UI/Card/Card.vue';
-import MainPage from '@/Components/UI/MainPage.vue';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import Card from '@/Components/UI/Card/Card.vue'
+import MainPage from '@/Components/UI/MainPage.vue'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 </script>

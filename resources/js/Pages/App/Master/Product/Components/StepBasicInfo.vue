@@ -3,13 +3,8 @@
         <div class="font-semibold text-lg border-b pb-1">Informasi Dasar</div>
         <div class="grid grid-cols-2 gap-3">
             <div class="col-span-2 mb-2">
-                <label class="block text-sm font-medium text-slate-700 mb-1"
-                    >Foto Produk</label
-                >
-                <ProductImagesUploader
-                    v-model="form.images"
-                    :error="form.errors.images"
-                />
+                <label class="block text-sm font-medium text-slate-700 mb-1">Foto Produk</label>
+                <ProductImagesUploader v-model="form.images" :error="form.errors.images" />
             </div>
             <TextField
                 v-model="form.name"
@@ -30,9 +25,7 @@
                 />
             </div>
             <div class="col-span-2">
-                <label class="block text-sm font-medium text-slate-700 mb-1"
-                    >Deskripsi</label
-                >
+                <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi</label>
                 <textarea
                     v-model="form.description"
                     class="form w-full border-slate-300 rounded-md text-sm"
@@ -60,8 +53,7 @@
                                 Lacak Inventori (Stok)
                             </div>
                             <div class="text-xs text-slate-500">
-                                Lacak stok masuk, keluar, dan batas minimum stok
-                                untuk produk ini.
+                                Lacak stok masuk, keluar, dan batas minimum stok untuk produk ini.
                             </div>
                         </div>
                         <input
@@ -96,11 +88,7 @@
                 </div>
 
                 <!-- Memiliki Varian Produk -->
-                <FeatureLock
-                    :feature="$enums.FeatureEnum.PRODUCT_VARIANTS"
-                    as="div"
-                    class="w-full"
-                >
+                <FeatureLock :feature="$enums.FeatureEnum.PRODUCT_VARIANTS" as="div" class="w-full">
                     <label
                         class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition w-full"
                     >
@@ -109,8 +97,8 @@
                                 Memiliki Varian Produk
                             </div>
                             <div class="text-xs text-slate-500">
-                                Aktifkan jika produk memiliki opsi variasi (seperti
-                                Ukuran, Rasa, atau Warna).
+                                Aktifkan jika produk memiliki opsi variasi (seperti Ukuran, Rasa,
+                                atau Warna).
                             </div>
                         </div>
                         <input
@@ -127,12 +115,9 @@
                     class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition w-full"
                 >
                     <div>
-                        <div class="font-bold text-sm text-slate-800">
-                            Tampilkan di POS / Kasir
-                        </div>
+                        <div class="font-bold text-sm text-slate-800">Tampilkan di POS / Kasir</div>
                         <div class="text-xs text-slate-500">
-                            Tampilkan produk ini dalam daftar katalog aplikasi
-                            kasir.
+                            Tampilkan produk ini dalam daftar katalog aplikasi kasir.
                         </div>
                     </div>
                     <input
@@ -147,9 +132,7 @@
                     class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition w-full"
                 >
                     <div>
-                        <div class="font-bold text-sm text-slate-800">
-                            Dapat Dijual
-                        </div>
+                        <div class="font-bold text-sm text-slate-800">Dapat Dijual</div>
                         <div class="text-xs text-slate-500">
                             Produk tersedia untuk transaksi penjualan.
                         </div>
@@ -166,15 +149,11 @@
                     v-if="outlets.length > 1"
                     class="border border-slate-200 p-3 rounded-xl space-y-2 mt-2 w-full"
                 >
-                    <div class="font-bold text-sm text-slate-800">
-                        Tersedia di Outlet
-                    </div>
+                    <div class="font-bold text-sm text-slate-800">Tersedia di Outlet</div>
                     <div class="text-xs text-slate-500 mb-2">
                         Pilih outlet mana saja yang menjual produk ini.
                     </div>
-                    <div
-                        class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
-                    >
+                    <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
                         <SelectionGroupField
                             v-model="selectedOutlets"
                             multiple
@@ -191,83 +170,80 @@
 </template>
 
 <script setup>
-import { inject, computed } from 'vue';
-import TextField from '@/Components/Form/TextField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
-import ProductImagesUploader from './ProductImagesUploader.vue';
+import { inject, computed } from 'vue'
+import TextField from '@/Components/Form/TextField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
+import ProductImagesUploader from './ProductImagesUploader.vue'
 
-const form = inject('productForm');
-const categories = inject('categories', []);
-const uoms = inject('uoms', []);
-const outlets = inject('outlets', []);
-const outletStatusMap = inject('outletStatusMap', {});
-const isEdit = inject('isEdit');
-const originalProduct = inject('originalProduct');
+const form = inject('productForm')
+const categories = inject('categories', [])
+const uoms = inject('uoms', [])
+const outlets = inject('outlets', [])
+const outletStatusMap = inject('outletStatusMap', {})
+const isEdit = inject('isEdit')
+const originalProduct = inject('originalProduct')
 
 const formattedOutlets = computed(() => {
-    return outlets.value.map((o) => ({
+    return outlets.value.map(o => ({
         value: o.id,
         label: o.name,
-    }));
-});
+    }))
+})
 
 const selectedOutlets = computed({
     get: () => {
         return Object.keys(outletStatusMap.value)
-            .filter((id) => outletStatusMap.value[id])
-            .map((id) => Number(id) || id);
+            .filter(id => outletStatusMap.value[id])
+            .map(id => Number(id) || id)
     },
-    set: (newVal) => {
-        outlets.value.forEach((o) => {
-            outletStatusMap.value[o.id] = false;
-        });
-        newVal.forEach((id) => {
-            outletStatusMap.value[id] = true;
-        });
+    set: newVal => {
+        outlets.value.forEach(o => {
+            outletStatusMap.value[o.id] = false
+        })
+        newVal.forEach(id => {
+            outletStatusMap.value[id] = true
+        })
     },
-});
+})
 
-const handleVariantChange = (e) => {
-    const isChecked = e.target.checked;
+const handleVariantChange = e => {
+    const isChecked = e.target.checked
     if (!isChecked && isEdit.value && originalProduct?.has_variant) {
         if (
             window.confirm(
-                'PERINGATAN: Menonaktifkan opsi ini akan menonaktifkan seluruh data varian produk sebelumnya (histori tidak dihapus). Apakah Anda yakin?',
+                'PERINGATAN: Menonaktifkan opsi ini akan menonaktifkan seluruh data varian produk sebelumnya (histori tidak dihapus). Apakah Anda yakin?'
             )
         ) {
-            form.has_variant = false;
+            form.has_variant = false
         } else {
-            e.target.checked = true;
-            form.has_variant = true;
+            e.target.checked = true
+            form.has_variant = true
         }
     } else {
-        form.has_variant = isChecked;
+        form.has_variant = isChecked
     }
-};
+}
 
 const categoryOptions = computed(() => {
-    const raw =
-        categories && categories.value !== undefined
-            ? categories.value
-            : categories;
-    const list = Array.isArray(raw) ? raw : [];
-    return list.map((c) => ({
+    const raw = categories && categories.value !== undefined ? categories.value : categories
+    const list = Array.isArray(raw) ? raw : []
+    return list.map(c => ({
         label: c.label || c.name || '',
         value: c.value !== undefined && c.value !== null ? c.value : c.id || '',
-    }));
-});
+    }))
+})
 
 const uomOptions = computed(() => {
-    const raw = uoms && uoms.value !== undefined ? uoms.value : uoms;
-    const list = Array.isArray(raw) ? raw : [];
-    return list.map((u) => ({
+    const raw = uoms && uoms.value !== undefined ? uoms.value : uoms
+    const list = Array.isArray(raw) ? raw : []
+    return list.map(u => ({
         label:
             u.label ||
             (u.code && u.name && u.code.toLowerCase() !== u.name.toLowerCase()
                 ? `${u.name} (${u.code})`
                 : u.name || ''),
         value: u.value !== undefined && u.value !== null ? u.value : u.id || '',
-    }));
-});
+    }))
+})
 </script>

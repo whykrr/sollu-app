@@ -2,10 +2,7 @@
     <div class="flex flex-wrap items-center gap-2">
         <!-- Search bar -->
         <div>
-            <FilterSearch
-                v-model="filterForm.search"
-                placeholder="Cari nama, sku, barcode..."
-            />
+            <FilterSearch v-model="filterForm.search" placeholder="Cari nama, sku, barcode..." />
         </div>
 
         <!-- Filter Button -->
@@ -62,76 +59,73 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
-import { debounce } from 'lodash';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faSliders } from '@fortawesome/free-solid-svg-icons';
-import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
-import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
-import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
+import { ref, reactive, watch } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { debounce } from 'lodash'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSliders } from '@fortawesome/free-solid-svg-icons'
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue'
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
 
 const props = defineProps({
     filters: Object,
-});
+})
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
     track_inventory: props.filters?.track_inventory ?? '',
-});
+})
 
 // Modal State
-const showFilterModal = ref(false);
+const showFilterModal = ref(false)
 const tempFilters = reactive({
     track_inventory: '',
-});
+})
 
 // Watch search separately for immediate query trigger
 watch(
     () => filterForm.search,
-    debounce((newVal) => {
-        updateQuery();
-    }, 500),
-);
+    debounce(newVal => {
+        updateQuery()
+    }, 500)
+)
 
 const openModal = () => {
-    tempFilters.track_inventory = filterForm.track_inventory;
-    showFilterModal.value = true;
-};
+    tempFilters.track_inventory = filterForm.track_inventory
+    showFilterModal.value = true
+}
 
 const closeModal = () => {
-    showFilterModal.value = false;
-};
+    showFilterModal.value = false
+}
 
 const resetTempFilters = () => {
-    tempFilters.track_inventory = '';
-};
+    tempFilters.track_inventory = ''
+}
 
 const applyFilters = () => {
-    filterForm.track_inventory = tempFilters.track_inventory;
-    showFilterModal.value = false;
-    updateQuery();
-};
+    filterForm.track_inventory = tempFilters.track_inventory
+    showFilterModal.value = false
+    updateQuery()
+}
 
-const removeFilter = (key) => {
-    if (key === 'track_inventory') filterForm.track_inventory = '';
-    updateQuery();
-};
+const removeFilter = key => {
+    if (key === 'track_inventory') filterForm.track_inventory = ''
+    updateQuery()
+}
 
 const updateQuery = () => {
     const query = {
         ...route().params,
         search: filterForm.search || undefined,
-        track_inventory:
-            filterForm.track_inventory !== ''
-                ? filterForm.track_inventory
-                : undefined,
+        track_inventory: filterForm.track_inventory !== '' ? filterForm.track_inventory : undefined,
         page: 1,
-    };
+    }
 
     router.get(route('inventory.raw-materials.index'), query, {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 </script>

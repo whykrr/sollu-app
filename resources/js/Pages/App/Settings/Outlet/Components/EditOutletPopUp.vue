@@ -58,55 +58,55 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import { usePopUpStore } from '@/store/popup';
-import TextField from '@/Components/Form/TextField.vue';
-import EmailField from '@/Components/Form/EmailField.vue';
-import TextareaField from '@/Components/Form/TextareaField.vue';
+import { onMounted, ref, watch } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import { usePopUpStore } from '@/store/popup'
+import TextField from '@/Components/Form/TextField.vue'
+import EmailField from '@/Components/Form/EmailField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
 
 const props = defineProps({
     outlet: {
         type: Object,
         default: null,
     },
-});
+})
 
-const popUpStore = usePopUpStore();
-const isMounted = ref(false);
+const popUpStore = usePopUpStore()
+const isMounted = ref(false)
 
 const form = useForm({
     name: '',
     phone: '',
     email: '',
     address: '',
-});
+})
 
 watch(
     () => props.outlet,
-    (outlet) => {
+    outlet => {
         if (outlet) {
-            form.name = outlet.name || '';
-            form.phone = outlet.phone || '';
-            form.email = outlet.email || '';
-            form.address = outlet.address || '';
+            form.name = outlet.name || ''
+            form.phone = outlet.phone || ''
+            form.email = outlet.email || ''
+            form.address = outlet.address || ''
         }
     },
-    { immediate: true },
-);
+    { immediate: true }
+)
 
 const submitForm = () => {
-    if (!props.outlet) return;
+    if (!props.outlet) return
 
     form.put(route('settings.outlets.update', { outlet: props.outlet.id }), {
         preserveScroll: true,
         onSuccess: () => {
-            popUpStore.close();
+            popUpStore.close()
         },
-    });
-};
+    })
+}
 
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 </script>

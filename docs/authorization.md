@@ -122,7 +122,7 @@ const { can, canAny, isOwner, hasRole } = useAuth()
 ### 3.1. Master Fitur & Paket (`FeatureEnum`, `Feature`, & `SubscriptionPlan`)
 - Daftar kode fitur standar terdaftar di `App\Enums\FeatureEnum` (murni sebagai string keys untuk type-safety).
 - Metadata fitur lengkap (nama, deskripsi, modul, grup) disimpan di tabel database `features` via model `App\Models\Feature` dan di-seed melalui `FeatureSeeder.php`.
-- Paket langganan standar didefinisikan di `App\Enums\PlanEnum` (Micro, Basic, Pro), serta mendukung Custom Plan dinamis (`is_custom: true`, `is_public: false`) pada tabel `subscription_plans`.
+- Paket langganan standar didefinisikan di `App\Enums\PlanEnum` (Micro, Basic, Pro), serta mendukung Custom Plan dinamis (penugasan `business_id` dan `is_public: false`) pada tabel `subscription_plans`.
 - Pemetaan fitur ke paket langganan dikelola melalui tabel pivot database `plan_features` (`SubscriptionPlan::systemFeatures(): BelongsToMany`), BUKAN hardcoded di PHP enum.
 
 ```php

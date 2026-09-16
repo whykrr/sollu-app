@@ -1,6 +1,15 @@
 import { computed } from 'vue'
 import { useEnum } from '@/Composable/useEnum'
-import { faBox, faBoxes, faChartLine, faChartPie, faPercent, faReceipt, faUsers, faUserTie } from '@fortawesome/free-solid-svg-icons'
+import {
+    faBox,
+    faBoxes,
+    faChartLine,
+    faChartPie,
+    faPercent,
+    faReceipt,
+    faUsers,
+    faUserTie,
+} from '@fortawesome/free-solid-svg-icons'
 
 export const getMainSidebars = (enums = { FeatureEnum: {} }) => [
     {
@@ -92,7 +101,7 @@ export const getMainSidebars = (enums = { FeatureEnum: {} }) => [
                 permissions: ['transaction.view'],
                 activeRoute: 'transactions.shifts.',
             },
-        ]
+        ],
     },
     {
         type: 'dropdown',

@@ -37,6 +37,10 @@ class SubscriptionController extends Controller
         $business = $request->user()->business;
         $plan = SubscriptionPlan::findOrFail($request->plan_id);
 
+        if ($error = $this->validatePlanAccess($business, $plan)) {
+            return redirect()->back()->with(FlashDataVariable::FAILED->value, $error);
+        }
+
         $subscription = $this->subscriptionService->subscribe($business, $plan, $request->billing_cycle);
 
         // Generate the initial invoice for active outlets
@@ -102,6 +106,10 @@ class SubscriptionController extends Controller
         $business = $request->user()->business;
         $plan = SubscriptionPlan::findOrFail($request->plan_id);
 
+        if ($error = $this->validatePlanAccess($business, $plan)) {
+            return redirect()->back()->with(FlashDataVariable::FAILED->value, $error);
+        }
+
         $subscription = $this->subscriptionService->subscribe($business, $plan, $request->billing_cycle);
 
         $invoice = $this->billingEngine->generateRecurringInvoice($business, $subscription);
@@ -161,6 +169,10 @@ class SubscriptionController extends Controller
         $business = $request->user()->business;
         $plan = SubscriptionPlan::findOrFail($request->plan_id);
 
+        if ($error = $this->validatePlanAccess($business, $plan)) {
+            return redirect()->back()->with(FlashDataVariable::FAILED->value, $error);
+        }
+
         try {
             $invoice = $renewService->execute($business, $plan, $request->billing_cycle);
         } catch (\Symfony\Component\HttpKernel\Exception\BadRequestHttpException $e) {
@@ -193,5 +205,28 @@ class SubscriptionController extends Controller
                 FlashDataVariable::SUCCESS->value,
                 'Invoice perpanjangan terbuat. Silakan selesaikan pembayaran.'
             );
+    }
+
+    protected function validatePlanAccess($business, SubscriptionPlan $plan): ?string
+    {
+        if (! $plan->is_active) {
+            return 'Paket langganan ini sudah tidak aktif.';
+        }
+
+        if ($plan->business_id !== null && $plan->business_id !== $business->id) {
+            return 'Anda tidak memiliki akses ke paket langganan ini.';
+        }
+
+        $assignedCustomPlansCount = SubscriptionPlan::getAllCached()
+            ->filter(fn ($p) => $p->is_active && $p->business_id === $business->id)
+            ->count();
+
+        $activePlanId = $business->getActiveSubscriptionWithPlan()?->plan_id;
+
+        if ($assignedCustomPlansCount > 0 && $plan->business_id !== $business->id && $activePlanId !== $plan->id) {
+            return 'Bisnis Anda terikat pada paket kustom khusus. Silakan pilih paket yang tersedia untuk akun Anda.';
+        }
+
+        return null;
     }
 }

@@ -30,11 +30,7 @@
             </div>
         </template>
 
-        <Table
-            :headers="tableHeaders"
-            :data="subscriptions.data"
-            :action="true"
-        >
+        <Table :headers="tableHeaders" :data="subscriptions.data" :action="true">
             <template #id="{ row }">
                 <span class="text-neutral-500 font-medium">{{ row.id }}</span>
             </template>
@@ -95,15 +91,15 @@
 </template>
 
 <script setup>
-import MainPage from '@/Components/UI/MainPage.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faDownload, faCog } from '@fortawesome/free-solid-svg-icons';
-import { Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import MainPage from '@/Components/UI/MainPage.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faDownload, faCog } from '@fortawesome/free-solid-svg-icons'
+import { Link } from '@inertiajs/vue3'
+import { ref } from 'vue'
 
 const tableHeaders = [
     { field: 'id', label: 'Sub ID', slot: 'id', sortable: true },
@@ -121,7 +117,7 @@ const tableHeaders = [
         slot: 'expires_at',
         sortable: true,
     },
-];
+]
 
 const subscriptions = ref({
     data: [
@@ -149,5 +145,5 @@ const subscriptions = ref({
     to: 2,
     total: 2,
     per_page: 20,
-});
+})
 </script>

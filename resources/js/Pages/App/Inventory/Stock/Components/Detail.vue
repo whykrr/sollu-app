@@ -1,13 +1,8 @@
 <template>
     <div>
         <div class="p-4 mb-4 bg-slate-100 rounded-lg">
-            <div v-if="loading" class="text-center text-gray-500 py-4">
-                Memuat data produk...
-            </div>
-            <div
-                v-else-if="headerData"
-                class="grid grid-cols-2 md:grid-cols-4 gap-2"
-            >
+            <div v-if="loading" class="text-center text-gray-500 py-4">Memuat data produk...</div>
+            <div v-else-if="headerData" class="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <div>
                     <div class="text-xs text-gray-500 uppercase">Kategori</div>
                     <div class="font-medium">
@@ -17,11 +12,7 @@
                 <div>
                     <div class="text-xs text-gray-500 uppercase">Tipe</div>
                     <div class="font-medium">
-                        {{
-                            headerData.item_type === 'raw_material'
-                                ? 'Bahan Baku'
-                                : 'Produk'
-                        }}
+                        {{ headerData.item_type === 'raw_material' ? 'Bahan Baku' : 'Produk' }}
                     </div>
                 </div>
                 <div>
@@ -69,9 +60,7 @@
 
                     <!-- Barcode Section -->
                     <div class="flex flex-col items-end">
-                        <div
-                            class="text-xs text-gray-500 uppercase mb-1 flex items-center gap-2"
-                        >
+                        <div class="text-xs text-gray-500 uppercase mb-1 flex items-center gap-2">
                             Barcode
                             <button
                                 class="text-main hover:underline text-[10px]"
@@ -80,14 +69,9 @@
                                 {{ headerData?.barcode ? 'Ubah' : 'Tambah' }}
                             </button>
                         </div>
-                        <div
-                            v-if="headerData?.barcode"
-                            class="bg-white p-2 rounded border"
-                        >
+                        <div v-if="headerData?.barcode" class="bg-white p-2 rounded border">
                             <svg ref="barcodeRef"></svg>
-                            <div
-                                class="text-center text-xs font-mono tracking-widest mt-1"
-                            >
+                            <div class="text-center text-xs font-mono tracking-widest mt-1">
                                 {{ headerData.barcode }}
                             </div>
                         </div>
@@ -98,9 +82,7 @@
                 </div>
             </div>
 
-            <div
-                class="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2"
-            >
+            <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2">
                 <button
                     v-if="
                         !loading &&
@@ -124,65 +106,59 @@
         </div>
 
         <div>
-            <Tab
-                v-if="!loading && headerData"
-                :pages="tabPages"
-                :vertical="false"
-            />
+            <Tab v-if="!loading && headerData" :pages="tabPages" :vertical="false" />
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, markRaw } from 'vue';
-import Tab from '@/Components/UI/Tab.vue';
-import axios from 'axios';
-import JsBarcode from 'jsbarcode';
-import { useModalStore } from '@/store/notification';
+import { ref, computed, nextTick, onMounted, markRaw } from 'vue'
+import Tab from '@/Components/UI/Tab.vue'
+import axios from 'axios'
+import JsBarcode from 'jsbarcode'
+import { useModalStore } from '@/store/notification'
 
 // Modals
-import BarcodeFormModal from './Modals/BarcodeFormModal.vue';
-import SkuFormModal from './Modals/SkuFormModal.vue';
-import InitialStockFormModal from './Modals/InitialStockFormModal.vue';
+import BarcodeFormModal from './Modals/BarcodeFormModal.vue'
+import SkuFormModal from './Modals/SkuFormModal.vue'
+import InitialStockFormModal from './Modals/InitialStockFormModal.vue'
 
 // Tabs Components
-import MovementTab from '../Tabs/MovementTab.vue';
-import ChartTab from '../Tabs/ChartTab.vue';
+import MovementTab from '../Tabs/MovementTab.vue'
+import ChartTab from '../Tabs/ChartTab.vue'
 
 // Icons
-import { faHistory, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import { faHistory, faChartLine } from '@fortawesome/free-solid-svg-icons'
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close'])
 
 const props = defineProps({
     item: Object,
-});
+})
 
-const modalStore = useModalStore();
-const barcodeRef = ref(null);
+const modalStore = useModalStore()
+const barcodeRef = ref(null)
 
-const loading = ref(false);
-const headerData = ref(null);
-const currentBalanceData = ref(null);
-const movementsData = ref([]);
-const chartData = ref(null);
+const loading = ref(false)
+const headerData = ref(null)
+const currentBalanceData = ref(null)
+const movementsData = ref([])
+const chartData = ref(null)
 
 onMounted(() => {
     if (props.item) {
-        fetchHeaderData();
+        fetchHeaderData()
     }
-});
+})
 
 const fetchHeaderData = async () => {
-    loading.value = true;
+    loading.value = true
     try {
-        const response = await axios.get(
-            route('inventories.stocks.show', props.item.id),
-        );
-        headerData.value = response.data.item;
-        currentBalanceData.value = response.data.current_balance;
-        movementsData.value = response.data.movements;
-        chartData.value = response.data.chart;
+        const response = await axios.get(route('inventories.stocks.show', props.item.id))
+        headerData.value = response.data.item
+        currentBalanceData.value = response.data.current_balance
+        movementsData.value = response.data.movements
+        chartData.value = response.data.chart
 
         if (headerData.value && headerData.value.barcode) {
             nextTick(() => {
@@ -193,16 +169,16 @@ const fetchHeaderData = async () => {
                         height: 40,
                         displayValue: false,
                         margin: 0,
-                    });
+                    })
                 }
-            });
+            })
         }
     } catch (error) {
-        console.error('Failed to load header data', error);
+        console.error('Failed to load header data', error)
     } finally {
-        loading.value = false;
+        loading.value = false
     }
-};
+}
 
 const openBarcodeModal = () => {
     modalStore.open({
@@ -214,8 +190,8 @@ const openBarcodeModal = () => {
         },
         showFooter: false,
         onConfirm: () => fetchHeaderData(),
-    });
-};
+    })
+}
 
 const openSkuModal = () => {
     modalStore.open({
@@ -227,8 +203,8 @@ const openSkuModal = () => {
         },
         showFooter: false,
         onConfirm: () => fetchHeaderData(),
-    });
-};
+    })
+}
 
 const openInitialStockModal = () => {
     modalStore.open({
@@ -239,18 +215,15 @@ const openInitialStockModal = () => {
         },
         showFooter: false,
         onConfirm: () => fetchHeaderData(),
-    });
-};
+    })
+}
 
 const exportPdf = () => {
-    window.open(
-        route('inventories.stocks.export.pdf', props.item.id),
-        '_blank',
-    );
-};
+    window.open(route('inventories.stocks.export.pdf', props.item.id), '_blank')
+}
 
 const tabPages = computed(() => {
-    if (!headerData.value) return [];
+    if (!headerData.value) return []
     return [
         {
             label: 'Riwayat',
@@ -264,6 +237,6 @@ const tabPages = computed(() => {
             page: ChartTab,
             props: { item: props.item, chart: chartData.value },
         },
-    ];
-});
+    ]
+})
 </script>

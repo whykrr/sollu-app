@@ -1,11 +1,9 @@
 <template>
     <div class="space-y-2">
-        <h4 class="font-semibold text-lg">
-            Tren Perubahan Stok (30 Hari Terakhir)
-        </h4>
+        <h4 class="font-semibold text-lg">Tren Perubahan Stok (30 Hari Terakhir)</h4>
 
         <div
-            v-if="!chart || !chart.data || !chart.data.some((d) => d !== 0)"
+            v-if="!chart || !chart.data || !chart.data.some(d => d !== 0)"
             class="text-center text-gray-500 py-4"
         >
             Tidak ada pergerakan stok dalam 30 hari terakhir.
@@ -17,22 +15,22 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
-import { Chart } from 'chart.js/auto';
+import { onMounted, onUnmounted } from 'vue'
+import { Chart } from 'chart.js/auto'
 
 const props = defineProps({
     item: Object,
     chart: {
         type: Object,
         default: () => ({ labels: [], data: [] }),
-    }
-});
+    },
+})
 
-let chartInstance = null;
+let chartInstance = null
 
 onMounted(() => {
-    if (props.chart && props.chart.data && props.chart.data.some((d) => d !== 0)) {
-        const ctx = document.getElementById('chart-stock-tab');
+    if (props.chart && props.chart.data && props.chart.data.some(d => d !== 0)) {
+        const ctx = document.getElementById('chart-stock-tab')
         if (ctx) {
             chartInstance = new Chart(ctx, {
                 type: 'line',
@@ -46,7 +44,7 @@ onMounted(() => {
                             borderColor: 'rgb(0 74 173)',
                             backgroundColor: 'rgb(0 74 173)',
                             tension: 0.3,
-                        }
+                        },
                     ],
                 },
                 options: {
@@ -62,8 +60,8 @@ onMounted(() => {
                         tooltip: {
                             callbacks: {
                                 label: function (context) {
-                                    let value = context.parsed.y;
-                                    return `Pergerakan: ${value > 0 ? '+' : ''}${value}`;
+                                    let value = context.parsed.y
+                                    return `Pergerakan: ${value > 0 ? '+' : ''}${value}`
                                 },
                             },
                         },
@@ -87,14 +85,14 @@ onMounted(() => {
                         },
                     },
                 },
-            });
+            })
         }
     }
-});
+})
 
 onUnmounted(() => {
     if (chartInstance) {
-        chartInstance.destroy();
+        chartInstance.destroy()
     }
-});
+})
 </script>

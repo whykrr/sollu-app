@@ -20,11 +20,7 @@
                             />
                             <div class="font-semibold">{{ category.name }}</div>
                             <div class="badge badge-neutral-500 text-xs">
-                                {{
-                                    category.children
-                                        ? category.children.length
-                                        : 0
-                                }}
+                                {{ category.children ? category.children.length : 0 }}
                                 Sub
                             </div>
                         </div>
@@ -54,10 +50,7 @@
                     </div>
 
                     <!-- Sub Categories -->
-                    <div
-                        v-if="category.children && category.children.length > 0"
-                        class="p-2 pl-8"
-                    >
+                    <div v-if="category.children && category.children.length > 0" class="p-2 pl-8">
                         <draggable
                             v-model="category.children"
                             group="sub"
@@ -88,9 +81,7 @@
                                         <button
                                             class="btn btn-outline-danger btn-sm"
                                             title="Hapus"
-                                            @click="
-                                                $emit('delete', subCategory)
-                                            "
+                                            @click="$emit('delete', subCategory)"
                                         >
                                             <FontAwesomeIcon :icon="faTrash" />
                                         </button>
@@ -106,51 +97,46 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import draggable from 'vuedraggable';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faGripVertical,
-    faPencil,
-    faTrash,
-    faPlus,
-} from '@fortawesome/free-solid-svg-icons';
-import { router } from '@inertiajs/vue3';
-import axios from 'axios';
-import { useToastStore } from '@/store/toast';
+import { ref, watch } from 'vue'
+import draggable from 'vuedraggable'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faGripVertical, faPencil, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { router } from '@inertiajs/vue3'
+import axios from 'axios'
+import { useToastStore } from '@/store/toast'
 
-const toastStore = useToastStore();
+const toastStore = useToastStore()
 
 const props = defineProps({
     categories: {
         type: Array,
         required: true,
     },
-});
+})
 
-const emit = defineEmits(['edit', 'delete', 'add-sub']);
+const emit = defineEmits(['edit', 'delete', 'add-sub'])
 
-const localCategories = ref([]);
+const localCategories = ref([])
 
 watch(
     () => props.categories,
-    (newVal) => {
+    newVal => {
         // Deep clone to avoid mutating props directly when dragging
-        localCategories.value = JSON.parse(JSON.stringify(newVal));
+        localCategories.value = JSON.parse(JSON.stringify(newVal))
     },
-    { immediate: true, deep: true },
-);
+    { immediate: true, deep: true }
+)
 
 const saveReorder = () => {
     // Flatten the categories to build the payload
-    const payload = [];
+    const payload = []
 
     localCategories.value.forEach((rootCat, rootIndex) => {
         payload.push({
             id: rootCat.id,
             parent_id: null,
             sort_order: rootIndex + 1,
-        });
+        })
 
         if (rootCat.children) {
             rootCat.children.forEach((subCat, subIndex) => {
@@ -158,31 +144,31 @@ const saveReorder = () => {
                     id: subCat.id,
                     parent_id: rootCat.id, // Update parent_id in case it was dragged to another parent
                     sort_order: subIndex + 1,
-                });
-            });
+                })
+            })
         }
-    });
+    })
 
     axios
         .post(route('master.categories.reorder'), { categories: payload })
-        .then((response) => {
-            toastStore.success('Urutan kategori berhasil disimpan.');
-            router.reload({ only: ['categories'] });
+        .then(response => {
+            toastStore.success('Urutan kategori berhasil disimpan.')
+            router.reload({ only: ['categories'] })
         })
-        .catch((error) => {
-            console.error(error);
-            toastStore.danger(error.response?.data?.message || 'Gagal menyimpan urutan');
-            router.reload({ only: ['categories'] });
-        });
-};
+        .catch(error => {
+            console.error(error)
+            toastStore.danger(error.response?.data?.message || 'Gagal menyimpan urutan')
+            router.reload({ only: ['categories'] })
+        })
+}
 
 const onReorderRoot = () => {
-    saveReorder();
-};
+    saveReorder()
+}
 
-const onReorderSub = (parentCategory) => {
-    saveReorder();
-};
+const onReorderSub = parentCategory => {
+    saveReorder()
+}
 </script>
 
 <style scoped>

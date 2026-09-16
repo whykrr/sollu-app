@@ -55,25 +55,23 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { computed } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faCircleQuestion,
     faCog,
     faArrowUpFromBracket,
     faArrowLeft,
     faHome,
-} from '@fortawesome/free-solid-svg-icons';
-import SidebarBillingWidget from './SidebarBillingWidget.vue';
+} from '@fortawesome/free-solid-svg-icons'
+import SidebarBillingWidget from './SidebarBillingWidget.vue'
 
 defineProps({
     isSetting: Boolean,
-});
+})
 
-const page = usePage();
-const helpCenterUrl = computed(() => page.props.app?.help_center_url || '#');
-const isExternalLink = computed(() =>
-    Boolean(helpCenterUrl.value && helpCenterUrl.value !== '#'),
-);
+const page = usePage()
+const helpCenterUrl = computed(() => page.props.app?.help_center_url || '#')
+const isExternalLink = computed(() => Boolean(helpCenterUrl.value && helpCenterUrl.value !== '#'))
 </script>

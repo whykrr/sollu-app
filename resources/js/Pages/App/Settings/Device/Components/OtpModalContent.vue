@@ -1,16 +1,15 @@
 <template>
     <div class="flex flex-col items-center pb-2">
         <div class="flex justify-center mb-6 mt-2">
-            <div class="w-16 h-16 bg-main/10 rounded-full flex items-center justify-center text-main text-2xl">
+            <div
+                class="w-16 h-16 bg-main/10 rounded-full flex items-center justify-center text-main text-2xl"
+            >
                 <FontAwesomeIcon :icon="faKey" />
             </div>
         </div>
-        <h3 class="text-2xl font-bold text-slate-800 text-center mb-2">
-            Hubungkan Perangkat
-        </h3>
+        <h3 class="text-2xl font-bold text-slate-800 text-center mb-2">Hubungkan Perangkat</h3>
         <p class="text-slate-500 text-center text-sm mb-8 px-4">
-            Buka aplikasi POS Sollu di perangkat Anda, lalu masukkan
-            8-digit kode OTP di bawah ini.
+            Buka aplikasi POS Sollu di perangkat Anda, lalu masukkan 8-digit kode OTP di bawah ini.
         </p>
 
         <div
@@ -23,7 +22,11 @@
             </div>
             <button
                 class="flex items-center gap-2 text-sm font-medium transition px-4 py-2 rounded-lg"
-                :class="isCopied ? 'bg-success/10 text-success' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-main'"
+                :class="
+                    isCopied
+                        ? 'bg-success/10 text-success'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-main'
+                "
                 @click="copyOtp"
             >
                 <FontAwesomeIcon :icon="faCopy" />
@@ -31,7 +34,9 @@
             </button>
         </div>
 
-        <div class="flex items-center justify-center w-full gap-3 mb-8 bg-warning/10 text-warning-800 py-3 px-4 rounded-lg">
+        <div
+            class="flex items-center justify-center w-full gap-3 mb-8 bg-warning/10 text-warning-800 py-3 px-4 rounded-lg"
+        >
             <span class="text-sm font-medium">Berlaku dalam:</span>
             <span
                 class="text-xl font-bold font-mono tabular-nums"
@@ -44,8 +49,11 @@
                 }}
             </span>
         </div>
-        
-        <div v-if="isExpired" class="text-center w-full mb-6 p-3 bg-danger/10 text-danger rounded-lg text-sm font-medium">
+
+        <div
+            v-if="isExpired"
+            class="text-center w-full mb-6 p-3 bg-danger/10 text-danger rounded-lg text-sm font-medium"
+        >
             Kode OTP telah kadaluarsa. Silakan tutup dan buat ulang.
         </div>
 
@@ -66,8 +74,8 @@ import { router } from '@inertiajs/vue3'
 const props = defineProps({
     otpData: {
         type: Object,
-        required: true
-    }
+        required: true,
+    },
 })
 
 const emit = defineEmits(['close'])
@@ -108,30 +116,30 @@ const startTimer = () => {
 }
 
 const copyOtp = async () => {
-    const textToCopy = props.otpData?.otp;
-    if (!textToCopy) return;
+    const textToCopy = props.otpData?.otp
+    if (!textToCopy) return
 
     try {
         if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(textToCopy);
+            await navigator.clipboard.writeText(textToCopy)
         } else {
-            const textArea = document.createElement('textarea');
-            textArea.value = textToCopy;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            document.execCommand('copy');
-            textArea.remove();
+            const textArea = document.createElement('textarea')
+            textArea.value = textToCopy
+            textArea.style.position = 'fixed'
+            textArea.style.left = '-999999px'
+            document.body.appendChild(textArea)
+            textArea.focus()
+            textArea.select()
+            document.execCommand('copy')
+            textArea.remove()
         }
-        
-        isCopied.value = true;
+
+        isCopied.value = true
         setTimeout(() => {
-            isCopied.value = false;
-        }, 2000);
+            isCopied.value = false
+        }, 2000)
     } catch (err) {
-        console.error('Failed to copy text: ', err);
+        console.error('Failed to copy text: ', err)
     }
 }
 

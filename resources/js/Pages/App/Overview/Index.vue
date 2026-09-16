@@ -2,9 +2,7 @@
     <MainPage>
         <template #header>
             <MainPageHeader title="Dashboard Ringkasan">
-                <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full sm:w-auto"
-                >
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full sm:w-auto">
                     <!-- Outlet Selector -->
                     <div v-if="outletOptions.length > 0" class="w-full sm:w-48">
                         <GroupDropdownIconField
@@ -12,10 +10,7 @@
                             v-model="formFilters.outlet"
                             :icon="faStore"
                             class="sm"
-                            :options="[
-                                { value: '', label: 'Semua Outlet' },
-                                ...outletOptions,
-                            ]"
+                            :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
                             @change="applyFilters"
                         />
                     </div>
@@ -41,18 +36,14 @@
         </template>
 
         <!-- Email Verification Banner -->
-        <div
-            v-if="auth?.email_verified_at === null"
-            class="alert alert-warning mb-3 shadow-xs"
-        >
+        <div v-if="auth?.email_verified_at === null" class="alert alert-warning mb-3 shadow-xs">
             <div
                 class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
             >
                 <div>
                     <strong class="block">Verifikasi Email</strong>
                     <span class="text-xs sm:text-sm text-neutral-700">
-                        Cek email Anda untuk verifikasi sebelum menggunakan
-                        fitur lengkap aplikasi.
+                        Cek email Anda untuk verifikasi sebelum menggunakan fitur lengkap aplikasi.
                     </span>
                 </div>
                 <Link
@@ -102,36 +93,32 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { Link, useForm } from '@inertiajs/vue3';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faCalendarDays,
-    faRotateRight,
-    faStore,
-} from '@fortawesome/free-solid-svg-icons';
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
-import TransactionSection from './Components/TransactionSection.vue';
-import SalesTrendChart from './Components/SalesTrendChart.vue';
-import CategorySalesChart from './Components/CategorySalesChart.vue';
-import PaymentMethodChart from './Components/PaymentMethodChart.vue';
-import TableMostSoldProduct from './Components/TableMostSoldProduct.vue';
-import TableProductNotSold from './Components/TableProductNotSold.vue';
-import TableProductLowStock from './Components/TableProductLowStock.vue';
-import { useAuth } from '@/Composable/useAuth';
+import { computed } from 'vue'
+import { Link, useForm } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faCalendarDays, faRotateRight, faStore } from '@fortawesome/free-solid-svg-icons'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
+import TransactionSection from './Components/TransactionSection.vue'
+import SalesTrendChart from './Components/SalesTrendChart.vue'
+import CategorySalesChart from './Components/CategorySalesChart.vue'
+import PaymentMethodChart from './Components/PaymentMethodChart.vue'
+import TableMostSoldProduct from './Components/TableMostSoldProduct.vue'
+import TableProductNotSold from './Components/TableProductNotSold.vue'
+import TableProductLowStock from './Components/TableProductLowStock.vue'
+import { useAuth } from '@/Composable/useAuth'
 
-const { user, outlets: userOutlets } = useAuth();
-const auth = user;
+const { user, outlets: userOutlets } = useAuth()
+const auth = user
 
 const outletOptions = computed(() => {
-    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return [];
-    return userOutlets.value.map((store) => ({
+    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []
+    return userOutlets.value.map(store => ({
         value: store.id,
         label: store.name,
-    }));
-});
+    }))
+})
 
 const props = defineProps({
     filters: Object,
@@ -153,17 +140,17 @@ const props = defineProps({
     mostSoldProducts: Array,
     lowStockProduct: Array,
     productNotSold: Array,
-});
+})
 
 const formFilters = useForm({
     outlet: props.filters?.outlet ?? '',
     period: props.filters?.period ?? 'today',
-});
+})
 
 const applyFilters = () => {
     formFilters.get(route('overview'), {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 </script>

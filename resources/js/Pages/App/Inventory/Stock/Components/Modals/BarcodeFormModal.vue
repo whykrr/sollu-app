@@ -18,12 +18,7 @@
             >
                 Batal
             </button>
-            <button
-                type="button"
-                class="btn btn-main"
-                :disabled="saving"
-                @click="save"
-            >
+            <button type="button" class="btn btn-main" :disabled="saving" @click="save">
                 {{ saving ? 'Menyimpan...' : 'Simpan' }}
             </button>
         </div>
@@ -31,9 +26,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
-import TextField from '@/Components/Form/TextField.vue';
+import { ref } from 'vue'
+import axios from 'axios'
+import TextField from '@/Components/Form/TextField.vue'
 
 const props = defineProps({
     stockId: {
@@ -44,34 +39,31 @@ const props = defineProps({
         type: String,
         default: '',
     },
-});
+})
 
-const emit = defineEmits(['close', 'success']);
+const emit = defineEmits(['close', 'success'])
 
-const barcode = ref(props.initialBarcode || '');
-const saving = ref(false);
-const error = ref('');
+const barcode = ref(props.initialBarcode || '')
+const saving = ref(false)
+const error = ref('')
 
 const save = async () => {
     if (!barcode.value) {
-        error.value = 'Barcode tidak boleh kosong.';
-        return;
+        error.value = 'Barcode tidak boleh kosong.'
+        return
     }
-    error.value = '';
-    saving.value = true;
+    error.value = ''
+    saving.value = true
 
     try {
-        await axios.patch(
-            route('inventories.stocks.barcode.update', props.stockId),
-            {
-                barcode: barcode.value,
-            },
-        );
-        emit('success');
+        await axios.patch(route('inventories.stocks.barcode.update', props.stockId), {
+            barcode: barcode.value,
+        })
+        emit('success')
     } catch (err) {
-        error.value = err.response?.data?.message || 'Gagal menyimpan barcode.';
+        error.value = err.response?.data?.message || 'Gagal menyimpan barcode.'
     } finally {
-        saving.value = false;
+        saving.value = false
     }
-};
+}
 </script>

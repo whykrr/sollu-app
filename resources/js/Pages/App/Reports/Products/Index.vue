@@ -9,10 +9,7 @@
                             v-model="formFilters.outlet"
                             :icon="faStore"
                             class="sm"
-                            :options="[
-                                { value: '', label: 'Semua Outlet' },
-                                ...outletOptions,
-                            ]"
+                            :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
                             @change="applyFilters"
                         />
                     </div>
@@ -32,16 +29,10 @@
                         />
                     </div>
                     <div class="flex items-center gap-2 ml-auto">
-                        <button
-                            class="btn btn-outline-primary btn-sm"
-                            @click="exportPdf"
-                        >
+                        <button class="btn btn-outline-primary btn-sm" @click="exportPdf">
                             <FontAwesomeIcon :icon="faFilePdf" /> Ekspor PDF
                         </button>
-                        <button
-                            class="btn btn-outline-success btn-sm"
-                            @click="exportCsv"
-                        >
+                        <button class="btn btn-outline-success btn-sm" @click="exportCsv">
                             <FontAwesomeIcon :icon="faFileCsv" /> Ekspor CSV
                         </button>
                     </div>
@@ -73,74 +64,76 @@
                         </tr>
                         <tr v-if="products.data.length === 0">
                             <td colspan="4" class="text-center text-muted py-4">
-                                Tidak ada data penjualan produk pada periode
-                                ini.
+                                Tidak ada data penjualan produk pada periode ini.
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-                <Pagination class="mt-4" :links="products.links" :from="products.from" :to="products.to" :total="products.total" :per-page="products.per_page" />
+            <Pagination
+                class="mt-4"
+                :links="products.links"
+                :from="products.from"
+                :to="products.to"
+                :total="products.total"
+                :per-page="products.per_page"
+            />
         </div>
     </MainPage>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
-import {
-    faFileCsv,
-    faFilePdf,
-    faStore,
-} from '@fortawesome/free-solid-svg-icons';
-import MainPage from '@/Components/UI/MainPage.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
-import { useAuth } from '@/Composable/useAuth';
-import { formatIDR } from '@/Composable/currency-format';
-import { formatNumberID } from '@/Composable/useNumberFormat';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { computed } from 'vue'
+import { useForm, router } from '@inertiajs/vue3'
+import { faFileCsv, faFilePdf, faStore } from '@fortawesome/free-solid-svg-icons'
+import MainPage from '@/Components/UI/MainPage.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
+import { useAuth } from '@/Composable/useAuth'
+import { formatIDR } from '@/Composable/currency-format'
+import { formatNumberID } from '@/Composable/useNumberFormat'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 const props = defineProps({
     filters: Object,
     products: Object,
-});
+})
 
-const { outlets: userOutlets } = useAuth();
+const { outlets: userOutlets } = useAuth()
 
 const outletOptions = computed(() => {
-    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return [];
-    return userOutlets.value.map((store) => ({
+    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []
+    return userOutlets.value.map(store => ({
         value: store.id,
         label: store.name,
-    }));
-});
+    }))
+})
 
 const formFilters = useForm({
     outlet: props.filters?.outlet ?? '',
     start_date: props.filters?.start_date ?? '',
     end_date: props.filters?.end_date ?? '',
-});
+})
 
 const applyFilters = () => {
     formFilters.get(route('reports.products.index'), {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 
 const exportPdf = () => {
     router.post(route('reports.products.export.pdf'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
-    });
-};
+    })
+}
 
 const exportCsv = () => {
     router.post(route('reports.products.export.csv'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
-    });
-};
+    })
+}
 </script>

@@ -6,10 +6,7 @@
                     <FontAwesomeIcon :icon="faDownload" />
                     Ekspor Data
                 </button>
-                <button
-                    class="btn btn-flat btn-sm"
-                    @click="showImportModal = true"
-                >
+                <button class="btn btn-flat btn-sm" @click="showImportModal = true">
                     <FontAwesomeIcon :icon="faUpload" />
                     Impor Data
                 </button>
@@ -48,18 +45,12 @@
                 {{ getBasePrice(row) }}
             </template>
             <template #status="{ row }">
-                <span v-if="row.is_show" class="badge badge-success"
-                    >Aktif</span
-                >
+                <span v-if="row.is_show" class="badge badge-success">Aktif</span>
                 <span v-else class="badge badge-neutral-500">Non-Aktif</span>
             </template>
             <template #actions="{ row }">
                 <div class="flex items-center gap-1 justify-end">
-                    <button
-                        class="btn btn-flat btn-sm"
-                        title="Ubah Produk"
-                        @click="openEdit(row)"
-                    >
+                    <button class="btn btn-flat btn-sm" title="Ubah Produk" @click="openEdit(row)">
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
@@ -94,12 +85,12 @@
 </template>
 
 <script setup>
-import { ref, watch, provide, computed } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
-import MainPage from '@/Components/UI/MainPage.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { ref, watch, provide, computed } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faPlus,
     faPencil,
@@ -107,24 +98,24 @@ import {
     faImage,
     faUpload,
     faDownload,
-} from '@fortawesome/free-solid-svg-icons';
-import { debounce } from 'lodash';
-import ProductFilter from './Components/ProductFilter.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import { usePopUpStore } from '@/store/popup';
-import CreateEditWrapper from './CreateEditWrapper.vue';
-import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue';
-import { useModalStore } from '@/store/notification.js';
+} from '@fortawesome/free-solid-svg-icons'
+import { debounce } from 'lodash'
+import ProductFilter from './Components/ProductFilter.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import { usePopUpStore } from '@/store/popup'
+import CreateEditWrapper from './CreateEditWrapper.vue'
+import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue'
+import { useModalStore } from '@/store/notification.js'
 
-const popUpStore = usePopUpStore();
-const modalStore = useModalStore();
-const page = usePage();
+const popUpStore = usePopUpStore()
+const modalStore = useModalStore()
+const page = usePage()
 
 const props = defineProps({
     products: Object,
     filters: Object,
     categories: Array,
-});
+})
 
 const headers = [
     { label: 'Foto', field: 'image', slot: 'image', sortable: false },
@@ -139,33 +130,33 @@ const headers = [
         sortable: false,
     },
     { label: 'Status', field: 'is_show', slot: 'status', sortable: false },
-];
+]
 
-const search = ref('');
-const showImportModal = ref(false);
+const search = ref('')
+const showImportModal = ref(false)
 
 watch(
     search,
-    debounce((newVal) => {
+    debounce(newVal => {
         router.get(
             route('master.products.index'),
             { ...route().params, search: newVal, page: 1 },
-            { preserveState: true, preserveScroll: true },
-        );
-    }, 500),
-);
+            { preserveState: true, preserveScroll: true }
+        )
+    }, 500)
+)
 
-const getBasePrice = (product) => {
-    const price = product.prices?.find((p) => !p.outlet_id);
+const getBasePrice = product => {
+    const price = product.prices?.find(p => !p.outlet_id)
     return price
         ? new Intl.NumberFormat('id-ID', {
               style: 'currency',
               currency: 'IDR',
           }).format(price.amount)
-        : '-';
-};
+        : '-'
+}
 
-const archiveProduct = (id) => {
+const archiveProduct = id => {
     modalStore.confirm({
         title: 'Konfirmasi Pengarsipan',
         type: 'danger',
@@ -173,10 +164,10 @@ const archiveProduct = (id) => {
         confirmText: 'Ya, Arsipkan',
         cancelText: 'Batal',
         onConfirm: () => {
-            router.delete(route('master.products.destroy', id));
+            router.delete(route('master.products.destroy', id))
         },
-    });
-};
+    })
+}
 
 const exportCsv = () => {
     router.get(
@@ -185,9 +176,9 @@ const exportCsv = () => {
         {
             preserveScroll: true,
             preserveState: true,
-        },
-    );
-};
+        }
+    )
+}
 
 // Wizard configurations for Popup
 const openCreate = () => {
@@ -200,11 +191,11 @@ const openCreate = () => {
             editMode: false,
             targetStepId: 'basic',
         },
-    });
-};
+    })
+}
 
 const openEdit = (row, targetStepId = 'basic') => {
-    const stepIndexMap = { basic: 0, inventory: 1, pricing: 2 };
+    const stepIndexMap = { basic: 0, inventory: 1, pricing: 2 }
     popUpStore.open({
         title: `${row.name}`,
         subTitle: `#${row.code}`,
@@ -216,6 +207,6 @@ const openEdit = (row, targetStepId = 'basic') => {
             targetStepId,
             product: row,
         },
-    });
-};
+    })
+}
 </script>

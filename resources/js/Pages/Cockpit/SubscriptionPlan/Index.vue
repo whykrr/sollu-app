@@ -16,7 +16,7 @@
                 title="Pengaturan Paket Langganan"
                 description="Kelola data paket, harga, visibilitas katalog, hak akses fitur, serta status aktif/nonaktif"
             >
-                <button type="button" class="btn btn-main btn-sm" @click="openCreate">
+                <button type="button" class="btn btn-main" @click="openCreate">
                     <FontAwesomeIcon :icon="faPlus" class="mr-1.5" />
                     Tambah Paket
                 </button>
@@ -32,6 +32,7 @@
                 :inactive-count="inactiveCount"
                 :public-count="publicCount"
                 :hidden-count="hiddenCount"
+                :custom-count="customCount"
             />
         </template>
         <Table :headers="tableHeaders" :data="displayedPlans" :action="true">
@@ -44,13 +45,13 @@
                             {{ row.name }}
                         </span>
                         <span
-                            v-if="row.is_custom"
+                            v-if="row.business_id"
                             class="px-1.5 py-0.2 bg-purple-100 text-purple-700 text-[9px] rounded font-bold uppercase tracking-wider"
                         >
                             Custom
                         </span>
                     </div>
-                    <div class="flex items-center gap-2 mt-0.5">
+                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
                         <span
                             class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-semibold"
                         >
@@ -61,6 +62,15 @@
                             class="text-[10px] text-neutral-400"
                         >
                             • {{ row.features.length }} poin brosur
+                        </span>
+                    </div>
+                    <div v-if="row.business" class="mt-1">
+                        <span
+                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200"
+                            :title="`Ditugaskan khusus untuk: ${row.business.name} (${row.business.owner_name || row.business.email})`"
+                        >
+                            <FontAwesomeIcon :icon="faBuilding" class="text-[9px]" />
+                            {{ row.business.name }}
                         </span>
                     </div>
                 </div>
@@ -80,12 +90,6 @@
                         </span>
                     </div>
                 </div>
-            </template>
-
-            <template #max_outlet="{ row }">
-                <span class="text-xs font-semibold text-neutral-700">
-                    {{ row.max_outlet ? `${row.max_outlet} Outlet` : 'Tanpa Batas' }}
-                </span>
             </template>
 
             <template #features="{ row }">
@@ -209,6 +213,7 @@ import {
     faEyeSlash,
     faTrash,
     faStore,
+    faBuilding,
 } from '@fortawesome/free-solid-svg-icons'
 import { router } from '@inertiajs/vue3'
 import { usePopUpStore } from '@/store/popup'
@@ -239,7 +244,6 @@ const sortBy = ref('price_asc')
 const tableHeaders = [
     { field: 'name', label: 'Paket & Kode', slot: 'code_name' },
     { field: 'price_per_outlet', label: 'Harga / Outlet', slot: 'price' },
-    { field: 'max_outlet', label: 'Batas Outlet', slot: 'max_outlet' },
     { field: 'features_count', label: 'Fitur Sistem', slot: 'features' },
     { field: 'subscriptions_count', label: 'Pelanggan Aktif', slot: 'subscribers' },
     { field: 'is_public', label: 'Katalog', slot: 'is_public' },
@@ -249,8 +253,13 @@ const tableHeaders = [
 // Metrics Overview
 const activeCount = computed(() => (props.plans || []).filter(p => p.is_active).length)
 const inactiveCount = computed(() => (props.plans || []).filter(p => !p.is_active).length)
-const publicCount = computed(() => (props.plans || []).filter(p => p.is_public).length)
-const hiddenCount = computed(() => (props.plans || []).filter(p => !p.is_public).length)
+const publicCount = computed(
+    () => (props.plans || []).filter(p => p.is_public && !p.business_id).length
+)
+const hiddenCount = computed(
+    () => (props.plans || []).filter(p => !p.is_public && !p.business_id).length
+)
+const customCount = computed(() => (props.plans || []).filter(p => Boolean(p.business_id)).length)
 const totalSubscribersCount = computed(() => {
     return (props.plans || []).reduce((acc, p) => acc + (p.subscriptions_count || 0), 0)
 })
@@ -263,7 +272,8 @@ const displayedPlans = computed(() => {
             const query = searchQuery.value.trim().toLowerCase()
             const nameMatch = (p.name || '').toLowerCase().includes(query)
             const codeMatch = (p.code || '').toLowerCase().includes(query)
-            if (!nameMatch && !codeMatch) {
+            const merchantMatch = (p.business?.name || '').toLowerCase().includes(query)
+            if (!nameMatch && !codeMatch && !merchantMatch) {
                 return false
             }
         }
@@ -276,11 +286,14 @@ const displayedPlans = computed(() => {
             return false
         }
 
-        // Visibility Filter
-        if (visibilityFilter.value === 'public' && !p.is_public) {
+        // Visibility / Type Filter
+        if (visibilityFilter.value === 'public' && (!p.is_public || p.business_id)) {
             return false
         }
-        if (visibilityFilter.value === 'hidden' && p.is_public) {
+        if (visibilityFilter.value === 'hidden' && (p.is_public || p.business_id)) {
+            return false
+        }
+        if (visibilityFilter.value === 'custom' && !p.business_id) {
             return false
         }
 

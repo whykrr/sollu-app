@@ -1,97 +1,102 @@
 <template>
-  <div>
-    <!-- Generic Modal Dialog managed by useModalStore -->
-    <Modal
-      :show="modalStore.activeModal.isVisible"
-      :title="modalStore.activeModal.title"
-      :type="modalStore.activeModal.type"
-      :size="modalStore.activeModal.size"
-      @close="handleCancel"
-    >
-      <component
-        :is="modalStore.activeModal.component"
-        v-if="modalStore.activeModal.component"
-        v-bind="modalStore.activeModal.props"
-        @close="handleCancel"
-        @success="handleConfirm"
-      />
-      <div v-else class="flex items-start gap-3 py-1">
-        <!-- Icon Badge for Alert/Confirm -->
-        <div
-          v-if="modalStore.activeModal.type !== 'default'"
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg shadow-xs"
-          :class="iconContainerClasses[modalStore.activeModal.type]"
+    <div>
+        <!-- Generic Modal Dialog managed by useModalStore -->
+        <Modal
+            :show="modalStore.activeModal.isVisible"
+            :title="modalStore.activeModal.title"
+            :type="modalStore.activeModal.type"
+            :size="modalStore.activeModal.size"
+            @close="handleCancel"
         >
-          <FontAwesomeIcon :icon="computedIcon" />
-        </div>
+            <component
+                :is="modalStore.activeModal.component"
+                v-if="modalStore.activeModal.component"
+                v-bind="modalStore.activeModal.props"
+                @close="handleCancel"
+                @success="handleConfirm"
+            />
+            <div v-else class="flex items-start gap-3 py-1">
+                <!-- Icon Badge for Alert/Confirm -->
+                <div
+                    v-if="modalStore.activeModal.type !== 'default'"
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg shadow-xs"
+                    :class="iconContainerClasses[modalStore.activeModal.type]"
+                >
+                    <FontAwesomeIcon :icon="computedIcon" />
+                </div>
 
-        <div class="flex-1 min-w-0 pt-0.5">
-          <p class="text-slate-600 text-sm leading-relaxed">
-            {{ modalStore.activeModal.message }}
-          </p>
-        </div>
-      </div>
+                <div class="flex-1 min-w-0 pt-0.5">
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        {{ modalStore.activeModal.message }}
+                    </p>
+                </div>
+            </div>
 
-      <template v-if="modalStore.activeModal.showFooter && !modalStore.activeModal.component" #footer>
-        <button
-          v-if="modalStore.activeModal.showCancel"
-          type="button"
-          class="btn btn-slate-400"
-          @click="handleCancel"
+            <template
+                v-if="modalStore.activeModal.showFooter && !modalStore.activeModal.component"
+                #footer
+            >
+                <button
+                    v-if="modalStore.activeModal.showCancel"
+                    type="button"
+                    class="btn btn-slate-400"
+                    @click="handleCancel"
+                >
+                    {{ modalStore.activeModal.cancelText }}
+                </button>
+
+                <button
+                    type="button"
+                    class="btn"
+                    :class="modalStore.activeModal.confirmClass"
+                    @click="handleConfirm"
+                >
+                    {{ modalStore.activeModal.confirmText }}
+                </button>
+            </template>
+        </Modal>
+
+        <!-- Legacy Delete / SoftDelete Modal managed by useModalStore.delete -->
+        <Modal
+            :show="modalStore.delete.isVisible"
+            :title="modalStore.delete.header"
+            type="danger"
+            @close="modalStore.closeModalDelete"
         >
-          {{ modalStore.activeModal.cancelText }}
-        </button>
+            <div class="flex items-start gap-3 py-1">
+                <div
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600 text-lg"
+                >
+                    <FontAwesomeIcon :icon="faTrash" />
+                </div>
+                <div class="flex-1 pt-0.5">
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        {{ modalStore.delete.msg }}
+                    </p>
+                </div>
+            </div>
 
-        <button
-          type="button"
-          class="btn"
-          :class="modalStore.activeModal.confirmClass"
-          @click="handleConfirm"
-        >
-          {{ modalStore.activeModal.confirmText }}
-        </button>
-      </template>
-    </Modal>
-
-    <!-- Legacy Delete / SoftDelete Modal managed by useModalStore.delete -->
-    <Modal
-      :show="modalStore.delete.isVisible"
-      :title="modalStore.delete.header"
-      type="danger"
-      @close="modalStore.closeModalDelete"
-    >
-      <div class="flex items-start gap-3 py-1">
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600 text-lg">
-          <FontAwesomeIcon :icon="faTrash" />
-        </div>
-        <div class="flex-1 pt-0.5">
-          <p class="text-slate-600 text-sm leading-relaxed">
-            {{ modalStore.delete.msg }}
-          </p>
-        </div>
-      </div>
-
-      <template #footer>
-        <button
-          type="button"
-          class="btn btn-slate-400"
-          @click="modalStore.closeModalDelete"
-        >
-          Batal
-        </button>
-        <Link
-          v-if="modalStore.delete.url"
-          class="btn btn-danger bg-rose-600 hover:bg-rose-700 text-white"
-          :href="modalStore.delete.url"
-          as="button"
-          method="delete"
-          @click="modalStore.closeModalDelete"
-        >
-          Ya, Hapus
-        </Link>
-      </template>
-    </Modal>
-  </div>
+            <template #footer>
+                <button
+                    type="button"
+                    class="btn btn-slate-400"
+                    @click="modalStore.closeModalDelete"
+                >
+                    Batal
+                </button>
+                <Link
+                    v-if="modalStore.delete.url"
+                    class="btn btn-danger bg-rose-600 hover:bg-rose-700 text-white"
+                    :href="modalStore.delete.url"
+                    as="button"
+                    method="delete"
+                    @click="modalStore.closeModalDelete"
+                >
+                    Ya, Hapus
+                </Link>
+            </template>
+        </Modal>
+    </div>
 </template>
 
 <script setup>

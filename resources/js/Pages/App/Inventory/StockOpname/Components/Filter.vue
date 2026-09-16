@@ -2,10 +2,7 @@
     <div class="flex flex-wrap items-center gap-2">
         <!-- Search bar -->
         <div>
-            <FilterSearch
-                v-model="filterForm.search"
-                placeholder="Cari no. opname..."
-            />
+            <FilterSearch v-model="filterForm.search" placeholder="Cari no. opname..." />
         </div>
 
         <!-- Filter Button -->
@@ -46,84 +43,83 @@
         >
             <!-- Body -->
             <div class="space-y-4">
+                <div class="space-y-1">
+                    <label
+                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                    >
+                        Status
+                    </label>
+                    <select
+                        v-model="tempFilters.status"
+                        class="form-input w-full rounded-lg border-gray-200"
+                    >
+                        <option value="">Semua Status</option>
+                        <option
+                            v-for="status in statusOptions"
+                            :key="status.value"
+                            :value="status.value"
+                        >
+                            {{ status.label }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <AsyncOutletDropdown
+                        v-if="showFilterModal"
+                        v-model="tempFilters.outlet_id"
+                        placeholder="Semua Outlet"
+                        @loaded="onOutletsLoaded"
+                    />
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
                     <div class="space-y-1">
                         <label
                             class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
                         >
-                            Status
+                            Dari Tanggal
                         </label>
-                        <select
-                            v-model="tempFilters.status"
+                        <input
+                            v-model="tempFilters.date_from"
+                            type="date"
                             class="form-input w-full rounded-lg border-gray-200"
-                        >
-                            <option value="">Semua Status</option>
-                            <option
-                                v-for="status in statusOptions"
-                                :key="status.value"
-                                :value="status.value"
-                            >
-                                {{ status.label }}
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-1">
-                        <AsyncOutletDropdown
-                            v-if="showFilterModal"
-                            v-model="tempFilters.outlet_id"
-                            placeholder="Semua Outlet"
-                            @loaded="onOutletsLoaded"
                         />
                     </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="space-y-1">
-                            <label
-                                class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                            >
-                                Dari Tanggal
-                            </label>
-                            <input
-                                v-model="tempFilters.date_from"
-                                type="date"
-                                class="form-input w-full rounded-lg border-gray-200"
-                            />
-                        </div>
-                        <div class="space-y-1">
-                            <label
-                                class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                            >
-                                Sampai Tanggal
-                            </label>
-                            <input
-                                v-model="tempFilters.date_to"
-                                type="date"
-                                class="form-input w-full rounded-lg border-gray-200"
-                            />
-                        </div>
+                    <div class="space-y-1">
+                        <label
+                            class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                        >
+                            Sampai Tanggal
+                        </label>
+                        <input
+                            v-model="tempFilters.date_to"
+                            type="date"
+                            class="form-input w-full rounded-lg border-gray-200"
+                        />
                     </div>
-
+                </div>
             </div>
         </FilterModal>
     </div>
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
-import { debounce } from 'lodash';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
-import { faSliders } from '@fortawesome/free-solid-svg-icons';
-import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
-import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
-import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
+import { ref, reactive, watch } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { debounce } from 'lodash'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
+import { faSliders } from '@fortawesome/free-solid-svg-icons'
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue'
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
 
 const props = defineProps({
     filters: Object,
-});
+})
 
-const loadedOutlets = ref([]);
+const loadedOutlets = ref([])
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
@@ -131,93 +127,91 @@ const filterForm = reactive({
     outlet_id: props.filters?.outlet_id ?? '',
     date_from: props.filters?.date_from ?? '',
     date_to: props.filters?.date_to ?? '',
-});
+})
 
 // Modal State
-const showFilterModal = ref(false);
+const showFilterModal = ref(false)
 const tempFilters = reactive({
     status: '',
     outlet_id: '',
     date_from: '',
     date_to: '',
-});
+})
 
 const statusOptions = [
     { value: 'in_progress', label: 'Sedang Berjalan' },
     { value: 'pending_approval', label: 'Menunggu Persetujuan' },
     { value: 'approved', label: 'Disetujui' },
     { value: 'rejected', label: 'Ditolak' },
-];
+]
 
-const onOutletsLoaded = (outlets) => {
-    loadedOutlets.value = outlets;
-};
+const onOutletsLoaded = outlets => {
+    loadedOutlets.value = outlets
+}
 
 // Watch search separately for immediate query trigger
 watch(
     () => filterForm.search,
     debounce(() => {
-        updateQuery();
-    }, 500),
-);
+        updateQuery()
+    }, 500)
+)
 
-const getStatusName = (val) => {
-    return statusOptions.find((o) => o.value == val)?.label || val;
-};
+const getStatusName = val => {
+    return statusOptions.find(o => o.value == val)?.label || val
+}
 
-const getOutletName = (id) => {
-    return loadedOutlets.value.find((o) => o.id == id)?.name || id;
-};
+const getOutletName = id => {
+    return loadedOutlets.value.find(o => o.id == id)?.name || id
+}
 
 const openModal = () => {
-    tempFilters.status = filterForm.status;
-    tempFilters.outlet_id = filterForm.outlet_id;
-    tempFilters.date_from = filterForm.date_from;
-    tempFilters.date_to = filterForm.date_to;
-    showFilterModal.value = true;
-};
+    tempFilters.status = filterForm.status
+    tempFilters.outlet_id = filterForm.outlet_id
+    tempFilters.date_from = filterForm.date_from
+    tempFilters.date_to = filterForm.date_to
+    showFilterModal.value = true
+}
 
 const closeModal = () => {
-    showFilterModal.value = false;
-};
+    showFilterModal.value = false
+}
 
 const resetTempFilters = () => {
-    tempFilters.status = '';
-    tempFilters.outlet_id = '';
-    tempFilters.date_from = '';
-    tempFilters.date_to = '';
-};
+    tempFilters.status = ''
+    tempFilters.outlet_id = ''
+    tempFilters.date_from = ''
+    tempFilters.date_to = ''
+}
 
 const applyFilters = () => {
-    filterForm.status = tempFilters.status;
-    filterForm.outlet_id = tempFilters.outlet_id;
-    filterForm.date_from = tempFilters.date_from;
-    filterForm.date_to = tempFilters.date_to;
-    showFilterModal.value = false;
-    updateQuery();
-};
+    filterForm.status = tempFilters.status
+    filterForm.outlet_id = tempFilters.outlet_id
+    filterForm.date_from = tempFilters.date_from
+    filterForm.date_to = tempFilters.date_to
+    showFilterModal.value = false
+    updateQuery()
+}
 
-const removeFilter = (key) => {
-    filterForm[key] = '';
-    updateQuery();
-};
+const removeFilter = key => {
+    filterForm[key] = ''
+    updateQuery()
+}
 
 const updateQuery = () => {
     const query = {
         ...route().params,
         search: filterForm.search || undefined,
         status: filterForm.status !== '' ? filterForm.status : undefined,
-        outlet_id:
-            filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
-        date_from:
-            filterForm.date_from !== '' ? filterForm.date_from : undefined,
+        outlet_id: filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
+        date_from: filterForm.date_from !== '' ? filterForm.date_from : undefined,
         date_to: filterForm.date_to !== '' ? filterForm.date_to : undefined,
         page: 1,
-    };
+    }
 
     router.get(window.location.pathname, query, {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 </script>

@@ -69,9 +69,7 @@
                     placeholder="Cari nama barang atau bahan baku..."
                     @input="onSearchInput"
                 />
-                <div v-if="isSearching" class="text-xs text-slate-500 py-1">
-                    Mencari...
-                </div>
+                <div v-if="isSearching" class="text-xs text-slate-500 py-1">Mencari...</div>
 
                 <!-- Search Results -->
                 <div
@@ -115,9 +113,7 @@
             </div>
 
             <!-- Selected Items List -->
-            <h3 class="text-md font-semibold mb-2 mt-4">
-                Daftar Barang yang Dipesan
-            </h3>
+            <h3 class="text-md font-semibold mb-2 mt-4">Daftar Barang yang Dipesan</h3>
 
             <div
                 v-if="form.items.length === 0"
@@ -180,12 +176,8 @@
                     </div>
                 </div>
 
-                <div
-                    class="flex justify-between items-center border-t mt-4 pt-4"
-                >
-                    <div class="font-bold text-lg text-slate-800">
-                        Total Pembelian:
-                    </div>
+                <div class="flex justify-between items-center border-t mt-4 pt-4">
+                    <div class="font-bold text-lg text-slate-800">Total Pembelian:</div>
                     <div class="font-bold text-xl text-main">
                         {{ formatCurrency(totalAmount) }}
                     </div>
@@ -195,12 +187,7 @@
     </form>
 
     <Teleport v-if="isMounted" to="#popUpFooter">
-        <button
-            type="button"
-            class="btn btn-flat"
-            :disabled="form.processing"
-            @click="close"
-        >
+        <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
             Batal
         </button>
         <button
@@ -215,19 +202,19 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import axios from 'axios';
-import { debounce } from 'lodash';
-import { usePopUpStore } from '@/store/popup';
-import TextField from '@/Components/Form/TextField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { ref, computed, watch, onMounted } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import axios from 'axios'
+import { debounce } from 'lodash'
+import { usePopUpStore } from '@/store/popup'
+import TextField from '@/Components/Form/TextField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faCheck, faTrash } from '@fortawesome/free-solid-svg-icons'
 
-const popUpStore = usePopUpStore();
+const popUpStore = usePopUpStore()
 
 const props = defineProps({
     purchase: {
@@ -242,22 +229,22 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-});
+})
 
-const loadedOutlets = ref([]);
+const loadedOutlets = ref([])
 
-const onOutletsLoaded = (outlets) => {
-    console.log(outlets);
-    loadedOutlets.value = outlets;
+const onOutletsLoaded = outlets => {
+    console.log(outlets)
+    loadedOutlets.value = outlets
     if (!form.outlet_id && outlets.length === 1) {
-        form.outlet_id = outlets[0].id;
+        form.outlet_id = outlets[0].id
     }
-};
+}
 
-const isMounted = ref(false);
+const isMounted = ref(false)
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 
 const form = useForm({
     supplier_id: '',
@@ -266,66 +253,57 @@ const form = useForm({
     expected_date: '',
     notes: '',
     items: [],
-});
+})
 
-const searchQuery = ref('');
-const searchResults = ref([]);
-const isSearching = ref(false);
+const searchQuery = ref('')
+const searchResults = ref([])
+const isSearching = ref(false)
 
-const supplierOptions = computed(() =>
-    props.suppliers.map((s) => ({ label: s.name, value: s.id })),
-);
-const uomOptions = computed(() =>
-    props.uoms.map((u) => ({ label: u.name, value: u.id })),
-);
+const supplierOptions = computed(() => props.suppliers.map(s => ({ label: s.name, value: s.id })))
+const uomOptions = computed(() => props.uoms.map(u => ({ label: u.name, value: u.id })))
 
 const totalAmount = computed(() => {
     return form.items.reduce(
-        (sum, item) =>
-            sum +
-            Number(item.qty_ordered || 0) * Number(item.purchase_price || 0),
-        0,
-    );
-});
+        (sum, item) => sum + Number(item.qty_ordered || 0) * Number(item.purchase_price || 0),
+        0
+    )
+})
 
-const formatCurrency = (value) => {
+const formatCurrency = value => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-    }).format(value);
-};
+    }).format(value)
+}
 
 const onSearchInput = debounce(async () => {
     if (!searchQuery.value) {
-        searchResults.value = [];
-        return;
+        searchResults.value = []
+        return
     }
 
-    isSearching.value = true;
+    isSearching.value = true
     try {
-        const response = await axios.get(
-            route('inventory.purchases.search-items'),
-            {
-                params: {
-                    search: searchQuery.value,
-                    supplier_id: form.supplier_id,
-                },
+        const response = await axios.get(route('inventory.purchases.search-items'), {
+            params: {
+                search: searchQuery.value,
+                supplier_id: form.supplier_id,
             },
-        );
-        searchResults.value = response.data;
+        })
+        searchResults.value = response.data
     } catch (e) {
-        console.error(e);
+        console.error(e)
     } finally {
-        isSearching.value = false;
+        isSearching.value = false
     }
-}, 500);
+}, 500)
 
-const selectItem = (item) => {
+const selectItem = item => {
     // Check if item already exists in form.items
-    const exists = form.items.find((i) => i.inventory_item_id === item.id);
+    const exists = form.items.find(i => i.inventory_item_id === item.id)
     if (exists) {
         // optionally increment qty
-        exists.qty_ordered = Number(exists.qty_ordered) + 1;
+        exists.qty_ordered = Number(exists.qty_ordered) + 1
     } else {
         form.items.push({
             inventory_item_id: item.id,
@@ -334,64 +312,63 @@ const selectItem = (item) => {
             uom_name: item.uom?.name || '',
             qty_ordered: 1,
             purchase_price: 0,
-        });
+        })
     }
     // Clear search
-    searchQuery.value = '';
-    searchResults.value = [];
-};
+    searchQuery.value = ''
+    searchResults.value = []
+}
 
-const removeItem = (index) => {
-    form.items.splice(index, 1);
-};
+const removeItem = index => {
+    form.items.splice(index, 1)
+}
 
 // Re-search when supplier changes if there's an active query
 watch(
     () => form.supplier_id,
     () => {
         if (searchQuery.value) {
-            onSearchInput();
+            onSearchInput()
         }
-    },
-);
+    }
+)
 
 watch(
     () => props.purchase,
-    (data) => {
-        form.reset();
-        searchQuery.value = '';
-        searchResults.value = [];
+    data => {
+        form.reset()
+        searchQuery.value = ''
+        searchResults.value = []
 
         if (data) {
-            form.supplier_id = data.supplier_id || '';
-            form.outlet_id = data.outlet_id || '';
-            form.order_date =
-                data.order_date || new Date().toISOString().split('T')[0];
-            form.expected_date = data.expected_date || '';
-            form.notes = data.notes || '';
+            form.supplier_id = data.supplier_id || ''
+            form.outlet_id = data.outlet_id || ''
+            form.order_date = data.order_date || new Date().toISOString().split('T')[0]
+            form.expected_date = data.expected_date || ''
+            form.notes = data.notes || ''
 
             // Map existing items properly for display
             if (data.items && data.items.length > 0) {
-                form.items = data.items.map((i) => ({
+                form.items = data.items.map(i => ({
                     inventory_item_id: i.inventory_item_id,
                     name: i.inventory_item?.name || 'Unknown Item',
                     uom_id: i.uom_id || i.inventory_item?.uom_id || '',
                     uom_name: i.uom?.name || i.inventory_item?.uom?.name || '',
                     qty_ordered: i.qty_ordered,
                     purchase_price: i.purchase_price,
-                }));
+                }))
             } else {
-                form.items = [];
+                form.items = []
             }
         }
     },
-    { immediate: true },
-);
+    { immediate: true }
+)
 
 const close = () => {
-    form.clearErrors();
-    popUpStore.close();
-};
+    form.clearErrors()
+    popUpStore.close()
+}
 
 const submit = () => {
     if (props.purchase?.id) {
@@ -399,13 +376,13 @@ const submit = () => {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => close(),
-        });
+        })
     } else {
         form.post(route('inventory.purchases.store'), {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => close(),
-        });
+        })
     }
-};
+}
 </script>

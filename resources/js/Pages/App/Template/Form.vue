@@ -27,77 +27,39 @@
                 </Card>
                 <Card title="Form Size">
                     <div class="space-y-2">
-                        <TextField
-                            class="sm"
-                            label="Example Small"
-                            placeholder="Example..."
-                        />
+                        <TextField class="sm" label="Example Small" placeholder="Example..." />
 
-                        <TextField
-                            label="Example Regular"
-                            placeholder="Example..."
-                        />
+                        <TextField label="Example Regular" placeholder="Example..." />
 
-                        <TextField
-                            class="lg"
-                            label="Example Large"
-                            placeholder="Example..."
-                        />
+                        <TextField class="lg" label="Example Large" placeholder="Example..." />
                     </div>
                 </Card>
                 <Card title="Form Floating">
                     <div class="flex flex-col gap-2">
                         <div class="form-floating">
-                            <input
-                                id="name_floating1"
-                                type="text"
-                                placeholder="asd"
-                                required
-                            />
+                            <input id="name_floating1" type="text" placeholder="asd" required />
                             <label for="name_floating1">Name</label>
                         </div>
                         <div class="form-floating is-invalid">
-                            <input
-                                id="name_floating2"
-                                type="text"
-                                placeholder="asd"
-                                required
-                            />
+                            <input id="name_floating2" type="text" placeholder="asd" required />
                             <label for="name_floating2">Name Invalid</label>
                         </div>
                         <div class="form-feedback text-danger">Invalid !</div>
 
                         <div class="form-floating is-valid">
-                            <input
-                                id="name_floating3"
-                                type="text"
-                                placeholder="asd"
-                                required
-                            />
+                            <input id="name_floating3" type="text" placeholder="asd" required />
                             <label for="name_floating3">Name Valid</label>
                         </div>
                         <div class="form-feedback text-success">Valid !</div>
                     </div>
                 </Card>
                 <Card title="Property Form">
-                    <TextField
-                        v-model="form.exampleInput"
-                        label="Disabled"
-                        disabled
-                    />
-                    <TextField
-                        v-model="form.exampleInput"
-                        label="Readonly"
-                        readonly
-                    />
+                    <TextField v-model="form.exampleInput" label="Disabled" disabled />
+                    <TextField v-model="form.exampleInput" label="Readonly" readonly />
                 </Card>
 
                 <Card title="Validation">
-                    <TextField
-                        placeholder="Name..."
-                        label="Example Error"
-                        error="Wajib diisi!"
-                    />
+                    <TextField placeholder="Name..." label="Example Error" error="Wajib diisi!" />
                     <TextField
                         label="Example Success"
                         placeholder="email@domain.com"
@@ -107,11 +69,7 @@
 
                 <Card title="Form Horizontal">
                     <div class="flex flex-row gap-2 items-end">
-                        <TextField
-                            placeholder="Name..."
-                            class="lg"
-                            label="Example Error"
-                        />
+                        <TextField placeholder="Name..." class="lg" label="Example Error" />
                         <TextField
                             label="Example Success"
                             class="lg"
@@ -122,24 +80,14 @@
                         </div>
                     </div>
                     <div class="flex flex-row gap-2 items-end pt-2">
-                        <TextField
-                            placeholder="Name..."
-                            label="Example Error"
-                        />
-                        <TextField
-                            label="Example Success"
-                            placeholder="email@domain.com"
-                        />
+                        <TextField placeholder="Name..." label="Example Error" />
+                        <TextField label="Example Success" placeholder="email@domain.com" />
                         <div>
                             <button class="btn btn-main">Simpan</button>
                         </div>
                     </div>
                     <div class="flex flex-row gap-2 items-end pt-2">
-                        <TextField
-                            placeholder="Name..."
-                            class="sm"
-                            label="Example Error"
-                        />
+                        <TextField placeholder="Name..." class="sm" label="Example Error" />
                         <TextField
                             label="Example Success"
                             class="sm"
@@ -155,9 +103,7 @@
                 <Card title="Input File">
                     <div class="flex flex-col gap-2">
                         <div>
-                            <label for="example_file_sm" class="label"
-                                >Input File Small</label
-                            >
+                            <label for="example_file_sm" class="label">Input File Small</label>
                             <input
                                 id="example_file_sm"
                                 type="file"
@@ -167,9 +113,7 @@
                             />
                         </div>
                         <div>
-                            <label for="example_file" class="label"
-                                >Input File Regular</label
-                            >
+                            <label for="example_file" class="label">Input File Regular</label>
                             <input
                                 id="example_file"
                                 type="file"
@@ -188,9 +132,7 @@
                             type="radio"
                             class="form-check-input"
                         />
-                        <label for="radio_default" class="form-check-label"
-                            >Radio Default</label
-                        >
+                        <label for="radio_default" class="form-check-label">Radio Default</label>
                     </div>
                     <div class="form-check">
                         <input
@@ -213,9 +155,7 @@
                                 class="form-check-btn peer"
                                 name="button_radio"
                             />
-                            <label
-                                class="btn btn-outline-main"
-                                for="button_radio1"
+                            <label class="btn btn-outline-main" for="button_radio1"
                                 >Button Radio</label
                             >
                         </div>
@@ -228,9 +168,7 @@
                                 name="button_radio"
                                 checked
                             />
-                            <label
-                                class="btn btn-outline-main"
-                                for="button_radio2"
+                            <label class="btn btn-outline-main" for="button_radio2"
                                 >Button Radio Checked</label
                             >
                         </div>
@@ -247,9 +185,7 @@
                                     type="checkbox"
                                     class="form-check-input"
                                 />
-                                <label
-                                    for="checkbox_default"
-                                    class="form-check-label"
+                                <label for="checkbox_default" class="form-check-label"
                                     >Checkbox Default</label
                                 >
                             </div>
@@ -261,17 +197,13 @@
                                     class="form-check-input"
                                     checked
                                 />
-                                <label
-                                    for="checkbox_default2"
-                                    class="form-check-label"
+                                <label for="checkbox_default2" class="form-check-label"
                                     >Checkbox Default Checked</label
                                 >
                             </div>
                         </div>
                         <div>
-                            <div class="font-semibold text-lg mb-2">
-                                Button Checkbox
-                            </div>
+                            <div class="font-semibold text-lg mb-2">Button Checkbox</div>
                             <div class="flex flex-row gap-2">
                                 <div>
                                     <input
@@ -280,9 +212,7 @@
                                         class="form-check-btn peer"
                                         name="button_checkbox"
                                     />
-                                    <label
-                                        class="btn btn-highlight-main"
-                                        for="button_check1"
+                                    <label class="btn btn-highlight-main" for="button_check1"
                                         >Button Checkbox</label
                                     >
                                 </div>
@@ -295,18 +225,14 @@
                                         name="button_checkbox"
                                         checked
                                     />
-                                    <label
-                                        class="btn btn-highlight-main"
-                                        for="button_checkbox2"
+                                    <label class="btn btn-highlight-main" for="button_checkbox2"
                                         >Button Checkbox Checked</label
                                     >
                                 </div>
                             </div>
                         </div>
                         <div>
-                            <div class="font-semibold text-lg mb-2">
-                                Checkbox Switch
-                            </div>
+                            <div class="font-semibold text-lg mb-2">Checkbox Switch</div>
                             <div class="flex flex-col gap-2">
                                 <Switch
                                     id="switch_regular"
@@ -325,54 +251,29 @@
                                 <label for="form_group" class="form-group-text">
                                     <FontAwesomeIcon :icon="faSearch" />
                                 </label>
-                                <input
-                                    id="form_group"
-                                    type="text"
-                                    class="form"
-                                />
+                                <input id="form_group" type="text" class="form" />
                             </div>
                         </div>
 
                         <div class="form-group has-text">
-                            <label
-                                for="form_group_large"
-                                class="form-group-text"
-                            >
-                                Large
-                            </label>
+                            <label for="form_group_large" class="form-group-text"> Large </label>
                             <input id="form_group_large" class="form lg" />
                         </div>
                         <div>
                             <label class="label">Group Input</label>
                             <div class="form-group">
-                                <input
-                                    type="text"
-                                    class="form"
-                                    placeholder="From ... "
-                                />
-                                <input
-                                    type="text"
-                                    class="form"
-                                    placeholder="To ..."
-                                />
+                                <input type="text" class="form" placeholder="From ... " />
+                                <input type="text" class="form" placeholder="To ..." />
                             </div>
                         </div>
                         <div>
                             <label class="label">Group Input Date</label>
                             <div class="form-group">
-                                <input
-                                    type="date"
-                                    class="form"
-                                    placeholder="From"
-                                />
+                                <input type="date" class="form" placeholder="From" />
                                 <div class="form-group-text px-2 text-gray-400">
                                     <FontAwesomeIcon :icon="faArrowRight" />
                                 </div>
-                                <input
-                                    type="date"
-                                    class="form"
-                                    placeholder="To"
-                                />
+                                <input type="date" class="form" placeholder="To" />
                             </div>
                         </div>
                         <div>
@@ -390,19 +291,13 @@
                             </div>
                         </div>
                         <div>
-                            <label for="form_group_btn" class="label"
-                                >Group Button</label
-                            >
+                            <label for="form_group_btn" class="label">Group Button</label>
                             <div class="form-group">
                                 <button class="btn btn-main">
                                     <FontAwesomeIcon :icon="faSearch" />
                                     Cari
                                 </button>
-                                <input
-                                    id="form_group_btn"
-                                    type="text"
-                                    class="form"
-                                />
+                                <input id="form_group_btn" type="text" class="form" />
                             </div>
                         </div>
                     </div>
@@ -412,20 +307,20 @@
     </MainPage>
 </template>
 <script setup>
-import Switch from '@/Components/Form/Switch.vue';
-import Card from '@/Components/UI/Card/Card.vue';
-import MainPage from '@/Components/UI/MainPage.vue';
-import { faArrowRight, faSearch } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import TextField from '@/Components/Form/TextField.vue';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
+import Switch from '@/Components/Form/Switch.vue'
+import Card from '@/Components/UI/Card/Card.vue'
+import MainPage from '@/Components/UI/MainPage.vue'
+import { faArrowRight, faSearch } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { useForm } from '@inertiajs/vue3'
+import { ref } from 'vue'
+import TextField from '@/Components/Form/TextField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
 
 const form = useForm({
     exampleInput: 'Test',
     exampleTextarea: '',
     exampleSelect: '',
-});
+})
 </script>

@@ -29,9 +29,7 @@
                 >
                     {{ initials }}
                 </div>
-                <div
-                    class="text-center font-medium text-lg text-neutral-800 leading-tight"
-                >
+                <div class="text-center font-medium text-lg text-neutral-800 leading-tight">
                     {{ auth.name }}
                 </div>
                 <div class="text-center text-sm font-normal text-neutral-500">
@@ -39,9 +37,7 @@
                 </div>
             </div>
 
-            <div
-                class="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-100 mt-1"
-            >
+            <div class="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-100 mt-1">
                 <ol>
                     <li
                         v-for="(item, index) in accountLinks"
@@ -55,9 +51,7 @@
                             method="delete"
                             as="button"
                         >
-                            <div
-                                class="w-5 flex justify-center opacity-80 group-hover:opacity-100"
-                            >
+                            <div class="w-5 flex justify-center opacity-80 group-hover:opacity-100">
                                 <FontAwesomeIcon :icon="item.icon" />
                             </div>
                             {{ item.label }}
@@ -83,26 +77,23 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faRightFromBracket,
-    faUser,
-} from '@fortawesome/free-solid-svg-icons';
-import TopBarDropdown from '@/Components/Layout/Header/TopBarDropdown.vue';
+import { computed } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faRightFromBracket, faUser } from '@fortawesome/free-solid-svg-icons'
+import TopBarDropdown from '@/Components/Layout/Header/TopBarDropdown.vue'
 
-const auth = computed(() => usePage().props.auth);
+const auth = computed(() => usePage().props.auth)
 
 const initials = computed(() => {
-    const name = auth.value?.name || '';
+    const name = auth.value?.name || ''
     return name
         .split(' ')
-        .map((word) => word[0])
+        .map(word => word[0])
         .join('')
         .substring(0, 2)
-        .toUpperCase();
-});
+        .toUpperCase()
+})
 
 const accountLinks = [
     {
@@ -116,5 +107,5 @@ const accountLinks = [
         link: route('logout'),
         method: 'delete',
     },
-];
+]
 </script>

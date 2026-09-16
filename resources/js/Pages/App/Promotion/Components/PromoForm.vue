@@ -2,9 +2,7 @@
     <form class="space-y-4" @submit.prevent="submit">
         <!-- Section 1: Informasi Dasar -->
         <div class="space-y-2">
-            <h3 class="text-sm font-semibold text-slate-700 uppercase">
-                Informasi Dasar
-            </h3>
+            <h3 class="text-sm font-semibold text-slate-700 uppercase">Informasi Dasar</h3>
             <TextField
                 id="name"
                 v-model="form.name"
@@ -22,9 +20,7 @@
 
         <!-- Section 2: Tipe & Target -->
         <div class="space-y-2 border-t pt-4">
-            <h3 class="text-sm font-semibold text-slate-700 uppercase">
-                Tipe & Target Diskon
-            </h3>
+            <h3 class="text-sm font-semibold text-slate-700 uppercase">Tipe & Target Diskon</h3>
             <div class="grid grid-cols-2 gap-2">
                 <DropdownField
                     id="target_type"
@@ -61,14 +57,9 @@
         </div>
 
         <!-- Section 3: Cakupan Produk -->
-        <div
-            v-if="form.target_type === 'product'"
-            class="space-y-2 border-t pt-4"
-        >
+        <div v-if="form.target_type === 'product'" class="space-y-2 border-t pt-4">
             <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-slate-700 uppercase mb-0">
-                    Cakupan Produk
-                </h3>
+                <h3 class="text-sm font-semibold text-slate-700 uppercase mb-0">Cakupan Produk</h3>
                 <button
                     v-if="selectedProducts.length > 0"
                     type="button"
@@ -148,22 +139,17 @@
 
         <!-- Section 5: Cakupan Outlet -->
         <div class="space-y-2 border-t border-slate-100 pt-4">
-            <h3
-                class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
-            >
+            <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Cakupan Outlet
             </h3>
             <label
                 class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50/80 transition-all w-full select-none"
                 :class="{
-                    'border-primary-200 bg-primary-50/20':
-                        form.applies_to_all_outlets,
+                    'border-primary-200 bg-primary-50/20': form.applies_to_all_outlets,
                 }"
             >
                 <div>
-                    <div class="font-semibold text-sm text-slate-800">
-                        Semua outlet
-                    </div>
+                    <div class="font-semibold text-sm text-slate-800">Semua outlet</div>
                     <div class="text-xs text-slate-500">
                         Promo ini berlaku untuk semua outlet yang dimiliki.
                     </div>
@@ -176,9 +162,7 @@
             </label>
 
             <div v-if="!form.applies_to_all_outlets" class="mt-2 space-y-2">
-                <div
-                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
-                >
+                <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
                     <SelectionGroupField
                         v-model="form.outlet_ids"
                         multiple
@@ -188,10 +172,7 @@
                         class="sm btn-sm"
                     />
                 </div>
-                <div
-                    v-if="form.errors.outlet_ids"
-                    class="text-danger text-xs select-none"
-                >
+                <div v-if="form.errors.outlet_ids" class="text-danger text-xs select-none">
                     {{ form.errors.outlet_ids }}
                 </div>
             </div>
@@ -199,13 +180,7 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex justify-end gap-2 w-full">
-                <button
-                    type="button"
-                    class="btn btn-flat"
-                    @click="popUpStore.close"
-                >
-                    Batal
-                </button>
+                <button type="button" class="btn btn-flat" @click="popUpStore.close">Batal</button>
                 <button
                     type="submit"
                     class="btn btn-highlight-main"
@@ -220,51 +195,51 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import axios from 'axios';
-import { usePopUpStore } from '@/store/popup';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import TextField from '@/Components/Form/TextField.vue';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import NumberField from '@/Components/Form/NumberField.vue';
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
-import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';
-import { useAuth } from '@/Composable/useAuth';
+import { ref, onMounted, computed, watch } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import axios from 'axios'
+import { usePopUpStore } from '@/store/popup'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faTimes } from '@fortawesome/free-solid-svg-icons'
+import TextField from '@/Components/Form/TextField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
+import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
+import { useAuth } from '@/Composable/useAuth'
 
 const props = defineProps({
     promo: {
         type: Object,
         default: null,
     },
-});
+})
 
-const popUpStore = usePopUpStore();
-const isMounted = ref(false);
+const popUpStore = usePopUpStore()
+const isMounted = ref(false)
 
-const { outlets: userOutlets } = useAuth();
+const { outlets: userOutlets } = useAuth()
 
 const outlets = computed(
     () =>
-        userOutlets.value?.map((store) => ({
+        userOutlets.value?.map(store => ({
             value: store.id,
             label: store.name,
-        })) || [],
-);
+        })) || []
+)
 
 const targetTypeOptions = [
     { value: 'product', label: 'Per Produk' },
     { value: 'bill', label: 'Per Bill' },
-];
+]
 
 const promoTypeOptions = [
     { value: 'percentage', label: 'Persentase (%)' },
     { value: 'fixed', label: 'Nominal Tetap (Rp)' },
-];
+]
 
-const selectedProducts = ref(props.promo?.inventory_items || []);
+const selectedProducts = ref(props.promo?.inventory_items || [])
 
 const form = useForm({
     name: props.promo?.name || '',
@@ -277,72 +252,70 @@ const form = useForm({
     end_date: props.promo?.end_date || '',
     start_time: props.promo?.start_time || '',
     end_time: props.promo?.end_time || '',
-    applies_to_all_outlets: props.promo
-        ? props.promo.applies_to_all_outlets
-        : true,
+    applies_to_all_outlets: props.promo ? props.promo.applies_to_all_outlets : true,
     inventory_item_ids: [],
-    outlet_ids: props.promo?.outlets?.map((o) => o.id) || [],
-});
+    outlet_ids: props.promo?.outlets?.map(o => o.id) || [],
+})
 
 onMounted(async () => {
-    isMounted.value = true;
+    isMounted.value = true
     if (props.promo?.id && (!props.promo.outlets || !props.promo.inventory_items)) {
         try {
-            const response = await axios.get(route('promotions.show', props.promo.id));
-            const data = response.data;
+            const response = await axios.get(route('promotions.show', props.promo.id))
+            const data = response.data
             if (data.outlets && data.outlets.length > 0) {
-                form.outlet_ids = data.outlets.map((o) => o.id);
+                form.outlet_ids = data.outlets.map(o => o.id)
             }
             if (data.inventory_items && data.inventory_items.length > 0) {
-                selectedProducts.value = data.inventory_items.map((i) => ({
+                selectedProducts.value = data.inventory_items.map(i => ({
                     id: i.id,
                     name: i.name,
-                }));
+                }))
             }
         } catch (error) {
-            console.error('Gagal memuat detail relasi promo:', error);
+            console.error('Gagal memuat detail relasi promo:', error)
         }
     }
-});
+})
 
 // Logic to clear max_discount when type is fixed
 watch(
     () => form.promo_type,
-    (newVal) => {
+    newVal => {
         if (newVal === 'fixed') {
-            form.max_discount = null;
+            form.max_discount = null
         }
-    },
-);
+    }
+)
 
 // Update inventory_item_ids form array when selectedProducts changes
 watch(
     selectedProducts,
-    (newVal) => {
-        form.inventory_item_ids = newVal.map((p) => p.id);
+    newVal => {
+        form.inventory_item_ids = newVal.map(p => p.id)
     },
-    { deep: true, immediate: true },
-);
+    { deep: true, immediate: true }
+)
 
-const addProduct = (product) => {
-    if (!selectedProducts.value.find((p) => p.id === product.id)) {
-        selectedProducts.value.push(product);
+const addProduct = product => {
+    if (!selectedProducts.value.find(p => p.id === product.id)) {
+        selectedProducts.value.push(product)
     }
-};
+}
 
-const removeProduct = (id) => {
-    selectedProducts.value = selectedProducts.value.filter((p) => p.id !== id);
-};
+const removeProduct = id => {
+    selectedProducts.value = selectedProducts.value.filter(p => p.id !== id)
+}
 
 const submit = () => {
     if (props.promo) {
         form.put(route('promotions.update', props.promo.id), {
             onSuccess: () => popUpStore.close(),
-        });
+        })
     } else {
         form.post(route('promotions.store'), {
             onSuccess: () => popUpStore.close(),
-        });
+        })
     }
-};
+}
 </script>

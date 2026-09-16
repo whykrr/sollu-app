@@ -12,12 +12,7 @@
             </button>
         </div>
         <div class="flex flex-wrap gap-1">
-            <div
-                v-for="(opt, idx) in options"
-                :key="idx"
-                class="form-check"
-                :class="$attrs.class"
-            >
+            <div v-for="(opt, idx) in options" :key="idx" class="form-check" :class="$attrs.class">
                 <input
                     :id="inputName + idx"
                     :name="name || inputName"
@@ -40,10 +35,7 @@
                     ]"
                     :for="inputName + idx"
                 >
-                    <FontAwesomeIcon
-                        v-if="isSelected(opt.value)"
-                        :icon="faCircleCheck"
-                    />
+                    <FontAwesomeIcon v-if="isSelected(opt.value)" :icon="faCircleCheck" />
                     <FontAwesomeIcon v-else :icon="faCircle" />
                     {{ opt.label }}
                 </label>
@@ -56,13 +48,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { faCircle, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { computed } from 'vue'
+import { faCircle, faCircleCheck } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 defineOptions({
     name: 'SelectionGroupField',
-});
+})
 
 const props = defineProps({
     label: String,
@@ -93,67 +85,67 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-});
+})
 
-const emit = defineEmits(['update:modelValue', 'update:allSelected', 'all-selected']);
+const emit = defineEmits(['update:modelValue', 'update:allSelected', 'all-selected'])
 
-const inputName = computed(() => props.name || 'sel_');
+const inputName = computed(() => props.name || 'sel_')
 
 function isSelected(val) {
     if (props.multiple) {
-        if (!props.modelValue || !Array.isArray(props.modelValue)) return false;
-        return props.modelValue.some((v) => v == val || String(v) === String(val));
+        if (!props.modelValue || !Array.isArray(props.modelValue)) return false
+        return props.modelValue.some(v => v == val || String(v) === String(val))
     }
-    if (props.modelValue === null || props.modelValue === undefined) return false;
-    return props.modelValue == val || String(props.modelValue) === String(val);
+    if (props.modelValue === null || props.modelValue === undefined) return false
+    return props.modelValue == val || String(props.modelValue) === String(val)
 }
 
 const isAllSelected = computed(() => {
     return (
         props.multiple &&
         props.options.length > 0 &&
-        props.options.every((opt) => isSelected(opt.value))
-    );
-});
+        props.options.every(opt => isSelected(opt.value))
+    )
+})
 
 function toggleSelectAll() {
-    if (!props.multiple) return;
+    if (!props.multiple) return
 
     if (isAllSelected.value) {
-        emit('update:modelValue', []);
-        emit('update:allSelected', false);
-        emit('all-selected', { isAllSelected: false, values: [] });
+        emit('update:modelValue', [])
+        emit('update:allSelected', false)
+        emit('all-selected', { isAllSelected: false, values: [] })
     } else {
-        const allVals = props.options.map((opt) => opt.value);
-        emit('update:modelValue', allVals);
-        emit('update:allSelected', true);
-        emit('all-selected', { isAllSelected: true, values: allVals });
+        const allVals = props.options.map(opt => opt.value)
+        emit('update:modelValue', allVals)
+        emit('update:allSelected', true)
+        emit('all-selected', { isAllSelected: true, values: allVals })
     }
 }
 
 function handleSelect(val) {
     if (!props.multiple) {
-        emit('update:modelValue', val);
-        return;
+        emit('update:modelValue', val)
+        return
     }
 
-    const current = Array.isArray(props.modelValue) ? [...props.modelValue] : [];
-    const index = current.findIndex((v) => v == val || String(v) === String(val));
+    const current = Array.isArray(props.modelValue) ? [...props.modelValue] : []
+    const index = current.findIndex(v => v == val || String(v) === String(val))
 
     if (index === -1) {
-        current.push(val);
+        current.push(val)
     } else {
-        current.splice(index, 1);
+        current.splice(index, 1)
     }
 
     const isAll =
         props.options.length > 0 &&
-        props.options.every((opt) =>
-            current.some((v) => v == opt.value || String(v) === String(opt.value)),
-        );
+        props.options.every(opt =>
+            current.some(v => v == opt.value || String(v) === String(opt.value))
+        )
 
-    emit('update:modelValue', current);
-    emit('update:allSelected', isAll);
-    emit('all-selected', { isAllSelected: isAll, values: current });
+    emit('update:modelValue', current)
+    emit('update:allSelected', isAll)
+    emit('all-selected', { isAllSelected: isAll, values: current })
 }
 </script>

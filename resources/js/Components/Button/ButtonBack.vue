@@ -4,15 +4,15 @@
     </button>
 </template>
 <script setup>
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { router } from '@inertiajs/vue3';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { router } from '@inertiajs/vue3'
 
 const goBack = () => {
     if (document.referrer) {
-        router.back();
+        router.back()
     } else {
-        router.visit(route('overview'));
+        router.visit(route('overview'))
     }
-};
+}
 </script>

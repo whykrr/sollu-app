@@ -14,7 +14,7 @@ export function usePlanFeature() {
      * @param {string} featureName - The name of the feature to check.
      * @returns {boolean}
      */
-    const hasFeature = (featureName) => {
+    const hasFeature = featureName => {
         if (!featureName) return true
         return features.value.includes(featureName)
     }
@@ -26,7 +26,7 @@ export function usePlanFeature() {
      */
     const hasAnyFeature = (featureList = []) => {
         if (!featureList || featureList.length === 0) return true
-        return featureList.some((feat) => hasFeature(feat))
+        return featureList.some(feat => hasFeature(feat))
     }
 
     /**
@@ -36,7 +36,7 @@ export function usePlanFeature() {
      */
     const hasAllFeatures = (featureList = []) => {
         if (!featureList || featureList.length === 0) return true
-        return featureList.every((feat) => hasFeature(feat))
+        return featureList.every(feat => hasFeature(feat))
     }
 
     /**
@@ -44,7 +44,7 @@ export function usePlanFeature() {
      * @param {string} featureName - The name of the feature to check.
      * @returns {boolean} - True if feature exists, False if locked (and opens modal).
      */
-    const requireFeature = (featureName) => {
+    const requireFeature = featureName => {
         if (hasFeature(featureName)) {
             return true
         }

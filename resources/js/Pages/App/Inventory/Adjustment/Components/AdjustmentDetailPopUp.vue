@@ -104,11 +104,7 @@
                                 </td>
                                 <td
                                     class="p-3 text-right font-bold"
-                                    :class="
-                                        item.qty_change > 0
-                                            ? 'text-success'
-                                            : 'text-danger'
-                                    "
+                                    :class="item.qty_change > 0 ? 'text-success' : 'text-danger'"
                                 >
                                     {{ item.qty_change > 0 ? '+' : ''
                                     }}{{ item.qty_change_formatted }}
@@ -143,12 +139,10 @@
                 v-if="adjustment.status === $enums.AdjustmentStatus.Draft && canApprove"
                 class="bg-yellow-50 p-2 rounded border border-yellow-200 mt-2"
             >
-                <h4 class="font-bold text-yellow-800 mb-2">
-                    Tindakan Persetujuan
-                </h4>
+                <h4 class="font-bold text-yellow-800 mb-2">Tindakan Persetujuan</h4>
                 <p class="text-sm text-yellow-700 mb-2">
-                    Anda memiliki hak akses untuk menyetujui atau menolak
-                    penyesuaian stok ini. Pastikan data sudah benar.
+                    Anda memiliki hak akses untuk menyetujui atau menolak penyesuaian stok ini.
+                    Pastikan data sudah benar.
                 </p>
 
                 <div v-if="showRejectInput" class="mb-2">
@@ -164,11 +158,7 @@
 
                 <div class="flex gap-2">
                     <template v-if="!showRejectInput">
-                        <button
-                            class="btn btn-success"
-                            :disabled="isProcessing"
-                            @click="approve"
-                        >
+                        <button class="btn btn-success" :disabled="isProcessing" @click="approve">
                             <FontAwesomeIcon :icon="faCheck" /> Setujui
                         </button>
                         <button
@@ -207,19 +197,13 @@
                     :disabled="isProcessing"
                     @click="voidAdjustment"
                 >
-                    <FontAwesomeIcon :icon="faBan" /> Batalkan Penyesuaian
-                    (Void)
+                    <FontAwesomeIcon :icon="faBan" /> Batalkan Penyesuaian (Void)
                 </button>
             </div>
         </div>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button
-                type="button"
-                class="btn btn-flat"
-                :disabled="isProcessing"
-                @click="close"
-            >
+            <button type="button" class="btn btn-flat" :disabled="isProcessing" @click="close">
                 Tutup
             </button>
         </Teleport>
@@ -232,8 +216,7 @@
         @close="showApproveModal = false"
     >
         <p class="text-gray-600 mb-2">
-            Apakah Anda yakin ingin menyetujui penyesuaian ini? Stok akan
-            diperbarui.
+            Apakah Anda yakin ingin menyetujui penyesuaian ini? Stok akan diperbarui.
         </p>
         <template #footer>
             <div class="flex justify-end gap-2">
@@ -244,11 +227,7 @@
                 >
                     Batal
                 </button>
-                <button
-                    class="btn btn-success"
-                    :disabled="isProcessing"
-                    @click="executeApprove"
-                >
+                <button class="btn btn-success" :disabled="isProcessing" @click="executeApprove">
                     <FontAwesomeIcon :icon="faCheck" /> Setujui
                 </button>
             </div>
@@ -262,8 +241,8 @@
         @close="showVoidModal = false"
     >
         <p class="text-gray-600 mb-2">
-            Apakah Anda yakin ingin membatalkan (VOID) penyesuaian ini? Stok
-            akan dikembalikan ke keadaan sebelum penyesuaian.
+            Apakah Anda yakin ingin membatalkan (VOID) penyesuaian ini? Stok akan dikembalikan ke
+            keadaan sebelum penyesuaian.
         </p>
         <template #footer>
             <div class="flex justify-end gap-2">
@@ -274,11 +253,7 @@
                 >
                     Batal
                 </button>
-                <button
-                    class="btn btn-danger"
-                    :disabled="isProcessing"
-                    @click="executeVoid"
-                >
+                <button class="btn btn-danger" :disabled="isProcessing" @click="executeVoid">
                     <FontAwesomeIcon :icon="faBan" /> Batalkan Penyesuaian
                 </button>
             </div>
@@ -287,24 +262,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useForm, router, usePage } from '@inertiajs/vue3';
-import { faCheck, faTimes, faBan } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import Modal from '@/Components/Notifications/Modal.vue';
-import { formatDateTimeSimple } from '@/Composable/date.js';
-import { usePopUpStore } from '@/store/popup';
-import { useModalStore } from '@/store/notification';
+import { ref, computed, onMounted } from 'vue'
+import { useForm, router, usePage } from '@inertiajs/vue3'
+import { faCheck, faTimes, faBan } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import Modal from '@/Components/Notifications/Modal.vue'
+import { formatDateTimeSimple } from '@/Composable/date.js'
+import { usePopUpStore } from '@/store/popup'
+import { useModalStore } from '@/store/notification'
 
-const page = usePage();
-const popUpStore = usePopUpStore();
-const modalStore = useModalStore();
+const page = usePage()
+const popUpStore = usePopUpStore()
+const modalStore = useModalStore()
 
-const isMounted = ref(false);
+const isMounted = ref(false)
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 
 const props = defineProps({
     adjustment: {
@@ -315,84 +290,80 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-});
+})
 
-const isProcessing = ref(false);
-const showRejectInput = ref(false);
-const showApproveModal = ref(false);
-const showVoidModal = ref(false);
+const isProcessing = ref(false)
+const showRejectInput = ref(false)
+const showApproveModal = ref(false)
+const showVoidModal = ref(false)
 
 const rejectForm = useForm({
     notes: '',
-});
+})
 
-const can = (permission) => {
+const can = permission => {
     return (
         page.props.auth.permissions.includes(permission) ||
         page.props.auth.permissions.includes('inventory.*')
-    );
-};
+    )
+}
 
-const canApprove = computed(() => can('inventory.adjustment.approve'));
-const canVoid = computed(() => can('inventory.adjustment.void'));
+const canApprove = computed(() => can('inventory.adjustment.approve'))
+const canVoid = computed(() => can('inventory.adjustment.void'))
 
 const close = () => {
-    showRejectInput.value = false;
-    showApproveModal.value = false;
-    showVoidModal.value = false;
-    rejectForm.reset();
-    popUpStore.close();
-};
+    showRejectInput.value = false
+    showApproveModal.value = false
+    showVoidModal.value = false
+    rejectForm.reset()
+    popUpStore.close()
+}
 
 const approve = () => {
     modalStore.open({
         title: 'Konfirmasi Persetujuan',
-        message:
-            'Apakah Anda yakin ingin menyetujui penyesuaian ini? Stok akan diperbarui.',
+        message: 'Apakah Anda yakin ingin menyetujui penyesuaian ini? Stok akan diperbarui.',
         confirmText: 'Setujui Penyesuaian',
         confirmButtonClass: 'btn btn-danger',
         onConfirm: () => {
-            executeApprove();
+            executeApprove()
         },
-    });
-    showApproveModal.value = true;
-};
+    })
+    showApproveModal.value = true
+}
 
 const executeApprove = () => {
-    isProcessing.value = true;
+    isProcessing.value = true
     router.post(
         route('inventory.adjustments.approve', props.adjustment.id),
         {},
         {
             preserveScroll: true,
-            onSuccess: (page) => {
-                showApproveModal.value = false;
-                const flash = page.props.app?.flash || {};
+            onSuccess: page => {
+                showApproveModal.value = false
+                const flash = page.props.app?.flash || {}
                 if (!flash.failed) {
-                    close();
+                    close()
                 }
             },
             onFinish: () => {
-                isProcessing.value = false;
+                isProcessing.value = false
             },
-        },
-    );
-};
+        }
+    )
+}
 
 const reject = () => {
-    rejectForm.post(
-        route('inventory.adjustments.reject', props.adjustment.id),
-        {
-            preserveScroll: true,
-            onSuccess: (page) => {
-                const flash = page.props.app?.flash || {};
-                if (!flash.failed) {
-                    close();
-                }
-            },
+    rejectForm.post(route('inventory.adjustments.reject', props.adjustment.id), {
+        preserveScroll: true,
+        onSuccess: page => {
+            const flash = page.props.app?.flash || {}
+            if (!flash.failed) {
+                close()
+            }
         },
-    );
-};
+    })
+}
 
 const voidAdjustment = () => {
     modalStore.open({
@@ -402,43 +373,43 @@ const voidAdjustment = () => {
         confirmText: 'Batalkan Penyesuaian',
         confirmButtonClass: 'btn btn-danger',
         onConfirm: () => {
-            executeVoid();
+            executeVoid()
         },
-    });
-};
+    })
+}
 
 const executeVoid = () => {
-    isProcessing.value = true;
+    isProcessing.value = true
     router.post(
         route('inventory.adjustments.void', props.adjustment.id),
         {},
         {
             preserveScroll: true,
-            onSuccess: (page) => {
-                showVoidModal.value = false;
-                const flash = page.props.app?.flash || {};
+            onSuccess: page => {
+                showVoidModal.value = false
+                const flash = page.props.app?.flash || {}
                 if (!flash.failed) {
-                    close();
+                    close()
                 }
             },
             onFinish: () => {
-                isProcessing.value = false;
+                isProcessing.value = false
             },
-        },
-    );
-};
+        }
+    )
+}
 
-const formatStatus = (status) => {
+const formatStatus = status => {
     const map = {
         draft: 'Draf',
         approved: 'Disetujui',
         rejected: 'Ditolak',
         voided: 'Dibatalkan',
-    };
-    return map[status] || status;
-};
+    }
+    return map[status] || status
+}
 
-const formatReason = (reason) => {
+const formatReason = reason => {
     const map = {
         waste: 'Rusak / Terbuang',
         expired: 'Kedaluwarsa',
@@ -446,7 +417,7 @@ const formatReason = (reason) => {
         correction: 'Koreksi',
         production: 'Produksi',
         other: 'Lainnya',
-    };
-    return map[reason] || reason;
-};
+    }
+    return map[reason] || reason
+}
 </script>

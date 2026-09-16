@@ -5,10 +5,7 @@
         </template>
         <div class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Link
-                    :href="route('inventories.stocks.index')"
-                    class="card card-hover"
-                >
+                <Link :href="route('inventories.stocks.index')" class="card card-hover">
                     <div class="card-header">
                         <h3 class="card-title">Current Stock</h3>
                     </div>
@@ -57,9 +54,7 @@
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Recent Movements</h3>
-                    <Link
-                        :href="route('inventories.movements.index')"
-                        class="btn btn-main btn-sm"
+                    <Link :href="route('inventories.movements.index')" class="btn btn-main btn-sm"
                         >View All</Link
                     >
                 </div>
@@ -80,11 +75,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
-import MainPage from '@/Components/UI/MainPage.vue';
-import Table from '@/Components/Tables/Table.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
+import { ref } from 'vue'
+import { Link } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import Table from '@/Components/Tables/Table.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 
 const props = defineProps({
     stockSummary: {
@@ -99,7 +94,7 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-});
+})
 
 const recentMovementHeaders = ref([
     { label: 'Date', key: 'created_at_formatted' },
@@ -107,7 +102,7 @@ const recentMovementHeaders = ref([
     { label: 'Movement Type', key: 'movement_type' },
     { label: 'Quantity', key: 'quantity', slot: 'quantity' },
     { label: 'Reference', key: 'reference' },
-]);
+])
 </script>
 
 <style scoped>

@@ -4,16 +4,12 @@
         <div class="shrink-0 space-y-1">
             <ol class="flex items-center w-full relative gap-1.5 sm:gap-2">
                 <li v-for="(stepItem, index) in steps" :key="index" class="flex-1 max-w-[5rem]">
-                    <div
-                        class="h-1.5 w-full rounded-full overflow-hidden bg-main/10"
-                    >
+                    <div class="h-1.5 w-full rounded-full overflow-hidden bg-main/10">
                         <div
                             class="h-full origin-left transition-transform duration-500"
                             :class="{
-                                'scale-x-100 bg-main':
-                                    currentStep >= index + 1,
-                                'scale-x-0 bg-main':
-                                    currentStep < index + 1,
+                                'scale-x-100 bg-main': currentStep >= index + 1,
+                                'scale-x-0 bg-main': currentStep < index + 1,
                             }"
                         />
                     </div>
@@ -26,13 +22,8 @@
                         :key="currentStep"
                         class="z-10 text-xs sm:text-sm text-gray-400 flex flex-row justify-start items-center gap-1.5"
                     >
-                        <FontAwesomeIcon
-                            :icon="steps[currentStep - 1].icon"
-                            class="text-xs"
-                        />
-                        <span>{{
-                            steps[currentStep - 1].label
-                        }}</span>
+                        <FontAwesomeIcon :icon="steps[currentStep - 1].icon" class="text-xs" />
+                        <span>{{ steps[currentStep - 1].label }}</span>
                     </div>
                 </transition>
             </div>
@@ -42,12 +33,10 @@
         <div class="flex flex-col justify-center my-auto py-1 sm:py-2">
             <div class="relative mb-2 sm:mb-3">
                 <transition name="fade" mode="out-in">
-                    <div
-                        v-if="steps[currentStep - 1]"
-                        :key="currentStep"
-                        class="space-y-0.5"
-                    >
-                        <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900 leading-tight">
+                    <div v-if="steps[currentStep - 1]" :key="currentStep" class="space-y-0.5">
+                        <div
+                            class="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900 leading-tight"
+                        >
                             {{ steps[currentStep - 1].title }}
                         </div>
                         <div class="text-xs sm:text-sm text-gray-600">
@@ -92,9 +81,7 @@
                             />
                             <label for="name">Nama Usaha</label>
                         </div>
-                        <span class="form-feedback">{{
-                            form.errors.name
-                        }}</span>
+                        <span class="form-feedback">{{ form.errors.name }}</span>
                     </div>
                     <div class="col-span-2">
                         <div
@@ -112,9 +99,7 @@
                             />
                             <label for="outlet_name">Nama Outlet</label>
                         </div>
-                        <span class="form-feedback">{{
-                            form.errors.outlet_name
-                        }}</span>
+                        <span class="form-feedback">{{ form.errors.outlet_name }}</span>
                     </div>
                     <div class="col-span-2">
                         <div
@@ -132,9 +117,7 @@
                             />
                             <label for="owner_name">Pemilik</label>
                         </div>
-                        <span class="form-feedback">{{
-                            form.errors.owner_name
-                        }}</span>
+                        <span class="form-feedback">{{ form.errors.owner_name }}</span>
                     </div>
                     <div class="col-span-2 sm:col-span-1">
                         <div
@@ -152,9 +135,7 @@
                             />
                             <label for="email">Email Pemilik</label>
                         </div>
-                        <span class="form-feedback">{{
-                            form.errors.email
-                        }}</span>
+                        <span class="form-feedback">{{ form.errors.email }}</span>
                     </div>
                     <div class="col-span-2 sm:col-span-1">
                         <div
@@ -172,9 +153,7 @@
                             />
                             <label for="phone">Telepon Pemilik</label>
                         </div>
-                        <span class="form-feedback">{{
-                            form.errors.phone
-                        }}</span>
+                        <span class="form-feedback">{{ form.errors.phone }}</span>
                     </div>
                 </div>
             </div>
@@ -197,16 +176,13 @@
                         />
                         <label for="password">Kata Sandi</label>
                     </div>
-                    <span class="form-feedback">{{
-                        form.errors.password
-                    }}</span>
+                    <span class="form-feedback">{{ form.errors.password }}</span>
                 </div>
                 <div>
                     <div
                         class="form-floating"
                         :class="{
-                            'is-invalid':
-                                form.errors.password_confirmation,
+                            'is-invalid': form.errors.password_confirmation,
                         }"
                     >
                         <input
@@ -216,13 +192,9 @@
                             placeholder="Kata Sandi"
                             class="bg-white"
                         />
-                        <label for="password_confirmation"
-                            >Konfirmasi Kata Sandi</label
-                        >
+                        <label for="password_confirmation">Konfirmasi Kata Sandi</label>
                     </div>
-                    <span class="form-feedback">{{
-                        form.errors.password_confirmation
-                    }}</span>
+                    <span class="form-feedback">{{ form.errors.password_confirmation }}</span>
                 </div>
             </div>
         </div>
@@ -265,30 +237,22 @@
     </form>
 </template>
 <script setup>
-import BlankLayout from '@/Layout/BlankLayout.vue';
-import { Link, useForm } from '@inertiajs/vue3';
-import { nextTick, ref } from 'vue';
-import {
-    FontAwesomeIcon as Fa,
-    FontAwesomeIcon,
-} from '@fortawesome/vue-fontawesome';
-import AuthLayout from '@/Layout/AuthLayout.vue';
-import {
-    faArrowLeft,
-    faLock,
-    faStore,
-    faUser,
-} from '@fortawesome/free-solid-svg-icons';
-import PasswordField from '@/Components/Form/PasswordField.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
-import NumberField from '@/Components/Form/NumberField.vue';
+import BlankLayout from '@/Layout/BlankLayout.vue'
+import { Link, useForm } from '@inertiajs/vue3'
+import { nextTick, ref } from 'vue'
+import { FontAwesomeIcon as Fa, FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import AuthLayout from '@/Layout/AuthLayout.vue'
+import { faArrowLeft, faLock, faStore, faUser } from '@fortawesome/free-solid-svg-icons'
+import PasswordField from '@/Components/Form/PasswordField.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
 
 const props = defineProps({
     business_types: Array,
-});
+})
 
-const currentStep = ref(1);
+const currentStep = ref(1)
 
 const steps = [
     {
@@ -301,8 +265,7 @@ const steps = [
         icon: faUser,
         label: 'Data Usaha',
         title: 'Lengkapi Data Usaha',
-        greetings:
-            'Cukup sedikit info bisnismu untuk mulai dengan sistem terbaik.',
+        greetings: 'Cukup sedikit info bisnismu untuk mulai dengan sistem terbaik.',
     },
     {
         icon: faLock,
@@ -310,19 +273,19 @@ const steps = [
         title: 'Yuk, Amankan Akunmu',
         greetings: 'Lindungi akun dan data usahamu dengan kata sandi kuat.',
     },
-];
+]
 
 const nextStep = () => {
-    if (currentStep.value < 3) currentStep.value++;
-};
+    if (currentStep.value < 3) currentStep.value++
+}
 
 const prevStep = () => {
-    if (currentStep.value > 1) currentStep.value--;
-};
+    if (currentStep.value > 1) currentStep.value--
+}
 
 defineOptions({
     layout: AuthLayout,
-});
+})
 
 const form = useForm({
     name: null,
@@ -333,14 +296,14 @@ const form = useForm({
     business_type_id: null,
     password: null,
     password_confirmation: null,
-});
+})
 
 const register = () =>
     form.post(route('register.store'), {
         onError: () => {
             nextTick(() => {
                 if (form.errors.business_type_id) {
-                    currentStep.value = 1;
+                    currentStep.value = 1
                 } else if (
                     form.errors.name ||
                     form.errors.outlet_name ||
@@ -348,14 +311,11 @@ const register = () =>
                     form.errors.email ||
                     form.errors.phone
                 ) {
-                    currentStep.value = 2;
-                } else if (
-                    form.errors.password ||
-                    form.errors.password_confirmation
-                ) {
-                    currentStep.value = 3;
+                    currentStep.value = 2
+                } else if (form.errors.password || form.errors.password_confirmation) {
+                    currentStep.value = 3
                 }
-            });
+            })
         },
-    });
+    })
 </script>

@@ -56,8 +56,7 @@
                             />
                         </div>
                         <div class="col-span-2">
-                            <label
-                                class="block text-sm font-medium text-slate-700 mb-1"
+                            <label class="block text-sm font-medium text-slate-700 mb-1"
                                 >Pilihan Opsi</label
                             >
                             <div class="flex flex-wrap gap-2 items-center">
@@ -102,14 +101,9 @@
             </div>
 
             <!-- Combinations Preview Table -->
-            <div
-                v-if="form.variant_combinations.length > 0"
-                class="mt-4 space-y-2"
-            >
+            <div v-if="form.variant_combinations.length > 0" class="mt-4 space-y-2">
                 <div class="flex justify-between items-center border-b pb-1">
-                    <div class="font-semibold text-md text-slate-700">
-                        Daftar Kombinasi Varian
-                    </div>
+                    <div class="font-semibold text-md text-slate-700">Daftar Kombinasi Varian</div>
                     <button
                         type="button"
                         class="btn btn-outline-secondary btn-xs"
@@ -123,24 +117,10 @@
                     <table class="w-full text-left text-sm">
                         <thead>
                             <tr class="bg-slate-50 border-b">
-                                <th
-                                    class="p-2 font-semibold text-slate-600 w-16"
-                                >
-                                    Foto
-                                </th>
-                                <th class="p-2 font-semibold text-slate-600">
-                                    Kombinasi
-                                </th>
-                                <th
-                                    class="p-2 font-semibold text-slate-600 w-40"
-                                >
-                                    SKU
-                                </th>
-                                <th
-                                    class="p-2 font-semibold text-slate-600 w-40"
-                                >
-                                    Barcode
-                                </th>
+                                <th class="p-2 font-semibold text-slate-600 w-16">Foto</th>
+                                <th class="p-2 font-semibold text-slate-600">Kombinasi</th>
+                                <th class="p-2 font-semibold text-slate-600 w-40">SKU</th>
+                                <th class="p-2 font-semibold text-slate-600 w-40">Barcode</th>
                                 <th
                                     v-if="form.track_inventory"
                                     class="p-2 font-semibold text-slate-600 w-28"
@@ -151,9 +131,7 @@
                         </thead>
                         <tbody>
                             <tr
-                                v-for="(
-                                    combo, cIdx
-                                ) in form.variant_combinations"
+                                v-for="(combo, cIdx) in form.variant_combinations"
                                 :key="cIdx"
                                 class="border-b hover:bg-slate-50/50"
                             >
@@ -166,17 +144,12 @@
                                             :src="combo.image_url"
                                             class="w-full h-full object-cover"
                                         />
-                                        <FontAwesomeIcon
-                                            v-else
-                                            :icon="faImage"
-                                        />
+                                        <FontAwesomeIcon v-else :icon="faImage" />
                                         <!-- Here we would ideally add a file input triggered by click -->
                                     </div>
                                 </td>
                                 <td class="p-2 font-medium">
-                                    {{
-                                        Object.values(combo.options).join(' / ')
-                                    }}
+                                    {{ Object.values(combo.options).join(' / ') }}
                                 </td>
                                 <td class="p-2">
                                     <TextField
@@ -211,31 +184,31 @@
 </template>
 
 <script setup>
-import { inject } from 'vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faTrash, faImage } from '@fortawesome/free-solid-svg-icons';
-import NumberField from '@/Components/Form/NumberField.vue';
-import TextField from '@/Components/Form/TextField.vue';
+import { inject } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faTrash, faImage } from '@fortawesome/free-solid-svg-icons'
+import NumberField from '@/Components/Form/NumberField.vue'
+import TextField from '@/Components/Form/TextField.vue'
 
-const form = inject('productForm');
-const autoGenerateAllSkus = inject('autoGenerateAllSkus');
+const form = inject('productForm')
+const autoGenerateAllSkus = inject('autoGenerateAllSkus')
 
 const addVariantGroup = () => {
     form.variants.push({
         name: '',
         options: [{ name: '' }],
-    });
-};
+    })
+}
 
-const deleteVariantGroup = (gIdx) => {
-    form.variants.splice(gIdx, 1);
-};
+const deleteVariantGroup = gIdx => {
+    form.variants.splice(gIdx, 1)
+}
 
-const addVariantOption = (gIdx) => {
-    form.variants[gIdx].options.push({ name: '' });
-};
+const addVariantOption = gIdx => {
+    form.variants[gIdx].options.push({ name: '' })
+}
 
 const deleteVariantOption = (gIdx, oIdx) => {
-    form.variants[gIdx].options.splice(oIdx, 1);
-};
+    form.variants[gIdx].options.splice(oIdx, 1)
+}
 </script>

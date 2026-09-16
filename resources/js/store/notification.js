@@ -7,7 +7,8 @@ export { useToastStore }
 const HEADER_DELETE = 'Hapus Data'
 const HEADER_SOFT_DELETE = 'Arsipkan'
 const MESSAGE_DELETE = 'Apakah anda yakin akan menghapus data ini?'
-const MESSAGE_SOFT_DELETE = 'Data ini akan dipindahkan ke arsip, data dapat dikembalikan jika diperlukan kembali.'
+const MESSAGE_SOFT_DELETE =
+    'Data ini akan dipindahkan ke arsip, data dapat dikembalikan jika diperlukan kembali.'
 
 export const useModalStore = defineStore('modal', {
     state: () => ({
@@ -51,7 +52,8 @@ export const useModalStore = defineStore('modal', {
                 props: options.props || {},
                 confirmText: options.confirmText || 'Ya',
                 cancelText: options.cancelText || 'Batal',
-                confirmClass: options.confirmClass || (options.type === 'danger' ? 'btn-danger' : 'btn-main'),
+                confirmClass:
+                    options.confirmClass || (options.type === 'danger' ? 'btn-danger' : 'btn-main'),
                 showCancel: options.showCancel !== undefined ? options.showCancel : true,
                 showFooter: options.showFooter !== undefined ? options.showFooter : true,
                 size: options.size || 'max-w-lg',
@@ -63,14 +65,27 @@ export const useModalStore = defineStore('modal', {
         /**
          * Shortcut for a confirmation dialog
          */
-        confirm({ title = 'Konfirmasi Tindakan', message, type = 'warning', confirmText = 'Ya, Lanjutkan', cancelText = 'Batal', confirmClass, onConfirm, onCancel }) {
+        confirm({
+            title = 'Konfirmasi Tindakan',
+            message,
+            type = 'warning',
+            confirmText = 'Ya, Lanjutkan',
+            cancelText = 'Batal',
+            confirmClass,
+            onConfirm,
+            onCancel,
+        }) {
             this.open({
                 type,
                 title,
                 message,
                 confirmText,
                 cancelText,
-                confirmClass: confirmClass || (type === 'danger' ? 'btn-danger bg-rose-600 hover:bg-rose-700 text-white' : 'btn-main'),
+                confirmClass:
+                    confirmClass ||
+                    (type === 'danger'
+                        ? 'btn-danger bg-rose-600 hover:bg-rose-700 text-white'
+                        : 'btn-main'),
                 showCancel: true,
                 onConfirm,
                 onCancel,
@@ -80,7 +95,13 @@ export const useModalStore = defineStore('modal', {
         /**
          * Shortcut for an alert modal dialog
          */
-        alert({ title = 'Pemberitahuan', message, type = 'info', confirmText = 'Mengerti', onConfirm }) {
+        alert({
+            title = 'Pemberitahuan',
+            message,
+            type = 'info',
+            confirmText = 'Mengerti',
+            onConfirm,
+        }) {
             this.open({
                 type,
                 title,

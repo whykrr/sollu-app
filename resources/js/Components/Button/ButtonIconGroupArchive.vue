@@ -30,20 +30,16 @@
     </button>
 </template>
 <script setup>
-import { useModalStore } from '@/store/notification';
-import {
-    faBoxArchive,
-    faRotateLeft,
-    faTrash,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { Link } from '@inertiajs/vue3';
+import { useModalStore } from '@/store/notification'
+import { faBoxArchive, faRotateLeft, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { Link } from '@inertiajs/vue3'
 
 defineProps({
     data: Object,
     urlDelete: String,
     urlRestore: String,
     urlDestroy: String,
-});
-const modal = useModalStore();
+})
+const modal = useModalStore()
 </script>

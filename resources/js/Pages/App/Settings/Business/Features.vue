@@ -35,9 +35,7 @@
                                 : 'border-slate-200 bg-slate-100/50',
                         ]"
                     >
-                        <div
-                            class="flex items-start justify-between gap-4 p-3.5"
-                        >
+                        <div class="flex items-start justify-between gap-4 p-3.5">
                             <div class="flex-1">
                                 <h4
                                     class="text-sm font-medium"
@@ -64,16 +62,9 @@
                             <div class="mt-0.5 shrink-0">
                                 <Switch
                                     :id="'feature-' + feature.value"
-                                    :model-value="
-                                        form.features.includes(feature.value)
-                                    "
-                                    :disabled="
-                                        !isAvailable(feature.value) ||
-                                        form.processing
-                                    "
-                                    @update:model-value="
-                                        toggleFeature(feature.value)
-                                    "
+                                    :model-value="form.features.includes(feature.value)"
+                                    :disabled="!isAvailable(feature.value) || form.processing"
+                                    @update:model-value="toggleFeature(feature.value)"
                                 />
                             </div>
                         </div>
@@ -92,22 +83,20 @@
                 @click="save"
             >
                 <FontAwesomeIcon :icon="faSave" />
-                <span>{{
-                    form.processing ? 'Menyimpan...' : 'Simpan Pengaturan'
-                }}</span>
+                <span>{{ form.processing ? 'Menyimpan...' : 'Simpan Pengaturan' }}</span>
             </button>
         </div>
     </MainPage>
 </template>
 
 <script setup>
-import { useForm } from '@inertiajs/vue3';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faSave } from '@fortawesome/free-solid-svg-icons';
+import { useForm } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSave } from '@fortawesome/free-solid-svg-icons'
 
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Switch from '@/Components/Form/Switch.vue';
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Switch from '@/Components/Form/Switch.vue'
 
 const props = defineProps({
     availableFeatures: {
@@ -122,31 +111,31 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
 const form = useForm({
     features: [...props.activeFeatures],
-});
+})
 
-const isAvailable = (featureValue) => {
-    return props.availableFeatures.includes(featureValue);
-};
+const isAvailable = featureValue => {
+    return props.availableFeatures.includes(featureValue)
+}
 
-const toggleFeature = (featureValue) => {
-    if (!isAvailable(featureValue)) return;
+const toggleFeature = featureValue => {
+    if (!isAvailable(featureValue)) return
 
-    const index = form.features.indexOf(featureValue);
+    const index = form.features.indexOf(featureValue)
     if (index === -1) {
-        form.features.push(featureValue);
+        form.features.push(featureValue)
     } else {
-        form.features.splice(index, 1);
+        form.features.splice(index, 1)
     }
-};
+}
 
 const save = () => {
     form.put(route('settings.business.features.save'), {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 </script>

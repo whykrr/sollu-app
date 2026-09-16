@@ -36,11 +36,7 @@
             <hr class="my-4" />
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-bold">Opsi Item</h3>
-                <button
-                    type="button"
-                    class="btn btn-secondary btn-sm"
-                    @click="addOption"
-                >
+                <button type="button" class="btn btn-secondary btn-sm" @click="addOption">
                     Tambah Opsi
                 </button>
             </div>
@@ -60,17 +56,10 @@
                     class="flex gap-2 items-start"
                 >
                     <div class="flex-1">
-                        <TextField
-                            v-model="opt.name"
-                            placeholder="Nama Opsi"
-                            required
-                        />
+                        <TextField v-model="opt.name" placeholder="Nama Opsi" required />
                     </div>
                     <div class="w-1/3">
-                        <NumberField
-                            v-model="opt.additional_price"
-                            placeholder="Harga Tambahan"
-                        />
+                        <NumberField v-model="opt.additional_price" placeholder="Harga Tambahan" />
                     </div>
                     <div class="flex items-center gap-2 mt-2">
                         <Switch
@@ -96,13 +85,7 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex justify-end gap-2 w-full">
-                <button
-                    type="button"
-                    class="btn btn-secondary"
-                    @click="closeModal"
-                >
-                    Batal
-                </button>
+                <button type="button" class="btn btn-secondary" @click="closeModal">Batal</button>
                 <button
                     type="button"
                     :disabled="form.processing || isLoadingOptions"
@@ -117,28 +100,28 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import axios from 'axios';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { usePopUpStore } from '@/store/popup';
+import { ref, onMounted } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import axios from 'axios'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { usePopUpStore } from '@/store/popup'
 
-import TextField from '@/Components/Form/TextField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import NumberField from '@/Components/Form/NumberField.vue';
-import Switch from '@/Components/Form/Switch.vue';
+import TextField from '@/Components/Form/TextField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
+import Switch from '@/Components/Form/Switch.vue'
 
 const props = defineProps({
     modifier: Object,
-});
+})
 
-const popUpStore = usePopUpStore();
-const isMounted = ref(false);
-const isLoadingOptions = ref(false);
+const popUpStore = usePopUpStore()
+const isMounted = ref(false)
+const isLoadingOptions = ref(false)
 
-const isEdit = ref(false);
-const editingId = ref(null);
+const isEdit = ref(false)
+const editingId = ref(null)
 
 const form = useForm({
     name: '',
@@ -146,56 +129,56 @@ const form = useForm({
     max_select: null,
     is_required: 0,
     options: [{ name: '', additional_price: 0, is_default: 0 }],
-});
+})
 
 onMounted(async () => {
-    isMounted.value = true;
+    isMounted.value = true
     if (props.modifier) {
-        isEdit.value = true;
-        editingId.value = props.modifier.id;
-        form.name = props.modifier.name;
-        form.selection_type = props.modifier.selection_type;
-        form.max_select = props.modifier.max_select;
-        form.is_required = props.modifier.is_required ? 1 : 0;
+        isEdit.value = true
+        editingId.value = props.modifier.id
+        form.name = props.modifier.name
+        form.selection_type = props.modifier.selection_type
+        form.max_select = props.modifier.max_select
+        form.is_required = props.modifier.is_required ? 1 : 0
 
         if (props.modifier.options && props.modifier.options.length > 0) {
-            form.options = props.modifier.options.map((o) => ({
+            form.options = props.modifier.options.map(o => ({
                 name: o.name,
                 additional_price: o.additional_price,
                 is_default: o.is_default ? 1 : 0,
-            }));
+            }))
         } else {
-            isLoadingOptions.value = true;
+            isLoadingOptions.value = true
             try {
-                const response = await axios.get(route('master.modifiers.show', props.modifier.id));
-                const loadedOptions = response.data?.options || [];
+                const response = await axios.get(route('master.modifiers.show', props.modifier.id))
+                const loadedOptions = response.data?.options || []
                 if (loadedOptions.length > 0) {
-                    form.options = loadedOptions.map((o) => ({
+                    form.options = loadedOptions.map(o => ({
                         name: o.name,
                         additional_price: o.additional_price,
                         is_default: o.is_default ? 1 : 0,
-                    }));
+                    }))
                 }
             } catch (error) {
-                console.error('Gagal memuat opsi modifier:', error);
+                console.error('Gagal memuat opsi modifier:', error)
             } finally {
-                isLoadingOptions.value = false;
+                isLoadingOptions.value = false
             }
         }
     }
-});
+})
 
 const addOption = () => {
-    form.options.push({ name: '', additional_price: 0, is_default: 0 });
-};
+    form.options.push({ name: '', additional_price: 0, is_default: 0 })
+}
 
-const removeOption = (index) => {
-    form.options.splice(index, 1);
-};
+const removeOption = index => {
+    form.options.splice(index, 1)
+}
 
 const closeModal = () => {
-    popUpStore.close();
-};
+    popUpStore.close()
+}
 
 const submit = () => {
     if (isEdit.value) {
@@ -203,13 +186,13 @@ const submit = () => {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => closeModal(),
-        });
+        })
     } else {
         form.post(route('master.modifiers.store'), {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => closeModal(),
-        });
+        })
     }
-};
+}
 </script>

@@ -9,7 +9,7 @@
                     <div class="h-3 w-16 bg-slate-200 rounded-full"></div>
                 </div>
             </div>
-            
+
             <!-- Content Skeleton -->
             <div class="space-y-4">
                 <div class="h-6 w-1/4 bg-slate-200 rounded-lg"></div>
@@ -21,7 +21,7 @@
             </div>
         </div>
     </div>
-    
+
     <CreateEdit
         v-else
         :edit-mode="editMode"
@@ -35,9 +35,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
-import CreateEdit from './CreateEdit.vue';
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import CreateEdit from './CreateEdit.vue'
 
 const props = defineProps({
     editMode: { type: Boolean, default: false },
@@ -47,17 +47,17 @@ const props = defineProps({
     categories: { type: Array, default: () => [] },
     outlets: { type: Array, default: () => [] },
     uoms: { type: Array, default: () => [] },
-});
+})
 
-const loadedCategories = ref(props.categories);
-const loadedOutlets = ref(props.outlets);
-const loadedUoms = ref(props.uoms);
-const isLoading = ref(true);
-const fetchedProduct = ref(props.product);
+const loadedCategories = ref(props.categories)
+const loadedOutlets = ref(props.outlets)
+const loadedUoms = ref(props.uoms)
+const isLoading = ref(true)
+const fetchedProduct = ref(props.product)
 
 onMounted(async () => {
     try {
-        const promises = [];
+        const promises = []
 
         // Load master form options on demand if not already provided
         if (
@@ -66,32 +66,30 @@ onMounted(async () => {
             loadedUoms.value.length === 0
         ) {
             promises.push(
-                axios.get(route('master.products.formOptions')).then((res) => {
-                    loadedCategories.value = res.data.categories || [];
-                    loadedOutlets.value = res.data.outlets || [];
-                    loadedUoms.value = res.data.uoms || [];
-                }),
-            );
+                axios.get(route('master.products.formOptions')).then(res => {
+                    loadedCategories.value = res.data.categories || []
+                    loadedOutlets.value = res.data.outlets || []
+                    loadedUoms.value = res.data.uoms || []
+                })
+            )
         }
 
         // Fetch detailed product with all relationships when editing
         if (props.editMode && props.product?.id) {
             promises.push(
-                axios
-                    .get(route('master.products.show', props.product.id))
-                    .then((res) => {
-                        fetchedProduct.value = res.data.data;
-                    }),
-            );
+                axios.get(route('master.products.show', props.product.id)).then(res => {
+                    fetchedProduct.value = res.data.data
+                })
+            )
         }
 
         if (promises.length > 0) {
-            await Promise.all(promises);
+            await Promise.all(promises)
         }
     } catch (error) {
-        console.error('Failed to load product form data:', error);
+        console.error('Failed to load product form data:', error)
     } finally {
-        isLoading.value = false;
+        isLoading.value = false
     }
-});
+})
 </script>

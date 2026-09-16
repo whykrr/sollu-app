@@ -42,9 +42,7 @@
                             label="Cari Item (Min. 3 huruf)"
                             placeholder="Cari nama, SKU, barcode..."
                             class="sm"
-                            :api-url="
-                                route('api.internal.inventory-items.search')
-                            "
+                            :api-url="route('api.internal.inventory-items.search')"
                             :api-params="{
                                 outlet_id: form.outlet_id,
                             }"
@@ -53,9 +51,7 @@
                             @select="addItemFromSearch"
                         >
                             <template #option="{ item }">
-                                <div
-                                    class="flex justify-between items-center w-full"
-                                >
+                                <div class="flex justify-between items-center w-full">
                                     <div>
                                         <div class="font-semibold text-sm">
                                             {{ item.name }}
@@ -86,8 +82,7 @@
                     v-if="form.items.length === 0"
                     class="text-center py-2 text-gray-500 border border-dashed rounded-lg"
                 >
-                    Belum ada item yang ditambahkan. Silakan cari item pada
-                    kolom pencarian di atas.
+                    Belum ada item yang ditambahkan. Silakan cari item pada kolom pencarian di atas.
                 </div>
 
                 <div v-else class="space-y-2 max-h-96 overflow-y-auto pr-1">
@@ -102,9 +97,8 @@
                                     {{ item.name }}
                                 </div>
                                 <div class="text-xs text-gray-500">
-                                    SKU: {{ item.sku || '-' }} | Satuan:
-                                    {{ item.uom || '-' }} | Stok saat ini di
-                                    outlet:
+                                    SKU: {{ item.sku || '-' }} | Satuan: {{ item.uom || '-' }} |
+                                    Stok saat ini di outlet:
                                     <span class="font-medium text-gray-700">
                                         {{ item.current_stock ?? 0 }}
                                     </span>
@@ -135,22 +129,14 @@
                                     placeholder="Misal: -2 atau 5"
                                     step="any"
                                     :class="{
-                                        'is-invalid':
-                                            form.errors[
-                                                `items.${index}.qty_change`
-                                            ],
+                                        'is-invalid': form.errors[`items.${index}.qty_change`],
                                     }"
-                                    :error="
-                                        form.errors[`items.${index}.qty_change`]
-                                    "
+                                    :error="form.errors[`items.${index}.qty_change`]"
                                     required
                                 />
                             </div>
 
-                            <div
-                                v-if="item.qty_change > 0"
-                                class="col-span-12 md:col-span-6"
-                            >
+                            <div v-if="item.qty_change > 0" class="col-span-12 md:col-span-6">
                                 <NumberField
                                     :id="'unit_cost_' + index"
                                     v-model="item.unit_cost"
@@ -159,14 +145,9 @@
                                     min="0"
                                     step="any"
                                     :class="{
-                                        'is-invalid':
-                                            form.errors[
-                                                `items.${index}.unit_cost`
-                                            ],
+                                        'is-invalid': form.errors[`items.${index}.unit_cost`],
                                     }"
-                                    :error="
-                                        form.errors[`items.${index}.unit_cost`]
-                                    "
+                                    :error="form.errors[`items.${index}.unit_cost`]"
                                 />
                             </div>
 
@@ -177,16 +158,9 @@
                                     label="Deskripsi / Alasan"
                                     placeholder="Detail alasan untuk item ini"
                                     :class="{
-                                        'is-invalid':
-                                            form.errors[
-                                                `items.${index}.description`
-                                            ],
+                                        'is-invalid': form.errors[`items.${index}.description`],
                                     }"
-                                    :error="
-                                        form.errors[
-                                            `items.${index}.description`
-                                        ]
-                                    "
+                                    :error="form.errors[`items.${index}.description`]"
                                     required
                                 />
                             </div>
@@ -197,12 +171,7 @@
         </form>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button
-                type="button"
-                class="btn btn-flat"
-                :disabled="form.processing"
-                @click="close"
-            >
+            <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
                 Batal
             </button>
             <button
@@ -218,48 +187,48 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
-import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import NumberField from '@/Components/Form/NumberField.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
-import { usePopUpStore } from '@/store/popup';
+import { ref, watch, onMounted } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
+import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { usePopUpStore } from '@/store/popup'
 
-const popUpStore = usePopUpStore();
+const popUpStore = usePopUpStore()
 
-const isMounted = ref(false);
+const isMounted = ref(false)
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 
 const props = defineProps({
     items: {
         type: Array,
         default: () => [],
     },
-});
+})
 
 const form = useForm({
     outlet_id: '',
     reason: '',
     notes: '',
     items: [],
-});
+})
 
-const loadedOutlets = ref([]);
+const loadedOutlets = ref([])
 
-const onOutletsLoaded = (outlets) => {
-    console.log(outlets);
-    loadedOutlets.value = outlets;
+const onOutletsLoaded = outlets => {
+    console.log(outlets)
+    loadedOutlets.value = outlets
     if (!form.outlet_id && outlets.length === 1) {
-        form.outlet_id = outlets[0].id;
+        form.outlet_id = outlets[0].id
     }
-};
+}
 
 const reasonOptions = [
     { label: 'Rusak / Terbuang (Waste)', value: 'waste' },
@@ -268,10 +237,10 @@ const reasonOptions = [
     { label: 'Koreksi Salah Input (Correction)', value: 'correction' },
     { label: 'Produksi (Production)', value: 'production' },
     { label: 'Lainnya (Other)', value: 'other' },
-];
+]
 
-const addItemFromSearch = (item) => {
-    const exists = form.items.find((i) => i.inventory_item_id === item.id);
+const addItemFromSearch = item => {
+    const exists = form.items.find(i => i.inventory_item_id === item.id)
     if (!exists) {
         form.items.unshift({
             inventory_item_id: item.id,
@@ -282,43 +251,43 @@ const addItemFromSearch = (item) => {
             qty_change: '',
             unit_cost: '',
             description: '',
-        });
+        })
     }
-};
+}
 
-const removeItem = (index) => {
-    form.items.splice(index, 1);
-};
+const removeItem = index => {
+    form.items.splice(index, 1)
+}
 
 watch(
     () => form.outlet_id,
     (newVal, oldVal) => {
         if (oldVal && newVal !== oldVal) {
-            form.items = [];
+            form.items = []
         }
-    },
-);
+    }
+)
 
 onMounted(() => {
-    isMounted.value = true;
-    form.clearErrors();
-    form.items = [];
+    isMounted.value = true
+    form.clearErrors()
+    form.items = []
     if (loadedOutlets.value.length === 1) {
-        form.outlet_id = loadedOutlets.value[0].id;
+        form.outlet_id = loadedOutlets.value[0].id
     }
-});
+})
 
 const close = () => {
-    form.reset();
-    form.clearErrors();
-    popUpStore.close();
-};
+    form.reset()
+    form.clearErrors()
+    popUpStore.close()
+}
 
 const submit = () => {
     form.post(route('inventory.adjustments.store'), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => close(),
-    });
-};
+    })
+}
 </script>

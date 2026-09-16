@@ -16,24 +16,15 @@
                     <div
                         class="flex-shrink-0 flex items-center justify-center rounded-lg bg-main/10 text-main h-8 w-8 group-hover:scale-105 transition-transform duration-200"
                     >
-                        <FontAwesomeIcon
-                            :icon="faMapMarkerAlt"
-                            class="text-sm"
-                        />
+                        <FontAwesomeIcon :icon="faMapMarkerAlt" class="text-sm" />
                     </div>
                     <div class="flex flex-col text-left truncate">
                         <span
                             class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-0.5"
                             >Outlet</span
                         >
-                        <span
-                            class="font-medium text-sm text-slate-800 truncate leading-none"
-                        >
-                            {{
-                                selectedOutlet
-                                    ? selectedOutlet.name
-                                    : 'Semua Outlet'
-                            }}
+                        <span class="font-medium text-sm text-slate-800 truncate leading-none">
+                            {{ selectedOutlet ? selectedOutlet.name : 'Semua Outlet' }}
                         </span>
                     </div>
                 </div>
@@ -66,8 +57,8 @@
                         <!-- Semua Outlet Option -->
                         <div
                             :ref="
-                                (el) => {
-                                    if (!selectedOutlet) activeItemRef = el;
+                                el => {
+                                    if (!selectedOutlet) activeItemRef = el
                                 }
                             "
                             class="mb-1"
@@ -80,10 +71,8 @@
                                 :href="route('switch.all')"
                                 class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150"
                                 :class="{
-                                    'bg-main/10 text-main font-semibold':
-                                        !selectedOutlet,
-                                    'text-slate-600 hover:bg-slate-100':
-                                        selectedOutlet,
+                                    'bg-main/10 text-main font-semibold': !selectedOutlet,
+                                    'text-slate-600 hover:bg-slate-100': selectedOutlet,
                                 }"
                                 @click="isOpen = false"
                             >
@@ -100,9 +89,8 @@
                             v-for="o in outlets"
                             :key="o.id"
                             :ref="
-                                (el) => {
-                                    if (o.id === selectedOutlet?.id)
-                                        activeItemRef = el;
+                                el => {
+                                    if (o.id === selectedOutlet?.id) activeItemRef = el
                                 }
                             "
                         >
@@ -135,60 +123,53 @@
     </div>
 </template>
 <script setup>
-import { useAuth } from '@/Composable/useAuth';
+import { useAuth } from '@/Composable/useAuth'
 import {
     faChevronDown,
     faChevronUp,
     faMapMarkedAlt,
     faMapMarkerAlt,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { Link, usePage } from '@inertiajs/vue3';
-import {
-    computed,
-    nextTick,
-    onBeforeUnmount,
-    onMounted,
-    ref,
-    watch,
-} from 'vue';
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { Link, usePage } from '@inertiajs/vue3'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-const { outlets } = useAuth();
-const selectedOutlet = computed(() => usePage().props.selectedOutlet);
-const isOpen = ref(false);
-const dropdownRef = ref(null);
-const activeItemRef = ref(null);
+const { outlets } = useAuth()
+const selectedOutlet = computed(() => usePage().props.selectedOutlet)
+const isOpen = ref(false)
+const dropdownRef = ref(null)
+const activeItemRef = ref(null)
 
 const selectOutlet = () => {
     if (outlets.value.length > 1) {
-        isOpen.value = !isOpen.value;
+        isOpen.value = !isOpen.value
     }
-};
+}
 
-const handleClickOutside = (event) => {
+const handleClickOutside = event => {
     if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
-        isOpen.value = false;
+        isOpen.value = false
     }
-};
+}
 
-watch(isOpen, (val) => {
+watch(isOpen, val => {
     if (val) {
         nextTick(() => {
             if (activeItemRef.value) {
                 activeItemRef.value.scrollIntoView({
                     block: 'center',
                     behavior: 'smooth',
-                });
+                })
             }
-        });
+        })
     }
-});
+})
 
 onMounted(() => {
-    document.addEventListener('click', handleClickOutside);
-});
+    document.addEventListener('click', handleClickOutside)
+})
 
 onBeforeUnmount(() => {
-    document.removeEventListener('click', handleClickOutside);
-});
+    document.removeEventListener('click', handleClickOutside)
+})
 </script>

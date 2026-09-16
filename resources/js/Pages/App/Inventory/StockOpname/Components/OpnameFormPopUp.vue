@@ -1,10 +1,7 @@
 <template>
     <div>
         <form class="space-y-2" @submit.prevent="confirmSubmit('submit')">
-            <div
-                v-if="opname"
-                class="mb-4 bg-gray-50 p-4 rounded-lg flex justify-between"
-            >
+            <div v-if="opname" class="mb-4 bg-gray-50 p-4 rounded-lg flex justify-between">
                 <div>
                     <p>
                         <strong>Nomor Opname:</strong>
@@ -44,22 +41,16 @@
                                 label="Cari Item (Min. 3 huruf)"
                                 placeholder="Cari nama, SKU, barcode..."
                                 class="sm"
-                                :api-url="
-                                    route('api.internal.inventory-items.search')
-                                "
+                                :api-url="route('api.internal.inventory-items.search')"
                                 :api-params="{
-                                    outlet_id: opname
-                                        ? opname.outlet_id
-                                        : form.outlet_id,
+                                    outlet_id: opname ? opname.outlet_id : form.outlet_id,
                                 }"
                                 :min-chars="3"
                                 :disabled="!form.outlet_id && !opname"
                                 @select="addItemFromSearch"
                             >
                                 <template #option="{ item }">
-                                    <div
-                                        class="flex justify-between items-center w-full"
-                                    >
+                                    <div class="flex justify-between items-center w-full">
                                         <div>
                                             <div class="font-semibold text-sm">
                                                 {{ item.name }}
@@ -82,16 +73,10 @@
                         <button
                             type="button"
                             class="btn btn-outline-main btn-sm"
-                            :disabled="
-                                (!form.outlet_id && !opname) || isLoadingItems
-                            "
+                            :disabled="(!form.outlet_id && !opname) || isLoadingItems"
                             @click="loadAllItems(false)"
                         >
-                            {{
-                                isLoadingItems
-                                    ? 'Memuat...'
-                                    : 'Muat Item (Parsial)'
-                            }}
+                            {{ isLoadingItems ? 'Memuat...' : 'Muat Item (Parsial)' }}
                         </button>
                     </div>
                 </div>
@@ -100,8 +85,7 @@
                     v-if="form.items.length === 0"
                     class="text-center py-6 text-gray-500 border border-dashed rounded-lg"
                 >
-                    Belum ada item yang ditambahkan. Silakan cari atau muat
-                    semua item.
+                    Belum ada item yang ditambahkan. Silakan cari atau muat semua item.
                 </div>
 
                 <div v-else class="space-y-2 max-h-96 overflow-y-auto">
@@ -120,12 +104,8 @@
                             </div>
                         </div>
                         <div class="w-32">
-                            <div class="text-xs text-gray-500 text-center">
-                                Stok Sistem
-                            </div>
-                            <div
-                                class="text-center font-semibold bg-gray-100 py-1 rounded"
-                            >
+                            <div class="text-xs text-gray-500 text-center">Stok Sistem</div>
+                            <div class="text-center font-semibold bg-gray-100 py-1 rounded">
                                 {{ item.system_qty }}
                             </div>
                         </div>
@@ -137,10 +117,7 @@
                                 min="0"
                                 step="any"
                                 :class="{
-                                    'is-invalid':
-                                        form.errors[
-                                            `items.${index}.actual_qty`
-                                        ],
+                                    'is-invalid': form.errors[`items.${index}.actual_qty`],
                                 }"
                             />
                         </div>
@@ -148,19 +125,9 @@
                             <div class="text-xs text-gray-500">Selisih</div>
                             <div
                                 class="font-bold text-lg"
-                                :class="
-                                    differenceColor(
-                                        item.actual_qty,
-                                        item.system_qty,
-                                    )
-                                "
+                                :class="differenceColor(item.actual_qty, item.system_qty)"
                             >
-                                {{
-                                    formatDifference(
-                                        item.actual_qty,
-                                        item.system_qty,
-                                    )
-                                }}
+                                {{ formatDifference(item.actual_qty, item.system_qty) }}
                             </div>
                         </div>
                         <button
@@ -191,12 +158,7 @@
         </form>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button
-                type="button"
-                class="btn btn-flat"
-                :disabled="form.processing"
-                @click="close"
-            >
+            <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
                 Batal
             </button>
             <button
@@ -222,76 +184,76 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import axios from 'axios';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
-import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
-import NumberField from '@/Components/Form/NumberField.vue';
-import { useModalStore } from '@/store/notification';
+import { ref, onMounted } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import axios from 'axios'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
+import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import NumberField from '@/Components/Form/NumberField.vue'
+import { useModalStore } from '@/store/notification'
 
-const modal = useModalStore();
+const modal = useModalStore()
 
 const props = defineProps({
     opname: Object,
-});
+})
 
-const emit = defineEmits(['close']);
-const isMounted = ref(false);
+const emit = defineEmits(['close'])
+const isMounted = ref(false)
 
 const form = useForm({
     outlet_id: '',
     notes: '',
     items: [],
-});
+})
 
-const loadedOutlets = ref([]);
-const currentPage = ref(1);
-const hasMoreItems = ref(false);
-const isLoadingItems = ref(false);
+const loadedOutlets = ref([])
+const currentPage = ref(1)
+const hasMoreItems = ref(false)
+const isLoadingItems = ref(false)
 
-const onOutletsLoaded = (outlets) => {
-    loadedOutlets.value = outlets;
+const onOutletsLoaded = outlets => {
+    loadedOutlets.value = outlets
     if (!props.opname && !form.outlet_id && outlets.length === 1) {
-        form.outlet_id = outlets[0].id;
+        form.outlet_id = outlets[0].id
     }
-};
+}
 
-const showConfirm = ref(false);
-const confirmTitle = ref('');
-const confirmMessage = ref('');
-const confirmActionType = ref('');
+const showConfirm = ref(false)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const confirmActionType = ref('')
 
 onMounted(() => {
-    isMounted.value = true;
-    currentPage.value = 1;
-    hasMoreItems.value = false;
+    isMounted.value = true
+    currentPage.value = 1
+    hasMoreItems.value = false
 
     if (props.opname) {
-        form.outlet_id = props.opname.outlet_id;
-        form.notes = props.opname.notes || '';
-        form.items = props.opname.items.map((i) => ({
+        form.outlet_id = props.opname.outlet_id
+        form.notes = props.opname.notes || ''
+        form.items = props.opname.items.map(i => ({
             inventory_item_id: i.inventory_item_id,
             name: i.inventory_item?.name,
             sku: i.inventory_item?.sku || '-',
             uom: i.inventory_item?.uom?.name || '-',
             system_qty: i.system_qty_formatted,
             actual_qty: i.actual_qty_formatted,
-        }));
+        }))
     } else {
-        form.reset();
-        form.items = [];
+        form.reset()
+        form.items = []
         if (loadedOutlets.value.length === 1) {
-            form.outlet_id = loadedOutlets.value[0].id;
+            form.outlet_id = loadedOutlets.value[0].id
         }
     }
-});
+})
 
-const addItemFromSearch = (item) => {
-    const exists = form.items.find((i) => i.inventory_item_id === item.id);
+const addItemFromSearch = item => {
+    const exists = form.items.find(i => i.inventory_item_id === item.id)
     if (!exists) {
         form.items.unshift({
             inventory_item_id: item.id,
@@ -300,43 +262,36 @@ const addItemFromSearch = (item) => {
             uom: item.uom?.name || '-',
             system_qty: item.current_stock || 0,
             actual_qty: item.current_stock || 0,
-        });
+        })
     }
-};
+}
 
 const loadAllItems = async (isLoadMore = false) => {
-    const outletId = props.opname ? props.opname.outlet_id : form.outlet_id;
+    const outletId = props.opname ? props.opname.outlet_id : form.outlet_id
     if (!outletId) {
-        alert('Pilih outlet terlebih dahulu!');
-        return;
+        alert('Pilih outlet terlebih dahulu!')
+        return
     }
 
     if (!isLoadMore) {
-        currentPage.value = 1;
+        currentPage.value = 1
     }
 
-    isLoadingItems.value = true;
+    isLoadingItems.value = true
     try {
-        const response = await axios.get(
-            route('api.internal.inventory-items.partial'),
-            {
-                params: {
-                    outlet_id: outletId,
-                    page: currentPage.value,
-                    limit: 50,
-                },
+        const response = await axios.get(route('api.internal.inventory-items.partial'), {
+            params: {
+                outlet_id: outletId,
+                page: currentPage.value,
+                limit: 50,
             },
-        );
+        })
 
-        const newItems = response.data.data;
-        const meta = response.data.meta;
+        const newItems = response.data.data
+        const meta = response.data.meta
 
-        newItems.forEach((i) => {
-            if (
-                !form.items.find(
-                    (existing) => existing.inventory_item_id === i.id,
-                )
-            ) {
+        newItems.forEach(i => {
+            if (!form.items.find(existing => existing.inventory_item_id === i.id)) {
                 form.items.push({
                     inventory_item_id: i.id,
                     name: i.name,
@@ -344,51 +299,51 @@ const loadAllItems = async (isLoadMore = false) => {
                     uom: i.uom?.name || '-',
                     system_qty: i.current_stock || 0,
                     actual_qty: i.current_stock || 0,
-                });
+                })
             }
-        });
+        })
 
-        hasMoreItems.value = meta.current_page < meta.last_page;
+        hasMoreItems.value = meta.current_page < meta.last_page
         if (hasMoreItems.value) {
-            currentPage.value++;
+            currentPage.value++
         }
     } catch (error) {
-        console.error('Error loading items:', error);
-        alert('Gagal memuat item. Pastikan API berfungsi dengan baik.');
+        console.error('Error loading items:', error)
+        alert('Gagal memuat item. Pastikan API berfungsi dengan baik.')
     } finally {
-        isLoadingItems.value = false;
+        isLoadingItems.value = false
     }
-};
+}
 
-const removeItem = (index) => {
-    form.items.splice(index, 1);
-};
+const removeItem = index => {
+    form.items.splice(index, 1)
+}
 
 const differenceColor = (actual, system) => {
-    const diff = Number(actual || 0) - Number(system || 0);
-    if (diff > 0) return 'text-success';
-    if (diff < 0) return 'text-danger';
-    return 'text-gray-400';
-};
+    const diff = Number(actual || 0) - Number(system || 0)
+    if (diff > 0) return 'text-success'
+    if (diff < 0) return 'text-danger'
+    return 'text-gray-400'
+}
 
 const formatDifference = (actual, system) => {
-    const diff = Number(actual || 0) - Number(system || 0);
+    const diff = Number(actual || 0) - Number(system || 0)
     const formatted = new Intl.NumberFormat('id-ID', {
         maximumFractionDigits: 2,
-    }).format(Math.abs(diff));
-    if (diff > 0) return '+' + formatted;
-    if (diff < 0) return '-' + formatted;
-    return '0';
-};
+    }).format(Math.abs(diff))
+    if (diff > 0) return '+' + formatted
+    if (diff < 0) return '-' + formatted
+    return '0'
+}
 
 const close = () => {
-    form.clearErrors();
-    form.reset();
-    emit('close');
-};
+    form.clearErrors()
+    form.reset()
+    emit('close')
+}
 
-const confirmSubmit = (type) => {
-    confirmActionType.value = type;
+const confirmSubmit = type => {
+    confirmActionType.value = type
     if (type === 'save') {
         modal.open({
             title: 'Konfirmasi Mulai Opname',
@@ -397,9 +352,9 @@ const confirmSubmit = (type) => {
             confirmText: 'Mulai Opname',
             confirmButtonClass: 'btn btn-main',
             onConfirm: () => {
-                executeSubmit();
+                executeSubmit()
             },
-        });
+        })
     } else {
         modal.open({
             title: 'Konfirmasi Ajukan Persetujuan',
@@ -408,26 +363,26 @@ const confirmSubmit = (type) => {
             confirmText: 'Ajukan Persetujuan',
             confirmButtonClass: 'btn btn-info',
             onConfirm: () => {
-                executeSubmit();
+                executeSubmit()
             },
-        });
+        })
     }
-    showConfirm.value = true;
-};
+    showConfirm.value = true
+}
 
 const executeSubmit = () => {
-    showConfirm.value = false;
+    showConfirm.value = false
 
     const options = {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => close(),
-    };
+    }
 
     if (props.opname) {
-        form.put(route('inventory.opnames.update', props.opname.id), options);
+        form.put(route('inventory.opnames.update', props.opname.id), options)
     } else {
-        form.post(route('inventory.opnames.store'), options);
+        form.post(route('inventory.opnames.store'), options)
     }
-};
+}
 </script>

@@ -40,19 +40,23 @@
                 />
                 <div v-else class="flex flex-col gap-1 items-start">
                     <span class="block text-sm font-medium text-neutral-700">PIN Karyawan</span>
-                    <button type="button" class="btn btn-outline-primary btn-sm" @click.prevent="requestPinReset">
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary btn-sm"
+                        @click.prevent="requestPinReset"
+                    >
                         Reset / Ubah PIN
                     </button>
-                    <span class="text-xs text-neutral-400 mt-1">PIN sudah diatur. Klik tombol di atas jika ingin mereset.</span>
+                    <span class="text-xs text-neutral-400 mt-1"
+                        >PIN sudah diatur. Klik tombol di atas jika ingin mereset.</span
+                    >
                 </div>
             </div>
             <div v-if="!user?.is_root_user">
                 <span class="block text-xs text-neutral-400"
                     >Pilih peran yang akan digunakan karyawan</span
                 >
-                <div
-                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
-                >
+                <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
                     <SelectionGroupField
                         v-model="form.role"
                         label="Peran"
@@ -69,9 +73,7 @@
                 <span class="block text-xs text-neutral-400 mb-1"
                     >Pilih akses outlet untuk karyawan</span
                 >
-                <div
-                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
-                >
+                <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
                     <SelectionGroupField
                         v-model="form.outlets"
                         multiple
@@ -82,10 +84,7 @@
                         show-select-all
                     />
                 </div>
-                <div
-                    v-if="form.errors.outlets"
-                    class="text-danger text-xs select-none"
-                >
+                <div v-if="form.errors.outlets" class="text-danger text-xs select-none">
                     {{ form.errors.outlets }}
                 </div>
             </div>
@@ -102,53 +101,49 @@
             >
                 Batal
             </button>
-            <button
-                class="btn btn-success"
-                :disabled="form.processing"
-                @click="submitForm"
-            >
+            <button class="btn btn-success" :disabled="form.processing" @click="submitForm">
                 Simpan
             </button>
         </Teleport>
     </div>
 </template>
 <script setup>
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
-import EmailField from '@/Components/Form/EmailField.vue';
-import NumberField from '@/Components/Form/NumberField.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import PinField from '@/Components/Form/PinField.vue';
-import { formatDateID } from '@/Composable/date';
-import { formatDateTime } from '@/Composable/time';
-import { router, useForm, usePage } from '@inertiajs/vue3';
-import { computed, watch, onMounted, ref } from 'vue';
-import { useModalStore } from '@/store/notification';
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
+import EmailField from '@/Components/Form/EmailField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import PinField from '@/Components/Form/PinField.vue'
+import { formatDateID } from '@/Composable/date'
+import { formatDateTime } from '@/Composable/time'
+import { router, useForm, usePage } from '@inertiajs/vue3'
+import { computed, watch, onMounted, ref } from 'vue'
+import { useModalStore } from '@/store/notification'
 
-const modalStore = useModalStore();
+const modalStore = useModalStore()
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close'])
 
-const isMounted = ref(false);
+const isMounted = ref(false)
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 
 const closeForm = () => {
-    form.reset();
-    emit('close');
-};
+    form.reset()
+    emit('close')
+}
 
 const props = defineProps({
     user: Object,
     roles: Array,
-});
+})
 
-const selectedOutlet = computed(() => usePage().props.selectedOutlet);
+const selectedOutlet = computed(() => usePage().props.selectedOutlet)
 
-const outlets = usePage().props.auth.outlets.map((store) => ({
+const outlets = usePage().props.auth.outlets.map(store => ({
     value: store.id,
     label: store.name,
-}));
+}))
 
 const form = useForm({
     name: null,
@@ -157,9 +152,9 @@ const form = useForm({
     pin: '',
     role: '',
     outlets: [],
-});
+})
 
-const showPinField = ref(true);
+const showPinField = ref(true)
 
 const requestPinReset = () => {
     modalStore.confirm({
@@ -168,36 +163,36 @@ const requestPinReset = () => {
         confirmText: 'Ya, Ubah',
         cancelText: 'Batal',
         onConfirm: () => {
-            showPinField.value = true;
+            showPinField.value = true
         },
-    });
-};
+    })
+}
 
 watch(
     () => props.user,
-    (user) => {
-        form.reset();
+    user => {
+        form.reset()
 
         if (user) {
-            form.name = props.user.name;
-            form.email = props.user.email;
-            form.phone = props.user.phone;
+            form.name = props.user.name
+            form.email = props.user.email
+            form.phone = props.user.phone
             if (props.user.roles && props.user.roles.length > 0) {
-                 form.role = props.user.roles[0].name;
+                form.role = props.user.roles[0].name
             }
             form.outlets = props.user.outlets
-                ? props.user.outlets?.map((outlet) => outlet.id)
+                ? props.user.outlets?.map(outlet => outlet.id)
                 : selectedOutlet.value
                   ? [selectedOutlet.value?.id]
-                  : [];
-                  
-            showPinField.value = !user.has_pin;
+                  : []
+
+            showPinField.value = !user.has_pin
         } else {
-            showPinField.value = true;
+            showPinField.value = true
         }
     },
-    { immediate: true },
-);
+    { immediate: true }
+)
 
 const submitForm = () => {
     if (props.user) {
@@ -205,20 +200,20 @@ const submitForm = () => {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
-                form.reset();
-                emit('close');
+                form.reset()
+                emit('close')
             },
-        });
-        return;
+        })
+        return
     }
 
     form.post(route('employees.store'), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {
-            form.reset();
-            emit('close');
+            form.reset()
+            emit('close')
         },
-    });
-};
+    })
+}
 </script>

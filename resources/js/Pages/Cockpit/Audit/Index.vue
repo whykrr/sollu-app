@@ -3,10 +3,7 @@
         <template #header>
             <div class="flex flex-row justify-between gap-2">
                 <div class="flex gap-2">
-                    <TextField
-                        placeholder="Search actor, action..."
-                        class="w-64"
-                    />
+                    <TextField placeholder="Search actor, action..." class="w-64" />
                     <DropdownField
                         placeholder="All Categories"
                         :options="[
@@ -23,17 +20,14 @@
 
         <Table :headers="tableHeaders" :data="audits.data" :action="true">
             <template #timestamp="{ row }">
-                <span class="text-neutral-600 whitespace-nowrap">{{
-                    row.timestamp
-                }}</span>
+                <span class="text-neutral-600 whitespace-nowrap">{{ row.timestamp }}</span>
             </template>
             <template #category="{ row }">
                 <span
                     class="px-2 py-1 text-xs rounded-full font-medium"
                     :class="{
                         'bg-main/10 text-main': row.category === 'Billing',
-                        'bg-warning/10 text-warning':
-                            row.category === 'Merchant',
+                        'bg-warning/10 text-warning': row.category === 'Merchant',
                         'bg-info/10 text-info': row.category === 'Config',
                     }"
                 >
@@ -41,18 +35,13 @@
                 </span>
             </template>
             <template #actor="{ row }">
-                <span class="font-medium text-neutral-800">{{
-                    row.actor
-                }}</span>
+                <span class="font-medium text-neutral-800">{{ row.actor }}</span>
             </template>
             <template #action="{ row }">
                 <span class="text-neutral-600">{{ row.action }}</span>
             </template>
             <template #actions>
-                <button
-                    class="btn btn-neutral-100 text-main btn-sm"
-                    title="View Metadata"
-                >
+                <button class="btn btn-neutral-100 text-main btn-sm" title="View Metadata">
                     <FontAwesomeIcon :icon="faEye" />
                 </button>
             </template>
@@ -71,14 +60,14 @@
 </template>
 
 <script setup>
-import MainPage from '@/Components/UI/MainPage.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons';
-import { ref } from 'vue';
+import MainPage from '@/Components/UI/MainPage.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faEye } from '@fortawesome/free-solid-svg-icons'
+import { ref } from 'vue'
 
 const tableHeaders = [
     {
@@ -90,7 +79,7 @@ const tableHeaders = [
     { field: 'category', label: 'Category', slot: 'category', sortable: true },
     { field: 'actor', label: 'Actor', slot: 'actor', sortable: true },
     { field: 'action', label: 'Action', slot: 'action' },
-];
+]
 
 const audits = ref({
     data: [
@@ -125,5 +114,5 @@ const audits = ref({
     to: 3,
     total: 42105,
     per_page: 20,
-});
+})
 </script>

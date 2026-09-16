@@ -26,7 +26,9 @@
             <div class="bg-neutral-50 rounded-lg p-4 flex flex-col gap-2">
                 <div v-for="item in invoice.items" :key="item.id" class="flex justify-between">
                     <span class="text-sm">{{ item.description }}</span>
-                    <span class="text-sm font-medium">Rp {{ Number(item.subtotal).toLocaleString('id-ID') }}</span>
+                    <span class="text-sm font-medium"
+                        >Rp {{ Number(item.subtotal).toLocaleString('id-ID') }}</span
+                    >
                 </div>
             </div>
         </div>
@@ -35,23 +37,26 @@
         <div v-if="invoice.proof_url">
             <h4 class="font-medium mb-3">Bukti Pembayaran</h4>
             <div class="border rounded-lg overflow-hidden">
-                <img :src="invoice.proof_url" alt="Bukti Pembayaran" class="w-full h-auto object-contain max-h-96" />
+                <img
+                    :src="invoice.proof_url"
+                    alt="Bukti Pembayaran"
+                    class="w-full h-auto object-contain max-h-96"
+                />
             </div>
         </div>
-        <div v-else class="text-center p-6 border border-dashed rounded-lg bg-neutral-50 text-neutral-500">
+        <div
+            v-else
+            class="text-center p-6 border border-dashed rounded-lg bg-neutral-50 text-neutral-500"
+        >
             Belum ada bukti pembayaran.
         </div>
     </div>
 
     <Teleport v-if="isMounted" to="#popUpFooter">
         <div class="flex flex-row justify-between w-full gap-2">
-            <button class="btn btn-outline-main" @click="closeDrawer">
-                Tutup
-            </button>
+            <button class="btn btn-outline-main" @click="closeDrawer">Tutup</button>
             <div v-if="invoice && invoice.status === 'pending review'" class="flex gap-2">
-                <button class="btn btn-danger" @click="onReject">
-                    Reject
-                </button>
+                <button class="btn btn-danger" @click="onReject">Reject</button>
                 <button class="btn btn-main" :disabled="form.processing" @click="onApprove">
                     {{ form.processing ? 'Menyimpan...' : 'Approve' }}
                 </button>
@@ -61,39 +66,39 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { usePopUpStore } from '@/store/popup';
-import { useForm } from '@inertiajs/vue3';
+import { ref, onMounted } from 'vue'
+import { usePopUpStore } from '@/store/popup'
+import { useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
     invoice: {
         type: Object,
         default: null,
     },
-});
+})
 
-const emit = defineEmits(['close', 'reject']);
-const store = usePopUpStore();
+const emit = defineEmits(['close', 'reject'])
+const store = usePopUpStore()
 
-const form = useForm({});
-const isMounted = ref(false);
+const form = useForm({})
+const isMounted = ref(false)
 
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 
 const closeDrawer = () => {
-    store.close();
-    emit('close');
-};
+    store.close()
+    emit('close')
+}
 
 const onApprove = () => {
     form.post(route('cockpit.invoices.approve', props.invoice.id), {
         onSuccess: () => closeDrawer(),
-    });
-};
+    })
+}
 
 const onReject = () => {
-    emit('reject', props.invoice);
-};
+    emit('reject', props.invoice)
+}
 </script>

@@ -1,5 +1,7 @@
 <template>
-    <div class="p-4 bg-white rounded-md border border-neutral-200 flex flex-col gap-3 h-full shadow-xs">
+    <div
+        class="p-4 bg-white rounded-md border border-neutral-200 flex flex-col gap-3 h-full shadow-xs"
+    >
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="text-base font-semibold text-neutral-800 flex items-center gap-2">
@@ -32,7 +34,10 @@
                         <span class="text-xs font-bold text-neutral-900 block">
                             {{ paymentMethods.value?.[index] }}%
                         </span>
-                        <span v-if="paymentMethods.revenue?.[index]" class="text-[10px] text-neutral-500 block">
+                        <span
+                            v-if="paymentMethods.revenue?.[index]"
+                            class="text-[10px] text-neutral-500 block"
+                        >
                             {{ formatIDR(paymentMethods.revenue[index]) }}
                         </span>
                     </div>
@@ -43,11 +48,11 @@
 </template>
 
 <script setup>
-import { onMounted, watch } from 'vue';
-import { Chart } from 'chart.js/auto';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faCreditCard } from '@fortawesome/free-solid-svg-icons';
-import { formatIDR } from '@/Composable/currency-format';
+import { onMounted, watch } from 'vue'
+import { Chart } from 'chart.js/auto'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faCreditCard } from '@fortawesome/free-solid-svg-icons'
+import { formatIDR } from '@/Composable/currency-format'
 
 const props = defineProps({
     paymentMethods: {
@@ -58,20 +63,20 @@ const props = defineProps({
             revenue: [],
         }),
     },
-});
+})
 
-const colors = ['#10B981', '#004AAD', '#3B82F6', '#F59E0B'];
+const colors = ['#10B981', '#004AAD', '#3B82F6', '#F59E0B']
 
-const getMethodColor = (index) => colors[index % colors.length];
+const getMethodColor = index => colors[index % colors.length]
 
-let chartInstance = null;
+let chartInstance = null
 
 const renderChart = () => {
-    const ctx = document.getElementById('chart-payment-method');
-    if (!ctx) return;
+    const ctx = document.getElementById('chart-payment-method')
+    if (!ctx) return
 
     if (chartInstance) {
-        chartInstance.destroy();
+        chartInstance.destroy()
     }
 
     chartInstance = new Chart(ctx, {
@@ -97,25 +102,29 @@ const renderChart = () => {
                 tooltip: {
                     callbacks: {
                         label: function (context) {
-                            const index = context.dataIndex;
-                            const percentage = context.parsed;
-                            const revenue = props.paymentMethods.revenue?.[index];
+                            const index = context.dataIndex
+                            const percentage = context.parsed
+                            const revenue = props.paymentMethods.revenue?.[index]
                             return revenue
                                 ? ` ${context.label}: ${percentage}% (${formatIDR(revenue)})`
-                                : ` ${context.label}: ${percentage}%`;
+                                : ` ${context.label}: ${percentage}%`
                         },
                     },
                 },
             },
         },
-    });
-};
+    })
+}
 
 onMounted(() => {
-    renderChart();
-});
+    renderChart()
+})
 
-watch(() => props.paymentMethods, () => {
-    renderChart();
-}, { deep: true });
+watch(
+    () => props.paymentMethods,
+    () => {
+        renderChart()
+    },
+    { deep: true }
+)
 </script>

@@ -15,9 +15,7 @@
             <!-- Left Column: Settings Form -->
             <div class="lg:col-span-7 flex flex-col gap-4">
                 <!-- Card 1: Format Kertas & Perilaku Cetak -->
-                <div
-                    class="bg-white rounded-xl border border-slate-200 shadow-xs p-5"
-                >
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -39,29 +37,21 @@
                                 class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer select-none hover:bg-slate-50/80 hover:border-slate-300 transition-colors"
                             >
                                 <div>
-                                    <div
-                                        class="font-medium text-sm text-slate-700"
-                                    >
+                                    <div class="font-medium text-sm text-slate-700">
                                         Auto Print Struk
                                     </div>
                                     <div class="text-xs text-slate-500">
                                         Cetak otomatis setelah bayar
                                     </div>
                                 </div>
-                                <Switch
-                                    id="auto_print"
-                                    v-model="form.auto_print"
-                                    size="md"
-                                />
+                                <Switch id="auto_print" v-model="form.auto_print" size="md" />
                             </label>
                         </div>
                     </div>
                 </div>
 
                 <!-- Card 2: Header Struk -->
-                <div
-                    class="bg-white rounded-xl border border-slate-200 shadow-xs p-5"
-                >
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -81,11 +71,7 @@
                                     Cetak logo di bagian atas struk
                                 </div>
                             </div>
-                            <Switch
-                                id="show_logo"
-                                v-model="form.show_logo"
-                                size="md"
-                            />
+                            <Switch id="show_logo" v-model="form.show_logo" size="md" />
                         </label>
 
                         <TextField
@@ -112,11 +98,7 @@
                                 <div class="font-medium text-xs text-slate-700">
                                     Tampilkan Alamat
                                 </div>
-                                <Switch
-                                    id="show_address"
-                                    v-model="form.show_address"
-                                    size="sm"
-                                />
+                                <Switch id="show_address" v-model="form.show_address" size="sm" />
                             </label>
                             <label
                                 for="show_phone"
@@ -125,11 +107,7 @@
                                 <div class="font-medium text-xs text-slate-700">
                                     Tampilkan No. Telp
                                 </div>
-                                <Switch
-                                    id="show_phone"
-                                    v-model="form.show_phone"
-                                    size="sm"
-                                />
+                                <Switch id="show_phone" v-model="form.show_phone" size="sm" />
                             </label>
                             <label
                                 for="show_email"
@@ -138,20 +116,14 @@
                                 <div class="font-medium text-xs text-slate-700">
                                     Tampilkan Email
                                 </div>
-                                <Switch
-                                    id="show_email"
-                                    v-model="form.show_email"
-                                    size="sm"
-                                />
+                                <Switch id="show_email" v-model="form.show_email" size="sm" />
                             </label>
                         </div>
                     </div>
                 </div>
 
                 <!-- Card 3: Rincian Transaksi (Body) -->
-                <div
-                    class="bg-white rounded-xl border border-slate-200 shadow-xs p-5"
-                >
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -176,9 +148,7 @@
                             for="show_customer_name"
                             class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer select-none hover:bg-slate-50/80 hover:border-slate-300 transition-colors"
                         >
-                            <div class="font-medium text-xs text-slate-700">
-                                Nama Pelanggan
-                            </div>
+                            <div class="font-medium text-xs text-slate-700">Nama Pelanggan</div>
                             <Switch
                                 id="show_customer_name"
                                 v-model="form.show_customer_name"
@@ -192,11 +162,7 @@
                             <div class="font-medium text-xs text-slate-700">
                                 Tipe Pesanan (Dine-in/Takeaway)
                             </div>
-                            <Switch
-                                id="show_order_type"
-                                v-model="form.show_order_type"
-                                size="sm"
-                            />
+                            <Switch id="show_order_type" v-model="form.show_order_type" size="sm" />
                         </label>
                         <label
                             for="show_modifiers"
@@ -205,11 +171,7 @@
                             <div class="font-medium text-xs text-slate-700">
                                 Detail Modifier / Topping
                             </div>
-                            <Switch
-                                id="show_modifiers"
-                                v-model="form.show_modifiers"
-                                size="sm"
-                            />
+                            <Switch id="show_modifiers" v-model="form.show_modifiers" size="sm" />
                         </label>
                         <label
                             for="show_item_notes"
@@ -218,11 +180,7 @@
                             <div class="font-medium text-xs text-slate-700">
                                 Catatan Khusus Produk
                             </div>
-                            <Switch
-                                id="show_item_notes"
-                                v-model="form.show_item_notes"
-                                size="sm"
-                            />
+                            <Switch id="show_item_notes" v-model="form.show_item_notes" size="sm" />
                         </label>
                         <label
                             for="show_tax_detail"
@@ -231,11 +189,7 @@
                             <div class="font-medium text-xs text-slate-700">
                                 Rincian Pajak (PPN/PB1)
                             </div>
-                            <Switch
-                                id="show_tax_detail"
-                                v-model="form.show_tax_detail"
-                                size="sm"
-                            />
+                            <Switch id="show_tax_detail" v-model="form.show_tax_detail" size="sm" />
                         </label>
                         <label
                             for="show_service_charge"
@@ -254,16 +208,11 @@
                 </div>
 
                 <!-- Card 4: Footer Struk -->
-                <div
-                    class="bg-white rounded-xl border border-slate-200 shadow-xs p-5"
-                >
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
-                        <FontAwesomeIcon
-                            :icon="faParagraph"
-                            class="text-main"
-                        />
+                        <FontAwesomeIcon :icon="faParagraph" class="text-main" />
                         Footer Struk
                     </h3>
                     <div class="space-y-2">
@@ -305,11 +254,7 @@
                                     QR untuk feedback atau cek transaksi digital
                                 </div>
                             </div>
-                            <Switch
-                                id="show_qr_code"
-                                v-model="form.show_qr_code"
-                                size="md"
-                            />
+                            <Switch id="show_qr_code" v-model="form.show_qr_code" size="md" />
                         </label>
                     </div>
                 </div>
@@ -342,30 +287,17 @@
                     <!-- Receipt Paper Container -->
                     <div
                         class="bg-[#fafaf8] text-slate-800 p-5 rounded-sm shadow-md border border-slate-300 font-mono text-xs leading-relaxed transition-all duration-300 w-full"
-                        :class="
-                            form.paper_size === '58mm'
-                                ? 'max-w-[300px]'
-                                : 'max-w-[380px]'
-                        "
+                        :class="form.paper_size === '58mm' ? 'max-w-[300px]' : 'max-w-[380px]'"
                     >
                         <!-- Top jagged edge indicator -->
                         <div
                             class="border-b-2 border-dashed border-slate-300 pb-3 mb-3 text-center"
                         >
                             <!-- Logo -->
-                            <div
-                                v-if="form.show_logo"
-                                class="flex justify-center mb-2"
-                            >
+                            <div v-if="form.show_logo" class="flex justify-center mb-2">
                                 <img
-                                    v-if="
-                                        business?.logo_url ||
-                                        selectedOutlet?.logo_url
-                                    "
-                                    :src="
-                                        business?.logo_url ||
-                                        selectedOutlet?.logo_url
-                                    "
+                                    v-if="business?.logo_url || selectedOutlet?.logo_url"
+                                    :src="business?.logo_url || selectedOutlet?.logo_url"
                                     class="h-16 object-contain"
                                     alt="Logo Usaha"
                                 />
@@ -378,9 +310,7 @@
                             </div>
 
                             <!-- Header Title -->
-                            <div
-                                class="font-bold text-base uppercase text-slate-900 tracking-wide"
-                            >
+                            <div class="font-bold text-base uppercase text-slate-900 tracking-wide">
                                 {{
                                     form.custom_header_title ||
                                     selectedOutlet?.name ||
@@ -390,9 +320,7 @@
 
                             <!-- Address & Contact -->
                             <div
-                                v-if="
-                                    form.show_address && selectedOutlet?.address
-                                "
+                                v-if="form.show_address && selectedOutlet?.address"
                                 class="text-[11px] text-slate-600 mt-1"
                             >
                                 {{ selectedOutlet.address }}
@@ -428,15 +356,9 @@
                                 <span>14/08/2026 14:00</span>
                             </div>
                             <div class="flex justify-between mt-0.5">
-                                <span v-if="form.show_cashier_name"
-                                    >Kasir: Budi</span
-                                >
+                                <span v-if="form.show_cashier_name">Kasir: Budi</span>
                                 <span v-else></span>
-                                <span
-                                    v-if="form.show_order_type"
-                                    class="font-bold"
-                                    >Dine In</span
-                                >
+                                <span v-if="form.show_order_type" class="font-bold">Dine In</span>
                             </div>
                             <div v-if="form.show_customer_name" class="mt-0.5">
                                 Pelanggan: Ahmad
@@ -444,19 +366,14 @@
                         </div>
 
                         <!-- Item List -->
-                        <div
-                            class="border-b border-dashed border-slate-300 pb-2 mb-2 text-[11px]"
-                        >
+                        <div class="border-b border-dashed border-slate-300 pb-2 mb-2 text-[11px]">
                             <!-- Item 1 -->
                             <div class="font-medium">Kopi Susu Aren</div>
                             <div class="flex justify-between">
                                 <span>2 x Rp 25.000</span>
                                 <span>Rp 50.000</span>
                             </div>
-                            <div
-                                v-if="form.show_modifiers"
-                                class="text-[10px] text-slate-500"
-                            >
+                            <div v-if="form.show_modifiers" class="text-[10px] text-slate-500">
                                 + Less Sugar, Extra Shot (+Rp 5.000)
                             </div>
                             <div
@@ -465,17 +382,13 @@
                             >
                                 * Sedikit es
                             </div>
-                            <div
-                                class="flex justify-between text-[10px] text-slate-500"
-                            >
+                            <div class="flex justify-between text-[10px] text-slate-500">
                                 <span>Diskon Item</span>
                                 <span>-Rp 0</span>
                             </div>
 
                             <!-- Item 2 -->
-                            <div class="font-medium mt-1.5">
-                                Croissant Butter
-                            </div>
+                            <div class="font-medium mt-1.5">Croissant Butter</div>
                             <div class="flex justify-between">
                                 <span>1 x Rp 25.000</span>
                                 <span>Rp 25.000</span>
@@ -483,9 +396,7 @@
                         </div>
 
                         <!-- Financial Calculation -->
-                        <div
-                            class="border-b border-dashed border-slate-300 pb-2 mb-2 text-[11px]"
-                        >
+                        <div class="border-b border-dashed border-slate-300 pb-2 mb-2 text-[11px]">
                             <div class="flex justify-between text-slate-600">
                                 <span>Subtotal</span>
                                 <span>Rp 75.000</span>
@@ -514,9 +425,7 @@
                                 <span>TOTAL</span>
                                 <span>Rp 80.500</span>
                             </div>
-                            <div
-                                class="flex justify-between text-slate-600 mt-1"
-                            >
+                            <div class="flex justify-between text-slate-600 mt-1">
                                 <span>Tunai</span>
                                 <span>Rp 100.000</span>
                             </div>
@@ -527,25 +436,17 @@
                         </div>
 
                         <!-- Footer Area -->
-                        <div
-                            class="text-center pt-1 text-[11px] text-slate-600"
-                        >
+                        <div class="text-center pt-1 text-[11px] text-slate-600">
                             <div
                                 v-if="form.footer_notes"
                                 class="whitespace-pre-line mb-1.5 font-medium"
                             >
                                 {{ form.footer_notes }}
                             </div>
-                            <div
-                                v-if="form.social_media_info"
-                                class="text-[10px] text-slate-500"
-                            >
+                            <div v-if="form.social_media_info" class="text-[10px] text-slate-500">
                                 {{ form.social_media_info }}
                             </div>
-                            <div
-                                v-if="form.wifi_info"
-                                class="text-[11px] text-slate-600"
-                            >
+                            <div v-if="form.wifi_info" class="text-[11px] text-slate-600">
                                 WiFi: {{ form.wifi_info }}
                             </div>
                             <!-- QR Code Preview -->
@@ -571,8 +472,8 @@
 </template>
 
 <script setup>
-import { router, useForm } from '@inertiajs/vue3';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { router, useForm } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faEye,
     faHeading,
@@ -580,27 +481,27 @@ import {
     faParagraph,
     faPrint,
     faSave,
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/free-solid-svg-icons'
 
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import SettingOutletSelector from '../Components/SettingOutletSelector.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import Switch from '@/Components/Form/Switch.vue';
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import SettingOutletSelector from '../Components/SettingOutletSelector.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import Switch from '@/Components/Form/Switch.vue'
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 
 const props = defineProps({
     outlets: Array,
     selectedOutlet: Object,
     receiptSetting: Object,
     business: Object,
-});
+})
 
 const paperSizeOptions = [
     { label: '58 mm (Standar)', value: '58mm' },
     { label: '80 mm (Lebar)', value: '80mm' },
-];
+]
 
 const defaultSettings = {
     outlet_id: props.selectedOutlet?.id ?? '',
@@ -618,32 +519,31 @@ const defaultSettings = {
     show_item_notes: true,
     show_tax_detail: true,
     show_service_charge: false,
-    footer_notes:
-        'Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan.',
+    footer_notes: 'Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan.',
     social_media_info: '',
     wifi_info: '',
     show_qr_code: false,
     qr_type: 'invoice',
     auto_print: true,
-};
+}
 
 const form = useForm({
     ...defaultSettings,
     ...(props.receiptSetting || {}),
     outlet_id: props.selectedOutlet?.id ?? '',
-});
+})
 
-const changeOutlet = (newOutletId) => {
+const changeOutlet = newOutletId => {
     router.visit(route('settings.receipt.index', { outlet_id: newOutletId }), {
         preserveState: false,
         preserveScroll: true,
-    });
-};
+    })
+}
 
 const submitForm = () => {
-    form.outlet_id = props.selectedOutlet?.id;
+    form.outlet_id = props.selectedOutlet?.id
     form.put(route('settings.receipt.update'), {
         preserveScroll: true,
-    });
-};
+    })
+}
 </script>

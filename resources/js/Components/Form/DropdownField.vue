@@ -4,7 +4,10 @@
         <select
             :id
             class="form pr-10!"
-            :class="[{ 'text-gray-500': modelValue === '' }, { 'is-invalid': error, 'is-valid': success }]"
+            :class="[
+                { 'text-gray-500': modelValue === '' },
+                { 'is-invalid': error, 'is-valid': success },
+            ]"
             :value="modelValue"
             v-bind="$attrs"
             @change="emit('update:modelValue', $event.target.value)"
@@ -22,7 +25,7 @@
 <script setup>
 defineOptions({
     inheritAttrs: false,
-});
+})
 
 const { id, label, modelValue, placeholder, options, feedback, error, success } = defineProps({
     id: String,
@@ -36,7 +39,7 @@ const { id, label, modelValue, placeholder, options, feedback, error, success } 
     feedback: String,
     error: String,
     success: String,
-});
+})
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 </script>

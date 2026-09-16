@@ -23,16 +23,8 @@
         >
             <template #name="{ row }">
                 {{ row.name }}
-                <span
-                    v-if="row.deleted_at"
-                    class="badge badge-neutral-500 p-1 text-xs"
-                    >Arsip</span
-                >
-                <span
-                    v-if="row.is_root_user"
-                    class="badge badge-warning p-1 text-xs"
-                    >Root</span
-                >
+                <span v-if="row.deleted_at" class="badge badge-neutral-500 p-1 text-xs">Arsip</span>
+                <span v-if="row.is_root_user" class="badge badge-warning p-1 text-xs">Root</span>
             </template>
             <template #roles="{ row }">
                 {{ row.roles[0].label }}
@@ -102,27 +94,27 @@
 </template>
 
 <script setup>
-import Pagination from '@/Components/Tables/Pagination.vue';
-import Filter from '@/Pages/App/Employee/Components/Filter.vue';
-import { router } from '@inertiajs/vue3';
-import MainPage from '@/Components/UI/MainPage.vue';
-import Table from '@/Components/Tables/Table.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPencil, faPlus, faUpload } from '@fortawesome/free-solid-svg-icons';
-import { formatDateTimeSimple } from '@/Composable/date';
-import Form from '@/Pages/App/Employee/Components/Form.vue';
-import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import { usePopUpStore } from '@/store/popup';
+import Pagination from '@/Components/Tables/Pagination.vue'
+import Filter from '@/Pages/App/Employee/Components/Filter.vue'
+import { router } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import Table from '@/Components/Tables/Table.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faPencil, faPlus, faUpload } from '@fortawesome/free-solid-svg-icons'
+import { formatDateTimeSimple } from '@/Composable/date'
+import Form from '@/Pages/App/Employee/Components/Form.vue'
+import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import { usePopUpStore } from '@/store/popup'
 
-const popUpStore = usePopUpStore();
+const popUpStore = usePopUpStore()
 
 const props = defineProps({
     users: Object,
     params: Object,
     roles: Object,
     user: Object,
-});
+})
 
 const openForm = (user = null) => {
     popUpStore.open({
@@ -131,11 +123,11 @@ const openForm = (user = null) => {
         size: 'lg',
         component: Form,
         props: { user, roles: props.roles },
-    });
-};
+    })
+}
 
 if (props.user) {
-    openForm(props.user);
+    openForm(props.user)
 }
 
 const tableHeaders = [
@@ -148,16 +140,16 @@ const tableHeaders = [
         sortable: true,
         slot: 'created_at',
     },
-];
+]
 
-const getDetail = (id) => {
+const getDetail = id => {
     router.visit(route('employees.show', { user: id, ...props.params }), {
         only: ['user'],
         preserveState: true,
         preserveScroll: true,
-        onSuccess: (page) => {
-            openForm(page.props.user);
+        onSuccess: page => {
+            openForm(page.props.user)
         },
-    });
-};
+    })
+}
 </script>

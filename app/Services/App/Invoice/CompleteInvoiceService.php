@@ -82,7 +82,7 @@ class CompleteInvoiceService
                         }
                     }
                 }
-            } elseif ($subscription && $subscription->status !== SubscriptionStatus::Active && ! $isOutletAddition) {
+            } elseif ($subscription && ! $isOutletAddition) {
                 // Cancel any previous active subscriptions before activating the new one
                 $business->subscriptions()
                     ->where('id', '!=', $subscription->id)
@@ -92,9 +92,11 @@ class CompleteInvoiceService
                         'canceled_at' => $now,
                     ]);
 
-                $subscription->update([
-                    'status' => SubscriptionStatus::Active,
-                ]);
+                if ($subscription->status !== SubscriptionStatus::Active) {
+                    $subscription->update([
+                        'status' => SubscriptionStatus::Active,
+                    ]);
+                }
 
                 // Send notification to the first user (business owner)
                 $owner = $business->users()->first();

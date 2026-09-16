@@ -1,5 +1,7 @@
 <template>
-    <div class="p-4 bg-white rounded-md border border-neutral-200 flex flex-col gap-3 h-full shadow-xs">
+    <div
+        class="p-4 bg-white rounded-md border border-neutral-200 flex flex-col gap-3 h-full shadow-xs"
+    >
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="text-base font-semibold text-neutral-800 flex items-center gap-2">
@@ -18,11 +20,11 @@
 </template>
 
 <script setup>
-import { onMounted, watch } from 'vue';
-import { Chart } from 'chart.js/auto';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faLayerGroup } from '@fortawesome/free-solid-svg-icons';
-import { formatIDR } from '@/Composable/currency-format';
+import { onMounted, watch } from 'vue'
+import { Chart } from 'chart.js/auto'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faLayerGroup } from '@fortawesome/free-solid-svg-icons'
+import { formatIDR } from '@/Composable/currency-format'
 
 const props = defineProps({
     categorySales: {
@@ -32,28 +34,21 @@ const props = defineProps({
             value: [],
         }),
     },
-});
+})
 
-let chartInstance = null;
+let chartInstance = null
 
 const renderChart = () => {
-    const ctx = document.getElementById('chart-category-sales');
-    if (!ctx) return;
+    const ctx = document.getElementById('chart-category-sales')
+    if (!ctx) return
 
     if (chartInstance) {
-        chartInstance.destroy();
+        chartInstance.destroy()
     }
 
-    const colors = [
-        '#004AAD',
-        '#5DE0E6',
-        '#F59E0B',
-        '#10B981',
-        '#8B5CF6',
-        '#EC4899',
-    ];
+    const colors = ['#004AAD', '#5DE0E6', '#F59E0B', '#10B981', '#8B5CF6', '#EC4899']
 
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
 
     chartInstance = new Chart(ctx, {
         type: 'doughnut',
@@ -88,22 +83,26 @@ const renderChart = () => {
                 tooltip: {
                     callbacks: {
                         label: function (context) {
-                            const value = context.parsed;
-                            return ` ${context.label}: ${formatIDR(value)}`;
+                            const value = context.parsed
+                            return ` ${context.label}: ${formatIDR(value)}`
                         },
                     },
                 },
             },
             cutout: '68%',
         },
-    });
-};
+    })
+}
 
 onMounted(() => {
-    renderChart();
-});
+    renderChart()
+})
 
-watch(() => props.categorySales, () => {
-    renderChart();
-}, { deep: true });
+watch(
+    () => props.categorySales,
+    () => {
+        renderChart()
+    },
+    { deep: true }
+)
 </script>

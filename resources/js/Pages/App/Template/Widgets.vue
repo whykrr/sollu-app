@@ -3,38 +3,22 @@
         <div class="flex flex-col gap-2">
             <div class="grid grid-cols-4 gap-2">
                 <div>
-                    <Widget
-                        title="Number of Students"
-                        :icon="faUser"
-                        class="widget-main"
-                    >
+                    <Widget title="Number of Students" :icon="faUser" class="widget-main">
                         2,468
                     </Widget>
                 </div>
                 <div>
-                    <Widget
-                        title="Number of Teachers"
-                        :icon="faUsers"
-                        class="widget-info"
-                    >
+                    <Widget title="Number of Teachers" :icon="faUsers" class="widget-info">
                         245
                     </Widget>
                 </div>
                 <div>
-                    <Widget
-                        title="Number of Employees"
-                        :icon="faUserGroup"
-                        class="widget-teal"
-                    >
+                    <Widget title="Number of Employees" :icon="faUserGroup" class="widget-teal">
                         526
                     </Widget>
                 </div>
                 <div>
-                    <Widget
-                        title="Total Revenue"
-                        :icon="faDollarSign"
-                        class="widget-brown"
-                    >
+                    <Widget title="Total Revenue" :icon="faDollarSign" class="widget-brown">
                         $2,324,468
                     </Widget>
                 </div>
@@ -113,18 +97,13 @@
     </MainPage>
 </template>
 <script setup>
-import MainPage from '@/Components/UI/MainPage.vue';
-import Widget from '@/Components/Widgets/Widget.vue';
-import WidgetChart from '@/Components/Widgets/WidgetChart.vue';
-import WidgetProgress from '@/Components/Widgets/WidgetProgress.vue';
-import { faCircle } from '@fortawesome/free-regular-svg-icons';
-import {
-    faDollarSign,
-    faUser,
-    faUserGroup,
-    faUsers,
-} from '@fortawesome/free-solid-svg-icons';
+import MainPage from '@/Components/UI/MainPage.vue'
+import Widget from '@/Components/Widgets/Widget.vue'
+import WidgetChart from '@/Components/Widgets/WidgetChart.vue'
+import WidgetProgress from '@/Components/Widgets/WidgetProgress.vue'
+import { faCircle } from '@fortawesome/free-regular-svg-icons'
+import { faDollarSign, faUser, faUserGroup, faUsers } from '@fortawesome/free-solid-svg-icons'
 
-const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
-const data = [0, 0, 80, 360, 56, 155, 140, 220];
+const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug']
+const data = [0, 0, 80, 360, 56, 155, 140, 220]
 </script>

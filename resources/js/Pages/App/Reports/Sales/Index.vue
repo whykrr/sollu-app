@@ -9,10 +9,7 @@
                             v-model="formFilters.outlet"
                             :icon="faStore"
                             class="sm"
-                            :options="[
-                                { value: '', label: 'Semua Outlet' },
-                                ...outletOptions,
-                            ]"
+                            :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
                             @change="applyFilters"
                         />
                     </div>
@@ -32,16 +29,10 @@
                         />
                     </div>
                     <div class="flex items-center gap-2 ml-auto">
-                        <button
-                            class="btn btn-outline-primary sm"
-                            @click="exportPdf"
-                        >
+                        <button class="btn btn-outline-primary sm" @click="exportPdf">
                             <FontAwesomeIcon :icon="faFilePdf" /> Ekspor PDF
                         </button>
-                        <button
-                            class="btn btn-outline-success sm"
-                            @click="exportCsv"
-                        >
+                        <button class="btn btn-outline-success sm" @click="exportCsv">
                             <FontAwesomeIcon :icon="faFileCsv" /> Ekspor CSV
                         </button>
                     </div>
@@ -64,10 +55,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr
-                                v-for="(item, index) in dailySales.data"
-                                :key="index"
-                            >
+                            <tr v-for="(item, index) in dailySales.data" :key="index">
                                 <td>{{ item.date }}</td>
                                 <td class="text-right">
                                     {{ formatIDR(item.gross_sales) }}
@@ -83,10 +71,7 @@
                                 </td>
                             </tr>
                             <tr v-if="dailySales.data?.length === 0">
-                                <td
-                                    colspan="5"
-                                    class="text-center text-muted py-4"
-                                >
+                                <td colspan="5" class="text-center text-muted py-4">
                                     Tidak ada data penjualan pada periode ini.
                                 </td>
                             </tr>
@@ -115,25 +100,17 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr
-                                v-for="(item, index) in paymentMethods"
-                                :key="index"
-                            >
+                            <tr v-for="(item, index) in paymentMethods" :key="index">
                                 <td>{{ item.payment_name }}</td>
                                 <td class="text-right">
-                                    {{
-                                        formatNumberID(item.total_transactions)
-                                    }}
+                                    {{ formatNumberID(item.total_transactions) }}
                                 </td>
                                 <td class="text-right">
                                     {{ formatIDR(item.total_revenue) }}
                                 </td>
                             </tr>
                             <tr v-if="paymentMethods.length === 0">
-                                <td
-                                    colspan="3"
-                                    class="text-center text-muted py-4"
-                                >
+                                <td colspan="3" class="text-center text-muted py-4">
                                     Tidak ada data pembayaran.
                                 </td>
                             </tr>
@@ -146,57 +123,57 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
-import { faStore } from '@fortawesome/free-solid-svg-icons';
-import MainPage from '@/Components/UI/MainPage.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
-import { useAuth } from '@/Composable/useAuth';
-import { formatIDR } from '@/Composable/currency-format';
-import { formatNumberID } from '@/Composable/useNumberFormat';
+import { computed } from 'vue'
+import { useForm, router } from '@inertiajs/vue3'
+import { faStore } from '@fortawesome/free-solid-svg-icons'
+import MainPage from '@/Components/UI/MainPage.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
+import { useAuth } from '@/Composable/useAuth'
+import { formatIDR } from '@/Composable/currency-format'
+import { formatNumberID } from '@/Composable/useNumberFormat'
 
 const props = defineProps({
     filters: Object,
     dailySales: Object,
     paymentMethods: Array,
-});
+})
 
-const { outlets: userOutlets } = useAuth();
+const { outlets: userOutlets } = useAuth()
 
 const outletOptions = computed(() => {
-    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return [];
-    return userOutlets.value.map((store) => ({
+    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []
+    return userOutlets.value.map(store => ({
         value: store.id,
         label: store.name,
-    }));
-});
+    }))
+})
 
 const formFilters = useForm({
     outlet: props.filters?.outlet ?? '',
     start_date: props.filters?.start_date ?? '',
     end_date: props.filters?.end_date ?? '',
-});
+})
 
 const applyFilters = () => {
     formFilters.get(route('reports.sales.index'), {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 
 const exportPdf = () => {
     router.post(route('reports.sales.export.pdf'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
-    });
-};
+    })
+}
 
 const exportCsv = () => {
     router.post(route('reports.sales.export.csv'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
-    });
-};
+    })
+}
 </script>

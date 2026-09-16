@@ -21,21 +21,21 @@
 </template>
 
 <script setup>
-import MainPage from '@/Components/UI/MainPage.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import CategoryTree from './Components/CategoryTree.vue';
-import CategoryForm from './Components/CategoryForm.vue';
-import { useModalStore } from '@/store/notification';
-import { usePopUpStore } from '@/store/popup';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
+import MainPage from '@/Components/UI/MainPage.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import CategoryTree from './Components/CategoryTree.vue'
+import CategoryForm from './Components/CategoryForm.vue'
+import { useModalStore } from '@/store/notification'
+import { usePopUpStore } from '@/store/popup'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 
 const props = defineProps({
     categories: Array,
-});
+})
 
-const modal = useModalStore();
-const popUpStore = usePopUpStore();
+const modal = useModalStore()
+const popUpStore = usePopUpStore()
 
 const openCreateForm = () => {
     popUpStore.open({
@@ -47,10 +47,10 @@ const openCreateForm = () => {
             parentCategory: null,
             allCategories: props.categories,
         },
-    });
-};
+    })
+}
 
-const openEditForm = (category) => {
+const openEditForm = category => {
     popUpStore.open({
         title: 'Ubah Kategori',
         size: 'md',
@@ -60,10 +60,10 @@ const openEditForm = (category) => {
             parentCategory: null,
             allCategories: props.categories,
         },
-    });
-};
+    })
+}
 
-const openSubForm = (parentCategory) => {
+const openSubForm = parentCategory => {
     popUpStore.open({
         title: 'Buat Kategori Baru',
         size: 'md',
@@ -73,10 +73,10 @@ const openSubForm = (parentCategory) => {
             parentCategory: parentCategory,
             allCategories: props.categories,
         },
-    });
-};
+    })
+}
 
-const deleteCategory = (category) => {
-    modal.openModalSoftDelete(route('master.categories.destroy', category.id));
-};
+const deleteCategory = category => {
+    modal.openModalSoftDelete(route('master.categories.destroy', category.id))
+}
 </script>

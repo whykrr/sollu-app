@@ -9,17 +9,17 @@
 </template>
 
 <script setup>
-import Table from '@/Components/Tables/Table.vue';
-import Card from '@/Components/UI/Card/Card.vue';
-import { formatIDR } from '@/Composable/currency-format';
+import Table from '@/Components/Tables/Table.vue'
+import Card from '@/Components/UI/Card/Card.vue'
+import { formatIDR } from '@/Composable/currency-format'
 
 defineProps({
     data: Array,
-});
+})
 
 const headers = [
     { label: 'Produk', field: 'name' },
     { label: 'Terjual', field: 'total' },
     { label: 'Pendapatan', field: 'revenue', slot: 'revenue' },
-];
+]
 </script>

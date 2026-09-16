@@ -26,19 +26,19 @@
     </MainPage>
 </template>
 <script setup>
-import Card from '@/Components/UI/Card/Card.vue';
-import MainPage from '@/Components/UI/MainPage.vue';
-import Tab from '@/Components/UI/Tab.vue';
-import { faBell, faHome, faUser } from '@fortawesome/free-solid-svg-icons';
-import { Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import Home from './NavigationPages/Home.vue';
-import Profile from './NavigationPages/Profile.vue';
-import Notification from './NavigationPages/Notif.vue';
+import Card from '@/Components/UI/Card/Card.vue'
+import MainPage from '@/Components/UI/MainPage.vue'
+import Tab from '@/Components/UI/Tab.vue'
+import { faBell, faHome, faUser } from '@fortawesome/free-solid-svg-icons'
+import { Link } from '@inertiajs/vue3'
+import { ref } from 'vue'
+import Home from './NavigationPages/Home.vue'
+import Profile from './NavigationPages/Profile.vue'
+import Notification from './NavigationPages/Notif.vue'
 
-const activeTab = ref('home');
-const activeTabVertical = ref('home');
-const activeTabIcon = ref('home');
+const activeTab = ref('home')
+const activeTabVertical = ref('home')
+const activeTabIcon = ref('home')
 
 const pages = [
     { name: 'home', label: 'Home', icon: faHome, page: Home },
@@ -49,15 +49,15 @@ const pages = [
         icon: faBell,
         page: Notification,
     },
-];
+]
 
-const changeTab = (tab) => {
-    activeTab.value = tab;
-};
-const changeTabVertical = (tab) => {
-    activeTabVertical.value = tab;
-};
-const changeTabIcon = (tab) => {
-    activeTabIcon.value = tab;
-};
+const changeTab = tab => {
+    activeTab.value = tab
+}
+const changeTabVertical = tab => {
+    activeTabVertical.value = tab
+}
+const changeTabIcon = tab => {
+    activeTabIcon.value = tab
+}
 </script>

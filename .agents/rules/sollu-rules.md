@@ -40,7 +40,7 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 
 - Definisikan key konstan di `app/Enums/FeatureEnum.php`, simpan metadata fitur (nama, deskripsi, modul, grup) di tabel database `features` (`FeatureSeeder.php`), dan petakan fitur ke paket melalui tabel pivot database `plan_features` (`SubscriptionPlanSeeder.php` atau Cockpit UI). DILARANG meng-hardcode relasi fitur di `PlanEnum.php`.
 - Proteksi route dengan `middleware('plan.feature:' . FeatureEnum::NAME->value)`.
-- Dukungan Custom Plan (`is_custom: true`, `is_public: false`) berjalan secara native: resolusi fitur tenant membaca langsung relasi database `plan->systemFeatures` tanpa perlu mendaftarkan kode paket baru ke PHP Enum.
+- Dukungan Custom Plan (penugasan `business_id`, `is_public: false`) berjalan secara native: resolusi fitur tenant membaca langsung relasi database `plan->systemFeatures` tanpa perlu mendaftarkan kode paket baru ke PHP Enum.
 
 ---
 
@@ -87,12 +87,17 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 **4. Ekstraksi Wajib Komponen Filter**
 - Seluruh filter halaman WAJIB diekstrak ke komponen terpisah di `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`. DILARANG menulis filter inline di `Index.vue`.
 
-**5. Wajib Menggunakan Komponen `<Table>` & Empty State Terpusat**
+**5. Wajib Menggunakan Komponen `<Table>`, Sortable Header, & Empty State Terpusat**
 - Seluruh data tabel WAJIB ditampilkan melalui `@/Components/Tables/Table.vue`. DILARANG menggunakan tag `<table>` mentah.
-- Penanganan *empty state* ("data tidak ditemukan") dikelola terpusat di level komponen `<Table>`. DILARANG menduplikasi blok `v-if="data.length === 0"` manual di masing-masing page.
+- **Sortable Header Standard:**
+  - Aktifkan `sortable: true` pada kolom header yang dapat disortir (`headers: [{ label: 'Nama', field: 'name', sortable: true }]`).
+  - Teruskan properti sort aktif ke komponen: `<Table :headers="headers" :data="items.data" :sort="params?.sort" :sort-direction="params?.direction" :action="true">`.
+  - Komponen `<Table>` secara otomatis menangani toggle sorting (asc/desc), visual ikon (`faSort`, `faSortUp`, `faSortDown`), dan request navigasi Inertia (`router.get`) dengan mempertahankan query filter dan scroll.
+- **Backend Sortable Integration:**
+  - Model Eloquent WAJIB menggunakan trait `App\Trait\SortableModel` dan mendeklarasikan whitelist kolom yang dapat diurutkan pada properti `protected array $sortable = [...]`.
+  - Form Request (`Get{Entity}Request`) WAJIB memvalidasi parameter `sort` (`nullable|string`) dan `direction` (`nullable|in:asc,desc`).
+  - Controller `index()` WAJIB menerapkan method `->sortable($request->get('sort', 'updated_at'), $request->get('direction', 'desc'))` pada query builder dan mengirimkan `params` ke Inertia props.
+- **Empty State Terpusat:** Penanganan *empty state* ("data tidak ditemukan") dikelola terpusat di level komponen `<Table>`. DILARANG menduplikasi blok `v-if="data.length === 0"` manual di masing-masing page.
 
 **6. Pemanfaatan Maksimal Komponen Bawaan Proyek**
 - AI Agent WAJIB membaca dan mematuhi panduan `AGENTS.md` di folder `resources/js/Components/` dan mengutamakan komponen bawaan (`TextField`, `DropdownField`, `NumberField`, `SelectionGroupField`, `Switch`, `Table`, `Pagination`, `Widget`, `Modal`, dll) sebelum membuat markup baru.
-
-
-

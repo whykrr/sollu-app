@@ -36,7 +36,6 @@ class BillingController extends Controller
         return Inertia::render('Settings/Billing/Index', [
             'subscription' => $activeSubscription,
             'pendingInvoice' => $pendingInvoice,
-            'maxOutlets' => $business->maxOutletsAllowed(),
             'invoices' => $invoices->paginate($req->get('perpage', 20)),
         ]);
     }
@@ -57,16 +56,30 @@ class BillingController extends Controller
             ->where('due_date', '>', Carbon::now())
             ->first();
 
-        $plans = SubscriptionPlan::getAllCached()
-            ->filter(function ($plan) use ($subscription) {
-                return $plan->is_active && ($plan->is_public || ($subscription?->plan_id && $plan->id === $subscription->plan_id));
-            })
-            ->values();
+        $allCachedPlans = SubscriptionPlan::getAllCached();
+        $businessId = $business->id;
+
+        $assignedCustomPlans = $allCachedPlans->filter(function ($plan) use ($businessId) {
+            return $plan->is_active && $plan->business_id === $businessId;
+        })->values();
+
+        $isCustomCatalog = $assignedCustomPlans->isNotEmpty();
+
+        if ($isCustomCatalog) {
+            $plans = $allCachedPlans->filter(function ($plan) use ($businessId, $subscription) {
+                return $plan->is_active && ($plan->business_id === $businessId || ($subscription?->plan_id && $plan->id === $subscription->plan_id));
+            })->values();
+        } else {
+            $plans = $allCachedPlans->filter(function ($plan) use ($subscription) {
+                return $plan->is_active && $plan->business_id === null && ($plan->is_public || ($subscription?->plan_id && $plan->id === $subscription->plan_id));
+            })->values();
+        }
 
         return Inertia::render('Settings/Billing/Plans', [
             'subscription' => $subscription,
             'plans' => $plans,
             'invoice' => $invoice,
+            'isCustomCatalog' => $isCustomCatalog,
         ]);
     }
 
@@ -98,6 +111,20 @@ class BillingController extends Controller
                 ->with(FlashDataVariable::WARNING->value, 'Paket langganan ini sudah tidak aktif.');
         }
 
+        if ($plan->business_id !== null && $plan->business_id !== $business->id) {
+            return redirect()->route('settings.billing.plans')
+                ->with(FlashDataVariable::WARNING->value, 'Anda tidak memiliki akses ke paket langganan ini.');
+        }
+
+        $assignedCustomPlansCount = SubscriptionPlan::getAllCached()
+            ->filter(fn ($p) => $p->is_active && $p->business_id === $business->id)
+            ->count();
+
+        if ($assignedCustomPlansCount > 0 && $plan->business_id !== $business->id && $subscription?->plan_id !== $plan->id) {
+            return redirect()->route('settings.billing.plans')
+                ->with(FlashDataVariable::WARNING->value, 'Bisnis Anda terikat pada paket kustom khusus. Silakan pilih paket yang tersedia untuk akun Anda.');
+        }
+
         $manualPaymentMethods = \App\Models\Master\SubscriptionManualPaymentMethod::where('is_active', true)
             ->orderBy('bank_name')
             ->get();
@@ -109,6 +136,5 @@ class BillingController extends Controller
             'manualPaymentMethods' => $manualPaymentMethods,
             'isMidtransEnabled' => SystemSetting::isMidtransEnabled(),
         ]);
-
     }
 }

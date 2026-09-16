@@ -18,11 +18,7 @@
 
         <Table :headers="headers" :data="modifiers.data" :action="true">
             <template #type="{ row }">
-                {{
-                    row.selection_type === 'single'
-                        ? 'Pilih Satu'
-                        : 'Pilih Banyak'
-                }}
+                {{ row.selection_type === 'single' ? 'Pilih Satu' : 'Pilih Banyak' }}
             </template>
             <template #options_count="{ row }">
                 {{ row.options_count ?? 0 }}
@@ -60,27 +56,27 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
-import MainPage from '@/Components/UI/MainPage.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { debounce } from 'lodash';
-import { useModalStore } from '@/store/notification';
-import { usePopUpStore } from '@/store/popup';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import ModifierForm from './Components/ModifierForm.vue';
+import { ref, watch } from 'vue'
+import { router } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { debounce } from 'lodash'
+import { useModalStore } from '@/store/notification'
+import { usePopUpStore } from '@/store/popup'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import ModifierForm from './Components/ModifierForm.vue'
 
 const props = defineProps({
     modifiers: Object,
     filters: Object,
-});
+})
 
-const modalStore = useModalStore();
-const popUpStore = usePopUpStore();
+const modalStore = useModalStore()
+const popUpStore = usePopUpStore()
 
 const headers = [
     { label: 'Nama Grup', field: 'name', sortable: true },
@@ -96,20 +92,20 @@ const headers = [
         slot: 'options_count',
         sortable: false,
     },
-];
+]
 
-const search = ref(props.filters?.search || '');
+const search = ref(props.filters?.search || '')
 
 watch(
     search,
-    debounce((newVal) => {
+    debounce(newVal => {
         router.get(
             route('master.modifiers.index'),
             { ...route().params, search: newVal, page: 1 },
-            { preserveState: true, preserveScroll: true },
-        );
-    }, 500),
-);
+            { preserveState: true, preserveScroll: true }
+        )
+    }, 500)
+)
 
 const openModal = (modifier = null) => {
     popUpStore.open({
@@ -117,10 +113,10 @@ const openModal = (modifier = null) => {
         size: 'lg',
         component: ModifierForm,
         props: { modifier },
-    });
-};
+    })
+}
 
-const deleteModifier = (id) => {
-    modalStore.openModalDelete(route('master.modifiers.destroy', id));
-};
+const deleteModifier = id => {
+    modalStore.openModalDelete(route('master.modifiers.destroy', id))
+}
 </script>

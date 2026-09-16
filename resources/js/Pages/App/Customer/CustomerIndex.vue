@@ -6,10 +6,7 @@
                     <FontAwesomeIcon :icon="faDownload" />
                     Ekspor Data
                 </button>
-                <button
-                    class="btn btn-flat btn-sm"
-                    @click="showImportModal = true"
-                >
+                <button class="btn btn-flat btn-sm" @click="showImportModal = true">
                     <FontAwesomeIcon :icon="faUpload" />
                     Impor Data
                 </button>
@@ -36,9 +33,7 @@
                 {{ row.email || '-' }}
             </template>
             <template #status="{ row }">
-                <span v-if="row.is_active" class="badge badge-success"
-                    >Aktif</span
-                >
+                <span v-if="row.is_active" class="badge badge-success">Aktif</span>
                 <span v-else class="badge badge-neutral-500">Tidak Aktif</span>
             </template>
             <template #actions="{ row }">
@@ -50,11 +45,7 @@
                     >
                         <FontAwesomeIcon :icon="faEye" />
                     </button>
-                    <button
-                        class="btn btn-flat btn-sm"
-                        title="Ubah Data"
-                        @click="openEdit(row)"
-                    >
+                    <button class="btn btn-flat btn-sm" title="Ubah Data" @click="openEdit(row)">
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
@@ -89,20 +80,20 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { router } from '@inertiajs/vue3';
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue';
-import CustomerFilter from './Components/CustomerFilter.vue';
-import CustomerFormPopUp from './Components/CustomerFormPopUp.vue';
-import CustomerDetailPopUp from './Components/CustomerDetailPopUp.vue';
-import { usePopUpStore } from '@/store/popup';
-import { useModalStore } from '@/store/notification';
+import { ref, computed } from 'vue'
+import { router } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue'
+import CustomerFilter from './Components/CustomerFilter.vue'
+import CustomerFormPopUp from './Components/CustomerFormPopUp.vue'
+import CustomerDetailPopUp from './Components/CustomerDetailPopUp.vue'
+import { usePopUpStore } from '@/store/popup'
+import { useModalStore } from '@/store/notification'
 
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faPlus,
     faPencil,
@@ -110,9 +101,9 @@ import {
     faEye,
     faUpload,
     faDownload,
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/free-solid-svg-icons'
 
-const popUpStore = usePopUpStore();
+const popUpStore = usePopUpStore()
 
 const props = defineProps({
     customers: {
@@ -123,16 +114,16 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
-const showImportModal = ref(false);
+const showImportModal = ref(false)
 
 const headers = [
     { label: 'Nama', field: 'name', slot: 'name', sortable: true },
     { label: 'No. Telepon', field: 'phone', slot: 'phone', sortable: false },
     { label: 'Email', field: 'email', slot: 'email', sortable: false },
     { label: 'Status', field: 'is_active', slot: 'status', sortable: false },
-];
+]
 
 const tableData = computed(() => {
     return (
@@ -144,8 +135,8 @@ const tableData = computed(() => {
             total: 0,
             per_page: 20,
         }
-    );
-});
+    )
+})
 
 // Actions
 const openCreate = () => {
@@ -153,46 +144,46 @@ const openCreate = () => {
         title: 'Tambah Pelanggan',
         size: 'md',
         component: CustomerFormPopUp,
-    });
-};
+    })
+}
 
-const openEdit = (customer) => {
+const openEdit = customer => {
     popUpStore.open({
         title: 'Ubah Data Pelanggan',
         size: 'md',
         component: CustomerFormPopUp,
         props: { customer },
-    });
-};
+    })
+}
 
-const openDetail = (customer) => {
+const openDetail = customer => {
     popUpStore.open({
         title: 'Detail Pelanggan',
         size: 'xl',
         component: CustomerDetailPopUp,
         props: { customer },
         events: {
-            edit: (cust) => {
+            edit: cust => {
                 // When "Ubah Data" is clicked inside Detail Popup
-                openEdit(cust);
+                openEdit(cust)
             },
         },
-    });
-};
+    })
+}
 
-const archiveCustomer = (id) => {
-    modal.openModalDelete(route('customers.destroy', id));
-};
+const archiveCustomer = id => {
+    modal.openModalDelete(route('customers.destroy', id))
+}
 
 const exportCsv = () => {
     router.get(
         route('customers.export', props.filters),
         {},
-        { preserveScroll: true, preserveState: true },
-    );
-};
+        { preserveScroll: true, preserveState: true }
+    )
+}
 
-const modal = useModalStore();
+const modal = useModalStore()
 
 // We overwrite the native route in template context for safe testing
 // window.route = window.route || ((name) => '#');

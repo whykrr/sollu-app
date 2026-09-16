@@ -15,18 +15,18 @@
 </template>
 
 <script setup>
-import { ref, toRefs } from 'vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { ref, toRefs } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 defineOptions({
     inheritAttrs: false,
-});
+})
 
 const props = defineProps({
     modelValue: { type: [String, Number], default: '' },
     icon: { type: [Array, Object], default: null },
     inputClass: { type: String, default: '' },
-});
+})
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 </script>

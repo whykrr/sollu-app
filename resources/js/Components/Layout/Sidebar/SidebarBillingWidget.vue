@@ -15,9 +15,7 @@
             Masa
             {{ subscription ? 'langganan' : 'uji coba gratis' }}
             anda akan berakhir dalam
-            <span class="font-semibold text-slate-800"
-                >{{ daysLeft }} hari</span
-            >
+            <span class="font-semibold text-slate-800">{{ daysLeft }} hari</span>
         </div>
         <Link
             v-if="!subscription"
@@ -28,7 +26,12 @@
         </Link>
         <Link
             v-else
-            :href="route('settings.billing.checkout', { plan_id: subscription?.plan?.id, is_renewal: 1 })"
+            :href="
+                route('settings.billing.checkout', {
+                    plan_id: subscription?.plan?.id,
+                    is_renewal: 1,
+                })
+            "
             class="btn btn-outline-info btn-sm justify-center w-full mt-1"
         >
             Perpanjang Langganan
@@ -37,44 +40,44 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { gapDaysFromNow } from '@/Composable/date';
-import { useAuth } from '@/Composable/useAuth';
-import { faBolt } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue'
+import { gapDaysFromNow } from '@/Composable/date'
+import { useAuth } from '@/Composable/useAuth'
+import { faBolt } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { Link, usePage } from '@inertiajs/vue3'
 
-const { business, subscription } = useAuth();
-const page = usePage();
+const { business, subscription } = useAuth()
+const page = usePage()
 
 const shouldShowWidget = computed(() => {
     // Sembunyikan widget jika ada invoice perpanjangan yang belum dibayar
     if (page.props.auth.has_pending_renewal_invoice) {
-        return false;
+        return false
     }
 
     // Tampilkan selalu jika masih dalam masa uji coba (tidak ada subscription aktif)
     if (!subscription.value) {
-        return true;
+        return true
     }
 
     // Jika ada subscription, tampilkan hanya jika sisa hari kurang dari 15
     if (subscription.value.expired_at) {
-        return gapDaysFromNow(subscription.value.expired_at) < 15;
+        return gapDaysFromNow(subscription.value.expired_at) < 15
     }
 
-    return false;
-});
+    return false
+})
 
 const daysLeft = computed(() => {
     if (subscription.value && subscription.value.expired_at) {
-        return gapDaysFromNow(subscription.value.expired_at);
+        return gapDaysFromNow(subscription.value.expired_at)
     }
 
     if (business.value && business.value.trial_end_at) {
-        return gapDaysFromNow(business.value.trial_end_at);
+        return gapDaysFromNow(business.value.trial_end_at)
     }
 
-    return 0;
-});
+    return 0
+})
 </script>

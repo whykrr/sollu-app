@@ -9,10 +9,7 @@
                             v-model="formFilters.outlet"
                             :icon="faStore"
                             class="sm"
-                            :options="[
-                                { value: '', label: 'Semua Outlet' },
-                                ...outletOptions,
-                            ]"
+                            :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
                             @change="applyFilters"
                         />
                     </div>
@@ -32,16 +29,10 @@
                         />
                     </div>
                     <div class="flex items-center gap-2 ml-auto">
-                        <button
-                            class="btn btn-outline-primary btn-sm"
-                            @click="exportPdf"
-                        >
+                        <button class="btn btn-outline-primary btn-sm" @click="exportPdf">
                             <FontAwesomeIcon :icon="faFilePdf" /> Ekspor PDF
                         </button>
-                        <button
-                            class="btn btn-outline-success btn-sm"
-                            @click="exportCsv"
-                        >
+                        <button class="btn btn-outline-success btn-sm" @click="exportCsv">
                             <FontAwesomeIcon :icon="faFileCsv" /> Ekspor CSV
                         </button>
                     </div>
@@ -68,9 +59,7 @@
                             <td>{{ formatDateTime(item.opened_at) }}</td>
                             <td>
                                 {{
-                                    item.closed_at
-                                        ? formatDateTime(item.closed_at)
-                                        : 'Belum Tutup'
+                                    item.closed_at ? formatDateTime(item.closed_at) : 'Belum Tutup'
                                 }}
                             </td>
                             <td>{{ item.cashier_name }}</td>
@@ -104,78 +93,81 @@
                     </tbody>
                 </table>
             </div>
-                <Pagination class="mt-4" :links="shifts.links" :from="shifts.from" :to="shifts.to" :total="shifts.total" :per-page="shifts.per_page" />
+            <Pagination
+                class="mt-4"
+                :links="shifts.links"
+                :from="shifts.from"
+                :to="shifts.to"
+                :total="shifts.total"
+                :per-page="shifts.per_page"
+            />
         </div>
     </MainPage>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
-import {
-    faFileCsv,
-    faFilePdf,
-    faStore,
-} from '@fortawesome/free-solid-svg-icons';
-import MainPage from '@/Components/UI/MainPage.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
-import { useAuth } from '@/Composable/useAuth';
-import { formatIDR } from '@/Composable/currency-format';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { computed } from 'vue'
+import { useForm, router } from '@inertiajs/vue3'
+import { faFileCsv, faFilePdf, faStore } from '@fortawesome/free-solid-svg-icons'
+import MainPage from '@/Components/UI/MainPage.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
+import { useAuth } from '@/Composable/useAuth'
+import { formatIDR } from '@/Composable/currency-format'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 const props = defineProps({
     filters: Object,
     shifts: Object,
-});
+})
 
-const { outlets: userOutlets } = useAuth();
+const { outlets: userOutlets } = useAuth()
 
 const outletOptions = computed(() => {
-    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return [];
-    return userOutlets.value.map((store) => ({
+    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []
+    return userOutlets.value.map(store => ({
         value: store.id,
         label: store.name,
-    }));
-});
+    }))
+})
 
 const formFilters = useForm({
     outlet: props.filters?.outlet ?? '',
     start_date: props.filters?.start_date ?? '',
     end_date: props.filters?.end_date ?? '',
-});
+})
 
 const applyFilters = () => {
     formFilters.get(route('reports.cashiers.index'), {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 
-const formatDateTime = (dateString) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
+const formatDateTime = dateString => {
+    if (!dateString) return '-'
+    const date = new Date(dateString)
     return date.toLocaleString('id-ID', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-    });
-};
+    })
+}
 
 const exportPdf = () => {
     router.post(route('reports.cashiers.export.pdf'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
-    });
-};
+    })
+}
 
 const exportCsv = () => {
     router.post(route('reports.cashiers.export.csv'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
-    });
-};
+    })
+}
 </script>

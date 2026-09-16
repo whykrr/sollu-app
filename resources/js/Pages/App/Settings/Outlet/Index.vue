@@ -16,26 +16,8 @@
                 <div class="flex-1">
                     <Filter :filters="params" />
                 </div>
-                <div class="flex items-center justify-end gap-3">
-                    <div
-                        v-if="limit"
-                        class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border"
-                    >
-                        Kuota Outlet:
-                        <span class="text-slate-800">{{ limit.current }}</span>
-                        / <span class="text-slate-800">{{ limit.max }}</span>
-                    </div>
-                </div>
             </div>
         </template>
-
-        <!-- Modal Upgrade Limit -->
-        <LimitUpgradeModal
-            :show="showUpgradeModal"
-            :limit="limit"
-            :subscription="subscription"
-            @close="showUpgradeModal = false"
-        />
 
         <!-- Modal Tagihan Penambahan Outlet Belum Dibayar -->
         <UnpaidInvoiceModal
@@ -79,33 +61,24 @@
                                     v-if="outlet.is_main_outlet"
                                     class="text-xs font-medium text-amber-600 flex items-center gap-1"
                                 >
-                                    <FontAwesomeIcon
-                                        :icon="faStar"
-                                        class="text-[10px]"
-                                    />
+                                    <FontAwesomeIcon :icon="faStar" class="text-[10px]" />
                                     Outlet Utama
                                 </span>
-                                <span v-else class="text-xs text-slate-500">
-                                    Cabang
-                                </span>
+                                <span v-else class="text-xs text-slate-500"> Cabang </span>
                             </div>
                         </div>
                         <span
                             v-if="outlet.is_active"
                             class="badge badge-success text-[11px] font-semibold shrink-0 inline-flex items-center gap-1"
                         >
-                            <span
-                                class="size-1.5 rounded-full bg-emerald-500 animate-pulse"
-                            ></span>
+                            <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             Aktif
                         </span>
                         <span
                             v-else
                             class="badge badge-danger text-[11px] font-semibold shrink-0 inline-flex items-center gap-1"
                         >
-                            <span
-                                class="size-1.5 rounded-full bg-rose-500"
-                            ></span>
+                            <span class="size-1.5 rounded-full bg-rose-500"></span>
                             Nonaktif
                         </span>
                     </div>
@@ -124,9 +97,7 @@
                             </span>
                         </div>
                         <div class="flex justify-between gap-2">
-                            <span class="text-slate-400 shrink-0"
-                                >Telepon:</span
-                            >
+                            <span class="text-slate-400 shrink-0">Telepon:</span>
                             <span class="text-slate-700 font-mono">
                                 {{ outlet.phone || '-' }}
                             </span>
@@ -221,12 +192,10 @@
             >
                 <FontAwesomeIcon :icon="faStore" />
             </div>
-            <h3 class="text-base font-semibold text-slate-800 mb-1">
-                Belum Ada Outlet Terdaftar
-            </h3>
+            <h3 class="text-base font-semibold text-slate-800 mb-1">Belum Ada Outlet Terdaftar</h3>
             <p class="text-xs text-slate-500 max-w-sm mb-6">
-                Daftarkan cabang atau outlet baru untuk mengelola operasional
-                dan transaksi bisnis Anda.
+                Daftarkan cabang atau outlet baru untuk mengelola operasional dan transaksi bisnis
+                Anda.
             </p>
             <button
                 class="btn btn-main px-4 py-2 rounded-lg flex items-center gap-2"
@@ -249,9 +218,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { ref } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faPencil,
     faPlus,
@@ -259,63 +228,56 @@ import {
     faStore,
     faToggleOff,
     faToggleOn,
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/free-solid-svg-icons'
 
-import MainPage from '@/Components/UI/MainPage.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import Filter from './Components/Filter.vue';
-import Wizard from './Components/Wizard.vue';
-import LimitUpgradeModal from './Components/LimitUpgradeModal.vue';
-import UnpaidInvoiceModal from './Components/UnpaidInvoiceModal.vue';
-import EditOutletPopUp from './Components/EditOutletPopUp.vue';
-import { formatDateTimeSimple } from '@/Composable/date';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import { usePopUpStore } from '@/store/popup';
-import { useModalStore } from '@/store/notification';
+import MainPage from '@/Components/UI/MainPage.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import Filter from './Components/Filter.vue'
+import Wizard from './Components/Wizard.vue'
+import UnpaidInvoiceModal from './Components/UnpaidInvoiceModal.vue'
+import EditOutletPopUp from './Components/EditOutletPopUp.vue'
+import { formatDateTimeSimple } from '@/Composable/date'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import { usePopUpStore } from '@/store/popup'
+import { useModalStore } from '@/store/notification'
 
-const popUpStore = usePopUpStore();
-const modalStore = useModalStore();
+const popUpStore = usePopUpStore()
+const modalStore = useModalStore()
 
 const props = defineProps({
     outlets: Object,
     params: Object,
-    limit: Object,
     subscription: Object,
     proratedAmount: Number,
-});
+})
 
-const showUpgradeModal = ref(false);
-const showUnpaidModal = ref(false);
-const unpaidInvoice = ref({ number: '', url: '' });
+const showUnpaidModal = ref(false)
+const unpaidInvoice = ref({ number: '', url: '' })
 
 const handleAddOutlet = () => {
-    if (props.limit?.reached) {
-        showUpgradeModal.value = true;
-    } else {
-        popUpStore.open({
-            title: 'Tambahkan Outlet Baru',
-            size: 'lg',
-            component: Wizard,
-            props: {
-                subscription: props.subscription,
-                proratedAmount: props.proratedAmount,
-            },
-        });
-    }
-};
+    popUpStore.open({
+        title: 'Tambahkan Outlet Baru',
+        size: 'lg',
+        component: Wizard,
+        props: {
+            subscription: props.subscription,
+            proratedAmount: props.proratedAmount,
+        },
+    })
+}
 
-const openEdit = (outlet) => {
+const openEdit = outlet => {
     popUpStore.open({
         title: 'Ubah Data Outlet',
         component: EditOutletPopUp,
         props: {
             outlet,
         },
-    });
-};
+    })
+}
 
-const confirmSetMainOutlet = (outlet) => {
-    if (!outlet.is_active) return;
+const confirmSetMainOutlet = outlet => {
+    if (!outlet.is_active) return
 
     modalStore.confirm({
         title: 'Jadikan Outlet Utama?',
@@ -329,21 +291,21 @@ const confirmSetMainOutlet = (outlet) => {
                 {
                     preserveScroll: true,
                     only: ['outlets', 'flash'],
-                },
-            );
+                }
+            )
         },
-    });
-};
+    })
+}
 
-const disabledOutlet = (id) => {
+const disabledOutlet = id => {
     router.delete(route('settings.outlets.disabled', { outlet: id }), {
         only: ['outlets'],
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 
-const enabledOutlet = (id) => {
+const enabledOutlet = id => {
     router.put(
         route('settings.outlets.enabled', { outlet: id }),
         {},
@@ -351,16 +313,16 @@ const enabledOutlet = (id) => {
             only: ['outlets', 'errors'],
             preserveState: true,
             preserveScroll: true,
-            onError: (errors) => {
+            onError: errors => {
                 if (errors.unpaid_invoice_number) {
                     unpaidInvoice.value = {
                         number: errors.unpaid_invoice_number,
                         url: errors.unpaid_invoice_url,
-                    };
-                    showUnpaidModal.value = true;
+                    }
+                    showUnpaidModal.value = true
                 }
             },
-        },
-    );
-};
+        }
+    )
+}
 </script>

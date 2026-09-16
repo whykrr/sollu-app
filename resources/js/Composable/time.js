@@ -14,15 +14,18 @@ export function formatDateTime(dateString) {
             hour12: true,
         })
     } else {
-        return date.toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        }) + ' | ' +
+        return (
+            date.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            }) +
+            ' | ' +
             date.toLocaleTimeString('id-ID', {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: true,
             })
+        )
     }
 }

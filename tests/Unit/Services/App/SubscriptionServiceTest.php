@@ -27,7 +27,20 @@ class SubscriptionServiceTest extends TestCase
     public function test_it_subscribes_business_to_plan()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $business = Business::first();
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner',
+            'email' => 'test@test.test',
+            'phone' => '08123456789',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
 
         // Create an existing active subscription
         $plan1 = SubscriptionPlan::first();
@@ -74,7 +87,20 @@ class SubscriptionServiceTest extends TestCase
     public function test_it_cancels_subscription()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $business = Business::first();
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = Business::create([
+            'name' => 'Test Business 2',
+            'owner_name' => 'Owner',
+            'email' => 'test2@test.test',
+            'phone' => '08123456789',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
         $plan = SubscriptionPlan::first();
 
         $subscription = Subscription::create([

@@ -21,9 +21,7 @@
                     :disabled="disabled || opt.disabled"
                     @change="toggleValue(opt.value)"
                 />
-                <label :for="getInputId(opt, idx)" class="form-check-label">{{
-                    opt.label
-                }}</label>
+                <label :for="getInputId(opt, idx)" class="form-check-label">{{ opt.label }}</label>
             </div>
         </div>
         <div v-if="feedback" class="text-danger text-xs select-none">
@@ -35,7 +33,7 @@
 <script setup>
 defineOptions({
     inheritAttrs: false,
-});
+})
 
 const props = defineProps({
     label: String,
@@ -64,34 +62,33 @@ const props = defineProps({
         type: [String, Object, Array],
         default: '',
     },
-});
+})
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 
 function getInputId(opt, idx) {
-    const prefix = props.name || 'chk_';
-    const safeVal = String(opt.value ?? idx).replace(/[^a-zA-Z0-9_-]/g, '_');
-    return `${prefix}${idx}_${safeVal}`;
+    const prefix = props.name || 'chk_'
+    const safeVal = String(opt.value ?? idx).replace(/[^a-zA-Z0-9_-]/g, '_')
+    return `${prefix}${idx}_${safeVal}`
 }
 
 function isChecked(value) {
     if (!props.modelValue || !Array.isArray(props.modelValue)) {
-        return false;
+        return false
     }
-    return props.modelValue.includes(value);
+    return props.modelValue.includes(value)
 }
 
 function toggleValue(value) {
-    const current = Array.isArray(props.modelValue) ? [...props.modelValue] : [];
-    const index = current.indexOf(value);
+    const current = Array.isArray(props.modelValue) ? [...props.modelValue] : []
+    const index = current.indexOf(value)
 
     if (index === -1) {
-        current.push(value);
+        current.push(value)
     } else {
-        current.splice(index, 1);
+        current.splice(index, 1)
     }
 
-    emit('update:modelValue', current);
+    emit('update:modelValue', current)
 }
 </script>
-

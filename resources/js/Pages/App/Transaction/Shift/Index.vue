@@ -22,19 +22,13 @@
                 {{ formatCurrency(item.opening_cash) }}
             </template>
             <template #closing_cash="{ item }">
-                {{
-                    item.status === 'closed'
-                        ? formatCurrency(item.closing_cash)
-                        : '-'
-                }}
+                {{ item.status === 'closed' ? formatCurrency(item.closing_cash) : '-' }}
             </template>
             <template #created_at="{ item }">
                 <span>{{ formatDateTimeSimple(item.created_at) }}</span>
             </template>
             <template #closed_at="{ item }">
-                <span>{{
-                    item.closed_at ? formatDateTimeSimple(item.closed_at) : '-'
-                }}</span>
+                <span>{{ item.closed_at ? formatDateTimeSimple(item.closed_at) : '-' }}</span>
             </template>
             <template #status="{ item }">
                 <span
@@ -72,20 +66,20 @@
 </template>
 
 <script setup>
-import { faEye } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { router, usePage } from '@inertiajs/vue3';
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import Filter from './Components/Filter.vue';
-import { formatDateTimeSimple } from '@/Composable/date.js';
-import { formatIDR as formatCurrency } from '@/Composable/currency-format.js';
-import { useAuth } from '@/Composable/useAuth.js';
+import { faEye } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { router, usePage } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import Filter from './Components/Filter.vue'
+import { formatDateTimeSimple } from '@/Composable/date.js'
+import { formatIDR as formatCurrency } from '@/Composable/currency-format.js'
+import { useAuth } from '@/Composable/useAuth.js'
 
-const page = usePage();
-const { can } = useAuth();
+const page = usePage()
+const { can } = useAuth()
 
 const props = defineProps({
     shifts: {
@@ -96,7 +90,7 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
 const headers = [
     {
@@ -120,17 +114,17 @@ const headers = [
         slot: 'closing_cash',
         sortable: true,
     },
-];
+]
 
-const formatStatus = (status) => {
+const formatStatus = status => {
     const map = {
         open: 'Buka',
         closed: 'Tutup',
-    };
-    return map[status] || status;
-};
+    }
+    return map[status] || status
+}
 
-const openDetail = (item) => {
-    router.visit(route('transactions.shifts.show', item.id));
-};
+const openDetail = item => {
+    router.visit(route('transactions.shifts.show', item.id))
+}
 </script>

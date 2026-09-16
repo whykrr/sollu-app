@@ -57,15 +57,8 @@
                 />
             </div>
 
-            <NumberField
-                v-model="form.max_outlet"
-                label="Batas Maksimal Outlet (Kosongkan jika Unlimited)"
-                placeholder="cth. 10"
-                :feedback="form.errors.max_outlet"
-            />
-
-            <!-- Toggle switches for status, public, and custom -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+            <!-- Toggle switches for status and public catalog -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                 <div
                     class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-200"
                 >
@@ -85,15 +78,116 @@
                     </div>
                     <Switch v-model="form.is_public" />
                 </div>
+            </div>
+        </div>
 
-                <div
-                    class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-200"
+        <!-- Penugasan Khusus Merchant (Non-Katalog / Enterprise) -->
+        <div class="bg-white border border-slate-200 rounded-lg p-3 flex flex-col gap-2.5">
+            <div class="border-b border-slate-100 pb-1.5 flex items-center justify-between">
+                <div>
+                    <h4 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                        <FontAwesomeIcon :icon="faBuilding" class="text-main" />
+                        <span>Penugasan Khusus Merchant (Opsional)</span>
+                    </h4>
+                    <p class="text-xs text-slate-500">
+                        Pilih merchant tertentu untuk paket non-katalog / custom B2B eksklusif
+                    </p>
+                </div>
+                <span
+                    v-if="selectedMerchant"
+                    class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full"
                 >
-                    <div>
-                        <div class="text-xs font-semibold text-slate-800">Paket Custom</div>
-                        <div class="text-[11px] text-slate-500">Khusus / B2B</div>
+                    Terassign
+                </span>
+            </div>
+
+            <!-- Merchant Already Selected Card -->
+            <div
+                v-if="selectedMerchant"
+                class="flex items-center justify-between p-2.5 bg-purple-50/70 border border-purple-200 rounded-lg"
+            >
+                <div class="flex items-center gap-2.5">
+                    <div
+                        class="w-9 h-9 rounded-lg bg-purple-200 text-purple-800 flex items-center justify-center font-bold text-sm shrink-0"
+                    >
+                        {{ (selectedMerchant.name || 'M').charAt(0).toUpperCase() }}
                     </div>
-                    <Switch v-model="form.is_custom" />
+                    <div>
+                        <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <span>{{ selectedMerchant.name }}</span>
+                            <span
+                                v-if="selectedMerchant.status"
+                                class="text-[9px] px-1.5 py-0.2 rounded font-semibold uppercase tracking-wider"
+                                :class="
+                                    selectedMerchant.status === 'active'
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : 'bg-slate-200 text-slate-600'
+                                "
+                            >
+                                {{ selectedMerchant.status }}
+                            </span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                            <span v-if="selectedMerchant.owner_name"
+                                >Pemilik: {{ selectedMerchant.owner_name }}</span
+                            >
+                            <span v-if="selectedMerchant.email"
+                                >• {{ selectedMerchant.email }}</span
+                            >
+                        </div>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    class="btn btn-outline-danger btn-xs text-[11px]"
+                    title="Hapus penugasan merchant"
+                    @click="clearMerchantAssignment"
+                >
+                    <FontAwesomeIcon :icon="faXmark" class="mr-1" />
+                    Hapus
+                </button>
+            </div>
+
+            <!-- Merchant Search Input -->
+            <div v-else class="space-y-1">
+                <AsyncSelectField
+                    v-model="form.business_id"
+                    label=""
+                    placeholder="Ketik nama bisnis, nama pemilik, atau email merchant..."
+                    :api-url="route('cockpit.merchants.search')"
+                    search-param-name="query"
+                    :min-chars="2"
+                    :feedback="form.errors.business_id"
+                    @select="onSelectMerchant"
+                >
+                    <template #option="{ item }">
+                        <div class="flex items-center justify-between py-0.5">
+                            <div>
+                                <div class="text-xs font-bold text-slate-800">
+                                    {{ item.name }}
+                                </div>
+                                <div class="text-[11px] text-slate-500">
+                                    {{ item.owner_name ? `Pemilik: ${item.owner_name}` : '' }}
+                                    {{ item.email ? ` • ${item.email}` : '' }}
+                                </div>
+                            </div>
+                            <span
+                                v-if="item.status"
+                                class="text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider"
+                                :class="
+                                    item.status === 'active'
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : 'bg-slate-100 text-slate-600'
+                                "
+                            >
+                                {{ item.status }}
+                            </span>
+                        </div>
+                    </template>
+                </AsyncSelectField>
+                <div class="text-[11px] text-slate-400">
+                    Kosongkan jika paket ini diperuntukkan sebagai paket umum (bukan penugasan
+                    khusus).
                 </div>
             </div>
         </div>
@@ -185,8 +279,9 @@ import { useForm } from '@inertiajs/vue3'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
 import Switch from '@/Components/Form/Switch.vue'
+import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faTrash, faBuilding, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { usePopUpStore } from '@/store/popup'
 import axios from 'axios'
 
@@ -202,16 +297,16 @@ const isMounted = ref(false)
 const loading = ref(Boolean(props.planId))
 const isEdit = computed(() => Boolean(props.planId))
 const planCode = ref('')
+const selectedMerchant = ref(null)
 
 const form = useForm({
     code: '',
     name: '',
     price_per_outlet: 0,
     yearly_discount_percent: 0,
-    max_outlet: null,
     is_active: true,
     is_public: true,
-    is_custom: false,
+    business_id: null,
     features: [],
 })
 
@@ -226,10 +321,12 @@ onMounted(async () => {
             form.name = data.name
             form.price_per_outlet = Number(data.price_per_outlet) || 0
             form.yearly_discount_percent = Number(data.yearly_discount_percent) || 0
-            form.max_outlet = data.max_outlet !== null ? Number(data.max_outlet) : null
             form.is_active = Boolean(data.is_active)
             form.is_public = Boolean(data.is_public ?? true)
-            form.is_custom = Boolean(data.is_custom ?? false)
+            form.business_id = data.business_id || null
+            if (data.business) {
+                selectedMerchant.value = data.business
+            }
             form.features = Array.isArray(data.features) ? data.features.map(f => ({ ...f })) : []
         } catch (err) {
             console.error('Failed to load plan details:', err)
@@ -238,6 +335,19 @@ onMounted(async () => {
         }
     }
 })
+
+const onSelectMerchant = merchant => {
+    if (merchant) {
+        selectedMerchant.value = merchant
+        form.business_id = merchant.id
+        form.is_public = false
+    }
+}
+
+const clearMerchantAssignment = () => {
+    selectedMerchant.value = null
+    form.business_id = null
+}
 
 const addFeature = () => {
     if (!form.features) {

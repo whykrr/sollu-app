@@ -10,15 +10,13 @@
             @input="emit('update:modelValue', $event.target.value)"
         />
         <span v-if="error" class="form-feedback text-danger">{{ error }}</span>
-        <span v-else-if="success" class="form-feedback text-success">{{
-            success
-        }}</span>
+        <span v-else-if="success" class="form-feedback text-success">{{ success }}</span>
     </div>
 </template>
 <script setup>
 defineOptions({
     inheritAttrs: false,
-});
+})
 
 const props = defineProps({
     label: String,
@@ -26,6 +24,6 @@ const props = defineProps({
     error: String,
     success: String,
     modelValue: String,
-});
-const emit = defineEmits(['update:modelValue']);
+})
+const emit = defineEmits(['update:modelValue'])
 </script>

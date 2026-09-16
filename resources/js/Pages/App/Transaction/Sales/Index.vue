@@ -58,10 +58,7 @@
                     <span class="font-medium text-gray-900">{{
                         item.transaction_number || item.receipt_number || '-'
                     }}</span>
-                    <span
-                        v-if="item.invoice?.invoice_number"
-                        class="text-xs text-gray-500"
-                    >
+                    <span v-if="item.invoice?.invoice_number" class="text-xs text-gray-500">
                         Inv: {{ item.invoice.invoice_number }}
                     </span>
                 </div>
@@ -80,9 +77,7 @@
                 </div>
             </template>
             <template #total="{ item }">
-                <span class="font-semibold">{{
-                    formatCurrency(item.total)
-                }}</span>
+                <span class="font-semibold">{{ formatCurrency(item.total) }}</span>
             </template>
             <template #status="{ item }">
                 <span
@@ -102,11 +97,8 @@
                     :class="{
                         'badge-success': item.status === 'paid',
                         'badge-danger': item.status === 'unpaid',
-                        'badge-warning':
-                            item.status === 'partial' ||
-                            item.status === 'draft',
-                        'badge-secondary':
-                            item.status === 'cancel' || item.status === 'void',
+                        'badge-warning': item.status === 'partial' || item.status === 'draft',
+                        'badge-secondary': item.status === 'cancel' || item.status === 'void',
                     }"
                 >
                     {{ formatStatus(item.status) }}
@@ -137,26 +129,26 @@
 </template>
 
 <script setup>
-import { faEye, faFileCsv, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { router, usePage } from '@inertiajs/vue3';
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import Filter from './Components/Filter.vue';
-import SalesFormPopUp from './Components/SalesFormPopUp.vue';
-import SalesDetailPopUp from './Components/SalesDetailPopUp.vue';
-import { formatDateTimeSimple } from '@/Composable/date.js';
-import { formatIDR as formatCurrency } from '@/Composable/currency-format.js';
-import { useAuth } from '@/Composable/useAuth.js';
-import { usePopUpStore } from '@/store/popup';
-import { useModalStore } from '@/store/notification.js';
+import { faEye, faFileCsv, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { router, usePage } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import Filter from './Components/Filter.vue'
+import SalesFormPopUp from './Components/SalesFormPopUp.vue'
+import SalesDetailPopUp from './Components/SalesDetailPopUp.vue'
+import { formatDateTimeSimple } from '@/Composable/date.js'
+import { formatIDR as formatCurrency } from '@/Composable/currency-format.js'
+import { useAuth } from '@/Composable/useAuth.js'
+import { usePopUpStore } from '@/store/popup'
+import { useModalStore } from '@/store/notification.js'
 
-const page = usePage();
-const { can } = useAuth();
-const popUpStore = usePopUpStore();
-const modalStore = useModalStore();
+const page = usePage()
+const { can } = useAuth()
+const popUpStore = usePopUpStore()
+const modalStore = useModalStore()
 
 const props = defineProps({
     transactions: {
@@ -167,7 +159,7 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
 const statusTabs = [
     { value: '', label: 'Semua' },
@@ -175,15 +167,15 @@ const statusTabs = [
     { value: 'unpaid', label: 'Belum Lunas' },
     { value: 'paid', label: 'Lunas' },
     { value: 'cancel', label: 'Dibatalkan' },
-];
+]
 
-const changeStatus = (status) => {
+const changeStatus = status => {
     router.get(
         route('transactions.sales.index'),
         { ...props.filters, status },
-        { preserveState: true, preserveScroll: true },
-    );
-};
+        { preserveState: true, preserveScroll: true }
+    )
+}
 
 const headers = [
     {
@@ -202,20 +194,20 @@ const headers = [
         slot: 'payment_status',
         sortable: true,
     },
-];
+]
 
-const formatStatus = (status) => {
+const formatStatus = status => {
     const map = {
         draft: 'Draf',
         unpaid: 'Belum Lunas',
         paid: 'Lunas',
         cancel: 'Dibatalkan',
         void: 'Void',
-    };
-    return map[status] || status;
-};
+    }
+    return map[status] || status
+}
 
-const formatChannel = (channel) => {
+const formatChannel = channel => {
     const map = {
         direct: 'Direct / B2B',
         pos: 'POS Kasir',
@@ -223,11 +215,11 @@ const formatChannel = (channel) => {
         e_commerce: 'E-Commerce',
         wholesale: 'Wholesale',
         custom: 'Custom',
-    };
-    return map[channel] || channel || '-';
-};
+    }
+    return map[channel] || channel || '-'
+}
 
-const openDetail = (item) => {
+const openDetail = item => {
     popUpStore.open({
         title: 'Detail Transaksi',
         component: SalesDetailPopUp,
@@ -235,8 +227,8 @@ const openDetail = (item) => {
         props: {
             transactionId: item.id,
         },
-    });
-};
+    })
+}
 
 const openCreate = () => {
     popUpStore.open({
@@ -244,13 +236,13 @@ const openCreate = () => {
         component: SalesFormPopUp,
         size: 'lg',
         props: {},
-    });
-};
+    })
+}
 
 const exportCsv = () => {
     router.post(route('transactions.sales.export'), props.filters, {
         preserveScroll: true,
         preserveState: true,
-    });
-};
+    })
+}
 </script>

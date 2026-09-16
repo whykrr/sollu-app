@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BusinessStatus;
 use App\Models\Master\Product;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -51,6 +52,7 @@ class Business extends Model
     protected function casts(): array
     {
         return [
+            'status' => BusinessStatus::class,
             'settings' => 'json',
             'trial_end_at' => 'datetime',
         ];
@@ -94,6 +96,14 @@ class Business extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get all custom subscription plans assigned specifically to this Merchant
+     */
+    public function customSubscriptionPlans(): HasMany
+    {
+        return $this->hasMany(SubscriptionPlan::class, 'business_id');
     }
 
     /**
@@ -191,20 +201,6 @@ class Business extends Model
         }
 
         return $this->memoizedActiveSubscription = $subscription;
-    }
-
-    /**
-     * Get the maximum number of outlets allowed for this business.
-     */
-    public function maxOutletsAllowed(): int
-    {
-        $activeSubscription = $this->getActiveSubscriptionWithPlan();
-
-        if (! $activeSubscription || ! $activeSubscription->plan) {
-            return 1;
-        }
-
-        return $activeSubscription->plan->max_outlet ?? 1;
     }
 
     /**

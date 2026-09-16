@@ -28,16 +28,16 @@
     </button>
 </template>
 <script setup>
-import { useModalStore } from '@/store/notification';
-import { faArrowsRotate, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { Link } from '@inertiajs/vue3';
+import { useModalStore } from '@/store/notification'
+import { faArrowsRotate, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { Link } from '@inertiajs/vue3'
 
 defineProps({
     data: Object,
     urlArchive: String,
     urlRestore: String,
     urlDelete: String,
-});
-const modal = useModalStore();
+})
+const modal = useModalStore()
 </script>

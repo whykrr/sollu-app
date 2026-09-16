@@ -1,14 +1,9 @@
 <template>
-    <Modal
-        :show="show"
-        title="Tolak Pembayaran"
-        type="danger"
-        @close="closeModal"
-    >
+    <Modal :show="show" title="Tolak Pembayaran" type="danger" @close="closeModal">
         <div class="flex flex-col gap-4">
             <p>
-                Masukkan alasan penolakan bukti pembayaran. Alasan ini akan
-                dikirimkan ke email merchant.
+                Masukkan alasan penolakan bukti pembayaran. Alasan ini akan dikirimkan ke email
+                merchant.
             </p>
             <TextareaField
                 v-model="form.reason"
@@ -20,11 +15,7 @@
         </div>
 
         <template #footer>
-            <button
-                class="btn btn-outline-main"
-                :disabled="form.processing"
-                @click="closeModal"
-            >
+            <button class="btn btn-outline-main" :disabled="form.processing" @click="closeModal">
                 Batal
             </button>
             <button
@@ -39,9 +30,9 @@
 </template>
 
 <script setup>
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import Modal from '@/Components/Notifications/Modal.vue';
-import { useForm } from '@inertiajs/vue3';
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import Modal from '@/Components/Notifications/Modal.vue'
+import { useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
     show: {
@@ -52,28 +43,28 @@ const props = defineProps({
         type: String,
         default: null,
     },
-});
+})
 
-const emit = defineEmits(['close', 'success']);
+const emit = defineEmits(['close', 'success'])
 
 const form = useForm({
     reason: '',
-});
+})
 
 const closeModal = () => {
-    form.reset();
-    form.clearErrors();
-    emit('close');
-};
+    form.reset()
+    form.clearErrors()
+    emit('close')
+}
 
 const submit = () => {
-    if (!props.invoiceId) return;
+    if (!props.invoiceId) return
 
     form.post(route('cockpit.invoices.reject', props.invoiceId), {
         onSuccess: () => {
-            closeModal();
-            emit('success');
+            closeModal()
+            emit('success')
         },
-    });
-};
+    })
+}
 </script>

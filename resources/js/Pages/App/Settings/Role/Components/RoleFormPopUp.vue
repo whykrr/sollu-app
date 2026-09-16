@@ -15,14 +15,17 @@
         <div class="border-t border-slate-100 pt-2 space-y-2">
             <div>
                 <h3 class="text-sm font-semibold text-neutral-900">Matriks Hak Akses</h3>
-                <p class="text-xs text-neutral-500">Pilih izin yang ingin diberikan pada peran ini.</p>
+                <p class="text-xs text-neutral-500">
+                    Pilih izin yang ingin diberikan pada peran ini.
+                </p>
             </div>
 
             <div
                 v-if="isOwnerRole"
                 class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-700"
             >
-                Peran Pemilik Usaha (Owner) memiliki hak akses penuh ke seluruh sistem dan tidak dapat dikurangi.
+                Peran Pemilik Usaha (Owner) memiliki hak akses penuh ke seluruh sistem dan tidak
+                dapat dikurangi.
             </div>
 
             <div
@@ -40,12 +43,15 @@
                     class="bg-slate-50/70 border border-slate-200 rounded-xl p-3 space-y-2"
                 >
                     <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
-                        <span class="font-semibold text-xs text-neutral-800 uppercase tracking-wider">
+                        <span
+                            class="font-semibold text-xs text-neutral-800 uppercase tracking-wider"
+                        >
                             {{ group.label }}
                         </span>
                         <div class="flex items-center gap-2">
                             <span class="text-[11px] text-neutral-400">
-                                {{ getGroupActiveCount(group) }} / {{ group.permissions.length }} Aktif
+                                {{ getGroupActiveCount(group) }} /
+                                {{ group.permissions.length }} Aktif
                             </span>
                             <button
                                 v-if="!isOwnerRole"
@@ -71,7 +77,9 @@
                             ]"
                             @click="!isOwnerRole && togglePermission(permission.value)"
                         >
-                            <span class="text-xs font-medium text-neutral-800 flex-1 pr-2 select-none">
+                            <span
+                                class="text-xs font-medium text-neutral-800 flex-1 pr-2 select-none"
+                            >
                                 {{ permission.label }}
                             </span>
                             <div class="pointer-events-none shrink-0">
@@ -93,11 +101,7 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex items-center justify-end w-full gap-2">
-                <button
-                    type="button"
-                    class="btn btn-flat"
-                    @click="popUpStore.close()"
-                >
+                <button type="button" class="btn btn-flat" @click="popUpStore.close()">
                     Batal
                 </button>
                 <button
@@ -114,98 +118,98 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import axios from 'axios';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { usePopUpStore } from '@/store/popup';
-import { useEnum } from '@/Composable/useEnum';
+import { ref, computed, onMounted } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import axios from 'axios'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { usePopUpStore } from '@/store/popup'
+import { useEnum } from '@/Composable/useEnum'
 
-import TextField from '@/Components/Form/TextField.vue';
-import Switch from '@/Components/Form/Switch.vue';
+import TextField from '@/Components/Form/TextField.vue'
+import Switch from '@/Components/Form/Switch.vue'
 
 const props = defineProps({
     role: {
         type: Object,
         default: null,
     },
-});
+})
 
-const popUpStore = usePopUpStore();
-const { enums, getGrouped } = useEnum();
-const isMounted = ref(false);
-const isLoadingPermissions = ref(false);
+const popUpStore = usePopUpStore()
+const { enums, getGrouped } = useEnum()
+const isMounted = ref(false)
+const isLoadingPermissions = ref(false)
 
-const isOwnerRole = computed(() => props.role?.name === enums.value?.RoleEnum?.OWNER);
+const isOwnerRole = computed(() => props.role?.name === enums.value?.RoleEnum?.OWNER)
 
 const permissionGroups = computed(() => {
-    return getGrouped('PermissionEnum');
-});
+    return getGrouped('PermissionEnum')
+})
 
-const isPermissionChecked = (value) => {
-    return form.permissions.includes(value);
-};
+const isPermissionChecked = value => {
+    return form.permissions.includes(value)
+}
 
-const togglePermission = (value) => {
-    const index = form.permissions.indexOf(value);
+const togglePermission = value => {
+    const index = form.permissions.indexOf(value)
     if (index === -1) {
-        form.permissions.push(value);
+        form.permissions.push(value)
     } else {
-        form.permissions.splice(index, 1);
+        form.permissions.splice(index, 1)
     }
-};
+}
 
-const getGroupActiveCount = (group) => {
-    if (!group.permissions?.length) return 0;
-    return group.permissions.filter((p) => form.permissions.includes(p.value)).length;
-};
+const getGroupActiveCount = group => {
+    if (!group.permissions?.length) return 0
+    return group.permissions.filter(p => form.permissions.includes(p.value)).length
+}
 
-const isGroupAllSelected = (group) => {
-    if (!group.permissions?.length) return false;
-    return group.permissions.every((p) => form.permissions.includes(p.value));
-};
+const isGroupAllSelected = group => {
+    if (!group.permissions?.length) return false
+    return group.permissions.every(p => form.permissions.includes(p.value))
+}
 
-const toggleGroup = (group) => {
-    const groupVals = group.permissions.map((p) => p.value);
+const toggleGroup = group => {
+    const groupVals = group.permissions.map(p => p.value)
     if (isGroupAllSelected(group)) {
-        form.permissions = form.permissions.filter((val) => !groupVals.includes(val));
+        form.permissions = form.permissions.filter(val => !groupVals.includes(val))
     } else {
-        const merged = new Set([...form.permissions, ...groupVals]);
-        form.permissions = Array.from(merged);
+        const merged = new Set([...form.permissions, ...groupVals])
+        form.permissions = Array.from(merged)
     }
-};
+}
 
 const form = useForm({
     label: props.role?.label || '',
-    permissions: props.role?.permissions?.map((p) => (typeof p === 'string' ? p : p.name)) || [],
-});
+    permissions: props.role?.permissions?.map(p => (typeof p === 'string' ? p : p.name)) || [],
+})
 
 onMounted(async () => {
-    isMounted.value = true;
+    isMounted.value = true
 
     if (props.role?.id && (!props.role.permissions || props.role.permissions.length === 0)) {
-        isLoadingPermissions.value = true;
+        isLoadingPermissions.value = true
         try {
-            const response = await axios.get(route('settings.roles.show', props.role.id));
-            form.permissions = response.data.permissions || [];
+            const response = await axios.get(route('settings.roles.show', props.role.id))
+            form.permissions = response.data.permissions || []
         } catch (error) {
-            console.error('Gagal memuat hak akses peran:', error);
+            console.error('Gagal memuat hak akses peran:', error)
         } finally {
-            isLoadingPermissions.value = false;
+            isLoadingPermissions.value = false
         }
     }
-});
+})
 
 const submit = () => {
     if (props.role) {
         form.put(route('settings.roles.update', props.role.id), {
             onSuccess: () => popUpStore.close(),
-        });
+        })
     } else {
         form.post(route('settings.roles.store'), {
             onSuccess: () => popUpStore.close(),
-        });
+        })
     }
-};
+}
 </script>

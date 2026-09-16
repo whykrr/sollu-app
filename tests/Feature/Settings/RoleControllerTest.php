@@ -27,6 +27,54 @@ class RoleControllerTest extends TestCase
         $this->appDomain = config('domain.app', 'app.sollu.test');
     }
 
+    protected function createMerchantUser(): User
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Merchant Test Business',
+            'owner_name' => 'Merchant Owner',
+            'email' => 'merchant_'.uniqid().'@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $user = User::create([
+            'business_id' => $business->id,
+            'name' => 'Merchant User',
+            'email' => 'user_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+        ]);
+
+        setPermissionsTeamId($business->id);
+
+        \App\Models\Role::create([
+            'business_id' => $business->id,
+            'name' => 'cashier',
+            'label' => 'Kasir',
+            'guard_name' => 'business',
+            'is_default' => true,
+        ]);
+
+        $ownerRole = \App\Models\Role::create([
+            'business_id' => $business->id,
+            'name' => 'owner',
+            'label' => 'Owner',
+            'guard_name' => 'business',
+            'is_default' => true,
+        ]);
+
+        $user->assignRole($ownerRole);
+        $user->givePermissionTo(PermissionEnum::ROLE_VIEW->value);
+
+        return $user;
+    }
+
     protected function subscribeBusinessToPlan(User $user, PlanEnum $planEnum = PlanEnum::BASIC): void
     {
         $plan = SubscriptionPlan::where('code', $planEnum->value)->first();
@@ -49,7 +97,7 @@ class RoleControllerTest extends TestCase
 
     public function test_user_without_permission_cannot_access_role_page(): void
     {
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user);
         $user->syncPermissions([]);
         $user->syncRoles([]);
@@ -62,7 +110,7 @@ class RoleControllerTest extends TestCase
 
     public function test_user_without_plan_feature_is_redirected_with_feature_locked(): void
     {
-        $user = User::first();
+        $user = $this->createMerchantUser();
         setPermissionsTeamId($user->business_id);
 
         // User business is on trial (Micro) which does not have ROLE_PERMISSIONS
@@ -74,7 +122,7 @@ class RoleControllerTest extends TestCase
 
     public function test_authorized_user_can_access_role_page_with_permission_enum(): void
     {
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user);
         setPermissionsTeamId($user->business_id);
 
@@ -92,7 +140,7 @@ class RoleControllerTest extends TestCase
 
     public function test_user_can_create_custom_role(): void
     {
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user);
         setPermissionsTeamId($user->business_id);
 
@@ -114,7 +162,7 @@ class RoleControllerTest extends TestCase
 
     public function test_authorized_user_can_search_roles_by_query(): void
     {
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user);
         setPermissionsTeamId($user->business_id);
 
@@ -131,7 +179,7 @@ class RoleControllerTest extends TestCase
 
     public function test_authorized_user_can_view_role_details_with_permissions(): void
     {
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user);
         setPermissionsTeamId($user->business_id);
 
@@ -152,7 +200,7 @@ class RoleControllerTest extends TestCase
 
     public function test_user_cannot_view_role_of_another_business(): void
     {
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user);
         setPermissionsTeamId($user->business_id);
 

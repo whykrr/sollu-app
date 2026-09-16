@@ -15,54 +15,36 @@
             <div class="col-span-1 md:col-span-2 space-y-6">
                 <!-- Transaction Info -->
                 <div class="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold mb-4">
-                        Informasi Transaksi
-                    </h3>
+                    <h3 class="text-lg font-semibold mb-4">Informasi Transaksi</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <span class="text-sm text-gray-500 block"
-                                >No. Struk</span
-                            >
-                            <span class="font-medium">{{
-                                transaction.receipt_number || '-'
-                            }}</span>
+                            <span class="text-sm text-gray-500 block">No. Struk</span>
+                            <span class="font-medium">{{ transaction.receipt_number || '-' }}</span>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-500 block"
-                                >Tanggal</span
-                            >
+                            <span class="text-sm text-gray-500 block">Tanggal</span>
                             <span class="font-medium">{{
                                 formatDateTimeSimple(transaction.created_at)
                             }}</span>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-500 block"
-                                >Pelanggan</span
-                            >
+                            <span class="text-sm text-gray-500 block">Pelanggan</span>
                             <span class="font-medium">{{
                                 transaction.customer?.name || 'Guest'
                             }}</span>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-500 block"
-                                >Kasir / Shift</span
-                            >
+                            <span class="text-sm text-gray-500 block">Kasir / Shift</span>
                             <span class="font-medium">{{
                                 transaction.shift?.user?.name || '-'
                             }}</span>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-500 block"
-                                >Status</span
-                            >
-                            <span class="font-medium uppercase">{{
-                                transaction.status
-                            }}</span>
+                            <span class="text-sm text-gray-500 block">Status</span>
+                            <span class="font-medium uppercase">{{ transaction.status }}</span>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-500 block"
-                                >Status Bayar</span
-                            >
+                            <span class="text-sm text-gray-500 block">Status Bayar</span>
                             <span class="font-medium uppercase">{{
                                 transaction.payment_status
                             }}</span>
@@ -77,24 +59,14 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-gray-50 border-b border-gray-200">
-                                    <th
-                                        class="p-3 text-sm font-semibold text-gray-600"
-                                    >
-                                        Produk
-                                    </th>
-                                    <th
-                                        class="p-3 text-sm font-semibold text-gray-600 text-right"
-                                    >
+                                    <th class="p-3 text-sm font-semibold text-gray-600">Produk</th>
+                                    <th class="p-3 text-sm font-semibold text-gray-600 text-right">
                                         Harga
                                     </th>
-                                    <th
-                                        class="p-3 text-sm font-semibold text-gray-600 text-right"
-                                    >
+                                    <th class="p-3 text-sm font-semibold text-gray-600 text-right">
                                         Qty
                                     </th>
-                                    <th
-                                        class="p-3 text-sm font-semibold text-gray-600 text-right"
-                                    >
+                                    <th class="p-3 text-sm font-semibold text-gray-600 text-right">
                                         Total
                                     </th>
                                 </tr>
@@ -110,25 +82,15 @@
                                             {{ item.product_name }}
                                         </div>
                                         <div
-                                            v-if="
-                                                item.modifiers &&
-                                                item.modifiers.length
-                                            "
+                                            v-if="item.modifiers && item.modifiers.length"
                                             class="text-xs text-gray-500 mt-1"
                                         >
                                             <span
-                                                v-for="(
-                                                    mod, idx
-                                                ) in item.modifiers"
+                                                v-for="(mod, idx) in item.modifiers"
                                                 :key="mod.id"
                                             >
                                                 {{ mod.modifier_name }}
-                                                <span
-                                                    v-if="
-                                                        idx <
-                                                        item.modifiers.length -
-                                                            1
-                                                    "
+                                                <span v-if="idx < item.modifiers.length - 1"
                                                     >,
                                                 </span>
                                             </span>
@@ -158,9 +120,7 @@
                     <div class="space-y-3 text-sm">
                         <div class="flex justify-between">
                             <span class="text-gray-500">Subtotal</span>
-                            <span>{{
-                                formatCurrency(transaction.subtotal)
-                            }}</span>
+                            <span>{{ formatCurrency(transaction.subtotal) }}</span>
                         </div>
                         <div
                             v-if="Number(transaction.discount_amount) > 0"
@@ -168,9 +128,7 @@
                         >
                             <span class="text-gray-500">Diskon</span>
                             <span class="text-danger"
-                                >-{{
-                                    formatCurrency(transaction.discount_amount)
-                                }}</span
+                                >-{{ formatCurrency(transaction.discount_amount) }}</span
                             >
                         </div>
                         <div
@@ -178,20 +136,11 @@
                             class="flex justify-between"
                         >
                             <span class="text-gray-500">Service Charge</span>
-                            <span>{{
-                                formatCurrency(
-                                    transaction.service_charge_amount,
-                                )
-                            }}</span>
+                            <span>{{ formatCurrency(transaction.service_charge_amount) }}</span>
                         </div>
-                        <div
-                            v-if="Number(transaction.tax_amount) > 0"
-                            class="flex justify-between"
-                        >
+                        <div v-if="Number(transaction.tax_amount) > 0" class="flex justify-between">
                             <span class="text-gray-500">Pajak</span>
-                            <span>{{
-                                formatCurrency(transaction.tax_amount)
-                            }}</span>
+                            <span>{{ formatCurrency(transaction.tax_amount) }}</span>
                         </div>
                         <div
                             class="pt-3 border-t border-gray-200 flex justify-between font-bold text-lg"
@@ -206,10 +155,7 @@
                 <div class="bg-white rounded-lg border border-gray-200 p-6">
                     <h3 class="text-lg font-semibold mb-4">Pembayaran</h3>
                     <div
-                        v-if="
-                            transaction.payments &&
-                            transaction.payments.length > 0
-                        "
+                        v-if="transaction.payments && transaction.payments.length > 0"
                         class="space-y-3 text-sm"
                     >
                         <div
@@ -219,15 +165,10 @@
                         >
                             <div>
                                 <div class="font-medium">
-                                    {{
-                                        payment.payment_method?.name ||
-                                        'Unknown'
-                                    }}
+                                    {{ payment.payment_method?.name || 'Unknown' }}
                                 </div>
                                 <div class="text-xs text-gray-500">
-                                    {{
-                                        formatDateTimeSimple(payment.created_at)
-                                    }}
+                                    {{ formatDateTimeSimple(payment.created_at) }}
                                 </div>
                             </div>
                             <div class="text-right">
@@ -254,22 +195,22 @@
 </template>
 
 <script setup>
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { router } from '@inertiajs/vue3';
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import { formatDateTimeSimple } from '@/Composable/date.js';
-import { formatIDR as formatCurrency } from '@/Composable/currency-format.js';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { router } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import { formatDateTimeSimple } from '@/Composable/date.js'
+import { formatIDR as formatCurrency } from '@/Composable/currency-format.js'
 
 const props = defineProps({
     transaction: {
         type: Object,
         required: true,
     },
-});
+})
 
 const goBack = () => {
-    router.visit(route('transactions.index'));
-};
+    router.visit(route('transactions.index'))
+}
 </script>

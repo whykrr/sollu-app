@@ -7,7 +7,6 @@ export const useAppStore = defineStore('app', {
             show: false,
             active: null,
         },
-
     }),
     actions: {
         getActive(route) {

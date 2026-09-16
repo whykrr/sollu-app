@@ -1,6 +1,6 @@
 import { createApp, h } from 'vue'
 import { createInertiaApp } from '@inertiajs/vue3'
-import { ZiggyVue } from '../../vendor/tightenco/ziggy';
+import { ZiggyVue } from '../../vendor/tightenco/ziggy'
 import './echo'
 
 import AppLayout from '@/Layout/AppCockpitLayout.vue'
@@ -17,7 +17,7 @@ createInertiaApp({
         color: '#004AAD',
         showSpinner: false,
     },
-    resolve: async (name) => {
+    resolve: async name => {
         const pages = import.meta.glob('./Pages/Cockpit/**/*.vue')
         const page = await pages[`./Pages/${name}.vue`]()
         if (page.default.layout === undefined) {

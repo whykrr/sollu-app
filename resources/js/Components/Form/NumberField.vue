@@ -15,37 +15,37 @@
 <script setup>
 defineOptions({
     inheritAttrs: false,
-});
+})
 
 const props = defineProps({
     label: String,
     feedback: String,
     modelValue: [String, Number],
-});
-const emit = defineEmits(['update:modelValue']);
+})
+const emit = defineEmits(['update:modelValue'])
 
 function onInput(e) {
-    let val = e.target.value;
-    
+    let val = e.target.value
+
     // Allow empty string to reset the field
     if (val === '') {
-        emit('update:modelValue', '');
-        return;
+        emit('update:modelValue', '')
+        return
     }
 
     // Allow transient states (like starting with minus or decimal)
     if (val === '-' || val === '.' || val === '-.') {
-        emit('update:modelValue', val);
-        return;
+        emit('update:modelValue', val)
+        return
     }
 
     // Attempt to convert to a raw number
-    const num = Number(val.replace(',', '.'));
-    
+    const num = Number(val.replace(',', '.'))
+
     if (!isNaN(num)) {
-        emit('update:modelValue', num);
+        emit('update:modelValue', num)
     } else {
-        emit('update:modelValue', val);
+        emit('update:modelValue', val)
     }
 }
 
@@ -61,11 +61,11 @@ function onKeydown(e) {
         '.',
         ',',
         '-',
-    ];
-    const isNumber = /^[0-9]$/.test(e.key);
+    ]
+    const isNumber = /^[0-9]$/.test(e.key)
 
     if (!isNumber && !allowedKeys.includes(e.key)) {
-        e.preventDefault();
+        e.preventDefault()
     }
 }
 </script>

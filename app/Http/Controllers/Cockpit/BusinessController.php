@@ -2,104 +2,116 @@
 
 namespace App\Http\Controllers\Cockpit;
 
+use App\Constants\FlashDataVariable;
+use App\Enums\BusinessStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
-use App\Models\BusinessStatusLog;
+use App\Models\BusinessType;
+use App\Services\Cockpit\MerchantService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class BusinessController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        protected MerchantService $merchantService
+    ) {}
+
+    /**
+     * Search merchants for dropdowns/autocomplete.
+     */
+    public function search(Request $request): JsonResponse
     {
-        $query = Business::query()
-            ->with(['type'])
-            ->withCount(['outlets'])
-            ->withMax('users', 'last_login_at');
+        $search = $request->input('query') ?? $request->input('search');
 
-        // Search
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('id', 'like', "%{$search}%");
-            });
-        }
+        $businesses = Business::query()
+            ->select(['id', 'name', 'owner_name', 'email', 'phone', 'status'])
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('owner_name', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('name', 'asc')
+            ->limit(15)
+            ->get();
 
-        // Status Filter
-        if ($status = $request->input('status')) {
-            $query->where('status', $status);
-        }
+        return response()->json($businesses);
+    }
 
-        // Sorting
-        $sortField = $request->input('sort', 'created_at');
-        $sortDirection = $request->input('direction', 'desc');
+    /**
+     * Display a listing of merchants with KPI metrics and filters.
+     */
+    public function index(Request $request): Response
+    {
+        $filters = [
+            'search' => (string) $request->input('search', ''),
+            'status' => (string) $request->input('status', ''),
+            'business_type_id' => (string) $request->input('business_type_id', ''),
+            'subscription_status' => (string) $request->input('subscription_status', ''),
+            'sort' => (string) $request->input('sort', 'created_at'),
+            'direction' => (string) $request->input('direction', 'desc'),
+        ];
 
-        $allowedSorts = ['name', 'status', 'created_at'];
-        if (in_array($sortField, $allowedSorts)) {
-            $query->orderBy($sortField, $sortDirection);
-        }
-
-        $businesses = $query->paginate(20)->withQueryString();
+        $businesses = $this->merchantService->getPaginatedMerchants($filters, 20);
+        $metrics = $this->merchantService->getMetrics();
+        $businessTypes = BusinessType::getAllCached();
 
         return Inertia::render('Cockpit/Business/Index', [
             'businesses' => $businesses,
-            'filters' => $request->only(['search', 'status', 'sort', 'direction']),
+            'metrics' => $metrics,
+            'businessTypes' => $businessTypes,
+            'filters' => $filters,
         ]);
     }
 
-    public function show($id)
+    /**
+     * Display detailed merchant information including actual plan, outlets, and users.
+     */
+    public function show(string $id): JsonResponse
     {
-        $business = Business::with(['type'])
-            ->with(['users' => function ($query) {
-                $query->with('roles');
-            }])
-            ->withCount(['outlets', 'users'])
-            ->findOrFail($id);
+        $detail = $this->merchantService->getMerchantDetail($id);
 
-        return response()->json($business);
+        return response()->json($detail);
     }
 
-    public function toggleStatus(Request $request, $id)
+    /**
+     * Toggle merchant status between active and suspended.
+     */
+    public function toggleStatus(Request $request, string $id): RedirectResponse
     {
-        $request->validate([
-            'status' => 'required|in:active,suspended',
+        $validated = $request->validate([
+            'status' => ['required', Rule::enum(BusinessStatus::class)],
         ]);
 
-        $business = Business::findOrFail($id);
-        $oldStatus = $business->status;
-        $newStatus = $request->input('status');
+        $this->merchantService->toggleStatus(
+            $id,
+            $validated['status'],
+            (string) Auth::guard('cockpit')->id()
+        );
 
-        if ($oldStatus !== $newStatus) {
-            $business->update(['status' => $newStatus]);
-
-            BusinessStatusLog::create([
-                'business_id' => $business->id,
-                'old_status' => $oldStatus ?? 'unknown',
-                'new_status' => $newStatus,
-                'changed_by' => Auth::guard('cockpit')->id(),
-            ]);
-        }
-
-        return back()->with('success', 'Status merchant berhasil diperbarui.');
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            'Status merchant berhasil diperbarui.'
+        );
     }
 
-    public function impersonate(Request $request, $id, $userId)
+    /**
+     * Impersonate merchant user from cockpit.
+     */
+    public function impersonate(Request $request, string $id, string $userId): RedirectResponse
     {
-        $business = Business::findOrFail($id);
-        $user = $business->users()->findOrFail($userId);
-
-        $token = Str::random(64);
-
-        Cache::put("impersonate:token:{$token}", [
-            'user_id' => $user->id,
-            'business_id' => $business->id,
-            'admin_id' => Auth::guard('cockpit')->id(),
-            'created_at' => now()->timestamp,
-        ], now()->addMinutes(2));
+        $token = $this->merchantService->generateImpersonationToken(
+            $id,
+            $userId,
+            (string) Auth::guard('cockpit')->id()
+        );
 
         $appDomain = config('domain.app', 'app.sollu.test');
         if ($request->getPort() && ! in_array($request->getPort(), [80, 443]) && ! str_contains($appDomain, ':')) {

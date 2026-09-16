@@ -47,16 +47,13 @@
     </header>
 </template>
 <script setup>
-import Breadcrumbs from '@/Components/Layout/Header/Breadcrumbs.vue';
-import TopBarAccount from '@/Components/Layout/Header/TopBarAccount.vue';
-import TopBarBusiness from '@/Components/Layout/Header/TopBarBusiness.vue';
-import TopBarNotification from '@/Components/Layout/Header/TopBarNotification.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faBars,
-    faClose,
-} from '@fortawesome/free-solid-svg-icons';
-import { useAppStore } from '@/store/app';
+import Breadcrumbs from '@/Components/Layout/Header/Breadcrumbs.vue'
+import TopBarAccount from '@/Components/Layout/Header/TopBarAccount.vue'
+import TopBarBusiness from '@/Components/Layout/Header/TopBarBusiness.vue'
+import TopBarNotification from '@/Components/Layout/Header/TopBarNotification.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faBars, faClose } from '@fortawesome/free-solid-svg-icons'
+import { useAppStore } from '@/store/app'
 
-const appStore = useAppStore();
+const appStore = useAppStore()
 </script>

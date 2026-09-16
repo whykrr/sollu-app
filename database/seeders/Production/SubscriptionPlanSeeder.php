@@ -19,11 +19,9 @@ class SubscriptionPlanSeeder extends Seeder
             'micro' => [
                 'name' => 'Paket Mikro',
                 'price_per_outlet' => 59000,
-                'max_outlet' => 1,
                 'yearly_discount_percent' => 20,
                 'is_active' => true,
                 'is_public' => true,
-                'is_custom' => false,
                 'ui_features' => [
                     ['title' => 'Aplikasi Kasir (POS) Dasar', 'detail' => 'Penjualan cepat, shift, dan laci kas'],
                     ['title' => 'Katalog Produk', 'detail' => 'Kategori dan data produk standar'],
@@ -43,11 +41,9 @@ class SubscriptionPlanSeeder extends Seeder
             'basic' => [
                 'name' => 'Paket Basic',
                 'price_per_outlet' => 129000,
-                'max_outlet' => 5,
                 'yearly_discount_percent' => 20,
                 'is_active' => true,
                 'is_public' => true,
-                'is_custom' => false,
                 'ui_features' => [
                     ['title' => 'Semua Fitur Mikro', 'detail' => 'Termasuk POS dasar dan laporan'],
                     ['title' => 'Varian Produk', 'detail' => 'Ukuran, warna, rasa, dan multi SKU'],
@@ -87,11 +83,9 @@ class SubscriptionPlanSeeder extends Seeder
             'pro' => [
                 'name' => 'Paket Pro',
                 'price_per_outlet' => 299000,
-                'max_outlet' => 99,
                 'yearly_discount_percent' => 20,
                 'is_active' => true,
                 'is_public' => true,
-                'is_custom' => false,
                 'ui_features' => [
                     ['title' => 'Semua Fitur Basic', 'detail' => 'Termasuk varian, inventori, dan multi outlet'],
                     ['title' => 'Multi Perangkat POS (Paralel)', 'detail' => 'Hubungkan banyak tablet waiter dan kasir'],
@@ -162,12 +156,10 @@ class SubscriptionPlanSeeder extends Seeder
                 [
                     'name' => $data['name'],
                     'price_per_outlet' => $data['price_per_outlet'],
-                    'max_outlet' => $data['max_outlet'],
                     'yearly_discount_percent' => $data['yearly_discount_percent'],
                     'features' => $data['ui_features'],
                     'is_active' => $data['is_active'],
                     'is_public' => $data['is_public'],
-                    'is_custom' => $data['is_custom'],
                 ]
             );
 

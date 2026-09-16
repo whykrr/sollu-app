@@ -2,11 +2,7 @@
     <nav class="sidebar-navigation cockpit-navigation">
         <div class="navigation-list">
             <template v-for="(sidebar, index) in sidebars" :key="index">
-                <div
-                    v-if="!sidebar.route"
-                    v-can="sidebar.permissions"
-                    class="nav-section"
-                >
+                <div v-if="!sidebar.route" v-can="sidebar.permissions" class="nav-section">
                     <div v-if="sidebar.separator === true" class="py-0.5">
                         <div class="w-full border-t pt-1 text-xs">
                             {{ sidebar.label }}
@@ -19,12 +15,7 @@
                 <NavigationItem
                     v-else-if="!sidebar.items"
                     v-can="sidebar.permissions"
-                    :to="
-                        sidebar.href ||
-                        (route().has(sidebar.route)
-                            ? route(sidebar.route)
-                            : '#')
-                    "
+                    :to="sidebar.href || (route().has(sidebar.route) ? route(sidebar.route) : '#')"
                     :icon="sidebar.icon"
                     :label="sidebar.label"
                     :active="isActive(sidebar)"
@@ -42,11 +33,7 @@
                         v-for="(submenu, subIndex) in sidebar.items"
                         :key="subIndex"
                         v-can="submenu.permissions"
-                        :href="
-                            route().has('' + submenu.route)
-                                ? route('' + submenu.route)
-                                : '#'
-                        "
+                        :href="route().has('' + submenu.route) ? route('' + submenu.route) : '#'"
                         class="nav-dropdown-item"
                         :class="{
                             active: isActive(submenu),
@@ -61,36 +48,34 @@
 </template>
 
 <script setup>
-import { Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
-import NavigationDropdown from '@/Components/Layout/Sidebar/NavigationDropdown.vue';
-import NavigationItem from '@/Components/Layout/Sidebar/NavigationItem.vue';
-import { useCockpitSidebar } from '@/Composable/Sidebar/cockpit';
+import { Link, usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
+import NavigationDropdown from '@/Components/Layout/Sidebar/NavigationDropdown.vue'
+import NavigationItem from '@/Components/Layout/Sidebar/NavigationItem.vue'
+import { useCockpitSidebar } from '@/Composable/Sidebar/cockpit'
 
-const { cockpitSidebars } = useCockpitSidebar();
+const { cockpitSidebars } = useCockpitSidebar()
 
 const activeMenu = computed(() => {
-    const _ = usePage().url;
-    return route().current() || '';
-});
+    const _ = usePage().url
+    return route().current() || ''
+})
 
-const normalizeRoute = (name) => {
-    return name?.endsWith('.index') ? name.slice(0, -6) : name;
-};
+const normalizeRoute = name => {
+    return name?.endsWith('.index') ? name.slice(0, -6) : name
+}
 
-const isActive = (menu) => {
-    const current = normalizeRoute(activeMenu.value);
+const isActive = menu => {
+    const current = normalizeRoute(activeMenu.value)
 
     if (menu.items) {
-        return menu.items.some((child) =>
-            current.startsWith('' + normalizeRoute(child.route)),
-        );
+        return menu.items.some(child => current.startsWith('' + normalizeRoute(child.route)))
     }
 
-    return current.startsWith('' + normalizeRoute(menu.route));
-};
+    return current.startsWith('' + normalizeRoute(menu.route))
+}
 
-const sidebars = cockpitSidebars;
+const sidebars = cockpitSidebars
 </script>
 
 <style>

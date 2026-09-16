@@ -5,12 +5,9 @@
                 class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-neutral-200/60 mb-4"
             >
                 <div>
-                    <h1 class="text-xl font-bold text-neutral-800">
-                        Platform Configuration
-                    </h1>
+                    <h1 class="text-xl font-bold text-neutral-800">Platform Configuration</h1>
                     <div class="text-sm text-neutral-500">
-                        Manage global settings, feature flags, and maintenance
-                        modes
+                        Manage global settings, feature flags, and maintenance modes
                     </div>
                 </div>
                 <div class="flex gap-2">
@@ -30,32 +27,23 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <!-- System Settings -->
-            <div
-                class="bg-white rounded-xl shadow-sm border border-neutral-200/60 p-4"
-            >
-                <h3
-                    class="font-bold text-neutral-800 mb-4 border-b border-neutral-100 pb-2"
-                >
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200/60 p-4">
+                <h3 class="font-bold text-neutral-800 mb-4 border-b border-neutral-100 pb-2">
                     System Settings
                 </h3>
                 <div class="flex flex-col gap-4">
                     <div class="flex items-center justify-between">
                         <div>
-                            <div class="font-medium text-neutral-800">
-                                Maintenance Mode
-                            </div>
+                            <div class="font-medium text-neutral-800">Maintenance Mode</div>
                             <div class="text-xs text-neutral-500">
-                                Enable this to block all merchant access during
-                                updates
+                                Enable this to block all merchant access during updates
                             </div>
                         </div>
                         <Switch id="maintenance_mode" />
                     </div>
                     <div class="flex items-center justify-between">
                         <div>
-                            <div class="font-medium text-neutral-800">
-                                Signups Allowed
-                            </div>
+                            <div class="font-medium text-neutral-800">Signups Allowed</div>
                             <div class="text-xs text-neutral-500">
                                 Allow new merchants to register on the platform
                             </div>
@@ -66,11 +54,15 @@
                     <div class="pt-3 border-t border-neutral-100 flex flex-col gap-2">
                         <div>
                             <div class="font-medium text-neutral-800 flex items-center gap-1.5">
-                                <FontAwesomeIcon :icon="faCircleQuestion" class="text-indigo-600 text-sm" />
+                                <FontAwesomeIcon
+                                    :icon="faCircleQuestion"
+                                    class="text-indigo-600 text-sm"
+                                />
                                 <span>Link Pusat Bantuan (Help Center)</span>
                             </div>
                             <div class="text-xs text-neutral-500 mt-0.5">
-                                Tautan tujuan saat pengguna menekan tombol "Pusat Bantuan" di sidebar merchant.
+                                Tautan tujuan saat pengguna menekan tombol "Pusat Bantuan" di
+                                sidebar merchant.
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-start gap-2">
@@ -93,7 +85,10 @@
                                 <span>{{ form.processing ? 'Menyimpan...' : 'Simpan' }}</span>
                             </button>
                         </div>
-                        <div v-if="form.help_center_url" class="text-xs text-neutral-400 flex items-center gap-1">
+                        <div
+                            v-if="form.help_center_url"
+                            class="text-xs text-neutral-400 flex items-center gap-1"
+                        >
                             <span>Tautan aktif:</span>
                             <a
                                 :href="form.help_center_url"
@@ -110,12 +105,8 @@
             </div>
 
             <!-- Feature Flags -->
-            <div
-                class="bg-white rounded-xl shadow-sm border border-neutral-200/60 p-4"
-            >
-                <h3
-                    class="font-bold text-neutral-800 mb-4 border-b border-neutral-100 pb-2"
-                >
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200/60 p-4">
+                <h3 class="font-bold text-neutral-800 mb-4 border-b border-neutral-100 pb-2">
                     Global Feature Flags
                 </h3>
                 <div class="flex flex-col gap-4">
@@ -125,17 +116,20 @@
                                 Pembayaran Otomatis (Midtrans)
                             </div>
                             <div class="text-xs text-neutral-500">
-                                Aktifkan/nonaktifkan metode pembayaran otomatis (via Midtrans) secara global
+                                Aktifkan/nonaktifkan metode pembayaran otomatis (via Midtrans)
+                                secara global
                             </div>
                         </div>
-                        <Switch id="midtrans_enabled" :model-value="midtransEnabled ? 1 : 0" @update:model-value="toggleMidtrans" />
+                        <Switch
+                            id="midtrans_enabled"
+                            :model-value="midtransEnabled ? 1 : 0"
+                            @update:model-value="toggleMidtrans"
+                        />
                     </div>
-                    
+
                     <div class="flex items-center justify-between">
                         <div>
-                            <div class="font-medium text-neutral-800">
-                                AI Analytics Dashboard
-                            </div>
+                            <div class="font-medium text-neutral-800">AI Analytics Dashboard</div>
                             <div class="text-xs text-neutral-500">
                                 Enable new AI insights on merchant dashboard
                             </div>
@@ -144,12 +138,9 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <div>
-                            <div class="font-medium text-neutral-800">
-                                Multi-Outlet Sync V2
-                            </div>
+                            <div class="font-medium text-neutral-800">Multi-Outlet Sync V2</div>
                             <div class="text-xs text-neutral-500">
-                                Enable the new optimized sync engine for
-                                multi-outlets
+                                Enable the new optimized sync engine for multi-outlets
                             </div>
                         </div>
                         <Switch id="multi_outlet" :model-value="1" />
@@ -165,11 +156,10 @@
                     class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
                 >
                     <div>
-                        <h3 class="font-bold text-neutral-800">
-                            Pengaturan Paket Langganan
-                        </h3>
+                        <h3 class="font-bold text-neutral-800">Pengaturan Paket Langganan</h3>
                         <p class="text-xs text-neutral-500 mt-0.5">
-                            Kelola harga paket langganan per outlet, fitur, kuota outlet, dan status aktif/nonaktif.
+                            Kelola harga paket langganan per outlet, fitur, kuota outlet, dan status
+                            aktif/nonaktif.
                         </p>
                     </div>
                     <Link
@@ -186,12 +176,17 @@
 </template>
 
 <script setup>
-import MainPage from '@/Components/UI/MainPage.vue';
-import Switch from '@/Components/Form/Switch.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faSave, faLayerGroup, faCircleQuestion, faArrowUpFromBracket } from '@fortawesome/free-solid-svg-icons';
-import { Link, router, useForm } from '@inertiajs/vue3';
+import MainPage from '@/Components/UI/MainPage.vue'
+import Switch from '@/Components/Form/Switch.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import {
+    faSave,
+    faLayerGroup,
+    faCircleQuestion,
+    faArrowUpFromBracket,
+} from '@fortawesome/free-solid-svg-icons'
+import { Link, router, useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
     midtransEnabled: {
@@ -202,24 +197,28 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
 const form = useForm({
     help_center_url: props.settings?.help_center_url || '',
-});
+})
 
 const submitSettings = () => {
     form.put(route('cockpit.config.settings.update'), {
         preserveScroll: true,
-    });
-};
+    })
+}
 
-const toggleMidtrans = (val) => {
-    router.patch(route('cockpit.config.feature-flag.update'), {
-        feature_name: 'midtrans_payment_enabled',
-        enabled: val ? 1 : 0
-    }, {
-        preserveScroll: true
-    });
-};
+const toggleMidtrans = val => {
+    router.patch(
+        route('cockpit.config.feature-flag.update'),
+        {
+            feature_name: 'midtrans_payment_enabled',
+            enabled: val ? 1 : 0,
+        },
+        {
+            preserveScroll: true,
+        }
+    )
+}
 </script>

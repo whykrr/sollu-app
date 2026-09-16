@@ -6,9 +6,7 @@
         </div>
 
         <div class="border-t pt-2">
-            <h3 class="text-lg font-semibold mb-2">
-                Input Penerimaan & Konversi
-            </h3>
+            <h3 class="text-lg font-semibold mb-2">Input Penerimaan & Konversi</h3>
 
             <div
                 v-if="form.items.length === 0"
@@ -48,8 +46,7 @@
                             label="Jml Diterima"
                             class="sm"
                             :class="{
-                                'is-invalid':
-                                    form.errors[`items.${index}.qty_received`],
+                                'is-invalid': form.errors[`items.${index}.qty_received`],
                             }"
                             :error="form.errors[`items.${index}.qty_received`]"
                         />
@@ -62,14 +59,9 @@
                             class="sm"
                             step="any"
                             :class="{
-                                'is-invalid':
-                                    form.errors[
-                                        `items.${index}.conversion_factor`
-                                    ],
+                                'is-invalid': form.errors[`items.${index}.conversion_factor`],
                             }"
-                            :error="
-                                form.errors[`items.${index}.conversion_factor`]
-                            "
+                            :error="form.errors[`items.${index}.conversion_factor`]"
                             title="Faktor pengali ke satuan inventori (contoh: 1 dus = 24 botol, isi 24)"
                         />
                     </div>
@@ -81,7 +73,7 @@
                                     maximumFractionDigits: 2,
                                 }).format(
                                     Number(item.qty_received || 0) *
-                                        Number(item.conversion_factor || 1),
+                                        Number(item.conversion_factor || 1)
                                 )
                             }}
                             {{ item.base_uom_name }}</strong
@@ -93,12 +85,7 @@
     </form>
 
     <Teleport v-if="isMounted" to="#popUpFooter">
-        <button
-            type="button"
-            class="btn btn-flat"
-            :disabled="form.processing"
-            @click="close"
-        >
+        <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
             Batal
         </button>
         <button
@@ -113,36 +100,36 @@
 </template>
 
 <script setup>
-import { watch, ref, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import { usePopUpStore } from '@/store/popup';
-import TextField from '@/Components/Form/TextField.vue';
-import NumberField from '@/Components/Form/NumberField.vue';
+import { watch, ref, onMounted } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import { usePopUpStore } from '@/store/popup'
+import TextField from '@/Components/Form/TextField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
 
-const popUpStore = usePopUpStore();
+const popUpStore = usePopUpStore()
 
 const props = defineProps({
     purchase: {
         type: Object,
         default: null,
     },
-});
+})
 
-const isMounted = ref(false);
+const isMounted = ref(false)
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 
 const form = useForm({
     items: [],
-});
+})
 
 watch(
     () => props.purchase,
-    (data) => {
-        form.reset();
+    data => {
+        form.reset()
         if (data && data.items) {
-            form.items = data.items.map((i) => ({
+            form.items = data.items.map(i => ({
                 id: i.id,
                 inventory_item_id: i.inventory_item_id,
                 name: i.inventory_item?.name || 'Unknown',
@@ -151,18 +138,18 @@ watch(
                 qty_ordered: i.qty_ordered_formatted,
                 qty_received: i.qty_ordered_formatted, // default to fully received
                 conversion_factor: 1, // default conversion factor 1
-            }));
+            }))
         } else {
-            form.items = [];
+            form.items = []
         }
     },
-    { immediate: true },
-);
+    { immediate: true }
+)
 
 const close = () => {
-    form.clearErrors();
-    popUpStore.close();
-};
+    form.clearErrors()
+    popUpStore.close()
+}
 
 const submit = () => {
     if (props.purchase?.id) {
@@ -170,7 +157,7 @@ const submit = () => {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => close(),
-        });
+        })
     }
-};
+}
 </script>

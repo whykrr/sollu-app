@@ -5,15 +5,15 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import Tab from '@/Components/UI/Tab.vue';
+import { computed } from 'vue'
+import Tab from '@/Components/UI/Tab.vue'
 
 // Tabs Components
-import GeneralTab from '../Tabs/GeneralTab.vue';
-import SettingsTab from '../Tabs/SettingsTab.vue';
-import DevicesTab from '../Tabs/DevicesTab.vue';
-import OperationalHoursTab from '../Tabs/OperationalHoursTab.vue';
-import AuditLogsTab from '../Tabs/AuditLogsTab.vue';
+import GeneralTab from '../Tabs/GeneralTab.vue'
+import SettingsTab from '../Tabs/SettingsTab.vue'
+import DevicesTab from '../Tabs/DevicesTab.vue'
+import OperationalHoursTab from '../Tabs/OperationalHoursTab.vue'
+import AuditLogsTab from '../Tabs/AuditLogsTab.vue'
 
 // Icons
 import {
@@ -22,11 +22,11 @@ import {
     faMobileAlt,
     faClock,
     faListUl,
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/free-solid-svg-icons'
 
 const props = defineProps({
     outlet: Object,
-});
+})
 
 const tabPages = computed(() => [
     {
@@ -59,5 +59,5 @@ const tabPages = computed(() => [
         page: AuditLogsTab,
         props: { outlet: props.outlet },
     },
-]);
+])
 </script>

@@ -1,6 +1,6 @@
 <template>
     <div
-        class="bg-white p-2.5 rounded-xl border border-neutral-200/70 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2"
+        class="bg-white p-2.5 rounded-xl border border-neutral-200/70 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2"
     >
         <!-- Left Controls: Search & Segmented Filter Buttons -->
         <div class="flex flex-wrap items-center gap-2">
@@ -90,6 +90,18 @@
                 >
                     Tersembunyi ({{ hiddenCount }})
                 </button>
+                <button
+                    type="button"
+                    class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                    :class="
+                        visibility === 'custom'
+                            ? 'bg-white shadow-xs text-purple-700 font-bold'
+                            : 'text-neutral-500 hover:text-neutral-800'
+                    "
+                    @click="$emit('update:visibility', 'custom')"
+                >
+                    Custom Merchant ({{ customCount }})
+                </button>
             </div>
         </div>
 
@@ -144,6 +156,10 @@ defineProps({
         default: 0,
     },
     hiddenCount: {
+        type: Number,
+        default: 0,
+    },
+    customCount: {
         type: Number,
         default: 0,
     },

@@ -28,8 +28,8 @@
 </template>
 
 <script setup>
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { Link } from '@inertiajs/vue3';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { Link } from '@inertiajs/vue3'
 
 defineProps({
     to: String,
@@ -37,5 +37,5 @@ defineProps({
     label: String,
     active: Boolean,
     external: Boolean,
-});
+})
 </script>

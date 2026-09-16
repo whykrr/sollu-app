@@ -26,10 +26,7 @@
                 >
             </label>
 
-            <div
-                v-if="customizeOutletPrices"
-                class="space-y-2 border p-3 rounded-lg bg-slate-50"
-            >
+            <div v-if="customizeOutletPrices" class="space-y-2 border p-3 rounded-lg bg-slate-50">
                 <h3 class="font-bold text-sm text-slate-700 mb-2">
                     Timpa Harga per Outlet (Opsional)
                 </h3>
@@ -58,11 +55,7 @@
             >
                 <h3 class="font-bold text-sm text-neutral-700">Setup Stok</h3>
                 <div class="grid grid-cols-1 gap-3">
-                    <NumberField
-                        v-model="form.min_stock"
-                        label="Minimal Stok"
-                        placeholder="0"
-                    />
+                    <NumberField v-model="form.min_stock" label="Minimal Stok" placeholder="0" />
                 </div>
             </div>
         </div>
@@ -83,9 +76,7 @@
             </label>
 
             <div v-if="customizeVariantPrices" class="space-y-4">
-                <h3 class="font-bold text-sm text-slate-700">
-                    Harga Detail per Varian & Outlet
-                </h3>
+                <h3 class="font-bold text-sm text-slate-700">Harga Detail per Varian & Outlet</h3>
                 <div
                     v-for="(combo, cIdx) in form.variant_combinations"
                     :key="cIdx"
@@ -103,8 +94,7 @@
                             />
                         </div>
                         <div class="col-span-2 space-y-2">
-                            <label
-                                class="block text-sm font-medium text-slate-700"
+                            <label class="block text-sm font-medium text-slate-700"
                                 >Harga per Outlet (Opsional)</label
                             >
                             <div
@@ -113,16 +103,15 @@
                                 :key="outlet.id"
                                 class="flex items-center gap-2"
                             >
-                                <span
-                                    class="w-1/3 text-xs text-slate-600 font-medium"
-                                    >{{ outlet.name }}</span
-                                >
+                                <span class="w-1/3 text-xs text-slate-600 font-medium">{{
+                                    outlet.name
+                                }}</span>
                                 <div class="w-2/3">
                                     <NumberField
                                         v-model="
-                                            variantOutletPriceMap[
-                                                getComboKey(combo.options)
-                                            ][outlet.id]
+                                            variantOutletPriceMap[getComboKey(combo.options)][
+                                                outlet.id
+                                            ]
                                         "
                                         placeholder="Gunakan harga dasar varian"
                                         size="sm"
@@ -138,17 +127,17 @@
 </template>
 
 <script setup>
-import { inject } from 'vue';
-import NumberField from '@/Components/Form/NumberField.vue';
-import TextField from '@/Components/Form/TextField.vue';
+import { inject } from 'vue'
+import NumberField from '@/Components/Form/NumberField.vue'
+import TextField from '@/Components/Form/TextField.vue'
 
-const form = inject('productForm');
-const isEdit = inject('isEdit');
-const outlets = inject('outlets');
-const outletStatusMap = inject('outletStatusMap');
-const outletPriceMap = inject('outletPriceMap');
-const variantOutletPriceMap = inject('variantOutletPriceMap');
-const customizeVariantPrices = inject('customizeVariantPrices');
-const customizeOutletPrices = inject('customizeOutletPrices');
-const getComboKey = inject('getComboKey');
+const form = inject('productForm')
+const isEdit = inject('isEdit')
+const outlets = inject('outlets')
+const outletStatusMap = inject('outletStatusMap')
+const outletPriceMap = inject('outletPriceMap')
+const variantOutletPriceMap = inject('variantOutletPriceMap')
+const customizeVariantPrices = inject('customizeVariantPrices')
+const customizeOutletPrices = inject('customizeOutletPrices')
+const getComboKey = inject('getComboKey')
 </script>

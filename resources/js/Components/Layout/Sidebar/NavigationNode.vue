@@ -43,10 +43,10 @@
 </template>
 
 <script setup>
-import { Link } from '@inertiajs/vue3';
-import NavigationSection from './NavigationSection.vue';
-import NavigationItem from './NavigationItem.vue';
-import NavigationDropdown from './NavigationDropdown.vue';
+import { Link } from '@inertiajs/vue3'
+import NavigationSection from './NavigationSection.vue'
+import NavigationItem from './NavigationItem.vue'
+import NavigationDropdown from './NavigationDropdown.vue'
 
 defineProps({
     item: {
@@ -57,5 +57,5 @@ defineProps({
         type: Function,
         required: true,
     },
-});
+})
 </script>

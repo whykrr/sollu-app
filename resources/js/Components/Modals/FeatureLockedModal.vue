@@ -1,35 +1,35 @@
 <script setup>
-import { computed } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
-import { useModalStore } from '@/store/notification';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faLock } from '@fortawesome/free-solid-svg-icons';
+import { computed } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import { useModalStore } from '@/store/notification'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faLock } from '@fortawesome/free-solid-svg-icons'
 
 const props = defineProps({
     feature: {
         type: String,
         default: 'Fitur',
     },
-});
+})
 
-const page = usePage();
-const modalStore = useModalStore();
+const page = usePage()
+const modalStore = useModalStore()
 
 const isSubscribed = computed(() => {
-    const subscription = page.props.auth?.subscription;
-    return Boolean(subscription && subscription.status === 'active');
-});
+    const subscription = page.props.auth?.subscription
+    return Boolean(subscription && subscription.status === 'active')
+})
 
 const featureLabel = computed(() => {
-    const enums = page.props.enums;
-    const meta = enums?.FeatureEnum?._meta?.[props.feature];
+    const enums = page.props.enums
+    const meta = enums?.FeatureEnum?._meta?.[props.feature]
     if (meta?.label) {
-        return meta.label;
+        return meta.label
     }
     return props.feature
-        ? props.feature.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-        : 'Fitur Eksklusif';
-});
+        ? props.feature.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+        : 'Fitur Eksklusif'
+})
 </script>
 
 <template>
@@ -37,27 +37,25 @@ const featureLabel = computed(() => {
         <div
             class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-main/15 to-secondary/20 mb-4 shadow-inner text-main"
         >
-            <FontAwesomeIcon
-                :icon="faLock"
-                size="2x"
-                class="h-8 w-8 text-main"
-            />
+            <FontAwesomeIcon :icon="faLock" size="2x" class="h-8 w-8 text-main" />
         </div>
 
-        <h3 class="text-lg font-semibold text-gray-900 mb-1">
-            Fitur Terkunci
-        </h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">Fitur Terkunci</h3>
 
-        <div class="inline-block px-2.5 py-0.5 mb-3 text-xs font-medium text-main bg-sky-50 border border-sky-200 rounded-full">
+        <div
+            class="inline-block px-2.5 py-0.5 mb-3 text-xs font-medium text-main bg-sky-50 border border-sky-200 rounded-full"
+        >
             {{ featureLabel }}
         </div>
 
         <p class="text-sm text-gray-500 mb-6 leading-relaxed">
             <template v-if="isSubscribed">
-                Fitur ini tersedia pada tingkatan paket yang lebih tinggi. Tingkatkan paket langganan Anda sekarang untuk menikmati akses penuh dan fitur premium lainnya.
+                Fitur ini tersedia pada tingkatan paket yang lebih tinggi. Tingkatkan paket
+                langganan Anda sekarang untuk menikmati akses penuh dan fitur premium lainnya.
             </template>
             <template v-else>
-                Fitur ini tidak tersedia pada masa uji coba atau paket gratis. Berlangganan sekarang untuk menikmati akses penuh ke fitur ini dan fitur eksklusif lainnya.
+                Fitur ini tidak tersedia pada masa uji coba atau paket gratis. Berlangganan sekarang
+                untuk menikmati akses penuh ke fitur ini dan fitur eksklusif lainnya.
             </template>
         </p>
 
@@ -80,4 +78,3 @@ const featureLabel = computed(() => {
         </div>
     </div>
 </template>
-

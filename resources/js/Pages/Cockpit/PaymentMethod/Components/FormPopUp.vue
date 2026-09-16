@@ -27,11 +27,7 @@
             />
 
             <div class="pt-2">
-                <Switch
-                    id="is_active"
-                    v-model="form.is_active"
-                    labeling="Aktifkan Metode Ini"
-                />
+                <Switch id="is_active" v-model="form.is_active" labeling="Aktifkan Metode Ini" />
                 <p class="text-[11px] text-gray-500 mt-1">
                     Jika diaktifkan, rekening ini akan muncul di pilihan transfer pengguna.
                 </p>
@@ -66,48 +62,48 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import { usePopUpStore } from '@/store/popup';
-import TextField from '@/Components/Form/TextField.vue';
-import Switch from '@/Components/Form/Switch.vue';
+import { onMounted, ref } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import { usePopUpStore } from '@/store/popup'
+import TextField from '@/Components/Form/TextField.vue'
+import Switch from '@/Components/Form/Switch.vue'
 
 const props = defineProps({
     methodData: {
         type: Object,
         default: null,
     },
-});
+})
 
-const popUpStore = usePopUpStore();
-const isMounted = ref(false);
+const popUpStore = usePopUpStore()
+const isMounted = ref(false)
 
 const form = useForm({
     bank_name: props.methodData ? props.methodData.bank_name : '',
     account_number: props.methodData ? props.methodData.account_number : '',
     account_name: props.methodData ? props.methodData.account_name : '',
     is_active: props.methodData ? Boolean(props.methodData.is_active) : true,
-});
+})
 
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 
 const submitForm = () => {
     if (props.methodData) {
         form.put(route('cockpit.payment-methods.update', props.methodData.id), {
             preserveScroll: true,
             onSuccess: () => {
-                popUpStore.close();
+                popUpStore.close()
             },
-        });
+        })
     } else {
         form.post(route('cockpit.payment-methods.store'), {
             preserveScroll: true,
             onSuccess: () => {
-                popUpStore.close();
+                popUpStore.close()
             },
-        });
+        })
     }
-};
+}
 </script>

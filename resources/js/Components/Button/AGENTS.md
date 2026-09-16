@@ -11,13 +11,17 @@ Gunakan komponen tombol bersama dari `@/Components/Button/` untuk aksi terstanda
 ## 1. Komponen Tombol Tersedia
 
 ### A. `<ButtonBack>`
+
 Tombol batal/kembali dengan riwayat browser (`router.back()`) dan fallback ke rute overview.
+
 ```vue
 <ButtonBack />
 ```
 
 ### B. `<ButtonGroupArchive>`
+
 Kelompok tombol aksi berbasis teks yang menangani siklus hidup Soft Delete:
+
 - Menampilkan tombol **Hapus** (`modal.openModalSoftDelete`) jika data aktif (`deleted_at === null`).
 - Menampilkan tombol **Pulihkan** (`PUT` request) jika data di tong sampah (`deleted_at !== null`).
 - Menampilkan tombol **Hapus Permanen** (`modal.openModalDelete`) jika data di tong sampah.
@@ -32,7 +36,9 @@ Kelompok tombol aksi berbasis teks yang menangani siklus hidup Soft Delete:
 ```
 
 ### C. `<ButtonIconGroupArchive>`
+
 Versi tombol ikon ringkas dari `ButtonGroupArchive` untuk digunakan pada kolom tabel sempit.
+
 ```vue
 <ButtonIconGroupArchive
     :data="row"

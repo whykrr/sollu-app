@@ -1,13 +1,13 @@
 <template>
-  <div class="flex h-screen">
-    <div
-      v-if="loading"
-      class="fixed inset-0 flex items-center justify-center bg-gray-100/50 z-50"
-    >
-      <div class="spinner" />
+    <div class="flex h-screen">
+        <div
+            v-if="loading"
+            class="fixed inset-0 flex items-center justify-center bg-gray-100/50 z-50"
+        >
+            <div class="spinner" />
+        </div>
+        <slot />
     </div>
-    <slot />
-  </div>
 </template>
 <script setup>
 import { ref } from 'vue'

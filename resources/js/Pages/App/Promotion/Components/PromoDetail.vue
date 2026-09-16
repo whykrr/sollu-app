@@ -1,10 +1,7 @@
 <template>
     <div class="space-y-6">
         <!-- Status Banner -->
-        <div
-            class="p-4 rounded-lg flex items-center justify-between"
-            :class="bannerClass"
-        >
+        <div class="p-4 rounded-lg flex items-center justify-between" :class="bannerClass">
             <div>
                 <h3 class="font-semibold text-lg">{{ promo.name }}</h3>
                 <p class="text-sm opacity-90">
@@ -16,38 +13,28 @@
                     {{ getPromoValueDisplay() }}
                 </div>
                 <div class="text-xs opacity-90">
-                    {{
-                        promo.target_type === 'product'
-                            ? 'Per Produk'
-                            : 'Per Bill'
-                    }}
+                    {{ promo.target_type === 'product' ? 'Per Produk' : 'Per Bill' }}
                 </div>
             </div>
         </div>
 
         <!-- Deskripsi -->
         <div v-if="promo.description" class="space-y-1">
-            <h4 class="text-xs font-semibold text-slate-500 uppercase">
-                Deskripsi
-            </h4>
+            <h4 class="text-xs font-semibold text-slate-500 uppercase">Deskripsi</h4>
             <p class="text-sm text-slate-700">{{ promo.description }}</p>
         </div>
 
         <!-- Jadwal -->
         <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1">
-                <h4 class="text-xs font-semibold text-slate-500 uppercase">
-                    Periode Promo
-                </h4>
+                <h4 class="text-xs font-semibold text-slate-500 uppercase">Periode Promo</h4>
                 <p class="text-sm font-medium">
                     {{ formatDate(promo.start_date) }} -
                     {{ formatDate(promo.end_date) }}
                 </p>
             </div>
             <div v-if="promo.start_time || promo.end_time" class="space-y-1">
-                <h4 class="text-xs font-semibold text-slate-500 uppercase">
-                    Jam Operasional
-                </h4>
+                <h4 class="text-xs font-semibold text-slate-500 uppercase">Jam Operasional</h4>
                 <p class="text-sm font-medium">
                     {{ formatTime(promo.start_time) }} -
                     {{ formatTime(promo.end_time) }}
@@ -58,21 +45,14 @@
         <!-- Target & Nilai -->
         <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1">
-                <h4 class="text-xs font-semibold text-slate-500 uppercase">
-                    Tipe Diskon
-                </h4>
+                <h4 class="text-xs font-semibold text-slate-500 uppercase">Tipe Diskon</h4>
                 <p class="text-sm font-medium">
                     {{
-                        promo.promo_type === 'percentage'
-                            ? 'Persentase (%)'
-                            : 'Nominal Tetap (Rp)'
+                        promo.promo_type === 'percentage' ? 'Persentase (%)' : 'Nominal Tetap (Rp)'
                     }}
                 </p>
             </div>
-            <div
-                v-if="promo.promo_type === 'percentage' && promo.max_discount"
-                class="space-y-1"
-            >
+            <div v-if="promo.promo_type === 'percentage' && promo.max_discount" class="space-y-1">
                 <h4 class="text-xs font-semibold text-slate-500 uppercase">
                     Batas Maksimum Diskon
                 </h4>
@@ -94,17 +74,12 @@
         <template v-else>
             <!-- Cakupan Outlet -->
             <div class="space-y-2 border-t pt-4">
-                <h4 class="text-xs font-semibold text-slate-500 uppercase">
-                    Cakupan Outlet
-                </h4>
+                <h4 class="text-xs font-semibold text-slate-500 uppercase">Cakupan Outlet</h4>
                 <div v-if="detailedPromo.applies_to_all_outlets" class="text-sm">
                     <span
                         class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700"
                     >
-                        <FontAwesomeIcon
-                            :icon="faCheck"
-                            class="text-success text-xs"
-                        />
+                        <FontAwesomeIcon :icon="faCheck" class="text-success text-xs" />
                         Berlaku di Semua Outlet
                     </span>
                 </div>
@@ -126,19 +101,20 @@
             </div>
 
             <!-- Cakupan Produk -->
-            <div
-                v-if="detailedPromo.target_type === 'product'"
-                class="space-y-2 border-t pt-4"
-            >
+            <div v-if="detailedPromo.target_type === 'product'" class="space-y-2 border-t pt-4">
                 <h4 class="text-xs font-semibold text-slate-500 uppercase">
                     Produk yang Mendapat Diskon
                 </h4>
                 <div
-                    v-if="(detailedPromo.inventory_items && detailedPromo.inventory_items.length > 0) || (detailedPromo.products && detailedPromo.products.length > 0)"
+                    v-if="
+                        (detailedPromo.inventory_items &&
+                            detailedPromo.inventory_items.length > 0) ||
+                        (detailedPromo.products && detailedPromo.products.length > 0)
+                    "
                     class="flex flex-wrap gap-2"
                 >
                     <span
-                        v-for="product in (detailedPromo.inventory_items || detailedPromo.products)"
+                        v-for="product in detailedPromo.inventory_items || detailedPromo.products"
                         :key="product.id"
                         class="inline-flex items-center px-2.5 py-1 rounded bg-indigo-50 text-indigo-700 text-sm border border-indigo-100"
                     >
@@ -158,11 +134,7 @@
                     <!-- Kiri: Kosong atau tombol sekunder -->
                 </div>
                 <div class="flex gap-2">
-                    <button
-                        type="button"
-                        class="btn btn-flat"
-                        @click="popUpStore.close"
-                    >
+                    <button type="button" class="btn btn-flat" @click="popUpStore.close">
                         Tutup
                     </button>
 
@@ -176,10 +148,7 @@
                     </button>
 
                     <button
-                        v-if="
-                            computedStatus === 'draft' ||
-                            computedStatus === 'inactive'
-                        "
+                        v-if="computedStatus === 'draft' || computedStatus === 'inactive'"
                         type="button"
                         class="btn btn-highlight-main"
                         @click="publishPromo"
@@ -202,14 +171,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { router } from '@inertiajs/vue3';
-import axios from 'axios';
-import { usePopUpStore } from '@/store/popup';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import PromoForm from './PromoForm.vue';
-import { useModalStore } from '@/store/notification.js';
+import { ref, onMounted, computed } from 'vue'
+import { router } from '@inertiajs/vue3'
+import axios from 'axios'
+import { usePopUpStore } from '@/store/popup'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import PromoForm from './PromoForm.vue'
+import { useModalStore } from '@/store/notification.js'
 
 const props = defineProps({
     promo: {
@@ -224,87 +193,87 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-});
+})
 
-const popUpStore = usePopUpStore();
-const modal = useModalStore();
-const isMounted = ref(false);
-const isLoadingDetail = ref(false);
-const detailedPromo = ref({ ...props.promo });
+const popUpStore = usePopUpStore()
+const modal = useModalStore()
+const isMounted = ref(false)
+const isLoadingDetail = ref(false)
+const detailedPromo = ref({ ...props.promo })
 
 onMounted(async () => {
-    isMounted.value = true;
+    isMounted.value = true
     if (props.promo?.id && (!props.promo.outlets || !props.promo.inventory_items)) {
-        isLoadingDetail.value = true;
+        isLoadingDetail.value = true
         try {
-            const response = await axios.get(route('promotions.show', props.promo.id));
-            detailedPromo.value = { ...detailedPromo.value, ...response.data };
+            const response = await axios.get(route('promotions.show', props.promo.id))
+            detailedPromo.value = { ...detailedPromo.value, ...response.data }
         } catch (error) {
-            console.error('Gagal memuat detail promo:', error);
+            console.error('Gagal memuat detail promo:', error)
         } finally {
-            isLoadingDetail.value = false;
+            isLoadingDetail.value = false
         }
     }
-});
+})
 
 const bannerClass = computed(() => {
     switch (props.computedStatus) {
         case 'active':
-            return 'bg-success/10 text-green-800 border border-success/20';
+            return 'bg-success/10 text-green-800 border border-success/20'
         case 'inactive':
-            return 'bg-warning/10 text-yellow-800 border border-warning/20';
+            return 'bg-warning/10 text-yellow-800 border border-warning/20'
         case 'expired':
-            return 'bg-danger/10 text-red-800 border border-danger/20';
+            return 'bg-danger/10 text-red-800 border border-danger/20'
         case 'draft':
         default:
-            return 'bg-slate-100 text-slate-800 border border-slate-200';
+            return 'bg-slate-100 text-slate-800 border border-slate-200'
     }
-});
+})
 
-const getStatusLabel = (status) => {
+const getStatusLabel = status => {
     switch (status) {
         case 'active':
-            return 'Aktif';
+            return 'Aktif'
         case 'inactive':
-            return 'Nonaktif';
+            return 'Nonaktif'
         case 'expired':
-            return 'Kedaluwarsa';
+            return 'Kedaluwarsa'
         case 'draft':
-            return 'Draf';
+            return 'Draf'
         default:
-            return status;
+            return status
     }
-};
+}
 
-const formatCurrency = (value) => {
+const formatCurrency = value => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-    }).format(value || 0);
-};
+    }).format(value || 0)
+}
 
-const formatDate = (dateString) => {
-    if (!dateString) return '-';
+const formatDate = dateString => {
+    if (!dateString) return '-'
     return new Date(dateString).toLocaleDateString('id-ID', {
         day: '2-digit',
         month: 'long',
         year: 'numeric',
-    });
-};
+    })
+}
 
-const formatTime = (timeString) => {
-    if (!timeString) return '-';
-    return timeString.substring(0, 5);
-};
+const formatTime = timeString => {
+    if (!timeString) return '-'
+    return timeString.substring(0, 5)
+}
 
 const getPromoValueDisplay = () => {
     if (props.promo.promo_type === 'percentage') {
-        return `${props.promo.discount_value}%`;
+        return `${props.promo.discount_value}%`
     }
-    return formatCurrency(props.promo.discount_value);
-};
+    return formatCurrency(props.promo.discount_value)
+}
 
 const openEdit = () => {
     popUpStore.open({
@@ -314,8 +283,8 @@ const openEdit = () => {
         props: {
             promo: props.promo,
         },
-    });
-};
+    })
+}
 
 const publishPromo = () => {
     modal.open({
@@ -332,11 +301,11 @@ const publishPromo = () => {
                     preserveScroll: true,
                     preserveState: true,
                     onSuccess: () => popUpStore.close(),
-                },
-            );
+                }
+            )
         },
-    });
-};
+    })
+}
 
 const unpublishPromo = () => {
     modal.open({
@@ -353,9 +322,9 @@ const unpublishPromo = () => {
                     preserveScroll: true,
                     preserveState: true,
                     onSuccess: () => popUpStore.close(),
-                },
-            );
+                }
+            )
         },
-    });
-};
+    })
+}
 </script>

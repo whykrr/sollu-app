@@ -8,18 +8,18 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
-import { debounce } from 'lodash';
-import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
+import { reactive, watch } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { debounce } from 'lodash'
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 
 const props = defineProps({
     filters: Object,
-});
+})
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
-});
+})
 
 watch(
     filterForm,
@@ -31,10 +31,9 @@ watch(
                 {
                     preserveState: true,
                     preserveScroll: true,
-                },
+                }
             ),
-        500,
-    ),
-);
+        500
+    )
+)
 </script>
-

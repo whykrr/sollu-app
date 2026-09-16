@@ -19,33 +19,28 @@
  * @returns {string}
  */
 export function formatNumber(value, options = {}) {
-    const {
-        minDecimals = 0,
-        maxDecimals = 2,
-        locale = 'id-ID',
-        fallback = '0',
-    } = options;
+    const { minDecimals = 0, maxDecimals = 2, locale = 'id-ID', fallback = '0' } = options
 
     if (value === null || value === undefined || value === '') {
-        return fallback;
+        return fallback
     }
 
-    const num = Number(value);
+    const num = Number(value)
     if (isNaN(num)) {
-        return fallback;
+        return fallback
     }
 
     return new Intl.NumberFormat(locale, {
         minimumFractionDigits: minDecimals,
         maximumFractionDigits: maxDecimals,
-    }).format(num);
+    }).format(num)
 }
 
 /**
  * Backward compatibility function
  */
 export function formatNumberID(num) {
-    return formatNumber(num);
+    return formatNumber(num)
 }
 
 /**
@@ -55,5 +50,5 @@ export function useNumberFormat() {
     return {
         formatNumber,
         formatNumberID,
-    };
+    }
 }

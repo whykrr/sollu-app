@@ -92,7 +92,6 @@ class SubscriptionPlanTest extends TestCase
             'name' => 'Paket Mikro Super Updated',
             'price_per_outlet' => 75000,
             'yearly_discount_percent' => 25,
-            'max_outlet' => 5,
             'features' => [
                 ['title' => 'Fitur Kasir Cepat', 'detail' => 'Checkout cepat dalam 3 detik'],
                 ['title' => 'Laporan Harian', 'detail' => 'Laporan otomatis via email'],
@@ -111,7 +110,6 @@ class SubscriptionPlanTest extends TestCase
         $this->assertSame('Paket Mikro Super Updated', $plan->name);
         $this->assertEquals(75000, (float) $plan->price_per_outlet);
         $this->assertSame(25, $plan->yearly_discount_percent);
-        $this->assertSame(5, $plan->max_outlet);
         $this->assertCount(2, $plan->features);
     }
 
@@ -146,10 +144,8 @@ class SubscriptionPlanTest extends TestCase
             'name' => 'Paket Starter Plus',
             'price_per_outlet' => 89000,
             'yearly_discount_percent' => 15,
-            'max_outlet' => 3,
             'is_active' => true,
             'is_public' => true,
-            'is_custom' => false,
             'features' => [
                 ['title' => 'Cetak Struk Bluetooth', 'detail' => 'Kompatibel dengan semua printer thermal 58/80mm'],
             ],
@@ -308,5 +304,127 @@ class SubscriptionPlanTest extends TestCase
 
         $response->assertRedirect(route('settings.billing.plans'));
         $response->assertSessionHas(FlashDataVariable::WARNING->value, 'Paket langganan ini sudah tidak aktif.');
+    }
+
+    public function test_admin_can_search_merchants_for_plan_assignment(): void
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Kopi Kenangan Senopati',
+            'owner_name' => 'Kenangan Owner',
+            'email' => 'kopikenangan@test.test',
+            'phone' => '081299998888',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->get("http://{$this->cockpitHost}/merchants/search?query=Kenangan");
+
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'id' => $business->id,
+            'name' => 'Kopi Kenangan Senopati',
+        ]);
+    }
+
+    public function test_admin_can_create_plan_assigned_to_specific_merchant(): void
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Enterprise Client A',
+            'owner_name' => 'Director A',
+            'email' => 'client_a@test.test',
+            'phone' => '081299991111',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $payload = [
+            'code' => 'enterprise-custom-client-a',
+            'name' => 'Enterprise Custom Plan A',
+            'price_per_outlet' => 350000,
+            'yearly_discount_percent' => 30,
+            'is_active' => true,
+            'is_public' => false,
+            'business_id' => $business->id,
+            'features' => [
+                ['title' => 'Dedicated SLA & Support', 'detail' => '24/7 Dedicated Account Manager'],
+            ],
+        ];
+
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->post("http://{$this->cockpitHost}/subscription-plans", $payload);
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::CREATE_SUCCESS);
+
+        $this->assertDatabaseHas('subscription_plans', [
+            'code' => 'enterprise-custom-client-a',
+            'business_id' => $business->id,
+            'is_public' => false,
+        ]);
+    }
+
+    public function test_admin_can_update_plan_merchant_assignment(): void
+    {
+        $plan = SubscriptionPlan::first();
+
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Client B',
+            'owner_name' => 'Director B',
+            'email' => 'client_b@test.test',
+            'phone' => '081299992222',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        // Assign to business
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->put("http://{$this->cockpitHost}/subscription-plans/{$plan->id}", [
+                'name' => $plan->name,
+                'price_per_outlet' => $plan->price_per_outlet,
+                'yearly_discount_percent' => $plan->yearly_discount_percent,
+                'is_active' => true,
+                'is_public' => false,
+                'business_id' => $business->id,
+            ]);
+
+        $response->assertRedirect();
+        $this->assertSame($business->id, $plan->fresh()->business_id);
+
+        // Remove assignment
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->put("http://{$this->cockpitHost}/subscription-plans/{$plan->id}", [
+                'name' => $plan->name,
+                'price_per_outlet' => $plan->price_per_outlet,
+                'yearly_discount_percent' => $plan->yearly_discount_percent,
+                'is_active' => true,
+                'is_public' => true,
+                'business_id' => null,
+            ]);
+
+        $response->assertRedirect();
+        $this->assertNull($plan->fresh()->business_id);
     }
 }

@@ -1,11 +1,7 @@
 <template>
     <div ref="dropdownRef" class="relative">
         <div class="relative">
-            <a
-                href="#"
-                class="text-slate-700 block"
-                @click.prevent="togglePanel"
-            >
+            <a href="#" class="text-slate-700 block" @click.prevent="togglePanel">
                 <div
                     class="rounded-full w-10 h-10 bg-white flex items-center justify-center border border-neutral-200 hover:bg-neutral-50 hover:border-indigo-300 transition-all duration-150 ease-in-out font-bold text-indigo-700 text-sm shadow-xs"
                 >
@@ -39,9 +35,7 @@
                         >
                             {{ auth?.name }}
                         </div>
-                        <div
-                            class="text-center text-xs font-normal text-neutral-500 mt-0.5"
-                        >
+                        <div class="text-center text-xs font-normal text-neutral-500 mt-0.5">
                             {{ auth?.email }}
                         </div>
                     </div>
@@ -105,49 +99,45 @@
 </template>
 
 <script setup>
-import {
-    faClose,
-    faRightFromBracket,
-    faUser,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { Link, usePage } from '@inertiajs/vue3';
-import { computed, onBeforeMount, onMounted, ref } from 'vue';
-import { usePopUpStore } from '@/store/popup';
-import CockpitProfilePopUp from '@/Components/Cockpit/Auth/CockpitProfilePopUp.vue';
+import { faClose, faRightFromBracket, faUser } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { Link, usePage } from '@inertiajs/vue3'
+import { computed, onBeforeMount, onMounted, ref } from 'vue'
+import { usePopUpStore } from '@/store/popup'
+import CockpitProfilePopUp from '@/Components/Cockpit/Auth/CockpitProfilePopUp.vue'
 
-const auth = computed(() => usePage().props.auth);
-const showPanel = ref(false);
-const dropdownRef = ref(null);
-const popUpStore = usePopUpStore();
+const auth = computed(() => usePage().props.auth)
+const showPanel = ref(false)
+const dropdownRef = ref(null)
+const popUpStore = usePopUpStore()
 
 const initials = computed(() => {
-    const name = auth.value?.name || '';
+    const name = auth.value?.name || ''
     return name
         .split(' ')
-        .map((word) => word[0])
+        .map(word => word[0])
         .join('')
         .substring(0, 2)
-        .toUpperCase();
-});
+        .toUpperCase()
+})
 
 const togglePanel = () => {
-    showPanel.value = !showPanel.value;
-};
+    showPanel.value = !showPanel.value
+}
 
 const closePanel = () => {
-    showPanel.value = false;
-};
+    showPanel.value = false
+}
 
 const openProfilePopUp = () => {
-    closePanel();
+    closePanel()
     popUpStore.open({
         title: 'Ubah Profil & Kata Sandi',
         subTitle: 'Cockpit Admin',
         size: 'md',
         component: CockpitProfilePopUp,
-    });
-};
+    })
+}
 
 const accountLinks = computed(() => [
     {
@@ -161,19 +151,19 @@ const accountLinks = computed(() => [
         link: route().has('cockpit.logout') ? route('cockpit.logout') : '#',
         method: 'delete',
     },
-]);
+])
 
-const handleClickOutside = (event) => {
+const handleClickOutside = event => {
     if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
-        showPanel.value = false;
+        showPanel.value = false
     }
-};
+}
 
 onMounted(() => {
-    document.addEventListener('click', handleClickOutside);
-});
+    document.addEventListener('click', handleClickOutside)
+})
 
 onBeforeMount(() => {
-    document.removeEventListener('click', handleClickOutside);
-});
+    document.removeEventListener('click', handleClickOutside)
+})
 </script>

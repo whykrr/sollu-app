@@ -19,10 +19,7 @@
                 leave-to-class="opacity-0"
             >
                 <div
-                    v-if="
-                        appStore.sidebar.show &&
-                        (appStore.sidebar.minimize || isMobile)
-                    "
+                    v-if="appStore.sidebar.show && (appStore.sidebar.minimize || isMobile)"
                     class="fixed inset-0 bg-black/20 backdrop-blur-sm z-20"
                     aria-hidden="true"
                     @click="appStore.hide()"
@@ -32,25 +29,16 @@
 
         <div class="sidebar-container relative z-30">
             <div>
-                <div
-                    class="flex justify-between items-center px-2 min-h-16 relative"
-                >
+                <div class="flex justify-between items-center px-2 min-h-16 relative">
                     <Link href="#" class="flex items-end gap-2">
-                        <img
-                            src="/img/logo-colored.png"
-                            class="h-7 w-auto"
-                            alt="Sollu Cockpit"
-                        />
+                        <img src="/img/logo-colored.png" class="h-7 w-auto" alt="Sollu Cockpit" />
                         <span
                             class="text-[12px] uppercase font-extrabold px-1.5 py-0.5 bg-indigo-600 text-white rounded tracking-wider shadow-xs"
                         >
                             Cockpit
                         </span>
                     </Link>
-                    <div
-                        class="block sm:hidden text-sm cursor-pointer"
-                        @click="appStore.hide"
-                    >
+                    <div class="block sm:hidden text-sm cursor-pointer" @click="appStore.hide">
                         <FontAwesomeIcon :icon="faClose" />
                     </div>
 
@@ -80,33 +68,29 @@
 </template>
 
 <script setup>
-import SidebarNavCockpit from './SidebarNavCockpit.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faChevronLeft,
-    faClose,
-    faLock,
-} from '@fortawesome/free-solid-svg-icons';
-import { Link, router } from '@inertiajs/vue3';
-import { useAppStore } from '@/store/app';
-import { onMounted, onUnmounted, ref } from 'vue';
+import SidebarNavCockpit from './SidebarNavCockpit.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faChevronLeft, faClose, faLock } from '@fortawesome/free-solid-svg-icons'
+import { Link, router } from '@inertiajs/vue3'
+import { useAppStore } from '@/store/app'
+import { onMounted, onUnmounted, ref } from 'vue'
 
-const appStore = useAppStore();
+const appStore = useAppStore()
 
-const isMobile = ref(false);
+const isMobile = ref(false)
 
 const checkMobile = () => {
-    isMobile.value = window.innerWidth < 640; // sm breakpoint
-};
+    isMobile.value = window.innerWidth < 640 // sm breakpoint
+}
 
 onMounted(() => {
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-});
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+})
 
 onUnmounted(() => {
-    window.removeEventListener('resize', checkMobile);
-});
+    window.removeEventListener('resize', checkMobile)
+})
 
-router.on('finish', () => appStore.hide());
+router.on('finish', () => appStore.hide())
 </script>

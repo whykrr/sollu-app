@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cockpit;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Enums\SubscriptionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cockpit\StoreSubscriptionPlanRequest;
 use App\Http\Requests\Cockpit\UpdatePlanFeaturesRequest;
@@ -13,6 +14,7 @@ use App\Models\SubscriptionPlan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,9 +23,17 @@ class SubscriptionPlanController extends Controller
     public function index(): Response
     {
         $plans = SubscriptionPlan::query()
-            ->with(['systemFeatures'])
+            ->with(['systemFeatures', 'business:id,name,owner_name,email'])
             ->withCount(['subscriptions' => function ($query) {
-                $query->where('status', 'active');
+                $query->where('status', SubscriptionStatus::Active->value)
+                    ->where(function ($q) {
+                        $q->whereNull('expired_at')
+                            ->orWhere('expired_at', '>=', now());
+                    })
+                    ->whereHas('business', function ($b) {
+                        $b->where('status', 'active');
+                    })
+                    ->select(DB::raw('count(distinct business_id)'));
             }])
             ->orderBy('price_per_outlet', 'asc')
             ->get();
@@ -49,6 +59,8 @@ class SubscriptionPlanController extends Controller
             $plan->clearFeatureCache();
         }
 
+        SubscriptionPlan::clearCache();
+
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
             ResourceMessage::CREATE_SUCCESS
@@ -58,9 +70,17 @@ class SubscriptionPlanController extends Controller
     public function show(string $id): JsonResponse
     {
         $plan = SubscriptionPlan::query()
-            ->with(['systemFeatures'])
+            ->with(['systemFeatures', 'business:id,name,owner_name,email'])
             ->withCount(['subscriptions' => function ($query) {
-                $query->where('status', 'active');
+                $query->where('status', SubscriptionStatus::Active->value)
+                    ->where(function ($q) {
+                        $q->whereNull('expired_at')
+                            ->orWhere('expired_at', '>=', now());
+                    })
+                    ->whereHas('business', function ($b) {
+                        $b->where('status', 'active');
+                    })
+                    ->select(DB::raw('count(distinct business_id)'));
             }])
             ->findOrFail($id);
 
@@ -83,6 +103,7 @@ class SubscriptionPlanController extends Controller
         }
 
         $plan->update($validated);
+        SubscriptionPlan::clearCache();
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

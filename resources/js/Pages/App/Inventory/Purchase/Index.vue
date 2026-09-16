@@ -7,11 +7,7 @@
                     Buat PO Baru
                 </button>
             </MainPageHeader>
-            <PurchaseFilter
-                :filters="filters"
-                :suppliers="suppliers"
-                :outlets="outlets"
-            />
+            <PurchaseFilter :filters="filters" :suppliers="suppliers" :outlets="outlets" />
         </template>
 
         <Table
@@ -125,9 +121,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
-import axios from 'axios';
+import { ref } from 'vue'
+import { router } from '@inertiajs/vue3'
+import axios from 'axios'
 import {
     faPlus,
     faPencil,
@@ -138,27 +134,23 @@ import {
     faUndo,
     faEye,
     faFilePdf,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { useModalStore } from '@/store/notification';
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import Modal from '@/Components/Notifications/Modal.vue';
-import Form from './Components/Form.vue';
-import Receive from './Components/Receive.vue';
-import Detail from './Components/Detail.vue';
-import PurchaseFilter from './Components/PurchaseFilter.vue';
-import { usePopUpStore } from '@/store/popup';
-import {
-    formatDateID,
-    formatDateTimeID,
-    formatDateTimeSimple,
-} from '@/Composable/date.js';
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { useModalStore } from '@/store/notification'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import Modal from '@/Components/Notifications/Modal.vue'
+import Form from './Components/Form.vue'
+import Receive from './Components/Receive.vue'
+import Detail from './Components/Detail.vue'
+import PurchaseFilter from './Components/PurchaseFilter.vue'
+import { usePopUpStore } from '@/store/popup'
+import { formatDateID, formatDateTimeID, formatDateTimeSimple } from '@/Composable/date.js'
 
-const modalStore = useModalStore();
-const popUpStore = usePopUpStore();
+const modalStore = useModalStore()
+const popUpStore = usePopUpStore()
 
 const props = defineProps({
     purchases: {
@@ -177,7 +169,7 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
 const headers = [
     { label: 'Nomor PO', field: 'po_number', sortable: true },
@@ -196,94 +188,94 @@ const headers = [
         sortable: true,
     },
     { label: 'Status', field: 'status', slot: 'status', sortable: true },
-];
+]
 
-const formatCurrency = (value) => {
+const formatCurrency = value => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-    }).format(value);
-};
+    }).format(value)
+}
 
-const statusLabel = (status) => {
+const statusLabel = status => {
     const labels = {
         draft: 'Draf',
         ordered: 'Order',
         received: 'Diterima',
         cancelled: 'Dibatalkan',
-    };
-    return labels[status] || status;
-};
+    }
+    return labels[status] || status
+}
 
-const statusColor = (status) => {
+const statusColor = status => {
     const colors = {
         draft: 'badge-gray',
         ordered: 'badge-info',
         received: 'badge-success',
         cancelled: 'badge-danger',
-    };
-    return colors[status] || 'badge-gray';
-};
+    }
+    return colors[status] || 'badge-gray'
+}
 
-const isLoadingData = ref(false);
+const isLoadingData = ref(false)
 
-const fetchPurchaseDetails = async (id) => {
-    isLoadingData.value = true;
+const fetchPurchaseDetails = async id => {
+    isLoadingData.value = true
     try {
-        const response = await axios.get(route('inventory.purchases.show', id));
-        return response.data;
+        const response = await axios.get(route('inventory.purchases.show', id))
+        return response.data
     } catch (error) {
-        console.error(error);
+        console.error(error)
         modalStore.addNotification({
             type: 'error',
             title: 'Gagal',
             message: 'Gagal mengambil detail PO.',
-        });
-        return null;
+        })
+        return null
     } finally {
-        isLoadingData.value = false;
+        isLoadingData.value = false
     }
-};
+}
 
 const openForm = async (item = null) => {
-    let data = null;
+    let data = null
     if (item) {
-        data = await fetchPurchaseDetails(item.id);
-        if (!data) return;
+        data = await fetchPurchaseDetails(item.id)
+        if (!data) return
     }
     popUpStore.open({
         title: 'Purchase Order',
         size: 'xl',
         component: Form,
         props: { purchase: data, suppliers: props.suppliers, uoms: props.uoms },
-    });
-};
+    })
+}
 
-const openReceive = async (item) => {
-    const data = await fetchPurchaseDetails(item.id);
-    if (!data) return;
+const openReceive = async item => {
+    const data = await fetchPurchaseDetails(item.id)
+    if (!data) return
     popUpStore.open({
         title: 'Terima Barang',
         subTitle: '#' + data.po_number,
         size: 'xl',
         component: Receive,
         props: { purchase: data },
-    });
-};
+    })
+}
 
-const openDetail = async (item) => {
-    const data = await fetchPurchaseDetails(item.id);
-    if (!data) return;
+const openDetail = async item => {
+    const data = await fetchPurchaseDetails(item.id)
+    if (!data) return
     popUpStore.open({
         title: 'Detail Purchase Order',
         subTitle: '#' + data.po_number,
         size: 'lg',
         component: Detail,
         props: { purchase: data },
-    });
-};
+    })
+}
 
-const confirmOrder = (item) => {
+const confirmOrder = item => {
     modalStore.confirm({
         title: 'Konfirmasi Order',
         message: `Apakah Anda yakin ingin memproses PO ${item.po_number} menjadi Ordered?`,
@@ -293,13 +285,13 @@ const confirmOrder = (item) => {
             router.post(
                 route('inventory.purchases.order', item.id),
                 {},
-                { preserveScroll: true, preserveState: true },
-            );
+                { preserveScroll: true, preserveState: true }
+            )
         },
-    });
-};
+    })
+}
 
-const confirmCancel = (item) => {
+const confirmCancel = item => {
     modalStore.confirm({
         title: 'Konfirmasi Batal',
         message: `Apakah Anda yakin ingin membatalkan PO ${item.po_number}?`,
@@ -309,13 +301,13 @@ const confirmCancel = (item) => {
             router.post(
                 route('inventory.purchases.cancel', item.id),
                 {},
-                { preserveScroll: true, preserveState: true },
-            );
+                { preserveScroll: true, preserveState: true }
+            )
         },
-    });
-};
+    })
+}
 
-const confirmVoid = (item) => {
+const confirmVoid = item => {
     modalStore.confirm({
         title: 'Konfirmasi Void',
         message: `Apakah Anda yakin ingin melakukan Void penerimaan PO ${item.po_number}? Stok akan dikembalikan seperti semula.`,
@@ -325,13 +317,13 @@ const confirmVoid = (item) => {
             router.post(
                 route('inventory.purchases.void', item.id),
                 {},
-                { preserveScroll: true, preserveState: true },
-            );
+                { preserveScroll: true, preserveState: true }
+            )
         },
-    });
-};
+    })
+}
 
-const confirmDelete = (item) => {
-    modalStore.openModalDelete(route('inventory.purchases.destroy', item.id));
-};
+const confirmDelete = item => {
+    modalStore.openModalDelete(route('inventory.purchases.destroy', item.id))
+}
 </script>

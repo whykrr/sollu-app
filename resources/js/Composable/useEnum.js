@@ -14,7 +14,7 @@ export function useEnum() {
      * @param {string} enumName - Nama Enum PHP (e.g. 'AdjustmentStatus', 'PromoStatus')
      * @returns {Array<{value: string|number, label: string}>}
      */
-    const getOptions = (enumName) => {
+    const getOptions = enumName => {
         return enums.value[enumName]?._options || []
     }
 
@@ -53,7 +53,7 @@ export function useEnum() {
      * @param {string} enumName
      * @returns {Array<any>}
      */
-    const getGrouped = (enumName) => {
+    const getGrouped = enumName => {
         return enums.value[enumName]?._grouped || []
     }
 

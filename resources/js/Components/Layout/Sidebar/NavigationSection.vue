@@ -21,5 +21,5 @@ defineProps({
         type: Boolean,
         default: false,
     },
-});
+})
 </script>

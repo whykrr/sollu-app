@@ -1,17 +1,13 @@
 <template>
     <div>
         <div v-if="opname" class="space-y-2">
-            <div
-                class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded-lg"
-            >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded-lg">
                 <div>
                     <p class="mb-1">
                         <strong>Nomor Opname:</strong>
                         {{ opname.opname_number }}
                     </p>
-                    <p class="mb-1">
-                        <strong>Outlet:</strong> {{ opname.outlet?.name }}
-                    </p>
+                    <p class="mb-1"><strong>Outlet:</strong> {{ opname.outlet?.name }}</p>
                     <p>
                         <strong>Status:</strong>
                         <span class="badge" :class="statusColor(opname.status)">
@@ -58,9 +54,7 @@
                         :key="item.id"
                         class="flex gap-2 items-center border p-2 rounded-lg bg-white"
                         :class="{
-                            'bg-red-50':
-                                Number(item.actual_qty) !==
-                                Number(item.system_qty),
+                            'bg-red-50': Number(item.actual_qty) !== Number(item.system_qty),
                         }"
                     >
                         <div class="w-8 text-center text-gray-500 font-bold">
@@ -71,28 +65,19 @@
                                 {{ item.inventory_item?.name }}
                             </div>
                             <div class="text-sm text-gray-500">
-                                SKU: {{ item.inventory_item?.sku || '-' }} |
-                                Satuan:
+                                SKU: {{ item.inventory_item?.sku || '-' }} | Satuan:
                                 {{ item.inventory_item?.uom?.name || '-' }}
                             </div>
                         </div>
                         <div class="w-32">
-                            <div class="text-xs text-gray-500 text-center">
-                                Stok Sistem
-                            </div>
-                            <div
-                                class="text-center font-semibold bg-gray-100 py-1 rounded"
-                            >
+                            <div class="text-xs text-gray-500 text-center">Stok Sistem</div>
+                            <div class="text-center font-semibold bg-gray-100 py-1 rounded">
                                 {{ formatNumberID(item.system_qty) }}
                             </div>
                         </div>
                         <div class="w-32">
-                            <div class="text-xs text-gray-500 text-center">
-                                Stok Fisik
-                            </div>
-                            <div
-                                class="text-center font-semibold bg-gray-100 py-1 rounded"
-                            >
+                            <div class="text-xs text-gray-500 text-center">Stok Fisik</div>
+                            <div class="text-center font-semibold bg-gray-100 py-1 rounded">
                                 {{ formatNumberID(item.actual_qty) }}
                             </div>
                         </div>
@@ -100,19 +85,9 @@
                             <div class="text-xs text-gray-500">Selisih</div>
                             <div
                                 class="font-bold text-lg"
-                                :class="
-                                    differenceColor(
-                                        item.actual_qty,
-                                        item.system_qty,
-                                    )
-                                "
+                                :class="differenceColor(item.actual_qty, item.system_qty)"
                             >
-                                {{
-                                    formatDifference(
-                                        item.actual_qty,
-                                        item.system_qty,
-                                    )
-                                }}
+                                {{ formatDifference(item.actual_qty, item.system_qty) }}
                             </div>
                         </div>
                     </div>
@@ -120,9 +95,7 @@
             </div>
 
             <!-- Summary Footer -->
-            <div
-                class="mt-2a grid grid-cols-2 md:grid-cols-5 gap-2 border-t pt-2"
-            >
+            <div class="mt-2a grid grid-cols-2 md:grid-cols-5 gap-2 border-t pt-2">
                 <div class="text-center p-3 bg-gray-50 rounded">
                     <div class="text-xs text-gray-500">Total Item</div>
                     <div class="font-bold text-lg">
@@ -153,12 +126,7 @@
         </div>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button
-                type="button"
-                class="btn btn-flat"
-                :disabled="form.processing"
-                @click="close"
-            >
+            <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
                 Tutup
             </button>
             <template v-if="opname && opname.status === $enums.StockOpnameStatus.PendingApproval">
@@ -200,9 +168,7 @@
         </div>
 
         <template #footer>
-            <button class="btn btn-flat" @click="showConfirm = false">
-                Batal
-            </button>
+            <button class="btn btn-flat" @click="showConfirm = false">Batal</button>
             <button
                 class="btn"
                 :class="actionType === 'reject' ? 'btn-danger' : 'btn-main'"
@@ -215,102 +181,102 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import Modal from '@/Components/Notifications/Modal.vue';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import { formatDateTimeID } from '@/Composable/date';
-import { formatNumberID } from '@/Composable/useNumberFormat';
-import { useModalStore } from '@/store/notification';
+import { ref, computed, onMounted } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import Modal from '@/Components/Notifications/Modal.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import { formatDateTimeID } from '@/Composable/date'
+import { formatNumberID } from '@/Composable/useNumberFormat'
+import { useModalStore } from '@/store/notification'
 
-const modal = useModalStore();
+const modal = useModalStore()
 
 const props = defineProps({
     opname: Object,
-});
+})
 
-const emit = defineEmits(['close']);
-const isMounted = ref(false);
+const emit = defineEmits(['close'])
+const isMounted = ref(false)
 
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 
 const form = useForm({
     notes: '',
     items: [], // we will inject this just to satisfy UpdateStockOpnameRequest validation for approve method
-});
+})
 
-const showConfirm = ref(false);
-const confirmTitle = ref('');
-const confirmMessage = ref('');
-const actionType = ref('');
+const showConfirm = ref(false)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const actionType = ref('')
 
 const summary = computed(() => {
-    let totalItems = 0;
-    let matched = 0;
-    let diffCount = 0;
-    let surplus = 0;
-    let shortage = 0;
+    let totalItems = 0
+    let matched = 0
+    let diffCount = 0
+    let surplus = 0
+    let shortage = 0
 
     if (props.opname && props.opname.items) {
-        totalItems = props.opname.items.length;
-        props.opname.items.forEach((item) => {
-            const diff = Number(item.difference_qty);
-            if (diff === 0) matched++;
-            else diffCount++;
+        totalItems = props.opname.items.length
+        props.opname.items.forEach(item => {
+            const diff = Number(item.difference_qty)
+            if (diff === 0) matched++
+            else diffCount++
 
-            if (diff > 0) surplus += diff;
-            if (diff < 0) shortage += Math.abs(diff);
-        });
+            if (diff > 0) surplus += diff
+            if (diff < 0) shortage += Math.abs(diff)
+        })
     }
 
-    return { totalItems, matched, diff: diffCount, surplus, shortage };
-});
+    return { totalItems, matched, diff: diffCount, surplus, shortage }
+})
 
-const statusLabel = (status) => {
+const statusLabel = status => {
     const labels = {
         in_progress: 'Sedang Berjalan',
         pending_approval: 'Menunggu Persetujuan',
         approved: 'Disetujui',
         rejected: 'Ditolak',
-    };
-    return labels[status] || status;
-};
+    }
+    return labels[status] || status
+}
 
-const statusColor = (status) => {
+const statusColor = status => {
     const colors = {
         in_progress: 'badge-warning',
         pending_approval: 'badge-info',
         approved: 'badge-success',
         rejected: 'badge-danger',
-    };
-    return colors[status] || 'badge-gray';
-};
+    }
+    return colors[status] || 'badge-gray'
+}
 
 const differenceColor = (actual, system) => {
-    const diff = Number(actual || 0) - Number(system || 0);
-    if (diff > 0) return 'text-success';
-    if (diff < 0) return 'text-danger';
-    return 'text-gray-400';
-};
+    const diff = Number(actual || 0) - Number(system || 0)
+    if (diff > 0) return 'text-success'
+    if (diff < 0) return 'text-danger'
+    return 'text-gray-400'
+}
 
 const formatDifference = (actual, system) => {
-    const diff = Number(actual || 0) - Number(system || 0);
-    const formatted = formatNumberID(Math.abs(diff));
-    if (diff > 0) return '+' + formatted;
-    if (diff < 0) return '-' + formatted;
-    return '0';
-};
+    const diff = Number(actual || 0) - Number(system || 0)
+    const formatted = formatNumberID(Math.abs(diff))
+    if (diff > 0) return '+' + formatted
+    if (diff < 0) return '-' + formatted
+    return '0'
+}
 
 const close = () => {
-    form.clearErrors();
-    emit('close');
-};
+    form.clearErrors()
+    emit('close')
+}
 
-const confirmAction = (type) => {
-    actionType.value = type;
-    form.clearErrors();
+const confirmAction = type => {
+    actionType.value = type
+    form.clearErrors()
 
     if (type === 'approve') {
         modal.open({
@@ -320,45 +286,44 @@ const confirmAction = (type) => {
             confirmText: 'Setujui & Sesuaikan Stok',
             confirmButtonClass: 'btn btn-main',
             onConfirm: () => {
-                form.items = props.opname.items.map((i) => ({
+                form.items = props.opname.items.map(i => ({
                     inventory_item_id: i.inventory_item_id,
                     system_qty: i.system_qty,
                     actual_qty: i.actual_qty,
-                }));
+                }))
 
-                executeAction();
+                executeAction()
             },
-        });
+        })
     } else {
         modal.open({
             title: 'Tolak Opname',
-            message:
-                'Opname akan ditolak dan stok tidak akan disesuaikan. Silakan beri alasan.',
+            message: 'Opname akan ditolak dan stok tidak akan disesuaikan. Silakan beri alasan.',
             confirmText: 'Tolak Opname',
             confirmButtonClass: 'btn btn-danger',
             onConfirm: () => {
-                form.notes = '';
-                executeAction();
+                form.notes = ''
+                executeAction()
             },
-        });
+        })
     }
-    showConfirm.value = true;
-};
+    showConfirm.value = true
+}
 
 const executeAction = () => {
     const options = {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {
-            showConfirm.value = false;
-            close();
+            showConfirm.value = false
+            close()
         },
-    };
+    }
 
     if (actionType.value === 'approve') {
-        form.post(route('inventory.opnames.approve', props.opname.id), options);
+        form.post(route('inventory.opnames.approve', props.opname.id), options)
     } else {
-        form.post(route('inventory.opnames.reject', props.opname.id), options);
+        form.post(route('inventory.opnames.reject', props.opname.id), options)
     }
-};
+}
 </script>

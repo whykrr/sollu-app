@@ -9,20 +9,18 @@ export function useAuth() {
     const subscription = computed(() => auth.value.subscription ?? null)
     const outlets = computed(() => auth.value.outlets ?? [])
     const selectedOutlet = computed(() => auth.value.selected_outlet ?? null)
-    const roles = computed(() => (auth.value.role ?? []).map((role) => role.name))
+    const roles = computed(() => (auth.value.role ?? []).map(role => role.name))
     const permissions = computed(() => auth.value.permissions ?? [])
 
-    const hasRole = (role) => {
+    const hasRole = role => {
         return roles.value.includes(role)
     }
 
     const hasAnyRole = (roleList = []) => {
-        return roleList.some((role) =>
-            roles.value.includes(role),
-        )
+        return roleList.some(role => roles.value.includes(role))
     }
 
-    const can = (permission) => {
+    const can = permission => {
         const perms = permissions.value
 
         if (perms.includes(permission)) {
@@ -43,20 +41,14 @@ export function useAuth() {
     }
 
     const canAny = (permissionList = []) => {
-        return permissionList.some((permission) =>
-            can(permission),
-        )
+        return permissionList.some(permission => can(permission))
     }
 
     const canAll = (permissionList = []) => {
-        return permissionList.every((permission) =>
-            can(permission),
-        )
+        return permissionList.every(permission => can(permission))
     }
 
-    const isOwner = computed(() =>
-        hasRole('owner'),
-    )
+    const isOwner = computed(() => hasRole('owner'))
 
     return {
         auth,

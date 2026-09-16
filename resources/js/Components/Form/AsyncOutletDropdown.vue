@@ -4,9 +4,7 @@
             <label v-if="label" :for="$attrs.id" class="label">
                 {{ label }}
             </label>
-            <div
-                class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl relative"
-            >
+            <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl relative">
                 <SelectionGroupField
                     :id="$attrs.id"
                     v-model="internalValue"
@@ -50,9 +48,9 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
-import { useAuth } from '@/Composable/useAuth.js';
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue';
+import { ref, watch, computed } from 'vue'
+import { useAuth } from '@/Composable/useAuth.js'
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 
 const props = defineProps({
     modelValue: {
@@ -83,51 +81,51 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-});
+})
 
-const feedbackMessage = computed(() => props.feedback || props.error || '');
+const feedbackMessage = computed(() => props.feedback || props.error || '')
 
-const emit = defineEmits(['update:modelValue', 'change', 'loaded']);
+const emit = defineEmits(['update:modelValue', 'change', 'loaded'])
 
-const internalValue = ref(props.modelValue);
+const internalValue = ref(props.modelValue)
 
-const { outlets: sharedOutlets } = useAuth();
-const isLoading = ref(false);
+const { outlets: sharedOutlets } = useAuth()
+const isLoading = ref(false)
 
 const outlets = computed(() => {
     if (props.excludeFrozen) {
-        return sharedOutlets.value.filter((o) => !o.is_stock_frozen);
+        return sharedOutlets.value.filter(o => !o.is_stock_frozen)
     }
-    return sharedOutlets.value;
-});
+    return sharedOutlets.value
+})
 
 const formattedOutlets = computed(() => {
-    return outlets.value.map((o) => ({
+    return outlets.value.map(o => ({
         value: o.id,
         label: o.name,
-    }));
-});
+    }))
+})
 
 watch(
     () => props.modelValue,
-    (newVal) => {
-        internalValue.value = newVal;
-    },
-);
+    newVal => {
+        internalValue.value = newVal
+    }
+)
 
-watch(internalValue, (newVal) => {
-    emit('update:modelValue', newVal);
-    const selected = outlets.value.find((o) => o.id == newVal);
-    emit('change', selected || null);
-});
+watch(internalValue, newVal => {
+    emit('update:modelValue', newVal)
+    const selected = outlets.value.find(o => o.id == newVal)
+    emit('change', selected || null)
+})
 
 watch(
     outlets,
-    (val) => {
+    val => {
         if (val && val.length > 0) {
-            emit('loaded', val);
+            emit('loaded', val)
         }
     },
-    { immediate: true, deep: true },
-);
+    { immediate: true, deep: true }
+)
 </script>

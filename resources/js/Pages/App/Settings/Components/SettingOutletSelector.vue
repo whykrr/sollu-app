@@ -1,6 +1,9 @@
 <template>
     <div v-if="outlets && outlets.length > 0" class="flex items-center gap-2">
-        <label for="setting-outlet-select" class="text-xs font-semibold text-slate-500 whitespace-nowrap hidden sm:inline">
+        <label
+            for="setting-outlet-select"
+            class="text-xs font-semibold text-slate-500 whitespace-nowrap hidden sm:inline"
+        >
             Outlet:
         </label>
         <select
@@ -26,7 +29,7 @@ defineProps({
         type: String,
         default: '',
     },
-});
+})
 
-defineEmits(['update:modelValue']);
+defineEmits(['update:modelValue'])
 </script>

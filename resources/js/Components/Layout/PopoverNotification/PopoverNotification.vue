@@ -18,10 +18,8 @@
 
                 <!-- Header Title & Mark All As Read -->
                 <div class="flex items-center justify-between pr-6 shrink-0">
-                    <div class="text-lg font-medium text-neutral-800">
-                        Notifikasi
-                    </div>
-                    <button 
+                    <div class="text-lg font-medium text-neutral-800">Notifikasi</div>
+                    <button
                         :disabled="unreadCount === 0"
                         class="text-xs font-medium text-main hover:text-main/80 transition disabled:opacity-40 disabled:no-underline"
                         @click="markAllAsRead"
@@ -29,46 +27,62 @@
                         Tandai semua dibaca
                     </button>
                 </div>
-                
+
                 <!-- Filter Tabs matching TopBarAccount style -->
-                <div class="bg-neutral-50 border border-neutral-100 rounded-xl p-1 flex gap-1 text-xs font-medium text-neutral-500 shrink-0">
+                <div
+                    class="bg-neutral-50 border border-neutral-100 rounded-xl p-1 flex gap-1 text-xs font-medium text-neutral-500 shrink-0"
+                >
                     <button
                         class="flex-1 py-1.5 px-2 rounded-lg transition-all duration-150 ease-in-out text-center flex items-center justify-center gap-1.5"
-                        :class="filterActive === 'all' ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold' : 'hover:text-neutral-800 hover:bg-neutral-100/50'"
+                        :class="
+                            filterActive === 'all'
+                                ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold'
+                                : 'hover:text-neutral-800 hover:bg-neutral-100/50'
+                        "
                         @click="toggleFilter('all')"
                     >
                         <span>Semua</span>
-                        <span v-if="unreadCount > 0" class="bg-main/10 text-main text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                        <span
+                            v-if="unreadCount > 0"
+                            class="bg-main/10 text-main text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                        >
                             {{ unreadCount }}
                         </span>
                     </button>
                     <button
                         class="flex-1 py-1.5 px-2 rounded-lg transition-all duration-150 ease-in-out text-center"
-                        :class="filterActive === 'system' ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold' : 'hover:text-neutral-800 hover:bg-neutral-100/50'"
+                        :class="
+                            filterActive === 'system'
+                                ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold'
+                                : 'hover:text-neutral-800 hover:bg-neutral-100/50'
+                        "
                         @click="toggleFilter('system')"
                     >
                         Sistem
                     </button>
                     <button
                         class="flex-1 py-1.5 px-2 rounded-lg transition-all duration-150 ease-in-out text-center"
-                        :class="filterActive === 'order' ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold' : 'hover:text-neutral-800 hover:bg-neutral-100/50'"
+                        :class="
+                            filterActive === 'order'
+                                ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold'
+                                : 'hover:text-neutral-800 hover:bg-neutral-100/50'
+                        "
                         @click="toggleFilter('order')"
                     >
                         Pesanan
                     </button>
                 </div>
-                
+
                 <!-- Content Area -->
-                <div class="bg-neutral-50 border border-neutral-100 rounded-xl overflow-hidden flex-1 min-h-0 overflow-y-auto floating-scroll">
+                <div
+                    class="bg-neutral-50 border border-neutral-100 rounded-xl overflow-hidden flex-1 min-h-0 overflow-y-auto floating-scroll"
+                >
                     <!-- Loaded State -->
                     <ol
                         v-if="!isLoading && notifications.length > 0"
                         class="divide-y divide-neutral-100"
                     >
-                        <li
-                            v-for="notification in notifications"
-                            :key="notification.id"
-                        >
+                        <li v-for="notification in notifications" :key="notification.id">
                             <NotificationItem
                                 :notification="notification"
                                 @read="markAsRead"
@@ -78,10 +92,7 @@
                     </ol>
 
                     <!-- Loading Skeletons -->
-                    <ol
-                        v-if="isLoading"
-                        class="divide-y divide-neutral-100"
-                    >
+                    <ol v-if="isLoading" class="divide-y divide-neutral-100">
                         <li v-for="i in 4" :key="'skeleton-' + i">
                             <NotificationItem :notification="null" />
                         </li>
@@ -92,18 +103,30 @@
                         v-if="!isLoading && notifications.length === 0"
                         class="flex flex-col items-center justify-center text-neutral-400 select-none p-8 text-center my-auto min-h-[16rem]"
                     >
-                        <div class="bg-white rounded-full h-16 w-16 flex items-center justify-center mb-3 border border-neutral-200 shadow-sm">
-                            <FontAwesomeIcon :icon="faBellSlash" class="text-2xl text-neutral-400" />
+                        <div
+                            class="bg-white rounded-full h-16 w-16 flex items-center justify-center mb-3 border border-neutral-200 shadow-sm"
+                        >
+                            <FontAwesomeIcon
+                                :icon="faBellSlash"
+                                class="text-2xl text-neutral-400"
+                            />
                         </div>
-                        <h3 class="text-base font-medium text-neutral-700 mb-1">Belum Ada Notifikasi</h3>
-                        <p class="text-xs text-neutral-500">Saat ini tidak ada pemberitahuan baru untuk Anda.</p>
+                        <h3 class="text-base font-medium text-neutral-700 mb-1">
+                            Belum Ada Notifikasi
+                        </h3>
+                        <p class="text-xs text-neutral-500">
+                            Saat ini tidak ada pemberitahuan baru untuk Anda.
+                        </p>
                     </div>
 
                     <!-- Load More Button -->
-                    <div v-if="!isLoading && currentPage < lastPage" class="p-3 flex justify-center border-t border-neutral-100 bg-white">
-                        <button 
-                            class="btn btn-outline-main btn-sm rounded-lg text-xs" 
-                            :disabled="isLoadingMore" 
+                    <div
+                        v-if="!isLoading && currentPage < lastPage"
+                        class="p-3 flex justify-center border-t border-neutral-100 bg-white"
+                    >
+                        <button
+                            class="btn btn-outline-main btn-sm rounded-lg text-xs"
+                            :disabled="isLoadingMore"
                             @click="fetchNotifications(currentPage + 1, true)"
                         >
                             <span v-if="isLoadingMore">Memuat...</span>
@@ -117,123 +140,122 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import axios from 'axios';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faClose, faListCheck, faBellSlash } from '@fortawesome/free-solid-svg-icons';
-import NotificationItem from './NotificationItem.vue';
+import { ref, watch } from 'vue'
+import axios from 'axios'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faClose, faListCheck, faBellSlash } from '@fortawesome/free-solid-svg-icons'
+import NotificationItem from './NotificationItem.vue'
 
 const props = defineProps({
     isOpen: Boolean,
-});
+})
 
-const emit = defineEmits(['close', 'update-unread-count']);
+const emit = defineEmits(['close', 'update-unread-count'])
 
 // State
-const filterActive = ref('all');
-const notifications = ref([]);
-const unreadCount = ref(0);
+const filterActive = ref('all')
+const notifications = ref([])
+const unreadCount = ref(0)
 
-watch(unreadCount, (val) => {
-    emit('update-unread-count', val);
-});
-const isLoading = ref(false);
-const isLoadingMore = ref(false);
-const currentPage = ref(1);
-const lastPage = ref(1);
+watch(unreadCount, val => {
+    emit('update-unread-count', val)
+})
+const isLoading = ref(false)
+const isLoadingMore = ref(false)
+const currentPage = ref(1)
+const lastPage = ref(1)
 
 // Methods
 const fetchNotifications = async (page = 1, append = false) => {
-    if (page === 1) isLoading.value = true;
-    else isLoadingMore.value = true;
-    
+    if (page === 1) isLoading.value = true
+    else isLoadingMore.value = true
+
     try {
         const response = await axios.get(route('api.internal.notifications.index'), {
             params: {
                 filter: filterActive.value,
-                page: page
-            }
-        });
-        
+                page: page,
+            },
+        })
+
         if (append) {
-            notifications.value.push(...response.data.notifications.data);
+            notifications.value.push(...response.data.notifications.data)
         } else {
-            notifications.value = response.data.notifications.data;
+            notifications.value = response.data.notifications.data
         }
-        
-        currentPage.value = response.data.notifications.current_page;
-        lastPage.value = response.data.notifications.last_page;
-        unreadCount.value = response.data.unread_count;
-        
+
+        currentPage.value = response.data.notifications.current_page
+        lastPage.value = response.data.notifications.last_page
+        unreadCount.value = response.data.unread_count
     } catch (e) {
-        console.error('Failed to fetch notifications', e);
+        console.error('Failed to fetch notifications', e)
     } finally {
-        isLoading.value = false;
-        isLoadingMore.value = false;
+        isLoading.value = false
+        isLoadingMore.value = false
     }
-};
+}
 
-const toggleFilter = (type) => {
-    filterActive.value = type;
-    fetchNotifications(1);
-};
+const toggleFilter = type => {
+    filterActive.value = type
+    fetchNotifications(1)
+}
 
-const markAsRead = async (id) => {
+const markAsRead = async id => {
     try {
-        await axios.patch(route('api.internal.notifications.markAsRead', id));
-        const index = notifications.value.findIndex(n => n.id === id);
+        await axios.patch(route('api.internal.notifications.markAsRead', id))
+        const index = notifications.value.findIndex(n => n.id === id)
         if (index !== -1) {
-            notifications.value[index].read_at = new Date().toISOString();
+            notifications.value[index].read_at = new Date().toISOString()
         }
-        unreadCount.value = Math.max(0, unreadCount.value - 1);
-    } catch (e) { 
-        console.error('Failed to mark as read', e);
+        unreadCount.value = Math.max(0, unreadCount.value - 1)
+    } catch (e) {
+        console.error('Failed to mark as read', e)
     }
-};
+}
 
 const markAllAsRead = async () => {
-    if (unreadCount.value === 0) return;
-    
-    try {
-        await axios.post(route('api.internal.notifications.markAllAsRead'));
-        notifications.value.forEach(n => {
-            if (!n.read_at) n.read_at = new Date().toISOString();
-        });
-        unreadCount.value = 0;
-    } catch (e) { 
-        console.error('Failed to mark all as read', e);
-    }
-};
+    if (unreadCount.value === 0) return
 
-const deleteNotification = async (id) => {
+    try {
+        await axios.post(route('api.internal.notifications.markAllAsRead'))
+        notifications.value.forEach(n => {
+            if (!n.read_at) n.read_at = new Date().toISOString()
+        })
+        unreadCount.value = 0
+    } catch (e) {
+        console.error('Failed to mark all as read', e)
+    }
+}
+
+const deleteNotification = async id => {
     try {
         // Optimistic UI update
-        notifications.value = notifications.value.filter(n => n.id !== id);
-        await axios.delete(route('api.internal.notifications.destroy', id));
-        
+        notifications.value = notifications.value.filter(n => n.id !== id)
+        await axios.delete(route('api.internal.notifications.destroy', id))
+
         // Re-fetch to keep pagination in sync if needed, but not strictly necessary
         // fetchNotifications(1);
-    } catch (e) { 
-        console.error('Failed to delete notification', e);
+    } catch (e) {
+        console.error('Failed to delete notification', e)
         // Rollback could be implemented here
     }
-};
+}
 
 const closeNotification = () => {
-    emit('close');
-};
+    emit('close')
+}
 
 // Watchers
 watch(
     () => props.isOpen,
-    (val) => {
+    val => {
         if (val) {
-            fetchNotifications(1);
+            fetchNotifications(1)
         } else {
             // Optional: reset state when closed
             // filterActive.value = 'all';
             // notifications.value = [];
         }
     }
-);
+)
 </script>

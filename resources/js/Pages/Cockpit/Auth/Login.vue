@@ -4,20 +4,14 @@
     >
         <div>
             <div class="flex justify-center items-center gap-2.5">
-                <img
-                    src="/img/logo-colored.png"
-                    alt="Sollu"
-                    class="h-10 w-auto"
-                />
+                <img src="/img/logo-colored.png" alt="Sollu" class="h-10 w-auto" />
                 <span
                     class="text-xs uppercase font-extrabold px-2 py-0.5 bg-indigo-600 text-white rounded-md tracking-wider shadow-xs"
                 >
                     Cockpit
                 </span>
             </div>
-            <h2
-                class="mt-6 text-center text-2xl font-extrabold text-neutral-900"
-            >
+            <h2 class="mt-6 text-center text-2xl font-extrabold text-neutral-900">
                 Cockpit Control Center
             </h2>
             <p class="mt-1.5 text-center text-sm text-neutral-600">
@@ -51,10 +45,7 @@
                         type="checkbox"
                         class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-neutral-300 rounded"
                     />
-                    <label
-                        for="remember-me"
-                        class="ml-2 block text-sm text-neutral-900"
-                    >
+                    <label for="remember-me" class="ml-2 block text-sm text-neutral-900">
                         Remember me
                     </label>
                 </div>
@@ -66,9 +57,7 @@
                     :disabled="form.processing"
                     class="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
-                    <span
-                        class="absolute left-0 inset-y-0 flex items-center pl-3"
-                    >
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
                         <!-- Icon -->
                         <svg
                             class="h-5 w-5 text-indigo-200 group-hover:text-white"
@@ -92,24 +81,24 @@
 </template>
 
 <script setup>
-import { useForm } from '@inertiajs/vue3';
-import EmailField from '@/Components/Form/EmailField.vue';
-import PasswordField from '@/Components/Form/PasswordField.vue';
-import AuthCockpitLayout from '@/Layout/AuthCockpitLayout.vue';
+import { useForm } from '@inertiajs/vue3'
+import EmailField from '@/Components/Form/EmailField.vue'
+import PasswordField from '@/Components/Form/PasswordField.vue'
+import AuthCockpitLayout from '@/Layout/AuthCockpitLayout.vue'
 
 defineOptions({
     layout: AuthCockpitLayout,
-});
+})
 
 const form = useForm({
     email: '',
     password: '',
     remember: false,
-});
+})
 
 const submit = () => {
     form.post(route('cockpit.login.attempt'), {
         onFinish: () => form.reset('password'),
-    });
-};
+    })
+}
 </script>

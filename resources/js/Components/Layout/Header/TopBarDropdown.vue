@@ -1,13 +1,7 @@
 <template>
     <div ref="dropdownRef" class="relative">
         <div>
-            <slot
-                name="trigger"
-                :is-open="isOpen"
-                :toggle="toggle"
-                :close="close"
-                :open="open"
-            />
+            <slot name="trigger" :is-open="isOpen" :toggle="toggle" :close="close" :open="open" />
         </div>
 
         <transition name="fade-down" mode="in-out">
@@ -15,9 +9,7 @@
                 v-if="isOpen"
                 class="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:top-[48px] z-50 bg-white border border-neutral-100 rounded-xl shadow-2xl ring-1 ring-black/5 p-4 max-h-[calc(100vh-5rem)] overflow-y-auto floating-scroll"
                 :class="[
-                    align === 'left'
-                        ? 'sm:left-0 origin-top-left'
-                        : 'sm:right-0 origin-top-right',
+                    align === 'left' ? 'sm:left-0 origin-top-left' : 'sm:right-0 origin-top-right',
                     widthClass,
                     panelClass,
                 ]"
@@ -37,10 +29,7 @@
 
                     <!-- Header Slot or Default Title -->
                     <slot name="header" :close="close">
-                        <div
-                            v-if="title"
-                            class="text-center text-lg font-medium text-neutral-800"
-                        >
+                        <div v-if="title" class="text-center text-lg font-medium text-neutral-800">
                             {{ title }}
                         </div>
                     </slot>
@@ -57,10 +46,10 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faClose } from '@fortawesome/free-solid-svg-icons';
-import { useDropdown } from '@/Composable/useDropdown';
+import { computed, watch } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faClose } from '@fortawesome/free-solid-svg-icons'
+import { useDropdown } from '@/Composable/useDropdown'
 
 const props = defineProps({
     title: {
@@ -78,7 +67,7 @@ const props = defineProps({
     align: {
         type: String,
         default: 'right',
-        validator: (value) => ['left', 'right'].includes(value),
+        validator: value => ['left', 'right'].includes(value),
     },
     showCloseButton: {
         type: Boolean,
@@ -88,57 +77,55 @@ const props = defineProps({
         type: Boolean,
         default: undefined,
     },
-});
+})
 
-const emit = defineEmits(['update:modelValue', 'open', 'close', 'toggle']);
+const emit = defineEmits(['update:modelValue', 'open', 'close', 'toggle'])
 
 const {
     isOpen: internalIsOpen,
     toggle: internalToggle,
     close: internalClose,
     dropdownRef,
-} = useDropdown();
+} = useDropdown()
 
 const isOpen = computed(() => {
-    return props.modelValue !== undefined
-        ? props.modelValue
-        : internalIsOpen.value;
-});
+    return props.modelValue !== undefined ? props.modelValue : internalIsOpen.value
+})
 
 const toggle = () => {
-    internalToggle();
-    const newState = internalIsOpen.value;
-    emit('update:modelValue', newState);
-    emit('toggle', newState);
+    internalToggle()
+    const newState = internalIsOpen.value
+    emit('update:modelValue', newState)
+    emit('toggle', newState)
     if (newState) {
-        emit('open');
+        emit('open')
     } else {
-        emit('close');
+        emit('close')
     }
-};
+}
 
 const close = () => {
-    internalClose();
-    emit('update:modelValue', false);
-    emit('close');
-};
+    internalClose()
+    emit('update:modelValue', false)
+    emit('close')
+}
 
 const open = () => {
     if (!isOpen.value) {
-        internalIsOpen.value = true;
-        emit('update:modelValue', true);
-        emit('open');
+        internalIsOpen.value = true
+        emit('update:modelValue', true)
+        emit('open')
     }
-};
+}
 
 watch(
     () => props.modelValue,
-    (val) => {
+    val => {
         if (val !== undefined) {
-            internalIsOpen.value = val;
+            internalIsOpen.value = val
         }
-    },
-);
+    }
+)
 
 defineExpose({
     isOpen,
@@ -146,5 +133,5 @@ defineExpose({
     close,
     open,
     dropdownRef,
-});
+})
 </script>

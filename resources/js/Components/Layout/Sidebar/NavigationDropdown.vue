@@ -1,25 +1,17 @@
 <template>
-  <div
-    ref="dropdownRef"
-    class="nav-dropdown"
-    :class="{ active: active || isSubMenuOpen }"
-  >
-    <a
-      href="#"
-      class="nav-item nav-item-dropdown"
-      @click.prevent="toggleSubMenu"
-    >
-      <FontAwesomeIcon :icon="icon" class="w-[20px]" />
-      <div class="nav-item-label">{{ label }}</div>
-      <FontAwesomeIcon :icon="faChevronDown" class="nav-item-caret" />
-    </a>
+    <div ref="dropdownRef" class="nav-dropdown" :class="{ active: active || isSubMenuOpen }">
+        <a href="#" class="nav-item nav-item-dropdown" @click.prevent="toggleSubMenu">
+            <FontAwesomeIcon :icon="icon" class="w-[20px]" />
+            <div class="nav-item-label">{{ label }}</div>
+            <FontAwesomeIcon :icon="faChevronDown" class="nav-item-caret" />
+        </a>
 
-    <!-- Animated Submenu -->
+        <!-- Animated Submenu -->
 
-    <div class="nav-dropdown-list">
-      <slot />
+        <div class="nav-dropdown-list">
+            <slot />
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -43,7 +35,7 @@ const toggleSubMenu = () => {
     }
 }
 
-const handleClickOutside = (event) => {
+const handleClickOutside = event => {
     if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
         isSubMenuOpen.value = false
     }

@@ -1,9 +1,6 @@
 <template>
     <div class="flex items-center gap-2">
-        <FilterSearch
-            v-model="filterForm.search"
-            placeholder="Cari No. Struk atau Pelanggan"
-        />
+        <FilterSearch v-model="filterForm.search" placeholder="Cari No. Struk atau Pelanggan" />
 
         <button class="btn btn-flat btn-sm" @click="openFilter">
             <FontAwesomeIcon :icon="faSliders" />
@@ -50,16 +47,8 @@
                     placeholder="Semua Channel"
                 />
                 <div class="grid grid-cols-2 gap-4">
-                    <TextField
-                        v-model="tempFilters.start_date"
-                        type="date"
-                        label="Dari Tanggal"
-                    />
-                    <TextField
-                        v-model="tempFilters.end_date"
-                        type="date"
-                        label="Sampai Tanggal"
-                    />
+                    <TextField v-model="tempFilters.start_date" type="date" label="Dari Tanggal" />
+                    <TextField v-model="tempFilters.end_date" type="date" label="Sampai Tanggal" />
                 </div>
             </div>
         </FilterModal>
@@ -67,25 +56,25 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue';
-import { faSliders } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { router } from '@inertiajs/vue3';
-import debounce from 'lodash/debounce';
-import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
-import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
-import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import TextField from '@/Components/Form/TextField.vue';
+import { ref, reactive, watch } from 'vue'
+import { faSliders } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { router } from '@inertiajs/vue3'
+import debounce from 'lodash/debounce'
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue'
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import TextField from '@/Components/Form/TextField.vue'
 
 const props = defineProps({
     filters: {
         type: Object,
         default: () => ({}),
     },
-});
+})
 
-const showFilter = ref(false);
+const showFilter = ref(false)
 
 const filterForm = reactive({
     search: props.filters.search || '',
@@ -95,21 +84,21 @@ const filterForm = reactive({
     end_date: props.filters.end_date || '',
     sort: props.filters.sort || '',
     direction: props.filters.direction || '',
-});
+})
 
 const tempFilters = reactive({
     status: '',
     channel: '',
     start_date: '',
     end_date: '',
-});
+})
 
 const statusOptions = [
     { value: 'draft', label: 'Draf' },
     { value: 'unpaid', label: 'Belum Lunas' },
     { value: 'paid', label: 'Lunas' },
     { value: 'cancel', label: 'Dibatalkan' },
-];
+]
 
 const channelOptions = [
     { value: 'e_commerce', label: 'E-Commerce' },
@@ -120,76 +109,72 @@ const channelOptions = [
     { value: 'dine_in', label: 'POS - Dine In' },
     { value: 'take_away', label: 'POS - Take Away' },
     { value: 'online_delivery', label: 'POS - Online Delivery' },
-];
+]
 
 const updateQuery = () => {
     const query = {
         ...route().params,
         ...filterForm,
         page: 1, // Reset to page 1 on filter
-    };
+    }
 
     // Clean up empty params
-    Object.keys(query).forEach((key) => {
-        if (
-            query[key] === '' ||
-            query[key] === null ||
-            query[key] === undefined
-        ) {
-            delete query[key];
+    Object.keys(query).forEach(key => {
+        if (query[key] === '' || query[key] === null || query[key] === undefined) {
+            delete query[key]
         }
-    });
+    })
 
     router.get(location.pathname, query, {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 
 // Watch search with debounce
 watch(
     () => filterForm.search,
     debounce(() => {
-        updateQuery();
-    }, 500),
-);
+        updateQuery()
+    }, 500)
+)
 
 const openFilter = () => {
-    tempFilters.status = filterForm.status;
-    tempFilters.channel = filterForm.channel;
-    tempFilters.start_date = filterForm.start_date;
-    tempFilters.end_date = filterForm.end_date;
-    showFilter.value = true;
-};
+    tempFilters.status = filterForm.status
+    tempFilters.channel = filterForm.channel
+    tempFilters.start_date = filterForm.start_date
+    tempFilters.end_date = filterForm.end_date
+    showFilter.value = true
+}
 
 const closeFilter = () => {
-    showFilter.value = false;
-};
+    showFilter.value = false
+}
 
 const applyFilter = () => {
-    filterForm.status = tempFilters.status;
-    filterForm.channel = tempFilters.channel;
-    filterForm.start_date = tempFilters.start_date;
-    filterForm.end_date = tempFilters.end_date;
-    updateQuery();
-    closeFilter();
-};
+    filterForm.status = tempFilters.status
+    filterForm.channel = tempFilters.channel
+    filterForm.start_date = tempFilters.start_date
+    filterForm.end_date = tempFilters.end_date
+    updateQuery()
+    closeFilter()
+}
 
 const resetFilter = () => {
-    tempFilters.status = '';
-    tempFilters.channel = '';
-    tempFilters.start_date = '';
-    tempFilters.end_date = '';
-    filterForm.status = '';
-    filterForm.channel = '';
-    filterForm.start_date = '';
-    filterForm.end_date = '';
-    updateQuery();
-    closeFilter();
-};
+    tempFilters.status = ''
+    tempFilters.channel = ''
+    tempFilters.start_date = ''
+    tempFilters.end_date = ''
+    filterForm.status = ''
+    filterForm.channel = ''
+    filterForm.start_date = ''
+    filterForm.end_date = ''
+    updateQuery()
+    closeFilter()
+}
 
-const removeFilter = (key) => {
-    filterForm[key] = '';
-    updateQuery();
-};
+const removeFilter = key => {
+    filterForm[key] = ''
+    updateQuery()
+}
 </script>

@@ -22,10 +22,36 @@ class ManageOutletStatusServiceTest extends TestCase
         $this->service = new ManageOutletStatusService;
     }
 
+    protected function createMerchantUser(): User
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Merchant Test Business',
+            'owner_name' => 'Merchant Owner',
+            'email' => 'merchant_'.uniqid().'@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        return User::create([
+            'business_id' => $business->id,
+            'name' => 'Merchant User',
+            'email' => 'user_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+            'is_root_user' => true,
+        ]);
+    }
+
     public function test_it_toggles_status_to_active()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $business = $user->business;
         $outlet = Outlet::create([
             'business_id' => $business->id,
@@ -65,7 +91,7 @@ class ManageOutletStatusServiceTest extends TestCase
         $this->expectException(\Illuminate\Validation\ValidationException::class);
 
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $business = $user->business;
         $outlet = Outlet::create([
             'business_id' => $business->id,
@@ -100,7 +126,7 @@ class ManageOutletStatusServiceTest extends TestCase
     public function test_it_toggles_status_to_inactive()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $business = $user->business;
         $outlet = Outlet::create([
             'business_id' => $business->id,
@@ -142,7 +168,7 @@ class ManageOutletStatusServiceTest extends TestCase
     public function test_it_deletes_outlet()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $outlet = Outlet::create([
             'business_id' => $user->business_id,
             'name' => 'Outlet Delete',
@@ -163,7 +189,7 @@ class ManageOutletStatusServiceTest extends TestCase
     public function test_it_restores_outlet()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $outlet = Outlet::create([
             'business_id' => $user->business_id,
             'name' => 'Outlet Restore',
@@ -190,7 +216,7 @@ class ManageOutletStatusServiceTest extends TestCase
     public function test_it_successfully_sets_an_outlet_as_main_outlet()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $business = $user->business;
 
         // Current main outlet
@@ -234,7 +260,7 @@ class ManageOutletStatusServiceTest extends TestCase
         $this->expectException(\Illuminate\Validation\ValidationException::class);
 
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $business = $user->business;
 
         $inactiveOutlet = Outlet::create([

@@ -9,10 +9,7 @@
                             v-model="formFilters.outlet"
                             :icon="faStore"
                             class="sm"
-                            :options="[
-                                { value: '', label: 'Semua Outlet' },
-                                ...outletOptions,
-                            ]"
+                            :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
                             @change="applyFilters"
                         />
                     </div>
@@ -76,68 +73,71 @@
                     </tbody>
                 </table>
             </div>
-                <Pagination class="mt-4" :links="stocks.links" :from="stocks.from" :to="stocks.to" :total="stocks.total" :per-page="stocks.per_page" />
+            <Pagination
+                class="mt-4"
+                :links="stocks.links"
+                :from="stocks.from"
+                :to="stocks.to"
+                :total="stocks.total"
+                :per-page="stocks.per_page"
+            />
         </div>
     </MainPage>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
-import {
-    faFileExcel,
-    faFilePdf,
-    faStore,
-} from '@fortawesome/free-solid-svg-icons';
-import MainPage from '@/Components/UI/MainPage.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue';
-import ExportDropdown from '@/Components/UI/ExportDropdown.vue';
-import { useAuth } from '@/Composable/useAuth';
-import { formatNumberID } from '@/Composable/useNumberFormat';
+import { computed } from 'vue'
+import { useForm, router } from '@inertiajs/vue3'
+import { faFileExcel, faFilePdf, faStore } from '@fortawesome/free-solid-svg-icons'
+import MainPage from '@/Components/UI/MainPage.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
+import ExportDropdown from '@/Components/UI/ExportDropdown.vue'
+import { useAuth } from '@/Composable/useAuth'
+import { formatNumberID } from '@/Composable/useNumberFormat'
 
 const props = defineProps({
     filters: Object,
     stocks: Object,
-});
+})
 
-const { outlets: userOutlets } = useAuth();
+const { outlets: userOutlets } = useAuth()
 
 const outletOptions = computed(() => {
-    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return [];
-    return userOutlets.value.map((store) => ({
+    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []
+    return userOutlets.value.map(store => ({
         value: store.id,
         label: store.name,
-    }));
-});
+    }))
+})
 
 const formFilters = useForm({
     outlet: props.filters?.outlet ?? '',
     start_date: props.filters?.start_date ?? '',
     end_date: props.filters?.end_date ?? '',
-});
+})
 
 const applyFilters = () => {
     formFilters.get(route('reports.stocks.index'), {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 
 const exportPdf = () => {
     router.post(route('reports.stocks.export.pdf'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
-    });
-};
+    })
+}
 
 const exportCsv = () => {
     router.post(route('reports.stocks.export.csv'), formFilters.data(), {
         preserveScroll: true,
         preserveState: true,
-    });
-};
+    })
+}
 
 const exportItems = computed(() => [
     {
@@ -152,5 +152,5 @@ const exportItems = computed(() => [
         action: exportPdf,
         class: 'text-rose-600',
     },
-]);
+])
 </script>

@@ -37,9 +37,7 @@
             <div
                 class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-semibold select-none shadow-xs"
             >
-                <span
-                    class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"
-                />
+                <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
                 COCKPIT CONTROL CENTER
             </div>
         </div>
@@ -64,12 +62,12 @@
 </template>
 
 <script setup>
-import Breadcrumbs from '@/Components/Layout/Header/Breadcrumbs.vue';
-import TopBarAccountCockpit from './TopBarAccountCockpit.vue';
-import TopBarNotification from '@/Components/Layout/Header/TopBarNotification.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faBars, faClose, faBinoculars } from '@fortawesome/free-solid-svg-icons';
-import { useAppStore } from '@/store/app';
+import Breadcrumbs from '@/Components/Layout/Header/Breadcrumbs.vue'
+import TopBarAccountCockpit from './TopBarAccountCockpit.vue'
+import TopBarNotification from '@/Components/Layout/Header/TopBarNotification.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faBars, faClose, faBinoculars } from '@fortawesome/free-solid-svg-icons'
+import { useAppStore } from '@/store/app'
 
-const appStore = useAppStore();
+const appStore = useAppStore()
 </script>

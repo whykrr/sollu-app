@@ -1,9 +1,19 @@
 export function formatDateID(dateInput) {
-    if (!dateInput) return '';
+    if (!dateInput) return ''
 
     const bulanIndo = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
     ]
 
     const tanggal = new Date(dateInput)
@@ -15,7 +25,7 @@ export function formatDateID(dateInput) {
 }
 
 export function formatDateTimeSimple(dateInput) {
-    if (!dateInput) return '';
+    if (!dateInput) return ''
 
     const tanggal = new Date(dateInput)
     const tahun = tanggal.getFullYear()
@@ -27,13 +37,22 @@ export function formatDateTimeSimple(dateInput) {
     return `${hari}/${bulan}/${tahun} ${jam}.${menit}`
 }
 
-
 export function formatDateTimeID(dateInput) {
-    if (!dateInput) return '';
+    if (!dateInput) return ''
 
     const bulanIndo = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
     ]
 
     const tanggal = new Date(dateInput)
@@ -48,15 +67,22 @@ export function formatDateTimeID(dateInput) {
 }
 
 export function formatDateCompleteID(dateInput) {
-    if (!dateInput) return '';
+    if (!dateInput) return ''
 
-    const hariIndo = [
-        'Minggu', 'Senin', 'Selasa', 'Rabu',
-        'Kamis', 'Jumat', 'Sabtu',
-    ]
+    const hariIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
     const bulanIndo = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
     ]
 
     const tanggal = new Date(dateInput)
@@ -69,35 +95,26 @@ export function formatDateCompleteID(dateInput) {
 }
 
 export function gapDaysFromNow(expiredDate) {
-    if (!expiredDate) return 0;
+    if (!expiredDate) return 0
 
     const expired = new Date(expiredDate)
     const today = new Date()
 
     // Samakan ke tanggal saja (tanpa jam)
-    const todayOnly = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate(),
-    )
-    const expiredOnly = new Date(
-        expired.getFullYear(),
-        expired.getMonth(),
-        expired.getDate(),
-    )
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const expiredOnly = new Date(expired.getFullYear(), expired.getMonth(), expired.getDate())
 
     const diffTime = expiredOnly - todayOnly
     const sisaHari = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
     return sisaHari > 0 ? sisaHari : 0
-};
+}
 
 // function addDays(date, days)
 export function addDays(date, days) {
-    if (!date) return null;
+    if (!date) return null
 
     const result = new Date(date)
     result.setDate(result.getDate() + days)
     return result
 }
-

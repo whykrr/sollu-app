@@ -1,24 +1,24 @@
 <template>
-  <div class="widget">
-    <div class="flex flex-row justify-between items-start gap-3">
-      <div class="flex flex-col gap-1">
-        <h2 class="font-medium text-sm text-neutral-600">{{ title }}</h2>
-        <div class="text-2xl font-bold text-neutral-800">
-          {{ highlight }}
-          <span class="inline-flex text-sm font-medium text-success items-center ml-1">
-            <font-awesome-icon :icon="faPlus" class="text-xs mr-0.5" />
-            <span>{{ subHighlight }}</span>
-          </span>
+    <div class="widget">
+        <div class="flex flex-row justify-between items-start gap-3">
+            <div class="flex flex-col gap-1">
+                <h2 class="font-medium text-sm text-neutral-600">{{ title }}</h2>
+                <div class="text-2xl font-bold text-neutral-800">
+                    {{ highlight }}
+                    <span class="inline-flex text-sm font-medium text-success items-center ml-1">
+                        <font-awesome-icon :icon="faPlus" class="text-xs mr-0.5" />
+                        <span>{{ subHighlight }}</span>
+                    </span>
+                </div>
+            </div>
+            <div class="widget-icon bg-main/10 text-main shrink-0">
+                <FontAwesomeIcon class="text-lg" :icon />
+            </div>
         </div>
-      </div>
-      <div class="widget-icon bg-main/10 text-main shrink-0">
-        <FontAwesomeIcon class="text-lg" :icon />
-      </div>
+        <div class="-mx-4 -mb-4 mt-2">
+            <canvas :id="'chart' + id" class="canvas w-full h-full" />
+        </div>
     </div>
-    <div class="-mx-4 -mb-4 mt-2">
-      <canvas :id="'chart' + id" class="canvas w-full h-full" />
-    </div>
-  </div>
 </template>
 <script setup>
 import { onMounted } from 'vue'
@@ -37,7 +37,7 @@ const props = defineProps({
     data: Array,
 })
 
-const getColorFromClass = (className) => {
+const getColorFromClass = className => {
     const el = document.getElementById(`chart${props.id}`)
     const color = getComputedStyle(el).color
     return color

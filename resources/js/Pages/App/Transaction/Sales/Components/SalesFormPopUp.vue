@@ -4,9 +4,7 @@
 
         <!-- Document Information -->
         <div class="space-y-4">
-            <h3 class="text-sm font-semibold text-slate-700 uppercase">
-                Informasi Dokumen
-            </h3>
+            <h3 class="text-sm font-semibold text-slate-700 uppercase">Informasi Dokumen</h3>
             <div class="grid grid-cols-1 gap-2">
                 <AsyncOutletDropdown
                     v-model="form.outlet_id"
@@ -17,9 +15,7 @@
                 />
 
                 <div>
-                    <label class="block text-sm font-medium mb-1"
-                        >Pelanggan</label
-                    >
+                    <label class="block text-sm font-medium mb-1">Pelanggan</label>
                     <div
                         v-if="selectedCustomer"
                         class="flex items-center justify-between p-1 bg-slate-50 border border-slate-200 rounded-xl"
@@ -31,15 +27,10 @@
                                 <FontAwesomeIcon :icon="faUser" />
                             </div>
                             <div>
-                                <div
-                                    class="font-semibold text-sm text-slate-800"
-                                >
+                                <div class="font-semibold text-sm text-slate-800">
                                     {{ selectedCustomer.name }}
                                 </div>
-                                <div
-                                    v-if="selectedCustomer.phone"
-                                    class="text-xs text-slate-500"
-                                >
+                                <div v-if="selectedCustomer.phone" class="text-xs text-slate-500">
                                     {{ selectedCustomer.phone }}
                                 </div>
                             </div>
@@ -111,37 +102,28 @@
         <!-- Item List -->
         <div class="space-y-4">
             <div class="flex justify-between items-center mb-2">
-                <h3 class="text-sm font-semibold text-slate-700 uppercase">
-                    Daftar Item
-                </h3>
+                <h3 class="text-sm font-semibold text-slate-700 uppercase">Daftar Item</h3>
                 <div class="w-72">
                     <AsyncSelectField
                         id="search_product"
                         label="Cari Produk (Min. 3 huruf)"
                         placeholder="Cari nama, kode produk..."
                         class="sm"
-                        :api-url="
-                            route('api.internal.products.search-by-inventory')
-                        "
+                        :api-url="route('api.internal.products.search-by-inventory')"
                         :api-params="{ outlet_id: form.outlet_id }"
                         :min-chars="3"
                         :disabled="!form.outlet_id"
                         @select="selectProduct"
                     >
                         <template #option="{ item }">
-                            <div
-                                class="flex justify-between items-center w-full"
-                            >
+                            <div class="flex justify-between items-center w-full">
                                 <div>
                                     <div class="font-semibold text-sm">
                                         {{ item.name }}
                                     </div>
                                     <div class="text-xs text-gray-500">
                                         Kode: {{ item.code || '-' }}
-                                        <span
-                                            v-if="item.track_inventory"
-                                            class="ml-2"
-                                        >
+                                        <span v-if="item.track_inventory" class="ml-2">
                                             Stok:
                                             <span
                                                 :class="
@@ -152,17 +134,12 @@
                                                 >{{ item.current_stock }}</span
                                             >
                                         </span>
-                                        <span
-                                            v-else
-                                            class="ml-2 text-slate-400"
-                                        >
+                                        <span v-else class="ml-2 text-slate-400">
                                             (Tidak di-track)
                                         </span>
                                     </div>
                                 </div>
-                                <div
-                                    class="text-right text-xs font-bold text-slate-800"
-                                >
+                                <div class="text-right text-xs font-bold text-slate-800">
                                     {{ formatCurrency(item.price || 0) }}
                                 </div>
                             </div>
@@ -249,9 +226,7 @@
 
         <!-- Promo & Discount -->
         <div class="space-y-4">
-            <h3 class="text-sm font-semibold text-slate-700 uppercase">
-                Promo & Diskon Tambahan
-            </h3>
+            <h3 class="text-sm font-semibold text-slate-700 uppercase">Promo & Diskon Tambahan</h3>
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-2">
                     <AsyncSelectField
@@ -265,13 +240,9 @@
                         @select="onPromoSelected"
                     >
                         <template #option="{ item }">
-                            <div
-                                class="flex justify-between items-center w-full"
-                            >
+                            <div class="flex justify-between items-center w-full">
                                 <div>
-                                    <div
-                                        class="font-semibold text-sm text-slate-800"
-                                    >
+                                    <div class="font-semibold text-sm text-slate-800">
                                         {{ item.name }}
                                     </div>
                                     <div class="text-xs text-slate-500">
@@ -284,9 +255,7 @@
                                         {{
                                             item.promo_type === 'percentage'
                                                 ? item.discount_value + '%'
-                                                : formatCurrency(
-                                                      item.discount_value,
-                                                  )
+                                                : formatCurrency(item.discount_value)
                                         }}
                                     </div>
                                 </div>
@@ -298,8 +267,7 @@
                         class="flex items-center justify-between text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-200 mt-1"
                     >
                         <span
-                            >Promo aktif:
-                            <strong>{{ selectedPromo.name }}</strong></span
+                            >Promo aktif: <strong>{{ selectedPromo.name }}</strong></span
                         >
                         <button
                             type="button"
@@ -328,9 +296,7 @@
         <div class="space-y-2 text-sm bg-slate-50 p-4 rounded-lg">
             <div class="flex justify-between">
                 <span class="text-slate-500">Subtotal</span>
-                <span class="font-medium">{{
-                    formatCurrency(form.subtotal)
-                }}</span>
+                <span class="font-medium">{{ formatCurrency(form.subtotal) }}</span>
             </div>
             <div v-if="form.discount_amount > 0" class="flex justify-between">
                 <span class="text-slate-500">Diskon</span>
@@ -368,13 +334,9 @@
                     />
                 </div>
             </div>
-            <div
-                class="flex justify-between border-t border-slate-200 pt-2 mt-2"
-            >
+            <div class="flex justify-between border-t border-slate-200 pt-2 mt-2">
                 <span class="font-bold text-lg">Total</span>
-                <span class="font-bold text-lg text-primary">{{
-                    formatCurrency(form.total)
-                }}</span>
+                <span class="font-bold text-lg text-primary">{{ formatCurrency(form.total) }}</span>
             </div>
         </div>
 
@@ -382,9 +344,7 @@
 
         <!-- Additional Information -->
         <div class="space-y-4">
-            <h3 class="text-sm font-semibold text-slate-700 uppercase">
-                Informasi Tambahan
-            </h3>
+            <h3 class="text-sm font-semibold text-slate-700 uppercase">Informasi Tambahan</h3>
             <TextareaField
                 v-model="form.notes"
                 label="Catatan"
@@ -401,11 +361,7 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex items-center justify-between w-full">
-                <button
-                    type="button"
-                    class="btn btn-flat"
-                    @click="popUpStore.close()"
-                >
+                <button type="button" class="btn btn-flat" @click="popUpStore.close()">
                     Batal
                 </button>
                 <div class="flex gap-2">
@@ -434,60 +390,55 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import { usePopUpStore } from '@/store/popup';
-import { useModalStore } from '@/store/notification.js';
-import axios from 'axios';
-import { debounce } from 'lodash';
-import { useAuth } from '@/Composable/useAuth';
-import { formatIDR as formatCurrency } from '@/Composable/currency-format';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faTrash,
-    faPlus,
-    faTimes,
-    faUser,
-} from '@fortawesome/free-solid-svg-icons';
+import { ref, watch, onMounted } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import { usePopUpStore } from '@/store/popup'
+import { useModalStore } from '@/store/notification.js'
+import axios from 'axios'
+import { debounce } from 'lodash'
+import { useAuth } from '@/Composable/useAuth'
+import { formatIDR as formatCurrency } from '@/Composable/currency-format'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faTrash, faPlus, faTimes, faUser } from '@fortawesome/free-solid-svg-icons'
 
-import TextField from '@/Components/Form/TextField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import NumberField from '@/Components/Form/NumberField.vue';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue';
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
+import TextField from '@/Components/Form/TextField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
 
-const { can } = useAuth();
-const popUpStore = usePopUpStore();
-const modalStore = useModalStore();
-const isMounted = ref(false);
-const selectedPromo = ref(null);
+const { can } = useAuth()
+const popUpStore = usePopUpStore()
+const modalStore = useModalStore()
+const isMounted = ref(false)
+const selectedPromo = ref(null)
 
 const props = defineProps({
     transaction: {
         type: Object,
         default: null,
     },
-});
+})
 
-const selectedCustomer = ref(null);
+const selectedCustomer = ref(null)
 
-const onCustomerSelected = (customer) => {
-    selectedCustomer.value = customer;
-    form.customer_id = customer?.value || customer?.id || '';
-};
+const onCustomerSelected = customer => {
+    selectedCustomer.value = customer
+    form.customer_id = customer?.value || customer?.id || ''
+}
 
 const clearCustomer = () => {
-    selectedCustomer.value = null;
-    form.customer_id = '';
-};
+    selectedCustomer.value = null
+    form.customer_id = ''
+}
 
 const channelOptions = [
     { value: 'direct', label: 'Direct / B2B' },
     { value: 'e_commerce', label: 'E-Commerce' },
     { value: 'wholesale', label: 'Wholesale' },
     { value: 'custom', label: 'Custom' },
-];
+]
 
 const form = useForm({
     outlet_id: '',
@@ -509,109 +460,95 @@ const form = useForm({
     subtotal: 0,
     discount_amount: 0,
     total: 0,
-});
+})
 
 watch(
     () => form.outlet_id,
-    (val) => {
+    val => {
         if (val && !props.transaction) {
-            form.items = [];
-            clearPromo();
+            form.items = []
+            clearPromo()
         }
-    },
-);
+    }
+)
 
-const removeItem = (index) => {
-    form.items.splice(index, 1);
-    calculateTotals();
-};
+const removeItem = index => {
+    form.items.splice(index, 1)
+    calculateTotals()
+}
 
-const onPromoSelected = (promo) => {
-    selectedPromo.value = promo;
-    form.promo_id = promo?.id || '';
-    calculateTotals();
-};
+const onPromoSelected = promo => {
+    selectedPromo.value = promo
+    form.promo_id = promo?.id || ''
+    calculateTotals()
+}
 
 const clearPromo = () => {
-    selectedPromo.value = null;
-    form.promo_id = '';
-    form.promo_discount_amount = 0;
-    calculateTotals();
-};
+    selectedPromo.value = null
+    form.promo_id = ''
+    form.promo_discount_amount = 0
+    calculateTotals()
+}
 
 const calculateTotals = () => {
-    let subtotal = 0;
+    let subtotal = 0
 
-    form.items.forEach((item) => {
+    form.items.forEach(item => {
         if (item.promo_name && item.max_promo_discount !== undefined) {
-            const maxAllowed = Number(item.max_promo_discount) * Number(item.qty);
+            const maxAllowed = Number(item.max_promo_discount) * Number(item.qty)
             if (Number(item.discount_amount) > maxAllowed) {
-                item.discount_amount = maxAllowed;
+                item.discount_amount = maxAllowed
             }
         }
-        
-        item.subtotal =
-            Number(item.qty) * Number(item.price) -
-            Number(item.discount_amount || 0);
-        if (item.subtotal < 0) item.subtotal = 0;
-        subtotal += item.subtotal;
-    });
 
-    form.subtotal = subtotal;
+        item.subtotal = Number(item.qty) * Number(item.price) - Number(item.discount_amount || 0)
+        if (item.subtotal < 0) item.subtotal = 0
+        subtotal += item.subtotal
+    })
+
+    form.subtotal = subtotal
 
     // Document / Bill level promo calculation
-    let promoDiscount = 0;
+    let promoDiscount = 0
     if (selectedPromo.value) {
-        const promo = selectedPromo.value;
+        const promo = selectedPromo.value
         if (promo.target_type === 'bill') {
             if (promo.promo_type === 'percentage') {
-                promoDiscount = (subtotal * Number(promo.discount_value)) / 100;
-                if (
-                    promo.max_discount &&
-                    promoDiscount > Number(promo.max_discount)
-                ) {
-                    promoDiscount = Number(promo.max_discount);
+                promoDiscount = (subtotal * Number(promo.discount_value)) / 100
+                if (promo.max_discount && promoDiscount > Number(promo.max_discount)) {
+                    promoDiscount = Number(promo.max_discount)
                 }
             } else if (promo.promo_type === 'fixed') {
-                promoDiscount = Math.min(
-                    Number(promo.discount_value),
-                    subtotal,
-                );
+                promoDiscount = Math.min(Number(promo.discount_value), subtotal)
             }
         }
     }
-    form.promo_discount_amount = promoDiscount;
+    form.promo_discount_amount = promoDiscount
 
     // Total discount combines manual discount and document promo discount
     form.discount_amount =
-        Number(form.manual_discount_amount || 0) +
-        Number(form.promo_discount_amount || 0);
+        Number(form.manual_discount_amount || 0) + Number(form.promo_discount_amount || 0)
 
     let total =
         subtotal -
         form.discount_amount +
         Number(form.shipping_fee || 0) +
         Number(form.tax_amount || 0) +
-        Number(form.service_charge_amount || 0);
+        Number(form.service_charge_amount || 0)
 
-    form.total = total > 0 ? total : 0;
-};
+    form.total = total > 0 ? total : 0
+}
 
-const selectProduct = (product) => {
-    if (!product) return;
+const selectProduct = product => {
+    if (!product) return
 
-    const targetProductId = product.product_id || product.id;
+    const targetProductId = product.product_id || product.id
 
     // 1. Stock check if track_inventory is enabled
     if (product.track_inventory) {
-        const existingInCart = form.items.find(
-            (i) => i.product_id === targetProductId,
-        );
-        const currentQtyInCart = existingInCart
-            ? Number(existingInCart.qty)
-            : 0;
-        const availableStock =
-            Number(product.current_stock ?? 0) - currentQtyInCart;
+        const existingInCart = form.items.find(i => i.product_id === targetProductId)
+        const currentQtyInCart = existingInCart ? Number(existingInCart.qty) : 0
+        const availableStock = Number(product.current_stock ?? 0) - currentQtyInCart
 
         if (availableStock <= 0) {
             modalStore.alert({
@@ -619,18 +556,18 @@ const selectProduct = (product) => {
                 title: 'Stok Kosong / Tidak Mencukupi',
                 message: `Stok untuk produk "${product.name}" tidak tersedia atau sudah habis (${Number(product.current_stock ?? 0)} tersisa). Produk dengan stok kosong tidak dapat dijual.`,
                 confirmText: 'Mengerti',
-            });
-            return;
+            })
+            return
         }
     }
 
     // 2. Proceed to promo check if stock is available or not tracked
-    checkAndApplyProductPromo(product);
-};
+    checkAndApplyProductPromo(product)
+}
 
-const checkAndApplyProductPromo = (product) => {
+const checkAndApplyProductPromo = product => {
     if (product.active_promos && product.active_promos.length > 0) {
-        const promo = product.active_promos[0];
+        const promo = product.active_promos[0]
         modalStore.open({
             type: 'info',
             title: 'Promo Produk Tersedia!',
@@ -638,52 +575,43 @@ const checkAndApplyProductPromo = (product) => {
             confirmButtonText: 'Ya, Terapkan Promo',
             cancelButtonText: 'Abaikan',
             onConfirm: () => {
-                addProductToItems(product, promo);
+                addProductToItems(product, promo)
             },
             onCancel: () => {
-                addProductToItems(product, null);
+                addProductToItems(product, null)
             },
-        });
+        })
     } else {
-        addProductToItems(product, null);
+        addProductToItems(product, null)
     }
-};
+}
 
 const addProductToItems = (product, promo = null) => {
-    const targetProductId = product.inventory_item_id || product.id;
-    const existingIndex = form.items.findIndex(
-        (i) => i.inventory_item_id === targetProductId,
-    );
+    const targetProductId = product.inventory_item_id || product.id
+    const existingIndex = form.items.findIndex(i => i.inventory_item_id === targetProductId)
 
-    let promoDiscount = 0;
-    let promoName = null;
+    let promoDiscount = 0
+    let promoName = null
 
     if (promo) {
-        promoName = promo.name;
+        promoName = promo.name
         if (promo.promo_type === 'percentage') {
-            promoDiscount =
-                (Number(product.price) * Number(promo.discount_value)) / 100;
-            if (
-                promo.max_discount &&
-                promoDiscount > Number(promo.max_discount)
-            ) {
-                promoDiscount = Number(promo.max_discount);
+            promoDiscount = (Number(product.price) * Number(promo.discount_value)) / 100
+            if (promo.max_discount && promoDiscount > Number(promo.max_discount)) {
+                promoDiscount = Number(promo.max_discount)
             }
         } else if (promo.promo_type === 'fixed') {
-            promoDiscount = Math.min(
-                Number(promo.discount_value),
-                Number(product.price),
-            );
+            promoDiscount = Math.min(Number(promo.discount_value), Number(product.price))
         }
     }
 
     if (existingIndex !== -1) {
-        const item = form.items[existingIndex];
-        item.qty = Number(item.qty) + 1;
+        const item = form.items[existingIndex]
+        item.qty = Number(item.qty) + 1
         if (promo) {
-            item.promo_name = promoName;
-            item.max_promo_discount = promoDiscount;
-            item.discount_amount = promoDiscount * item.qty;
+            item.promo_name = promoName
+            item.max_promo_discount = promoDiscount
+            item.discount_amount = promoDiscount * item.qty
         }
     } else {
         form.items.unshift({
@@ -697,37 +625,35 @@ const addProductToItems = (product, promo = null) => {
             max_promo_discount: promoDiscount,
             promo_name: promoName,
             subtotal: (Number(product.price) || 0) - promoDiscount,
-        });
+        })
     }
 
-    calculateTotals();
-};
+    calculateTotals()
+}
 
 watch(
     () => props.transaction,
-    (data) => {
+    data => {
         if (data) {
-            form.outlet_id = data.outlet_id || '';
-            form.customer_id = data.customer_id || '';
-            form.channel = data.channel || 'direct';
-            form.transaction_date =
-                data.transaction_date || new Date().toISOString().split('T')[0];
-            form.due_date = data.due_date || '';
-            form.payment_term = data.payment_term || 'tunai';
-            form.manual_discount_amount = Number(data.discount_amount) || 0;
-            form.shipping_fee = Number(data.shipping_fee) || 0;
-            form.tax_amount = Number(data.tax_amount) || 0;
-            form.service_charge_amount =
-                Number(data.service_charge_amount) || 0;
-            form.notes = data.notes || '';
-            form.terms_and_conditions = data.terms_and_conditions || '';
+            form.outlet_id = data.outlet_id || ''
+            form.customer_id = data.customer_id || ''
+            form.channel = data.channel || 'direct'
+            form.transaction_date = data.transaction_date || new Date().toISOString().split('T')[0]
+            form.due_date = data.due_date || ''
+            form.payment_term = data.payment_term || 'tunai'
+            form.manual_discount_amount = Number(data.discount_amount) || 0
+            form.shipping_fee = Number(data.shipping_fee) || 0
+            form.tax_amount = Number(data.tax_amount) || 0
+            form.service_charge_amount = Number(data.service_charge_amount) || 0
+            form.notes = data.notes || ''
+            form.terms_and_conditions = data.terms_and_conditions || ''
 
             if (data.customer) {
-                selectedCustomer.value = data.customer;
+                selectedCustomer.value = data.customer
             }
 
             if (data.items && data.items.length > 0) {
-                form.items = data.items.map((i) => ({
+                form.items = data.items.map(i => ({
                     id: i.id,
                     product_id: i.product_id,
                     product_name: i.product_name,
@@ -735,26 +661,26 @@ watch(
                     price: Number(i.price),
                     discount_amount: Number(i.discount_amount),
                     subtotal: Number(i.subtotal),
-                }));
+                }))
             }
 
-            calculateTotals();
+            calculateTotals()
         }
     },
-    { immediate: true },
-);
+    { immediate: true }
+)
 
-const submit = (actionType) => {
-    form.action = actionType;
+const submit = actionType => {
+    form.action = actionType
     form.post(route('transactions.sales.store'), {
         preserveScroll: true,
         onSuccess: () => {
-            popUpStore.close();
+            popUpStore.close()
         },
-    });
-};
+    })
+}
 
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 </script>

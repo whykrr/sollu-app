@@ -19,10 +19,7 @@
                 leave-to-class="opacity-0"
             >
                 <div
-                    v-if="
-                        appStore.sidebar.show &&
-                        (appStore.sidebar.minimize || isMobile)
-                    "
+                    v-if="appStore.sidebar.show && (appStore.sidebar.minimize || isMobile)"
                     class="fixed inset-0 bg-black/20 backdrop-blur-sm z-20"
                     aria-hidden="true"
                     @click="appStore.hide()"
@@ -40,35 +37,35 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
-import { useAppStore } from '@/store/app';
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
+import { useAppStore } from '@/store/app'
 
-import SidebarHeader from './SidebarHeader.vue';
-import SidebarOutlet from './SidebarOutlet.vue';
-import SidebarNav from './SidebarNav.vue';
-import SidebarFooter from './SidebarFooter.vue';
+import SidebarHeader from './SidebarHeader.vue'
+import SidebarOutlet from './SidebarOutlet.vue'
+import SidebarNav from './SidebarNav.vue'
+import SidebarFooter from './SidebarFooter.vue'
 
-const appStore = useAppStore();
-const isMobile = ref(false);
+const appStore = useAppStore()
+const isMobile = ref(false)
 
 const checkMobile = () => {
-    isMobile.value = window.innerWidth < 640; // sm breakpoint
-};
+    isMobile.value = window.innerWidth < 640 // sm breakpoint
+}
 
 onMounted(() => {
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-});
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+})
 
 onUnmounted(() => {
-    window.removeEventListener('resize', checkMobile);
-});
+    window.removeEventListener('resize', checkMobile)
+})
 
-router.on('finish', () => appStore.hide());
+router.on('finish', () => appStore.hide())
 
 const isSetting = computed(() => {
-    const url = usePage().url;
-    return url.startsWith('/settings');
-});
+    const url = usePage().url
+    return url.startsWith('/settings')
+})
 </script>

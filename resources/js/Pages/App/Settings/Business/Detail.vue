@@ -8,16 +8,11 @@
             <!-- Left Column: Business Form -->
             <div class="lg:col-span-7 flex flex-col gap-4">
                 <!-- Card 1: Identitas Usaha -->
-                <div
-                    class="bg-white rounded-xl border border-slate-200 shadow-xs p-5"
-                >
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
-                        <FontAwesomeIcon
-                            :icon="faBriefcase"
-                            class="text-main"
-                        />
+                        <FontAwesomeIcon :icon="faBriefcase" class="text-main" />
                         <span>Identitas & Informasi Usaha</span>
                     </h3>
 
@@ -31,8 +26,7 @@
                                 :feedback="business.errors.name"
                             />
                             <p class="text-xs text-slate-400 mt-0.5">
-                                Nama usaha akan tampil pada struk belanja,
-                                invoice, dan laporan.
+                                Nama usaha akan tampil pada struk belanja, invoice, dan laporan.
                             </p>
                         </div>
 
@@ -45,8 +39,7 @@
                                 :feedback="business.errors.email"
                             />
                             <p class="text-xs text-slate-400 mt-0.5">
-                                Digunakan untuk notifikasi sistem, invoice, dan
-                                informasi tagihan.
+                                Digunakan untuk notifikasi sistem, invoice, dan informasi tagihan.
                             </p>
                         </div>
 
@@ -76,8 +69,8 @@
                                 :feedback="business.errors.address"
                             />
                             <p class="text-xs text-slate-400 mt-0.5">
-                                Alamat dapat digunakan untuk kebutuhan struk
-                                belanja dan profil usaha.
+                                Alamat dapat digunakan untuk kebutuhan struk belanja dan profil
+                                usaha.
                             </p>
                         </div>
                     </div>
@@ -94,9 +87,7 @@
                     >
                         <FontAwesomeIcon :icon="faSave" />
                         <span>{{
-                            business.processing
-                                ? 'Menyimpan...'
-                                : 'Simpan Informasi Usaha'
+                            business.processing ? 'Menyimpan...' : 'Simpan Informasi Usaha'
                         }}</span>
                     </button>
                 </div>
@@ -115,18 +106,14 @@
                     </h3>
 
                     <div class="flex justify-center p-0 relative">
-                        <LogoCropper
-                            :url="auth.business?.logo_url"
-                            @action="saveLogo"
-                        />
+                        <LogoCropper :url="auth.business?.logo_url" @action="saveLogo" />
                     </div>
 
                     <div
                         class="mt-2 p-3 rounded-lg bg-blue-50/70 border border-blue-100 text-[11px] text-blue-800 leading-relaxed"
                     >
-                        <strong>Petunjuk:</strong> Logo usaha akan otomatis
-                        diterapkan pada kop struk transaksi kasir thermal,
-                        faktur tagihan pelanggan, dan laporan cetak.
+                        <strong>Petunjuk:</strong> Logo usaha akan otomatis diterapkan pada kop
+                        struk transaksi kasir thermal, faktur tagihan pelanggan, dan laporan cetak.
                     </div>
                 </div>
             </div>
@@ -135,28 +122,24 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import {
-    faBriefcase,
-    faImage,
-    faSave,
-} from '@fortawesome/free-solid-svg-icons';
+import { computed } from 'vue'
+import { useForm, usePage } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faBriefcase, faImage, faSave } from '@fortawesome/free-solid-svg-icons'
 
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import TextField from '@/Components/Form/TextField.vue';
-import EmailField from '@/Components/Form/EmailField.vue';
-import NumberField from '@/Components/Form/NumberField.vue';
-import TextareaField from '@/Components/Form/TextareaField.vue';
-import LogoCropper from './Components/LogoCropper.vue';
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import EmailField from '@/Components/Form/EmailField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import LogoCropper from './Components/LogoCropper.vue'
 
 const props = defineProps({
     business: Object,
-});
+})
 
-const auth = computed(() => usePage().props.auth);
+const auth = computed(() => usePage().props.auth)
 
 const business = useForm({
     id: props.business.id,
@@ -165,25 +148,25 @@ const business = useForm({
     owner_name: props.business.owner_name,
     phone: props.business.phone,
     address: props.business.address,
-});
+})
 
 const formLogo = useForm({
     logo: null,
-});
+})
 
 const saveDetail = () => {
     business.put(route('settings.business.detail.save'), {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 
-const saveLogo = (logo) => {
-    formLogo.logo = logo;
+const saveLogo = logo => {
+    formLogo.logo = logo
     formLogo.post(route('settings.business.detail.save.logo'), {
         preserveState: true,
         preserveScroll: true,
         forceFormData: true,
-    });
-};
+    })
+}
 </script>

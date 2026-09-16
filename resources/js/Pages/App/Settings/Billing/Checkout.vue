@@ -1,9 +1,7 @@
 <template>
     <MainPage>
         <div class="max-w-4xl mx-auto">
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">
-                Selesaikan Pembayaran
-            </h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Selesaikan Pembayaran</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <!-- Main Content -->
@@ -12,9 +10,7 @@
                     <div class="bg-white border rounded-xl p-5">
                         <div class="flex justify-between items-start">
                             <div>
-                                <div class="text-sm text-gray-500 font-medium">
-                                    Paket Terpilih
-                                </div>
+                                <div class="text-sm text-gray-500 font-medium">Paket Terpilih</div>
                                 <h3 class="text-xl font-bold text-gray-800">
                                     {{ plan.name }}
                                 </h3>
@@ -23,24 +19,17 @@
                                 <div class="text-lg font-bold text-main">
                                     {{ formatIDR(plan.price_per_outlet) }}
                                 </div>
-                                <div class="text-xs text-gray-500">
-                                    / outlet / bulan
-                                </div>
+                                <div class="text-xs text-gray-500">/ outlet / bulan</div>
                             </div>
                         </div>
                         <div
                             v-if="plan.yearly_discount_percent > 0"
                             class="mt-4 bg-blue-50 text-blue-700 text-sm p-3 rounded-lg border border-blue-100 flex items-start gap-2"
                         >
-                            <FontAwesomeIcon
-                                :icon="faInfoCircle"
-                                class="mt-0.5"
-                            />
+                            <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5" />
                             <div>
                                 Dapatkan diskon sebesar
-                                <strong
-                                    >{{ plan.yearly_discount_percent }}%</strong
-                                >
+                                <strong>{{ plan.yearly_discount_percent }}%</strong>
                                 dengan memilih siklus penagihan tahunan!
                             </div>
                         </div>
@@ -48,9 +37,7 @@
 
                     <!-- Billing Cycle Selector -->
                     <div class="bg-white border rounded-xl p-5">
-                        <h4 class="font-bold text-gray-800 mb-4">
-                            Pilih Siklus Tagihan
-                        </h4>
+                        <h4 class="font-bold text-gray-800 mb-4">Pilih Siklus Tagihan</h4>
                         <div class="grid grid-cols-2 gap-4">
                             <!-- Monthly -->
                             <div
@@ -62,25 +49,12 @@
                                 "
                                 @click="billingCycle = 'monthly'"
                             >
-                                <div class="font-semibold text-gray-800">
-                                    Bulanan
+                                <div class="font-semibold text-gray-800">Bulanan</div>
+                                <div class="text-sm text-gray-500 mt-1">Bayar setiap bulan</div>
+                                <div class="mt-3 text-lg font-bold text-gray-800">
+                                    {{ formatIDR(plan.price_per_outlet * activeOutlets) }}
                                 </div>
-                                <div class="text-sm text-gray-500 mt-1">
-                                    Bayar setiap bulan
-                                </div>
-                                <div
-                                    class="mt-3 text-lg font-bold text-gray-800"
-                                >
-                                    {{
-                                        formatIDR(
-                                            plan.price_per_outlet *
-                                                activeOutlets,
-                                        )
-                                    }}
-                                </div>
-                                <div class="text-xs text-gray-500">
-                                    total / bulan
-                                </div>
+                                <div class="text-xs text-gray-500">total / bulan</div>
 
                                 <div
                                     v-if="billingCycle === 'monthly'"
@@ -106,20 +80,12 @@
                                 >
                                     Hemat {{ plan.yearly_discount_percent }}%
                                 </div>
-                                <div class="font-semibold text-gray-800">
-                                    Tahunan
-                                </div>
-                                <div class="text-sm text-gray-500 mt-1">
-                                    Bayar untuk 1 tahun
-                                </div>
-                                <div
-                                    class="mt-3 text-lg font-bold text-gray-800"
-                                >
+                                <div class="font-semibold text-gray-800">Tahunan</div>
+                                <div class="text-sm text-gray-500 mt-1">Bayar untuk 1 tahun</div>
+                                <div class="mt-3 text-lg font-bold text-gray-800">
                                     {{ formatIDR(yearlyTotal) }}
                                 </div>
-                                <div class="text-xs text-gray-500">
-                                    total / tahun
-                                </div>
+                                <div class="text-xs text-gray-500">total / tahun</div>
 
                                 <div
                                     v-if="billingCycle === 'yearly'"
@@ -133,9 +99,7 @@
 
                     <!-- Payment Method Selector -->
                     <div class="bg-white border rounded-xl p-5">
-                        <h4 class="font-bold text-gray-800 mb-4">
-                            Pilih Metode Pembayaran
-                        </h4>
+                        <h4 class="font-bold text-gray-800 mb-4">Pilih Metode Pembayaran</h4>
                         <div class="space-y-3">
                             <!-- Midtrans -->
                             <div
@@ -148,18 +112,12 @@
                                 "
                                 @click="paymentMethod = 'midtrans'"
                             >
-                                <div
-                                    class="p-2.5 bg-blue-50 text-blue-600 rounded-lg mt-0.5"
-                                >
-                                    <FontAwesomeIcon
-                                        :icon="faCreditCard"
-                                        class="w-5 h-5"
-                                    />
+                                <div class="p-2.5 bg-blue-50 text-blue-600 rounded-lg mt-0.5">
+                                    <FontAwesomeIcon :icon="faCreditCard" class="w-5 h-5" />
                                 </div>
                                 <div class="flex-1 pr-6">
                                     <div class="flex items-center gap-2">
-                                        <span
-                                            class="font-bold text-gray-800 text-sm"
+                                        <span class="font-bold text-gray-800 text-sm"
                                             >Pembayaran Online Otomatis</span
                                         >
                                         <span
@@ -169,11 +127,9 @@
                                         </span>
                                     </div>
                                     <p class="text-xs text-gray-500 mt-1">
-                                        Bayar secara instan menggunakan QRIS,
-                                        Virtual Account (BCA, Mandiri, BNI,
-                                        dll), GoPay, ShopeePay, atau Kartu
-                                        Kredit. Pembayaran Anda langsung
-                                        diverifikasi secara real-time.
+                                        Bayar secara instan menggunakan QRIS, Virtual Account (BCA,
+                                        Mandiri, BNI, dll), GoPay, ShopeePay, atau Kartu Kredit.
+                                        Pembayaran Anda langsung diverifikasi secara real-time.
                                     </p>
                                 </div>
                                 <div
@@ -194,34 +150,31 @@
                                 "
                                 @click="paymentMethod = 'manual'"
                             >
-                                <div
-                                    class="p-2.5 bg-slate-50 text-slate-650 rounded-lg mt-0.5"
-                                >
-                                    <FontAwesomeIcon
-                                        :icon="faBuildingColumns"
-                                        class="w-5 h-5"
-                                    />
+                                <div class="p-2.5 bg-slate-50 text-slate-650 rounded-lg mt-0.5">
+                                    <FontAwesomeIcon :icon="faBuildingColumns" class="w-5 h-5" />
                                 </div>
                                 <div class="flex-1 pr-6">
-                                    <div
-                                        class="font-bold text-gray-800 text-sm"
-                                    >
+                                    <div class="font-bold text-gray-800 text-sm">
                                         Transfer Bank Manual
                                     </div>
                                     <p class="text-xs text-gray-500 mt-1">
-                                        Lakukan transfer ke rekening bank resmi
-                                        perusahaan kami. Anda perlu mengunggah
-                                        bukti transfer setelah membayar.
-                                        Verifikasi dilakukan secara manual oleh
-                                        admin kami dalam waktu 1-24 jam.
+                                        Lakukan transfer ke rekening bank resmi perusahaan kami.
+                                        Anda perlu mengunggah bukti transfer setelah membayar.
+                                        Verifikasi dilakukan secara manual oleh admin kami dalam
+                                        waktu 1-24 jam.
                                     </p>
 
                                     <!-- Daftar Bank Dinamis (Muncul ketika dipilih) -->
                                     <div
-                                        v-if="paymentMethod === 'manual' && manualPaymentMethods.length > 0"
+                                        v-if="
+                                            paymentMethod === 'manual' &&
+                                            manualPaymentMethods.length > 0
+                                        "
                                         class="mt-3 grid grid-cols-1 gap-2 pt-3 border-t border-slate-200"
                                     >
-                                        <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                                        <div
+                                            class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1"
+                                        >
                                             Rekening Tersedia:
                                         </div>
                                         <div
@@ -230,8 +183,13 @@
                                             class="flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-slate-100 p-2.5 rounded-lg"
                                         >
                                             <div class="flex flex-col">
-                                                <span class="text-xs font-bold text-gray-800">{{ bank.bank_name }}</span>
-                                                <span class="text-xs text-gray-500 mt-0.5">{{ bank.account_number }} (a/n {{ bank.account_name }})</span>
+                                                <span class="text-xs font-bold text-gray-800">{{
+                                                    bank.bank_name
+                                                }}</span>
+                                                <span class="text-xs text-gray-500 mt-0.5"
+                                                    >{{ bank.account_number }} (a/n
+                                                    {{ bank.account_name }})</span
+                                                >
                                             </div>
                                         </div>
                                     </div>
@@ -256,32 +214,21 @@
 
                         <div class="space-y-3 text-sm">
                             <div class="flex justify-between">
-                                <span class="text-gray-600"
-                                    >Siklus Tagihan</span
-                                >
+                                <span class="text-gray-600">Siklus Tagihan</span>
                                 <span class="font-medium capitalize">{{
-                                    billingCycle === 'monthly'
-                                        ? 'Bulanan'
-                                        : 'Tahunan'
+                                    billingCycle === 'monthly' ? 'Bulanan' : 'Tahunan'
                                 }}</span>
                             </div>
                             <div class="flex flex-col">
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600"
-                                        >Jumlah Outlet Aktif</span
-                                    >
-                                    <span class="font-medium"
-                                        >{{ activeOutlets }} Outlet</span
-                                    >
+                                    <span class="text-gray-600">Jumlah Outlet Aktif</span>
+                                    <span class="font-medium">{{ activeOutlets }} Outlet</span>
                                 </div>
                                 <div
                                     v-if="activeOutletsList.length > 0"
                                     class="mt-2 text-xs text-gray-500 pl-2 border-l-2 border-gray-200"
                                 >
-                                    <div
-                                        v-for="outlet in activeOutletsList"
-                                        :key="outlet.id"
-                                    >
+                                    <div v-for="outlet in activeOutletsList" :key="outlet.id">
                                         - {{ outlet.name }}
                                     </div>
                                 </div>
@@ -297,28 +244,17 @@
                             </div>
 
                             <div
-                                v-if="
-                                    billingCycle === 'yearly' &&
-                                    plan.yearly_discount_percent > 0
-                                "
+                                v-if="billingCycle === 'yearly' && plan.yearly_discount_percent > 0"
                                 class="flex justify-between text-success"
                             >
-                                <span
-                                    >Diskon ({{
-                                        plan.yearly_discount_percent
-                                    }}%)</span
-                                >
-                                <span class="font-medium"
-                                    >-{{ formatIDR(discountAmount) }}</span
-                                >
+                                <span>Diskon ({{ plan.yearly_discount_percent }}%)</span>
+                                <span class="font-medium">-{{ formatIDR(discountAmount) }}</span>
                             </div>
 
                             <div class="border-t pt-3 mt-3"></div>
 
                             <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800"
-                                    >Total Pembayaran</span
-                                >
+                                <span class="font-bold text-gray-800">Total Pembayaran</span>
                                 <span class="font-bold text-lg text-main">{{
                                     formatIDR(finalTotal)
                                 }}</span>
@@ -331,12 +267,8 @@
                                     isRenewal
                                         ? route('settings.subscriptions.renew')
                                         : subscription
-                                          ? route(
-                                                'settings.subscriptions.change-plan',
-                                            )
-                                          : route(
-                                                'settings.subscriptions.subscribe',
-                                            )
+                                          ? route('settings.subscriptions.change-plan')
+                                          : route('settings.subscriptions.subscribe')
                                 "
                                 method="post"
                                 as="button"
@@ -350,8 +282,7 @@
                                 Lanjutkan Pembayaran
                             </Link>
                             <p class="text-xs text-center text-gray-500 mt-3">
-                                Dengan melanjutkan, Anda menyetujui syarat &
-                                ketentuan berlangganan.
+                                Dengan melanjutkan, Anda menyetujui syarat & ketentuan berlangganan.
                             </p>
                         </div>
                     </div>
@@ -362,17 +293,17 @@
 </template>
 
 <script setup>
-import MainPage from '@/Components/UI/MainPage.vue';
-import { formatIDR } from '@/Composable/currency-format';
+import MainPage from '@/Components/UI/MainPage.vue'
+import { formatIDR } from '@/Composable/currency-format'
 import {
     faCheckCircle,
     faInfoCircle,
     faCreditCard,
     faBuildingColumns,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { Link, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { Link, usePage } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
     plan: Object,
@@ -385,57 +316,50 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-});
+})
 
-const page = usePage();
-const auth = computed(() => page.props.auth);
+const page = usePage()
+const auth = computed(() => page.props.auth)
 
 // Set default to monthly or based on current active subscription
-const billingCycle = ref(
-    props.subscription ? props.subscription.billing_cycle : 'monthly',
-);
-const paymentMethod = ref(props.isMidtransEnabled ? 'midtrans' : 'manual');
+const billingCycle = ref(props.subscription ? props.subscription.billing_cycle : 'monthly')
+const paymentMethod = ref(props.isMidtransEnabled ? 'midtrans' : 'manual')
 
 const activeOutletsList = computed(() => {
-    return auth.value.outlets
-        ? auth.value.outlets.filter((o) => o.is_active)
-        : [];
-});
+    return auth.value.outlets ? auth.value.outlets.filter(o => o.is_active) : []
+})
 
 const activeOutlets = computed(() => {
     return activeOutletsList.value.length > 0
         ? activeOutletsList.value.length
         : auth.value.outlets
           ? auth.value.outlets.length
-          : 0;
-});
+          : 0
+})
 
 // Calculations
 const subtotal = computed(() => {
-    const basePrice = props.plan.price_per_outlet * activeOutlets.value;
+    const basePrice = props.plan.price_per_outlet * activeOutlets.value
     if (billingCycle.value === 'yearly') {
-        return basePrice * 12;
+        return basePrice * 12
     }
-    return basePrice;
-});
+    return basePrice
+})
 
 const discountAmount = computed(() => {
-    if (
-        billingCycle.value === 'yearly' &&
-        props.plan.yearly_discount_percent > 0
-    ) {
-        return subtotal.value * (props.plan.yearly_discount_percent / 100);
+    if (billingCycle.value === 'yearly' && props.plan.yearly_discount_percent > 0) {
+        return subtotal.value * (props.plan.yearly_discount_percent / 100)
     }
-    return 0;
-});
+    return 0
+})
 
 const yearlyTotal = computed(() => {
-    const baseYearly = props.plan.price_per_outlet * activeOutlets.value * 12;
-    const discount = baseYearly * (props.plan.yearly_discount_percent / 100);
-    return baseYearly - discount;
-});
+    const baseYearly = props.plan.price_per_outlet * activeOutlets.value * 12
+    const discount = baseYearly * (props.plan.yearly_discount_percent / 100)
+    return baseYearly - discount
+})
 
 const finalTotal = computed(() => {
-    return subtotal.value - discountAmount.value;
-});
+    return subtotal.value - discountAmount.value
+})
 </script>

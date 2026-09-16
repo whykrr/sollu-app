@@ -17,12 +17,9 @@
                 <template #qty_change="{ item }">
                     <span
                         class="font-semibold"
-                        :class="
-                            item.qty_change > 0 ? 'text-success' : 'text-danger'
-                        "
+                        :class="item.qty_change > 0 ? 'text-success' : 'text-danger'"
                     >
-                        {{ item.qty_change > 0 ? '+' : ''
-                        }}{{ item.qty_change_formatted }}
+                        {{ item.qty_change > 0 ? '+' : '' }}{{ item.qty_change_formatted }}
                     </span>
                 </template>
                 <template #creator="{ item }">
@@ -31,14 +28,12 @@
             </Table>
         </template>
 
-        <div v-else class="text-center text-gray-500 py-4">
-            Tidak ada riwayat pergerakan.
-        </div>
+        <div v-else class="text-center text-gray-500 py-4">Tidak ada riwayat pergerakan.</div>
     </div>
 </template>
 <script setup>
-import Table from '@/Components/Tables/Table.vue';
-import { formatDateTimeSimple } from '@/Composable/date';
+import Table from '@/Components/Tables/Table.vue'
+import { formatDateTimeSimple } from '@/Composable/date'
 
 const props = defineProps({
     item: Object,
@@ -46,7 +41,7 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-});
+})
 
 const movementTypeLabels = {
     sale: 'Penjualan',
@@ -59,12 +54,12 @@ const movementTypeLabels = {
     waste: 'Pemborosan',
     opname: 'Stok Opname',
     purchase_void: 'Void Pembelian',
-};
+}
 
-const formatMovementType = (type) => {
-    if (!type) return '-';
-    return movementTypeLabels[type] || type;
-};
+const formatMovementType = type => {
+    if (!type) return '-'
+    return movementTypeLabels[type] || type
+}
 
 const headers = [
     {
@@ -87,5 +82,5 @@ const headers = [
     },
     { label: 'Stok Akhir', field: 'stock_after_formatted', sortable: false },
     { label: 'User', field: 'creator', slot: 'creator', sortable: false },
-];
+]
 </script>

@@ -1,21 +1,21 @@
 <template>
-  <div
-    class="fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none items-end pr-2"
-  >
-    <TransitionGroup name="toast">
-      <Toast
-        v-for="toast in toastStore.toasts"
-        :key="toast.id"
-        :type="toast.type"
-        :title="toast.title"
-        :message="toast.message"
-        :icon="toast.icon"
-        :action="toast.action"
-        :dismissible="toast.dismissible"
-        @dismiss="toastStore.removeToast(toast.id)"
-      />
-    </TransitionGroup>
-  </div>
+    <div
+        class="fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none items-end pr-2"
+    >
+        <TransitionGroup name="toast">
+            <Toast
+                v-for="toast in toastStore.toasts"
+                :key="toast.id"
+                :type="toast.type"
+                :title="toast.title"
+                :message="toast.message"
+                :icon="toast.icon"
+                :action="toast.action"
+                :dismissible="toast.dismissible"
+                @dismiss="toastStore.removeToast(toast.id)"
+            />
+        </TransitionGroup>
+    </div>
 </template>
 
 <script setup>
@@ -30,7 +30,7 @@ const page = usePage()
 // Watch Inertia flash messages and display them as toasts automatically
 watch(
     () => page.props.app?.flash,
-    (flash) => {
+    flash => {
         if (!flash) return
 
         if (flash.success) {
@@ -65,7 +65,6 @@ watch(
     opacity: 0;
     transform: translateY(-20px) scale(0.95);
 }
-
 
 .toast-leave-to {
     opacity: 0;

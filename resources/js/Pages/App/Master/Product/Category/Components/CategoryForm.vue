@@ -30,11 +30,7 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex justify-end gap-2 w-full">
-                <button
-                    type="button"
-                    class="btn btn-outline-secondary"
-                    @click="closeForm"
-                >
+                <button type="button" class="btn btn-outline-secondary" @click="closeForm">
                     Batal
                 </button>
                 <button
@@ -51,11 +47,11 @@
 </template>
 
 <script setup>
-import { computed, watch, ref, onMounted } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import TextField from '@/Components/Form/TextField.vue';
-import DropdownField from '@/Components/Form/DropdownField.vue';
-import NumberField from '@/Components/Form/NumberField.vue';
+import { computed, watch, ref, onMounted } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import TextField from '@/Components/Form/TextField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
 
 const props = defineProps({
     category: {
@@ -70,79 +66,75 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-});
+})
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close'])
 
 const form = useForm({
     name: '',
     parent_id: '',
     sort_order: '',
-});
+})
 
-const isMounted = ref(false);
+const isMounted = ref(false)
 onMounted(() => {
-    isMounted.value = true;
-});
+    isMounted.value = true
+})
 
 watch(
     () => props.category,
     () => {
-        form.clearErrors();
+        form.clearErrors()
         if (props.category) {
-            form.name = props.category.name;
-            form.parent_id = props.category.parent_id || '';
+            form.name = props.category.name
+            form.parent_id = props.category.parent_id || ''
             form.sort_order =
-                props.category.sort_order !== null
-                    ? String(props.category.sort_order)
-                    : '';
+                props.category.sort_order !== null ? String(props.category.sort_order) : ''
         } else {
-            form.name = '';
-            form.parent_id = props.parentCategory
-                ? props.parentCategory.id
-                : '';
-            form.sort_order = '';
+            form.name = ''
+            form.parent_id = props.parentCategory ? props.parentCategory.id : ''
+            form.sort_order = ''
         }
     },
-    { immediate: true },
-);
+    { immediate: true }
+)
 
 // Only root categories can be parents, and a category cannot be its own parent
 const availableParents = computed(() => {
-    return props.allCategories.filter((c) => {
+    return props.allCategories.filter(c => {
         // Can't be parent if it already has a parent (max 1 level depth)
-        if (c.parent_id) return false;
+        if (c.parent_id) return false
         // Can't be itself
-        if (props.category && c.id === props.category.id) return false;
-        return true;
-    });
-});
+        if (props.category && c.id === props.category.id) return false
+        return true
+    })
+})
 
 const availableParentsFormatted = computed(() => {
-    return availableParents.value.map((c) => ({
+    return availableParents.value.map(c => ({
         value: c.id,
         label: c.name,
-    }));
-});
+    }))
+})
 
 const hasChildren = computed(() => {
-    if (!props.category) return false;
-    return props.category.children && props.category.children.length > 0;
-});
+    if (!props.category) return false
+    return props.category.children && props.category.children.length > 0
+})
 
 const closeForm = () => {
-    emit('close');
-};
+    emit('close')
+}
 
 const submit = () => {
     if (props.category) {
         form.put(route('master.categories.update', props.category.id), {
             onSuccess: () => closeForm(),
-        });
+        })
     } else {
         form.post(route('master.categories.store'), {
             onSuccess: () => closeForm(),
-        });
+        })
     }
-};
+}
 </script>

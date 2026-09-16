@@ -2,10 +2,7 @@
     <div ref="dropdownRef" class="relative inline-block text-left">
         <button
             type="button"
-            :class="[
-                buttonClass || 'btn btn-flat btn-sm',
-                'flex items-center gap-2 select-none',
-            ]"
+            :class="[buttonClass || 'btn btn-flat btn-sm', 'flex items-center gap-2 select-none']"
             @click="toggle"
         >
             <FontAwesomeIcon :icon="icon || faDownload" />
@@ -41,11 +38,7 @@
                         :class="item.class"
                         @click="handleItemClick(item)"
                     >
-                        <FontAwesomeIcon
-                            v-if="item.icon"
-                            :icon="item.icon"
-                            class="text-xs"
-                        />
+                        <FontAwesomeIcon v-if="item.icon" :icon="item.icon" class="text-xs" />
                         <span>{{ item.label }}</span>
                     </button>
                 </slot>
@@ -55,9 +48,9 @@
 </template>
 
 <script setup>
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faDownload, faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import { useDropdown } from '@/Composable/useDropdown';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faDownload, faChevronDown } from '@fortawesome/free-solid-svg-icons'
+import { useDropdown } from '@/Composable/useDropdown'
 
 defineProps({
     label: {
@@ -75,20 +68,20 @@ defineProps({
     align: {
         type: String,
         default: 'right',
-        validator: (value) => ['left', 'right'].includes(value),
+        validator: value => ['left', 'right'].includes(value),
     },
     items: {
         type: Array,
         default: () => [],
     },
-});
+})
 
-const { isOpen, dropdownRef, toggle, close } = useDropdown();
+const { isOpen, dropdownRef, toggle, close } = useDropdown()
 
-const handleItemClick = (item) => {
+const handleItemClick = item => {
     if (typeof item.action === 'function') {
-        item.action();
+        item.action()
     }
-    close();
-};
+    close()
+}
 </script>

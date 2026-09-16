@@ -4,13 +4,7 @@
             <!-- Header -->
             <div class="overlay-header">
                 <h3 class="overlay-title">{{ title }}</h3>
-                <button
-                    type="button"
-                    class="overlay-close"
-                    @click="$emit('close')"
-                >
-                    ✖
-                </button>
+                <button type="button" class="overlay-close" @click="$emit('close')">✖</button>
             </div>
 
             <!-- Body -->
@@ -56,7 +50,7 @@ defineProps({
         type: String,
         default: 'Filter',
     },
-});
+})
 
-defineEmits(['close', 'reset', 'apply']);
+defineEmits(['close', 'reset', 'apply'])
 </script>

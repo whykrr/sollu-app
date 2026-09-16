@@ -24,11 +24,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { ref } from 'vue'
+import { router } from '@inertiajs/vue3'
 
-const loading = ref(false);
+const loading = ref(false)
 
-router.on('start', () => (loading.value = true));
-router.on('finish', () => (loading.value = false));
+router.on('start', () => (loading.value = true))
+router.on('finish', () => (loading.value = false))
 </script>

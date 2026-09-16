@@ -3,10 +3,7 @@
         <template #header>
             <MainPageHeader title="Stock Opname">
                 <div class="flex items-end gap-2">
-                    <button
-                        class="btn btn-primary btn-sm"
-                        @click="openFreezeModal()"
-                    >
+                    <button class="btn btn-primary btn-sm" @click="openFreezeModal()">
                         <FontAwesomeIcon :icon="faLock" />
                         Kelola Bekukan Stok
                     </button>
@@ -95,12 +92,11 @@
                 :total="opnames.total"
             />
         </template>
-
     </MainPage>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
 import {
     faPlus,
     faPencil,
@@ -109,22 +105,22 @@ import {
     faEye,
     faFilePdf,
     faLock,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import MainPage from '@/Components/UI/MainPage.vue';
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue';
-import Table from '@/Components/Tables/Table.vue';
-import Pagination from '@/Components/Tables/Pagination.vue';
-import Filter from './Components/Filter.vue';
-import OpnameFormPopUp from './Components/OpnameFormPopUp.vue';
-import OpnameDetailPopUp from './Components/OpnameDetailPopUp.vue';
-import FreezeStockPopUp from '@/Components/Inventory/FreezeStockPopUp.vue';
-import { useModalStore } from '@/store/notification';
-import { usePopUpStore } from '@/store/popup';
-import { formatDateTimeSimple } from '@/Composable/date.js';
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import Filter from './Components/Filter.vue'
+import OpnameFormPopUp from './Components/OpnameFormPopUp.vue'
+import OpnameDetailPopUp from './Components/OpnameDetailPopUp.vue'
+import FreezeStockPopUp from '@/Components/Inventory/FreezeStockPopUp.vue'
+import { useModalStore } from '@/store/notification'
+import { usePopUpStore } from '@/store/popup'
+import { formatDateTimeSimple } from '@/Composable/date.js'
 
-const modalStore = useModalStore();
-const popUpStore = usePopUpStore();
+const modalStore = useModalStore()
+const popUpStore = usePopUpStore()
 
 const props = defineProps({
     opnames: {
@@ -135,7 +131,7 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-});
+})
 
 const headers = [
     { label: 'Nomor Opname', field: 'opname_number', sortable: true },
@@ -148,92 +144,89 @@ const headers = [
     { label: 'Outlet', slot: 'outlet', sortable: false },
     { label: 'Catatan', field: 'notes', sortable: true },
     { label: 'Status', field: 'status', slot: 'status', sortable: false },
-];
+]
 
-import axios from 'axios';
+import axios from 'axios'
 
-const showDetail = ref(false);
-const selectedItem = ref(null);
-const isLoading = ref(false);
+const showDetail = ref(false)
+const selectedItem = ref(null)
+const isLoading = ref(false)
 
 const openFreezeModal = () => {
     popUpStore.open({
         title: 'Kelola Pembekuan Stok',
-        description: 'Pembekuan stok akan memblokir seluruh transaksi persediaan pada outlet yang dipilih selama proses Stock Opname berlangsung.',
+        description:
+            'Pembekuan stok akan memblokir seluruh transaksi persediaan pada outlet yang dipilih selama proses Stock Opname berlangsung.',
         size: 'lg',
         component: FreezeStockPopUp,
-    });
-};
+    })
+}
 
-const statusLabel = (status) => {
+const statusLabel = status => {
     const labels = {
         in_progress: 'Sedang Berjalan',
         pending_approval: 'Menunggu Persetujuan',
         approved: 'Disetujui',
         rejected: 'Ditolak',
-    };
-    return labels[status] || status;
-};
+    }
+    return labels[status] || status
+}
 
-const statusColor = (status) => {
+const statusColor = status => {
     const colors = {
         in_progress: 'badge-warning',
         pending_approval: 'badge-info',
         approved: 'badge-success',
         rejected: 'badge-danger',
-    };
-    return colors[status] || 'badge-gray';
-};
+    }
+    return colors[status] || 'badge-gray'
+}
 
 const openForm = async (item = null) => {
     if (item) {
         try {
-            isLoading.value = true;
-            const response = await axios.get(
-                route('inventory.opnames.show', item.id),
-            );
+            isLoading.value = true
+            const response = await axios.get(route('inventory.opnames.show', item.id))
             popUpStore.open({
                 title: 'Mulai / Update Opname',
                 size: 'xl',
                 component: OpnameFormPopUp,
-                props: { opname: response.data }
-            });
+                props: { opname: response.data },
+            })
         } catch (error) {
-            console.error('Failed to load detail', error);
-            return;
+            console.error('Failed to load detail', error)
+            return
         } finally {
-            isLoading.value = false;
+            isLoading.value = false
         }
     } else {
         popUpStore.open({
             title: 'Mulai / Update Opname',
             size: 'xl',
             component: OpnameFormPopUp,
-            props: { opname: null }
-        });
+            props: { opname: null },
+        })
     }
-};
+}
 
-const openDetail = async (item) => {
+const openDetail = async item => {
     try {
-        isLoading.value = true;
-        const response = await axios.get(
-            route('inventory.opnames.show', item.id),
-        );
+        isLoading.value = true
+        const response = await axios.get(route('inventory.opnames.show', item.id))
         popUpStore.open({
             title: 'Detail Stock Opname',
             size: 'xl',
             component: OpnameDetailPopUp,
-            props: { opname: response.data }
-        });
+            props: { opname: response.data },
+        })
     } catch (error) {
-        console.error('Failed to load detail', error);
+        console.error('Failed to load detail', error)
     } finally {
-        isLoading.value = false;
+        isLoading.value = false
     }
-};
+}
 
-const confirmDelete = (item) => {
-    modalStore.openModalDelete(route('inventory.opnames.destroy', item.id));
-};
+const confirmDelete = item => {
+    modalStore.openModalDelete(route('inventory.opnames.destroy', item.id))
+}
 </script>

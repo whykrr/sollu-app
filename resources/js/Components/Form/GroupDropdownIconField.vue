@@ -14,11 +14,7 @@
             <option v-if="placeholder" value="">
                 {{ placeholder }}
             </option>
-            <option
-                v-for="(option, index) in options"
-                :key="index"
-                :value="option.value"
-            >
+            <option v-for="(option, index) in options" :key="index" :value="option.value">
                 {{ option.label }}
             </option>
         </select>
@@ -26,11 +22,11 @@
 </template>
 
 <script setup>
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 defineOptions({
     inheritAttrs: false,
-});
+})
 
 const { modelValue, placeholder, icon, options } = defineProps({
     modelValue: { type: [String, Number], default: '' },
@@ -40,7 +36,7 @@ const { modelValue, placeholder, icon, options } = defineProps({
         type: Array,
         default: () => [], // format: [{ value: '1', label: 'Satu' }]
     },
-});
+})
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 </script>

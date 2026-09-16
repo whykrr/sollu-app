@@ -22,34 +22,19 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <FilterBadge
-                v-if="filterForm.status !== ''"
-                @remove="removeFilter('status')"
-            >
+            <FilterBadge v-if="filterForm.status !== ''" @remove="removeFilter('status')">
                 Status: {{ getStatusName(filterForm.status) }}
             </FilterBadge>
-            <FilterBadge
-                v-if="filterForm.reason !== ''"
-                @remove="removeFilter('reason')"
-            >
+            <FilterBadge v-if="filterForm.reason !== ''" @remove="removeFilter('reason')">
                 Alasan: {{ getReasonName(filterForm.reason) }}
             </FilterBadge>
-            <FilterBadge
-                v-if="filterForm.outlet_id !== ''"
-                @remove="removeFilter('outlet_id')"
-            >
+            <FilterBadge v-if="filterForm.outlet_id !== ''" @remove="removeFilter('outlet_id')">
                 Outlet: {{ getOutletName(filterForm.outlet_id) }}
             </FilterBadge>
-            <FilterBadge
-                v-if="filterForm.date_from !== ''"
-                @remove="removeFilter('date_from')"
-            >
+            <FilterBadge v-if="filterForm.date_from !== ''" @remove="removeFilter('date_from')">
                 Dari: {{ filterForm.date_from }}
             </FilterBadge>
-            <FilterBadge
-                v-if="filterForm.date_to !== ''"
-                @remove="removeFilter('date_to')"
-            >
+            <FilterBadge v-if="filterForm.date_to !== ''" @remove="removeFilter('date_to')">
                 Sampai: {{ filterForm.date_to }}
             </FilterBadge>
         </div>
@@ -146,19 +131,19 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
-import { debounce } from 'lodash';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
-import { faSliders } from '@fortawesome/free-solid-svg-icons';
-import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
-import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
-import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
+import { ref, reactive, watch } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { debounce } from 'lodash'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
+import { faSliders } from '@fortawesome/free-solid-svg-icons'
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue'
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
 
 const props = defineProps({
     filters: Object,
-});
+})
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
@@ -167,10 +152,10 @@ const filterForm = reactive({
     outlet_id: props.filters?.outlet_id ?? '',
     date_from: props.filters?.date_from ?? '',
     date_to: props.filters?.date_to ?? '',
-});
+})
 
 // Modal State
-const showFilterModal = ref(false);
+const showFilterModal = ref(false)
 const tempFilters = reactive({
     search: '',
     status: '',
@@ -178,28 +163,28 @@ const tempFilters = reactive({
     outlet_id: '',
     date_from: '',
     date_to: '',
-});
+})
 
-const loadedOutlets = ref([]);
+const loadedOutlets = ref([])
 
-const onOutletsLoaded = (outlets) => {
-    loadedOutlets.value = outlets;
-};
+const onOutletsLoaded = outlets => {
+    loadedOutlets.value = outlets
+}
 
 // Watch search separately for immediate query trigger
 watch(
     () => filterForm.search,
     debounce(() => {
-        updateQuery();
-    }, 500),
-);
+        updateQuery()
+    }, 500)
+)
 
 const statusOptions = [
     { value: 'draft', label: 'Draf' },
     { value: 'approved', label: 'Disetujui' },
     { value: 'rejected', label: 'Ditolak' },
     { value: 'voided', label: 'Dibatalkan' },
-];
+]
 
 const reasonOptions = [
     { value: 'waste', label: 'Rusak / Terbuang' },
@@ -208,63 +193,63 @@ const reasonOptions = [
     { value: 'correction', label: 'Koreksi' },
     { value: 'production', label: 'Produksi' },
     { value: 'other', label: 'Lainnya' },
-];
+]
 
 // Watch search separately for immediate query trigger
 watch(
     () => filterForm.search,
     debounce(() => {
-        updateQuery();
-    }, 500),
-);
+        updateQuery()
+    }, 500)
+)
 
-const getStatusName = (val) => {
-    return statusOptions.find((o) => o.value == val)?.label || val;
-};
+const getStatusName = val => {
+    return statusOptions.find(o => o.value == val)?.label || val
+}
 
-const getReasonName = (val) => {
-    return reasonOptions.find((o) => o.value == val)?.label || val;
-};
+const getReasonName = val => {
+    return reasonOptions.find(o => o.value == val)?.label || val
+}
 
-const getOutletName = (id) => {
-    return loadedOutlets.value.find((o) => o.id == id)?.name || id;
-};
+const getOutletName = id => {
+    return loadedOutlets.value.find(o => o.id == id)?.name || id
+}
 
 const openModal = () => {
-    tempFilters.status = filterForm.status;
-    tempFilters.reason = filterForm.reason;
-    tempFilters.outlet_id = filterForm.outlet_id;
-    tempFilters.date_from = filterForm.date_from;
-    tempFilters.date_to = filterForm.date_to;
-    showFilterModal.value = true;
-};
+    tempFilters.status = filterForm.status
+    tempFilters.reason = filterForm.reason
+    tempFilters.outlet_id = filterForm.outlet_id
+    tempFilters.date_from = filterForm.date_from
+    tempFilters.date_to = filterForm.date_to
+    showFilterModal.value = true
+}
 
 const closeModal = () => {
-    showFilterModal.value = false;
-};
+    showFilterModal.value = false
+}
 
 const resetTempFilters = () => {
-    tempFilters.status = '';
-    tempFilters.reason = '';
-    tempFilters.outlet_id = '';
-    tempFilters.date_from = '';
-    tempFilters.date_to = '';
-};
+    tempFilters.status = ''
+    tempFilters.reason = ''
+    tempFilters.outlet_id = ''
+    tempFilters.date_from = ''
+    tempFilters.date_to = ''
+}
 
 const applyFilters = () => {
-    filterForm.status = tempFilters.status;
-    filterForm.reason = tempFilters.reason;
-    filterForm.outlet_id = tempFilters.outlet_id;
-    filterForm.date_from = tempFilters.date_from;
-    filterForm.date_to = tempFilters.date_to;
-    showFilterModal.value = false;
-    updateQuery();
-};
+    filterForm.status = tempFilters.status
+    filterForm.reason = tempFilters.reason
+    filterForm.outlet_id = tempFilters.outlet_id
+    filterForm.date_from = tempFilters.date_from
+    filterForm.date_to = tempFilters.date_to
+    showFilterModal.value = false
+    updateQuery()
+}
 
-const removeFilter = (key) => {
-    filterForm[key] = '';
-    updateQuery();
-};
+const removeFilter = key => {
+    filterForm[key] = ''
+    updateQuery()
+}
 
 const updateQuery = () => {
     const query = {
@@ -272,17 +257,15 @@ const updateQuery = () => {
         search: filterForm.search || undefined,
         status: filterForm.status !== '' ? filterForm.status : undefined,
         reason: filterForm.reason !== '' ? filterForm.reason : undefined,
-        outlet_id:
-            filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
-        date_from:
-            filterForm.date_from !== '' ? filterForm.date_from : undefined,
+        outlet_id: filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
+        date_from: filterForm.date_from !== '' ? filterForm.date_from : undefined,
         date_to: filterForm.date_to !== '' ? filterForm.date_to : undefined,
         page: 1,
-    };
+    }
 
     router.get(window.location.pathname, query, {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 </script>

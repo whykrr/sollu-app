@@ -19,13 +19,13 @@ export const useToastStore = defineStore('toast', {
          */
         addToast(toast) {
             const id = Date.now() + Math.random()
-            const type = toast.type === 'error' ? 'danger' : (toast.type || 'info')
-            
+            const type = toast.type === 'error' ? 'danger' : toast.type || 'info'
+
             const newToast = {
                 id,
                 type,
                 title: toast.title || this.getDefaultTitle(type),
-                message: typeof toast === 'string' ? toast : (toast.message || ''),
+                message: typeof toast === 'string' ? toast : toast.message || '',
                 duration: toast.duration !== undefined ? toast.duration : 4000,
                 action: toast.action || null,
                 dismissible: toast.dismissible !== undefined ? toast.dismissible : true,
@@ -45,10 +45,10 @@ export const useToastStore = defineStore('toast', {
 
         /**
          * Remove toast by ID
-         * @param {number|string} id 
+         * @param {number|string} id
          */
         removeToast(id) {
-            const index = this.toasts.findIndex((t) => t.id === id)
+            const index = this.toasts.findIndex(t => t.id === id)
             if (index !== -1) {
                 this.toasts.splice(index, 1)
             }

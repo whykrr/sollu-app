@@ -2,17 +2,11 @@
     <form class="h-full flex flex-col justify-between" @submit.prevent="forgot">
         <!-- Top: Logo -->
         <div class="w-full max-w-md shrink-0">
-            <img
-                class="h-7 sm:h-9 object-contain"
-                src="img/logo-colored.png"
-                alt="Logo"
-            />
+            <img class="h-7 sm:h-9 object-contain" src="img/logo-colored.png" alt="Logo" />
         </div>
 
         <!-- Middle: Form Inputs -->
-        <div
-            class="flex flex-col justify-center my-auto py-2 sm:py-3 space-y-2 sm:space-y-3"
-        >
+        <div class="flex flex-col justify-center my-auto py-2 sm:py-3 space-y-2 sm:space-y-3">
             <div class="space-y-0.5">
                 <div
                     class="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900 leading-tight"
@@ -20,8 +14,7 @@
                     Lupa Kata Sandi
                 </div>
                 <div class="text-xs sm:text-sm text-gray-600">
-                    Masukkan email Anda untuk atur ulang kata sandimu dan
-                    lanjutkan bisnismu.
+                    Masukkan email Anda untuk atur ulang kata sandimu dan lanjutkan bisnismu.
                 </div>
             </div>
 
@@ -74,21 +67,21 @@
     </form>
 </template>
 <script setup>
-import { Link, useForm, usePage } from '@inertiajs/vue3';
-import AuthLayout from '@/Layout/AuthLayout.vue';
-import { computed } from 'vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { Link, useForm, usePage } from '@inertiajs/vue3'
+import AuthLayout from '@/Layout/AuthLayout.vue'
+import { computed } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 
-const flashSuccess = computed(() => usePage().props.app.flash.success);
+const flashSuccess = computed(() => usePage().props.app.flash.success)
 
 defineOptions({
     layout: AuthLayout,
-});
+})
 
 const form = useForm({
     email: null,
-});
+})
 
-const forgot = () => form.post(route('forgot.email'));
+const forgot = () => form.post(route('forgot.email'))
 </script>

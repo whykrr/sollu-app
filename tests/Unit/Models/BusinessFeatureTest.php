@@ -73,7 +73,6 @@ class BusinessFeatureTest extends TestCase
             'code' => PlanEnum::PRO->value,
             'name' => 'Pro Plan',
             'price_per_outlet' => 100000,
-            'max_outlet' => 10,
             'is_active' => true,
             'is_public' => true,
         ]);
@@ -108,6 +107,5 @@ class BusinessFeatureTest extends TestCase
         $this->assertContains(FeatureEnum::RECIPE_MANAGEMENT, $availableFeatures);
         $this->assertTrue($business->hasFeature(FeatureEnum::POS_CASHIER));
         $this->assertTrue($business->hasFeature(FeatureEnum::RECIPE_MANAGEMENT));
-        $this->assertSame(10, $business->maxOutletsAllowed());
     }
 }

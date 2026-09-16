@@ -8,26 +8,16 @@
                 </p>
                 <p>
                     <strong>Dari Outlet:</strong>
-                    {{
-                        transferData.from_outlet?.name ||
-                        transferData.fromOutlet?.name ||
-                        '-'
-                    }}
+                    {{ transferData.from_outlet?.name || transferData.fromOutlet?.name || '-' }}
                 </p>
                 <p>
                     <strong>Ke Outlet:</strong>
-                    {{
-                        transferData.to_outlet?.name ||
-                        transferData.toOutlet?.name ||
-                        '-'
-                    }}
+                    {{ transferData.to_outlet?.name || transferData.toOutlet?.name || '-' }}
                 </p>
             </div>
 
             <div class="border-t pt-4">
-                <h3 class="text-lg font-semibold mb-2">
-                    Detail Penerimaan Item
-                </h3>
+                <h3 class="text-lg font-semibold mb-2">Detail Penerimaan Item</h3>
 
                 <div
                     v-if="form.items.length === 0"
@@ -63,15 +53,10 @@
                             <div
                                 class="font-semibold"
                                 :class="{
-                                    'text-danger':
-                                        item.qty_sent - item.qty_received > 0,
+                                    'text-danger': item.qty_sent - item.qty_received > 0,
                                 }"
                             >
-                                {{
-                                    formatNumber(
-                                        item.qty_sent - item.qty_received,
-                                    )
-                                }}
+                                {{ formatNumber(item.qty_sent - item.qty_received) }}
                             </div>
                         </div>
                     </div>
@@ -80,12 +65,7 @@
         </form>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button
-                type="button"
-                class="btn btn-flat"
-                :disabled="form.processing"
-                @click="close"
-            >
+            <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
                 Batal
             </button>
             <button
@@ -101,49 +81,43 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import { usePopUpStore } from '@/store/popup';
-import NumberField from '@/Components/Form/NumberField.vue';
+import { onMounted, ref } from 'vue'
+import { useForm } from '@inertiajs/vue3'
+import { usePopUpStore } from '@/store/popup'
+import NumberField from '@/Components/Form/NumberField.vue'
 
 const props = defineProps({
     transferData: Object,
-});
+})
 
-const emit = defineEmits(['refresh']);
-const popUpStore = usePopUpStore();
-const isMounted = ref(false);
+const emit = defineEmits(['refresh'])
+const popUpStore = usePopUpStore()
+const isMounted = ref(false)
 
 const form = useForm({
     items: [],
-});
+})
 
 onMounted(() => {
-    isMounted.value = true;
+    isMounted.value = true
     if (props.transferData?.items) {
-        form.items = props.transferData.items.map((i) => ({
+        form.items = props.transferData.items.map(i => ({
             id: i.id,
-            name:
-                i.inventory_item?.name ||
-                i.inventoryItem?.name ||
-                'Unknown',
-            uom_name:
-                i.inventory_item?.uom?.name ||
-                i.inventoryItem?.uom?.name ||
-                '',
+            name: i.inventory_item?.name || i.inventoryItem?.name || 'Unknown',
+            uom_name: i.inventory_item?.uom?.name || i.inventoryItem?.uom?.name || '',
             qty_sent: i.qty, // original value for math and limits
             qty_sent_formatted: i.qty_formatted,
             qty_received: i.qty_formatted, // default to receive all, properly formatted
-        }));
+        }))
     } else {
-        form.items = [];
+        form.items = []
     }
-});
+})
 
 const close = () => {
-    form.clearErrors();
-    popUpStore.close();
-};
+    form.clearErrors()
+    popUpStore.close()
+}
 
 const submit = () => {
     if (props.transferData?.id) {
@@ -151,17 +125,17 @@ const submit = () => {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
-                close();
-                emit('refresh');
+                close()
+                emit('refresh')
             },
-        });
+        })
     }
-};
+}
 
-const formatNumber = (num) => {
+const formatNumber = num => {
     return Number(num || 0).toLocaleString('id-ID', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2,
-    });
-};
+    })
+}
 </script>

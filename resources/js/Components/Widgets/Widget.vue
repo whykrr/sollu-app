@@ -16,11 +16,7 @@
                     :icon="faArrowUp"
                     class="text-xs text-success"
                 />
-                <FontAwesomeIcon
-                    v-else
-                    :icon="faArrowDown"
-                    class="text-xs text-danger"
-                />
+                <FontAwesomeIcon v-else :icon="faArrowDown" class="text-xs text-danger" />
                 <span
                     class="text-xs font-medium"
                     :class="{
@@ -36,13 +32,9 @@
 </template>
 
 <script setup>
-import {
-    faArrowDown,
-    faArrowUp,
-    faBell,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { computed, ref } from 'vue';
+import { faArrowDown, faArrowUp, faBell } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
     icon: Object,
@@ -58,5 +50,5 @@ const props = defineProps({
         type: String,
         default: 'dari bulan lalu',
     },
-});
+})
 </script>

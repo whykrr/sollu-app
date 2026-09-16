@@ -7,7 +7,9 @@
                     <FontAwesomeIcon :icon="faUser" class="text-indigo-600 text-xs" />
                     Informasi Profil
                 </div>
-                <span class="text-[10px] uppercase font-bold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md">
+                <span
+                    class="text-[10px] uppercase font-bold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md"
+                >
                     Cockpit User
                 </span>
             </div>
@@ -22,11 +24,7 @@
                 />
 
                 <div>
-                    <TextField
-                        :model-value="auth?.email || ''"
-                        label="Email Akun"
-                        disabled
-                    />
+                    <TextField :model-value="auth?.email || ''" label="Email Akun" disabled />
                     <p class="text-[11px] text-neutral-400 mt-1">
                         Email akun Cockpit bersifat permanen dan tidak dapat diubah.
                     </p>
@@ -93,41 +91,41 @@
 </template>
 
 <script setup>
-import { useForm, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
-import TextField from '@/Components/Form/TextField.vue';
-import PasswordField from '@/Components/Form/PasswordField.vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faKey, faUser } from '@fortawesome/free-solid-svg-icons';
+import { useForm, usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
+import TextField from '@/Components/Form/TextField.vue'
+import PasswordField from '@/Components/Form/PasswordField.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faKey, faUser } from '@fortawesome/free-solid-svg-icons'
 
 defineOptions({
     name: 'CockpitProfilePopUp',
-});
+})
 
-const auth = computed(() => usePage().props.auth);
+const auth = computed(() => usePage().props.auth)
 
 const profileForm = useForm({
     name: auth.value?.name || '',
-});
+})
 
 const passwordForm = useForm({
     current_password: '',
     new_password: '',
     new_password_confirmation: '',
-});
+})
 
 const submitProfile = () => {
     profileForm.patch(route('cockpit.profile.update'), {
         preserveScroll: true,
-    });
-};
+    })
+}
 
 const submitPassword = () => {
     passwordForm.put(route('cockpit.profile.password.update'), {
         preserveScroll: true,
         onSuccess: () => {
-            passwordForm.reset();
+            passwordForm.reset()
         },
-    });
-};
+    })
+}
 </script>

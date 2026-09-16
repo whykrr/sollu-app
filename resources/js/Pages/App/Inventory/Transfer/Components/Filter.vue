@@ -2,10 +2,7 @@
     <div class="flex flex-wrap items-center gap-2">
         <!-- Search bar -->
         <div>
-            <FilterSearch
-                v-model="filterForm.search"
-                placeholder="Cari no. transfer..."
-            />
+            <FilterSearch v-model="filterForm.search" placeholder="Cari no. transfer..." />
         </div>
 
         <!-- Filter Button -->
@@ -22,10 +19,7 @@
 
         <!-- Active Filter Badges -->
         <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <FilterBadge
-                v-if="filterForm.status !== ''"
-                @remove="removeFilter('status')"
-            >
+            <FilterBadge v-if="filterForm.status !== ''" @remove="removeFilter('status')">
                 Status: {{ getStatusName(filterForm.status) }}
             </FilterBadge>
             <FilterBadge
@@ -104,36 +98,36 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
-import { debounce } from 'lodash';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faSliders } from '@fortawesome/free-solid-svg-icons';
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue';
-import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue';
-import FilterModal from '@/Components/UI/Filter/FilterModal.vue';
-import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue';
+import { ref, reactive, watch } from 'vue'
+import { router } from '@inertiajs/vue3'
+import { debounce } from 'lodash'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSliders } from '@fortawesome/free-solid-svg-icons'
+import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import FilterModal from '@/Components/UI/Filter/FilterModal.vue'
+import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
 
 const props = defineProps({
     filters: Object,
-});
+})
 
-const loadedOutlets = ref([]);
+const loadedOutlets = ref([])
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
     status: props.filters?.status ?? '',
     from_outlet_id: props.filters?.from_outlet_id ?? '',
     to_outlet_id: props.filters?.to_outlet_id ?? '',
-});
+})
 
 // Modal State
-const showFilterModal = ref(false);
+const showFilterModal = ref(false)
 const tempFilters = reactive({
     status: '',
     from_outlet_id: '',
     to_outlet_id: '',
-});
+})
 
 const statusOptions = [
     { value: 'pending', label: 'Menunggu' },
@@ -141,77 +135,71 @@ const statusOptions = [
     { value: 'in_transit', label: 'Dalam Perjalanan' },
     { value: 'completed', label: 'Selesai' },
     { value: 'rejected', label: 'Ditolak' },
-];
+]
 
-const onOutletsLoaded = (outlets) => {
-    loadedOutlets.value = outlets;
-};
+const onOutletsLoaded = outlets => {
+    loadedOutlets.value = outlets
+}
 
 // Watch search separately for immediate query trigger
 watch(
     () => filterForm.search,
     debounce(() => {
-        updateQuery();
-    }, 500),
-);
+        updateQuery()
+    }, 500)
+)
 
-const getStatusName = (val) => {
-    return statusOptions.find((o) => o.value == val)?.label || val;
-};
+const getStatusName = val => {
+    return statusOptions.find(o => o.value == val)?.label || val
+}
 
-const getOutletName = (id) => {
-    return loadedOutlets.value.find((o) => o.id == id)?.name || id;
-};
+const getOutletName = id => {
+    return loadedOutlets.value.find(o => o.id == id)?.name || id
+}
 
 const openModal = () => {
-    tempFilters.status = filterForm.status;
-    tempFilters.from_outlet_id = filterForm.from_outlet_id;
-    tempFilters.to_outlet_id = filterForm.to_outlet_id;
-    showFilterModal.value = true;
-};
+    tempFilters.status = filterForm.status
+    tempFilters.from_outlet_id = filterForm.from_outlet_id
+    tempFilters.to_outlet_id = filterForm.to_outlet_id
+    showFilterModal.value = true
+}
 
 const closeModal = () => {
-    showFilterModal.value = false;
-};
+    showFilterModal.value = false
+}
 
 const resetTempFilters = () => {
-    tempFilters.status = '';
-    tempFilters.from_outlet_id = '';
-    tempFilters.to_outlet_id = '';
-};
+    tempFilters.status = ''
+    tempFilters.from_outlet_id = ''
+    tempFilters.to_outlet_id = ''
+}
 
 const applyFilters = () => {
-    filterForm.status = tempFilters.status;
-    filterForm.from_outlet_id = tempFilters.from_outlet_id;
-    filterForm.to_outlet_id = tempFilters.to_outlet_id;
-    showFilterModal.value = false;
-    updateQuery();
-};
+    filterForm.status = tempFilters.status
+    filterForm.from_outlet_id = tempFilters.from_outlet_id
+    filterForm.to_outlet_id = tempFilters.to_outlet_id
+    showFilterModal.value = false
+    updateQuery()
+}
 
-const removeFilter = (key) => {
-    filterForm[key] = '';
-    updateQuery();
-};
+const removeFilter = key => {
+    filterForm[key] = ''
+    updateQuery()
+}
 
 const updateQuery = () => {
     const query = {
         ...route().params,
         search: filterForm.search || undefined,
         status: filterForm.status !== '' ? filterForm.status : undefined,
-        from_outlet_id:
-            filterForm.from_outlet_id !== ''
-                ? filterForm.from_outlet_id
-                : undefined,
-        to_outlet_id:
-            filterForm.to_outlet_id !== ''
-                ? filterForm.to_outlet_id
-                : undefined,
+        from_outlet_id: filterForm.from_outlet_id !== '' ? filterForm.from_outlet_id : undefined,
+        to_outlet_id: filterForm.to_outlet_id !== '' ? filterForm.to_outlet_id : undefined,
         page: 1,
-    };
+    }
 
     router.get(window.location.pathname, query, {
         preserveState: true,
         preserveScroll: true,
-    });
-};
+    })
+}
 </script>

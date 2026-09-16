@@ -10,7 +10,8 @@ const en = {
     },
 
     message: {
-        defaultFieldTitle: 'The default field contains only \'Title\'. Please add more fields if needed!',
+        defaultFieldTitle:
+            "The default field contains only 'Title'. Please add more fields if needed!",
         ratioFormat: 'Ratio must be in format {value}',
         dimension: 'The width and height dimensions must be {value}',
         imageReplace: 'Editing the file or image will replace it',
