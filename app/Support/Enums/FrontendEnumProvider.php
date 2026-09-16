@@ -9,6 +9,7 @@ use App\Enums\CustomerGender;
 use App\Enums\FeatureEnum;
 use App\Enums\InventoryMovementType;
 use App\Enums\InvoiceStatus;
+use App\Enums\PaymentManualValidationStatus;
 use App\Enums\PaymentMethodType;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
@@ -57,6 +58,7 @@ class FrontendEnumProvider
         TransactionStatus::class,
         TransactionPaymentStatus::class,
         InvoiceStatus::class,
+        PaymentManualValidationStatus::class,
         SubscriptionStatus::class,
     ];
 

@@ -1,121 +1,101 @@
 <template>
-    <div class="flex flex-col bg-white min-h-full gap-6">
-        <div class="inline-flex justify-between items-start">
-            <div class="text-xl font-bold text-gray-800">
-                Invoice #{{ invoice.invoice_number }}
-                <div class="text-sm font-normal text-gray-500 mt-2 space-y-1">
-                    <div>Tanggal : {{ formatDateTimeID(invoice.created_at) }}</div>
+    <div class="flex flex-col gap-3">
+        <!-- Header Info -->
+        <div class="flex justify-between items-start border-b pb-3">
+            <div>
+                <h3 class="text-lg font-bold text-gray-900">
+                    Invoice #{{ invoice.invoice_number }}
+                </h3>
+                <div class="text-xs text-gray-500 mt-1 space-y-0.5">
+                    <div>Tanggal: {{ formatDateTimeID(invoice.created_at) }}</div>
                     <div>
-                        Jatuh Tempo :
+                        Jatuh Tempo:
                         {{ invoice.due_date ? formatDateID(invoice.due_date) : '-' }}
                     </div>
                     <div>
-                        Metode Pembayaran :
-                        <span v-if="payment && payment.payment_method" class="capitalize">
-                            {{ getPaymentMethod(payment.payment_method) }}
+                        Metode Pembayaran:
+                        <span v-if="payment && payment.payment_method" class="font-medium capitalize text-gray-700">
+                            {{ getPaymentMethodLabel(payment.payment_method) }}
                         </span>
                         <span v-else>-</span>
                     </div>
                 </div>
             </div>
-            <div class="mt-1">
-                <label
-                    v-if="invoice.status === $enums.InvoiceStatus.Open"
-                    class="badge text-lg badge-warning"
-                    >Belum Dibayar</label
+            <div>
+                <span
+                    class="badge pill text-xs"
+                    :class="$enums.InvoiceStatus._meta[invoice.status]?.color || 'badge-gray'"
                 >
-                <label
-                    v-else-if="invoice.status === $enums.InvoiceStatus.Paid"
-                    class="badge text-lg badge-success"
-                    >Terbayar</label
-                >
-                <label
-                    v-else-if="
-                        invoice.status === $enums.InvoiceStatus.Cancelled ||
-                        invoice.status === $enums.InvoiceStatus.Void
-                    "
-                    class="badge text-lg badge-danger"
-                    >Dibatalkan</label
-                >
-                <label v-else class="badge text-lg badge-gray-400 capitalize">{{
-                    invoice.status
-                }}</label>
+                    {{ $enums.InvoiceStatus._meta[invoice.status]?.label || invoice.status }}
+                </span>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="border gap-2 p-4 rounded-lg bg-gray-50">
-                <div class="font-bold text-gray-700 mb-2">Ditagihkan Oleh:</div>
-                <div class="text-sm text-gray-600 space-y-1">
-                    <div class="font-semibold text-gray-800">PT. SOLUSI DARI ANAK BANGSA</div>
+        <!-- Billing Info Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="border rounded-lg p-3 bg-gray-50/70">
+                <div class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Ditagihkan Oleh:</div>
+                <div class="text-xs text-gray-600 space-y-0.5">
+                    <div class="font-bold text-gray-900">PT. SOLUSI DARI ANAK BANGSA</div>
                     <div>NPWP 1000 0000 0546 70</div>
                 </div>
             </div>
-            <div class="border gap-2 p-4 rounded-lg bg-gray-50">
-                <div class="font-bold text-gray-700 mb-2">Ditagihkan Kepada:</div>
-                <div class="text-sm text-gray-600 space-y-1">
-                    <div class="font-semibold text-gray-800">
+            <div class="border rounded-lg p-3 bg-gray-50/70">
+                <div class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Ditagihkan Kepada:</div>
+                <div class="text-xs text-gray-600 space-y-0.5">
+                    <div class="font-bold text-gray-900">
                         {{ invoice.business?.name }}
                     </div>
                     <div>{{ invoice.business?.owner_name }}</div>
-                    <div>{{ invoice.business?.address }}</div>
+                    <div class="truncate">{{ invoice.business?.address || '-' }}</div>
                 </div>
             </div>
         </div>
 
-        <div class="flex flex-col gap-4 mt-2">
-            <div class="font-bold text-gray-800 text-lg border-b pb-2">Rincian Item</div>
+        <!-- Rincian Item -->
+        <div class="flex flex-col gap-2 mt-1">
+            <div class="font-bold text-gray-900 text-sm border-b pb-1">Rincian Item Tagihan</div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-gray-600">
+            <div class="border rounded-lg overflow-hidden">
+                <table class="w-full text-left text-xs text-gray-600">
                     <thead class="bg-gray-50 border-b">
                         <tr>
-                            <th class="px-4 py-3 font-semibold text-gray-700">Deskripsi</th>
-                            <th class="px-4 py-3 font-semibold text-gray-700 text-center">
-                                Jumlah
-                            </th>
-                            <th class="px-4 py-3 font-semibold text-gray-700 text-right">
-                                Harga Satuan
-                            </th>
-                            <th class="px-4 py-3 font-semibold text-gray-700 text-right">
-                                Subtotal
-                            </th>
+                            <th class="px-3 py-2 font-semibold text-gray-700">Deskripsi</th>
+                            <th class="px-3 py-2 font-semibold text-gray-700 text-center">Jumlah</th>
+                            <th class="px-3 py-2 font-semibold text-gray-700 text-right">Harga Satuan</th>
+                            <th class="px-3 py-2 font-semibold text-gray-700 text-right">Subtotal</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in invoice.items" :key="index" class="border-b">
-                            <td class="px-4 py-3">
-                                <div class="font-medium text-gray-800">
+                    <tbody class="divide-y divide-gray-100">
+                        <tr v-for="(item, index) in invoice.items" :key="index">
+                            <td class="px-3 py-2">
+                                <div class="font-medium text-gray-900">
                                     {{ item.description }}
                                 </div>
                                 <div
                                     v-if="item.item_type === 'outlet_addition'"
-                                    class="text-xs text-gray-500 mt-1"
+                                    class="text-[11px] text-gray-500 mt-0.5"
                                 >
-                                    Prorated
-                                    {{ item.metadata?.remaining_days }} hari tersisa
+                                    Prorated {{ item.metadata?.remaining_days }} hari tersisa
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-center">
+                            <td class="px-3 py-2 text-center font-medium">
                                 {{ item.quantity }}
                             </td>
-                            <td class="px-4 py-3 text-right">
+                            <td class="px-3 py-2 text-right">
                                 {{ formatIDR(item.unit_price) }}
                             </td>
-                            <td class="px-4 py-3 text-right font-medium text-gray-800">
+                            <td class="px-3 py-2 text-right font-semibold text-gray-900">
                                 {{ formatIDR(item.subtotal) }}
                             </td>
                         </tr>
                     </tbody>
-                    <tfoot>
+                    <tfoot class="bg-gray-50/80 border-t">
                         <tr>
-                            <td
-                                colspan="3"
-                                class="px-4 py-3 text-right font-semibold text-gray-700"
-                            >
-                                Total
+                            <td colspan="3" class="px-3 py-2 text-right font-bold text-gray-700">
+                                Total Pembayaran
                             </td>
-                            <td class="px-4 py-3 text-right font-bold text-lg text-main">
+                            <td class="px-3 py-2 text-right font-bold text-sm text-main">
                                 {{ formatIDR(invoice.total_amount) }}
                             </td>
                         </tr>
@@ -124,48 +104,62 @@
             </div>
         </div>
 
-        <!-- SECTION PEMBAYARAN -->
-        <div class="flex flex-col gap-4 mt-4 border-t pt-4">
-            <!-- Pembayaran Sudah Selesai -->
+        <!-- SECTION STATUS & PEMBAYARAN -->
+        <div class="flex flex-col gap-3 mt-1 border-t pt-3">
+            <!-- Pembayaran Lunas -->
             <div
                 v-if="invoice.status === $enums.InvoiceStatus.Paid"
-                class="bg-emerald-50 border border-emerald-150 text-emerald-950 rounded-xl p-5 flex items-start gap-4"
+                class="bg-emerald-50 border border-emerald-200 text-emerald-950 rounded-xl p-3 flex items-start gap-3"
             >
-                <div class="p-2 bg-emerald-100/80 text-emerald-600 rounded-lg">
-                    <FontAwesomeIcon :icon="faCheckCircle" class="w-5 h-5" />
+                <div class="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg shrink-0 mt-0.5">
+                    <FontAwesomeIcon :icon="faCheckCircle" class="w-4 h-4" />
                 </div>
-                <div class="text-sm">
-                    <h4 class="font-bold text-emerald-950">Pembayaran Lunas</h4>
-                    <p class="text-emerald-800 mt-1">
+                <div class="text-xs">
+                    <h4 class="font-bold text-emerald-950">Pembayaran Telah Lunas</h4>
+                    <p class="text-emerald-800 mt-0.5 leading-relaxed">
                         Invoice ini telah lunas dibayarkan pada
                         {{ invoice.paid_at ? formatDateTimeID(invoice.paid_at) : '-' }}
                         <span v-if="payment && payment.payment_method">
-                            menggunakan metode
-                            <strong>{{ getPaymentMethod(payment.payment_method) }}</strong> </span
-                        >. Terima kasih telah berlangganan!
+                            melalui metode <strong>{{ getPaymentMethodLabel(payment.payment_method) }}</strong>
+                        </span>. Terima kasih telah berlangganan!
                     </p>
                 </div>
             </div>
 
-            <!-- Pembayaran Belum Selesai (Open) -->
-            <div v-else-if="invoice.status === $enums.InvoiceStatus.Open" class="space-y-4">
+            <!-- Pembayaran Dibatalkan -->
+            <div
+                v-else-if="invoice.status === $enums.InvoiceStatus.Cancelled || invoice.status === $enums.InvoiceStatus.Void"
+                class="bg-rose-50 border border-rose-200 text-rose-950 rounded-xl p-3 flex items-start gap-3"
+            >
+                <div class="p-1.5 bg-rose-100 text-rose-600 rounded-lg shrink-0 mt-0.5">
+                    <FontAwesomeIcon :icon="faExclamationTriangle" class="w-4 h-4" />
+                </div>
+                <div class="text-xs">
+                    <h4 class="font-bold text-rose-950">Tagihan Telah Dibatalkan</h4>
+                    <p class="text-rose-800 mt-0.5">
+                        Invoice ini telah dibatalkan dan tidak lagi dapat diproses pembayarannya.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Pembayaran Menunggu (Open) -->
+            <div v-else-if="invoice.status === $enums.InvoiceStatus.Open" class="space-y-3">
                 <!-- METODE ONLINE (MIDTRANS) -->
                 <div
                     v-if="(!payment && isMidtransEnabled) || payment?.payment_method === 'midtrans'"
-                    class="bg-blue-50 border border-blue-150 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fadeIn"
+                    class="bg-blue-50 border border-blue-200 rounded-xl p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
                 >
-                    <div class="flex items-start gap-3">
-                        <div class="p-2 bg-blue-100/80 text-blue-600 rounded-lg">
-                            <FontAwesomeIcon :icon="faCreditCard" class="w-5 h-5" />
+                    <div class="flex items-start gap-2.5">
+                        <div class="p-1.5 bg-blue-100 text-blue-600 rounded-lg shrink-0 mt-0.5">
+                            <FontAwesomeIcon :icon="faCreditCard" class="w-4 h-4" />
                         </div>
                         <div>
-                            <h4 class="font-bold text-blue-955 text-sm">
+                            <h4 class="font-bold text-blue-950 text-xs">
                                 Pembayaran Online Otomatis
                             </h4>
-                            <p class="text-xs text-blue-800 mt-1 leading-relaxed">
+                            <p class="text-[11px] text-blue-800 mt-0.5 leading-relaxed">
                                 Bayar instan via QRIS, Virtual Account bank transfer otomatis,
-                                Gopay, atau Kartu Kredit. Verifikasi instan tanpa perlu unggah bukti
-                                transfer.
+                                Gopay, atau Kartu Kredit dengan verifikasi real-time.
                             </p>
                         </div>
                     </div>
@@ -179,35 +173,21 @@
 
                 <!-- METODE MANUAL (TRANSFER BANK) -->
                 <div
-                    v-else-if="
-                        (!payment && !isMidtransEnabled) || payment?.payment_method === 'manual'
-                    "
-                    class="space-y-6"
+                    v-else-if="(!payment && !isMidtransEnabled) || payment?.payment_method === 'manual'"
+                    class="space-y-3"
                 >
                     <!-- Langkah 1: Transfer -->
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 relative">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 relative">
                         <div
-                            class="absolute -top-3 -left-3 w-8 h-8 bg-main text-white rounded-full flex items-center justify-center font-bold shadow-md"
+                            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-200 pb-2 mb-2"
                         >
-                            1
-                        </div>
-
-                        <div
-                            class="flex flex-col md:flex-row justify-between items-start gap-4 border-b border-slate-200 pb-4 mb-4 pl-3"
-                        >
-                            <div class="flex items-start gap-3">
-                                <div class="p-2 bg-slate-200 text-slate-650 rounded-lg">
-                                    <FontAwesomeIcon :icon="faBuildingColumns" class="w-5 h-5" />
+                            <div class="flex items-center gap-2">
+                                <div class="w-5 h-5 bg-main text-white rounded-full flex items-center justify-center font-bold text-xs">
+                                    1
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 text-base">
-                                        Transfer Pembayaran
-                                    </h4>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        Lakukan transfer bank sejumlah total tagihan ke salah satu
-                                        rekening resmi kami.
-                                    </p>
-                                </div>
+                                <h4 class="font-bold text-gray-900 text-xs">
+                                    Transfer Pembayaran
+                                </h4>
                             </div>
                             <button
                                 v-if="isMidtransEnabled"
@@ -218,56 +198,49 @@
                             </button>
                         </div>
 
+                        <!-- Nominal Box -->
                         <div
-                            class="bg-white border border-slate-200 rounded-lg p-4 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                            class="bg-white border border-slate-200 rounded-lg p-2.5 mb-2.5 flex justify-between items-center"
                         >
                             <div>
-                                <div
-                                    class="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1"
-                                >
-                                    Total Pembayaran
+                                <div class="text-[10px] text-gray-500 font-medium uppercase tracking-wider">
+                                    Total Tagihan
                                 </div>
-                                <div class="text-2xl font-bold text-gray-900">
+                                <div class="text-lg font-bold text-gray-900">
                                     {{ formatIDR(invoice.total_amount) }}
                                 </div>
                             </div>
                             <button
-                                class="btn btn-outline-main btn-sm py-1.5"
+                                class="btn btn-outline-main btn-sm py-1 px-2 text-xs"
                                 @click="copyToClipboard(invoice.total_amount, 'Nominal tagihan')"
                             >
-                                <FontAwesomeIcon :icon="faCopy" class="mr-1.5" />
-                                Salin Nominal
+                                <FontAwesomeIcon :icon="faCopy" class="mr-1" />
+                                Salin
                             </button>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Rekening Banks Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div
                                 v-for="method in manualPaymentMethods"
                                 :key="method.id"
-                                class="border border-slate-200 bg-white rounded-lg p-4 transition-all hover:border-main/30 flex flex-col justify-between"
+                                class="border border-slate-200 bg-white rounded-lg p-2.5 flex flex-col justify-between"
                             >
                                 <div>
-                                    <span
-                                        class="text-xs font-bold text-blue-600 tracking-wider uppercase"
-                                    >
+                                    <span class="text-[10px] font-bold text-blue-600 tracking-wider uppercase">
                                         {{ method.bank_name }}
                                     </span>
-                                    <span class="block text-xl font-bold text-gray-900 mt-1">
+                                    <span class="block text-sm font-bold text-gray-900 mt-0.5">
                                         {{ method.account_number }}
                                     </span>
-                                    <span class="block text-sm text-gray-500 mt-0.5">
+                                    <span class="block text-[11px] text-gray-500">
                                         a/n {{ method.account_name }}
                                     </span>
                                 </div>
-                                <div class="mt-4 border-t border-slate-100 pt-3">
+                                <div class="mt-2 border-t border-slate-100 pt-1.5">
                                     <button
-                                        class="text-xs font-semibold text-main hover:text-main-dark flex items-center gap-1.5 transition-colors"
-                                        @click="
-                                            copyToClipboard(
-                                                method.account_number,
-                                                `Nomor rekening ${method.bank_name}`
-                                            )
-                                        "
+                                        class="text-[11px] font-semibold text-main hover:text-main-dark flex items-center gap-1"
+                                        @click="copyToClipboard(method.account_number, `Nomor rekening ${method.bank_name}`)"
                                     >
                                         <FontAwesomeIcon :icon="faCopy" />
                                         Salin No. Rekening
@@ -276,55 +249,48 @@
                             </div>
                             <div
                                 v-if="!manualPaymentMethods || manualPaymentMethods.length === 0"
-                                class="col-span-full border border-slate-200 bg-slate-50 rounded-lg p-4 text-center text-sm text-gray-500"
+                                class="col-span-full border border-slate-200 bg-slate-50 rounded-lg p-3 text-center text-xs text-gray-500"
                             >
-                                Belum ada metode pembayaran manual yang tersedia. Silakan hubungi
-                                admin.
+                                Belum ada rekening bank yang tersedia. Silakan hubungi admin.
                             </div>
                         </div>
                     </div>
 
-                    <!-- Upload Bukti / Status Verifikasi -->
-                    <div class="border border-slate-200 rounded-xl p-5 bg-white relative mt-2">
-                        <div
-                            class="absolute -top-3 -left-3 w-8 h-8 bg-main text-white rounded-full flex items-center justify-center font-bold shadow-md"
-                        >
-                            2
+                    <!-- Langkah 2: Upload Bukti Transfer -->
+                    <div class="border border-slate-200 rounded-xl p-3 bg-white">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-5 h-5 bg-main text-white rounded-full flex items-center justify-center font-bold text-xs">
+                                2
+                            </div>
+                            <h4 class="font-bold text-gray-900 text-xs">
+                                Unggah Bukti Transfer
+                            </h4>
                         </div>
-                        <h4 class="font-bold text-gray-800 text-base mb-1 pl-3">
-                            Unggah Bukti Transfer
-                        </h4>
-                        <p class="text-sm text-gray-500 mb-4 pl-3">
-                            Wajib unggah bukti (struk/screenshot) agar tagihan dapat diproses.
-                        </p>
 
-                        <!-- Awaiting validation (Pending) -->
+                        <!-- Status: Menunggu Verifikasi (Pending) -->
                         <div
-                            v-if="
-                                manualValidation && manualValidation.validation_status === 'pending'
-                            "
-                            class="bg-blue-50 border border-blue-150 text-blue-900 rounded-lg p-4 flex flex-col md:flex-row gap-4 items-start md:items-center"
+                            v-if="manualValidation?.validation_status === $enums.PaymentManualValidationStatus.Pending"
+                            class="bg-blue-50 border border-blue-200 text-blue-900 rounded-lg p-3 flex flex-col sm:flex-row gap-3 items-start sm:items-center"
                         >
-                            <div class="flex-1 flex gap-3 items-start">
+                            <div class="flex-1 flex gap-2.5 items-start">
                                 <FontAwesomeIcon
                                     :icon="faClock"
-                                    class="text-blue-600 text-lg mt-0.5 animate-pulse"
+                                    class="text-blue-600 text-base mt-0.5 animate-pulse shrink-0"
                                 />
                                 <div class="text-xs">
-                                    <h5 class="font-bold text-blue-955">
+                                    <h5 class="font-bold text-blue-950">
                                         Bukti Transfer Sedang Diverifikasi
                                     </h5>
-                                    <p class="text-blue-800 mt-1">
-                                        Bukti transfer Anda telah berhasil dikirim pada
-                                        {{ formatDateTimeSimple(manualValidation.updated_at) }}. Tim
-                                        kami sedang melakukan verifikasi manual (estimasi 1-24 jam).
+                                    <p class="text-blue-800 mt-0.5 leading-relaxed">
+                                        Bukti transfer berhasil dikirim pada
+                                        {{ formatDateTimeSimple(manualValidation.updated_at) }}. Tim kami sedang melakukan verifikasi manual (1-24 jam).
                                     </p>
                                 </div>
                             </div>
                             <a
                                 :href="manualValidation.payment_proof_full_url"
                                 target="_blank"
-                                class="shrink-0 border border-blue-200 rounded-lg overflow-hidden block w-24 h-16 hover:opacity-90 transition-opacity"
+                                class="shrink-0 border border-blue-200 rounded-lg overflow-hidden block w-20 h-14 hover:opacity-90 transition-opacity"
                             >
                                 <img
                                     :src="manualValidation.payment_proof_full_url"
@@ -334,129 +300,103 @@
                             </a>
                         </div>
 
-                        <!-- Approved -->
+                        <!-- Status: Approved -->
                         <div
-                            v-else-if="
-                                manualValidation &&
-                                manualValidation.validation_status === 'approved'
-                            "
-                            class="bg-emerald-50 border border-emerald-150 text-emerald-950 rounded-lg p-4 flex gap-3 items-start"
+                            v-else-if="manualValidation?.validation_status === $enums.PaymentManualValidationStatus.Approved"
+                            class="bg-emerald-50 border border-emerald-200 text-emerald-950 rounded-lg p-3 flex gap-2.5 items-start"
                         >
                             <FontAwesomeIcon
                                 :icon="faCheckCircle"
-                                class="text-emerald-600 text-lg mt-0.5"
+                                class="text-emerald-600 text-base mt-0.5 shrink-0"
                             />
                             <div class="text-xs">
-                                <h5 class="font-bold text-emerald-955">Pembayaran Terverifikasi</h5>
-                                <p class="text-emerald-850 mt-1">
-                                    Pembayaran manual Anda telah disetujui. Layanan paket langganan
-                                    Anda telah aktif.
+                                <h5 class="font-bold text-emerald-950">Pembayaran Terverifikasi</h5>
+                                <p class="text-emerald-800 mt-0.5">
+                                    Pembayaran manual Anda telah disetujui. Layanan paket langganan Anda telah aktif.
                                 </p>
                             </div>
                         </div>
 
-                        <!-- Rejected -->
+                        <!-- Status: Rejected -->
                         <div
-                            v-else-if="
-                                manualValidation &&
-                                manualValidation.validation_status === 'rejected'
-                            "
-                            class="space-y-4 animate-fadeIn"
+                            v-else-if="manualValidation?.validation_status === $enums.PaymentManualValidationStatus.Rejected"
+                            class="space-y-2.5"
                         >
                             <div
-                                class="bg-rose-50 border border-rose-150 text-rose-950 rounded-lg p-4 flex gap-3 items-start"
+                                class="bg-rose-50 border border-rose-200 text-rose-950 rounded-lg p-3 flex gap-2.5 items-start"
                             >
                                 <FontAwesomeIcon
                                     :icon="faExclamationTriangle"
-                                    class="text-rose-600 text-lg mt-0.5"
+                                    class="text-rose-600 text-base mt-0.5 shrink-0"
                                 />
                                 <div class="text-xs flex-1">
-                                    <h5 class="font-bold text-rose-955">Bukti Transfer Ditolak</h5>
-                                    <p class="text-rose-850 mt-1">
-                                        Mohon maaf, bukti transfer Anda ditolak oleh admin. Silakan
-                                        unggah kembali bukti transfer yang valid.
+                                    <h5 class="font-bold text-rose-950">Bukti Transfer Ditolak</h5>
+                                    <p class="text-rose-800 mt-0.5">
+                                        {{ manualValidation.rejection_reason || 'Bukti transfer tidak valid. Silakan unggah kembali bukti pembayaran yang benar.' }}
                                     </p>
                                 </div>
                             </div>
 
-                            <!-- Upload form -->
-                            <form class="space-y-3" @submit.prevent="uploadProof">
+                            <!-- Upload Form for Re-submission -->
+                            <form class="space-y-2" @submit.prevent="uploadProof">
                                 <div
-                                    class="flex flex-col sm:flex-row sm:items-center gap-4 border border-dashed border-rose-200 rounded-lg p-4 bg-rose-50/10"
+                                    class="flex flex-col sm:flex-row sm:items-center gap-2 border border-dashed border-rose-200 rounded-lg p-3 bg-rose-50/20"
                                 >
                                     <input
                                         id="payment_proof_input_rejected"
                                         type="file"
                                         accept="image/*"
-                                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-main/5 file:text-main hover:file:bg-main/10"
+                                        class="block w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-main/10 file:text-main hover:file:bg-main/20 cursor-pointer"
                                         @change="handleFileChange"
                                     />
                                     <button
                                         type="submit"
-                                        :disabled="
-                                            formUpload.processing || !formUpload.payment_proof
-                                        "
-                                        class="btn btn-main py-2.5 px-4 rounded-lg font-bold text-xs shadow disabled:opacity-50 shrink-0 text-center flex justify-center items-center"
+                                        :disabled="formUpload.processing || !formUpload.payment_proof"
+                                        class="btn btn-main py-2 px-3 rounded-lg font-bold text-xs shrink-0 flex justify-center items-center gap-1.5"
                                     >
-                                        <span v-if="formUpload.processing">
-                                            <FontAwesomeIcon
-                                                :icon="faSpinner"
-                                                class="animate-spin mr-1.5"
-                                            />
-                                            Mengunggah...
-                                        </span>
-                                        <span v-else>
-                                            <FontAwesomeIcon :icon="faUpload" class="mr-1.5" />
-                                            Unggah Ulang Bukti
-                                        </span>
+                                        <FontAwesomeIcon
+                                            v-if="formUpload.processing"
+                                            :icon="faSpinner"
+                                            class="animate-spin"
+                                        />
+                                        <FontAwesomeIcon v-else :icon="faUpload" />
+                                        Unggah Ulang Bukti
                                     </button>
                                 </div>
-                                <p
-                                    v-if="formUpload.errors.payment_proof"
-                                    class="text-xs text-danger mt-1"
-                                >
+                                <p v-if="formUpload.errors.payment_proof" class="text-xs text-danger">
                                     {{ formUpload.errors.payment_proof }}
                                 </p>
                             </form>
                         </div>
 
-                        <!-- No validation uploaded yet -->
-                        <div v-else class="space-y-4">
-                            <form class="space-y-3" @submit.prevent="uploadProof">
+                        <!-- Status: Belum Ada Bukti Transfer -->
+                        <div v-else class="space-y-2">
+                            <form class="space-y-2" @submit.prevent="uploadProof">
                                 <div
-                                    class="flex flex-col sm:flex-row sm:items-center gap-4 border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50/50 hover:bg-gray-50 transition-colors"
+                                    class="flex flex-col sm:flex-row sm:items-center gap-2 border border-dashed border-gray-300 rounded-lg p-3 bg-gray-50/50 hover:bg-gray-50 transition-colors"
                                 >
                                     <input
                                         id="payment_proof_input"
                                         type="file"
                                         accept="image/*"
-                                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-main/5 file:text-main hover:file:bg-main/10"
+                                        class="block w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-main/10 file:text-main hover:file:bg-main/20 cursor-pointer"
                                         @change="handleFileChange"
                                     />
                                     <button
                                         type="submit"
-                                        :disabled="
-                                            formUpload.processing || !formUpload.payment_proof
-                                        "
-                                        class="btn btn-main py-2.5 px-4 rounded-lg font-bold text-xs shadow disabled:opacity-50 shrink-0 text-center flex justify-center items-center"
+                                        :disabled="formUpload.processing || !formUpload.payment_proof"
+                                        class="btn btn-main py-2 px-3 rounded-lg font-bold text-xs shrink-0 flex justify-center items-center gap-1.5"
                                     >
-                                        <span v-if="formUpload.processing">
-                                            <FontAwesomeIcon
-                                                :icon="faSpinner"
-                                                class="animate-spin mr-1.5"
-                                            />
-                                            Mengunggah...
-                                        </span>
-                                        <span v-else>
-                                            <FontAwesomeIcon :icon="faUpload" class="mr-1.5" />
-                                            Unggah Bukti Transfer
-                                        </span>
+                                        <FontAwesomeIcon
+                                            v-if="formUpload.processing"
+                                            :icon="faSpinner"
+                                            class="animate-spin"
+                                        />
+                                        <FontAwesomeIcon v-else :icon="faUpload" />
+                                        Unggah Bukti
                                     </button>
                                 </div>
-                                <p
-                                    v-if="formUpload.errors.payment_proof"
-                                    class="text-xs text-danger mt-1"
-                                >
+                                <p v-if="formUpload.errors.payment_proof" class="text-xs text-danger">
                                     {{ formUpload.errors.payment_proof }}
                                 </p>
                             </form>
@@ -466,24 +406,26 @@
             </div>
         </div>
     </div>
+
+    <!-- Teleport Footer Drawer -->
     <Teleport v-if="isMounted" to="#popUpFooter">
-        <div class="flex justify-between gap-4 w-full">
+        <div class="flex justify-between items-center gap-2 w-full">
             <div>
                 <button
                     v-if="invoice.status === $enums.InvoiceStatus.Open"
-                    class="btn btn-outline-danger"
+                    class="btn btn-outline-danger btn-sm text-xs"
                     @click="confirmCancelInvoice"
                 >
                     Batalkan Tagihan
                 </button>
             </div>
-            <div class="inline-flex space-x-3">
+            <div class="inline-flex items-center gap-2">
                 <a
                     :href="route('settings.billing.invoices.download', invoice.invoice_number)"
                     target="_blank"
-                    class="btn btn-outline-main"
+                    class="btn btn-outline-main btn-sm text-xs"
                 >
-                    <FontAwesomeIcon :icon="faDownload" class="mr-2" />
+                    <FontAwesomeIcon :icon="faDownload" class="mr-1.5" />
                     Download PDF
                 </a>
 
@@ -493,24 +435,24 @@
                         (!payment || payment.status === 'pending') &&
                         ((!payment && isMidtransEnabled) || payment?.payment_method === 'midtrans')
                     "
-                    class="btn btn-main"
+                    class="btn btn-main btn-sm text-xs font-semibold"
                     @click="createPayment"
                 >
                     Bayar Sekarang
-                    <FontAwesomeIcon :icon="faArrowRight" class="ml-2" />
+                    <FontAwesomeIcon :icon="faArrowRight" class="ml-1.5" />
                 </button>
                 <button
                     v-if="
                         invoice.status === $enums.InvoiceStatus.Open &&
                         (!payment || payment.status === 'pending') &&
                         (!isMidtransEnabled || payment?.payment_method === 'manual') &&
-                        (!manualValidation || manualValidation.validation_status === 'rejected')
+                        (!manualValidation || manualValidation.validation_status === $enums.PaymentManualValidationStatus.Rejected)
                     "
-                    class="btn btn-main"
+                    class="btn btn-main btn-sm text-xs font-semibold"
                     @click="focusUploadInput"
                 >
-                    Sudah Transfer? Unggah Bukti
-                    <FontAwesomeIcon :icon="faUpload" class="ml-2" />
+                    Unggah Bukti Transfer
+                    <FontAwesomeIcon :icon="faUpload" class="ml-1.5" />
                 </button>
             </div>
         </div>
@@ -518,26 +460,26 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { router, useForm } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import {
+    faArrowRight,
+    faCheckCircle,
+    faClock,
+    faCopy,
+    faCreditCard,
+    faDownload,
+    faExclamationTriangle,
+    faSpinner,
+    faUpload,
+} from '@fortawesome/free-solid-svg-icons'
+
 import { formatIDR } from '@/Composable/currency-format'
+import { formatDateID, formatDateTimeID, formatDateTimeSimple } from '@/Composable/date'
 import { useModalStore } from '@/store/notification'
 import { usePopUpStore } from '@/store/popup'
 import { useToastStore } from '@/store/toast'
-import { formatDateID, formatDateTimeID, formatDateTimeSimple } from '@/Composable/date'
-import {
-    faArrowRight,
-    faDownload,
-    faCheckCircle,
-    faBuildingColumns,
-    faUpload,
-    faSpinner,
-    faClock,
-    faExclamationTriangle,
-    faCreditCard,
-    faCopy,
-} from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { router, useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
     invoice: Object,
@@ -556,7 +498,7 @@ const isMounted = ref(false)
 const copyToClipboard = (text, label) => {
     if (navigator.clipboard) {
         navigator.clipboard
-            .writeText(text)
+            .writeText(String(text))
             .then(() => {
                 toastStore.success(`${label} berhasil disalin!`)
             })
@@ -577,7 +519,7 @@ const focusUploadInput = () => {
 }
 
 const associatedOutletName = computed(() => {
-    const item = props.invoice.items.find(item => item.item_type === 'outlet_addition')
+    const item = (props.invoice.items || []).find(i => i.item_type === 'outlet_addition')
     return item?.metadata?.outlet_name || ''
 })
 
@@ -630,22 +572,16 @@ const changePaymentMethod = method => {
     })
 }
 
-const getPaymentMethod = value => {
-    if (value === 'midtrans') {
-        return 'Midtrans Gateway'
-    } else if (value === 'manual') {
-        return 'Transfer Bank Manual'
-    } else if (value === 'qris') {
-        return 'QRIS'
-    } else if (value === 'credit_card') {
-        return 'Kartu Kredit'
-    } else if (value === 'gopay') {
-        return 'Gopay'
-    } else if (value === 'bank_transfer') {
-        return 'Bank Transfer'
-    } else {
-        return 'Lainnya'
+const getPaymentMethodLabel = value => {
+    const map = {
+        midtrans: 'Midtrans Gateway',
+        manual: 'Transfer Bank Manual',
+        qris: 'QRIS',
+        credit_card: 'Kartu Kredit',
+        gopay: 'GoPay',
+        bank_transfer: 'Bank Transfer',
     }
+    return map[value] || value || '-'
 }
 
 const createPayment = () => {
@@ -672,7 +608,6 @@ const createPayment = () => {
             },
         })
     } else if (!props.payment) {
-        // If there's no payment token yet, refresh page to trigger controller to create one
         router.reload()
     }
 }

@@ -197,7 +197,7 @@ class DiscordNotificationEventsTest extends TestCase
 
         Event::assertDispatched(PaymentProofUploaded::class, function ($event) use ($invoice) {
             return $event->invoice->id === $invoice->id
-                && $event->validation->validation_status === 'pending';
+                && ($event->validation->validation_status === \App\Enums\PaymentManualValidationStatus::Pending || $event->validation->validation_status?->value === 'pending' || $event->validation->validation_status === 'pending');
         });
     }
 

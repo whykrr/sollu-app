@@ -28,9 +28,16 @@ class BillingEngineTest extends TestCase
     public function test_it_calculates_prorated_cost_and_generates_invoice()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $business = Business::first();
-
-        $plan = SubscriptionPlan::first();
+        $businessType = \App\Models\BusinessType::create(['name' => 'F&B', 'code' => 'fnb']);
+        $business = Business::create([
+            'business_type_id' => $businessType->id,
+            'name' => 'Test Business',
+            'owner_name' => 'John Doe',
+            'email' => 'test@business.com',
+            'phone' => '08123456789',
+            'trial_end_at' => Carbon::now()->addDays(14),
+        ]);
+        $plan = SubscriptionPlan::first() ?? SubscriptionPlan::factory()->create();
 
         $now = Carbon::now()->startOfDay();
         Carbon::setTestNow($now);
@@ -69,9 +76,16 @@ class BillingEngineTest extends TestCase
     public function test_it_generates_recurring_invoice()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $business = Business::first();
-
-        $plan = SubscriptionPlan::first();
+        $businessType = \App\Models\BusinessType::create(['name' => 'F&B', 'code' => 'fnb']);
+        $business = Business::create([
+            'business_type_id' => $businessType->id,
+            'name' => 'Test Business',
+            'owner_name' => 'John Doe',
+            'email' => 'test@business.com',
+            'phone' => '08123456789',
+            'trial_end_at' => Carbon::now()->addDays(14),
+        ]);
+        $plan = SubscriptionPlan::first() ?? SubscriptionPlan::factory()->create();
 
         $now = Carbon::now()->startOfDay();
         Carbon::setTestNow($now);

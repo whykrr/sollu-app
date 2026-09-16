@@ -4,31 +4,41 @@ namespace App\Http\Controllers\App\Settings;
 
 use App\Constants\FlashDataVariable;
 use App\Enums\PermissionEnum;
+use App\Enums\SubscriptionInvoice\Status;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\App\Settings\Billing\GetBillingInvoiceRequest;
 use App\Models\Invoice;
+use App\Models\Master\SubscriptionManualPaymentMethod;
 use App\Models\SubscriptionPlan;
 use App\Models\SystemSetting;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class BillingController extends Controller
 {
-    public function index(Request $req): Response
+    public function index(GetBillingInvoiceRequest $request): Response
     {
         $this->authorize(PermissionEnum::BUSINESS_BILLING->value);
 
-        $business = $req->user()->business;
+        $business = $request->user()->business;
 
         $invoices = $business->invoices()
-            ->with(['items', 'paymentManualValidation'])
-            ->latest();
+            ->with(['paymentManualValidation:id,invoice_id,validation_status'])
+            ->filters($request->validated())
+            ->sortable($request->validated('sort', 'created_at'), $request->validated('direction', 'desc'))
+            ->paginate($request->validated('perpage', 20))
+            ->appends($request->query());
 
-        $activeSubscription = $business->subscriptions()->with('plan')->where('status', 'active')->first();
+        $activeSubscription = $business->subscriptions()
+            ->with('plan')
+            ->where('status', 'active')
+            ->first();
 
         $pendingInvoice = $business->invoices()
-            ->where('status', 'open')
+            ->where('status', Status::Open)
             ->where('due_date', '>', Carbon::now())
             ->latest()
             ->first();
@@ -36,23 +46,25 @@ class BillingController extends Controller
         return Inertia::render('Settings/Billing/Index', [
             'subscription' => $activeSubscription,
             'pendingInvoice' => $pendingInvoice,
-            'invoices' => $invoices->paginate($req->get('perpage', 20)),
+            'invoices' => $invoices,
+            'params' => $request->validated(),
         ]);
     }
 
-    public function plans(Request $req): Response
+    public function plans(Request $request): Response
     {
         $this->authorize(PermissionEnum::BUSINESS_BILLING->value);
 
-        $business = $req->user()->business;
+        $business = $request->user()->business;
         $subscription = $business->subscriptions()
             ->where('status', 'active')
             ->with(['plan'])
             ->latest()
             ->first();
 
-        $invoice = Invoice::where('business_id', $business->id)
-            ->where('status', 'open')
+        $invoice = Invoice::query()
+            ->where('business_id', $business->id)
+            ->where('status', Status::Open)
             ->where('due_date', '>', Carbon::now())
             ->first();
 
@@ -83,19 +95,20 @@ class BillingController extends Controller
         ]);
     }
 
-    public function checkout(Request $req, $plan_id)
+    public function checkout(Request $request, string $plan_id): Response|RedirectResponse
     {
         $this->authorize(PermissionEnum::BUSINESS_BILLING->value);
 
-        $business = $req->user()->business;
+        $business = $request->user()->business;
         $subscription = $business->subscriptions()
             ->where('status', 'active')
             ->with(['plan'])
             ->latest()
             ->first();
 
-        $invoice = Invoice::where('business_id', $business->id)
-            ->where('status', 'open')
+        $invoice = Invoice::query()
+            ->where('business_id', $business->id)
+            ->where('status', Status::Open)
             ->where('due_date', '>', Carbon::now())
             ->first();
 
@@ -125,14 +138,14 @@ class BillingController extends Controller
                 ->with(FlashDataVariable::WARNING->value, 'Bisnis Anda terikat pada paket kustom khusus. Silakan pilih paket yang tersedia untuk akun Anda.');
         }
 
-        $manualPaymentMethods = \App\Models\Master\SubscriptionManualPaymentMethod::where('is_active', true)
+        $manualPaymentMethods = SubscriptionManualPaymentMethod::where('is_active', true)
             ->orderBy('bank_name')
             ->get();
 
         return Inertia::render('Settings/Billing/Checkout', [
             'subscription' => $subscription,
             'plan' => $plan,
-            'isRenewal' => $req->boolean('is_renewal'),
+            'isRenewal' => $request->boolean('is_renewal'),
             'manualPaymentMethods' => $manualPaymentMethods,
             'isMidtransEnabled' => SystemSetting::isMidtransEnabled(),
         ]);

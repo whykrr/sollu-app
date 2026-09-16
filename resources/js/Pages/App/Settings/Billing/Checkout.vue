@@ -1,32 +1,32 @@
 <template>
     <MainPage>
         <div class="max-w-4xl mx-auto">
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Selesaikan Pembayaran</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-3">Selesaikan Pembayaran</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
                 <!-- Main Content -->
-                <div class="md:col-span-3 space-y-4">
+                <div class="md:col-span-3 space-y-3">
                     <!-- Plan Info -->
-                    <div class="bg-white border rounded-xl p-5">
+                    <div class="bg-white border rounded-xl p-3">
                         <div class="flex justify-between items-start">
                             <div>
-                                <div class="text-sm text-gray-500 font-medium">Paket Terpilih</div>
-                                <h3 class="text-xl font-bold text-gray-800">
+                                <div class="text-xs text-gray-500 font-medium">Paket Terpilih</div>
+                                <h3 class="text-lg font-bold text-gray-900">
                                     {{ plan.name }}
                                 </h3>
                             </div>
                             <div class="text-right">
-                                <div class="text-lg font-bold text-main">
+                                <div class="text-base font-bold text-main">
                                     {{ formatIDR(plan.price_per_outlet) }}
                                 </div>
-                                <div class="text-xs text-gray-500">/ outlet / bulan</div>
+                                <div class="text-[11px] text-gray-500">/ outlet / bulan</div>
                             </div>
                         </div>
                         <div
                             v-if="plan.yearly_discount_percent > 0"
-                            class="mt-4 bg-blue-50 text-blue-700 text-sm p-3 rounded-lg border border-blue-100 flex items-start gap-2"
+                            class="mt-3 bg-blue-50 text-blue-700 text-xs p-2.5 rounded-lg border border-blue-100 flex items-start gap-2"
                         >
-                            <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5" />
+                            <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5 shrink-0" />
                             <div>
                                 Dapatkan diskon sebesar
                                 <strong>{{ plan.yearly_discount_percent }}%</strong>
@@ -36,12 +36,12 @@
                     </div>
 
                     <!-- Billing Cycle Selector -->
-                    <div class="bg-white border rounded-xl p-5">
-                        <h4 class="font-bold text-gray-800 mb-4">Pilih Siklus Tagihan</h4>
-                        <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white border rounded-xl p-3">
+                        <h4 class="font-bold text-gray-900 text-xs mb-3">Pilih Siklus Tagihan</h4>
+                        <div class="grid grid-cols-2 gap-3">
                             <!-- Monthly -->
                             <div
-                                class="border-2 rounded-lg p-4 cursor-pointer transition-colors relative"
+                                class="border-2 rounded-lg p-3 cursor-pointer transition-colors relative"
                                 :class="
                                     billingCycle === 'monthly'
                                         ? 'border-main bg-main/5'
@@ -49,16 +49,16 @@
                                 "
                                 @click="billingCycle = 'monthly'"
                             >
-                                <div class="font-semibold text-gray-800">Bulanan</div>
-                                <div class="text-sm text-gray-500 mt-1">Bayar setiap bulan</div>
-                                <div class="mt-3 text-lg font-bold text-gray-800">
+                                <div class="font-semibold text-gray-800 text-xs">Bulanan</div>
+                                <div class="text-[11px] text-gray-500 mt-0.5">Bayar setiap bulan</div>
+                                <div class="mt-2 text-base font-bold text-gray-900">
                                     {{ formatIDR(plan.price_per_outlet * activeOutlets) }}
                                 </div>
-                                <div class="text-xs text-gray-500">total / bulan</div>
+                                <div class="text-[10px] text-gray-500">total / bulan</div>
 
                                 <div
                                     v-if="billingCycle === 'monthly'"
-                                    class="absolute top-4 right-4 text-main"
+                                    class="absolute top-3 right-3 text-main"
                                 >
                                     <FontAwesomeIcon :icon="faCheckCircle" />
                                 </div>
@@ -66,7 +66,7 @@
 
                             <!-- Yearly -->
                             <div
-                                class="border-2 rounded-lg p-4 cursor-pointer transition-colors relative"
+                                class="border-2 rounded-lg p-3 cursor-pointer transition-colors relative"
                                 :class="
                                     billingCycle === 'yearly'
                                         ? 'border-main bg-main/5'
@@ -76,20 +76,20 @@
                             >
                                 <div
                                     v-if="plan.yearly_discount_percent > 0"
-                                    class="absolute -top-3 right-4 bg-success text-white text-xs font-bold px-2 py-0.5 rounded-full"
+                                    class="absolute -top-2.5 right-3 bg-success text-white text-[10px] font-bold px-2 py-0.5 rounded-full"
                                 >
                                     Hemat {{ plan.yearly_discount_percent }}%
                                 </div>
-                                <div class="font-semibold text-gray-800">Tahunan</div>
-                                <div class="text-sm text-gray-500 mt-1">Bayar untuk 1 tahun</div>
-                                <div class="mt-3 text-lg font-bold text-gray-800">
+                                <div class="font-semibold text-gray-800 text-xs">Tahunan</div>
+                                <div class="text-[11px] text-gray-500 mt-0.5">Bayar untuk 1 tahun</div>
+                                <div class="mt-2 text-base font-bold text-gray-900">
                                     {{ formatIDR(yearlyTotal) }}
                                 </div>
-                                <div class="text-xs text-gray-500">total / tahun</div>
+                                <div class="text-[10px] text-gray-500">total / tahun</div>
 
                                 <div
                                     v-if="billingCycle === 'yearly'"
-                                    class="absolute top-4 right-4 text-main"
+                                    class="absolute top-3 right-3 text-main"
                                 >
                                     <FontAwesomeIcon :icon="faCheckCircle" />
                                 </div>
@@ -98,13 +98,13 @@
                     </div>
 
                     <!-- Payment Method Selector -->
-                    <div class="bg-white border rounded-xl p-5">
-                        <h4 class="font-bold text-gray-800 mb-4">Pilih Metode Pembayaran</h4>
-                        <div class="space-y-3">
+                    <div class="bg-white border rounded-xl p-3">
+                        <h4 class="font-bold text-gray-900 text-xs mb-3">Pilih Metode Pembayaran</h4>
+                        <div class="space-y-2.5">
                             <!-- Midtrans -->
                             <div
                                 v-if="isMidtransEnabled"
-                                class="border-2 rounded-lg p-4 cursor-pointer transition-all relative flex items-start gap-4 animate-fadeIn"
+                                class="border-2 rounded-lg p-3 cursor-pointer transition-all relative flex items-start gap-3"
                                 :class="
                                     paymentMethod === 'midtrans'
                                         ? 'border-main bg-main/5'
@@ -112,29 +112,28 @@
                                 "
                                 @click="paymentMethod = 'midtrans'"
                             >
-                                <div class="p-2.5 bg-blue-50 text-blue-600 rounded-lg mt-0.5">
-                                    <FontAwesomeIcon :icon="faCreditCard" class="w-5 h-5" />
+                                <div class="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0 mt-0.5">
+                                    <FontAwesomeIcon :icon="faCreditCard" class="w-4 h-4" />
                                 </div>
-                                <div class="flex-1 pr-6">
+                                <div class="flex-1 pr-5">
                                     <div class="flex items-center gap-2">
-                                        <span class="font-bold text-gray-800 text-sm"
+                                        <span class="font-bold text-gray-900 text-xs"
                                             >Pembayaran Online Otomatis</span
                                         >
                                         <span
-                                            class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-100"
+                                            class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-emerald-100"
                                         >
                                             Rekomendasi
                                         </span>
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-1">
+                                    <p class="text-[11px] text-gray-500 mt-0.5 leading-relaxed">
                                         Bayar secara instan menggunakan QRIS, Virtual Account (BCA,
                                         Mandiri, BNI, dll), GoPay, ShopeePay, atau Kartu Kredit.
-                                        Pembayaran Anda langsung diverifikasi secara real-time.
                                     </p>
                                 </div>
                                 <div
                                     v-if="paymentMethod === 'midtrans'"
-                                    class="absolute top-4 right-4 text-main"
+                                    class="absolute top-3 right-3 text-main"
                                 >
                                     <FontAwesomeIcon :icon="faCheckCircle" />
                                 </div>
@@ -142,7 +141,7 @@
 
                             <!-- Manual Bank Transfer -->
                             <div
-                                class="border-2 rounded-lg p-4 cursor-pointer transition-all relative flex items-start gap-4"
+                                class="border-2 rounded-lg p-3 cursor-pointer transition-all relative flex items-start gap-3"
                                 :class="
                                     paymentMethod === 'manual'
                                         ? 'border-main bg-main/5'
@@ -150,45 +149,42 @@
                                 "
                                 @click="paymentMethod = 'manual'"
                             >
-                                <div class="p-2.5 bg-slate-50 text-slate-650 rounded-lg mt-0.5">
-                                    <FontAwesomeIcon :icon="faBuildingColumns" class="w-5 h-5" />
+                                <div class="p-2 bg-slate-50 text-slate-650 rounded-lg shrink-0 mt-0.5">
+                                    <FontAwesomeIcon :icon="faBuildingColumns" class="w-4 h-4" />
                                 </div>
-                                <div class="flex-1 pr-6">
-                                    <div class="font-bold text-gray-800 text-sm">
+                                <div class="flex-1 pr-5">
+                                    <div class="font-bold text-gray-900 text-xs">
                                         Transfer Bank Manual
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-1">
+                                    <p class="text-[11px] text-gray-500 mt-0.5 leading-relaxed">
                                         Lakukan transfer ke rekening bank resmi perusahaan kami.
-                                        Anda perlu mengunggah bukti transfer setelah membayar.
-                                        Verifikasi dilakukan secara manual oleh admin kami dalam
-                                        waktu 1-24 jam.
+                                        Unggah bukti transfer setelah membayar untuk diverifikasi admin (1-24 jam).
                                     </p>
 
-                                    <!-- Daftar Bank Dinamis (Muncul ketika dipilih) -->
+                                    <!-- Daftar Bank Dinamis -->
                                     <div
                                         v-if="
                                             paymentMethod === 'manual' &&
                                             manualPaymentMethods.length > 0
                                         "
-                                        class="mt-3 grid grid-cols-1 gap-2 pt-3 border-t border-slate-200"
+                                        class="mt-2.5 grid grid-cols-1 gap-1.5 pt-2.5 border-t border-slate-200"
                                     >
                                         <div
-                                            class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1"
+                                            class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5"
                                         >
                                             Rekening Tersedia:
                                         </div>
                                         <div
                                             v-for="bank in manualPaymentMethods"
                                             :key="bank.id"
-                                            class="flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-slate-100 p-2.5 rounded-lg"
+                                            class="flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-slate-100 p-2 rounded-lg"
                                         >
                                             <div class="flex flex-col">
                                                 <span class="text-xs font-bold text-gray-800">{{
                                                     bank.bank_name
                                                 }}</span>
-                                                <span class="text-xs text-gray-500 mt-0.5"
-                                                    >{{ bank.account_number }} (a/n
-                                                    {{ bank.account_name }})</span
+                                                <span class="text-[11px] text-gray-500"
+                                                    >{{ bank.account_number }} (a/n {{ bank.account_name }})</span
                                                 >
                                             </div>
                                         </div>
@@ -196,7 +192,7 @@
                                 </div>
                                 <div
                                     v-if="paymentMethod === 'manual'"
-                                    class="absolute top-4 right-4 text-main"
+                                    class="absolute top-3 right-3 text-main"
                                 >
                                     <FontAwesomeIcon :icon="faCheckCircle" />
                                 </div>
@@ -207,12 +203,12 @@
 
                 <!-- Order Summary -->
                 <div class="md:col-span-2">
-                    <div class="bg-white border rounded-xl p-5 sticky top-6">
-                        <h4 class="font-bold text-gray-800 mb-4 border-b pb-2">
+                    <div class="bg-white border rounded-xl p-3 sticky top-4 space-y-3">
+                        <h4 class="font-bold text-gray-900 text-xs border-b pb-2">
                             Ringkasan Pembayaran
                         </h4>
 
-                        <div class="space-y-3 text-sm">
+                        <div class="space-y-2 text-xs">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Siklus Tagihan</span>
                                 <span class="font-medium capitalize">{{
@@ -226,7 +222,7 @@
                                 </div>
                                 <div
                                     v-if="activeOutletsList.length > 0"
-                                    class="mt-2 text-xs text-gray-500 pl-2 border-l-2 border-gray-200"
+                                    class="mt-1 text-[11px] text-gray-500 pl-2 border-l-2 border-gray-200"
                                 >
                                     <div v-for="outlet in activeOutletsList" :key="outlet.id">
                                         - {{ outlet.name }}
@@ -234,7 +230,7 @@
                                 </div>
                             </div>
 
-                            <div class="border-t pt-3 mt-3"></div>
+                            <div class="border-t pt-2"></div>
 
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Subtotal</span>
@@ -245,23 +241,23 @@
 
                             <div
                                 v-if="billingCycle === 'yearly' && plan.yearly_discount_percent > 0"
-                                class="flex justify-between text-success"
+                                class="flex justify-between text-success font-medium"
                             >
                                 <span>Diskon ({{ plan.yearly_discount_percent }}%)</span>
-                                <span class="font-medium">-{{ formatIDR(discountAmount) }}</span>
+                                <span>-{{ formatIDR(discountAmount) }}</span>
                             </div>
 
-                            <div class="border-t pt-3 mt-3"></div>
+                            <div class="border-t pt-2"></div>
 
                             <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">Total Pembayaran</span>
-                                <span class="font-bold text-lg text-main">{{
+                                <span class="font-bold text-gray-900">Total Pembayaran</span>
+                                <span class="font-bold text-base text-main">{{
                                     formatIDR(finalTotal)
                                 }}</span>
                             </div>
                         </div>
 
-                        <div class="mt-6">
+                        <div class="pt-2">
                             <Link
                                 :href="
                                     isRenewal
@@ -277,11 +273,11 @@
                                     billing_cycle: billingCycle,
                                     payment_method: paymentMethod,
                                 }"
-                                class="btn btn-main w-full py-3 text-center flex justify-center items-center rounded-lg font-bold shadow hover:shadow-md transition-all duration-150"
+                                class="btn btn-main w-full py-2.5 text-center flex justify-center items-center rounded-lg font-bold text-xs shadow-xs hover:shadow-sm transition-all"
                             >
                                 Lanjutkan Pembayaran
                             </Link>
-                            <p class="text-xs text-center text-gray-500 mt-3">
+                            <p class="text-[11px] text-center text-gray-500 mt-2">
                                 Dengan melanjutkan, Anda menyetujui syarat & ketentuan berlangganan.
                             </p>
                         </div>
@@ -293,17 +289,18 @@
 </template>
 
 <script setup>
+import { computed, ref } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import {
+    faBuildingColumns,
+    faCheckCircle,
+    faCreditCard,
+    faInfoCircle,
+} from '@fortawesome/free-solid-svg-icons'
+
 import MainPage from '@/Components/UI/MainPage.vue'
 import { formatIDR } from '@/Composable/currency-format'
-import {
-    faCheckCircle,
-    faInfoCircle,
-    faCreditCard,
-    faBuildingColumns,
-} from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { Link, usePage } from '@inertiajs/vue3'
-import { computed, ref } from 'vue'
 
 const props = defineProps({
     plan: Object,
@@ -316,12 +313,15 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    isMidtransEnabled: {
+        type: Boolean,
+        default: true,
+    },
 })
 
 const page = usePage()
 const auth = computed(() => page.props.auth)
 
-// Set default to monthly or based on current active subscription
 const billingCycle = ref(props.subscription ? props.subscription.billing_cycle : 'monthly')
 const paymentMethod = ref(props.isMidtransEnabled ? 'midtrans' : 'manual')
 
