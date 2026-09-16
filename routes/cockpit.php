@@ -4,6 +4,7 @@ use App\Http\Controllers\Cockpit\AuditController;
 use App\Http\Controllers\Cockpit\Auth\ProfileController;
 use App\Http\Controllers\Cockpit\AuthenticationController;
 use App\Http\Controllers\Cockpit\BusinessController;
+use App\Http\Controllers\Cockpit\BusinessTypeController;
 use App\Http\Controllers\Cockpit\ConfigController;
 use App\Http\Controllers\Cockpit\DashboardController;
 use App\Http\Controllers\Cockpit\InvoiceController;
@@ -44,6 +45,14 @@ Route::name('cockpit.')->group(function () {
         Route::post('/subscription-plans/{id}/toggle-status', [SubscriptionPlanController::class, 'toggleStatus'])->name('subscription-plans.toggle-status');
         Route::post('/subscription-plans/{id}/toggle-visibility', [SubscriptionPlanController::class, 'toggleVisibility'])->name('subscription-plans.toggle-visibility');
         Route::put('/subscription-plans/{id}/features', [SubscriptionPlanController::class, 'updateFeatures'])->name('subscription-plans.update-features');
+
+        Route::get('/business-types', [BusinessTypeController::class, 'index'])->name('business-types.index');
+        Route::post('/business-types', [BusinessTypeController::class, 'store'])->name('business-types.store');
+        Route::get('/business-types/{id}', [BusinessTypeController::class, 'show'])->name('business-types.show');
+        Route::put('/business-types/{id}', [BusinessTypeController::class, 'update'])->name('business-types.update');
+        Route::delete('/business-types/{id}', [BusinessTypeController::class, 'destroy'])->name('business-types.destroy');
+        Route::post('/business-types/{id}/toggle-visibility', [BusinessTypeController::class, 'toggleVisibility'])->name('business-types.toggle-visibility');
+        Route::put('/business-types/{id}/features', [BusinessTypeController::class, 'updateFeatures'])->name('business-types.update-features');
 
         Route::get('/payment-methods', [\App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController::class, 'index'])->name('payment-methods.index');
         Route::post('/payment-methods', [\App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController::class, 'store'])->name('payment-methods.store');

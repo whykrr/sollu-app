@@ -83,10 +83,33 @@ class ConfigControllerTest extends TestCase
     {
         SystemSetting::set('help_center_url', 'https://help.sollu.id');
 
-        $user = \App\Models\User::first();
+        $type = \App\Models\BusinessType::create([
+            'code' => 'retail',
+            'name' => 'Retail',
+            'sort_order' => 1,
+            'is_visible' => true,
+        ]);
+
+        $business = \App\Models\Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner',
+            'email' => 'owner@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $user = \App\Models\User::create([
+            'business_id' => $business->id,
+            'name' => 'Test User',
+            'email' => 'user@test.test',
+            'password' => bcrypt('password'),
+        ]);
+
         $appHost = config('domain.app', 'app.sollu.test');
 
-        $response = $this->actingAs($user)
+        $response = $this->actingAs($user, 'business')
             ->get("http://{$appHost}/");
 
         $response->assertInertia(fn (Assert $page) => $page

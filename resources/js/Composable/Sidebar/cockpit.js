@@ -6,6 +6,7 @@ import {
     faFileInvoice,
     faUsersGear,
     faLayerGroup,
+    faBriefcase,
     faBuildingColumns,
     faBinoculars,
 } from '@fortawesome/free-solid-svg-icons'
@@ -38,6 +39,13 @@ export const getCockpitSidebars = () => [
         label: 'Paket Langganan',
         permissions: '',
         activeRoute: 'cockpit.subscription-plans',
+    },
+    {
+        route: 'cockpit.business-types.index',
+        icon: faBriefcase,
+        label: 'Jenis Bisnis',
+        permissions: '',
+        activeRoute: 'cockpit.business-types',
     },
     {
         route: 'cockpit.payment-methods.index',

@@ -22,8 +22,6 @@ class BusinessTypeFactory extends Factory
         return [
             'code' => 'minimarket',
             'name' => 'Minimarket',
-            'category' => 'retail',
-            'category_label' => 'Ritel & Toko',
             'is_visible' => true,
             'sort_order' => 1,
             'features' => [

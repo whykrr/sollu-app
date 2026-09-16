@@ -216,8 +216,24 @@ class SubscriptionPlanTest extends TestCase
     public function test_admin_cannot_delete_plan_with_existing_subscriptions(): void
     {
         $plan = SubscriptionPlan::first();
-        // Create an active subscription on this plan
-        $business = \App\Models\Business::first();
+
+        $type = \App\Models\BusinessType::create([
+            'code' => 'retail',
+            'name' => 'Retail',
+            'sort_order' => 1,
+            'is_visible' => true,
+        ]);
+
+        $business = \App\Models\Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner Test',
+            'email' => 'owner@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
         \App\Models\Subscription::create([
             'business_id' => $business->id,
             'plan_id' => $plan->id,
@@ -256,7 +272,31 @@ class SubscriptionPlanTest extends TestCase
 
     public function test_merchant_cannot_checkout_deactivated_plan(): void
     {
-        $merchantUser = User::first();
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::firstOrCreate(
+            ['email' => 'merchant_biz@test.test'],
+            [
+                'name' => 'Merchant Business',
+                'owner_name' => 'Merchant Owner',
+                'phone' => '081234567891',
+                'status' => 'active',
+                'trial_end_at' => now()->addDays(14),
+                'business_type_id' => $type->id,
+            ]
+        );
+
+        $merchantUser = User::create([
+            'business_id' => $business->id,
+            'name' => 'Merchant User',
+            'email' => 'merchant_user@test.test',
+            'password' => bcrypt('password'),
+        ]);
+
+        setPermissionsTeamId($business->id);
         $merchantUser->givePermissionTo(PermissionEnum::BUSINESS_BILLING->value);
 
         $plan = SubscriptionPlan::first();

@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\Cache;
  * @property int $id
  * @property string $code
  * @property string $name
- * @property string $category
- * @property string $category_label
  * @property bool $is_visible
  * @property int $sort_order
  * @property array<string>|null $features
@@ -30,8 +28,6 @@ class BusinessType extends Model
     protected $fillable = [
         'code',
         'name',
-        'category',
-        'category_label',
         'is_visible',
         'sort_order',
         'features',
@@ -131,26 +127,5 @@ class BusinessType extends Model
         return static::getAllCached()
             ->pluck('name', 'code')
             ->toArray();
-    }
-
-    /**
-     * Daftar jenis bisnis terkelompok berdasarkan klaster kategori.
-     *
-     * @return array<string, array<int, array{value: string, label: string, is_visible: bool}>>
-     */
-    public static function grouped(): array
-    {
-        $result = [];
-
-        foreach (static::getAllCached() as $type) {
-            $groupName = $type->category_label ?: 'Lainnya';
-            $result[$groupName][] = [
-                'value' => $type->code,
-                'label' => $type->name,
-                'is_visible' => (bool) $type->is_visible,
-            ];
-        }
-
-        return $result;
     }
 }

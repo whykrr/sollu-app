@@ -16,8 +16,6 @@ class BusinessTypeTest extends TestCase
         $businessType = BusinessType::factory()->create([
             'code' => 'restaurant',
             'name' => 'Restoran',
-            'category' => 'fnb',
-            'category_label' => 'Makanan & Minuman (F&B)',
             'is_visible' => true,
             'sort_order' => 10,
             'features' => [FeatureEnum::RECIPE_MANAGEMENT->value, FeatureEnum::POS_CASHIER->value],
@@ -25,8 +23,6 @@ class BusinessTypeTest extends TestCase
 
         $this->assertSame('restaurant', $businessType->code);
         $this->assertSame('Restoran', $businessType->name);
-        $this->assertSame('fnb', $businessType->category);
-        $this->assertSame('Makanan & Minuman (F&B)', $businessType->category_label);
         $this->assertTrue($businessType->is_visible);
         $this->assertSame(10, $businessType->sort_order);
     }
@@ -51,12 +47,11 @@ class BusinessTypeTest extends TestCase
         $this->assertContains(FeatureEnum::POS_CASHIER, $featureEnums);
     }
 
-    public function test_options_and_grouped_helpers(): void
+    public function test_options_helper(): void
     {
         BusinessType::factory()->create([
             'code' => 'minimarket',
             'name' => 'Minimarket',
-            'category_label' => 'Ritel & Toko',
             'is_visible' => true,
             'sort_order' => 1,
         ]);
@@ -64,7 +59,6 @@ class BusinessTypeTest extends TestCase
         BusinessType::factory()->create([
             'code' => 'coffee_shop',
             'name' => 'Coffee Shop',
-            'category_label' => 'Makanan & Minuman (F&B)',
             'is_visible' => true,
             'sort_order' => 2,
         ]);
@@ -72,10 +66,6 @@ class BusinessTypeTest extends TestCase
         $options = BusinessType::options();
         $this->assertArrayHasKey('minimarket', $options);
         $this->assertSame('Minimarket', $options['minimarket']);
-
-        $grouped = BusinessType::grouped();
-        $this->assertArrayHasKey('Ritel & Toko', $grouped);
-        $this->assertArrayHasKey('Makanan & Minuman (F&B)', $grouped);
     }
 
     public function test_get_all_cached_and_cache_invalidation(): void
