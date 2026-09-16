@@ -1,25 +1,31 @@
 <template>
     <Modal :show="show" title="Tolak Pembayaran" type="danger" @close="closeModal">
-        <div class="flex flex-col gap-4">
-            <p>
+        <div class="space-y-2 text-xs">
+            <p class="text-neutral-600">
                 Masukkan alasan penolakan bukti pembayaran. Alasan ini akan dikirimkan ke email
-                merchant.
+                merchant terkait.
             </p>
             <TextareaField
                 v-model="form.reason"
                 label="Alasan Penolakan"
                 :error="form.errors.reason"
-                placeholder="Contoh: Gambar bukti transfer blur, nominal tidak sesuai, dll."
-                rows="4"
+                placeholder="Contoh: Gambar bukti transfer blur, nominal tidak sesuai, rekening tujuan salah, dll."
+                rows="3"
             />
         </div>
 
         <template #footer>
-            <button class="btn btn-outline-main" :disabled="form.processing" @click="closeModal">
+            <button
+                type="button"
+                class="btn btn-outline-main btn-sm"
+                :disabled="form.processing"
+                @click="closeModal"
+            >
                 Batal
             </button>
             <button
-                class="btn btn-danger"
+                type="button"
+                class="btn btn-danger btn-sm"
                 :disabled="form.processing || !form.reason"
                 @click="submit"
             >
@@ -61,6 +67,7 @@ const submit = () => {
     if (!props.invoiceId) return
 
     form.post(route('cockpit.invoices.reject', props.invoiceId), {
+        preserveScroll: true,
         onSuccess: () => {
             closeModal()
             emit('success')

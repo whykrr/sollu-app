@@ -35,6 +35,7 @@ Route::name('cockpit.')->group(function () {
         Route::get('/business/{id}/impersonate/{userId}', [BusinessController::class, 'impersonate'])->name('merchants.impersonate');
 
         Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
         Route::post('/invoices/{invoice}/approve', [InvoiceController::class, 'approve'])->name('invoices.approve');
         Route::post('/invoices/{invoice}/reject', [InvoiceController::class, 'reject'])->name('invoices.reject');
 

@@ -54,13 +54,13 @@ export const getCockpitSidebars = () => [
         permissions: '',
         activeRoute: 'cockpit.payment-methods',
     },
-    {
-        route: 'cockpit.uoms.index',
-        icon: faTags,
-        label: 'Satuan Global (UOM)',
-        permissions: '',
-        activeRoute: 'cockpit.uoms',
-    },
+    // {
+    //     route: 'cockpit.uoms.index',
+    //     icon: faTags,
+    //     label: 'Satuan Global (UOM)',
+    //     permissions: '',
+    //     activeRoute: 'cockpit.uoms',
+    // },
     {
         route: 'cockpit.config.index',
         icon: faUsersGear,

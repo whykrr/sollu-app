@@ -2,91 +2,85 @@
 
 namespace App\Http\Controllers\Cockpit;
 
+use App\Constants\FlashDataVariable;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Cockpit\Invoice\GetInvoiceRequest;
 use App\Http\Requests\Cockpit\Invoice\RejectInvoiceRequest;
 use App\Models\Invoice;
 use App\Services\Cockpit\Invoice\ApproveInvoiceValidationService;
 use App\Services\Cockpit\Invoice\RejectInvoiceValidationService;
-use Illuminate\Http\Request;
+use App\Services\Cockpit\SubscriptionInvoiceService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class InvoiceController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        protected SubscriptionInvoiceService $invoiceService
+    ) {}
+
+    /**
+     * Display paginated list of subscription invoices with filters and KPI metrics.
+     */
+    public function index(GetInvoiceRequest $request): Response
     {
-        $query = Invoice::with(['business', 'payments', 'paymentManualValidation', 'items']);
+        $filters = [
+            'search' => (string) $request->input('search', ''),
+            'status' => (string) $request->input('status', ''),
+            'sort' => (string) $request->input('sort', 'created_at'),
+            'direction' => (string) $request->input('direction', 'desc'),
+            'open_invoice' => (string) $request->input('open_invoice', ''),
+        ];
 
-        if ($request->filled('open_invoice')) {
-            $query->where('invoice_number', $request->open_invoice);
-        } elseif ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('invoice_number', 'like', "%{$search}%")
-                    ->orWhereHas('business', function ($b) use ($search) {
-                        $b->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        $invoices = $query->orderBy('created_at', 'desc')
-            ->paginate(20)
-            ->withQueryString()
-            ->through(function ($invoice) {
-                // Map outlet name if present in items metadata
-                $outletNames = $invoice->items->map(function ($item) {
-                    return $item->metadata['outlet_name'] ?? null;
-                })->filter()->unique()->implode(', ');
-
-                if (empty($outletNames)) {
-                    $activeOutlets = $invoice->items->map(function ($item) {
-                        return $item->metadata['active_outlets'] ?? null;
-                    })->filter()->first();
-                    $outletNames = $activeOutlets ? $activeOutlets.' Outlets' : '-';
-                }
-
-                $status = $invoice->status;
-                if ($invoice->paymentManualValidation) {
-                    if ($invoice->paymentManualValidation->validation_status === 'pending') {
-                        $status = 'pending review';
-                    } elseif ($invoice->paymentManualValidation->validation_status === 'rejected') {
-                        $status = 'rejected';
-                    }
-                }
-
-                return [
-                    'id' => $invoice->id,
-                    'invoice_number' => $invoice->invoice_number,
-                    'date' => $invoice->created_at->format('d M Y H:i'),
-                    'merchant' => $invoice->business->name ?? '-',
-                    'outlet_name' => $outletNames,
-                    'amount' => 'Rp '.number_format($invoice->total_amount, 0, ',', '.'),
-                    'status' => $status,
-                    'raw_status' => $invoice->status,
-                    'items' => $invoice->items,
-                    'proof_url' => $invoice->paymentManualValidation?->payment_proof_full_url,
-                ];
-            });
+        $perPage = (int) $request->input('perpage', 20);
+        $invoices = $this->invoiceService->getPaginatedInvoices($filters, $perPage);
+        $metrics = $this->invoiceService->getMetrics();
 
         return Inertia::render('Cockpit/Invoice/Index', [
             'invoices' => $invoices,
-            'filters' => [
-                'search' => $request->search,
-                'open_invoice' => $request->open_invoice,
-            ],
+            'metrics' => $metrics,
+            'filters' => $filters,
         ]);
     }
 
-    public function approve(Invoice $invoice, ApproveInvoiceValidationService $service)
+    /**
+     * Get detailed subscription invoice information on-demand.
+     */
+    public function show(Invoice $invoice): JsonResponse
+    {
+        $detail = $this->invoiceService->getInvoiceDetail($invoice);
+
+        return response()->json($detail);
+    }
+
+    /**
+     * Approve manual payment validation for the given invoice.
+     */
+    public function approve(Invoice $invoice, ApproveInvoiceValidationService $service): RedirectResponse
     {
         $service->execute($invoice);
 
-        return back()->with('success', 'Invoice payment approved successfully.');
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            'Pembayaran invoice berhasil disetujui dan diverifikasi.'
+        );
     }
 
-    public function reject(Invoice $invoice, RejectInvoiceRequest $request, RejectInvoiceValidationService $service)
-    {
+    /**
+     * Reject manual payment validation with a specific reason.
+     */
+    public function reject(
+        Invoice $invoice,
+        RejectInvoiceRequest $request,
+        RejectInvoiceValidationService $service
+    ): RedirectResponse {
         $service->execute($invoice, $request->validated('reason'));
 
-        return back()->with('success', 'Invoice payment rejected and merchant notified.');
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            'Pembayaran invoice berhasil ditolak dan merchant telah dinotifikasi.'
+        );
     }
 }
