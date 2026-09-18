@@ -24,6 +24,7 @@ When diving into this project, you MUST refer to the official architecture docum
 - [docs/frontend.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/frontend.md) — Frontend Standards: Vue 3 (`<script setup>`), Inertia.js 1.2, Tailwind CSS v4, `@/Components/Form/` (Zero Raw HTML inputs), `<PopUpPage>` & `usePopUpStore` Drawer Pattern, Enum-Driven UI.
 - [docs/api.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/api.md) — API Standards: `snake_case`, pure HTTP status codes, strict `(float)` numeric casting, Response Constants (`ResourceMessage`), Async Excel & PDF Generation, and OpenAPI/Postman synchronization.
 - [docs/testing.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/testing.md) — Automated Testing: Service Unit Tests (100% Mocking, `sqlite:memory`), Feature/Tenant Isolation Tests, E2E Testing via `browsermcp`, Linters (Pint, ESLint), and Definition of Done (DoD).
+- [docs/changelog.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/changelog.md) — Changelog & Versioning Standards: Keep a Changelog v1.1.0, Semantic Versioning (`vMAJOR.MINOR.PATCH`), Git Tagging Workflow, and Conventional Commit mapping.
 
 ## Skills Activation
 
