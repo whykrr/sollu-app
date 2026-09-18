@@ -138,4 +138,41 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 - Sollu App mempertahankan tampilan **Flat Minimalis**: pemisahan dan penegasan visual antar elemen wajib mengandalkan garis batas halus (`border border-slate-200` / `border-gray-200` atau `border-neutral-200`) serta latar warna solid/subtle (`bg-white` / `bg-slate-50`), bukan drop-shadow.
 - Pengecualian efek shadow HANYA diizinkan untuk elemen melayang di luar alur halaman normal (*floating overlays*), seperti popover dropdown menu terbuka (`z-50`), dialog modal konfirmasi (`.overlay-modal`), dan toast notifications (`Toast.vue`).
 
+---
+
+## E. Standar Penggunaan MCP (Model Context Protocol)
+
+**1. Standarisasi MCP Git (`git-mcp-server`)**
+- **Wajib Prioritaskan MCP Git:** AI Agent WAJIB memprioritaskan pemanggilan MCP Git (`status`, `add`, `commit`, `branch_list`, `branch_create`, `checkout`, `stash_save`, `stash_pop`, dll.) dibandingkan raw shell command `git` via terminal runner. Hal ini memastikan isolasi eksekusi, penanganan branch/stashing aman, dan state tracking terstruktur.
+- **Standar Pesan Commit (Conventional Commits):** Format pesan commit WAJIB mengikuti konvensi baku:
+  - `feat(module): deskripsi fitur baru`
+  - `fix(module): perbaikan bug spesifik`
+  - `refactor(module): perubahan struktur kode tanpa merubah behavior/output`
+  - `style(module): penyesuaian styling, indentasi, atau format linter (Pint/ESLint/Prettier)`
+  - `test(module): penambahan atau pembaruan unit/feature test`
+  - `chore: pembaruan dependensi, konfigurasi build/vite, atau tooling`
+- **Atomic Commits & Verification First:** Commit HANYA dilakukan setelah kode melewati verifikasi (linter `pint`/`eslint` bersih, test lolos, atau visual UI terkonfirmasi). DILARANG melakukan commit kode setengah jadi atau dalam kondisi error.
+- **Safety Working Tree:** Selalu verifikasi `status` sebelum checkout/merge. Amankan perubahan uncommitted menggunakan `stash_save` ketimbang membuang perubahan secara destruktif.
+
+**2. Optimalisasi MCP Laravel Boost (`laravel-boost`)**
+- **Inspeksi Skema Database:** Gunakan `database-schema` untuk memeriksa struktur kolom, tipe data, foreign key, dan indeks database riil secara instan sebelum merancang migration atau query Eloquent.
+- **Pemecahan Masalah Runtime Cepat:** Gunakan `last-error` dan `read-log-entries` saat terjadi error pada API/backend untuk menganalisis jejak stacktrace Laravel tanpa membuang context membaca file `storage/logs/laravel.log` mentah.
+- **Pencarian Dokumentasi & Status Aplikasi:** Gunakan `search-docs` untuk mencari panduan/API resmi ekosistem Laravel & Inertia, serta `application-info` untuk status lingkungan runtime.
+
+**3. Optimalisasi MCP Database Direct Inspection (`sollu-db` & `mysql`)**
+- **Inspeksi PostgreSQL Core (`sollu-db`):** Gunakan MCP Postgres untuk memeriksa data riil, validasi multi-tenancy (`business_id`, `outlet_id`), foreign key integrity, dan verifikasi hasil migrasi/seeder.
+  - **Aturan Ketat Read-Only:** Pemanggilan query MCP ke database core HANYA diizinkan untuk query pembacaan (`SELECT`). DILARANG KERAS menjalankan `INSERT`, `UPDATE`, `DELETE`, `DROP`, atau `ALTER` langsung via MCP DB—seluruh mutasi skema WAJIB melalui migration Laravel, dan mutasi data WAJIB melalui Service/Model/Seeder.
+- **Inspeksi MySQL Legacy (`mysql`):** Gunakan `describe_table` dan `execute_query` pada database `sollu_old` sebagai acuan perbandingan logika bisnis lama, referensi skema lama, atau validasi pipeline data migration.
+
+**4. Optimalisasi MCP Browser Testing (`browsermcp`)**
+- **Wajib Verifikasi Frontend (DoD):** Sesuai standar di `docs/testing.md` dan `docs/frontend.md`, setiap pembuatan atau modifikasi halaman/komponen Vue WAJIB diverifikasi menggunakan `browsermcp`:
+  - Lakukan navigasi (`browser_navigate`) ke URL modul/halaman terkait.
+  - Periksa DOM & interaktivitas (`browser_snapshot`, `browser_click`) terutama untuk alur PopUp drawer, form input, dan filter toolbar.
+  - Periksa konsol browser (`browser_get_console_logs`) untuk memastikan ZERO error/warning Vue dan JavaScript.
+  - Ambil tangkapan layar (`browser_screenshot`) jika diperlukan konfirmasi visual tata letak.
+
+**5. Optimalisasi MCP Filesystem (`filesystem`)**
+- Gunakan tool MCP Filesystem sebagai pelengkap operasi file terstruktur (seperti listing direktori dengan ukuran atau inspeksi tree) di dalam ruang kerja proyek `/Users/whykrr/Documents/Projects/Laravel/sollu-app`.
+
+
 

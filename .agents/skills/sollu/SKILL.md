@@ -28,6 +28,7 @@ Pedoman dan standar baku rekayasa perangkat lunak untuk seluruh modul dan kompon
 11. [Asynchronous Excel Export & Import](#11-asynchronous-excel-export--import)
 12. [PDF Document Generation (laravel-dompdf)](#12-pdf-document-generation-laravel-dompdf)
 13. [API Documentation Standards](#13-api-documentation-standards)
+14. [Model Context Protocol (MCP) Standards & Tooling Ecosystem](#14-model-context-protocol-mcp-standards--tooling-ecosystem)
 
 ---
 
@@ -879,3 +880,28 @@ Dokumentasi API adalah kontrak antara Backend dan Frontend/Client. Setiap peruba
    - Perbarui contoh balasan (*example response*) di Postman/Swagger.
    - Perbarui tipe data (*integer*, *string*, *boolean*, UUID).
 4. **Konfirmasi:** Jika file dokumentasi tidak ditemukan di repositori, konfirmasi ke pengguna untuk lokasi file sebelum mengakhiri tugas.
+
+---
+
+## 14. Model Context Protocol (MCP) Standards & Tooling Ecosystem
+
+### 14.1. MCP Tooling Responsibilities
+Seluruh AI Agent yang bekerja di repositori Sollu App WAJIB mengoptimalkan ekosistem tool MCP terkonfigurasi:
+
+| Server MCP | Provider / Tool Name | Peran Utama & Batasan Operasional |
+| :--- | :--- | :--- |
+| **`git`** | `git-mcp-server` | **Wajib untuk Git Workflow.** Prioritaskan tool MCP Git (`status`, `add`, `commit`, `checkout`, `stash_save`, dll.) daripada raw terminal shell. Format commit wajib *Conventional Commits*. |
+| **`laravel-boost`**| `boost:mcp` | **Inspeksi & Debugging Framework.** Gunakan `database-schema` untuk struktur skema, `last-error` / `read-log-entries` untuk stacktrace error, dan `search-docs` untuk referensi API Laravel/Inertia. |
+| **`sollu-db`** | `@modelcontextprotocol/server-postgres` | **Inspeksi PostgreSQL Core (`sollu_core`).** Audit data multi-tenancy (`business_id`, `outlet_id`), integritas foreign key, dan validasi data riil. **STRICT READ-ONLY (`SELECT`)**. Dilarang keras mutasi DDL/DML langsung via MCP DB. |
+| **`mysql`** | `mysql-mcp-server` | **Referensi Legacy MySQL (`sollu_old`).** Digunakan khusus pemetaan skema lama, validasi logika bisnis terdahulu, dan verifikasi pipeline migrasi data ke `sollu_core`. |
+| **`browsermcp`** | `@browsermcp/mcp@latest` | **E2E UI & Web Verification (DoD).** Pengujian otomatis halaman Vue/Inertia di browser asli, verifikasi interaktivitas PopUp drawer, form submit, dan pengecekan zero console errors. |
+| **`filesystem`** | `@modelcontextprotocol/server-filesystem` | **Struktur Berkas Proyek.** Inspeksi direktori dan metadata berkas secara terstruktur. |
+
+### 14.2. Safe Git Workflow Guidelines
+1. **Status Pre-check:** Selalu jalankan `status` sebelum melakukan branch switching, checkout, atau stash pop.
+2. **Atomic Commits:** Lakukan commit bertahap untuk setiap unit kerja yang koheren setelah verifikasi (Pint/ESLint lolos, test hijau).
+3. **Commit Messages:**
+   - Format: `<type>(<scope>): <subject>`
+   - Contoh: `feat(sales): implement pos shift drawer closing validation`
+   - Scope merujuk pada nama modul (e.g. `inventory`, `sales`, `master`, `employee`, `cockpit`, `core`).
+

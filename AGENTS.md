@@ -52,9 +52,21 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 - You must only create documentation files if explicitly requested by the user.
 
-## Replies
+## MCP Tooling Standards & Workflow Optimization
 
-- Be concise in your explanations - focus on what's important rather than explaining obvious details.
+This workspace provides configured Model Context Protocol (MCP) servers. Agents MUST prioritize and optimize the use of MCP tools according to these standards:
+
+- **Git (`git-mcp-server`):** Standard tool for all version control tasks (`status`, `add`, `commit`, `branch_list`, `branch_create`, `checkout`, `stash_save`, `stash_pop`).
+  - **MANDATORY:** Prioritize MCP Git over raw shell `git` commands in terminal runners.
+  - **Commit Format:** Strictly use Conventional Commits (`feat(module):`, `fix(module):`, `refactor(module):`, `style:`, `test:`, `chore:`).
+  - **Atomic & Verified:** Never commit broken code; verify with linters (`pint`, `eslint`), tests (`phpunit`), and UI verification (`browsermcp`) before committing.
+  - **Safe Working Tree:** Check `status` before branch operations; use `stash_save` rather than discarding unstaged work.
+- **Laravel Boost (`laravel-boost`):** Use `database-schema` to inspect database structure, `last-error` and `read-log-entries` for instant runtime troubleshooting, and `search-docs` for official Laravel/Inertia documentation.
+- **Database Inspection (`sollu-db` & `mysql`):**
+  - Use `sollu-db` (`server-postgres`) for read-only (`SELECT`) data inspection, tenant data validation (`business_id`, `outlet_id`), and constraint audits in `sollu_core`. DIRECT DDL/DML MUTATIONS VIA MCP ARE STRICTLY FORBIDDEN.
+  - Use `mysql` (`mysql-mcp-server`) for inspecting legacy `sollu_old` schemas and validating data migration pipelines.
+- **Web & E2E Testing (`browsermcp`):** Mandatory per Definition of Done (`docs/testing.md`) to verify Vue/Inertia UI, test PopUpPage drawers, inspect form submissions, and check console logs for zero runtime errors.
+- **Filesystem (`filesystem`):** Structured directory and file inspections when complementary to built-in tools.
 
 === boost rules ===
 
