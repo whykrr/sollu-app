@@ -1,6 +1,6 @@
 # Sollu App Testing & Quality Assurance Standards
 
-Standar pengujian otomatis (*Automated Testing*), pengujian integrasi web (*E2E Testing*), dan kriteria penyelesaian (*Definition of Done*) pada **Sollu App**.
+Standar pengujian otomatis (_Automated Testing_), pengujian integrasi web (_E2E Testing_), dan kriteria penyelesaian (_Definition of Done_) pada **Sollu App**.
 
 ---
 
@@ -27,15 +27,18 @@ Sollu App membagi strategi pengujian menjadi tiga tingkatan:
 Setiap pembuatan atau pembaruan **Service Class** **WAJIB** disertai Unit Test di `tests/Unit/Services/...`.
 
 ### 2.1. Aturan Pengujian Unit Service
+
 1. **Pure In-Memory SQLite:** Dilarang menyentuh database fisik PostgreSQL. Selalu gunakan koneksi `sqlite:memory` dan trait `RefreshDatabase`.
 2. **100% Mocking:** Seluruh dependensi eksternal (Service lain, Notification, Event Dispatcher, Payment Gateway, External Client) wajib di-mock menggunakan **Mockery**.
 3. **100% Code Coverage:** Uji seluruh percabangan skenario:
-   - *Happy Path* (Skenario sukses normal)
-   - *Validation / Business Exception Path* (Skenario gagal, saldo tidak cukup, status tidak valid)
-   - *Edge Cases* (Data kosong, nilai batas, desimal ekstrem)
+    - _Happy Path_ (Skenario sukses normal)
+    - _Validation / Business Exception Path_ (Skenario gagal, saldo tidak cukup, status tidak valid)
+    - _Edge Cases_ (Data kosong, nilai batas, desimal ekstrem)
 
 ### 2.2. Struktur dan Pola Penulisan Test
+
 Struktur direktori test mencerminkan namespace class asli:
+
 - Target: `app/Services/App/Inventory/StockAdjustmentService.php`
 - Test: `tests/Unit/Services/App/Inventory/StockAdjustmentServiceTest.php`
 
@@ -116,6 +119,7 @@ class StockAdjustmentServiceTest extends TestCase
 Ditempatkan di `tests/Feature/`. Menguji rute HTTP, otorisasi RBAC, SaaS Feature Gating, CSRF, dan integritas data on-demand.
 
 ### 3.1. Area Pengujian Feature Wajib
+
 - **Tenant Isolation:** Memastikan user dari Bisnis A tidak dapat mengakses atau memanipulasi data milik Bisnis B (`HTTP 403 / 404`).
 - **RBAC Permission Gate:** Memastikan user tanpa permission yang sesuai ditolak (`HTTP 403`).
 - **Feature Plan Gating:** Memastikan tenant dengan paket basic ditolak saat mengakses fitur pro (`is_feature_locked: true`).
@@ -128,18 +132,19 @@ Ditempatkan di `tests/Feature/`. Menguji rute HTTP, otorisasi RBAC, SaaS Feature
 Digunakan untuk memvalidasi alur UI frontend (Vue 3 / Inertia) secara otomatis dan interaktif.
 
 ### 4.1. Standard Workflow E2E Testing
+
 1. **Navigasi & Autentikasi:**
-   - Akses rute `/login`.
-   - Masukkan kredensial pengujian (`sollu.mart@email.com` / `password`).
+    - Akses rute `/login`.
+    - Masukkan kredensial pengujian (`sollu.mart@email.com` / `password`).
 2. **Pengujian Alur Side Drawer & Form:**
-   - Verifikasi tabel utama pada `<MainPage>`.
-   - Buka drawer `<PopUpPage>` dengan klik tombol tambah/edit.
-   - Isi field form `@/Components/Form/`.
-   - Submit via tombol aksi sticky footer `#popUpFooter`.
+    - Verifikasi tabel utama pada `<MainPage>`.
+    - Buka drawer `<PopUpPage>` dengan klik tombol tambah/edit.
+    - Isi field form `@/Components/Form/`.
+    - Submit via tombol aksi sticky footer `#popUpFooter`.
 3. **Verifikasi DOM & Antarmuka:**
-   - Pastikan tidak ada layout patah/rusak dan toast notifikasi sukses muncul.
+    - Pastikan tidak ada layout patah/rusak dan toast notifikasi sukses muncul.
 4. **Inspeksi Error Logs Konsol:**
-   - **WAJIB** periksa logs browser/network. Tidak boleh ada JavaScript uncaught exception atau error 500/422 yang unhandled.
+    - **WAJIB** periksa logs browser/network. Tidak boleh ada JavaScript uncaught exception atau error 500/422 yang unhandled.
 
 ---
 

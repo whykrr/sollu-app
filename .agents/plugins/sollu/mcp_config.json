@@ -10,10 +10,7 @@
         },
         "laravel-boost": {
             "command": "php",
-            "args": [
-                "/Users/whykrr/Documents/Projects/Laravel/sollu-app/artisan",
-                "boost:mcp"
-            ]
+            "args": ["/Users/whykrr/Documents/Projects/Laravel/sollu-app/artisan", "boost:mcp"]
         },
         "filesystem": {
             "command": "npx",
@@ -25,10 +22,7 @@
         },
         "git": {
             "command": "npx",
-            "args": [
-                "-y",
-                "git-mcp-server"
-            ],
+            "args": ["-y", "git-mcp-server"],
             "env": {
                 "GIT_DEFAULT_PATH": "/Users/whykrr/Documents/Projects/Laravel/sollu-app"
             }

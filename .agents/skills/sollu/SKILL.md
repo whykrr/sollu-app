@@ -90,12 +90,12 @@ resources/
 
 ### 1.7. MCP Tooling Architecture Matrix
 
-| MCP Server          | Transport / Runtime                                 | Primary Purpose                                                                                           | Key Tools                                                                                                                 |
-| :------------------ | :-------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ |
-| **`git`**           | Stdio (`npx git-mcp-server`)                        | Atomic version control, commit conventions, branch management, safe stash operations                      | `status`, `add`, `commit`, `branch_list`, `branch_create`, `checkout`, `stash_save`, `stash_pop`                           |
-| **`laravel-boost`** | Stdio (`php artisan boost:mcp` via `laravel/boost`) | Application-level schema inspection, error logs, documentation vector search, and dynamic code evaluation | `database-schema`, `database-query`, `last-error`, `read-log-entries`, `search-docs`, `application-info`                  |
-| **`sollu-db`**      | Stdio (`@modelcontextprotocol/server-postgres`)     | Direct PostgreSQL system catalog queries, index inspection, and raw SQL validation (Read-only `SELECT`)   | `query`                                                                                                                   |
-| **`filesystem`**    | Stdio (`@modelcontextprotocol/server-filesystem`)   | Multi-file inspections, directory trees, and safe file operations                                         | `read_file`, `write_file`, `list_directory`, `search_files`, `get_file_info`                                              |
+| MCP Server          | Transport / Runtime                                 | Primary Purpose                                                                                           | Key Tools                                                                                                |
+| :------------------ | :-------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------- |
+| **`git`**           | Stdio (`npx git-mcp-server`)                        | Atomic version control, commit conventions, branch management, safe stash operations                      | `status`, `add`, `commit`, `branch_list`, `branch_create`, `checkout`, `stash_save`, `stash_pop`         |
+| **`laravel-boost`** | Stdio (`php artisan boost:mcp` via `laravel/boost`) | Application-level schema inspection, error logs, documentation vector search, and dynamic code evaluation | `database-schema`, `database-query`, `last-error`, `read-log-entries`, `search-docs`, `application-info` |
+| **`sollu-db`**      | Stdio (`@modelcontextprotocol/server-postgres`)     | Direct PostgreSQL system catalog queries, index inspection, and raw SQL validation (Read-only `SELECT`)   | `query`                                                                                                  |
+| **`filesystem`**    | Stdio (`@modelcontextprotocol/server-filesystem`)   | Multi-file inspections, directory trees, and safe file operations                                         | `read_file`, `write_file`, `list_directory`, `search_files`, `get_file_info`                             |
 
 > [!NOTE]
 > For standard file editing and viewing within the codebase, Antigravity's native tools (`view_file`, `replace_file_content`, `write_to_file`, `find_by_name`, `grep_search`) remain the primary mechanism. Use `filesystem` MCP for bulk operations and directory tree overviews.
@@ -807,23 +807,23 @@ Setiap pembuatan, perbaikan bug, atau enhancement pada **Service class** WAJIB d
 
 - Dev URL: **http://app.sollu.test/** (atau domain dev lokal aktif).
 - Jalankan automated browser tests via Laravel Dusk:
-  ```bash
-  php artisan dusk
-  ```
+    ```bash
+    php artisan dusk
+    ```
 
 ### 10.2. Frontend Build & Verification Workflow
 
 1. **Linting & Formatting:**
-   - Jalankan `npm run lint` untuk mendeteksi error sintaks atau variabel tidak terpakai pada Vue/JS.
-   - Jalankan `npm run format` untuk merapikan kode sesuai Prettier.
+    - Jalankan `npm run lint` untuk mendeteksi error sintaks atau variabel tidak terpakai pada Vue/JS.
+    - Jalankan `npm run format` untuk merapikan kode sesuai Prettier.
 2. **Production Asset Bundling:**
-   - Jalankan `npm run build` untuk memverifikasi tidak ada kegagalan kompilasi TypeScript/Vue/Vite.
+    - Jalankan `npm run build` untuk memverifikasi tidak ada kegagalan kompilasi TypeScript/Vue/Vite.
 3. **Alur Validasi UI Sollu App:**
-   - Halaman utama / Tabel (`<MainPage>`): Verifikasi header, pagination, dan live search `<FilterSearch>`.
-   - Side Drawer Form (`<PopUpPage>` & `usePopUpStore`): Uji pembukaan drawer via tombol Tambah/Edit, pastikan child form bebas outer margin/padding, dan tombol submit sticky footer `#popUpFooter` berfungsi dengan benar.
-   - Modal Konfirmasi (`<Modal>` & `useModalStore`): Uji dialog konfirmasi hapus/arsip.
+    - Halaman utama / Tabel (`<MainPage>`): Verifikasi header, pagination, dan live search `<FilterSearch>`.
+    - Side Drawer Form (`<PopUpPage>` & `usePopUpStore`): Uji pembukaan drawer via tombol Tambah/Edit, pastikan child form bebas outer margin/padding, dan tombol submit sticky footer `#popUpFooter` berfungsi dengan benar.
+    - Modal Konfirmasi (`<Modal>` & `useModalStore`): Uji dialog konfirmasi hapus/arsip.
 4. **Console & Network Inspection:**
-   - Pastikan tidak ada runtime exception JavaScript atau respons HTTP unhandled (500/422).
+    - Pastikan tidak ada runtime exception JavaScript atau respons HTTP unhandled (500/422).
 
 ---
 

@@ -23,7 +23,7 @@ When diving into this project, you MUST refer to the official architecture docum
 - [docs/authorization.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/authorization.md) — Dual-Layer Authorization: User RBAC (Spatie Permissions scoped to `business_id`, `useAuth`) and SaaS Feature Plan Gating (`FeatureEnum`, `PlanEnum`, `<FeatureLock>`, `usePlanFeature`).
 - [docs/frontend.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/frontend.md) — Frontend Standards: Vue 3 (`<script setup>`), Inertia.js 1.2, Tailwind CSS v4, `@/Components/Form/` (Zero Raw HTML inputs), `<PopUpPage>` & `usePopUpStore` Drawer Pattern, Enum-Driven UI.
 - [docs/api.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/api.md) — API Standards: `snake_case`, pure HTTP status codes, strict `(float)` numeric casting, Response Constants (`ResourceMessage`), Async Excel & PDF Generation, and OpenAPI/Postman synchronization.
-- [docs/testing.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/testing.md) — Automated Testing: Service Unit Tests (100% Mocking, `sqlite:memory`), Feature/Tenant Isolation Tests, E2E Testing via Laravel Dusk, Linters (Pint, ESLint), and Definition of Done (DoD).
+- [docs/testing.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/testing.md) — Automated Testing: Service Unit Tests (100% Mocking, `sqlite:memory`), Feature/Tenant Isolation Tests, E2E Testing via `browsermcp`, Linters (Pint, ESLint), and Definition of Done (DoD).
 
 ## Skills Activation
 
@@ -59,7 +59,7 @@ This workspace provides configured Model Context Protocol (MCP) servers. Agents 
 - **Git (`git-mcp-server`):** Standard tool for all version control tasks (`status`, `add`, `commit`, `branch_list`, `branch_create`, `checkout`, `stash_save`, `stash_pop`).
     - **MANDATORY:** Prioritize MCP Git over raw shell `git` commands in terminal runners.
     - **Commit Format:** Strictly use Conventional Commits (`feat(module):`, `fix(module):`, `refactor(module):`, `style:`, `test:`, `chore:`).
-    - **Atomic & Verified:** Never commit broken code; verify with linters (`pint`, `eslint`), tests (`phpunit`), and UI build verification before committing.
+    - **Atomic & Verified:** Never commit broken code; verify with linters (`pint`, `eslint`), tests (`phpunit`), and UI verification (`browsermcp`) before committing.
     - **Safe Working Tree:** Check `status` before branch operations; use `stash_save` rather than discarding unstaged work.
 - **Laravel Boost (`laravel-boost`):** Use `database-schema` to inspect database structure, `last-error` and `read-log-entries` for instant runtime troubleshooting, and `search-docs` for official Laravel/Inertia documentation.
 - **Database Inspection (`sollu-db`):**
