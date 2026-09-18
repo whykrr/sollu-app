@@ -6,6 +6,7 @@ use App\Enums\AdjustmentReason;
 use App\Enums\AdjustmentStatus;
 use App\Enums\BusinessStatus;
 use App\Enums\CustomerGender;
+use App\Enums\DatePresetEnum;
 use App\Enums\FeatureEnum;
 use App\Enums\InventoryMovementType;
 use App\Enums\InvoiceStatus;
@@ -43,6 +44,7 @@ class FrontendEnumProvider
         AdjustmentStatus::class,
         BusinessStatus::class,
         CustomerGender::class,
+        DatePresetEnum::class,
         FeatureEnum::class,
         InventoryMovementType::class,
         PaymentMethodType::class,

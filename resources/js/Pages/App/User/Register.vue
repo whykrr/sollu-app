@@ -47,16 +47,66 @@
             </div>
 
             <!-- Step 1: Jenis Usaha -->
-            <div v-if="currentStep === 1" class="space-y-1.5">
-                <SelectionGroupField
-                    v-model="form.business_type_id"
-                    name="business_type"
-                    :options="business_types"
-                    class="sm"
-                />
+            <div v-if="currentStep === 1" class="space-y-2">
+                <div
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[46vh] sm:max-h-[50vh] overflow-y-auto pr-1"
+                >
+                    <button
+                        v-for="item in business_types"
+                        :key="item.value"
+                        type="button"
+                        class="group relative flex items-center p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer select-none"
+                        :class="[
+                            form.business_type_id === item.value
+                                ? 'border-main bg-main/5 ring-2 ring-main/15 shadow-xs'
+                                : 'border-slate-200 bg-white hover:border-main-light/50 hover:bg-slate-50/70 hover:shadow-xs',
+                        ]"
+                        @click="form.business_type_id = item.value"
+                    >
+                        <!-- Icon Avatar -->
+                        <div
+                            class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200"
+                            :class="[
+                                form.business_type_id === item.value
+                                    ? 'bg-main text-white shadow-xs'
+                                    : 'bg-slate-100 text-slate-600 group-hover:bg-main-light/10 group-hover:text-main',
+                            ]"
+                        >
+                            <FontAwesomeIcon :icon="getBusinessTypeIcon(item)" class="text-base" />
+                        </div>
+
+                        <!-- Name -->
+                        <div class="ml-3 flex-1 min-w-0">
+                            <span
+                                class="font-semibold text-sm leading-snug truncate block transition-colors duration-200"
+                                :class="[
+                                    form.business_type_id === item.value
+                                        ? 'text-main font-bold'
+                                        : 'text-slate-800 group-hover:text-slate-900',
+                                ]"
+                            >
+                                {{ item.label }}
+                            </span>
+                        </div>
+
+                        <!-- Selected Badge / Indicator -->
+                        <div class="ml-2 shrink-0">
+                            <FontAwesomeIcon
+                                v-if="form.business_type_id === item.value"
+                                :icon="faCircleCheck"
+                                class="text-main text-lg"
+                            />
+                            <div
+                                v-else
+                                class="w-4 h-4 rounded-full border border-slate-300 group-hover:border-slate-400"
+                            />
+                        </div>
+                    </button>
+                </div>
+
                 <span
                     v-if="form.errors.business_type_id"
-                    class="text-danger text-xs sm:text-sm block"
+                    class="text-danger text-xs sm:text-sm block font-medium"
                 >
                     Pilih salah satu jenis usaha!
                 </span>
@@ -237,20 +287,101 @@
     </form>
 </template>
 <script setup>
-import BlankLayout from '@/Layout/BlankLayout.vue'
 import { Link, useForm } from '@inertiajs/vue3'
 import { nextTick, ref } from 'vue'
-import { FontAwesomeIcon as Fa, FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import AuthLayout from '@/Layout/AuthLayout.vue'
-import { faArrowLeft, faLock, faStore, faUser } from '@fortawesome/free-solid-svg-icons'
-import PasswordField from '@/Components/Form/PasswordField.vue'
-import TextField from '@/Components/Form/TextField.vue'
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
-import NumberField from '@/Components/Form/NumberField.vue'
+import {
+    faArrowLeft,
+    faCapsules,
+    faCartShopping,
+    faCircleCheck,
+    faLock,
+    faMugSaucer,
+    faScissors,
+    faShirt,
+    faSpa,
+    faStore,
+    faUser,
+    faUtensils,
+    faWrench,
+} from '@fortawesome/free-solid-svg-icons'
 
 const props = defineProps({
     business_types: Array,
 })
+
+const getBusinessTypeIcon = type => {
+    const code = (type?.code || '').toLowerCase()
+    const name = (type?.label || type?.name || '').toLowerCase()
+    const combined = `${code} ${name}`
+
+    if (
+        combined.includes('kopi') ||
+        combined.includes('coffee') ||
+        combined.includes('kafe') ||
+        combined.includes('cafe')
+    ) {
+        return faMugSaucer
+    }
+    if (
+        combined.includes('fnb') ||
+        combined.includes('restoran') ||
+        combined.includes('resto') ||
+        combined.includes('makan') ||
+        combined.includes('kuliner')
+    ) {
+        return faUtensils
+    }
+    if (
+        combined.includes('barber') ||
+        combined.includes('salon') ||
+        combined.includes('cukur') ||
+        combined.includes('pangkas')
+    ) {
+        return faScissors
+    }
+    if (
+        combined.includes('laundry') ||
+        combined.includes('cuci') ||
+        combined.includes('fashion') ||
+        combined.includes('pakaian')
+    ) {
+        return faShirt
+    }
+    if (
+        combined.includes('apotek') ||
+        combined.includes('farmasi') ||
+        combined.includes('obat') ||
+        combined.includes('klinik')
+    ) {
+        return faCapsules
+    }
+    if (
+        combined.includes('bengkel') ||
+        combined.includes('reparasi') ||
+        combined.includes('service') ||
+        combined.includes('servis')
+    ) {
+        return faWrench
+    }
+    if (combined.includes('spa') || combined.includes('massage') || combined.includes('refleksi')) {
+        return faSpa
+    }
+    if (
+        combined.includes('retail') ||
+        combined.includes('ritel') ||
+        combined.includes('market') ||
+        combined.includes('mart') ||
+        combined.includes('sembako') ||
+        combined.includes('toko') ||
+        combined.includes('kelontong')
+    ) {
+        return faCartShopping
+    }
+
+    return faStore
+}
 
 const currentStep = ref(1)
 

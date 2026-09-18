@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services\App\User;
 
+use App\Enums\BusinessStatus;
 use App\Enums\RoleEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
@@ -74,7 +75,7 @@ class RegisterBusinessServiceTest extends TestCase
         $this->assertEquals('Budi Santoso', $business->owner_name);
         $this->assertEquals('budi@kopimaju.test', $business->email);
         $this->assertEquals('081234567890', $business->phone);
-        $this->assertEquals('active', $business->status);
+        $this->assertEquals(BusinessStatus::Active, $business->status);
         $this->assertEquals($type->id, $business->business_type_id);
         $this->assertNotNull($business->trial_end_at);
 

@@ -4,7 +4,9 @@
             <MainPageHeader title="Stok Saat Ini">
                 <ExportDropdown :items="exportItems" />
             </MainPageHeader>
+        </template>
 
+        <template #widgets>
             <!-- Summary Card -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <Widget title="Total Produk" :icon="faBox" class="widget-main">
@@ -21,7 +23,9 @@
                     {{ summary.stok_habis }} Item
                 </Widget>
             </div>
+        </template>
 
+        <template #filter>
             <StockFilter :filters="filters" :categories="categories" />
         </template>
 

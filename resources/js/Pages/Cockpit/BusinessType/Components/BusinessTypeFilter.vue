@@ -1,72 +1,31 @@
 <template>
-    <div
-        class="bg-white p-3 rounded-xl border border-neutral-200/70 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2"
-    >
-        <div class="flex flex-wrap items-center gap-2">
+    <FilterBar>
+        <template #left>
+            <FilterSegmented
+                :model-value="visibility"
+                :options="visibilityOptions"
+                @update:model-value="$emit('update:visibility', $event)"
+            />
+        </template>
+
+        <template #search>
             <FilterSearch
                 :model-value="search"
-                placeholder="Cari nama atau kode jenis bisnis..."
-                class="w-full sm:w-64"
+                placeholder="Cari nama / kode jenis bisnis..."
                 @update:model-value="$emit('update:search', $event)"
+                @clear="$emit('update:search', '')"
             />
-
-            <div class="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg text-xs font-medium">
-                <button
-                    type="button"
-                    class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                    :class="
-                        visibility === 'all'
-                            ? 'bg-white text-neutral-800 font-bold'
-                            : 'text-neutral-500 hover:text-neutral-800'
-                    "
-                    @click="$emit('update:visibility', 'all')"
-                >
-                    Semua Status
-                </button>
-                <button
-                    type="button"
-                    class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                    :class="
-                        visibility === 'visible'
-                            ? 'bg-white text-success font-bold'
-                            : 'text-neutral-500 hover:text-neutral-800'
-                    "
-                    @click="$emit('update:visibility', 'visible')"
-                >
-                    Tampil ({{ visibleCount }})
-                </button>
-                <button
-                    type="button"
-                    class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                    :class="
-                        visibility === 'hidden'
-                            ? 'bg-white text-neutral-600 font-bold'
-                            : 'text-neutral-500 hover:text-neutral-800'
-                    "
-                    @click="$emit('update:visibility', 'hidden')"
-                >
-                    Tersembunyi ({{ hiddenCount }})
-                </button>
-            </div>
-        </div>
-
-        <div class="flex items-center gap-2 justify-end">
-            <div class="w-48">
-                <DropdownField
-                    :model-value="sort"
-                    :options="sortOptions"
-                    @update:model-value="$emit('update:sort', $event)"
-                />
-            </div>
-        </div>
-    </div>
+        </template>
+    </FilterBar>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
-import DropdownField from '@/Components/Form/DropdownField.vue'
 
-defineProps({
+const props = defineProps({
     search: {
         type: String,
         default: '',
@@ -74,10 +33,6 @@ defineProps({
     visibility: {
         type: String,
         default: 'all',
-    },
-    sort: {
-        type: String,
-        default: 'order_asc',
     },
     visibleCount: {
         type: Number,
@@ -89,12 +44,11 @@ defineProps({
     },
 })
 
-defineEmits(['update:search', 'update:visibility', 'update:sort'])
+defineEmits(['update:search', 'update:visibility'])
 
-const sortOptions = [
-    { value: 'order_asc', label: 'Urutan: Terendah' },
-    { value: 'name_asc', label: 'Nama: (A - Z)' },
-    { value: 'merchants_desc', label: 'Merchant Terbanyak' },
-    { value: 'features_desc', label: 'Fitur Terbanyak' },
-]
+const visibilityOptions = computed(() => [
+    { value: 'all', label: 'Semua Status' },
+    { value: 'visible', label: 'Tampil', count: props.visibleCount },
+    { value: 'hidden', label: 'Tersembunyi', count: props.hiddenCount },
+])
 </script>

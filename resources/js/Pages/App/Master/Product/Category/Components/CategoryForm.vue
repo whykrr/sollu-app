@@ -9,8 +9,7 @@
                 required
             />
 
-            <!-- Only show Parent select if editing a child, or creating a new category -->
-            <!-- We disable parent selection if this category already has children (checked in backend, but good to disable in UI too) -->
+            <!-- Only show Parent select if editing a child, or creating a new category without children -->
             <DropdownField
                 v-if="!hasChildren"
                 v-model="form.parent_id"
@@ -30,16 +29,14 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex justify-end gap-2 w-full">
-                <button type="button" class="btn btn-outline-secondary" @click="closeForm">
-                    Batal
-                </button>
+                <button type="button" class="btn btn-flat btn-sm" @click="closeForm">Batal</button>
                 <button
                     type="button"
-                    class="btn btn-highlight-main"
+                    class="btn btn-highlight-main btn-sm"
                     :disabled="form.processing"
                     @click="submit"
                 >
-                    Simpan
+                    {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
                 </button>
             </div>
         </Teleport>
@@ -129,10 +126,12 @@ const closeForm = () => {
 const submit = () => {
     if (props.category) {
         form.put(route('master.categories.update', props.category.id), {
+            preserveScroll: true,
             onSuccess: () => closeForm(),
         })
     } else {
         form.post(route('master.categories.store'), {
+            preserveScroll: true,
             onSuccess: () => closeForm(),
         })
     }

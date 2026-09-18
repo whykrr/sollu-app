@@ -10,86 +10,36 @@
                     Tambah Jenis Bisnis
                 </button>
             </MainPageHeader>
+        </template>
 
-            <!-- Mini KPI Overview Metrics -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                <div
-                    class="bg-white p-3 rounded-xl border border-neutral-200/70 flex items-center gap-2"
-                >
-                    <div
-                        class="w-10 h-10 rounded-lg bg-main/10 text-main flex items-center justify-center text-base shrink-0"
-                    >
-                        <FontAwesomeIcon :icon="faBriefcase" />
-                    </div>
-                    <div>
-                        <div class="text-xs text-neutral-500 font-medium">Total Jenis Bisnis</div>
-                        <div class="text-lg font-bold text-neutral-800 leading-tight">
-                            {{ businessTypes.length }} Tipe
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="bg-white p-3 rounded-xl border border-neutral-200/70 flex items-center gap-2"
-                >
-                    <div
-                        class="w-10 h-10 rounded-lg bg-success/10 text-success flex items-center justify-center text-base shrink-0"
-                    >
-                        <FontAwesomeIcon :icon="faEye" />
-                    </div>
-                    <div>
-                        <div class="text-xs text-neutral-500 font-medium">Tampil di Registrasi</div>
-                        <div class="text-lg font-bold text-success leading-tight">
-                            {{ visibleCount }} Aktif
-                            <span class="text-xs text-neutral-400 font-normal"
-                                >({{ hiddenCount }} hidden)</span
-                            >
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="bg-white p-3 rounded-xl border border-neutral-200/70 flex items-center gap-2"
-                >
-                    <div
-                        class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-base shrink-0"
-                    >
-                        <FontAwesomeIcon :icon="faSliders" />
-                    </div>
-                    <div>
-                        <div class="text-xs text-neutral-500 font-medium">Rata-Rata Fitur</div>
-                        <div class="text-lg font-bold text-sky-700 leading-tight">
-                            {{ averageFeaturesCount }} Fitur / Tipe
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="bg-white p-3 rounded-xl border border-neutral-200/70 flex items-center gap-2"
-                >
-                    <div
-                        class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0"
-                    >
-                        <FontAwesomeIcon :icon="faStore" />
-                    </div>
-                    <div>
-                        <div class="text-xs text-neutral-500 font-medium">Total Merchant</div>
-                        <div class="text-lg font-bold text-neutral-800 leading-tight">
-                            {{ totalMerchantsCount }} Terdaftar
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <template #widgets>
+            <BusinessTypeWidgets
+                :total-types="businessTypes.length"
+                :visible-count="visibleCount"
+                :hidden-count="hiddenCount"
+                :average-features-count="averageFeaturesCount"
+                :total-merchants-count="totalMerchantsCount"
+            />
+        </template>
 
+        <template #filter>
             <!-- Extracted Toolbar: Search, Filters, and Sorters -->
             <BusinessTypeFilter
                 v-model:search="searchQuery"
                 v-model:visibility="visibilityFilter"
-                v-model:sort="sortBy"
                 :visible-count="visibleCount"
                 :hidden-count="hiddenCount"
             />
         </template>
 
         <!-- Table View (Empty state handled natively by Table component) -->
-        <Table :headers="tableHeaders" :data="displayedTypes" :action="true">
+        <Table
+            :headers="tableHeaders"
+            :data="displayedTypes"
+            :action="true"
+            :sort="typeof params?.sort === 'string' ? params.sort : 'sort_order'"
+            :sort-direction="typeof params?.direction === 'string' ? params.direction : 'asc'"
+        >
             <template #code_name="{ row }">
                 <div class="py-1">
                     <span
@@ -199,18 +149,11 @@ import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import {
-    faPencil,
-    faPlus,
-    faSliders,
-    faEye,
-    faTrash,
-    faStore,
-    faBriefcase,
-} from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faPlus, faSliders, faTrash, faStore } from '@fortawesome/free-solid-svg-icons'
 import { router } from '@inertiajs/vue3'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification.js'
+import BusinessTypeWidgets from './Components/BusinessTypeWidgets.vue'
 import BusinessTypeFilter from './Components/BusinessTypeFilter.vue'
 import BusinessTypeFormPopUp from './Components/BusinessTypeFormPopUp.vue'
 import BusinessTypeFeaturesPopUp from './Components/BusinessTypeFeaturesPopUp.vue'
@@ -224,6 +167,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    params: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
 const popUpStore = usePopUpStore()
@@ -231,14 +178,13 @@ const modalStore = useModalStore()
 
 const searchQuery = ref('')
 const visibilityFilter = ref('all')
-const sortBy = ref('order_asc')
 
 const tableHeaders = [
-    { field: 'name', label: 'Jenis Bisnis & Kode', slot: 'code_name' },
+    { field: 'name', label: 'Jenis Bisnis & Kode', slot: 'code_name', sortable: true },
     { field: 'features_count', label: 'Fitur Bawaan', slot: 'features' },
-    { field: 'businesses_count', label: 'Merchant Terdaftar', slot: 'businesses' },
-    { field: 'sort_order', label: 'Urutan', slot: 'sort_order' },
-    { field: 'is_visible', label: 'Visibilitas', slot: 'is_visible' },
+    { field: 'businesses_count', label: 'Merchant Terdaftar', slot: 'businesses', sortable: true },
+    { field: 'sort_order', label: 'Urutan', slot: 'sort_order', sortable: true },
+    { field: 'is_visible', label: 'Visibilitas', slot: 'is_visible', sortable: true },
 ]
 
 // Metrics Overview
@@ -258,9 +204,9 @@ const averageFeaturesCount = computed(() => {
     return Math.round(total / props.businessTypes.length)
 })
 
-// Filtered & Sorted Types
+// Filtered Types
 const displayedTypes = computed(() => {
-    const list = (props.businessTypes || []).filter(b => {
+    return (props.businessTypes || []).filter(b => {
         if (searchQuery.value.trim()) {
             const query = searchQuery.value.trim().toLowerCase()
             const nameMatch = (b.name || '').toLowerCase().includes(query)
@@ -278,22 +224,6 @@ const displayedTypes = computed(() => {
         }
 
         return true
-    })
-
-    return list.slice().sort((a, b) => {
-        if (sortBy.value === 'order_asc') {
-            return (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0)
-        }
-        if (sortBy.value === 'name_asc') {
-            return (a.name || '').localeCompare(b.name || '')
-        }
-        if (sortBy.value === 'merchants_desc') {
-            return (b.businesses_count || 0) - (a.businesses_count || 0)
-        }
-        if (sortBy.value === 'features_desc') {
-            return (b.features?.length || 0) - (a.features?.length || 0)
-        }
-        return 0
     })
 })
 

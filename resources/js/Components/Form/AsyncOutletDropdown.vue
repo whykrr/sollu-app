@@ -1,5 +1,5 @@
 <template>
-    <div class="relative">
+    <div v-if="!shouldHide" class="relative">
         <div class="space-y-2">
             <label v-if="label" :for="$attrs.id" class="label">
                 {{ label }}
@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useAuth } from '@/Composable/useAuth.js'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 
@@ -81,6 +81,10 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    showAlways: {
+        type: Boolean,
+        default: false,
+    },
 })
 
 const feedbackMessage = computed(() => props.feedback || props.error || '')
@@ -89,7 +93,7 @@ const emit = defineEmits(['update:modelValue', 'change', 'loaded'])
 
 const internalValue = ref(props.modelValue)
 
-const { outlets: sharedOutlets } = useAuth()
+const { outlets: sharedOutlets, selectedOutlet } = useAuth()
 const isLoading = ref(false)
 
 const outlets = computed(() => {
@@ -106,10 +110,35 @@ const formattedOutlets = computed(() => {
     }))
 })
 
+const shouldHide = computed(() => {
+    if (props.showAlways) return false
+    return Boolean(selectedOutlet.value || outlets.value.length <= 1)
+})
+
+const resolveDefaultOutlet = () => {
+    if (selectedOutlet.value) {
+        if (!internalValue.value || internalValue.value !== selectedOutlet.value.id) {
+            internalValue.value = selectedOutlet.value.id
+            emit('update:modelValue', selectedOutlet.value.id)
+            emit('change', selectedOutlet.value)
+        }
+    } else if (outlets.value.length === 1) {
+        const onlyOutlet = outlets.value[0]
+        if (!internalValue.value || internalValue.value !== onlyOutlet.id) {
+            internalValue.value = onlyOutlet.id
+            emit('update:modelValue', onlyOutlet.id)
+            emit('change', onlyOutlet)
+        }
+    }
+}
+
 watch(
     () => props.modelValue,
     newVal => {
         internalValue.value = newVal
+        if (!newVal) {
+            resolveDefaultOutlet()
+        }
     }
 )
 
@@ -120,12 +149,17 @@ watch(internalValue, newVal => {
 })
 
 watch(
-    outlets,
-    val => {
-        if (val && val.length > 0) {
-            emit('loaded', val)
+    [outlets, selectedOutlet],
+    () => {
+        resolveDefaultOutlet()
+        if (outlets.value && outlets.value.length > 0) {
+            emit('loaded', outlets.value)
         }
     },
     { immediate: true, deep: true }
 )
+
+onMounted(() => {
+    resolveDefaultOutlet()
+})
 </script>

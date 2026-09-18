@@ -2,23 +2,24 @@
 
 namespace App\Http\Requests\App\Master\Category;
 
+use App\Enums\PermissionEnum;
+use App\Http\Requests\BaseInertiaFormRequest;
 use App\Models\Master\ProductCategory;
-use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateCategoryRequest extends FormRequest
+class UpdateCategoryRequest extends BaseInertiaFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can(PermissionEnum::CATEGORY_UPDATE->value) ?? false;
     }
 
     /**
      * Prepare the data for validation.
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         if ($this->parent_id === '') {
             $this->merge([
@@ -34,7 +35,9 @@ class UpdateCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        $categoryId = $this->route('category')->id ?? $this->route('category');
+        $categoryId = $this->route('category') instanceof ProductCategory
+            ? $this->route('category')->id
+            : $this->route('category');
 
         return [
             'name' => ['required', 'string', 'max:255'],

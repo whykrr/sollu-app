@@ -74,7 +74,13 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 
 **1. Layout `MainPage` & Non-Scrolling Header**
 - Seluruh halaman modul wajib menggunakan `<MainPage>`.
-- Seluruh kartu (*cards*), widget KPI (*widgets*), bar pencarian & filter (*filters*), serta tombol aksi WAJIB berada di slot `<template #header>` (atau `<MainPageHeader>`), BUKAN di default slot. Default slot HANYA untuk tabel data / konten scrollable.
+- **Hierarki Slot Terstandarisasi:**
+  1. `<template #header>`: Judul halaman (`MainPageHeader`), keterangan, dan tombol aksi utama.
+  2. `<template #widgets>`: Kartu KPI, ringkasan metrik, atau widget analitik (terletak di antara header title dan filter toolbar).
+  3. `<template #filter>` (atau `#filters`): Bar pencarian dan toolbar filter data yang telah diekstrak.
+  4. `default slot`: Konten scrollable utama (tabel data `<Table>` atau visual analitik).
+  5. `<template #footer>`: Navigasi paginasi `<Pagination>` atau bilah aksi bawah.
+- Seluruh header, widget, dan filter toolbar WAJIB berada di slot non-scrolling (`#header`, `#widgets`, `#filter`), BUKAN di default slot. Default slot HANYA untuk tabel data / konten scrollable.
 
 **2. Batasan Spacing & Skala Tailwind**
 - Jarak antar-komponen di atas `<MainPage>` dan di dalam slot-nya WAJIB berskala 2 (`gap-2`, `gap-y-2`, `gap-x-2`, `space-y-2`, `space-x-2`, `m-2`, `my-2`, `mt-2`, `mb-2`).
@@ -84,8 +90,12 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 **3. Isolasi Spacing `PopUpPage`**
 - Body `.modal-body` di `PopUpPage.vue` sudah memiliki padding bawaan. Child form/view yang dirender di dalam PopUpPage DILARANG menambahkan wrapper padding atau margin luar lagi.
 
-**4. Ekstraksi Wajib Komponen Filter**
+**4. Ekstraksi Wajib Komponen Filter & Standarisasi Inline Toolbar**
 - Seluruh filter halaman WAJIB diekstrak ke komponen terpisah di `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`. DILARANG menulis filter inline di `Index.vue`.
+- **Standarisasi Inline Filter Toolbar:** Seluruh komponen filter tabel WAJIB menggunakan tata letak **Inline Toolbar** berbasis komponen `@/Components/UI/Filter/` (`FilterBar`, `FilterPresetDate`, `FilterSegmented`, `FilterDropdown`, `FilterActions`, `FilterSearch`).
+- **DILARANG MENGGUNAKAN POPUP MODAL UNTUK FILTER TABEL:** Dilarang membuat modal dialog popup (`FilterModal.vue`) untuk menyaring data tabel. Seluruh kontrol penyaringan (preset tanggal, status segmented, dropdown entitas, aksi ekspor/impor, dan search) harus tampil terpadu secara inline di toolbar `<template #filter>`.
+- **Standarisasi Date Presets Backend & Frontend:** Preset rentang tanggal terpusat pada enum `App\Enums\DatePresetEnum` (`today`, `yesterday`, `last_7_days`, `last_30_days`, `this_month`, `last_month`, `this_year`, `custom`) dengan nilai bawaan (*default*) adalah `this_month`.
+- **Standarisasi Action Filter:** Tombol aksi terkait data tabel (seperti `ExportDropdown`, tombol `Impor`, dsb.) diletakkan di slot `#actions` pada `FilterBar` menggunakan `FilterActions`.
 
 **5. Wajib Menggunakan Komponen `<Table>`, Row Link (Single Action), Sortable Header, & Empty State Terpusat**
 - Seluruh data tabel WAJIB ditampilkan melalui `@/Components/Tables/Table.vue`. DILARANG menggunakan tag `<table>` mentah.
@@ -112,4 +122,20 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
   - **`.btn-sm` (`px-2 py-1.5 gap-1 text-xs`):** Tombol aksi standar pada `MainPageHeader`, toolbar filter, dan aksi baris tabel umum.
   - **`.btn` / Regular (`px-4 py-2 gap-2 text-sm`):** Tombol utama form submit, modal confirmation, dan CTA standar.
   - **`.btn-lg` (`px-6 py-3 text-base`):** Tombol aksi hero / landing banner / checkout POS utama.
+
+**8. Standar Form & Utility Classes Kustom (`app.css`)**
+- Gunakan kelas custom form yang telah didefinisikan di `resources/css/app.css`:
+  - **`.form`:** Base styling untuk input teks, select, textarea dengan ring focus brand dan rounded border.
+  - **`.form.sm` (`class="form sm"`):** Ukuran input ringkas (`text-xs! !py-1.5 !px-2.5`, tinggi 30px). **Wajib digunakan untuk seluruh kontrol filter tabel**, compact form di dalam drawer, dan tabel nested.
+  - **`.form.lg` (`class="form lg"`):** Ukuran input besar (`text-base! !py-3 !px-5`) untuk search hero dan checkout POS.
+  - **Standarisasi Keselarasan Tinggi Dropdown & Form `sm` (30px):** Seluruh elemen pada toolbar filter (input pencarian `FilterSearch`, tombol filter `FilterDropdown`, `FilterPresetDate`, `ExportDropdown`, `FilterSegmented`, serta komponen form `DropdownField`, `AsyncSelectField`, `GroupDropdownIconField` dengan prop `:size="'sm'"`) WAJIB memiliki tinggi seragam **30px** (`h-[30px]`, `text-xs leading-4`). DILARANG menggunakan varian teks responsive `sm:text-sm` pada tombol trigger yang membuat tinggi tombol tidak selaras dengan input `form sm`.
+  - **`.form-group` & `.form-group-text`:** Container terpadu untuk input ber-addon/ikon. Mendukung modifier `.form-group.sm` atau selector `:has(.form.sm)` yang otomatis menyelaraskan ukuran font dan padding addon ke `text-xs !py-1.5 !px-2.5` (tinggi 30px).
+  - **`.form-check` (`.sm` / `.lg`):** Wrapper checkbox/radio button terstandarisasi.
+  - **`.filter-badge` & `.filter-badge-remove`:** Badge kriteria filter aktif dengan tombol hapus tag `✕`.
+
+**9. Prinsip Desain Flat Minimalis & Larangan Shadow di dalam `<MainPage>`**
+- Seluruh komponen yang diletakkan di dalam container `<MainPage>` (kartu widget, toolbar filter, tombol aksi, tabel, card container, dsb.) **DILARANG MENGGUNAKAN KELAS SHADOW** (`shadow`, `shadow-xs`, `shadow-sm`, `shadow-md`, `shadow-lg`, dsb.).
+- Sollu App mempertahankan tampilan **Flat Minimalis**: pemisahan dan penegasan visual antar elemen wajib mengandalkan garis batas halus (`border border-slate-200` / `border-gray-200` atau `border-neutral-200`) serta latar warna solid/subtle (`bg-white` / `bg-slate-50`), bukan drop-shadow.
+- Pengecualian efek shadow HANYA diizinkan untuk elemen melayang di luar alur halaman normal (*floating overlays*), seperti popover dropdown menu terbuka (`z-50`), dialog modal konfirmasi (`.overlay-modal`), dan toast notifications (`Toast.vue`).
+
 

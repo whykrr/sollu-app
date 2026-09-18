@@ -25,9 +25,34 @@ class OnDemandDataLoadingTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['inertia.testing.page_paths' => [resource_path('js/Pages/App')]]);
+        config(['inertia.testing.page_paths' => [
+            resource_path('js/Pages'),
+            resource_path('js/Pages/App'),
+        ]]);
         $this->seed(DatabaseSeeder::class);
         $this->appDomain = config('domain.app', 'app.sollu.test');
+
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner',
+            'email' => 'owner_'.uniqid().'@test.com',
+            'phone' => '08123456789',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        User::create([
+            'business_id' => $business->id,
+            'name' => 'Test User',
+            'email' => 'test_'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+        ]);
     }
 
     protected function subscribeBusinessToPlan(User $user, PlanEnum $planEnum = PlanEnum::PRO): void
@@ -48,6 +73,9 @@ class OnDemandDataLoadingTest extends TestCase
         $settings['active_features'] = array_map(fn (FeatureEnum $case) => $case->value, FeatureEnum::cases());
         $business->settings = $settings;
         $business->save();
+
+        $permissions = \Spatie\Permission\Models\Permission::where('guard_name', 'business')->get();
+        $user->givePermissionTo($permissions);
 
         $user->refresh();
         $user->load('business');

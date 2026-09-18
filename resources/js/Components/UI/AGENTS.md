@@ -14,33 +14,36 @@ Saat menggunakan atau mengedit komponen di `resources/js/Components/UI`, Anda **
     ```vue
     <template>
         <MainPage>
-            <!-- 1. Widgets Slot (Opsional untuk Widget Metrik/KPI Teratas) -->
+            <!-- 1. Header Slot (NON-SCROLLABLE: Judul, Deskripsi & Tombol Aksi) -->
+            <template #header>
+                <MainPageHeader title="Judul Halaman" description="Deskripsi singkat">
+                    <!-- Tombol aksi di slot default -->
+                    <button class="btn btn-highlight-main btn-sm" @click="openCreate">
+                        <FontAwesomeIcon :icon="faPlus" /> Tambah Baru
+                    </button>
+                </MainPageHeader>
+            </template>
+
+            <!-- 2. Widgets Slot (Opsional: Metrik/KPI di antara Header dan Filter) -->
             <template v-if="$slots.widgets" #widgets>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                     <Widget ... />
                 </div>
             </template>
 
-            <!-- 2. Header Slot (NON-SCROLLABLE: Judul, Aksi, Filter Bar, Kartu Ringkasan) -->
-            <template #header>
-                <MainPageHeader title="Judul Halaman" description="Deskripsi singkat">
-                    <!-- Tombol aksi di slot default -->
-                    <button class="btn btn-highlight-main" @click="openCreate">
-                        <FontAwesomeIcon :icon="faPlus" /> Tambah Baru
-                    </button>
-                </MainPageHeader>
-                <!-- Komponen Filter yang telah diekstrak -->
+            <!-- 3. Filter Slot (NON-SCROLLABLE: Toolbar Filter yang Diekstrak) -->
+            <template #filter>
                 <EntityFilter :filters="filters" />
             </template>
 
-            <!-- 3. Default Slot (SCROLLABLE CONTAINER: Tabel Data / Konten Utama) -->
+            <!-- 4. Default Slot (SCROLLABLE CONTAINER: Tabel Data / Konten Utama) -->
             <Table :headers="headers" :data="items.data" :action="true">
                 <template #actions="{ row }">
                     <button class="btn btn-flat btn-sm" @click="openEdit(row)">Edit</button>
                 </template>
             </Table>
 
-            <!-- 4. Footer Slot (Pagination Bar) -->
+            <!-- 5. Footer Slot (Pagination Bar) -->
             <template #footer>
                 <Pagination :meta="items.meta || items" />
             </template>
@@ -48,7 +51,8 @@ Saat menggunakan atau mengedit komponen di `resources/js/Components/UI`, Anda **
     </template>
     ```
 - **Aturan Spacing (Skala 2):** Jarak antar-elemen di atas dan di dalam `MainPage` WAJIB berskala 2 (`gap-2`, `space-y-2`, `m-2`).
-- **Elemen Non-Scrolling:** Seluruh filter, search bar, widget, dan kartu ringkasan WAJIB berada di slot `#header` agar tidak hilang atau terdorong saat tabel di-scroll.
+- **Prinsip Flat Minimalis (Bebas Shadow):** Seluruh komponen di dalam container `<MainPage>` (kartu widget `#widgets`, toolbar filter `#filter`, tabel data, card, tombol) **DILARANG MENGGUNAKAN SHADOW** (`shadow`, `shadow-xs`, `shadow-sm`, dsb.). Gunakan border halus (`border border-slate-200` / `border-gray-200`) dan background flat (`bg-white` / `bg-slate-50`) untuk menjaga estetika flat minimalis. Shadow hanya diizinkan untuk floating elements (dropdown popover, modal dialog, toast).
+- **Elemen Non-Scrolling:** Seluruh filter, search bar, widget KPI, dan header title WAJIB berada di slot non-scrolling (`#header`, `#widgets`, `#filter`) agar tidak hilang atau terdorong saat tabel di-scroll.
 
 ---
 
@@ -87,11 +91,15 @@ Saat menggunakan atau mengedit komponen di `resources/js/Components/UI`, Anda **
 
 ## 4. Ekosistem Filter (`@/Components/UI/Filter/`)
 
-- **`FilterSearch.vue`:** Input pencarian teks live (`v-model="filterForm.search"`).
-- **`FilterModal.vue`:** Modal overlay kriteria filter (`<FilterModal :show="isOpen" @apply="apply" @reset="reset">`).
+- **`FilterBar.vue`:** Wrapper layout toolbar filter (`<FilterBar><template #left>...</template><template #actions>...</template><template #search>...</template></FilterBar>`).
+- **`FilterPresetDate.vue`:** Dropdown preset tanggal (_Hari Ini_, _7 Hari Terakhir_, _Bulan Ini_, _Kustom_) dan modal rentang tanggal. Default preset: `'this_month'`.
+- **`FilterSegmented.vue`:** Tab status/counter segmented pill (`<FilterSegmented v-model="form.status" :options="options" />`).
+- **`FilterDropdown.vue`:** Dropdown filter pill inline untuk kategori/outlet/supplier (`<FilterDropdown v-model="form.cat" label="Kategori" :options="opts" />`).
+- **`FilterActions.vue`:** Container untuk tombol aksi ekspor dan impor di toolbar filter.
+- **`FilterSearch.vue`:** Input pencarian teks live terstandarisasi (`<FilterSearch v-model="filterForm.search" placeholder="Cari..." />`).
 - **`FilterBadge.vue`:** Menampilkan kriteria filter yang aktif (`<FilterBadge @remove="resetStatus">Status: {{ status }}</FilterBadge>`).
-- **`FilterStatus.vue`:** Selektor status instan.
 - **`FilterTrashData.vue`:** Toggle filter data terhapus.
+- **🚨 Dilarang menggunakan `<FilterModal.vue>` untuk penyaringan tabel utama.** Seluruh filter wajib menggunakan susunan inline toolbar di atas.
 
 ---
 

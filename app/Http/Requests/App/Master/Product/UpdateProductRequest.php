@@ -2,14 +2,15 @@
 
 namespace App\Http\Requests\App\Master\Product;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\PermissionEnum;
+use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Support\Facades\Auth;
 
-class UpdateProductRequest extends FormRequest
+class UpdateProductRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can('product.update') ?? false;
+        return Auth::user()?->can(PermissionEnum::PRODUCT_UPDATE->value) ?? false;
     }
 
     protected function prepareForValidation(): void

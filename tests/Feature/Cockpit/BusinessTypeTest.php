@@ -70,6 +70,41 @@ class BusinessTypeTest extends TestCase
         );
     }
 
+    public function test_admin_can_sort_business_types_by_name_and_sort_order(): void
+    {
+        BusinessType::create([
+            'code' => 'retail',
+            'name' => 'Minimarket & Retail',
+            'sort_order' => 1,
+            'is_visible' => true,
+            'features' => ['pos_cashier'],
+        ]);
+
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->get("http://{$this->cockpitHost}/business-types?sort=name&direction=desc");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Cockpit/BusinessType/Index')
+            ->where('params.sort', 'name')
+            ->where('params.direction', 'desc')
+            ->has('businessTypes')
+        );
+
+        $responseAsc = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->get("http://{$this->cockpitHost}/business-types?sort=sort_order&direction=asc");
+
+        $responseAsc->assertStatus(200);
+        $responseAsc->assertInertia(fn (Assert $page) => $page
+            ->component('Cockpit/BusinessType/Index')
+            ->where('params.sort', 'sort_order')
+            ->where('params.direction', 'asc')
+            ->has('businessTypes')
+        );
+    }
+
     public function test_admin_can_view_single_business_type_json(): void
     {
         $type = BusinessType::create([

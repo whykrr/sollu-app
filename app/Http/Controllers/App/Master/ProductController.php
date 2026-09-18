@@ -3,103 +3,159 @@
 namespace App\Http\Controllers\App\Master;
 
 use App\Constants\FlashDataVariable;
+use App\Constants\ResourceMessage;
+use App\Enums\PermissionEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\App\Master\Product\GetProductRequest;
 use App\Http\Requests\App\Master\Product\StoreProductRequest;
 use App\Http\Requests\App\Master\Product\UpdateProductRequest;
 use App\Http\Resources\Master\ProductResource;
+use App\Jobs\Master\ExportProductJob;
+use App\Jobs\Master\ImportProductJob;
+use App\Models\Master\InventoryItem;
+use App\Models\Master\ModifierGroup;
 use App\Models\Master\Product;
+use App\Models\Master\ProductCategory;
+use App\Models\Outlet;
+use App\Models\Uom;
 use App\Services\App\Master\ProductService;
+use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProductController extends Controller
 {
-    private ProductService $productService;
+    public function __construct(
+        protected ProductService $productService
+    ) {}
 
-    public function __construct(ProductService $productService)
+    public function index(GetProductRequest $request): Response
     {
-        $this->productService = $productService;
-    }
+        $this->authorize(PermissionEnum::PRODUCT_VIEW->value);
 
-    public function index(Request $request)
-    {
+        $params = $request->validated();
+        $outletId = $params['outlet'] ?? \App\Helpers\SelectedOutlet::make()->currentId();
+
         $products = Product::currentBusiness()
             ->with([
                 'category:id,name',
-                'prices:id,product_id,outlet_id,amount',
+                'prices' => function ($q) use ($outletId) {
+                    $q->select('id', 'product_id', 'outlet_id', 'amount');
+                    if ($outletId) {
+                        $q->where(function ($sub) use ($outletId) {
+                            $sub->where('outlet_id', $outletId)->orWhereNull('outlet_id');
+                        });
+                    }
+                },
                 'images:id,product_id,inventory_item_id,image_url,sort_order',
             ])
-            ->filters($request->only(['search', 'category', 'outlet', 'is_deleted']))
-            ->orderByDesc('created_at')
-            ->paginate(15);
+            ->filters($params)
+            ->sortable($request->validated('sort', 'created_at'), $request->validated('direction', 'desc'))
+            ->paginate($request->validated('perpage', 15))
+            ->appends($request->query());
 
         return Inertia::render('Master/Product/Index', [
             'products' => $products,
-            'filters' => $request->only(['search', 'category', 'outlet', 'is_deleted']),
-            'categories' => \App\Models\Master\ProductCategory::currentBusiness()
+            'params' => $params,
+            'filters' => $params,
+            'categories' => ProductCategory::currentBusiness()
                 ->select('id', 'name')
                 ->get()
-                ->map(function ($row) {
-                    return [
-                        'value' => $row->id,
-                        'label' => $row->name,
-                    ];
-                }),
+                ->map(fn ($row) => [
+                    'value' => $row->id,
+                    'label' => $row->name,
+                ]),
         ]);
     }
 
-    public function formOptions(Request $request)
+    public function formOptions(Request $request): JsonResponse
     {
+        $this->authorize(PermissionEnum::PRODUCT_VIEW->value);
+
         return response()->json([
-            'categories' => \App\Models\Master\ProductCategory::currentBusiness()->select('id', 'name')->get(),
-            'outlets' => \App\Models\Outlet::currentBusiness()->active()->select('id', 'name')->get(),
-            'modifierGroups' => \App\Models\Master\ModifierGroup::currentBusiness()->with('options:id,modifier_group_id,name,additional_price,is_default')->select('id', 'name', 'selection_type', 'max_select', 'is_required')->get(),
-            'inventoryItems' => \App\Models\Master\InventoryItem::currentBusiness()->select('id', 'name', 'uom_id')->get(),
+            'categories' => ProductCategory::currentBusiness()->select('id', 'name')->get(),
+            'outlets' => Outlet::currentBusiness()->active()->select('id', 'name')->get(),
+            'modifierGroups' => ModifierGroup::currentBusiness()
+                ->with('options:id,modifier_group_id,name,additional_price,is_default')
+                ->select('id', 'name', 'selection_type', 'max_select', 'is_required')
+                ->get(),
+            'inventoryItems' => InventoryItem::currentBusiness()->select('id', 'name', 'uom_id')->get(),
             'baseProducts' => Product::currentBusiness()->where('product_type', '!=', 'bundle')->select('id', 'name', 'code')->get(),
-            'uoms' => \App\Models\Uom::where('status', 'active')->orderBy('name')->select('id', 'name', 'code')->get(),
+            'uoms' => Uom::where('status', 'active')->orderBy('name')->select('id', 'name', 'code')->get(),
         ]);
     }
 
-    public function show(Product $product)
+    public function show(Product $product): ProductResource
     {
+        $this->authorize(PermissionEnum::PRODUCT_VIEW->value);
+
+        if ($product->business_id !== auth()->user()->business_id) {
+            abort(403);
+        }
+
         // Load all detailed relationships for the PopUp form
         $product->load([
-            'category', 'prices', 'outlets', 'inventoryItems.variantGroupOptions',
-            'images', 'variantGroups.options', 'modifierGroups', 'bundleItems',
+            'category',
+            'prices',
+            'outlets',
+            'inventoryItems.variantGroupOptions',
+            'images',
+            'variantGroups.options',
+            'modifierGroups',
+            'bundleItems',
         ]);
 
         return new ProductResource($product);
     }
 
-    public function create()
+    public function create(): Response
     {
+        $this->authorize(PermissionEnum::PRODUCT_CREATE->value);
+
         return Inertia::render('Master/Product/Form', [
-            'categories' => \App\Models\Master\ProductCategory::currentBusiness()->get(),
-            'outlets' => \App\Models\Outlet::currentBusiness()->active()->get(),
-            'modifierGroups' => \App\Models\Master\ModifierGroup::currentBusiness()->with('options')->get(),
-            'inventoryItems' => \App\Models\Master\InventoryItem::currentBusiness()->get(),
-            'products' => Product::currentBusiness()->where('product_type', '!=', 'bundle')->get(), // for bundle components
-            'uoms' => \App\Models\Uom::where('status', 'active')->get(),
+            'categories' => ProductCategory::currentBusiness()->get(),
+            'outlets' => Outlet::currentBusiness()->active()->get(),
+            'modifierGroups' => ModifierGroup::currentBusiness()->with('options')->get(),
+            'inventoryItems' => InventoryItem::currentBusiness()->get(),
+            'products' => Product::currentBusiness()->where('product_type', '!=', 'bundle')->get(),
+            'uoms' => Uom::where('status', 'active')->get(),
         ]);
     }
 
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductRequest $request): RedirectResponse
     {
+        $this->authorize(PermissionEnum::PRODUCT_CREATE->value);
+
         try {
             $data = $request->validated();
             $data['business_id'] = auth()->user()->business_id;
 
             $this->productService->createProduct($data);
 
-            return redirect()->route('master.products.index')->with('success', 'Produk berhasil dibuat.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal membuat produk: '.$e->getMessage());
+            return redirect()->route('master.products.index')->with(
+                FlashDataVariable::SUCCESS->value,
+                ResourceMessage::CREATE_SUCCESS
+            );
+        } catch (Exception $e) {
+            return redirect()->back()->with(
+                FlashDataVariable::FAILED->value,
+                'Gagal membuat produk: '.$e->getMessage()
+            );
         }
     }
 
-    public function edit(Product $product)
+    public function edit(Product $product): Response
     {
-        if ($product->business_id !== (auth()->user()->business_id)) {
+        $this->authorize(PermissionEnum::PRODUCT_UPDATE->value);
+
+        if ($product->business_id !== auth()->user()->business_id) {
             abort(403);
         }
 
@@ -117,18 +173,20 @@ class ProductController extends Controller
 
         return Inertia::render('Master/Product/Form', [
             'product' => $product,
-            'categories' => \App\Models\Master\ProductCategory::currentBusiness()->get(),
-            'outlets' => \App\Models\Outlet::currentBusiness()->active()->get(),
-            'modifierGroups' => \App\Models\Master\ModifierGroup::currentBusiness()->with('options')->get(),
-            'inventoryItems' => \App\Models\Master\InventoryItem::currentBusiness()->get(),
+            'categories' => ProductCategory::currentBusiness()->get(),
+            'outlets' => Outlet::currentBusiness()->active()->get(),
+            'modifierGroups' => ModifierGroup::currentBusiness()->with('options')->get(),
+            'inventoryItems' => InventoryItem::currentBusiness()->get(),
             'products' => Product::currentBusiness()->where('product_type', '!=', 'bundle')->get(),
-            'uoms' => \App\Models\Uom::where('status', 'active')->get(),
+            'uoms' => Uom::where('status', 'active')->get(),
         ]);
     }
 
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
-        if ($product->business_id !== (auth()->user()->business_id ?? \App\Models\Business::first()->id)) {
+        $this->authorize(PermissionEnum::PRODUCT_UPDATE->value);
+
+        if ($product->business_id !== auth()->user()->business_id) {
             abort(403);
         }
 
@@ -136,26 +194,39 @@ class ProductController extends Controller
             $data = $request->validated();
             $this->productService->updateProduct($product, $data);
 
-            return redirect()->route('master.products.index')->with('success', 'Produk berhasil diupdate.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal update produk: '.$e->getMessage());
+            return redirect()->route('master.products.index')->with(
+                FlashDataVariable::SUCCESS->value,
+                ResourceMessage::UPDATE_SUCCESS
+            );
+        } catch (Exception $e) {
+            return redirect()->back()->with(
+                FlashDataVariable::FAILED->value,
+                'Gagal update produk: '.$e->getMessage()
+            );
         }
     }
 
-    public function destroy(Product $product)
+    public function destroy(Product $product): RedirectResponse
     {
-        if ($product->business_id !== (auth()->user()->business_id ?? \App\Models\Business::first()->id)) {
+        $this->authorize(PermissionEnum::PRODUCT_DELETE->value);
+
+        if ($product->business_id !== auth()->user()->business_id) {
             abort(403);
         }
 
         $product->delete();
 
-        return redirect()->back()->with('success', 'Produk diarsipkan.');
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::DELETE_SUCCESS
+        );
     }
 
-    public function export(Request $request)
+    public function export(Request $request): RedirectResponse
     {
-        \App\Jobs\Master\ExportProductJob::dispatch(auth()->user(), auth()->user()->business_id, $request->all());
+        $this->authorize(PermissionEnum::PRODUCT_EXPORT->value);
+
+        ExportProductJob::dispatch(auth()->user(), auth()->user()->business_id, $request->all());
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
@@ -163,7 +234,7 @@ class ProductController extends Controller
         );
     }
 
-    public function importTemplate()
+    public function importTemplate(): BinaryFileResponse
     {
         $headers = [
             'SKU', 'Barcode', 'Nama Produk', 'Kategori', 'Deskripsi', 'Tipe Produk',
@@ -171,7 +242,7 @@ class ProductController extends Controller
             'Harga Dasar', 'Satuan', 'Lacak Stok', 'Minimum Stok', 'Status Tampil',
         ];
 
-        $outlets = \App\Models\Outlet::currentBusiness()->active()->get();
+        $outlets = Outlet::currentBusiness()->active()->get();
         foreach ($outlets as $outlet) {
             $headers[] = 'Outlet: '.$outlet->name;
         }
@@ -190,21 +261,18 @@ class ProductController extends Controller
             $dummy5[] = '';
         }
 
-        $export = new class($headers, $dummyData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings
+        $dummyData = [$dummy1, $dummy2, $dummy3, $dummy4, $dummy5];
+
+        $export = new class($headers, $dummyData) implements FromArray, WithHeadings
         {
-            private $headers;
-
-            private $dummyData;
-
-            public function __construct($headers, $dummyData)
-            {
-                $this->headers = $headers;
-                $this->dummyData = $dummyData;
-            }
+            public function __construct(
+                private array $headers,
+                private array $dummyData
+            ) {}
 
             public function array(): array
             {
-                return [$this->dummyData];
+                return $this->dummyData;
             }
 
             public function headings(): array
@@ -215,15 +283,17 @@ class ProductController extends Controller
 
         $filename = 'template_'.strtolower(class_basename($this)).'.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+        return Excel::download($export, $filename);
     }
 
-    public function import(Request $request)
+    public function import(Request $request): RedirectResponse
     {
+        $this->authorize(PermissionEnum::PRODUCT_IMPORT->value);
+
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:10240']);
         $path = $request->file('file')->store('imports', 'local');
 
-        \App\Jobs\Master\ImportProductJob::dispatch(auth()->user(), $path, auth()->user()->business_id);
+        ImportProductJob::dispatch(auth()->user(), $path, auth()->user()->business_id);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

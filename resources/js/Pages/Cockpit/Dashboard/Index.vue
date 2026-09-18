@@ -1,54 +1,146 @@
 <template>
-    <div class="flex flex-col gap-4 h-full relative">
-        <div class="flex flex-col sm:flex-row gap-4 justify-between w-full relative z-10">
-            <div class="w-full sm:w-1/2">
-                <h1 class="text-2xl font-bold text-neutral-800">Cockpit Dashboard</h1>
-                <div class="text-sm text-neutral-500">Platform Control Center Overview</div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-neutral-200/60">
-                <div class="text-neutral-500 text-sm font-medium">Active Merchants</div>
-                <div class="text-2xl font-bold mt-1 text-neutral-800">1,245</div>
-                <div class="text-xs text-success mt-2 flex items-center gap-1">
-                    <FontAwesomeIcon :icon="faArrowUp" /> 12% from last month
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-neutral-200/60">
-                <div class="text-neutral-500 text-sm font-medium">Active Outlets</div>
-                <div class="text-2xl font-bold mt-1 text-neutral-800">3,892</div>
-                <div class="text-xs text-success mt-2 flex items-center gap-1">
-                    <FontAwesomeIcon :icon="faArrowUp" /> 8% from last month
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-neutral-200/60">
-                <div class="text-neutral-500 text-sm font-medium">MRR</div>
-                <div class="text-2xl font-bold mt-1 text-neutral-800">Rp 145.2M</div>
-                <div class="text-xs text-success mt-2 flex items-center gap-1">
-                    <FontAwesomeIcon :icon="faArrowUp" /> 15% from last month
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-neutral-200/60">
-                <div class="text-neutral-500 text-sm font-medium">Pending Validation</div>
-                <div class="text-2xl font-bold mt-1 text-warning">24</div>
-                <div class="text-xs text-neutral-400 mt-2">Needs manual review</div>
-            </div>
-        </div>
-
-        <!-- More Dashboard widgets can be added below -->
-        <div class="bg-white flex-1 mt-2 rounded-xl shadow-sm border border-neutral-200/60 p-4">
-            <div class="text-neutral-600 font-medium mb-4">Revenue Growth</div>
-            <div
-                class="flex items-center justify-center h-48 bg-neutral-50 rounded-lg border border-dashed border-neutral-200"
+    <MainPage>
+        <template #header>
+            <MainPageHeader
+                title="Dashboard"
+                description="Ringkasan ekosistem SaaS, tren pertumbuhan pendapatan, akuisisi pengguna, dan antrean operasional"
             >
-                <span class="text-neutral-400">Chart Placeholder</span>
+                <div class="w-full sm:w-52">
+                    <GroupDropdownIconField
+                        id="period-filter"
+                        v-model="periodFilter"
+                        :icon="faCalendarDays"
+                        class="sm"
+                        :options="periodOptions"
+                        @change="handlePeriodChange"
+                    />
+                </div>
+            </MainPageHeader>
+        </template>
+
+        <template #widgets>
+            <CockpitKpiWidgets :metrics="metrics" />
+        </template>
+
+        <!-- Visual Analytics Grid -->
+        <div class="flex flex-col gap-2 pb-4">
+            <!-- Row 1: Revenue Trend & Plan Distribution -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+                <div class="lg:col-span-2">
+                    <CockpitRevenueTrendChart
+                        :revenue-trend="revenueTrend"
+                        :period-label="filters?.period_label"
+                    />
+                </div>
+                <div class="lg:col-span-1">
+                    <CockpitPlanDistributionChart :plan-distribution="planDistribution" />
+                </div>
+            </div>
+
+            <!-- Row 2: Merchant Acquisition & Business Type Breakdown -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+                <div class="lg:col-span-2">
+                    <CockpitAcquisitionChart :acquisition-trend="acquisitionTrend" />
+                </div>
+                <div class="lg:col-span-1">
+                    <CockpitBusinessTypeChart
+                        :business-type-distribution="businessTypeDistribution"
+                    />
+                </div>
+            </div>
+
+            <!-- Row 3: Actionable Queues & Recent Registrations -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                <CockpitPendingInvoicesTable :pending-invoices="pendingInvoices" />
+                <CockpitRecentMerchantsTable :recent-merchants="recentMerchants" />
             </div>
         </div>
-    </div>
+    </MainPage>
 </template>
 
 <script setup>
-import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ref, watch } from 'vue'
+import { router } from '@inertiajs/vue3'
+import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
+import CockpitKpiWidgets from './Components/CockpitKpiWidgets.vue'
+import CockpitRevenueTrendChart from './Components/CockpitRevenueTrendChart.vue'
+import CockpitAcquisitionChart from './Components/CockpitAcquisitionChart.vue'
+import CockpitPlanDistributionChart from './Components/CockpitPlanDistributionChart.vue'
+import CockpitBusinessTypeChart from './Components/CockpitBusinessTypeChart.vue'
+import CockpitPendingInvoicesTable from './Components/CockpitPendingInvoicesTable.vue'
+import CockpitRecentMerchantsTable from './Components/CockpitRecentMerchantsTable.vue'
+
+import { faCalendarDays } from '@fortawesome/free-solid-svg-icons'
+
+const props = defineProps({
+    metrics: {
+        type: Object,
+        default: () => ({}),
+    },
+    revenueTrend: {
+        type: Object,
+        default: () => ({ labels: [], values: [] }),
+    },
+    acquisitionTrend: {
+        type: Object,
+        default: () => ({ labels: [], merchants: [], outlets: [] }),
+    },
+    planDistribution: {
+        type: Object,
+        default: () => ({ labels: [], values: [] }),
+    },
+    businessTypeDistribution: {
+        type: Object,
+        default: () => ({ labels: [], values: [] }),
+    },
+    pendingInvoices: {
+        type: Array,
+        default: () => [],
+    },
+    recentMerchants: {
+        type: Array,
+        default: () => [],
+    },
+    filters: {
+        type: Object,
+        default: () => ({ period: 'this_month', period_label: 'Bulan Ini' }),
+    },
+})
+
+const periodFilter = ref(props.filters?.period || 'this_month')
+
+const periodOptions = [
+    { value: 'today', label: 'Hari Ini' },
+    { value: 'yesterday', label: 'Kemarin' },
+    { value: '7_days', label: '7 Hari Terakhir' },
+    { value: 'last_30_days', label: '30 Hari Terakhir' },
+    { value: 'this_month', label: 'Bulan Ini' },
+    { value: 'last_month', label: 'Bulan Lalu' },
+    { value: 'this_year', label: 'Tahun Ini' },
+    { value: 'all_time', label: 'Sepanjang Waktu' },
+]
+
+watch(
+    () => props.filters?.period,
+    newPeriod => {
+        if (newPeriod) {
+            periodFilter.value = newPeriod
+        }
+    }
+)
+
+const handlePeriodChange = val => {
+    const selected = typeof val === 'string' ? val : periodFilter.value
+    periodFilter.value = selected
+    router.get(
+        route('cockpit.dashboard'),
+        { period: selected },
+        {
+            preserveState: true,
+            preserveScroll: true,
+        }
+    )
+}
 </script>

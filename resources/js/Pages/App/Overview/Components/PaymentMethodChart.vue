@@ -1,38 +1,39 @@
 <template>
     <div
-        class="p-4 bg-white rounded-md border border-neutral-200 flex flex-col gap-3 h-full shadow-xs"
+        class="flex flex-col gap-2 p-3 bg-white rounded-lg border border-neutral-200/80 shadow-xs h-full"
     >
-        <div class="flex items-center justify-between">
-            <div>
-                <h3 class="text-base font-semibold text-neutral-800 flex items-center gap-2">
-                    <FontAwesomeIcon :icon="faCreditCard" class="text-main" />
-                    Ringkasan Metode Pembayaran
-                </h3>
-                <p class="text-xs text-neutral-500">
-                    Proporsi penerimaan uang berdasarkan jenis pembayaran
-                </p>
-            </div>
+        <div>
+            <h3 class="text-sm sm:text-base font-bold text-neutral-800 flex items-center gap-1.5">
+                <FontAwesomeIcon :icon="faCreditCard" class="text-main text-xs" />
+                Ringkasan Metode Pembayaran
+            </h3>
+            <p class="text-xs text-neutral-500">
+                Proporsi penerimaan transaksi berdasarkan jenis pembayaran
+            </p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center flex-1">
-            <div class="relative min-h-[200px] flex items-center justify-center">
-                <canvas id="chart-payment-method" class="w-full max-h-[220px]"></canvas>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center flex-1">
+            <div class="relative min-h-[180px] sm:min-h-[200px] flex items-center justify-center">
+                <canvas ref="chartCanvas" class="w-full h-full max-h-[200px]" />
             </div>
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-1.5">
                 <div
                     v-for="(method, index) in paymentMethods.label"
                     :key="index"
-                    class="flex items-center justify-between p-2 rounded-md bg-neutral-50 border border-neutral-100"
+                    class="flex items-center justify-between p-2 rounded-md bg-neutral-50 border border-neutral-100/80"
                 >
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
                         <span
-                            class="w-3 h-3 rounded-full shrink-0"
+                            class="w-2.5 h-2.5 rounded-full shrink-0"
                             :style="{ backgroundColor: getMethodColor(index) }"
                         ></span>
-                        <span class="text-xs font-medium text-neutral-700">{{ method }}</span>
+                        <span class="text-xs font-medium text-neutral-700 truncate">{{
+                            method
+                        }}</span>
                     </div>
-                    <div class="text-right">
+                    <div class="text-right shrink-0">
                         <span class="text-xs font-bold text-neutral-900 block">
-                            {{ paymentMethods.value?.[index] }}%
+                            {{ paymentMethods.value?.[index] || 0 }}%
                         </span>
                         <span
                             v-if="paymentMethods.revenue?.[index]"
@@ -48,7 +49,7 @@
 </template>
 
 <script setup>
-import { onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
 import { Chart } from 'chart.js/auto'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCreditCard } from '@fortawesome/free-solid-svg-icons'
@@ -65,28 +66,32 @@ const props = defineProps({
     },
 })
 
-const colors = ['#10B981', '#004AAD', '#3B82F6', '#F59E0B']
+const chartCanvas = ref(null)
+let chartInstance = null
+
+const colors = ['#10B981', '#004AAD', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899']
 
 const getMethodColor = index => colors[index % colors.length]
 
-let chartInstance = null
-
 const renderChart = () => {
-    const ctx = document.getElementById('chart-payment-method')
-    if (!ctx) return
+    if (!chartCanvas.value) return
 
     if (chartInstance) {
         chartInstance.destroy()
+        chartInstance = null
     }
 
-    chartInstance = new Chart(ctx, {
+    const labels = props.paymentMethods?.label || []
+    const data = props.paymentMethods?.value || []
+
+    chartInstance = new Chart(chartCanvas.value, {
         type: 'pie',
         data: {
-            labels: props.paymentMethods.label || [],
+            labels,
             datasets: [
                 {
-                    data: props.paymentMethods.value || [],
-                    backgroundColor: colors.slice(0, props.paymentMethods.label?.length || 4),
+                    data,
+                    backgroundColor: colors.slice(0, Math.max(labels.length, 1)),
                     borderWidth: 2,
                     borderColor: '#ffffff',
                 },
@@ -100,10 +105,15 @@ const renderChart = () => {
                     display: false,
                 },
                 tooltip: {
+                    backgroundColor: '#1e293b',
+                    titleColor: '#f8fafc',
+                    bodyColor: '#f8fafc',
+                    padding: 8,
+                    cornerRadius: 6,
                     callbacks: {
                         label: function (context) {
                             const index = context.dataIndex
-                            const percentage = context.parsed
+                            const percentage = context.parsed || 0
                             const revenue = props.paymentMethods.revenue?.[index]
                             return revenue
                                 ? ` ${context.label}: ${percentage}% (${formatIDR(revenue)})`
@@ -127,4 +137,10 @@ watch(
     },
     { deep: true }
 )
+
+onBeforeUnmount(() => {
+    if (chartInstance) {
+        chartInstance.destroy()
+    }
+})
 </script>

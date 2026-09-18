@@ -1,73 +1,42 @@
 <template>
-    <div
-        class="bg-white p-2.5 rounded-xl border border-neutral-200/70 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2"
-    >
-        <div class="flex flex-wrap items-center gap-2">
+    <FilterBar>
+        <template #left>
+            <!-- Status Segmented -->
+            <FilterSegmented
+                v-model="filterForm.status"
+                :options="statusOptions"
+                @change="updateQuery"
+            />
+
+            <!-- Business Type Dropdown -->
+            <FilterDropdown
+                v-if="businessTypeOptions.length > 0"
+                v-model="filterForm.business_type_id"
+                label="Jenis Bisnis"
+                :options="businessTypeOptions"
+                all-option-label="Semua Jenis Bisnis"
+                @change="updateQuery"
+            />
+        </template>
+
+        <template #search>
             <FilterSearch
                 v-model="filterForm.search"
                 placeholder="Cari nama bisnis, email, pemilik..."
-                class="w-full sm:w-64"
+                @clear="updateQuery"
             />
-
-            <div class="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg text-xs font-medium">
-                <button
-                    type="button"
-                    class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                    :class="
-                        filterForm.status === '' || filterForm.status === 'all'
-                            ? 'bg-white text-neutral-800 font-bold'
-                            : 'text-neutral-500 hover:text-neutral-800'
-                    "
-                    @click="setStatus('')"
-                >
-                    Semua
-                </button>
-                <button
-                    type="button"
-                    class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                    :class="
-                        filterForm.status === 'active'
-                            ? 'bg-white text-success font-bold'
-                            : 'text-neutral-500 hover:text-neutral-800'
-                    "
-                    @click="setStatus('active')"
-                >
-                    Aktif
-                </button>
-                <button
-                    type="button"
-                    class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                    :class="
-                        filterForm.status === 'suspended'
-                            ? 'bg-white text-danger font-bold'
-                            : 'text-neutral-500 hover:text-neutral-800'
-                    "
-                    @click="setStatus('suspended')"
-                >
-                    Ditangguhkan
-                </button>
-            </div>
-        </div>
-
-        <div v-if="businessTypeOptions.length > 1" class="flex items-center gap-2 justify-end">
-            <div class="w-44">
-                <DropdownField
-                    v-model="filterForm.business_type_id"
-                    :options="businessTypeOptions"
-                    placeholder="Semua Jenis Bisnis"
-                    class="sm"
-                />
-            </div>
-        </div>
-    </div>
+        </template>
+    </FilterBar>
 </template>
 
 <script setup>
 import { reactive, watch, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
 import debounce from 'lodash/debounce'
+import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
+import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
-import DropdownField from '@/Components/Form/DropdownField.vue'
 
 const props = defineProps({
     filters: {
@@ -91,21 +60,18 @@ const filterForm = reactive({
             : 'created_at',
 })
 
-const businessTypeOptions = computed(() => {
-    const list = [{ value: '', label: 'Semua Jenis Bisnis' }]
-    props.businessTypes.forEach(bt => {
-        list.push({
-            value: String(bt.id),
-            label: bt.name,
-        })
-    })
-    return list
-})
+const statusOptions = [
+    { value: '', label: 'Semua Status' },
+    { value: 'active', label: 'Aktif' },
+    { value: 'suspended', label: 'Ditangguhkan' },
+]
 
-const setStatus = val => {
-    filterForm.status = val
-    updateQuery()
-}
+const businessTypeOptions = computed(() => {
+    return props.businessTypes.map(bt => ({
+        value: String(bt.id),
+        label: bt.name,
+    }))
+})
 
 const updateQuery = () => {
     const query = {
@@ -114,15 +80,15 @@ const updateQuery = () => {
         status: filterForm.status || undefined,
         business_type_id: filterForm.business_type_id || undefined,
         sort: filterForm.sort || undefined,
+        page: 1,
     }
 
+    // Clean up empty params
     Object.keys(query).forEach(key => {
         if (query[key] === '' || query[key] === null || query[key] === undefined) {
             delete query[key]
         }
     })
-
-    query.page = 1
 
     router.get(location.pathname, query, {
         preserveState: true,
@@ -135,19 +101,5 @@ watch(
     debounce(() => {
         updateQuery()
     }, 500)
-)
-
-watch(
-    () => filterForm.business_type_id,
-    () => {
-        updateQuery()
-    }
-)
-
-watch(
-    () => filterForm.sort,
-    () => {
-        updateQuery()
-    }
 )
 </script>

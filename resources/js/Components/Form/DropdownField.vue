@@ -1,10 +1,18 @@
 <template>
     <div>
-        <label v-if="label" :for="$attrs.id" class="label">{{ label }}</label>
+        <label
+            v-if="label"
+            :for="$attrs.id"
+            class="label"
+            :class="{ '!text-xs': size === 'sm', '!text-base': size === 'lg' }"
+        >
+            {{ label }}
+        </label>
         <select
             :id
             class="form pr-10!"
             :class="[
+                { sm: size === 'sm', lg: size === 'lg' },
                 { 'text-gray-500': modelValue === '' },
                 { 'is-invalid': error, 'is-valid': success },
             ]"
@@ -27,19 +35,26 @@ defineOptions({
     inheritAttrs: false,
 })
 
-const { id, label, modelValue, placeholder, options, feedback, error, success } = defineProps({
-    id: String,
-    label: String,
-    modelValue: { type: String, default: '' },
-    placeholder: String,
-    options: {
-        type: Array,
-        default: () => [], // format: [{ value: '1', label: 'Satu' }]
-    },
-    feedback: String,
-    error: String,
-    success: String,
-})
+const { id, label, modelValue, placeholder, options, feedback, error, success, size } = defineProps(
+    {
+        id: String,
+        label: String,
+        modelValue: { type: String, default: '' },
+        placeholder: String,
+        options: {
+            type: Array,
+            default: () => [], // format: [{ value: '1', label: 'Satu' }]
+        },
+        feedback: String,
+        error: String,
+        success: String,
+        size: {
+            type: String,
+            default: 'base',
+            validator: v => ['sm', 'base', 'lg'].includes(v),
+        },
+    }
+)
 
 const emit = defineEmits(['update:modelValue'])
 </script>

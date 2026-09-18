@@ -1,178 +1,102 @@
 <template>
-    <div class="flex flex-wrap items-center gap-2">
-        <!-- Search bar -->
-        <div>
-            <FilterSearch v-model="filterForm.search" />
-        </div>
+    <FilterBar>
+        <template #left>
+            <!-- Role Filter -->
+            <FilterDropdown
+                v-if="roleOptions.length > 0"
+                v-model="filterForm.role"
+                label="Peran"
+                :options="roleOptions"
+                :icon="faUserShield"
+                all-option-label="Semua Peran"
+                @change="updateQuery"
+            />
 
-        <!-- Filter Button -->
-        <div>
-            <button
-                type="button"
-                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
-                @click="openModal"
-            >
-                <span>Filter</span>
-                <FontAwesomeIcon :icon="faSliders" />
-            </button>
-        </div>
+            <!-- Outlet Filter -->
+            <FilterDropdown
+                v-if="outletOptions.length > 1 && !selectedOutlet"
+                v-model="filterForm.outlet"
+                label="Outlet"
+                :options="outletOptions"
+                :icon="faMapMarkerAlt"
+                all-option-label="Semua Outlet"
+                @change="updateQuery"
+            />
 
-        <!-- Active Filter Badges -->
-        <div class="flex flex-wrap items-center gap-1.5">
-            <FilterBadge v-if="filterForm.role" @remove="removeFilter('role')">
-                Peran: {{ getRoleLabel(filterForm.role) }}
-            </FilterBadge>
-            <FilterBadge v-if="filterForm.outlet" @remove="removeFilter('outlet')">
-                Outlet: {{ getOutletLabel(filterForm.outlet) }}
-            </FilterBadge>
-            <FilterBadge v-if="filterForm.is_deleted" @remove="removeFilter('is_deleted')">
-                Tampilkan Arsip
-            </FilterBadge>
-        </div>
+            <!-- Trashed / Archived Filter -->
+            <FilterSegmented
+                v-model="filterForm.is_deleted"
+                :options="statusSegmentOptions"
+                @change="updateQuery"
+            />
+        </template>
 
-        <!-- Filter Modal Overlay -->
-        <FilterModal
-            :show="showFilterModal"
-            title="Filter Pegawai"
-            @close="closeModal"
-            @reset="resetTempFilters"
-            @apply="applyFilters"
-        >
-            <!-- Body -->
-            <div class="space-y-4">
-                <!-- Role Filter -->
-                <div class="space-y-1">
-                    <label
-                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                        >Peran</label
-                    >
-                    <GroupDropdownIconField
-                        id="roles"
-                        v-model="tempFilters.role"
-                        :icon="faUserShield"
-                        placeholder="Semua Peran"
-                        class="w-full"
-                        :options="roles"
-                    />
-                </div>
-
-                <!-- Outlet Filter -->
-                <div v-if="outlets.length > 1 && selectedOutlet === null" class="space-y-1">
-                    <label
-                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                        >Outlet</label
-                    >
-                    <GroupDropdownIconField
-                        id="outlets"
-                        v-model="tempFilters.outlet"
-                        :icon="faMapMarkerAlt"
-                        placeholder="Semua Outlet"
-                        class="w-full"
-                        :options="outlets"
-                    />
-                </div>
-
-                <!-- Show Archived Filter -->
-                <div class="flex items-center justify-between border-t pt-3">
-                    <span class="text-sm font-medium text-slate-700">Tampilkan Arsip</span>
-                    <Switch
-                        id="switch_regular"
-                        v-model="tempFilters.is_deleted"
-                        name="switch_regular"
-                        size="sm"
-                    />
-                </div>
-            </div>
-        </FilterModal>
-    </div>
+        <template #search>
+            <FilterSearch
+                v-model="filterForm.search"
+                placeholder="Cari pegawai / email..."
+                @clear="updateQuery"
+            />
+        </template>
+    </FilterBar>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
+import { reactive, computed, watch } from 'vue'
+import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faUserShield, faMapMarkerAlt, faSliders } from '@fortawesome/free-solid-svg-icons'
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
-import Switch from '@/Components/Form/Switch.vue'
+import { faUserShield, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons'
+import { useAuth } from '@/Composable/useAuth'
+import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
+import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
-import FilterModal from '@/Components/UI/Filter/FilterModal.vue'
-import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
 
 const props = defineProps({
-    filters: Object,
-    roles: Array,
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
+    roles: {
+        type: Array,
+        default: () => [],
+    },
 })
 
-const outlets = usePage().props.auth.outlets.map(store => ({
-    value: store.id,
-    label: store.name,
-}))
+const { outlets: userOutlets, selectedOutlet } = useAuth()
+const outletOptions = computed(() =>
+    (userOutlets.value || []).map(store => ({
+        value: String(store.id),
+        label: store.name,
+    }))
+)
 
-const selectedOutlet = computed(() => usePage().props.selectedOutlet)
+const roleOptions = computed(() => {
+    return props.roles.map(r => ({
+        value: String(r.value ?? r.id),
+        label: r.label ?? r.name,
+    }))
+})
+
+const statusSegmentOptions = [
+    { value: '', label: 'Semua Pegawai' },
+    { value: '1', label: 'Arsip' },
+]
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
-    outlet: props.filters?.outlet ?? '',
-    role: props.filters?.role ?? '',
-    is_deleted: props.filters?.is_deleted ? true : false,
+    outlet: props.filters?.outlet ? String(props.filters.outlet) : '',
+    role: props.filters?.role ? String(props.filters.role) : '',
+    is_deleted: props.filters?.is_deleted ? '1' : '',
 })
 
-// Modal State
-const showFilterModal = ref(false)
-const tempFilters = reactive({
-    role: '',
-    outlet: '',
-    is_deleted: false,
-})
-
-// Watch search separately for immediate query trigger
+// Watch search with debounce
 watch(
     () => filterForm.search,
-    debounce(newVal => {
+    debounce(() => {
         updateQuery()
     }, 500)
 )
-
-const getRoleLabel = roleVal => {
-    return props.roles.find(r => r.value === roleVal)?.label ?? roleVal
-}
-
-const getOutletLabel = outId => {
-    return outlets.find(o => o.value === outId)?.label ?? outId
-}
-
-const openModal = () => {
-    tempFilters.role = filterForm.role
-    tempFilters.outlet = filterForm.outlet
-    tempFilters.is_deleted = filterForm.is_deleted
-    showFilterModal.value = true
-}
-
-const closeModal = () => {
-    showFilterModal.value = false
-}
-
-const resetTempFilters = () => {
-    tempFilters.role = ''
-    tempFilters.outlet = ''
-    tempFilters.is_deleted = false
-}
-
-const applyFilters = () => {
-    filterForm.role = tempFilters.role
-    filterForm.outlet = tempFilters.outlet
-    filterForm.is_deleted = tempFilters.is_deleted
-    showFilterModal.value = false
-    updateQuery()
-}
-
-const removeFilter = key => {
-    if (key === 'role') filterForm.role = ''
-    if (key === 'outlet') filterForm.outlet = ''
-    if (key === 'is_deleted') filterForm.is_deleted = false
-    updateQuery()
-}
 
 const updateQuery = () => {
     const query = {
@@ -180,7 +104,7 @@ const updateQuery = () => {
         search: filterForm.search || undefined,
         role: filterForm.role || undefined,
         outlet: filterForm.outlet || undefined,
-        is_deleted: filterForm.is_deleted ? 1 : undefined,
+        is_deleted: filterForm.is_deleted === '1' ? 1 : undefined,
         page: 1,
     }
 

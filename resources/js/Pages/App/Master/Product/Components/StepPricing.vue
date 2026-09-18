@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-4">
-        <div class="font-semibold text-lg border-b pb-1">Setup Harga</div>
-        <div class="mb-4 border p-3 rounded-lg bg-slate-50">
+        <div class="font-semibold text-lg border-b border-slate-200 pb-1">Setup Harga</div>
+        <div class="mb-4 border border-slate-200 p-3 rounded-xl bg-slate-50">
             <NumberField
                 v-model="form.base_price"
                 label="Harga Dasar Produk"
@@ -13,20 +13,24 @@
 
         <!-- Non-Variant Pricing -->
         <div v-if="!form.has_variant" class="space-y-3">
-            <label
-                class="flex items-center gap-2 border p-3 rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100 transition"
+            <div
+                class="flex items-center justify-between border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition w-full"
             >
-                <input
-                    v-model="customizeOutletPrices"
-                    type="checkbox"
-                    class="rounded text-primary cursor-pointer"
-                />
-                <span class="text-sm font-semibold text-slate-700"
-                    >Atur harga berbeda per outlet</span
-                >
-            </label>
+                <div>
+                    <div class="font-bold text-sm text-slate-800">
+                        Atur Harga Berbeda per Outlet
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        Aktifkan jika harga produk berbeda pada masing-masing cabang / outlet.
+                    </div>
+                </div>
+                <Switch v-model="customizeOutletPrices" size="md" />
+            </div>
 
-            <div v-if="customizeOutletPrices" class="space-y-2 border p-3 rounded-lg bg-slate-50">
+            <div
+                v-if="customizeOutletPrices"
+                class="space-y-2 border border-slate-200 p-3 rounded-xl bg-slate-50"
+            >
                 <h3 class="font-bold text-sm text-slate-700 mb-2">
                     Timpa Harga per Outlet (Opsional)
                 </h3>
@@ -47,42 +51,32 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Initial Stock Setup (only on create & if track_inventory = true) -->
-            <div
-                v-if="form.track_inventory && !isEdit"
-                class="border p-3 rounded-lg bg-neutral-50 space-y-3 mt-4"
-            >
-                <h3 class="font-bold text-sm text-neutral-700">Setup Stok</h3>
-                <div class="grid grid-cols-1 gap-3">
-                    <NumberField v-model="form.min_stock" label="Minimal Stok" placeholder="0" />
-                </div>
-            </div>
         </div>
 
         <!-- Variant Pricing -->
         <div v-else class="space-y-4">
-            <label
-                class="flex items-center gap-2 border p-3 rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100 transition"
+            <div
+                class="flex items-center justify-between border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition w-full"
             >
-                <input
-                    v-model="customizeVariantPrices"
-                    type="checkbox"
-                    class="rounded text-primary cursor-pointer"
-                />
-                <span class="text-sm font-semibold text-slate-700"
-                    >Atur harga berbeda per varian & outlet</span
-                >
-            </label>
+                <div>
+                    <div class="font-bold text-sm text-slate-800">
+                        Atur Harga Berbeda per Varian & Outlet
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        Kustomisasi harga spesifik per kombinasi varian dan outlet.
+                    </div>
+                </div>
+                <Switch v-model="customizeVariantPrices" size="md" />
+            </div>
 
             <div v-if="customizeVariantPrices" class="space-y-4">
                 <h3 class="font-bold text-sm text-slate-700">Harga Detail per Varian & Outlet</h3>
                 <div
                     v-for="(combo, cIdx) in form.variant_combinations"
                     :key="cIdx"
-                    class="border p-3 rounded-lg bg-slate-50 space-y-3"
+                    class="border border-slate-200 p-3 rounded-xl bg-slate-50 space-y-3"
                 >
-                    <div class="font-bold text-sm border-b pb-1 text-primary">
+                    <div class="font-bold text-sm border-b border-slate-200 pb-1 text-primary">
                         Varian: {{ Object.values(combo.options).join(' / ') }}
                     </div>
                     <div class="grid grid-cols-3 gap-3">
@@ -129,10 +123,9 @@
 <script setup>
 import { inject } from 'vue'
 import NumberField from '@/Components/Form/NumberField.vue'
-import TextField from '@/Components/Form/TextField.vue'
+import Switch from '@/Components/Form/Switch.vue'
 
 const form = inject('productForm')
-const isEdit = inject('isEdit')
 const outlets = inject('outlets')
 const outletStatusMap = inject('outletStatusMap')
 const outletPriceMap = inject('outletPriceMap')

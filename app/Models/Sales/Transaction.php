@@ -106,6 +106,8 @@ class Transaction extends Model
                         $query->where('name', 'like', '%'.$search.'%');
                     });
             });
+        })->when($filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(), function ($query, $outletId) {
+            $query->where('outlet_id', $outletId);
         })->when($filters['channel'] ?? null, function ($query, $channel) {
             $query->where('channel', $channel);
         })->when($filters['status'] ?? null, function ($query, $status) {

@@ -1,133 +1,72 @@
 <template>
-    <div class="flex flex-wrap items-center gap-2">
-        <!-- Search bar -->
-        <div>
-            <FilterSearch v-model="filterForm.search" placeholder="Cari no. transfer..." />
-        </div>
+    <FilterBar>
+        <template #left>
+            <!-- Status Filter -->
+            <FilterDropdown
+                v-model="filterForm.status"
+                label="Status"
+                :options="statusOptions"
+                all-option-label="Semua Status"
+                @change="updateQuery"
+            />
 
-        <!-- Filter Button -->
-        <div>
-            <button
-                type="button"
-                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
-                @click="openModal"
-            >
-                <span>Filter</span>
-                <FontAwesomeIcon :icon="faSliders" />
-            </button>
-        </div>
+            <!-- From Outlet Filter -->
+            <FilterDropdown
+                v-if="outletOptions.length > 1 && !selectedOutlet"
+                v-model="filterForm.from_outlet_id"
+                label="Dari Outlet"
+                :options="outletOptions"
+                :icon="faStore"
+                all-option-label="Semua Asal"
+                @change="updateQuery"
+            />
 
-        <!-- Active Filter Badges -->
-        <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <FilterBadge v-if="filterForm.status !== ''" @remove="removeFilter('status')">
-                Status: {{ getStatusName(filterForm.status) }}
-            </FilterBadge>
-            <FilterBadge
-                v-if="filterForm.from_outlet_id !== ''"
-                @remove="removeFilter('from_outlet_id')"
-            >
-                Dari: {{ getOutletName(filterForm.from_outlet_id) }}
-            </FilterBadge>
-            <FilterBadge
-                v-if="filterForm.to_outlet_id !== ''"
-                @remove="removeFilter('to_outlet_id')"
-            >
-                Ke: {{ getOutletName(filterForm.to_outlet_id) }}
-            </FilterBadge>
-        </div>
+            <!-- To Outlet Filter -->
+            <FilterDropdown
+                v-if="outletOptions.length > 1 && !selectedOutlet"
+                v-model="filterForm.to_outlet_id"
+                label="Ke Outlet"
+                :options="outletOptions"
+                :icon="faStore"
+                all-option-label="Semua Tujuan"
+                @change="updateQuery"
+            />
+        </template>
 
-        <!-- Filter Modal Overlay -->
-        <FilterModal
-            :show="showFilterModal"
-            title="Filter Transfer Stok"
-            @close="closeModal"
-            @reset="resetTempFilters"
-            @apply="applyFilters"
-        >
-            <div class="space-y-4">
-                <div class="space-y-1">
-                    <label
-                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                    >
-                        Status
-                    </label>
-                    <select
-                        v-model="tempFilters.status"
-                        class="form-input w-full rounded-lg border-gray-200"
-                    >
-                        <option value="">Semua Status</option>
-                        <option
-                            v-for="status in statusOptions"
-                            :key="status.value"
-                            :value="status.value"
-                        >
-                            {{ status.label }}
-                        </option>
-                    </select>
-                </div>
-
-                <div class="space-y-1">
-                    <label
-                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                    >
-                        Dari Outlet
-                    </label>
-                    <AsyncOutletDropdown
-                        v-if="showFilterModal"
-                        v-model="tempFilters.from_outlet_id"
-                        placeholder="Semua Outlet"
-                        @loaded="onOutletsLoaded"
-                    />
-                </div>
-
-                <div class="space-y-1">
-                    <label
-                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                    >
-                        Ke Outlet
-                    </label>
-                    <AsyncOutletDropdown
-                        v-if="showFilterModal"
-                        v-model="tempFilters.to_outlet_id"
-                        placeholder="Semua Outlet"
-                    />
-                </div>
-            </div>
-        </FilterModal>
-    </div>
+        <template #search>
+            <FilterSearch
+                v-model="filterForm.search"
+                placeholder="Cari no. transfer..."
+                @clear="updateQuery"
+            />
+        </template>
+    </FilterBar>
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { reactive, watch, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faSliders } from '@fortawesome/free-solid-svg-icons'
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
+import { faStore } from '@fortawesome/free-solid-svg-icons'
+import { useAuth } from '@/Composable/useAuth'
+import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
-import FilterModal from '@/Components/UI/Filter/FilterModal.vue'
-import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
 
 const props = defineProps({
-    filters: Object,
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
-const loadedOutlets = ref([])
-
-const filterForm = reactive({
-    search: props.filters?.search ?? '',
-    status: props.filters?.status ?? '',
-    from_outlet_id: props.filters?.from_outlet_id ?? '',
-    to_outlet_id: props.filters?.to_outlet_id ?? '',
-})
-
-// Modal State
-const showFilterModal = ref(false)
-const tempFilters = reactive({
-    status: '',
-    from_outlet_id: '',
-    to_outlet_id: '',
-})
+const { outlets: userOutlets, selectedOutlet } = useAuth()
+const outletOptions = computed(() =>
+    (userOutlets.value || []).map(store => ({
+        value: String(store.id),
+        label: store.name,
+    }))
+)
 
 const statusOptions = [
     { value: 'pending', label: 'Menunggu' },
@@ -137,55 +76,20 @@ const statusOptions = [
     { value: 'rejected', label: 'Ditolak' },
 ]
 
-const onOutletsLoaded = outlets => {
-    loadedOutlets.value = outlets
-}
+const filterForm = reactive({
+    search: props.filters?.search ?? '',
+    status: props.filters?.status ?? '',
+    from_outlet_id: props.filters?.from_outlet_id ? String(props.filters.from_outlet_id) : '',
+    to_outlet_id: props.filters?.to_outlet_id ? String(props.filters.to_outlet_id) : '',
+})
 
-// Watch search separately for immediate query trigger
+// Watch search with debounce
 watch(
     () => filterForm.search,
     debounce(() => {
         updateQuery()
     }, 500)
 )
-
-const getStatusName = val => {
-    return statusOptions.find(o => o.value == val)?.label || val
-}
-
-const getOutletName = id => {
-    return loadedOutlets.value.find(o => o.id == id)?.name || id
-}
-
-const openModal = () => {
-    tempFilters.status = filterForm.status
-    tempFilters.from_outlet_id = filterForm.from_outlet_id
-    tempFilters.to_outlet_id = filterForm.to_outlet_id
-    showFilterModal.value = true
-}
-
-const closeModal = () => {
-    showFilterModal.value = false
-}
-
-const resetTempFilters = () => {
-    tempFilters.status = ''
-    tempFilters.from_outlet_id = ''
-    tempFilters.to_outlet_id = ''
-}
-
-const applyFilters = () => {
-    filterForm.status = tempFilters.status
-    filterForm.from_outlet_id = tempFilters.from_outlet_id
-    filterForm.to_outlet_id = tempFilters.to_outlet_id
-    showFilterModal.value = false
-    updateQuery()
-}
-
-const removeFilter = key => {
-    filterForm[key] = ''
-    updateQuery()
-}
 
 const updateQuery = () => {
     const query = {

@@ -29,10 +29,26 @@ class CategoryServiceTest extends TestCase
         $this->auditLogServiceMock = Mockery::mock(AuditLogService::class);
         $this->auditLogServiceMock->shouldReceive('log')->andReturnNull();
 
-        $this->service = new CategoryService($this->activityLogServiceMock ?? $this->auditLogServiceMock);
+        $this->service = new CategoryService($this->auditLogServiceMock);
 
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $this->user = User::first();
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'John Doe',
+            'email' => 'owner@example.com',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $this->user = User::factory()->create([
+            'business_id' => $business->id,
+        ]);
         Auth::login($this->user);
     }
 

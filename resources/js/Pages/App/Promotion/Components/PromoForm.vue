@@ -138,7 +138,10 @@
         </div>
 
         <!-- Section 5: Cakupan Outlet -->
-        <div class="space-y-2 border-t border-slate-100 pt-4">
+        <div
+            v-if="!selectedOutlet && outlets.length > 1"
+            class="space-y-2 border-t border-slate-100 pt-4"
+        >
             <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Cakupan Outlet
             </h3>
@@ -219,7 +222,7 @@ const props = defineProps({
 const popUpStore = usePopUpStore()
 const isMounted = ref(false)
 
-const { outlets: userOutlets } = useAuth()
+const { outlets: userOutlets, selectedOutlet } = useAuth()
 
 const outlets = computed(
     () =>
@@ -252,9 +255,13 @@ const form = useForm({
     end_date: props.promo?.end_date || '',
     start_time: props.promo?.start_time || '',
     end_time: props.promo?.end_time || '',
-    applies_to_all_outlets: props.promo ? props.promo.applies_to_all_outlets : true,
+    applies_to_all_outlets: props.promo
+        ? props.promo.applies_to_all_outlets
+        : !selectedOutlet.value,
     inventory_item_ids: [],
-    outlet_ids: props.promo?.outlets?.map(o => o.id) || [],
+    outlet_ids:
+        props.promo?.outlets?.map(o => o.id) ||
+        (selectedOutlet.value ? [selectedOutlet.value.id] : []),
 })
 
 onMounted(async () => {

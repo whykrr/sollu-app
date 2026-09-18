@@ -1,15 +1,23 @@
 <template>
     <div class="relative">
-        <label v-if="label" :for="$attrs.id" class="block text-sm font-medium mb-1">{{
-            label
-        }}</label>
+        <label
+            v-if="label"
+            :for="$attrs.id"
+            class="block font-medium mb-1"
+            :class="size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-base' : 'text-sm'"
+        >
+            {{ label }}
+        </label>
         <div class="relative">
             <input
                 :id="$attrs.id"
                 v-model="searchQuery"
                 type="text"
                 class="form w-full"
-                :class="{ 'border-danger': feedback, 'bg-gray-100': disabled }"
+                :class="[
+                    { sm: size === 'sm', lg: size === 'lg' },
+                    { 'border-danger': feedback, 'bg-gray-100': disabled },
+                ]"
                 :placeholder="placeholder"
                 :disabled="disabled"
                 autocomplete="off"
@@ -107,6 +115,12 @@ const props = defineProps({
 
     // Fallback display if not using slot
     optionLabel: { type: [String, Function], default: 'name' },
+
+    size: {
+        type: String,
+        default: 'base',
+        validator: v => ['sm', 'base', 'lg'].includes(v),
+    },
 })
 
 const feedbackMessage = computed(() => props.feedback || props.error || '')

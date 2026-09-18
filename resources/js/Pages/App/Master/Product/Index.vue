@@ -1,23 +1,33 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Data Produk">
-                <button class="btn btn-flat btn-sm" @click="exportCsv">
-                    <FontAwesomeIcon :icon="faDownload" />
-                    Ekspor Data
-                </button>
-                <button class="btn btn-flat btn-sm" @click="showImportModal = true">
-                    <FontAwesomeIcon :icon="faUpload" />
-                    Impor Data
-                </button>
-                <button class="btn btn-highlight-main" @click="openCreate">
+            <MainPageHeader
+                title="Data Produk"
+                description="Kelola katalog produk, harga, varian, dan ketersediaan di outlet"
+            >
+                <button class="btn btn-main" @click="openCreate">
                     <FontAwesomeIcon :icon="faPlus" />
                     Tambah Baru
                 </button>
             </MainPageHeader>
-            <ProductFilter :filters="filters" :categories="categories" />
         </template>
-        <Table :headers="headers" :data="products.data" :action="true">
+
+        <template #filter>
+            <ProductFilter
+                :filters="activeFilters"
+                :categories="categories"
+                @open-import="showImportModal = true"
+            />
+        </template>
+
+        <Table
+            :headers="headers"
+            :data="products.data"
+            :sort="activeFilters?.sort ?? 'created_at'"
+            :sort-direction="activeFilters?.direction ?? 'desc'"
+            :action="true"
+            @row-click="openEdit"
+        >
             <template #image="{ row }">
                 <img
                     v-if="row.cover_image_url"
@@ -36,7 +46,11 @@
                 {{ row.code || '-' }}
             </template>
             <template #type="{ row }">
-                <span class="capitalize">{{ row.product_type }}</span>
+                <span v-if="row.product_type === 'service'" class="badge badge-info">Layanan</span>
+                <span v-else-if="row.product_type === 'bundle'" class="badge badge-warning"
+                    >Bundle</span
+                >
+                <span v-else class="badge badge-neutral-400">Barang</span>
             </template>
             <template #category="{ row }">
                 {{ row.category?.name || '-' }}
@@ -50,13 +64,17 @@
             </template>
             <template #actions="{ row }">
                 <div class="flex items-center gap-1 justify-end">
-                    <button class="btn btn-flat btn-sm" title="Ubah Produk" @click="openEdit(row)">
+                    <button
+                        class="btn btn-flat btn-sm"
+                        title="Ubah Produk"
+                        @click.stop="openEdit(row)"
+                    >
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
                         class="btn btn-flat btn-sm text-danger"
                         title="Hapus"
-                        @click="archiveProduct(row.id)"
+                        @click.stop="archiveProduct(row.id)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>
@@ -65,13 +83,7 @@
         </Table>
 
         <template #footer>
-            <Pagination
-                :links="products.links"
-                :from="products.from"
-                :to="products.to"
-                :total="products.total"
-                :per-page="products.per_page ?? 20"
-            />
+            <Pagination :meta="products.meta || products" />
         </template>
 
         <ImportCsvModal
@@ -85,37 +97,45 @@
 </template>
 
 <script setup>
-import { ref, watch, provide, computed } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
+import { ref, computed } from 'vue'
+import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import {
-    faPlus,
-    faPencil,
-    faTrash,
-    faImage,
-    faUpload,
-    faDownload,
-} from '@fortawesome/free-solid-svg-icons'
-import { debounce } from 'lodash'
+import { faPlus, faPencil, faTrash, faImage } from '@fortawesome/free-solid-svg-icons'
 import ProductFilter from './Components/ProductFilter.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import { usePopUpStore } from '@/store/popup'
 import CreateEditWrapper from './CreateEditWrapper.vue'
 import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue'
 import { useModalStore } from '@/store/notification.js'
+import { useAuth } from '@/Composable/useAuth'
 
 const popUpStore = usePopUpStore()
 const modalStore = useModalStore()
-const page = usePage()
+const { selectedOutlet } = useAuth()
 
 const props = defineProps({
-    products: Object,
-    filters: Object,
-    categories: Array,
+    products: {
+        type: Object,
+        default: () => ({}),
+    },
+    params: {
+        type: Object,
+        default: () => ({}),
+    },
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
+    categories: {
+        type: Array,
+        default: () => [],
+    },
 })
+
+const activeFilters = computed(() => props.params || props.filters || {})
 
 const headers = [
     { label: 'Foto', field: 'image', slot: 'image', sortable: false },
@@ -132,22 +152,26 @@ const headers = [
     { label: 'Status', field: 'is_show', slot: 'status', sortable: false },
 ]
 
-const search = ref('')
 const showImportModal = ref(false)
 
-watch(
-    search,
-    debounce(newVal => {
-        router.get(
-            route('master.products.index'),
-            { ...route().params, search: newVal, page: 1 },
-            { preserveState: true, preserveScroll: true }
-        )
-    }, 500)
-)
+const activeOutletId = computed(() => {
+    return props.params?.outlet || selectedOutlet.value?.id || null
+})
 
 const getBasePrice = product => {
-    const price = product.prices?.find(p => !p.outlet_id)
+    if (!product.prices || product.prices.length === 0) return '-'
+
+    let price = null
+    if (activeOutletId.value) {
+        price = product.prices.find(p => p.outlet_id === activeOutletId.value)
+    }
+    if (!price) {
+        price = product.prices.find(p => !p.outlet_id)
+    }
+    if (!price) {
+        price = product.prices[0]
+    }
+
     return price
         ? new Intl.NumberFormat('id-ID', {
               style: 'currency',
@@ -169,17 +193,6 @@ const archiveProduct = id => {
     })
 }
 
-const exportCsv = () => {
-    router.get(
-        route('master.products.export', props.filters),
-        {},
-        {
-            preserveScroll: true,
-            preserveState: true,
-        }
-    )
-}
-
 // Wizard configurations for Popup
 const openCreate = () => {
     popUpStore.open({
@@ -198,7 +211,7 @@ const openEdit = (row, targetStepId = 'basic') => {
     const stepIndexMap = { basic: 0, inventory: 1, pricing: 2 }
     popUpStore.open({
         title: `${row.name}`,
-        subTitle: `#${row.code}`,
+        subTitle: row.code ? `#${row.code}` : undefined,
         size: 'xl',
         component: CreateEditWrapper,
         props: {

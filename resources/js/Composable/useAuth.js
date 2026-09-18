@@ -8,7 +8,9 @@ export function useAuth() {
     const business = computed(() => auth.value.business ?? null)
     const subscription = computed(() => auth.value.subscription ?? null)
     const outlets = computed(() => auth.value.outlets ?? [])
-    const selectedOutlet = computed(() => auth.value.selected_outlet ?? null)
+    const selectedOutlet = computed(
+        () => page.props.selectedOutlet ?? auth.value.selected_outlet ?? null
+    )
     const roles = computed(() => (auth.value.role ?? []).map(role => role.name))
     const permissions = computed(() => auth.value.permissions ?? [])
 

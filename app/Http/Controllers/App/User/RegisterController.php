@@ -20,12 +20,16 @@ class RegisterController extends Controller
 
     public function index(Request $request)
     {
-        $businessTypes = BusinessType::where('is_visible', true)->get()->map(function ($row) {
-            return [
-                'value' => $row->id,
-                'label' => $row->name,
-            ];
-        });
+        $businessTypes = BusinessType::getAllCached()
+            ->where('is_visible', true)
+            ->values()
+            ->map(function ($row) {
+                return [
+                    'value' => $row->id,
+                    'label' => $row->name,
+                    'code' => $row->code,
+                ];
+            });
 
         return inertia('User/Register', [
             'business_types' => $businessTypes,

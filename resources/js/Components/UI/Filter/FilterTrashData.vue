@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 defineProps({
     modelValue: {
-        type: Number,
+        type: [Number, String, Boolean],
         default: 0,
     },
 })
@@ -17,15 +17,17 @@ const onChange = event => {
 </script>
 
 <template>
-    <div class="form-check">
+    <div class="form-check sm">
         <input
             id="deleted_data"
             type="checkbox"
-            class="form-check-input"
             name="filter_trash"
             :checked="Number(modelValue) === 1"
             @change="onChange"
         />
-        <label class="form-check-label" for="deleted_data">Data Terhapus</label>
+        <label class="flex items-center gap-1" for="deleted_data">
+            <FontAwesomeIcon :icon="faTrash" class="text-xs text-neutral-400" />
+            <span>Data Terhapus</span>
+        </label>
     </div>
 </template>

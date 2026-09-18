@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Services\App\Master;
 
+use App\Models\Business;
 use App\Models\Master\Product;
 use App\Models\Outlet;
-use App\Models\User;
 use App\Services\App\Master\InventoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -21,11 +21,28 @@ class InventoryServiceTest extends TestCase
         $this->service = new InventoryService;
     }
 
+    protected function createTenant(): Business
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        return Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner',
+            'email' => 'owner_'.uniqid().'@test.com',
+            'phone' => '08123456789',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+    }
+
     public function test_it_creates_variant_inventory_and_syncs_balances()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
-        $business = $user->business;
+        $business = $this->createTenant();
 
         $outlet = Outlet::create([
             'business_id' => $business->id,
@@ -85,8 +102,7 @@ class InventoryServiceTest extends TestCase
     public function test_it_syncs_balances_only_if_tracking_inventory()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
-        $business = $user->business;
+        $business = $this->createTenant();
 
         $outlet = Outlet::create([
             'business_id' => $business->id,

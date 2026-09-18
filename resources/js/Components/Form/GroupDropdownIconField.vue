@@ -1,15 +1,18 @@
 <template>
-    <div class="form-group has-text">
+    <div class="form-group has-text" :class="{ sm: size === 'sm', lg: size === 'lg' }">
         <label v-if="icon" :for="$attrs.id" class="form-group-text">
-            <FontAwesomeIcon :icon="icon" />
+            <FontAwesomeIcon
+                :icon="icon"
+                :class="{ 'text-xs': size === 'sm', 'text-base': size === 'lg' }"
+            />
         </label>
 
         <select
             :value="modelValue"
-            :class="['form', inputClass]"
+            :class="['form', { sm: size === 'sm', lg: size === 'lg' }, inputClass]"
             v-bind="$attrs"
             style="padding-right: 2.5rem !important"
-            @change="emit('update:modelValue', $event.target.value)"
+            @change="handleChange"
         >
             <option v-if="placeholder" value="">
                 {{ placeholder }}
@@ -28,15 +31,27 @@ defineOptions({
     inheritAttrs: false,
 })
 
-const { modelValue, placeholder, icon, options } = defineProps({
+defineProps({
     modelValue: { type: [String, Number], default: '' },
     placeholder: { type: String, default: '' },
     icon: { type: [Array, Object], default: null },
+    inputClass: { type: String, default: '' },
     options: {
         type: Array,
         default: () => [], // format: [{ value: '1', label: 'Satu' }]
     },
+    size: {
+        type: String,
+        default: 'base',
+        validator: v => ['sm', 'base', 'lg'].includes(v),
+    },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'change'])
+
+const handleChange = event => {
+    const value = event.target.value
+    emit('update:modelValue', value)
+    emit('change', value)
+}
 </script>

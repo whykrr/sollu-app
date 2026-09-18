@@ -1,5 +1,17 @@
 <template>
     <MainPage>
+        <template #header>
+            <MainPageHeader
+                title="Pengaturan Paket Langganan"
+                description="Kelola data paket, harga, visibilitas katalog, hak akses fitur, serta status aktif/nonaktif"
+            >
+                <button type="button" class="btn btn-main" @click="openCreate">
+                    <FontAwesomeIcon :icon="faPlus" class="mr-1.5" />
+                    Tambah Paket
+                </button>
+            </MainPageHeader>
+        </template>
+
         <template #widgets>
             <SubscriptionPlanWidgets
                 :plans-count="plans.length"
@@ -11,17 +23,7 @@
             />
         </template>
 
-        <template #header>
-            <MainPageHeader
-                title="Pengaturan Paket Langganan"
-                description="Kelola data paket, harga, visibilitas katalog, hak akses fitur, serta status aktif/nonaktif"
-            >
-                <button type="button" class="btn btn-main" @click="openCreate">
-                    <FontAwesomeIcon :icon="faPlus" class="mr-1.5" />
-                    Tambah Paket
-                </button>
-            </MainPageHeader>
-
+        <template #filter>
             <SubscriptionPlanFilter
                 v-model:search="searchQuery"
                 v-model:status="statusFilter"

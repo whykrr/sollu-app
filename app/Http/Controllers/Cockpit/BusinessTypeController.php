@@ -24,12 +24,14 @@ class BusinessTypeController extends Controller
         protected BusinessTypeService $businessTypeService
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $sort = $request->get('sort', 'sort_order');
+        $direction = $request->get('direction', 'asc');
+
         $businessTypes = BusinessType::query()
             ->withCount('businesses')
-            ->orderBy('sort_order', 'asc')
-            ->orderBy('name', 'asc')
+            ->sortable($sort, $direction)
             ->get();
 
         $allFeatures = Feature::getAllCached();
@@ -37,6 +39,10 @@ class BusinessTypeController extends Controller
         return Inertia::render('Cockpit/BusinessType/Index', [
             'businessTypes' => $businessTypes,
             'allFeatures' => $allFeatures,
+            'params' => [
+                'sort' => $request->query('sort'),
+                'direction' => $request->query('direction'),
+            ],
         ]);
     }
 

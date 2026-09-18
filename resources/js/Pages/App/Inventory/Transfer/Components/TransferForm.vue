@@ -2,7 +2,10 @@
     <div>
         <form class="space-y-2" @submit.prevent="submit">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
+                <div
+                    v-if="!selectedOutlet && outletOptions.length > 1"
+                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
+                >
                     <SelectionGroupField
                         id="from_outlet_id"
                         v-model="form.from_outlet_id"
@@ -14,7 +17,10 @@
                         class="sm btn-sm"
                     />
                 </div>
-                <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
+                <div
+                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
+                    :class="{ 'md:col-span-2': selectedOutlet || outletOptions.length <= 1 }"
+                >
                     <SelectionGroupField
                         id="to_outlet_id"
                         v-model="form.to_outlet_id"
@@ -174,6 +180,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import axios from 'axios'
 import { usePopUpStore } from '@/store/popup'
+import { useAuth } from '@/Composable/useAuth'
 import NumberField from '@/Components/Form/NumberField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
@@ -189,6 +196,7 @@ const props = defineProps({
 
 const emit = defineEmits(['refresh'])
 const popUpStore = usePopUpStore()
+const { selectedOutlet } = useAuth()
 const isMounted = ref(false)
 
 const form = useForm({
@@ -244,6 +252,10 @@ onMounted(() => {
             system_qty: i.current_stock || 0, // Ideally fetched from backend, but fallback to 0
             qty: i.qty,
         }))
+    } else if (selectedOutlet.value) {
+        form.from_outlet_id = selectedOutlet.value.id
+    } else if (props.outlets && props.outlets.length === 1) {
+        form.from_outlet_id = props.outlets[0].id
     }
 })
 

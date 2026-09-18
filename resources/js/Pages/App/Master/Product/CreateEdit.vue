@@ -139,6 +139,7 @@ import {
     faTag,
 } from '@fortawesome/free-solid-svg-icons'
 import { usePopUpStore } from '@/store/popup'
+import { useAuth } from '@/Composable/useAuth'
 
 import StepBasicInfo from './Components/StepBasicInfo.vue'
 import StepInventorySetup from './Components/StepInventorySetup.vue'
@@ -155,6 +156,7 @@ const props = defineProps({
 })
 
 const popUpStore = usePopUpStore()
+const { selectedOutlet } = useAuth()
 
 const isEdit = computed(() => props.editMode)
 const isMounted = ref(false)
@@ -256,9 +258,11 @@ const generateCombinations = groups => {
 }
 
 const generateSku = comboOptions => {
-    const baseCode = form.code || form.name.substring(0, 3).toUpperCase()
+    const rawPrefix =
+        form.code?.trim() || form.name?.trim().substring(0, 3).toUpperCase() || 'PRD'
+    const baseCode = rawPrefix.toUpperCase().replace(/\s+/g, '-')
     const suffix = Object.values(comboOptions)
-        .map(v => v.toUpperCase().replace(/\s+/g, ''))
+        .map(v => String(v).toUpperCase().replace(/\s+/g, ''))
         .join('-')
     return `${baseCode}-${suffix}`
 }
@@ -362,9 +366,15 @@ if (isEdit.value && props.product) {
         form.variants = [{ name: '', options: [{ name: '' }] }]
     }
 } else {
-    props.outlets.forEach(o => {
-        outletStatusMap.value[o.id] = true
-    })
+    if (selectedOutlet.value) {
+        props.outlets.forEach(o => {
+            outletStatusMap.value[o.id] = o.id === selectedOutlet.value.id
+        })
+    } else {
+        props.outlets.forEach(o => {
+            outletStatusMap.value[o.id] = true
+        })
+    }
     form.variants = [{ name: '', options: [{ name: '' }] }]
 }
 

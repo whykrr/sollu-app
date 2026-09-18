@@ -1,18 +1,42 @@
 <template>
     <div class="space-y-4">
-        <div class="font-semibold text-lg border-b pb-1">Informasi Dasar</div>
+        <div class="font-semibold text-lg border-b border-slate-200 pb-1">Informasi Dasar</div>
         <div class="grid grid-cols-2 gap-3">
             <div class="col-span-2 mb-2">
                 <label class="block text-sm font-medium text-slate-700 mb-1">Foto Produk</label>
                 <ProductImagesUploader v-model="form.images" :error="form.errors.images" />
             </div>
-            <TextField
-                v-model="form.name"
-                label="Nama Produk"
-                :class="{ 'is-invalid': form.errors.name }"
-                :error="form.errors.name"
-                required
-            />
+
+            <div class="col-span-2">
+                <SelectionGroupField
+                    v-model="form.product_type"
+                    label="Tipe Produk"
+                    :options="productTypeOptions"
+                    name="product_type"
+                    class="btn-sm"
+                    @update:model-value="handleProductTypeChange"
+                />
+            </div>
+
+            <div class="col-span-2">
+                <TextField
+                    v-model="form.name"
+                    label="Nama Produk"
+                    :class="{ 'is-invalid': form.errors.name }"
+                    :error="form.errors.name"
+                    required
+                />
+            </div>
+
+            <div>
+                <TextField
+                    v-model="form.code"
+                    label="Kode Produk (Opsional)"
+                    placeholder="Contoh: PRD-001"
+                    :class="{ 'is-invalid': form.errors.code }"
+                    :error="form.errors.code"
+                />
+            </div>
 
             <div>
                 <DropdownField
@@ -24,13 +48,15 @@
                     :error="form.errors.product_category_id"
                 />
             </div>
+
             <div class="col-span-2">
-                <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi</label>
-                <textarea
+                <TextareaField
                     v-model="form.description"
-                    class="form w-full border-slate-300 rounded-md text-sm"
+                    label="Deskripsi"
+                    placeholder="Deskripsi produk atau layanan..."
                     rows="2"
-                ></textarea>
+                    :error="form.errors.description"
+                />
             </div>
 
             <!-- Card Checklist Opsi Produk -->
@@ -39,14 +65,15 @@
                     Pengaturan & Fitur Produk
                 </div>
 
-                <!-- Lacak Inventori (Stok) -->
+                <!-- Lacak Inventori (Hanya untuk tipe basic) -->
                 <FeatureLock
+                    v-if="form.product_type === 'basic'"
                     :feature="$enums.FeatureEnum.INVENTORY_MANAGEMENT"
                     as="div"
                     class="w-full"
                 >
-                    <label
-                        class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition w-full"
+                    <div
+                        class="flex items-center justify-between border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition w-full"
                     >
                         <div>
                             <div class="font-bold text-sm text-slate-800">
@@ -56,17 +83,13 @@
                                 Lacak stok masuk, keluar, dan batas minimum stok untuk produk ini.
                             </div>
                         </div>
-                        <input
-                            v-model="form.track_inventory"
-                            type="checkbox"
-                            class="rounded h-5 w-5 text-primary cursor-pointer"
-                        />
-                    </label>
+                        <Switch v-model="form.track_inventory" size="md" />
+                    </div>
                 </FeatureLock>
 
                 <!-- Pilihan Satuan UOM & Min Stok jika Lacak Stok Aktif -->
                 <div
-                    v-if="form.track_inventory"
+                    v-if="form.product_type === 'basic' && form.track_inventory"
                     class="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl"
                 >
                     <DropdownField
@@ -87,10 +110,15 @@
                     />
                 </div>
 
-                <!-- Memiliki Varian Produk -->
-                <FeatureLock :feature="$enums.FeatureEnum.PRODUCT_VARIANTS" as="div" class="w-full">
-                    <label
-                        class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition w-full"
+                <!-- Memiliki Varian Produk (Hanya untuk tipe basic) -->
+                <FeatureLock
+                    v-if="form.product_type === 'basic'"
+                    :feature="$enums.FeatureEnum.PRODUCT_VARIANTS"
+                    as="div"
+                    class="w-full"
+                >
+                    <div
+                        class="flex items-center justify-between border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition w-full"
                     >
                         <div>
                             <div class="font-bold text-sm text-slate-800">
@@ -101,18 +129,17 @@
                                 atau Warna).
                             </div>
                         </div>
-                        <input
-                            :checked="form.has_variant"
-                            type="checkbox"
-                            class="rounded h-5 w-5 text-primary cursor-pointer"
+                        <Switch
+                            :model-value="form.has_variant"
+                            size="md"
                             @change="handleVariantChange"
                         />
-                    </label>
+                    </div>
                 </FeatureLock>
 
                 <!-- Tampilkan di Kasir / POS -->
-                <label
-                    class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition w-full"
+                <div
+                    class="flex items-center justify-between border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition w-full"
                 >
                     <div>
                         <div class="font-bold text-sm text-slate-800">Tampilkan di POS / Kasir</div>
@@ -120,16 +147,12 @@
                             Tampilkan produk ini dalam daftar katalog aplikasi kasir.
                         </div>
                     </div>
-                    <input
-                        v-model="form.is_show"
-                        type="checkbox"
-                        class="rounded h-5 w-5 text-primary cursor-pointer"
-                    />
-                </label>
+                    <Switch v-model="form.is_show" size="md" />
+                </div>
 
                 <!-- Dapat Dijual -->
-                <label
-                    class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition w-full"
+                <div
+                    class="flex items-center justify-between border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition w-full"
                 >
                     <div>
                         <div class="font-bold text-sm text-slate-800">Dapat Dijual</div>
@@ -137,16 +160,12 @@
                             Produk tersedia untuk transaksi penjualan.
                         </div>
                     </div>
-                    <input
-                        v-model="form.sellable"
-                        type="checkbox"
-                        class="rounded h-5 w-5 text-primary cursor-pointer"
-                    />
-                </label>
+                    <Switch v-model="form.sellable" size="md" />
+                </div>
 
                 <!-- Tersedia di Outlet (Ketersediaan Produk) -->
                 <div
-                    v-if="outlets.length > 1"
+                    v-if="outlets.length > 1 && !selectedOutlet"
                     class="border border-slate-200 p-3 rounded-xl space-y-2 mt-2 w-full"
                 >
                     <div class="font-bold text-sm text-slate-800">Tersedia di Outlet</div>
@@ -171,11 +190,16 @@
 
 <script setup>
 import { inject, computed } from 'vue'
+import { useAuth } from '@/Composable/useAuth'
 import TextField from '@/Components/Form/TextField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
+import Switch from '@/Components/Form/Switch.vue'
 import ProductImagesUploader from './ProductImagesUploader.vue'
+import FeatureLock from '@/Components/UI/FeatureLock.vue'
 
+const { selectedOutlet } = useAuth()
 const form = inject('productForm')
 const categories = inject('categories', [])
 const uoms = inject('uoms', [])
@@ -183,6 +207,29 @@ const outlets = inject('outlets', [])
 const outletStatusMap = inject('outletStatusMap', {})
 const isEdit = inject('isEdit')
 const originalProduct = inject('originalProduct')
+
+const productTypeOptions = [
+    { value: 'basic', label: 'Barang Fisik' },
+    { value: 'service', label: 'Layanan / Jasa' },
+    { value: 'bundle', label: 'Paket Bundle' },
+]
+
+const handleProductTypeChange = val => {
+    if (val === 'service') {
+        form.track_inventory = false
+        form.has_variant = false
+        form.has_recipe = false
+        form.uom_id = ''
+        form.min_stock = '0'
+    } else if (val === 'bundle') {
+        form.track_inventory = false
+        form.has_variant = false
+        form.has_modifier = false
+        form.has_recipe = false
+        form.uom_id = ''
+        form.min_stock = '0'
+    }
+}
 
 const formattedOutlets = computed(() => {
     return outlets.value.map(o => ({
@@ -207,8 +254,7 @@ const selectedOutlets = computed({
     },
 })
 
-const handleVariantChange = e => {
-    const isChecked = e.target.checked
+const handleVariantChange = isChecked => {
     if (!isChecked && isEdit.value && originalProduct?.has_variant) {
         if (
             window.confirm(
@@ -217,7 +263,6 @@ const handleVariantChange = e => {
         ) {
             form.has_variant = false
         } else {
-            e.target.checked = true
             form.has_variant = true
         }
     } else {

@@ -83,7 +83,7 @@ class StockOpname extends Model
             $filters['status'] ?? false,
             fn (Builder $q, $value) => $q->where('status', $value)
         )->when(
-            $filters['outlet_id'] ?? false,
+            $filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['date_from'] ?? false,

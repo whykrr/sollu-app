@@ -7,26 +7,16 @@ use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
-    private AuditLogService $auditLogService;
-
-    private InventoryService $inventoryService;
-
-    private RecipeService $recipeService;
-
     public function __construct(
-        AuditLogService $auditLogService,
-        InventoryService $inventoryService,
-        RecipeService $recipeService
-    ) {
-        $this->auditLogService = $auditLogService;
-        $this->inventoryService = $inventoryService;
-        $this->recipeService = $recipeService;
-    }
+        protected AuditLogService $auditLogService,
+        protected InventoryService $inventoryService,
+        protected RecipeService $recipeService
+    ) {}
 
     public function createProduct(array $data)
     {
         return DB::transaction(function () use ($data) {
-            $productType = $data['product_type'];
+            $productType = $data['product_type'] ?? 'basic';
             if ($productType === 'service') {
                 $data['track_inventory'] = false;
                 $data['has_variant'] = false;
@@ -56,17 +46,17 @@ class ProductService
             ]);
 
             $singleInvItem = null;
-            if ($product->product_type === 'basic' && ! $product->has_variant) {
-                // Single variant inventory item
+            if ($product->product_type === 'basic' && ! $product->has_variant && $product->track_inventory) {
+                // Single variant inventory item only when track_inventory is enabled
                 $singleInvItem = $this->inventoryService->createVariantInventory([
                     'business_id' => $product->business_id,
                     'product_id' => $product->id,
                     'name' => $product->name,
                     'sku' => $data['code'] ?? null,
                     'barcode' => $data['barcode'] ?? null,
-                    'track_inventory' => $product->track_inventory,
+                    'track_inventory' => true,
                     'min_stock' => $data['min_stock'] ?? 0,
-                    'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
+                    'uom_id' => $data['uom_id'] ?? null,
                 ]);
             }
 
@@ -98,6 +88,21 @@ class ProductService
                     ];
                 }
                 $product->outlets()->sync($syncData);
+            } else {
+                $businessOutlets = \App\Models\Outlet::where('business_id', $product->business_id)
+                    ->where('is_active', true)
+                    ->pluck('id');
+
+                if ($businessOutlets->isNotEmpty()) {
+                    $syncData = [];
+                    foreach ($businessOutlets as $outletId) {
+                        $syncData[$outletId] = [
+                            'is_enabled' => true,
+                            'is_available' => true,
+                        ];
+                    }
+                    $product->outlets()->sync($syncData);
+                }
             }
 
             // Variants
@@ -234,39 +239,49 @@ class ProductService
                     ->where('item_type', 'variant_sku')
                     ->get();
 
-                if ($invItems->count() > 0) {
-                    $singleInvItem = $invItems->first();
-                    $singleInvItem->update([
-                        'name' => $product->name,
-                        'sku' => $data['code'] ?? null,
-                        'barcode' => $data['barcode'] ?? null,
-                        'track_inventory' => $product->track_inventory,
-                        'min_stock' => $data['min_stock'] ?? 0,
-                        'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
-                        'is_active' => true,
-                    ]);
+                if ($product->track_inventory) {
+                    if ($invItems->count() > 0) {
+                        $singleInvItem = $invItems->first();
+                        $singleInvItem->update([
+                            'name' => $product->name,
+                            'sku' => $data['code'] ?? null,
+                            'barcode' => $data['barcode'] ?? null,
+                            'track_inventory' => true,
+                            'min_stock' => $data['min_stock'] ?? 0,
+                            'uom_id' => $data['uom_id'] ?? null,
+                            'is_active' => true,
+                        ]);
 
-                    if ($singleInvItem->track_inventory) {
                         $this->inventoryService->syncInventoryBalances($singleInvItem);
-                    }
 
-                    // Deactivate others
-                    if ($invItems->count() > 1) {
-                        $invItems->where('id', '!=', $singleInvItem->id)->each(function ($item) {
-                            $item->update(['is_active' => false]);
-                        });
+                        // Deactivate others
+                        if ($invItems->count() > 1) {
+                            $invItems->where('id', '!=', $singleInvItem->id)->each(function ($item) {
+                                $item->update(['is_active' => false]);
+                            });
+                        }
+                    } else {
+                        $singleInvItem = $this->inventoryService->createVariantInventory([
+                            'business_id' => $product->business_id,
+                            'product_id' => $product->id,
+                            'name' => $product->name,
+                            'sku' => $data['code'] ?? null,
+                            'barcode' => $data['barcode'] ?? null,
+                            'track_inventory' => true,
+                            'min_stock' => $data['min_stock'] ?? 0,
+                            'uom_id' => $data['uom_id'] ?? null,
+                        ]);
                     }
                 } else {
-                    $singleInvItem = $this->inventoryService->createVariantInventory([
-                        'business_id' => $product->business_id,
-                        'product_id' => $product->id,
-                        'name' => $product->name,
-                        'sku' => $data['code'] ?? null,
-                        'barcode' => $data['barcode'] ?? null,
-                        'track_inventory' => $product->track_inventory,
-                        'min_stock' => $data['min_stock'] ?? 0,
-                        'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
-                    ]);
+                    // If not tracking inventory, deactivate existing items without creating new ones
+                    if ($invItems->count() > 0) {
+                        $invItems->each(function ($item) {
+                            $item->update([
+                                'is_active' => false,
+                                'track_inventory' => false,
+                            ]);
+                        });
+                    }
                 }
             }
 

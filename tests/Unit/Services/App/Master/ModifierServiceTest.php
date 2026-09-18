@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Services\App\Master;
 
+use App\Models\Business;
 use App\Models\Master\ModifierGroup;
-use App\Models\User;
 use App\Services\App\Master\AuditLogService;
 use App\Services\App\Master\ModifierService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,11 +34,28 @@ class ModifierServiceTest extends TestCase
         parent::tearDown();
     }
 
+    protected function createTenant(): Business
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        return Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner',
+            'email' => 'owner_'.uniqid().'@test.com',
+            'phone' => '08123456789',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+    }
+
     public function test_it_creates_modifier_group()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
-        $business = $user->business;
+        $business = $this->createTenant();
 
         $data = [
             'business_id' => $business->id,
@@ -74,8 +91,7 @@ class ModifierServiceTest extends TestCase
     public function test_it_updates_modifier_group()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
-        $business = $user->business;
+        $business = $this->createTenant();
 
         $group = ModifierGroup::create([
             'business_id' => $business->id,
@@ -116,8 +132,7 @@ class ModifierServiceTest extends TestCase
     public function test_it_deletes_modifier_group()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
-        $business = $user->business;
+        $business = $this->createTenant();
 
         $group = ModifierGroup::create([
             'business_id' => $business->id,

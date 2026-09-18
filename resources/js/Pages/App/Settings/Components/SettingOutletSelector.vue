@@ -1,5 +1,5 @@
 <template>
-    <div v-if="outlets && outlets.length > 0" class="flex items-center gap-2">
+    <div v-if="outlets && outlets.length > 1 && !selectedOutlet" class="flex items-center gap-2">
         <label
             for="setting-outlet-select"
             class="text-xs font-semibold text-slate-500 whitespace-nowrap hidden sm:inline"
@@ -20,6 +20,10 @@
 </template>
 
 <script setup>
+import { useAuth } from '@/Composable/useAuth'
+
+const { selectedOutlet } = useAuth()
+
 defineProps({
     outlets: {
         type: Array,

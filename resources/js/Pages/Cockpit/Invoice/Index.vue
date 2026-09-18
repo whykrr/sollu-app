@@ -1,15 +1,17 @@
 <template>
     <MainPage>
-        <template #widgets>
-            <InvoiceWidgets :metrics="metrics" />
-        </template>
-
         <template #header>
             <MainPageHeader
                 title="Invoice Langganan"
                 description="Kelola tagihan langganan paket merchant, verifikasi bukti pembayaran manual, dan pantau status pelunasan"
             />
+        </template>
 
+        <template #widgets>
+            <InvoiceWidgets :metrics="metrics" />
+        </template>
+
+        <template #filter>
             <InvoiceFilter :filters="filters" />
         </template>
 

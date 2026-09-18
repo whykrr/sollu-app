@@ -2,6 +2,8 @@
 
 namespace Tests\Unit\Services\App\Reports;
 
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Master\InventoryItem;
 use App\Models\Master\PaymentMethod;
 use App\Models\Master\Product;
@@ -10,9 +12,9 @@ use App\Models\Outlet;
 use App\Models\Sales\Transaction;
 use App\Models\Sales\TransactionItem;
 use App\Models\Sales\TransactionPayment;
-use App\Models\User;
 use App\Services\App\Reports\DashboardService;
 use Carbon\Carbon;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -29,73 +31,113 @@ class DashboardServiceTest extends TestCase
         $this->service = new DashboardService;
     }
 
-    public function test_it_returns_dashboard_metrics_and_trends()
+    protected function createMerchant(string $name): Business
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
-        $outlet = Outlet::create([
-            'business_id' => $user->business_id,
-            'name' => 'Outlet Report',
+        $type = BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        return Business::create([
+            'name' => $name,
+            'owner_name' => 'Owner '.$name,
+            'email' => 'biz_'.uniqid().'@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+    }
+
+    public function test_it_returns_dashboard_metrics_and_trends_with_tenant_isolation(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $businessA = $this->createMerchant('Business Utama');
+        $businessId = $businessA->id;
+
+        // Create secondary business to test strict tenant isolation
+        $otherBusiness = $this->createMerchant('Competitor Store');
+
+        $outletA = Outlet::create([
+            'business_id' => $businessId,
+            'name' => 'Outlet Utama',
+        ]);
+
+        $outletOther = Outlet::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Outlet Competitor',
         ]);
 
         $category = ProductCategory::create([
-            'business_id' => $user->business_id,
-            'name' => 'Food',
+            'business_id' => $businessId,
+            'name' => 'Makanan',
         ]);
 
-        $product = Product::create([
-            'business_id' => $user->business_id,
+        $productA = Product::create([
+            'business_id' => $businessId,
             'product_category_id' => $category->id,
-            'name' => 'Nasi Goreng',
+            'name' => 'Nasi Goreng Spesial',
             'product_type' => 'basic',
         ]);
 
         $paymentMethod = PaymentMethod::create([
-            'business_id' => $user->business_id,
-            'name' => 'Cash',
-            'type' => 'cash',
+            'business_id' => $businessId,
+            'name' => 'QRIS',
+            'type' => 'digital',
         ]);
 
         $now = Carbon::now();
 
-        $transaction = Transaction::create([
-            'outlet_id' => $outlet->id,
+        // Transaction for Business A
+        $txA = Transaction::create([
+            'outlet_id' => $outletA->id,
             'status' => 'completed',
-            'subtotal' => 100000,
-            'total' => 100000,
-            'transaction_number' => 'TRX-101',
+            'subtotal' => 150000,
+            'total' => 150000,
+            'transaction_number' => 'TRX-001',
             'created_at' => $now,
         ]);
 
         TransactionItem::create([
-            'transaction_id' => $transaction->id,
-            'product_id' => $product->id,
-            'product_name' => 'Nasi Goreng',
-            'qty' => 2,
+            'transaction_id' => $txA->id,
+            'product_id' => $productA->id,
+            'product_name' => 'Nasi Goreng Spesial',
+            'qty' => 3,
             'price' => 50000,
-            'subtotal' => 100000,
+            'subtotal' => 150000,
         ]);
 
         TransactionPayment::create([
-            'transaction_id' => $transaction->id,
+            'transaction_id' => $txA->id,
             'payment_method_id' => $paymentMethod->id,
-            'amount' => 100000,
+            'amount' => 150000,
         ]);
 
-        $invItem = new InventoryItem([
-            'business_id' => $user->business_id,
-            'name' => 'Beras',
-            'item_type' => 'raw_material',
+        // Transaction for Other Business (MUST NOT LEAK)
+        $txOther = Transaction::create([
+            'outlet_id' => $outletOther->id,
+            'status' => 'completed',
+            'subtotal' => 999000,
+            'total' => 999000,
+            'transaction_number' => 'TRX-OTHER-999',
+            'created_at' => $now,
         ]);
-        $invItem->minimum_stock = 10;
-        $invItem->save();
+
+        // Inventory item below minimum stock for Business A
+        $invItem = InventoryItem::create([
+            'business_id' => $businessId,
+            'name' => 'Beras Premium',
+            'item_type' => 'raw_material',
+            'min_stock' => 10,
+        ]);
 
         DB::table('inventory_balances')->insert([
             'id' => \Illuminate\Support\Str::uuid()->toString(),
-            'business_id' => $user->business_id,
-            'outlet_id' => $outlet->id,
+            'business_id' => $businessId,
+            'outlet_id' => $outletA->id,
             'inventory_item_id' => $invItem->id,
-            'current_stock' => 5, // Below min stock
+            'current_stock' => 4,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -105,44 +147,58 @@ class DashboardServiceTest extends TestCase
         $prevStartDate = $now->copy()->subDay()->startOfDay();
         $prevEndDate = $now->copy()->subDay()->endOfDay();
 
-        // 1. Metrics
-        $metrics = $this->service->getMetrics($outlet->id, $startDate, $endDate, $prevStartDate, $prevEndDate);
-        $this->assertEquals(100000, $metrics['totalSales']['now']);
+        // 1. Test Metrics & Multi-Tenant Isolation (Semua Outlet)
+        $metrics = $this->service->getMetrics($businessId, [], $startDate, $endDate, $prevStartDate, $prevEndDate);
+        $this->assertEquals(150000.0, $metrics['totalSales']['now']);
         $this->assertEquals(1, $metrics['totalTransactions']['now']);
-        $this->assertEquals(100000, $metrics['averageSales']['now']);
+        $this->assertEquals(150000.0, $metrics['averageSales']['now']);
+        $this->assertEquals(1, $metrics['lowStockCount']);
 
-        // 2. Sales Trend (Today)
-        $trend = $this->service->getSalesTrend([$outlet->id], $startDate, $endDate, $prevStartDate, $prevEndDate, true);
+        // 2. Test Sales Trend (Today)
+        $trend = $this->service->getSalesTrend($businessId, [], $startDate, $endDate, $prevStartDate, $prevEndDate, true);
         $this->assertCount(24, $trend['label']);
+        $this->assertCount(2, $trend['value']);
+        $this->assertEquals('Periode Ini', $trend['value'][0]['title']);
 
-        // 3. Category Sales Trend
-        $categoryTrend = $this->service->getCategorySalesTrend([$outlet->id], $startDate, $endDate);
-        $this->assertContains('Food', $categoryTrend['label']);
-        $this->assertContains(100000.0, $categoryTrend['value']);
+        // 3. Test Category Sales Trend
+        $categoryTrend = $this->service->getCategorySalesTrend($businessId, [], $startDate, $endDate);
+        $this->assertContains('Makanan', $categoryTrend['label']);
+        $this->assertContains(150000.0, $categoryTrend['value']);
 
-        // 4. Payment Method Summary
-        $paymentSummary = $this->service->getPaymentMethodSummary([$outlet->id], $startDate, $endDate);
-        $this->assertContains('Cash', $paymentSummary['label']);
-        $this->assertContains(1, $paymentSummary['value']);
+        // 4. Test Payment Method Summary
+        $paymentSummary = $this->service->getPaymentMethodSummary($businessId, [], $startDate, $endDate);
+        $this->assertContains('QRIS', $paymentSummary['label']);
+        $this->assertContains(100, $paymentSummary['value']);
 
-        // 5. Most Sold
-        $mostSold = $this->service->getMostSoldProducts([$outlet->id], $startDate, $endDate);
+        // 5. Test Most Sold Products
+        $mostSold = $this->service->getMostSoldProducts($businessId, [], $startDate, $endDate);
         $this->assertCount(1, $mostSold);
-        $this->assertEquals('Nasi Goreng', $mostSold[0]['name']);
+        $this->assertEquals('Nasi Goreng Spesial', $mostSold[0]['name']);
+        $this->assertEquals(3, $mostSold[0]['total']);
+        $this->assertEquals(150000.0, $mostSold[0]['revenue']);
 
-        // 6. Low Stock
-        $lowStock = $this->service->getLowStockProducts([$outlet->id]);
+        // 6. Test Low Stock Products
+        $lowStock = $this->service->getLowStockProducts($businessId, []);
         $this->assertCount(1, $lowStock);
-        $this->assertEquals('Beras', $lowStock[0]['name']);
+        $this->assertEquals('Beras Premium', $lowStock[0]['name']);
+        $this->assertEquals(4, $lowStock[0]['stock']);
+        $this->assertEquals(10, $lowStock[0]['min_stock']);
 
-        // 7. Not Sold
+        // 7. Test Product Not Sold
         $unsoldProduct = Product::create([
-            'business_id' => $user->business_id,
-            'name' => 'Mie Goreng',
+            'business_id' => $businessId,
+            'name' => 'Es Teh Manis',
             'product_type' => 'basic',
         ]);
-        $notSold = $this->service->getProductNotSold([$outlet->id], $startDate, $endDate);
+        $notSold = $this->service->getProductNotSold($businessId, [], $startDate, $endDate);
         $this->assertCount(1, $notSold);
-        $this->assertEquals('Mie Goreng', $notSold[0]['name']);
+        $this->assertEquals('Es Teh Manis', $notSold[0]['name']);
+
+        // 8. Full getDashboardData Caching Test
+        $data = $this->service->getDashboardData($businessId, ['period' => 'today']);
+        $this->assertArrayHasKey('totalSales', $data);
+        $this->assertArrayHasKey('salesTrend', $data);
+        $this->assertArrayHasKey('filters', $data);
+        $this->assertEquals('Hari Ini', $data['filters']['period_label']);
     }
 }

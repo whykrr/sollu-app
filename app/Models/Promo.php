@@ -111,7 +111,7 @@ class Promo extends Model
             $filters['type'] ?? false,
             fn ($q, $value) => $q->where('promo_type', $value)
         )->when(
-            $filters['outlet'] ?? false,
+            $filters['outlet'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
             fn ($q, $value) => $q->where(function ($q) use ($value) {
                 $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $value))
                     ->orWhere('applies_to_all_outlets', true);

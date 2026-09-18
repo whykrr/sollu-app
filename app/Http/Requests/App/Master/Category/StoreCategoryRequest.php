@@ -2,23 +2,24 @@
 
 namespace App\Http\Requests\App\Master\Category;
 
+use App\Enums\PermissionEnum;
+use App\Http\Requests\BaseInertiaFormRequest;
 use App\Models\Master\ProductCategory;
-use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCategoryRequest extends FormRequest
+class StoreCategoryRequest extends BaseInertiaFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can(PermissionEnum::CATEGORY_CREATE->value) ?? false;
     }
 
     /**
      * Prepare the data for validation.
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         if ($this->parent_id === '') {
             $this->merge([

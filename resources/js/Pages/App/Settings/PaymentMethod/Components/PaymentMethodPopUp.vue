@@ -17,7 +17,7 @@
             required
         />
 
-        <div class="space-y-1 pt-1">
+        <div v-if="!selectedOutlet && outlets.length > 1" class="space-y-1 pt-1">
             <SelectionGroupField
                 v-model="form.outlet_ids"
                 label="Aktivasi di Outlet / Cabang"
@@ -53,6 +53,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { usePopUpStore } from '@/store/popup'
+import { useAuth } from '@/Composable/useAuth'
 import TextField from '@/Components/Form/TextField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
@@ -73,6 +74,7 @@ const props = defineProps({
 })
 
 const popUpStore = usePopUpStore()
+const { selectedOutlet } = useAuth()
 const isMounted = ref(false)
 
 const outletOptions = computed(() => {
@@ -85,6 +87,9 @@ const outletOptions = computed(() => {
 // Calculate initial selected outlet IDs
 const getInitialSelectedOutlets = () => {
     if (!props.paymentMethod) {
+        if (selectedOutlet.value) {
+            return [selectedOutlet.value.id]
+        }
         // Default: select all outlets for new payment method
         return props.outlets.map(o => o.id)
     }

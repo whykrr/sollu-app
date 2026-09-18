@@ -3,7 +3,7 @@
         <template #header>
             <MainPageHeader title="Laporan Shift & Kas">
                 <div class="flex flex-wrap items-center gap-2">
-                    <div v-if="outletOptions.length > 0" class="w-48">
+                    <div v-if="outletOptions.length > 1 && !selectedOutlet" class="w-48">
                         <GroupDropdownIconField
                             id="outlet-filter"
                             v-model="formFilters.outlet"
@@ -122,7 +122,7 @@ const props = defineProps({
     shifts: Object,
 })
 
-const { outlets: userOutlets } = useAuth()
+const { outlets: userOutlets, selectedOutlet } = useAuth()
 
 const outletOptions = computed(() => {
     if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []

@@ -2,14 +2,18 @@
     <div ref="dropdownRef" class="relative inline-block text-left">
         <button
             type="button"
-            :class="[buttonClass || 'btn btn-flat btn-sm', 'flex items-center gap-2 select-none']"
+            :class="[
+                buttonClass ||
+                    'btn btn-flat btn-sm h-[30px] inline-flex items-center gap-1.5 text-xs leading-4',
+                'select-none cursor-pointer',
+            ]"
             @click="toggle"
         >
-            <FontAwesomeIcon :icon="icon || faDownload" />
-            <span>{{ label }}</span>
+            <FontAwesomeIcon :icon="icon || faDownload" class="text-xs" />
+            <span class="text-xs leading-4">{{ label }}</span>
             <FontAwesomeIcon
                 :icon="faChevronDown"
-                class="text-xs transition-transform duration-200"
+                class="text-[10px] text-slate-400 transition-transform duration-200"
                 :class="{ 'rotate-180': isOpen }"
             />
         </button>
@@ -26,7 +30,7 @@
                 v-if="isOpen"
                 :class="[
                     align === 'left' ? 'left-0' : 'right-0',
-                    'absolute top-full mt-1.5 z-50 min-w-[170px] rounded-xl bg-white p-1 shadow-lg ring-1 ring-slate-900/5 focus:outline-none border border-slate-100',
+                    'absolute top-full mt-1.5 z-50 min-w-[170px] rounded-xl bg-white p-1 shadow-lg ring-1 ring-black/5 focus:outline-none border border-gray-200',
                 ]"
             >
                 <slot :close="close">
@@ -34,7 +38,7 @@
                         v-for="(item, index) in items"
                         :key="index"
                         type="button"
-                        class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
+                        class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-neutral-700 transition hover:bg-gray-50 hover:text-neutral-900"
                         :class="item.class"
                         @click="handleItemClick(item)"
                     >

@@ -114,7 +114,7 @@ class StockAdjustment extends Model
             $filters['reason'] ?? false,
             fn (Builder $q, $value) => $q->where('reason', $value)
         )->when(
-            $filters['outlet_id'] ?? false,
+            $filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['date_from'] ?? false,

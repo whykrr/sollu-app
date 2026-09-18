@@ -11,12 +11,20 @@ Saat membuat atau memodifikasi antarmuka di `resources/js`, Anda **WAJIB** memat
 - **Spacing Skala 2 pada Layout & Halaman (`MainPage`):** Jarak antar-elemen/komponen di atas wrapper `<MainPage>` dan di dalam slot-nya WAJIB menggunakan skala 2 Tailwind (`gap-2`, `gap-y-2`, `gap-x-2`, `space-y-2`, `space-x-2`, `m-2`, `my-2`, `mt-2`, `mb-2`).
 - **Batas Spacing Komponen Baru (Maksimal Skala 3):** Margin dan padding pada komponen baru atau child komponen DILARANG melebihi skala 3 (`p-3`, `px-3`, `py-3`, `m-3`, `mx-3`, `my-3`). Hindari padding/margin berlebih (`p-4`, `p-5`, `p-6` pada elemen interior).
 - **Form Input Spacing (Skala 2):** Jarak antar-input formulir DILARANG melebihi skala 2 (`space-y-2`, `gap-2`).
+- **Prinsip Flat Minimalis & Bebas Shadow pada Container `<MainPage>`:** Seluruh komponen di dalam `<MainPage>` (`#header`, `#widgets`, `#filter`, default slot, `#footer` seperti widget card, filter toolbar, action buttons, table) **DILARANG MENGGUNAKAN KELAS SHADOW** (`shadow`, `shadow-xs`, `shadow-sm`, `shadow-md`, dll). Gunakan garis batas halus (`border border-slate-200` / `border-gray-200`) dan warna latar solid/subtle (`bg-white` / `bg-slate-50`) untuk menjaga tampilan flat minimalis. Shadow hanya diizinkan untuk floating overlay elements (dropdown popover terbuka, modal dialog, toast).
 
 ## 2. Struktur Halaman Utama (`<MainPage>`) & Keseragaman Header
 
 - **Wrapper Utama:** Semua halaman modul wajib menggunakan `<MainPage>`.
+- **Tampilan Flat Minimalis (Tanpa Shadow):** Semua komponen di dalam slot `MainPage` harus flat tanpa drop-shadow.
 - **Keseragaman Header (`<MainPageHeader>`):** Wajib menggunakan `<MainPageHeader :title="..." :description="...">` dengan tombol aksi di slot default pada `<template #header>`.
-- **Elemen Non-Scrolling di Slot `#header`:** Kartu ringkasan (_cards_), widget analitik (_widgets_), bar pencarian/filter (_filters_), atau tombol aksi WAJIB diletakkan di slot `<template #header>` agar tetap sticky di atas dan **TIDAK ikut ter-scroll** saat tabel/konten di default slot digulir.
+- **Hierarki Slot Non-Scrolling:**
+    1. `<template #header>`: Judul halaman & tombol aksi.
+    2. `<template #widgets>`: Kartu KPI/ringkasan metrik (di antara header dan filter).
+    3. `<template #filter>`: Toolbar filter dan pencarian yang diekstrak.
+    4. Default slot: Konten scrollable utama (`<Table>`).
+    5. `<template #footer>`: Pagination bar.
+       Seluruh elemen header, widget, dan filter WAJIB diletakkan di slot non-scrolling masing-masing agar **TIDAK ikut ter-scroll** saat tabel di default slot digulir.
 - **Scrollable Content (Default Slot):** Komponen `<Table>` dan daftar data diletakkan di default slot `<MainPage>`.
 
 ## 3. Ekstraksi Wajib Komponen Filter

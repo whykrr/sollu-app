@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services\App\Master;
 
 use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Master\InventoryItem;
 use App\Models\Master\Product;
 use App\Models\User;
@@ -36,8 +37,28 @@ class ProductServiceTest extends TestCase
         parent::setUp();
 
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $this->user = User::first();
-        $this->business = $this->user->business;
+
+        $type = BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $this->business = Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner',
+            'email' => 'owner_'.uniqid().'@test.com',
+            'phone' => '08123456789',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $this->user = User::create([
+            'business_id' => $this->business->id,
+            'name' => 'Manager',
+            'email' => 'manager_'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+        ]);
 
         $this->auditLogServiceMock = Mockery::mock(AuditLogService::class);
         $this->auditLogServiceMock->shouldReceive('log')->andReturnNull();
@@ -60,16 +81,47 @@ class ProductServiceTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_it_creates_basic_product_without_variant()
+    public function test_it_creates_service_or_untracked_product_without_inventory_interaction()
+    {
+        // InventoryService should NEVER be called when track_inventory is false
+        $this->inventoryServiceMock->shouldNotReceive('createVariantInventory');
+
+        $data = [
+            'business_id' => $this->business->id,
+            'name' => 'Jasa Potong Rambut',
+            'product_type' => 'service',
+            'base_price' => 35000,
+            'has_variant' => false,
+            'track_inventory' => false,
+        ];
+
+        $product = $this->service->createProduct($data);
+
+        $this->assertInstanceOf(Product::class, $product);
+        $this->assertEquals('Jasa Potong Rambut', $product->name);
+        $this->assertEquals('service', $product->product_type);
+        $this->assertFalse($product->track_inventory);
+        $this->assertCount(1, $product->prices);
+        $this->assertEquals(35000, $product->prices->first()->amount);
+        $this->assertNull($product->prices->first()->inventory_item_id);
+    }
+
+    public function test_it_creates_basic_product_with_inventory_tracking()
     {
         $invItem = new InventoryItem(['id' => Str::uuid()->toString()]);
 
         $this->inventoryServiceMock->shouldReceive('createVariantInventory')
             ->once()
+            ->with(Mockery::on(function ($data) {
+                return $data['name'] === 'Basic Product'
+                    && $data['sku'] === 'PRD-001'
+                    && $data['track_inventory'] === true;
+            }))
             ->andReturn($invItem);
 
         $data = [
             'business_id' => $this->business->id,
+            'code' => 'PRD-001',
             'name' => 'Basic Product',
             'product_type' => 'basic',
             'base_price' => 10000,
@@ -81,12 +133,13 @@ class ProductServiceTest extends TestCase
 
         $this->assertInstanceOf(Product::class, $product);
         $this->assertEquals('Basic Product', $product->name);
+        $this->assertEquals('PRD-001', $product->code);
         $this->assertCount(1, $product->prices);
         $this->assertEquals(10000, $product->prices->first()->amount);
         $this->assertEquals($invItem->id, $product->prices->first()->inventory_item_id);
     }
 
-    public function test_it_updates_basic_product_without_variant()
+    public function test_it_updates_basic_product_with_inventory()
     {
         $product = Product::create([
             'business_id' => $this->business->id,
@@ -115,6 +168,7 @@ class ProductServiceTest extends TestCase
         $updateData = [
             'name' => 'New Name',
             'base_price' => 15000,
+            'track_inventory' => true,
         ];
 
         $updatedProduct = $this->service->updateProduct($product, $updateData);
@@ -149,7 +203,7 @@ class ProductServiceTest extends TestCase
         $product = $this->service->createProduct($data);
 
         $this->assertEquals('bundle', $product->product_type);
-        $this->assertFalse($product->track_inventory); // Overridden in service
+        $this->assertFalse($product->track_inventory);
         $this->assertCount(1, $product->bundleItems);
         $this->assertEquals($component->id, $product->bundleItems->first()->component_product_id);
     }

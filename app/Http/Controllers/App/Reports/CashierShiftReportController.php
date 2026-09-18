@@ -16,7 +16,7 @@ class CashierShiftReportController extends Controller
     {
         $startDateParam = $request->get('start_date');
         $endDateParam = $request->get('end_date');
-        $outletId = $request->get('outlet') ?? '';
+        $outletId = $request->get('outlet') ?: (\App\Helpers\SelectedOutlet::make()->currentId() ?? '');
 
         $now = Carbon::now();
         $startDate = $startDateParam ? Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();

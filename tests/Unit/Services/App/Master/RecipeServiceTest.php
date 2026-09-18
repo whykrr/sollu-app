@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\Services\App\Master;
 
+use App\Models\Business;
 use App\Models\Master\InventoryItem;
 use App\Models\Master\Product;
 use App\Models\Master\RecipeVersion;
-use App\Models\User;
 use App\Services\App\Master\AuditLogService;
 use App\Services\App\Master\RecipeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,11 +36,28 @@ class RecipeServiceTest extends TestCase
         parent::tearDown();
     }
 
+    protected function createTenant(): Business
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        return Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner',
+            'email' => 'owner_'.uniqid().'@test.com',
+            'phone' => '08123456789',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+    }
+
     public function test_it_syncs_recipe_and_creates_new_version()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
-        $business = $user->business;
+        $business = $this->createTenant();
 
         $product = Product::create([
             'business_id' => $business->id,

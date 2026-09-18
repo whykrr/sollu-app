@@ -1,6 +1,5 @@
 <?php
 
-use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\App\Notification\NotificationController;
 use App\Http\Controllers\App\Overview\OverviewController;
 use App\Http\Controllers\App\User\ForgotPasswordController;
@@ -45,20 +44,10 @@ Route::middleware('auth:business')->group(function () {
     })->middleware(['throttle:6,5'])->name('verification.send');
 
     Route::prefix('switch-outlet')->name('switch.')->group(function () {
-        Route::get('/dashboard', function () {
-            return inertia('Dashboard');
-        })->name('dashboard');
-
-        Route::post('/all', function () {
-            SelectedOutlet::make()->all();
-
-            return back();
-        })->name('all');
-        Route::post('/{id}', function (Request $request, $id) {
-            SelectedOutlet::make()->change($id);
-
-            return back();
-        })->where('id', '[0-9a-fA-F\-]{36}')->name('outlet');
+        Route::post('/all', [\App\Http\Controllers\App\Outlet\SwitchOutletController::class, 'all'])->name('all');
+        Route::post('/{id}', [\App\Http\Controllers\App\Outlet\SwitchOutletController::class, 'switch'])
+            ->where('id', '[0-9a-fA-F\-]{36}')
+            ->name('outlet');
     });
 
     // Internal APIs

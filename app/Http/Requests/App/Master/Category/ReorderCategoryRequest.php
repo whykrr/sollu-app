@@ -2,16 +2,17 @@
 
 namespace App\Http\Requests\App\Master\Category;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\PermissionEnum;
+use App\Http\Requests\BaseInertiaFormRequest;
 
-class ReorderCategoryRequest extends FormRequest
+class ReorderCategoryRequest extends BaseInertiaFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can(PermissionEnum::CATEGORY_UPDATE->value) ?? false;
     }
 
     /**

@@ -63,10 +63,10 @@ class HandleAppInertiaRequests extends Middleware
                 ? array_merge(
                     $request->user()->only(['id', 'name', 'email', 'email_verified_at', 'photo']),
                     (array) SummaryUser::make()->cached(),
-                    ['selected_outlet' => '']
+                    ['selected_outlet' => SelectedOutlet::make($request->user())->cached()]
                 ) : null,
 
-            'selectedOutlet' => fn () => $request->user() ? SelectedOutlet::make()->cached() : null,
+            'selectedOutlet' => fn () => $request->user() ? SelectedOutlet::make($request->user())->cached() : null,
         ]);
     }
 }

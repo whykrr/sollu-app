@@ -1,15 +1,17 @@
 <template>
     <MainPage>
-        <template #widgets>
-            <BusinessWidgets :metrics="metrics" />
-        </template>
-
         <template #header>
             <MainPageHeader
                 title="Manajemen Merchant"
                 description="Kelola data bisnis merchant, status akun, paket langganan aktif, dan seluruh cabang outlet"
             />
+        </template>
 
+        <template #widgets>
+            <BusinessWidgets :metrics="metrics" />
+        </template>
+
+        <template #filter>
             <BusinessFilter :filters="filters" :business-types="businessTypes" />
         </template>
 

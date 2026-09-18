@@ -154,6 +154,11 @@ class User extends Authenticatable implements MustVerifyEmail
                 $q->where('roles.name', $value);
             })
         )->when(
+            $filters['outlet'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
+            fn (Builder $builder, $value) => $builder->whereHas('outlets', function (Builder $q) use ($value) {
+                $q->where('outlets.id', $value);
+            })
+        )->when(
             $filters['is_deleted'] ?? false,
             fn (Builder $builder, $value) => $builder->withTrashed()
         );

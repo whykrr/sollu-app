@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\FeatureEnum;
+use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +25,15 @@ use Illuminate\Support\Facades\Cache;
 class BusinessType extends Model
 {
     use HasFactory;
+    use SortableModel;
+
+    protected array $sortable = [
+        'name',
+        'code',
+        'sort_order',
+        'is_visible',
+        'businesses_count',
+    ];
 
     protected $fillable = [
         'code',

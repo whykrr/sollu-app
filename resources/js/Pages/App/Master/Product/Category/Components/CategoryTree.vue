@@ -6,42 +6,57 @@
             item-key="id"
             handle=".drag-handle"
             class="space-y-2"
+            :disabled="!can(enums.PermissionEnum?.CATEGORY_UPDATE || 'category.update')"
             @change="onReorderRoot"
         >
             <template #item="{ element: category }">
-                <div class="bg-white border border-slate-200 rounded-xl">
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
                     <div
-                        class="p-4 py-2 flex items-center justify-between border-b border-slate-100 bg-slate-50 rounded-t-xl"
+                        class="px-4 py-2.5 flex items-center justify-between border-b border-slate-100 bg-slate-50"
                     >
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2.5">
                             <FontAwesomeIcon
+                                v-if="
+                                    can(enums.PermissionEnum?.CATEGORY_UPDATE || 'category.update')
+                                "
                                 :icon="faGripVertical"
-                                class="drag-handle cursor-move text-slate-400 hover:text-slate-600"
+                                class="drag-handle cursor-move text-slate-400 hover:text-slate-600 text-xs"
                             />
-                            <div class="font-semibold">{{ category.name }}</div>
-                            <div class="badge badge-neutral-500 text-xs">
-                                {{ category.children ? category.children.length : 0 }}
-                                Sub
+                            <div class="font-semibold text-xs text-slate-800">
+                                {{ category.name }}
                             </div>
+                            <span class="badge badge-gray text-[10px] py-0.5 px-2">
+                                {{ category.children ? category.children.length : 0 }} Sub
+                            </span>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5">
                             <button
-                                class="btn btn-outline-secondary btn-sm"
+                                v-if="
+                                    can(enums.PermissionEnum?.CATEGORY_CREATE || 'category.create')
+                                "
+                                class="btn btn-flat btn-sm"
                                 title="Tambah Sub-Kategori"
                                 @click="$emit('add-sub', category)"
                             >
-                                <FontAwesomeIcon :icon="faPlus" /> Sub
+                                <FontAwesomeIcon :icon="faPlus" />
+                                <span>Sub</span>
                             </button>
                             <button
-                                class="btn btn-outline-secondary btn-sm"
-                                title="Edit"
+                                v-if="
+                                    can(enums.PermissionEnum?.CATEGORY_UPDATE || 'category.update')
+                                "
+                                class="btn btn-flat btn-sm"
+                                title="Ubah Kategori"
                                 @click="$emit('edit', category)"
                             >
                                 <FontAwesomeIcon :icon="faPencil" />
                             </button>
                             <button
-                                class="btn btn-outline-danger btn-sm"
-                                title="Hapus"
+                                v-if="
+                                    can(enums.PermissionEnum?.CATEGORY_DELETE || 'category.delete')
+                                "
+                                class="btn btn-flat btn-sm text-red-600 hover:bg-red-50 hover:border-red-200"
+                                title="Hapus Kategori"
                                 @click="$emit('delete', category)"
                             >
                                 <FontAwesomeIcon :icon="faTrash" />
@@ -50,37 +65,63 @@
                     </div>
 
                     <!-- Sub Categories -->
-                    <div v-if="category.children && category.children.length > 0" class="p-2 pl-8">
+                    <div
+                        v-if="category.children && category.children.length > 0"
+                        class="p-2 pl-6 space-y-1.5"
+                    >
                         <draggable
                             v-model="category.children"
                             group="sub"
                             item-key="id"
                             handle=".drag-handle-sub"
-                            class="space-y-1"
+                            class="space-y-1.5"
+                            :disabled="
+                                !can(enums.PermissionEnum?.CATEGORY_UPDATE || 'category.update')
+                            "
                             @change="onReorderSub(category)"
                         >
                             <template #item="{ element: subCategory }">
                                 <div
-                                    class="flex items-center justify-between p-3 py-1.5 border border-slate-100 rounded-xl bg-white"
+                                    class="flex items-center justify-between px-3 py-1.5 border border-slate-100 rounded-lg bg-white hover:bg-slate-50 transition-colors"
                                 >
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2.5">
                                         <FontAwesomeIcon
+                                            v-if="
+                                                can(
+                                                    enums.PermissionEnum?.CATEGORY_UPDATE ||
+                                                        'category.update'
+                                                )
+                                            "
                                             :icon="faGripVertical"
-                                            class="drag-handle-sub cursor-move text-slate-400 hover:text-slate-600"
+                                            class="drag-handle-sub cursor-move text-slate-400 hover:text-slate-600 text-xs"
                                         />
-                                        <div>{{ subCategory.name }}</div>
+                                        <div class="text-xs text-slate-700">
+                                            {{ subCategory.name }}
+                                        </div>
                                     </div>
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-1">
                                         <button
-                                            class="btn btn-outline-secondary btn-sm"
-                                            title="Edit"
+                                            v-if="
+                                                can(
+                                                    enums.PermissionEnum?.CATEGORY_UPDATE ||
+                                                        'category.update'
+                                                )
+                                            "
+                                            class="btn btn-flat btn-xs"
+                                            title="Ubah Sub-Kategori"
                                             @click="$emit('edit', subCategory)"
                                         >
                                             <FontAwesomeIcon :icon="faPencil" />
                                         </button>
                                         <button
-                                            class="btn btn-outline-danger btn-sm"
-                                            title="Hapus"
+                                            v-if="
+                                                can(
+                                                    enums.PermissionEnum?.CATEGORY_DELETE ||
+                                                        'category.delete'
+                                                )
+                                            "
+                                            class="btn btn-flat btn-xs text-red-600 hover:bg-red-50 hover:border-red-200"
+                                            title="Hapus Sub-Kategori"
                                             @click="$emit('delete', subCategory)"
                                         >
                                             <FontAwesomeIcon :icon="faTrash" />
@@ -104,8 +145,8 @@ import { faGripVertical, faPencil, faTrash, faPlus } from '@fortawesome/free-sol
 import { router } from '@inertiajs/vue3'
 import axios from 'axios'
 import { useToastStore } from '@/store/toast'
-
-const toastStore = useToastStore()
+import { useAuth } from '@/Composable/useAuth'
+import { useEnum } from '@/Composable/useEnum'
 
 const props = defineProps({
     categories: {
@@ -114,21 +155,23 @@ const props = defineProps({
     },
 })
 
-const emit = defineEmits(['edit', 'delete', 'add-sub'])
+defineEmits(['edit', 'delete', 'add-sub'])
+
+const toastStore = useToastStore()
+const { can } = useAuth()
+const { enums } = useEnum()
 
 const localCategories = ref([])
 
 watch(
     () => props.categories,
     newVal => {
-        // Deep clone to avoid mutating props directly when dragging
-        localCategories.value = JSON.parse(JSON.stringify(newVal))
+        localCategories.value = JSON.parse(JSON.stringify(newVal || []))
     },
     { immediate: true, deep: true }
 )
 
 const saveReorder = () => {
-    // Flatten the categories to build the payload
     const payload = []
 
     localCategories.value.forEach((rootCat, rootIndex) => {
@@ -142,7 +185,7 @@ const saveReorder = () => {
             rootCat.children.forEach((subCat, subIndex) => {
                 payload.push({
                     id: subCat.id,
-                    parent_id: rootCat.id, // Update parent_id in case it was dragged to another parent
+                    parent_id: rootCat.id,
                     sort_order: subIndex + 1,
                 })
             })
@@ -152,12 +195,11 @@ const saveReorder = () => {
     axios
         .post(route('master.categories.reorder'), { categories: payload })
         .then(response => {
-            toastStore.success('Urutan kategori berhasil disimpan.')
+            toastStore.success(response.data?.message || 'Urutan kategori berhasil disimpan.')
             router.reload({ only: ['categories'] })
         })
         .catch(error => {
-            console.error(error)
-            toastStore.danger(error.response?.data?.message || 'Gagal menyimpan urutan')
+            toastStore.danger(error.response?.data?.message || 'Gagal menyimpan urutan kategori.')
             router.reload({ only: ['categories'] })
         })
 }
@@ -166,7 +208,7 @@ const onReorderRoot = () => {
     saveReorder()
 }
 
-const onReorderSub = parentCategory => {
+const onReorderSub = () => {
     saveReorder()
 }
 </script>

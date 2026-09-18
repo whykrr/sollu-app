@@ -1,29 +1,34 @@
 <template>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        <Widget :icon="faLayerGroup" title="Total Paket">
+        <WidgetMini :icon="faLayerGroup" title="Total Paket" variant="main">
             {{ plansCount }} <span class="text-xs font-normal text-neutral-500">Varian</span>
-        </Widget>
-        <Widget :icon="faCheckCircle" title="Paket Aktif">
-            <span class="text-success">{{ activeCount }}</span>
+        </WidgetMini>
+        <WidgetMini
+            :icon="faCheckCircle"
+            title="Paket Aktif"
+            variant="success"
+            value-class="text-success"
+        >
+            {{ activeCount }}
             <span class="text-xs font-normal text-neutral-400 ml-1.5"
                 >({{ inactiveCount }} nonaktif)</span
             >
-        </Widget>
-        <Widget :icon="faEye" title="Katalog Publik">
-            <span class="text-sky-700">{{ publicCount }}</span>
+        </WidgetMini>
+        <WidgetMini :icon="faEye" title="Katalog Publik" variant="sky" value-class="text-sky-700">
+            {{ publicCount }}
             <span class="text-xs font-normal text-neutral-400 ml-1.5"
                 >({{ hiddenCount }} hidden)</span
             >
-        </Widget>
-        <Widget :icon="faStore" title="Pelanggan Aktif">
+        </WidgetMini>
+        <WidgetMini :icon="faStore" title="Pelanggan Aktif" variant="amber">
             {{ totalSubscribersCount }}
             <span class="text-xs font-normal text-neutral-500">Merchant</span>
-        </Widget>
+        </WidgetMini>
     </div>
 </template>
 
 <script setup>
-import Widget from '@/Components/Widgets/Widget.vue'
+import WidgetMini from '@/Components/Widgets/WidgetMini.vue'
 import { faLayerGroup, faCheckCircle, faEye, faStore } from '@fortawesome/free-solid-svg-icons'
 
 defineProps({

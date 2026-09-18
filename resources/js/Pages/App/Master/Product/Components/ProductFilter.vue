@@ -1,134 +1,131 @@
 <template>
-    <div class="flex flex-wrap items-center gap-2">
-        <!-- Search bar -->
-        <div>
-            <FilterSearch v-model="filterForm.search" />
-        </div>
+    <FilterBar>
+        <template #left>
+            <!-- Product Type Filter -->
+            <FilterDropdown
+                v-model="filterForm.product_type"
+                label="Tipe"
+                :options="productTypeOptions"
+                :icon="faTag"
+                all-option-label="Semua Tipe"
+                @change="updateQuery"
+            />
 
-        <!-- Filter Button -->
-        <div>
-            <button
-                type="button"
-                class="btn btn-sm border border-gray-200 hover:border-gray-300 bg-white"
-                @click="openModal"
-            >
-                <span>Filter</span>
-                <FontAwesomeIcon :icon="faSliders" />
-            </button>
-        </div>
+            <!-- Category Filter -->
+            <FilterDropdown
+                v-if="categoryOptions.length > 0"
+                v-model="filterForm.category"
+                label="Kategori"
+                :options="categoryOptions"
+                :icon="faBox"
+                all-option-label="Semua Kategori"
+                @change="updateQuery"
+            />
 
-        <!-- Active Filter Badges -->
-        <div class="flex-1 flex flex-wrap items-center gap-1.5">
-            <FilterBadge v-if="filterForm.category" @remove="removeFilter('category')">
-                Kategori: {{ getCategoryLabel(filterForm.category) }}
-            </FilterBadge>
-            <FilterBadge v-if="filterForm.outlet" @remove="removeFilter('outlet')">
-                Outlet: {{ getOutletLabel(filterForm.outlet) }}
-            </FilterBadge>
-            <FilterBadge v-if="filterForm.is_deleted" @remove="removeFilter('is_deleted')">
-                Tampilkan Arsip
-            </FilterBadge>
-        </div>
+            <!-- Outlet Filter (if multi-outlet) -->
+            <FilterDropdown
+                v-if="outletOptions.length > 1 && selectedOutlet === null"
+                v-model="filterForm.outlet"
+                label="Outlet"
+                :options="outletOptions"
+                :icon="faStore"
+                all-option-label="Semua Outlet"
+                @change="updateQuery"
+            />
 
-        <!-- Filter Modal Overlay -->
-        <FilterModal
-            :show="showFilterModal"
-            title="Filter Produk"
-            @close="closeModal"
-            @reset="resetTempFilters"
-            @apply="applyFilters"
-        >
-            <!-- Body -->
-            <div class="space-y-4">
-                <!-- Category Filter -->
-                <div class="space-y-1">
-                    <label
-                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                        >Kategori</label
-                    >
-                    <GroupDropdownIconField
-                        id="category"
-                        v-model="tempFilters.category"
-                        :icon="faBox"
-                        placeholder="Semua Kategori"
-                        class="w-full"
-                        :options="categories"
-                    />
-                </div>
+            <!-- Status Segmented / Trashed -->
+            <FilterSegmented
+                v-model="filterForm.is_deleted"
+                :options="statusSegmentOptions"
+                @change="updateQuery"
+            />
+        </template>
 
-                <!-- Outlet Filter -->
-                <div v-if="outlets.length > 1 && selectedOutlet === null" class="space-y-1">
-                    <label
-                        class="block text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                        >Outlet</label
-                    >
-                    <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
-                        <SelectionGroupField
-                            id="outlets"
-                            v-model="tempFilters.outlet"
-                            name="outlet"
-                            class="sm btn-sm"
-                            :options="outlets"
-                        />
-                    </div>
-                </div>
+        <template #actions>
+            <FilterActions>
+                <button type="button" class="btn btn-flat btn-sm" @click="exportCsv">
+                    <FontAwesomeIcon :icon="faDownload" class="text-xs text-neutral-500" />
+                    <span>Ekspor</span>
+                </button>
 
-                <!-- Show Archived Filter -->
-                <div class="flex items-center justify-between border-t pt-3">
-                    <span class="text-sm font-medium text-slate-700">Tampilkan Arsip</span>
-                    <Switch
-                        id="switch_regular"
-                        v-model="tempFilters.is_deleted"
-                        name="switch_regular"
-                        size="sm"
-                    />
-                </div>
-            </div>
-        </FilterModal>
-    </div>
+                <button type="button" class="btn btn-flat btn-sm" @click="$emit('open-import')">
+                    <FontAwesomeIcon :icon="faUpload" class="text-xs text-neutral-500" />
+                    <span>Impor</span>
+                </button>
+            </FilterActions>
+        </template>
+
+        <template #search>
+            <FilterSearch
+                v-model="filterForm.search"
+                placeholder="Cari produk / kode..."
+                @clear="updateQuery"
+            />
+        </template>
+    </FilterBar>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
+import { reactive, computed, watch } from 'vue'
+import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faBox, faSliders } from '@fortawesome/free-solid-svg-icons'
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
-import Switch from '@/Components/Form/Switch.vue'
+import { faBox, faStore, faDownload, faUpload, faTag } from '@fortawesome/free-solid-svg-icons'
+import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
+import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
+import FilterActions from '@/Components/UI/Filter/FilterActions.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
-import FilterModal from '@/Components/UI/Filter/FilterModal.vue'
-import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
+import { useAuth } from '@/Composable/useAuth'
 
 const props = defineProps({
-    filters: Object,
-    categories: Array,
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
+    categories: {
+        type: Array,
+        default: () => [],
+    },
 })
 
-const outlets = usePage().props.auth.outlets.map(store => ({
-    value: store.id,
-    label: store.name,
-}))
+defineEmits(['open-import'])
 
-const selectedOutlet = computed(() => usePage().props.selectedOutlet)
+const { outlets: userOutlets, selectedOutlet } = useAuth()
+const outletOptions = computed(() => {
+    return (userOutlets.value || []).map(store => ({
+        value: String(store.id),
+        label: store.name,
+    }))
+})
+
+const productTypeOptions = [
+    { value: 'basic', label: 'Barang' },
+    { value: 'service', label: 'Layanan' },
+    { value: 'bundle', label: 'Bundle' },
+]
+
+const categoryOptions = computed(() => {
+    return props.categories.map(c => ({
+        value: String(c.value ?? c.id),
+        label: c.label ?? c.name,
+    }))
+})
+
+const statusSegmentOptions = [
+    { value: '', label: 'Semua Produk' },
+    { value: '1', label: 'Arsip' },
+]
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
     outlet: props.filters?.outlet ?? '',
     category: props.filters?.category ?? '',
-    is_deleted: props.filters?.is_deleted ? true : false,
+    product_type: props.filters?.product_type ?? '',
+    is_deleted: props.filters?.is_deleted ? '1' : '',
 })
 
-// Modal State
-const showFilterModal = ref(false)
-const tempFilters = reactive({
-    category: '',
-    outlet: '',
-    is_deleted: false,
-})
-
-// Watch search separately for immediate query trigger
+// Watch search with debounce
 watch(
     () => filterForm.search,
     debounce(() => {
@@ -136,53 +133,14 @@ watch(
     }, 500)
 )
 
-const getCategoryLabel = catId => {
-    return props.categories.find(c => c.value === catId)?.label ?? catId
-}
-
-const getOutletLabel = outId => {
-    return outlets.find(o => o.value === outId)?.label ?? outId
-}
-
-const openModal = () => {
-    tempFilters.category = filterForm.category
-    tempFilters.outlet = filterForm.outlet
-    tempFilters.is_deleted = filterForm.is_deleted
-    showFilterModal.value = true
-}
-
-const closeModal = () => {
-    showFilterModal.value = false
-}
-
-const resetTempFilters = () => {
-    tempFilters.category = ''
-    tempFilters.outlet = ''
-    tempFilters.is_deleted = false
-}
-
-const applyFilters = () => {
-    filterForm.category = tempFilters.category
-    filterForm.outlet = tempFilters.outlet
-    filterForm.is_deleted = tempFilters.is_deleted
-    showFilterModal.value = false
-    updateQuery()
-}
-
-const removeFilter = key => {
-    if (key === 'category') filterForm.category = ''
-    if (key === 'outlet') filterForm.outlet = ''
-    if (key === 'is_deleted') filterForm.is_deleted = false
-    updateQuery()
-}
-
 const updateQuery = () => {
     const query = {
         ...route().params,
         search: filterForm.search || undefined,
         category: filterForm.category || undefined,
         outlet: filterForm.outlet || undefined,
-        is_deleted: filterForm.is_deleted ? 1 : undefined,
+        product_type: filterForm.product_type || undefined,
+        is_deleted: filterForm.is_deleted === '1' ? 1 : undefined,
         page: 1,
     }
 
@@ -190,5 +148,16 @@ const updateQuery = () => {
         preserveState: true,
         preserveScroll: true,
     })
+}
+
+const exportCsv = () => {
+    router.get(
+        route('master.products.export', filterForm),
+        {},
+        {
+            preserveScroll: true,
+            preserveState: true,
+        }
+    )
 }
 </script>

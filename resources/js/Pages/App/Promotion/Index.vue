@@ -65,40 +65,28 @@
                             <button
                                 v-if="row.status === 'draft'"
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                                @click="
-                                    openEdit(row);
-                                    closeDropdown();
-                                "
+                                @click="(openEdit(row), closeDropdown())"
                             >
                                 Ubah
                             </button>
                             <button
                                 v-if="row.status === 'draft' || row.status === 'inactive'"
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 text-success"
-                                @click="
-                                    publishPromo(row.id);
-                                    closeDropdown();
-                                "
+                                @click="(publishPromo(row.id), closeDropdown())"
                             >
                                 Publish
                             </button>
                             <button
                                 v-if="row.status === 'active'"
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 text-warning"
-                                @click="
-                                    unpublishPromo(row.id);
-                                    closeDropdown();
-                                "
+                                @click="(unpublishPromo(row.id), closeDropdown())"
                             >
                                 Nonaktifkan
                             </button>
                             <button
                                 v-if="row.status === 'draft'"
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 text-danger"
-                                @click="
-                                    deletePromo(row.id);
-                                    closeDropdown();
-                                "
+                                @click="(deletePromo(row.id), closeDropdown())"
                             >
                                 Hapus
                             </button>

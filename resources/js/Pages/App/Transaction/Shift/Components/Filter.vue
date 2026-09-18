@@ -1,48 +1,31 @@
 <template>
-    <div class="flex items-center gap-2">
-        <FilterSearch v-model="filterForm.search" placeholder="Cari Nama Kasir" />
+    <FilterBar>
+        <template #left>
+            <!-- Status Segmented Filter -->
+            <FilterSegmented
+                v-model="filterForm.status"
+                :options="statusOptions"
+                @change="updateQuery"
+            />
+        </template>
 
-        <button class="btn btn-outline-main btn-sm" @click="openFilter">
-            <FontAwesomeIcon :icon="faSliders" />
-            Filter
-        </button>
-
-        <!-- Active Filters Display -->
-        <FilterBadge
-            v-if="filterForm.status"
-            label="Status"
-            :value="filterForm.status"
-            @remove="removeFilter('status')"
-        />
-
-        <FilterModal
-            :show="showFilter"
-            @close="closeFilter"
-            @apply="applyFilter"
-            @reset="resetFilter"
-        >
-            <div class="space-y-4">
-                <DropdownField
-                    v-model="tempFilters.status"
-                    label="Status Shift"
-                    :options="statusOptions"
-                    placeholder="Semua Status"
-                />
-            </div>
-        </FilterModal>
-    </div>
+        <template #search>
+            <FilterSearch
+                v-model="filterForm.search"
+                placeholder="Cari nama kasir..."
+                @clear="updateQuery"
+            />
+        </template>
+    </FilterBar>
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
-import { faSliders } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { reactive, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import debounce from 'lodash/debounce'
+import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
-import FilterModal from '@/Components/UI/Filter/FilterModal.vue'
-import FilterBadge from '@/Components/UI/Filter/FilterBadge.vue'
-import DropdownField from '@/Components/Form/DropdownField.vue'
 
 const props = defineProps({
     filters: {
@@ -51,7 +34,11 @@ const props = defineProps({
     },
 })
 
-const showFilter = ref(false)
+const statusOptions = [
+    { value: '', label: 'Semua Shift' },
+    { value: 'open', label: 'Buka' },
+    { value: 'closed', label: 'Tutup' },
+]
 
 const filterForm = reactive({
     search: props.filters.search || '',
@@ -59,15 +46,6 @@ const filterForm = reactive({
     sort: props.filters.sort || '',
     direction: props.filters.direction || '',
 })
-
-const tempFilters = reactive({
-    status: '',
-})
-
-const statusOptions = [
-    { value: 'open', label: 'Buka' },
-    { value: 'closed', label: 'Tutup' },
-]
 
 const updateQuery = () => {
     const query = {
@@ -96,31 +74,4 @@ watch(
         updateQuery()
     }, 500)
 )
-
-const openFilter = () => {
-    tempFilters.status = filterForm.status
-    showFilter.value = true
-}
-
-const closeFilter = () => {
-    showFilter.value = false
-}
-
-const applyFilter = () => {
-    filterForm.status = tempFilters.status
-    updateQuery()
-    closeFilter()
-}
-
-const resetFilter = () => {
-    tempFilters.status = ''
-    filterForm.status = ''
-    updateQuery()
-    closeFilter()
-}
-
-const removeFilter = key => {
-    filterForm[key] = ''
-    updateQuery()
-}
 </script>

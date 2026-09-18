@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Dashboard Ringkasan">
+            <MainPageHeader
+                title="Dashboard"
+                description="Ringkasan performa penjualan, tren omset, wawasan metode pembayaran, dan status inventaris"
+            >
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full sm:w-auto">
                     <!-- Outlet Selector -->
                     <div v-if="outletOptions.length > 0" class="w-full sm:w-48">
@@ -16,18 +19,13 @@
                     </div>
 
                     <!-- Date Preset Filter -->
-                    <div class="w-full sm:w-44">
+                    <div class="w-full sm:w-48">
                         <GroupDropdownIconField
                             id="period-filter"
                             v-model="formFilters.period"
                             :icon="faCalendarDays"
                             class="sm"
-                            :options="[
-                                { value: 'today', label: 'Hari Ini' },
-                                { value: 'yesterday', label: 'Kemarin' },
-                                { value: '7_days', label: '7 Hari Terakhir' },
-                                { value: 'this_month', label: 'Bulan Ini' },
-                            ]"
+                            :options="periodOptions"
                             @change="applyFilters"
                         />
                     </div>
@@ -36,7 +34,7 @@
         </template>
 
         <!-- Email Verification Banner -->
-        <div v-if="auth?.email_verified_at === null" class="alert alert-warning mb-3 shadow-xs">
+        <div v-if="auth?.email_verified_at === null" class="alert alert-warning mb-2 shadow-xs">
             <div
                 class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
             >
@@ -58,31 +56,40 @@
             </div>
         </div>
 
-        <!-- 4 KPI Cards Section -->
-        <TransactionSection
-            :total-sales="totalSales"
-            :total-transactions="totalTransactions"
-            :average-sales="averageSales"
-            :period-label="filters?.period_label || 'periode ini'"
-        />
+        <template #widgets>
+            <AppDashboardKpiWidgets
+                :total-sales="totalSales"
+                :total-transactions="totalTransactions"
+                :average-sales="averageSales"
+                :low-stock-count="lowStockCount"
+                :period-label="filters?.period_label || 'periode lalu'"
+            />
+        </template>
 
-        <!-- Charts Grid Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-2 mb-2">
-            <div class="lg:col-span-2">
-                <SalesTrendChart :trend="salesTrend" />
+        <!-- Visual Analytics & Operational Grid -->
+        <div class="flex flex-col gap-2 pb-4">
+            <!-- Row 1: Sales Trend & Category Breakdown -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+                <div class="lg:col-span-2">
+                    <SalesTrendChart :trend="salesTrend" :period-label="filters?.period_label" />
+                </div>
+                <div class="lg:col-span-1">
+                    <CategorySalesChart :category-sales="categorySalesTrend" />
+                </div>
             </div>
-            <div class="lg:col-span-1">
-                <CategorySalesChart :category-sales="categorySalesTrend" />
-            </div>
-        </div>
 
-        <!-- Payment Method & Operations Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
-            <div class="lg:col-span-2 flex flex-col gap-2">
-                <PaymentMethodChart :payment-methods="paymentMethodSummary" />
-                <TableMostSoldProduct :data="mostSoldProducts" />
+            <!-- Row 2: Payment Method & Most Sold Products -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+                <div class="lg:col-span-2">
+                    <PaymentMethodChart :payment-methods="paymentMethodSummary" />
+                </div>
+                <div class="lg:col-span-1">
+                    <TableMostSoldProduct :data="mostSoldProducts" />
+                </div>
             </div>
-            <div class="lg:col-span-1 flex flex-col gap-2">
+
+            <!-- Row 3: Inventory Alerts & Dead Stock -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
                 <FeatureLock :feature="$enums.FeatureEnum.INVENTORY_MANAGEMENT">
                     <TableProductLowStock :data="lowStockProduct" />
                 </FeatureLock>
@@ -93,14 +100,15 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { Link, useForm } from '@inertiajs/vue3'
+import { computed, ref, watch } from 'vue'
+import { Link, router } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCalendarDays, faRotateRight, faStore } from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
-import TransactionSection from './Components/TransactionSection.vue'
+import FeatureLock from '@/Components/UI/FeatureLock.vue'
+import AppDashboardKpiWidgets from './Components/AppDashboardKpiWidgets.vue'
 import SalesTrendChart from './Components/SalesTrendChart.vue'
 import CategorySalesChart from './Components/CategorySalesChart.vue'
 import PaymentMethodChart from './Components/PaymentMethodChart.vue'
@@ -120,11 +128,38 @@ const outletOptions = computed(() => {
     }))
 })
 
+const periodOptions = [
+    { value: 'today', label: 'Hari Ini' },
+    { value: 'yesterday', label: 'Kemarin' },
+    { value: '7_days', label: '7 Hari Terakhir' },
+    { value: 'last_30_days', label: '30 Hari Terakhir' },
+    { value: 'this_month', label: 'Bulan Ini' },
+    { value: 'last_month', label: 'Bulan Lalu' },
+    { value: 'this_year', label: 'Tahun Ini' },
+    { value: 'all_time', label: 'Sepanjang Waktu' },
+]
+
 const props = defineProps({
-    filters: Object,
-    totalSales: Object,
-    totalTransactions: Object,
-    averageSales: Object,
+    filters: {
+        type: Object,
+        default: () => ({ period: 'today', outlet: '', period_label: 'Hari Ini' }),
+    },
+    totalSales: {
+        type: Object,
+        default: () => ({ now: 0, previous: 0, growth: 0 }),
+    },
+    totalTransactions: {
+        type: Object,
+        default: () => ({ now: 0, previous: 0, growth: 0 }),
+    },
+    averageSales: {
+        type: Object,
+        default: () => ({ now: 0, previous: 0, growth: 0 }),
+    },
+    lowStockCount: {
+        type: Number,
+        default: 0,
+    },
     salesTrend: {
         type: Object,
         default: () => ({ label: [], value: [] }),
@@ -137,18 +172,46 @@ const props = defineProps({
         type: Object,
         default: () => ({ label: [], value: [], revenue: [] }),
     },
-    mostSoldProducts: Array,
-    lowStockProduct: Array,
-    productNotSold: Array,
+    mostSoldProducts: {
+        type: Array,
+        default: () => [],
+    },
+    lowStockProduct: {
+        type: Array,
+        default: () => [],
+    },
+    productNotSold: {
+        type: Array,
+        default: () => [],
+    },
 })
 
-const formFilters = useForm({
-    outlet: props.filters?.outlet ?? '',
-    period: props.filters?.period ?? 'today',
+const formFilters = ref({
+    outlet: props.filters?.outlet || '',
+    period: props.filters?.period || 'today',
 })
+
+watch(
+    () => props.filters,
+    newFilters => {
+        if (newFilters) {
+            formFilters.value.outlet = newFilters.outlet || ''
+            formFilters.value.period = newFilters.period || 'today'
+        }
+    },
+    { deep: true }
+)
 
 const applyFilters = () => {
-    formFilters.get(route('overview'), {
+    const params = {}
+    if (formFilters.value.period) {
+        params.period = formFilters.value.period
+    }
+    if (formFilters.value.outlet) {
+        params.outlet = formFilters.value.outlet
+    }
+
+    router.get(route('overview'), params, {
         preserveState: true,
         preserveScroll: true,
     })

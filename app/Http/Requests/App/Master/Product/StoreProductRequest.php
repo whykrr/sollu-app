@@ -2,14 +2,15 @@
 
 namespace App\Http\Requests\App\Master\Product;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\PermissionEnum;
+use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Support\Facades\Auth;
 
-class StoreProductRequest extends FormRequest
+class StoreProductRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can('product.create') ?? false;
+        return Auth::user()?->can(PermissionEnum::PRODUCT_CREATE->value) ?? false;
     }
 
     protected function prepareForValidation(): void

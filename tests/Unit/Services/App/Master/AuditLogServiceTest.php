@@ -21,11 +21,37 @@ class AuditLogServiceTest extends TestCase
         $this->service = new AuditLogService;
     }
 
+    protected function createTenant(): array
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner',
+            'email' => 'owner_'.uniqid().'@test.com',
+            'phone' => '08123456789',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $user = User::create([
+            'business_id' => $business->id,
+            'name' => 'Manager',
+            'email' => 'manager_'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        return [$business, $user];
+    }
+
     public function test_it_logs_audit_trail_successfully()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
-        $business = $user->business;
+        [$business, $user] = $this->createTenant();
 
         $this->actingAs($user);
 
@@ -56,7 +82,7 @@ class AuditLogServiceTest extends TestCase
     public function test_it_logs_without_auth_user()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $business = Business::first();
+        [$business] = $this->createTenant();
 
         $entityId = Str::uuid()->toString();
 
