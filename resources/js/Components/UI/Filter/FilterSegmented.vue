@@ -1,6 +1,6 @@
 <template>
     <div
-        class="bg-slate-200 p-0.5 rounded-lg inline-flex items-center h-[30px] box-border text-xs font-medium border border-gray-200 select-none overflow-x-auto max-w-full"
+        class="bg-slate-200 p-0.5 rounded-lg inline-flex items-center h-[30px] box-border text-xs font-medium border border-gray-200 select-none overflow-x-auto max-w-full shrink-0"
     >
         <button
             v-for="(option, index) in options"

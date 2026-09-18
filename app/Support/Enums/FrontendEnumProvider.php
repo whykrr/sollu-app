@@ -19,6 +19,8 @@ use App\Enums\PromoTarget;
 use App\Enums\PromoType;
 use App\Enums\PurchaseOrderStatus;
 use App\Enums\RoleEnum;
+use App\Enums\ShiftCashLogType;
+use App\Enums\ShiftStatus;
 use App\Enums\StockOpnameStatus;
 use App\Enums\StockTransferStatus;
 use App\Enums\SubscriptionStatus;
@@ -55,6 +57,8 @@ class FrontendEnumProvider
         PromoType::class,
         PurchaseOrderStatus::class,
         RoleEnum::class,
+        ShiftStatus::class,
+        ShiftCashLogType::class,
         StockOpnameStatus::class,
         StockTransferStatus::class,
         TransactionStatus::class,

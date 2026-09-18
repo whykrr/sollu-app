@@ -173,6 +173,14 @@
     @apply inline-flex text-sm font-medium gap-2 items-center border border-transparent rounded-lg py-2 px-4 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed cursor-pointer transition-all duration-200 ease-in-out;
 }
 
+@utility no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
 @utility form {
     @apply block
         w-full

@@ -25,9 +25,31 @@ class CashierShiftReportServiceTest extends TestCase
     public function test_it_gets_report()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Report Merchant',
+            'owner_name' => 'Report Owner',
+            'email' => 'report_'.uniqid().'@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $user = User::create([
+            'business_id' => $business->id,
+            'name' => 'Cashier Test User',
+            'email' => 'cashier_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+        ]);
+
         $outlet = Outlet::create([
-            'business_id' => $user->business_id,
+            'business_id' => $business->id,
             'name' => 'Outlet Report',
         ]);
 

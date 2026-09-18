@@ -42,7 +42,8 @@ class HandleCockpitInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             'app' => [
                 'name' => config('app.name'),
-                'breadcrumbs' => generateBreadcrumbs($request->route() ? $request->route()->getName() : ''),
+                'home_route' => 'cockpit.dashboard',
+                'breadcrumbs' => \App\Support\Breadcrumbs\BreadcrumbManager::forCockpit($request),
                 'flash' => [
                     'success' => $request->session()->get('success'),
                     'failed' => $request->session()->get('failed'),

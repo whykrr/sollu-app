@@ -1,87 +1,75 @@
 <template>
     <MainPage>
+        <!-- 1. Slot Header (Non-scrolling title) -->
         <template #header>
-            <MainPageHeader title="Daftar Shift Kasir" />
+            <MainPageHeader
+                title="Daftar Shift Kasir"
+                description="Kelola dan pantau catatan operasional shift kasir outlet"
+            />
+        </template>
+
+        <!-- 2. Slot Filter (Non-scrolling toolbar filter) -->
+        <template #filter>
             <Filter :filters="filters" />
         </template>
 
+        <!-- 3. Default Slot (Scrollable table with Single Action row click) -->
         <Table
             :headers="headers"
             :data="shifts.data"
-            :action="true"
-            :sort="filters.sort"
-            :sort-direction="filters.direction"
+            :sort="filters.sort || 'created_at'"
+            :sort-direction="filters.direction || 'desc'"
+            @row-click="openDetail"
         >
-            <template #user="{ item }">
-                {{ item.user?.name || '-' }}
+            <template #created_at="{ row }">
+                <span>{{ formatDateTimeSimple(row.created_at) }}</span>
             </template>
-            <template #outlet="{ item }">
-                {{ item.outlet?.name || '-' }}
+            <template #user="{ row }">
+                <span class="font-medium text-slate-800">{{ row.user?.name || '-' }}</span>
             </template>
-            <template #opening_cash="{ item }">
-                {{ formatCurrency(item.opening_cash) }}
+            <template #outlet="{ row }">
+                <span>{{ row.outlet?.name || '-' }}</span>
             </template>
-            <template #closing_cash="{ item }">
-                {{ item.status === 'closed' ? formatCurrency(item.closing_cash) : '-' }}
-            </template>
-            <template #created_at="{ item }">
-                <span>{{ formatDateTimeSimple(item.created_at) }}</span>
-            </template>
-            <template #closed_at="{ item }">
-                <span>{{ item.closed_at ? formatDateTimeSimple(item.closed_at) : '-' }}</span>
-            </template>
-            <template #status="{ item }">
+            <template #status="{ row }">
                 <span
                     class="badge"
-                    :class="{
-                        'badge-success': item.status === 'open',
-                        'badge-gray': item.status === 'closed',
-                    }"
+                    :class="$enums.ShiftStatus._meta[row.status]?.color || 'badge-gray'"
                 >
-                    {{ formatStatus(item.status) }}
+                    {{ $enums.ShiftStatus._meta[row.status]?.label || row.status }}
                 </span>
             </template>
-
-            <template #actions="{ item }">
-                <button
-                    v-if="can('transaction.view')"
-                    class="btn btn-flat btn-sm"
-                    title="Lihat Detail Shift"
-                    @click="openDetail(item)"
-                >
-                    <FontAwesomeIcon :icon="faEye" />
-                </button>
+            <template #opening_cash="{ row }">
+                <span class="font-medium">{{ formatCurrency(row.opening_cash) }}</span>
+            </template>
+            <template #closing_cash="{ row }">
+                <span v-if="row.status === $enums.ShiftStatus.Closed" class="font-medium">
+                    {{ formatCurrency(row.closing_cash) }}
+                </span>
+                <span v-else class="text-slate-400">-</span>
             </template>
         </Table>
 
+        <!-- 4. Slot Footer (Pagination) -->
         <template #footer>
-            <Pagination
-                :links="shifts.links"
-                :from="shifts.from"
-                :to="shifts.to"
-                :total="shifts.total"
-            />
+            <Pagination :meta="shifts" />
         </template>
     </MainPage>
 </template>
 
 <script setup>
-import { faEye } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { router, usePage } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import Filter from './Components/Filter.vue'
+import ShiftDetailPopUp from './Components/ShiftDetailPopUp.vue'
 import { formatDateTimeSimple } from '@/Composable/date.js'
 import { formatIDR as formatCurrency } from '@/Composable/currency-format.js'
-import { useAuth } from '@/Composable/useAuth.js'
+import { usePopUpStore } from '@/store/popup'
 
-const page = usePage()
-const { can } = useAuth()
+const popUpStore = usePopUpStore()
 
-const props = defineProps({
+defineProps({
     shifts: {
         type: Object,
         default: () => ({ data: [], links: [] }),
@@ -99,8 +87,8 @@ const headers = [
         slot: 'created_at',
         sortable: true,
     },
-    { label: 'Kasir', slot: 'user', sortable: false },
-    { label: 'Outlet', slot: 'outlet', sortable: false },
+    { label: 'Kasir', field: 'user_id', slot: 'user', sortable: false },
+    { label: 'Outlet', field: 'outlet_id', slot: 'outlet', sortable: false },
     { label: 'Status', field: 'status', slot: 'status', sortable: true },
     {
         label: 'Saldo Awal',
@@ -116,15 +104,14 @@ const headers = [
     },
 ]
 
-const formatStatus = status => {
-    const map = {
-        open: 'Buka',
-        closed: 'Tutup',
-    }
-    return map[status] || status
-}
-
-const openDetail = item => {
-    router.visit(route('transactions.shifts.show', item.id))
+const openDetail = row => {
+    popUpStore.open({
+        title: 'Rincian Shift Kasir',
+        component: ShiftDetailPopUp,
+        size: 'lg',
+        props: {
+            shiftId: row.id,
+        },
+    })
 }
 </script>

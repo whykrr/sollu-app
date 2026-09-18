@@ -1,97 +1,127 @@
 <template>
     <MainPage>
         <template #header>
-            <div class="flex items-center gap-4">
-                <button class="btn btn-flat" title="Kembali" @click="goBack">
+            <div class="flex items-center gap-3">
+                <button class="btn btn-flat btn-sm" title="Kembali ke Daftar Shift" @click="goBack">
                     <FontAwesomeIcon :icon="faArrowLeft" />
                 </button>
-                <MainPageHeader title="Rincian Shift Kasir" />
+                <MainPageHeader
+                    title="Rincian Shift Kasir"
+                    :description="
+                        shift.shift_number
+                            ? `Nomor Shift: ${shift.shift_number}`
+                            : 'Informasi detail operasional shift kasir'
+                    "
+                />
             </div>
         </template>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
             <!-- Left Column: Shift Info & Cash Log -->
-            <div class="col-span-1 lg:col-span-2 space-y-6">
+            <div class="col-span-1 lg:col-span-2 space-y-3">
                 <!-- Shift Info -->
-                <div class="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold mb-4">Informasi Shift</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="bg-white rounded-lg border border-slate-200 p-4">
+                    <h3 class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-3">
+                        Informasi Shift
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                         <div>
-                            <span class="text-sm text-gray-500 block">Kasir</span>
-                            <span class="font-medium">{{ shift.user?.name || '-' }}</span>
+                            <span class="text-xs text-slate-500 block mb-0.5">Kasir</span>
+                            <span class="font-medium text-slate-800">{{
+                                shift.user?.name || '-'
+                            }}</span>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-500 block">Outlet</span>
-                            <span class="font-medium">{{ shift.outlet?.name || '-' }}</span>
+                            <span class="text-xs text-slate-500 block mb-0.5">Outlet</span>
+                            <span class="font-medium text-slate-800">{{
+                                shift.outlet?.name || '-'
+                            }}</span>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-500 block">Status</span>
+                            <span class="text-xs text-slate-500 block mb-0.5">Status</span>
                             <span
-                                class="font-medium uppercase"
-                                :class="shift.status === 'open' ? 'text-success' : 'text-gray-700'"
-                                >{{ shift.status }}</span
+                                class="badge"
+                                :class="
+                                    $enums.ShiftStatus._meta[shift.status]?.color || 'badge-gray'
+                                "
                             >
+                                {{ $enums.ShiftStatus._meta[shift.status]?.label || shift.status }}
+                            </span>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-500 block">Waktu Buka</span>
-                            <span class="font-medium">{{
-                                formatDateTimeSimple(shift.created_at)
-                            }}</span>
+                            <span class="text-xs text-slate-500 block mb-0.5">Waktu Buka</span>
+                            <span class="font-medium text-slate-800">
+                                {{ formatDateTimeSimple(shift.created_at) }}
+                            </span>
                         </div>
                         <div>
-                            <span class="text-sm text-gray-500 block">Waktu Tutup</span>
-                            <span class="font-medium">{{
-                                shift.closed_at ? formatDateTimeSimple(shift.closed_at) : '-'
-                            }}</span>
+                            <span class="text-xs text-slate-500 block mb-0.5">Waktu Tutup</span>
+                            <span class="font-medium text-slate-800">
+                                {{ shift.closed_at ? formatDateTimeSimple(shift.closed_at) : '-' }}
+                            </span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Cash Logs (Pergerakan Kas) -->
-                <div class="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold mb-4">
+                <div class="bg-white rounded-lg border border-slate-200 p-4">
+                    <h3 class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-3">
                         Riwayat Pergerakan Kas (Cash In / Out)
                     </h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
+                    <div class="overflow-x-auto rounded-lg border border-slate-200">
+                        <table class="w-full text-left border-collapse text-sm">
                             <thead>
-                                <tr class="bg-gray-50 border-b border-gray-200">
-                                    <th class="p-3 text-sm font-semibold text-gray-600">Waktu</th>
-                                    <th class="p-3 text-sm font-semibold text-gray-600">Tipe</th>
-                                    <th class="p-3 text-sm font-semibold text-gray-600 text-right">
+                                <tr class="bg-slate-50 border-b border-slate-200">
+                                    <th class="py-2.5 px-3 text-xs font-semibold text-slate-600">
+                                        Waktu
+                                    </th>
+                                    <th class="py-2.5 px-3 text-xs font-semibold text-slate-600">
+                                        Tipe
+                                    </th>
+                                    <th class="py-2.5 px-3 text-xs font-semibold text-slate-600">
+                                        Keterangan
+                                    </th>
+                                    <th
+                                        class="py-2.5 px-3 text-xs font-semibold text-slate-600 text-right"
+                                    >
                                         Nominal
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr
-                                    v-for="log in shift.cashLogs"
-                                    :key="log.id"
-                                    class="border-b border-gray-100 last:border-0"
-                                >
-                                    <td class="p-3">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr v-for="log in shift.cashLogs || shift.cash_logs" :key="log.id">
+                                    <td class="py-2 px-3 text-xs text-slate-600">
                                         {{ formatDateTimeSimple(log.created_at) }}
                                     </td>
-                                    <td class="p-3">
+                                    <td class="py-2 px-3">
                                         <span
                                             class="badge"
-                                            :class="{
-                                                'badge-success': log.type === 'cash_in',
-                                                'badge-danger': log.type === 'cash_out',
-                                            }"
+                                            :class="
+                                                $enums.ShiftCashLogType._meta[log.type]?.color ||
+                                                'badge-gray'
+                                            "
                                         >
-                                            {{ log.type === 'cash_in' ? 'Cash In' : 'Cash Out' }}
+                                            {{
+                                                $enums.ShiftCashLogType._meta[log.type]?.label ||
+                                                log.type
+                                            }}
                                         </span>
                                     </td>
-                                    <td class="p-3 text-right font-medium">
-                                        <span v-if="log.type === 'cash_out'" class="text-danger"
+                                    <td class="py-2 px-3 text-xs text-slate-600">
+                                        {{ log.description || log.note || '-' }}
+                                    </td>
+                                    <td class="py-2 px-3 text-right font-medium text-xs">
+                                        <span
+                                            v-if="log.type === $enums.ShiftCashLogType.CashOut"
+                                            class="text-danger"
                                             >-</span
                                         >
+                                        <span v-else class="text-success">+</span>
                                         {{ formatCurrency(log.amount) }}
                                     </td>
                                 </tr>
-                                <tr v-if="!shift.cashLogs || shift.cashLogs.length === 0">
-                                    <td colspan="3" class="p-3 text-center text-gray-500">
+                                <tr v-if="!(shift.cashLogs?.length || shift.cash_logs?.length)">
+                                    <td colspan="4" class="py-6 text-center text-xs text-slate-400">
                                         Belum ada catatan pergerakan kas.
                                     </td>
                                 </tr>
@@ -102,59 +132,73 @@
             </div>
 
             <!-- Right Column: X/Z Report Summary -->
-            <div class="col-span-1 space-y-6">
+            <div class="col-span-1 space-y-3">
                 <!-- Expected Cash vs Actual -->
-                <div class="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold mb-4">Ringkasan Kas</h3>
+                <div class="bg-white rounded-lg border border-slate-200 p-4">
+                    <h3 class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-3">
+                        Ringkasan Kas
+                    </h3>
 
-                    <div class="space-y-3 text-sm">
+                    <div
+                        class="space-y-2 text-sm bg-slate-50 p-3 rounded-lg border border-slate-200"
+                    >
                         <div class="flex justify-between">
-                            <span class="text-gray-500">Saldo Awal Buka Shift</span>
-                            <span>{{ formatCurrency(shift.opening_cash) }}</span>
+                            <span class="text-slate-500">Saldo Awal Buka Shift</span>
+                            <span class="font-medium">{{
+                                formatCurrency(shift.opening_cash)
+                            }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-500">Total Penjualan</span>
-                            <span>{{ formatCurrency(shift.total_sales) }}</span>
+                            <span class="text-slate-500">Total Penjualan</span>
+                            <span class="font-medium">{{ formatCurrency(shift.total_sales) }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-500">Total Cash In</span>
-                            <span class="text-success">+{{ formatCurrency(totalCashIn) }}</span>
+                            <span class="text-slate-500">Total Kas Masuk (Cash In)</span>
+                            <span class="font-medium text-success"
+                                >+{{ formatCurrency(totalCashIn) }}</span
+                            >
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-500">Total Cash Out</span>
-                            <span class="text-danger">-{{ formatCurrency(totalCashOut) }}</span>
+                            <span class="text-slate-500">Total Kas Keluar (Cash Out)</span>
+                            <span class="font-medium text-danger"
+                                >-{{ formatCurrency(totalCashOut) }}</span
+                            >
                         </div>
 
                         <div
-                            class="pt-3 mt-3 border-t border-gray-200 flex justify-between font-semibold"
+                            class="pt-2 mt-2 border-t border-slate-200 flex justify-between font-semibold"
                         >
-                            <span>Kas Harapan (Expected)</span>
-                            <span>{{ formatCurrency(shift.expected_cash) }}</span>
+                            <span class="text-slate-700">Kas Harapan (Expected)</span>
+                            <span class="text-slate-900">{{
+                                formatCurrency(shift.expected_cash)
+                            }}</span>
                         </div>
 
-                        <template v-if="shift.status === 'closed'">
-                            <div class="flex justify-between font-semibold mt-2">
-                                <span>Kas Aktual (Closing)</span>
-                                <span>{{ formatCurrency(shift.closing_cash) }}</span>
+                        <template v-if="shift.status === $enums.ShiftStatus.Closed">
+                            <div class="flex justify-between font-semibold pt-1">
+                                <span class="text-slate-700">Kas Aktual (Closing)</span>
+                                <span class="text-slate-900">{{
+                                    formatCurrency(shift.closing_cash)
+                                }}</span>
                             </div>
 
-                            <div class="p-3 mt-4 rounded-md" :class="discrepancyClass">
-                                <div class="flex justify-between font-bold">
+                            <div class="p-3 mt-3 rounded-lg border" :class="discrepancyClass">
+                                <div class="flex justify-between font-bold text-sm">
                                     <span>Selisih (Discrepancy)</span>
                                     <span>{{ formatCurrency(discrepancyAmount) }}</span>
                                 </div>
                                 <div v-if="discrepancyAmount > 0" class="text-xs mt-1">
-                                    Uang fisik lebih besar dari sistem.
+                                    Uang fisik lebih besar dari sistem (Surplus).
                                 </div>
                                 <div v-else-if="discrepancyAmount < 0" class="text-xs mt-1">
-                                    Uang fisik lebih sedikit dari sistem (Minus).
+                                    Uang fisik lebih sedikit dari sistem (Minus / Defisit).
                                 </div>
                                 <div v-else class="text-xs mt-1">Saldo klop / seimbang.</div>
                             </div>
                         </template>
                         <template v-else>
                             <div
-                                class="p-3 mt-4 bg-blue-50 text-blue-700 rounded-md text-center text-xs"
+                                class="p-3 mt-3 bg-blue-50 text-blue-700 rounded-lg text-center text-xs border border-blue-200"
                             >
                                 Shift masih aktif. Saldo aktual belum diinput oleh kasir.
                             </div>
@@ -175,6 +219,7 @@ import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import { formatDateTimeSimple } from '@/Composable/date.js'
 import { formatIDR as formatCurrency } from '@/Composable/currency-format.js'
+import { useEnum } from '@/Composable/useEnum'
 
 const props = defineProps({
     shift: {
@@ -183,29 +228,31 @@ const props = defineProps({
     },
 })
 
+const { enums } = useEnum()
+
 const totalCashIn = computed(() => {
-    if (!props.shift.cashLogs) return 0
-    return props.shift.cashLogs
-        .filter(log => log.type === 'cash_in')
-        .reduce((sum, log) => sum + Number(log.amount), 0)
+    const logs = props.shift.cashLogs || props.shift.cash_logs || []
+    return logs
+        .filter(log => log.type === enums.ShiftCashLogType?.CashIn || log.type === 'cash_in')
+        .reduce((sum, log) => sum + Number(log.amount || 0), 0)
 })
 
 const totalCashOut = computed(() => {
-    if (!props.shift.cashLogs) return 0
-    return props.shift.cashLogs
-        .filter(log => log.type === 'cash_out')
-        .reduce((sum, log) => sum + Number(log.amount), 0)
+    const logs = props.shift.cashLogs || props.shift.cash_logs || []
+    return logs
+        .filter(log => log.type === enums.ShiftCashLogType?.CashOut || log.type === 'cash_out')
+        .reduce((sum, log) => sum + Number(log.amount || 0), 0)
 })
 
 const discrepancyAmount = computed(() => {
-    return Number(props.shift.closing_cash) - Number(props.shift.expected_cash)
+    return Number(props.shift.closing_cash || 0) - Number(props.shift.expected_cash || 0)
 })
 
 const discrepancyClass = computed(() => {
     const diff = discrepancyAmount.value
-    if (diff === 0) return 'bg-success/10 text-success'
-    if (diff > 0) return 'bg-warning/10 text-warning-dark' // Surplus
-    return 'bg-danger/10 text-danger' // Shortage
+    if (diff === 0) return 'bg-emerald-50 text-emerald-800 border-emerald-200'
+    if (diff > 0) return 'bg-amber-50 text-amber-800 border-amber-200'
+    return 'bg-rose-50 text-rose-800 border-rose-200'
 })
 
 const goBack = () => {

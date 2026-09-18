@@ -2,20 +2,25 @@
 
 namespace App\Models\Sales;
 
-use App\Models\Master\Outlet;
+use App\Enums\ShiftStatus;
+use App\Helpers\SelectedOutlet;
+use App\Models\Outlet;
 use App\Models\User;
+use App\Trait\SortableModel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @mixin IdeHelperShift
  */
 class Shift extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, SortableModel;
 
     protected $fillable = [
         'outlet_id',
@@ -29,6 +34,17 @@ class Shift extends Model
         'closed_at',
     ];
 
+    protected array $sortable = [
+        'shift_number',
+        'opening_cash',
+        'closing_cash',
+        'expected_cash',
+        'total_sales',
+        'status',
+        'created_at',
+        'closed_at',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -36,6 +52,7 @@ class Shift extends Model
             'closing_cash' => 'float',
             'expected_cash' => 'float',
             'total_sales' => 'float',
+            'status' => ShiftStatus::class,
             'closed_at' => 'datetime',
         ];
     }
@@ -60,17 +77,32 @@ class Shift extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public function scopeFilters($query, array $filters)
+    public function scopeFilters(Builder $query, array $filters): void
     {
-        $query->when($filters['search'] ?? null, function ($query, $search) {
-            $query->whereHas('user', function ($query) use ($search) {
-                $query->where('name', 'like', '%'.$search.'%');
+        $user = Auth::user();
+
+        if ($user && $user->business_id) {
+            $query->whereHas('outlet', function (Builder $q) use ($user) {
+                $q->where('business_id', $user->business_id);
             });
-        })->when($filters['status'] ?? null, function ($query, $status) {
-            $query->where('status', $status);
-        })->when($filters['start_date'] ?? null, function ($query, $startDate) {
+        }
+
+        $query->when($filters['outlet_id'] ?? SelectedOutlet::make()->currentId(), function (Builder $query, $outletId) {
+            $query->where('outlet_id', $outletId);
+        })->when($filters['search'] ?? null, function (Builder $query, $search) {
+            $query->where(function (Builder $query) use ($search) {
+                $query->where('shift_number', 'like', '%'.$search.'%')
+                    ->orWhereHas('user', function (Builder $query) use ($search) {
+                        $query->where('name', 'like', '%'.$search.'%');
+                    });
+            });
+        })->when($filters['status'] ?? null, function (Builder $query, $status) {
+            if ($status !== 'all') {
+                $query->where('status', $status instanceof ShiftStatus ? $status->value : $status);
+            }
+        })->when($filters['start_date'] ?? null, function (Builder $query, $startDate) {
             $query->whereDate('created_at', '>=', $startDate);
-        })->when($filters['end_date'] ?? null, function ($query, $endDate) {
+        })->when($filters['end_date'] ?? null, function (Builder $query, $endDate) {
             $query->whereDate('created_at', '<=', $endDate);
         });
     }

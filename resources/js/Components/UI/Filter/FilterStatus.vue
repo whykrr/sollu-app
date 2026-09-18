@@ -1,5 +1,5 @@
 <template>
-    <div class="form-group has-text">
+    <div class="form-group has-text shrink-0">
         <label for="filter_status" class="form-group-text">
             <FontAwesomeIcon
                 :icon="modelValue === '' ? faCheck : modelValue === 'deleted' ? faTrash : faList"

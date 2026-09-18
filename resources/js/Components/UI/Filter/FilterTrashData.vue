@@ -17,7 +17,7 @@ const onChange = event => {
 </script>
 
 <template>
-    <div class="form-check sm">
+    <div class="form-check sm shrink-0">
         <input
             id="deleted_data"
             type="checkbox"

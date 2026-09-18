@@ -1,8 +1,9 @@
 <template>
-    <div class="flex items-center gap-1.5 select-none">
+    <div class="flex items-center gap-1.5 select-none shrink-0">
         <!-- Preset Selector Dropdown -->
         <div ref="presetDropdownRef" class="relative inline-block text-left">
             <button
+                ref="presetTriggerRef"
                 type="button"
                 class="btn btn-sm h-[30px] bg-white border border-gray-200 hover:border-gray-300 text-neutral-700 font-medium rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer"
                 @click="togglePresetDropdown"
@@ -15,44 +16,49 @@
                 />
             </button>
 
-            <Transition
-                enter-active-class="transition duration-100 ease-out"
-                enter-from-class="transform scale-95 opacity-0"
-                enter-to-class="transform scale-100 opacity-100"
-                leave-active-class="transition duration-75 ease-in"
-                leave-from-class="transform scale-100 opacity-100"
-                leave-to-class="transform scale-95 opacity-0"
-            >
-                <div
-                    v-if="isPresetOpen"
-                    class="absolute left-0 mt-1.5 w-44 rounded-xl bg-white p-1 shadow-lg ring-1 ring-black/5 focus:outline-none border border-gray-200 z-50 text-xs sm:text-sm"
+            <Teleport to="body">
+                <Transition
+                    enter-active-class="transition duration-100 ease-out"
+                    enter-from-class="transform scale-95 opacity-0"
+                    enter-to-class="transform scale-100 opacity-100"
+                    leave-active-class="transition duration-75 ease-in"
+                    leave-from-class="transform scale-100 opacity-100"
+                    leave-to-class="transform scale-95 opacity-0"
                 >
-                    <button
-                        v-for="preset in presetOptions"
-                        :key="preset.value"
-                        type="button"
-                        class="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left transition cursor-pointer"
-                        :class="
-                            currentPreset === preset.value
-                                ? 'bg-primary-50 text-primary-700 font-semibold'
-                                : 'text-neutral-700 hover:bg-gray-50'
-                        "
-                        @click="selectPreset(preset.value)"
+                    <div
+                        v-if="isPresetOpen"
+                        ref="presetMenuRef"
+                        class="fixed z-[9999] w-44 rounded-xl bg-white p-1 shadow-lg ring-1 ring-black/5 focus:outline-none border border-gray-200 text-xs sm:text-sm"
+                        :style="presetStyle"
                     >
-                        <span>{{ preset.label }}</span>
-                        <FontAwesomeIcon
-                            v-if="currentPreset === preset.value"
-                            :icon="faCheck"
-                            class="text-xs text-primary-600"
-                        />
-                    </button>
-                </div>
-            </Transition>
+                        <button
+                            v-for="preset in presetOptions"
+                            :key="preset.value"
+                            type="button"
+                            class="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left transition cursor-pointer"
+                            :class="
+                                currentPreset === preset.value
+                                    ? 'bg-primary-50 text-primary-700 font-semibold'
+                                    : 'text-neutral-700 hover:bg-gray-50'
+                            "
+                            @click="selectPreset(preset.value)"
+                        >
+                            <span>{{ preset.label }}</span>
+                            <FontAwesomeIcon
+                                v-if="currentPreset === preset.value"
+                                :icon="faCheck"
+                                class="text-xs text-primary-600"
+                            />
+                        </button>
+                    </div>
+                </Transition>
+            </Teleport>
         </div>
 
         <!-- Date Range Display & Popover Trigger -->
         <div v-if="showRangeDisplay" ref="rangeDropdownRef" class="relative inline-block text-left">
             <button
+                ref="rangeTriggerRef"
                 type="button"
                 class="btn btn-sm h-[30px] bg-white border border-gray-200 hover:border-gray-300 text-neutral-700 font-normal rounded-lg inline-flex items-center gap-1.5 transition cursor-pointer"
                 @click="toggleRangeDropdown"
@@ -67,63 +73,67 @@
             </button>
 
             <!-- Custom Date Range Popover -->
-            <Transition
-                enter-active-class="transition duration-100 ease-out"
-                enter-from-class="transform scale-95 opacity-0"
-                enter-to-class="transform scale-100 opacity-100"
-                leave-active-class="transition duration-75 ease-in"
-                leave-from-class="transform scale-100 opacity-100"
-                leave-to-class="transform scale-95 opacity-0"
-            >
-                <div
-                    v-if="isRangeOpen"
-                    class="absolute left-0 sm:left-auto sm:right-0 mt-1.5 w-72 rounded-xl bg-white p-3 shadow-xl ring-1 ring-black/5 focus:outline-none border border-gray-200 z-50 space-y-3"
+            <Teleport to="body">
+                <Transition
+                    enter-active-class="transition duration-100 ease-out"
+                    enter-from-class="transform scale-95 opacity-0"
+                    enter-to-class="transform scale-100 opacity-100"
+                    leave-active-class="transition duration-75 ease-in"
+                    leave-from-class="transform scale-100 opacity-100"
+                    leave-to-class="transform scale-95 opacity-0"
                 >
-                    <div class="text-xs font-bold text-neutral-800 uppercase tracking-wider">
-                        Pilih Rentang Tanggal
-                    </div>
-
-                    <div class="space-y-2">
-                        <div class="space-y-1">
-                            <label class="block text-[11px] font-medium text-neutral-500">
-                                Dari Tanggal
-                            </label>
-                            <input v-model="tempStartDate" type="date" class="form sm" />
-                        </div>
-                        <div class="space-y-1">
-                            <label class="block text-[11px] font-medium text-neutral-500">
-                                Sampai Tanggal
-                            </label>
-                            <input v-model="tempEndDate" type="date" class="form sm" />
-                        </div>
-                    </div>
-
                     <div
-                        class="flex items-center justify-end gap-1.5 pt-1 border-t border-gray-100"
+                        v-if="isRangeOpen"
+                        ref="rangeMenuRef"
+                        class="fixed z-[9999] w-72 rounded-xl bg-white p-3 shadow-xl ring-1 ring-black/5 focus:outline-none border border-gray-200 space-y-3"
+                        :style="rangeStyle"
                     >
-                        <button
-                            type="button"
-                            class="btn btn-xs border border-gray-200 hover:bg-gray-50 text-neutral-600 rounded-md"
-                            @click="isRangeOpen = false"
+                        <div class="text-xs font-bold text-neutral-800 uppercase tracking-wider">
+                            Pilih Rentang Tanggal
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="space-y-1">
+                                <label class="block text-[11px] font-medium text-neutral-500">
+                                    Dari Tanggal
+                                </label>
+                                <input v-model="tempStartDate" type="date" class="form sm" />
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-[11px] font-medium text-neutral-500">
+                                    Sampai Tanggal
+                                </label>
+                                <input v-model="tempEndDate" type="date" class="form sm" />
+                            </div>
+                        </div>
+
+                        <div
+                            class="flex items-center justify-end gap-1.5 pt-1 border-t border-gray-100"
                         >
-                            Batal
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-xs btn-highlight-main rounded-md"
-                            @click="applyCustomRange"
-                        >
-                            Terapkan
-                        </button>
+                            <button
+                                type="button"
+                                class="btn btn-xs border border-gray-200 hover:bg-gray-50 text-neutral-600 rounded-md"
+                                @click="isRangeOpen = false"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-xs btn-highlight-main rounded-md"
+                                @click="applyCustomRange"
+                            >
+                                Terapkan
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </Transition>
+                </Transition>
+            </Teleport>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCalendarAlt, faChevronDown, faCheck } from '@fortawesome/free-solid-svg-icons'
 
@@ -152,6 +162,14 @@ const isPresetOpen = ref(false)
 const isRangeOpen = ref(false)
 const presetDropdownRef = ref(null)
 const rangeDropdownRef = ref(null)
+
+const presetTriggerRef = ref(null)
+const presetMenuRef = ref(null)
+const presetStyle = ref({})
+
+const rangeTriggerRef = ref(null)
+const rangeMenuRef = ref(null)
+const rangeStyle = ref({})
 
 const currentPreset = ref(props.modelValue || 'this_month')
 const activeStartDate = ref(props.startDate || '')
@@ -289,9 +307,64 @@ if (!activeStartDate.value && !activeEndDate.value && currentPreset.value !== 'c
     activeEndDate.value = initialRange.end
 }
 
+const updatePresetPosition = () => {
+    if (!presetTriggerRef.value) return
+    const rect = presetTriggerRef.value.getBoundingClientRect()
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const menuWidth = 176
+    const menuHeight = 270
+
+    let top = rect.bottom + 6
+    if (top + menuHeight > viewportHeight && rect.top > menuHeight) {
+        top = Math.max(8, rect.top - menuHeight - 6)
+    }
+
+    let left = rect.left
+    if (left < 8) left = 8
+    if (left + menuWidth > viewportWidth - 8) {
+        left = Math.max(8, viewportWidth - menuWidth - 8)
+    }
+
+    presetStyle.value = {
+        top: `${top}px`,
+        left: `${left}px`,
+    }
+}
+
+const updateRangePosition = () => {
+    if (!rangeTriggerRef.value) return
+    const rect = rangeTriggerRef.value.getBoundingClientRect()
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const menuWidth = 288
+    const menuHeight = 200
+
+    let top = rect.bottom + 6
+    if (top + menuHeight > viewportHeight && rect.top > menuHeight) {
+        top = Math.max(8, rect.top - menuHeight - 6)
+    }
+
+    let left = rect.left
+    if (left < 8) left = 8
+    if (left + menuWidth > viewportWidth - 8) {
+        left = Math.max(8, viewportWidth - menuWidth - 8)
+    }
+
+    rangeStyle.value = {
+        top: `${top}px`,
+        left: `${left}px`,
+    }
+}
+
 const togglePresetDropdown = () => {
     isPresetOpen.value = !isPresetOpen.value
-    if (isPresetOpen.value) isRangeOpen.value = false
+    if (isPresetOpen.value) {
+        isRangeOpen.value = false
+        nextTick(() => {
+            updatePresetPosition()
+        })
+    }
 }
 
 const toggleRangeDropdown = () => {
@@ -300,6 +373,9 @@ const toggleRangeDropdown = () => {
         isPresetOpen.value = false
         tempStartDate.value = activeStartDate.value
         tempEndDate.value = activeEndDate.value
+        nextTick(() => {
+            updateRangePosition()
+        })
     }
 }
 
@@ -311,6 +387,9 @@ const selectPreset = presetVal => {
         tempStartDate.value = activeStartDate.value
         tempEndDate.value = activeEndDate.value
         isRangeOpen.value = true
+        nextTick(() => {
+            updateRangePosition()
+        })
         return
     }
 
@@ -341,19 +420,40 @@ const applyCustomRange = () => {
 }
 
 const handleClickOutside = event => {
-    if (presetDropdownRef.value && !presetDropdownRef.value.contains(event.target)) {
+    if (
+        isPresetOpen.value &&
+        presetTriggerRef.value &&
+        !presetTriggerRef.value.contains(event.target) &&
+        presetMenuRef.value &&
+        !presetMenuRef.value.contains(event.target)
+    ) {
         isPresetOpen.value = false
     }
-    if (rangeDropdownRef.value && !rangeDropdownRef.value.contains(event.target)) {
+    if (
+        isRangeOpen.value &&
+        rangeTriggerRef.value &&
+        !rangeTriggerRef.value.contains(event.target) &&
+        rangeMenuRef.value &&
+        !rangeMenuRef.value.contains(event.target)
+    ) {
         isRangeOpen.value = false
     }
 }
 
+const handleScrollOrResize = () => {
+    if (isPresetOpen.value) updatePresetPosition()
+    if (isRangeOpen.value) updateRangePosition()
+}
+
 onMounted(() => {
     document.addEventListener('click', handleClickOutside)
+    window.addEventListener('scroll', handleScrollOrResize, true)
+    window.addEventListener('resize', handleScrollOrResize)
 })
 
 onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside)
+    window.removeEventListener('scroll', handleScrollOrResize, true)
+    window.removeEventListener('resize', handleScrollOrResize)
 })
 </script>

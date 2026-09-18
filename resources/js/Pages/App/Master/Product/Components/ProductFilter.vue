@@ -43,6 +43,37 @@
 
         <template #actions>
             <FilterActions>
+                <div
+                    class="inline-flex items-center p-0.5 bg-slate-100 rounded-lg border border-slate-200 h-[30px]"
+                >
+                    <button
+                        type="button"
+                        class="h-6 px-2 flex items-center justify-center rounded-md text-xs transition-colors duration-150"
+                        :class="
+                            viewMode === 'table'
+                                ? 'bg-white text-neutral-900 font-medium border border-slate-200/80 shadow-none'
+                                : 'text-neutral-500 hover:text-neutral-800'
+                        "
+                        title="Tampilan Tabel"
+                        @click="$emit('update:viewMode', 'table')"
+                    >
+                        <FontAwesomeIcon :icon="faTableList" class="text-xs" />
+                    </button>
+                    <button
+                        type="button"
+                        class="h-6 px-2 flex items-center justify-center rounded-md text-xs transition-colors duration-150"
+                        :class="
+                            viewMode === 'grid'
+                                ? 'bg-white text-neutral-900 font-medium border border-slate-200/80 shadow-none'
+                                : 'text-neutral-500 hover:text-neutral-800'
+                        "
+                        title="Tampilan Grid"
+                        @click="$emit('update:viewMode', 'grid')"
+                    >
+                        <FontAwesomeIcon :icon="faBorderAll" class="text-xs" />
+                    </button>
+                </div>
+
                 <button type="button" class="btn btn-flat btn-sm" @click="exportCsv">
                     <FontAwesomeIcon :icon="faDownload" class="text-xs text-neutral-500" />
                     <span>Ekspor</span>
@@ -70,7 +101,15 @@ import { reactive, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faBox, faStore, faDownload, faUpload, faTag } from '@fortawesome/free-solid-svg-icons'
+import {
+    faBox,
+    faStore,
+    faDownload,
+    faUpload,
+    faTag,
+    faTableList,
+    faBorderAll,
+} from '@fortawesome/free-solid-svg-icons'
 import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
@@ -87,9 +126,13 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    viewMode: {
+        type: String,
+        default: 'table',
+    },
 })
 
-defineEmits(['open-import'])
+defineEmits(['open-import', 'update:viewMode'])
 
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 const outletOptions = computed(() => {

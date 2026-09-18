@@ -5,7 +5,7 @@
                 title="Data Produk"
                 description="Kelola katalog produk, harga, varian, dan ketersediaan di outlet"
             >
-                <button class="btn btn-main" @click="openCreate">
+                <button class="btn btn-main btn-sm" @click="openCreate">
                     <FontAwesomeIcon :icon="faPlus" />
                     Tambah Produk
                 </button>
@@ -16,11 +16,15 @@
             <ProductFilter
                 :filters="activeFilters"
                 :categories="categories"
+                :view-mode="viewMode"
+                @update:view-mode="setViewMode"
                 @open-import="showImportModal = true"
             />
         </template>
 
+        <!-- Table View -->
         <Table
+            v-if="viewMode === 'table'"
             :headers="headers"
             :data="products.data"
             :sort="activeFilters?.sort ?? 'created_at'"
@@ -82,6 +86,19 @@
             </template>
         </Table>
 
+        <!-- Grid View (Cards) -->
+        <DataGrid v-else :data="products.data" @row-click="openEdit">
+            <template #default="{ row }">
+                <ProductCard
+                    :product="row"
+                    :active-outlet-id="activeOutletId"
+                    @click="openEdit(row)"
+                    @edit="openEdit(row)"
+                    @archive="archiveProduct"
+                />
+            </template>
+        </DataGrid>
+
         <template #footer>
             <Pagination :meta="products.meta || products" />
         </template>
@@ -97,20 +114,54 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import Table from '@/Components/Tables/Table.vue'
+import DataGrid from '@/Components/DataGrid/DataGrid.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faPlus, faPencil, faTrash, faImage } from '@fortawesome/free-solid-svg-icons'
 import ProductFilter from './Components/ProductFilter.vue'
+import ProductCard from './Components/ProductCard.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import { usePopUpStore } from '@/store/popup'
 import CreateEditWrapper from './CreateEditWrapper.vue'
 import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue'
 import { useModalStore } from '@/store/notification.js'
 import { useAuth } from '@/Composable/useAuth'
+
+const VIEW_MODE_KEY = 'sollu_product_view_mode'
+
+const getInitialViewMode = () => {
+    if (typeof window === 'undefined') return 'table'
+    const saved = localStorage.getItem(VIEW_MODE_KEY)
+    if (saved === 'table' || saved === 'grid') return saved
+    return window.innerWidth < 768 ? 'grid' : 'table'
+}
+
+const viewMode = ref(getInitialViewMode())
+
+const setViewMode = mode => {
+    viewMode.value = mode
+    if (typeof window !== 'undefined') {
+        localStorage.setItem(VIEW_MODE_KEY, mode)
+    }
+}
+
+const handleResize = () => {
+    if (!localStorage.getItem(VIEW_MODE_KEY)) {
+        viewMode.value = window.innerWidth < 768 ? 'grid' : 'table'
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', handleResize)
+})
 
 const popUpStore = usePopUpStore()
 const modalStore = useModalStore()

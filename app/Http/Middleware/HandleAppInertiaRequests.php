@@ -45,7 +45,8 @@ class HandleAppInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             'app' => [
                 'name' => config('app.name'),
-                'breadcrumbs' => generateBreadcrumbs($request->route() ? $request->route()->getName() : ''),
+                'home_route' => 'overview',
+                'breadcrumbs' => \App\Support\Breadcrumbs\BreadcrumbManager::forApp($request),
                 'help_center_url' => fn () => SystemSetting::get('help_center_url', '#'),
                 'flash' => [
                     'success' => $request->session()->get('success'),

@@ -6,7 +6,7 @@
                 class="flex items-center bg-transparent p-0 m-0 list-none text-base font-medium text-neutral-500 gap-2"
             >
                 <li class="flex items-center">
-                    <Link :href="route('overview')" class="hover:text-main transition-colors">
+                    <Link :href="homeUrl" class="hover:text-main transition-colors">
                         <FontAwesomeIcon :icon="faHome" />
                     </Link>
                 </li>
@@ -17,13 +17,20 @@
                 >
                     <FontAwesomeIcon :icon="faChevronRight" class="text-xs text-neutral-400" />
                     <Link
-                        v-if="crumb.url && index !== breadcrumbs.length - 1"
+                        v-if="isClickable(crumb, index)"
                         :href="crumb.url"
                         class="hover:text-main transition-colors"
                     >
                         {{ crumb.label }}
                     </Link>
-                    <span v-else class="text-neutral-800 font-semibold">
+                    <span
+                        v-else
+                        :class="[
+                            index === breadcrumbs.length - 1
+                                ? 'text-neutral-800 font-semibold'
+                                : 'text-neutral-500',
+                        ]"
+                    >
                         {{ crumb.label }}
                     </span>
                 </li>
@@ -47,7 +54,32 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Link, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
-const breadcrumbs = computed(() => usePage().props.app.breadcrumbs || [])
+const breadcrumbs = computed(() => usePage().props.app?.breadcrumbs || [])
+
+const homeUrl = computed(() => {
+    const homeRoute = usePage().props.app?.home_route
+    if (homeRoute && typeof route === 'function') {
+        try {
+            return route(homeRoute)
+        } catch {
+            // fallback
+        }
+    }
+    if (typeof route === 'function') {
+        if (route().has('cockpit.dashboard')) {
+            return route('cockpit.dashboard')
+        }
+        if (route().has('overview')) {
+            return route('overview')
+        }
+    }
+    return '/'
+})
+
+const isClickable = (crumb, index) => {
+    return !!crumb.url && crumb.url !== '#' && index !== breadcrumbs.value.length - 1
+}
+
 const activePageTitle = computed(() => {
     if (breadcrumbs.value.length > 0) {
         return breadcrumbs.value[breadcrumbs.value.length - 1].label
@@ -55,3 +87,4 @@ const activePageTitle = computed(() => {
     return ''
 })
 </script>
+
