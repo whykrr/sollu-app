@@ -258,8 +258,7 @@ const generateCombinations = groups => {
 }
 
 const generateSku = comboOptions => {
-    const rawPrefix =
-        form.code?.trim() || form.name?.trim().substring(0, 3).toUpperCase() || 'PRD'
+    const rawPrefix = form.code?.trim() || form.name?.trim().substring(0, 3).toUpperCase() || 'PRD'
     const baseCode = rawPrefix.toUpperCase().replace(/\s+/g, '-')
     const suffix = Object.values(comboOptions)
         .map(v => String(v).toUpperCase().replace(/\s+/g, ''))

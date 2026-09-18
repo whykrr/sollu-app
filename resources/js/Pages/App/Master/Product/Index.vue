@@ -7,7 +7,7 @@
             >
                 <button class="btn btn-main" @click="openCreate">
                     <FontAwesomeIcon :icon="faPlus" />
-                    Tambah Baru
+                    Tambah Produk
                 </button>
             </MainPageHeader>
         </template>

@@ -196,11 +196,21 @@ const saveReorder = () => {
         .post(route('master.categories.reorder'), { categories: payload })
         .then(response => {
             toastStore.success(response.data?.message || 'Urutan kategori berhasil disimpan.')
-            router.reload({ only: ['categories'] })
+            router.reload({
+                only: ['categories'],
+                preserveState: true,
+                preserveScroll: true,
+                headers: { 'X-No-Progress': 'true' },
+            })
         })
         .catch(error => {
             toastStore.danger(error.response?.data?.message || 'Gagal menyimpan urutan kategori.')
-            router.reload({ only: ['categories'] })
+            router.reload({
+                only: ['categories'],
+                preserveState: true,
+                preserveScroll: true,
+                headers: { 'X-No-Progress': 'true' },
+            })
         })
 }
 
