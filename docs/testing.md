@@ -12,7 +12,7 @@ Sollu App membagi strategi pengujian menjadi tiga tingkatan:
                     ▲
                    / \
                   /   \
-                 / E2E \       Web Integration & Visual Testing (browsermcp / Dusk)
+                 / E2E \       Web Integration & E2E Testing (Laravel Dusk)
                 /───────\
                / Feature \     HTTP Boundary, Multi-Tenant Isolation & Auth Tests
               /───────────\
@@ -123,24 +123,23 @@ Ditempatkan di `tests/Feature/`. Menguji rute HTTP, otorisasi RBAC, SaaS Feature
 
 ---
 
-## 4. Web Integration & E2E Testing (`browsermcp`)
+## 4. Web Integration & E2E Testing (Laravel Dusk)
 
-Digunakan untuk memvalidasi alur UI frontend (Vue 3 / Inertia) secara visual dan interaktif.
+Digunakan untuk memvalidasi alur UI frontend (Vue 3 / Inertia) secara otomatis dan interaktif.
 
 ### 4.1. Standard Workflow E2E Testing
-1. **Navigasi & Autentikasi (`browser_navigate`, `browser_type`, `browser_click`):**
-   - Buka `http://app.sollu.test/login`.
+1. **Navigasi & Autentikasi:**
+   - Akses rute `/login`.
    - Masukkan kredensial pengujian (`sollu.mart@email.com` / `password`).
 2. **Pengujian Alur Side Drawer & Form:**
    - Verifikasi tabel utama pada `<MainPage>`.
    - Buka drawer `<PopUpPage>` dengan klik tombol tambah/edit.
    - Isi field form `@/Components/Form/`.
    - Submit via tombol aksi sticky footer `#popUpFooter`.
-3. **Verifikasi DOM & Screenshot:**
-   - Ambil `browser_snapshot` untuk verifikasi elemen accessibility tree.
-   - Ambil `browser_screenshot` untuk memastikan tidak ada layout patah/rusak dan toast notifikasi muncul.
-4. **Inspeksi Console Logs (`browser_get_console_logs`):**
-   - **WAJIB** periksa logs browser. Tidak boleh ada JavaScript uncaught exception atau error 500/422 yang unhandled.
+3. **Verifikasi DOM & Antarmuka:**
+   - Pastikan tidak ada layout patah/rusak dan toast notifikasi sukses muncul.
+4. **Inspeksi Error Logs Konsol:**
+   - **WAJIB** periksa logs browser/network. Tidak boleh ada JavaScript uncaught exception atau error 500/422 yang unhandled.
 
 ---
 
@@ -156,7 +155,7 @@ php artisan test tests/Unit/Services/App/Inventory/StockAdjustmentServiceTest.ph
 # Menjalankan PHPUnit langsung dengan filter
 vendor/bin/phpunit --filter=test_can_create_stock_adjustment_successfully
 
-# Menjalankan Laravel Dusk (jika ada)
+# Menjalankan Laravel Dusk
 php artisan dusk
 ```
 
@@ -170,7 +169,7 @@ Sebelum menyelesaikan tugas atau membuat commit:
 - [ ] **Feature Tests Passed:** Rute HTTP, tenant isolation, dan proteksi permission teruji.
 - [ ] **No Hardcoded Strings:** Pesan controller merujuk ke `App\Constants\*` dan status merujuk ke Enum PHP.
 - [ ] **On-Demand Loading Followed:** Props `index()` ringan, detail dimuat async saat drawer dibuka.
-- [ ] **UI Verified:** Komponen Vue diverifikasi visual & console log bersih via `browsermcp`.
+- [ ] **UI Verified:** Komponen Vue diverifikasi fungsional dan visual (bebas error Vite & console log bersih).
 - [ ] **No Dead Code:** Komentar kode lama, import tidak terpakai, dan method yatim telah dibersihkan.
 - [ ] **PHP Formatted:** `composer run format` (`vendor/bin/pint`) dijalankan dengan sukses (method chaining multiline terjaga).
 - [ ] **Frontend Formatted & Linted:** `npm run format`, `npm run lint`, dan `npm run build` sukses tanpa error.

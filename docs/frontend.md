@@ -19,7 +19,7 @@ Standar pengembangan frontend **Sollu App** berbasis **Vue 3 (Composition API `<
 8. **MANDATORY FILTER COMPONENT EXTRACTION:** Setiap halaman yang memiliki filter data (search bar, filter status, filter kategori, date picker, dsb.) **WAJIB diekstrak ke file komponen terpisah** (misal: `resources/js/Pages/App/{Module}/Components/{Entity}Filter.vue` atau `Filter.vue`), bukan ditulis inline di file `Index.vue`.
 9. **STANDARISASI ON-DEMAND DATA LOADING:** Data detail entitas lengkap dan data lookup form (opsi dropdown) WAJIB dimuat secara *asynchronous* (Axios) hanya saat drawer dibuka. Wajib menyertakan skeleton loader / spinner saat fetching.
 10. **MANDATORY ENUM FOR CONDITIONS & FORM OPTIONS:** Dilarang keras menggunakan string literal/hardcode. Selalu gunakan `$enums.<EnumName>.<Case>` atau `useEnum()`.
-11. **MANDATORY BROWSERMCP UI VERIFICATION:** Setiap pembuatan/perubahan komponen Vue WAJIB diverifikasi visual dan fungsional via `browsermcp` (navigasi URL, snapshot DOM, screenshot, dan console logs).
+11. **MANDATORY FRONTEND UI & BUILD VERIFICATION:** Setiap pembuatan/perubahan komponen Vue WAJIB diverifikasi visual dan fungsional (bebas dari error kompilasi Vite/ESLint, verifikasi alur drawer `<PopUpPage>`, form field `@/Components/Form/`, dan toolbar filter).
 
 ---
 
