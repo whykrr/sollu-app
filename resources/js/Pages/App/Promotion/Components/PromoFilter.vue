@@ -1,6 +1,6 @@
 <template>
-    <FilterBar>
-        <template #left>
+    <ActionBar>
+        <template #filters>
             <!-- Status Filter -->
             <FilterDropdown
                 v-model="filterForm.status"
@@ -47,18 +47,32 @@
                 @clear="updateQuery"
             />
         </template>
-    </FilterBar>
+
+        <template #create>
+            <button
+                type="button"
+                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                @click="$emit('create')"
+            >
+                <FontAwesomeIcon :icon="faPlus" />
+                <span>Buat Promo</span>
+            </button>
+        </template>
+    </ActionBar>
 </template>
 
 <script setup>
 import { reactive, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
-import { faStore } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faPlus, faStore } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
-import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+
+defineEmits(['create'])
 
 const props = defineProps({
     filters: {

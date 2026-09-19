@@ -4,12 +4,7 @@
             <MainPageHeader
                 title="Pengaturan Paket Langganan"
                 description="Kelola data paket, harga, visibilitas katalog, hak akses fitur, serta status aktif/nonaktif"
-            >
-                <button type="button" class="btn btn-main" @click="openCreate">
-                    <FontAwesomeIcon :icon="faPlus" class="mr-1.5" />
-                    Tambah Paket
-                </button>
-            </MainPageHeader>
+            />
         </template>
 
         <template #widgets>
@@ -34,6 +29,7 @@
                 :public-count="publicCount"
                 :hidden-count="hiddenCount"
                 :custom-count="customCount"
+                @create="openCreate"
             />
         </template>
         <Table
@@ -215,7 +211,6 @@ import { formatIDR } from '@/Composable/currency-format'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faPencil,
-    faPlus,
     faSliders,
     faEye,
     faEyeSlash,

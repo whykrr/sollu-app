@@ -1,13 +1,11 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Mutasi Stok">
-                <button v-if="canCreate" class="btn btn-highlight-main" @click="openForm()">
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Buat Mutasi Stok
-                </button>
-            </MainPageHeader>
-            <Filter :filters="filters" />
+            <MainPageHeader title="Mutasi Stok" />
+        </template>
+
+        <template #filter>
+            <Filter :filters="filters" :can-create="canCreate" @create="openForm()" />
         </template>
 
         <Table
@@ -59,7 +57,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
-import { faPlus, faEye } from '@fortawesome/free-solid-svg-icons'
+import { faEye } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'

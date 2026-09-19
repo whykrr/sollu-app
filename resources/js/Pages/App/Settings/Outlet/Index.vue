@@ -1,22 +1,11 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Data Outlet">
-                <button
-                    class="btn btn-main px-4 py-2 shadow-xs rounded-lg w-full sm:w-auto justify-center flex items-center gap-2"
-                    @click="handleAddOutlet"
-                >
-                    <FontAwesomeIcon :icon="faPlus" />
-                    <span>Tambah Outlet Baru</span>
-                </button>
-            </MainPageHeader>
-            <div
-                class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full"
-            >
-                <div class="flex-1">
-                    <Filter :filters="params" />
-                </div>
-            </div>
+            <MainPageHeader title="Data Outlet" />
+        </template>
+
+        <template #filter>
+            <Filter :filters="params" @create="handleAddOutlet" />
         </template>
 
         <!-- Modal Tagihan Penambahan Outlet Belum Dibayar -->

@@ -1,25 +1,31 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Perangkat (POS & Kasir)">
-                <div
-                    class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end"
-                >
+            <MainPageHeader title="Perangkat (POS & Kasir)" />
+        </template>
+
+        <template #filter>
+            <ActionBar>
+                <template #filters>
                     <SettingOutletSelector
                         v-if="outlets && outlets.length > 1"
                         :outlets="outlets"
                         :model-value="selectedOutlet?.id"
                         @update:model-value="changeOutlet"
                     />
+                </template>
+
+                <template #create>
                     <button
-                        class="btn btn-main px-4 py-2 shadow-xs rounded-lg flex items-center gap-2"
+                        type="button"
+                        class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
                         @click="openCreateModal"
                     >
                         <FontAwesomeIcon :icon="faPlus" />
                         <span>Tambah Perangkat</span>
                     </button>
-                </div>
-            </MainPageHeader>
+                </template>
+            </ActionBar>
         </template>
 
         <!-- Devices List -->
@@ -169,6 +175,7 @@ import {
 
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import SettingOutletSelector from '../Components/SettingOutletSelector.vue'
 import DevicePopUp from './Components/DevicePopUp.vue'
 import OtpModalContent from './Components/OtpModalContent.vue'

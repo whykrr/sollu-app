@@ -1,19 +1,15 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Stock Opname">
-                <div class="flex items-end gap-2">
-                    <button class="btn btn-primary btn-sm" @click="openFreezeModal()">
-                        <FontAwesomeIcon :icon="faLock" />
-                        Kelola Bekukan Stok
-                    </button>
-                    <button class="btn btn-highlight-main" @click="openForm()">
-                        <FontAwesomeIcon :icon="faPlus" />
-                        Mulai Opname Baru
-                    </button>
-                </div>
-            </MainPageHeader>
-            <Filter :filters="filters" />
+            <MainPageHeader title="Stock Opname" />
+        </template>
+
+        <template #filter>
+            <Filter
+                :filters="filters"
+                @create="openForm()"
+                @freeze="openFreezeModal()"
+            />
         </template>
 
         <Table
@@ -98,13 +94,11 @@
 <script setup>
 import { ref } from 'vue'
 import {
-    faPlus,
     faPencil,
     faTrash,
     faCheck,
     faEye,
     faFilePdf,
-    faLock,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import MainPage from '@/Components/UI/MainPage.vue'

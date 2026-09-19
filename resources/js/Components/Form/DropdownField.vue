@@ -12,7 +12,7 @@
             :id
             class="form pr-10!"
             :class="[
-                { sm: size === 'sm', lg: size === 'lg' },
+                { sm: size === 'sm', lg: size === 'lg', adaptive: size === 'adaptive' },
                 { 'text-gray-500': modelValue === '' },
                 { 'is-invalid': error, 'is-valid': success },
             ]"
@@ -27,7 +27,7 @@
         </select>
         <span v-if="error" class="form-feedback text-danger">{{ error }}</span>
         <span v-else-if="success" class="form-feedback text-success">{{ success }}</span>
-        <span v-else-if="feedback" class="form-feedback">{{ feedback }}</span>
+        <span v-else-if="feedback" class="form-feedback text-neutral-500">{{ feedback }}</span>
     </div>
 </template>
 <script setup>
@@ -51,7 +51,7 @@ const { id, label, modelValue, placeholder, options, feedback, error, success, s
         size: {
             type: String,
             default: 'base',
-            validator: v => ['sm', 'base', 'lg'].includes(v),
+            validator: v => ['sm', 'base', 'adaptive', 'lg'].includes(v),
         },
     }
 )

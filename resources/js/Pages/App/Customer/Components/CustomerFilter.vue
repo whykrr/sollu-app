@@ -1,6 +1,6 @@
 <template>
-    <FilterBar>
-        <template #left>
+    <ActionBar>
+        <template #filters>
             <FilterSegmented
                 v-model="filterForm.is_active"
                 :options="statusOptions"
@@ -15,16 +15,35 @@
                 @clear="updateQuery"
             />
         </template>
-    </FilterBar>
+
+        <template #tools>
+            <ActionsDropdown label="Opsi Data" :items="actionItems" />
+        </template>
+
+        <template #create>
+            <button
+                type="button"
+                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                dusk="create-customer-button"
+                @click="$emit('create')"
+            >
+                <FontAwesomeIcon :icon="faPlus" class="text-xs" />
+                <span>Tambah Pelanggan</span>
+            </button>
+        </template>
+    </ActionBar>
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
-import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faPlus, faDownload, faUpload } from '@fortawesome/free-solid-svg-icons'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 
 const props = defineProps({
     filters: {
@@ -32,6 +51,8 @@ const props = defineProps({
         default: () => ({}),
     },
 })
+
+const emit = defineEmits(['create', 'open-import'])
 
 const filterForm = reactive({
     search: props.filters?.search || '',
@@ -60,7 +81,7 @@ const updateQuery = () => {
         ...route().params,
         search: filterForm.search || undefined,
         is_active: filterForm.is_active !== '' ? filterForm.is_active : undefined,
-        page: 1, // Reset page
+        page: 1,
     }
 
     router.get(location.pathname, query, {
@@ -68,4 +89,27 @@ const updateQuery = () => {
         preserveScroll: true,
     })
 }
+
+const exportCsv = () => {
+    router.get(
+        route('customers.export', filterForm),
+        {},
+        { preserveScroll: true, preserveState: true }
+    )
+}
+
+const actionItems = computed(() => [
+    {
+        label: 'Ekspor Data CSV',
+        icon: faDownload,
+        iconClass: 'text-emerald-600',
+        action: exportCsv,
+    },
+    {
+        label: 'Impor Data Massal',
+        icon: faUpload,
+        iconClass: 'text-blue-600',
+        action: () => emit('open-import'),
+    },
+])
 </script>

@@ -1,28 +1,17 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Daftar Transaksi Penjualan">
-                <div class="flex items-end gap-2">
-                    <button
-                        v-if="can('transaction.view')"
-                        class="btn btn-flat btn-sm"
-                        title="Export CSV"
-                        @click="exportCsv"
-                    >
-                        <FontAwesomeIcon :icon="faFileCsv" />
-                        Export CSV
-                    </button>
-                    <button
-                        v-if="can('transaction.create')"
-                        class="btn btn-main"
-                        @click="openCreate"
-                    >
-                        <FontAwesomeIcon :icon="faPlus" />
-                        Tambah Penjualan
-                    </button>
-                </div>
-            </MainPageHeader>
-            <Filter :filters="filters" />
+            <MainPageHeader title="Daftar Transaksi Penjualan" />
+        </template>
+
+        <template #filter>
+            <Filter
+                :filters="filters"
+                :can-create="can('transaction.create')"
+                :can-export="can('transaction.view')"
+                @create="openCreate"
+                @export-csv="exportCsv"
+            />
         </template>
 
         <div class="mb-4">
@@ -129,7 +118,7 @@
 </template>
 
 <script setup>
-import { faEye, faFileCsv, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faEye } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { router, usePage } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'

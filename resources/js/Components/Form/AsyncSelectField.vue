@@ -4,7 +4,15 @@
             v-if="label"
             :for="$attrs.id"
             class="block font-medium mb-1"
-            :class="size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-base' : 'text-sm'"
+            :class="
+                size === 'sm'
+                    ? 'text-xs'
+                    : size === 'lg'
+                      ? 'text-base'
+                      : size === 'adaptive'
+                        ? 'text-sm sm:text-xs'
+                        : 'text-sm'
+            "
         >
             {{ label }}
         </label>
@@ -15,7 +23,7 @@
                 type="text"
                 class="form w-full"
                 :class="[
-                    { sm: size === 'sm', lg: size === 'lg' },
+                    { sm: size === 'sm', lg: size === 'lg', adaptive: size === 'adaptive' },
                     { 'border-danger': feedback, 'bg-gray-100': disabled },
                 ]"
                 :placeholder="placeholder"
@@ -119,7 +127,7 @@ const props = defineProps({
     size: {
         type: String,
         default: 'base',
-        validator: v => ['sm', 'base', 'lg'].includes(v),
+        validator: v => ['sm', 'base', 'adaptive', 'lg'].includes(v),
     },
 })
 

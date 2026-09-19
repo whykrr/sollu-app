@@ -4,24 +4,11 @@
             <MainPageHeader
                 title="Detail Langganan"
                 description="Kelola paket langganan bisnis Anda dan lihat riwayat pembayaran invoice."
-            >
-                <Link
-                    v-if="!subscription || subscription.status !== $enums.SubscriptionStatus.Active"
-                    :href="route('settings.billing.plans')"
-                    class="btn btn-highlight-main btn-sm text-xs font-semibold py-2 px-3"
-                >
-                    <FontAwesomeIcon :icon="faGem" />
-                    Pilih Paket
-                </Link>
-                <Link
-                    v-else
-                    :href="route('settings.billing.plans')"
-                    class="btn btn-outline-main btn-sm text-xs font-semibold py-2 px-3"
-                >
-                    Ubah Paket
-                </Link>
-            </MainPageHeader>
-            <BillingFilter :filters="params" />
+            />
+        </template>
+
+        <template #filter>
+            <BillingFilter :filters="params" :subscription="subscription" />
         </template>
 
         <div class="flex flex-col gap-3">

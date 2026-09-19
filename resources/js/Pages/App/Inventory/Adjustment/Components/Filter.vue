@@ -1,6 +1,6 @@
 <template>
-    <FilterBar>
-        <template #left>
+    <ActionBar>
+        <template #filters>
             <!-- Date Preset & Range -->
             <FilterPresetDate
                 v-model="filterForm.preset"
@@ -46,16 +46,41 @@
                 @clear="updateQuery"
             />
         </template>
-    </FilterBar>
+
+        <template #tools>
+            <button
+                v-if="can('inventory.adjustment.freeze')"
+                type="button"
+                class="btn btn-primary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                @click="$emit('freeze')"
+            >
+                <FontAwesomeIcon :icon="faLock" class="text-xs" />
+                <span>Kelola Bekukan Stok</span>
+            </button>
+        </template>
+
+        <template #create>
+            <button
+                v-if="can('inventory.adjustment.create')"
+                type="button"
+                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                @click="$emit('create')"
+            >
+                <FontAwesomeIcon :icon="faPlus" class="text-xs" />
+                <span>Buat Penyesuaian</span>
+            </button>
+        </template>
+    </ActionBar>
 </template>
 
 <script setup>
 import { reactive, watch, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
-import { faStore } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faStore, faLock, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
-import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
@@ -67,7 +92,9 @@ const props = defineProps({
     },
 })
 
-const { outlets: userOutlets, selectedOutlet } = useAuth()
+defineEmits(['create', 'freeze'])
+
+const { outlets: userOutlets, selectedOutlet, can } = useAuth()
 const outletOptions = computed(() =>
     (userOutlets.value || []).map(store => ({
         value: String(store.id),
@@ -76,6 +103,7 @@ const outletOptions = computed(() =>
 )
 
 const statusOptions = [
+    { value: '', label: 'Semua Status' },
     { value: 'draft', label: 'Draf' },
     { value: 'approved', label: 'Disetujui' },
     { value: 'rejected', label: 'Ditolak' },
@@ -83,22 +111,23 @@ const statusOptions = [
 ]
 
 const reasonOptions = [
-    { value: 'waste', label: 'Rusak / Terbuang' },
-    { value: 'expired', label: 'Kedaluwarsa' },
-    { value: 'lost', label: 'Hilang' },
-    { value: 'correction', label: 'Koreksi' },
-    { value: 'production', label: 'Produksi' },
+    { value: '', label: 'Semua Alasan' },
+    { value: 'damaged', label: 'Barang Rusak' },
+    { value: 'expired', label: 'Kadaluwarsa' },
+    { value: 'lost', label: 'Barang Hilang' },
+    { value: 'initial_stock', label: 'Stok Awal' },
+    { value: 'correction', label: 'Koreksi Data' },
     { value: 'other', label: 'Lainnya' },
 ]
 
 const filterForm = reactive({
-    search: props.filters?.search ?? '',
-    preset: props.filters?.preset ?? 'this_month',
-    status: props.filters?.status ?? '',
-    reason: props.filters?.reason ?? '',
+    preset: props.filters?.preset || '',
+    date_from: props.filters?.date_from || '',
+    date_to: props.filters?.date_to || '',
+    status: props.filters?.status || '',
+    reason: props.filters?.reason || '',
     outlet_id: props.filters?.outlet_id ? String(props.filters.outlet_id) : '',
-    date_from: props.filters?.date_from ?? '',
-    date_to: props.filters?.date_to ?? '',
+    search: props.filters?.search || '',
 })
 
 // Watch search with debounce
@@ -112,17 +141,17 @@ watch(
 const updateQuery = () => {
     const query = {
         ...route().params,
-        search: filterForm.search || undefined,
-        preset: filterForm.preset !== 'this_month' ? filterForm.preset : undefined,
-        status: filterForm.status !== '' ? filterForm.status : undefined,
-        reason: filterForm.reason !== '' ? filterForm.reason : undefined,
+        preset: filterForm.preset || undefined,
+        date_from: filterForm.date_from || undefined,
+        date_to: filterForm.date_to || undefined,
+        status: filterForm.status || undefined,
+        reason: filterForm.reason || undefined,
         outlet_id: filterForm.outlet_id !== '' ? filterForm.outlet_id : undefined,
-        date_from: filterForm.date_from !== '' ? filterForm.date_from : undefined,
-        date_to: filterForm.date_to !== '' ? filterForm.date_to : undefined,
+        search: filterForm.search || undefined,
         page: 1,
     }
 
-    router.get(window.location.pathname, query, {
+    router.get(route('inventories.adjustments.index'), query, {
         preserveState: true,
         preserveScroll: true,
     })

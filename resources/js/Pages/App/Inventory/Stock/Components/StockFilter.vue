@@ -1,6 +1,6 @@
 <template>
-    <FilterBar>
-        <template #left>
+    <ActionBar>
+        <template #filters>
             <!-- Outlet Dropdown (Async / List) -->
             <FilterDropdown
                 v-if="outletOptions.length > 1 && !selectedOutlet"
@@ -50,27 +50,6 @@
             />
         </template>
 
-        <template #actions>
-            <FilterActions>
-                <!-- Export Dropdown -->
-                <ExportDropdown
-                    label="Ekspor"
-                    button-class="btn btn-sm bg-white border border-slate-200 hover:border-slate-300 text-slate-700 rounded-lg shadow-xs"
-                    :items="exportItems"
-                />
-
-                <!-- Import Button -->
-                <button
-                    type="button"
-                    class="btn btn-sm bg-white border border-slate-200 hover:border-slate-300 text-slate-700 rounded-lg flex items-center gap-1.5 shadow-xs transition cursor-pointer"
-                    @click="showImportModal = true"
-                >
-                    <FontAwesomeIcon :icon="faUpload" class="text-xs text-slate-500" />
-                    <span>Impor</span>
-                </button>
-            </FilterActions>
-        </template>
-
         <template #search>
             <FilterSearch
                 v-model="filterForm.search"
@@ -78,7 +57,11 @@
                 @clear="updateQuery"
             />
         </template>
-    </FilterBar>
+
+        <template #tools>
+            <ActionsDropdown label="Opsi Data" :items="actionItems" />
+        </template>
+    </ActionBar>
 
     <!-- Import Modal -->
     <ImportCsvModal
@@ -92,9 +75,9 @@
 
 <script setup>
 import { reactive, ref, computed, watch } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
 import {
     faStore,
     faBox,
@@ -103,12 +86,11 @@ import {
     faFilePdf,
     faFileExcel,
 } from '@fortawesome/free-solid-svg-icons'
-import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
-import FilterActions from '@/Components/UI/Filter/FilterActions.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
-import ExportDropdown from '@/Components/UI/ExportDropdown.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue'
 
 import { useAuth } from '@/Composable/useAuth'
@@ -224,18 +206,29 @@ const exportPdf = () => {
     window.open(route('inventories.stocks.export-pdf-list') + '?' + params.toString(), '_blank')
 }
 
-const exportItems = [
+const actionItems = computed(() => [
     {
-        label: 'Ekspor Excel',
+        label: 'Ekspor Data Excel',
         icon: faFileExcel,
-        class: 'text-green-700',
+        iconClass: 'text-emerald-600',
         action: exportCsv,
     },
     {
-        label: 'Ekspor PDF',
+        label: 'Ekspor Laporan PDF',
         icon: faFilePdf,
-        class: 'text-red-700',
+        iconClass: 'text-rose-600',
         action: exportPdf,
     },
-]
+    {
+        divider: true,
+    },
+    {
+        label: 'Impor Stok Massal',
+        icon: faUpload,
+        iconClass: 'text-blue-600',
+        action: () => {
+            showImportModal.value = true
+        },
+    },
+])
 </script>

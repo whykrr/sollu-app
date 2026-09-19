@@ -89,44 +89,57 @@
                     </div>
                 </div>
 
-                <!-- Sisi Kanan: SKU, Barcode, & Actions -->
-                <div class="flex flex-col justify-between pt-2.5 md:pt-0 md:pl-3 space-y-2.5">
+                <!-- Sisi Kanan: SKU, Barcode, & Actions (Touch-Ergonomic Tiles) -->
+                <div class="flex flex-col justify-between pt-2.5 md:pt-0 md:pl-3 space-y-2">
                     <div class="space-y-1.5 text-xs">
-                        <!-- SKU -->
-                        <div class="flex items-center justify-between">
-                            <span class="text-neutral-400">SKU</span>
-                            <div class="flex items-center gap-1.5">
-                                <span class="font-mono font-semibold text-neutral-800">
+                        <!-- SKU Tile Trigger -->
+                        <button
+                            type="button"
+                            class="w-full group text-left p-2 rounded-lg border border-neutral-200/80 bg-neutral-50/70 hover:bg-neutral-100 active:bg-neutral-200/60 active:scale-[0.99] transition-all flex items-center justify-between min-h-[38px] cursor-pointer"
+                            title="Tekan untuk ubah SKU"
+                            @click="openSkuModal"
+                        >
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="text-neutral-400 font-medium shrink-0">SKU:</span>
+                                <span class="font-mono font-semibold text-neutral-800 truncate">
                                     {{ headerData.sku || '-' }}
                                 </span>
-                                <button
-                                    type="button"
-                                    class="text-main hover:text-main-focus text-[11px] font-medium transition-colors"
-                                    title="Ubah SKU"
-                                    @click="openSkuModal"
-                                >
-                                    <FontAwesomeIcon :icon="faPencil" class="text-[10px]" />
-                                </button>
                             </div>
-                        </div>
+                            <span
+                                class="shrink-0 flex items-center gap-1 text-[11px] font-medium text-main bg-main/10 group-hover:bg-main group-hover:text-white px-2 py-0.5 rounded transition-colors ml-2"
+                            >
+                                <FontAwesomeIcon :icon="faPencil" class="text-[9px]" />
+                                <span>{{ headerData.sku ? 'Ubah' : 'Atur' }}</span>
+                            </span>
+                        </button>
 
-                        <!-- Barcode -->
-                        <div class="flex items-center justify-between">
-                            <span class="text-neutral-400">Barcode</span>
-                            <div class="flex items-center gap-1.5">
-                                <span class="font-mono text-neutral-800">
-                                    {{ headerData.barcode || 'Belum ada barcode' }}
-                                </span>
-                                <button
-                                    type="button"
-                                    class="text-main hover:text-main-focus text-[11px] font-medium transition-colors"
-                                    title="Ubah Barcode"
-                                    @click="openBarcodeModal"
+                        <!-- Barcode Tile Trigger -->
+                        <button
+                            type="button"
+                            class="w-full group text-left p-2 rounded-lg border border-neutral-200/80 bg-neutral-50/70 hover:bg-neutral-100 active:bg-neutral-200/60 active:scale-[0.99] transition-all flex items-center justify-between min-h-[38px] cursor-pointer"
+                            title="Tekan untuk ubah Barcode"
+                            @click="openBarcodeModal"
+                        >
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="text-neutral-400 font-medium shrink-0">Barcode:</span>
+                                <span
+                                    class="font-mono text-neutral-800 truncate"
+                                    :class="
+                                        !headerData.barcode
+                                            ? 'text-neutral-400 italic'
+                                            : 'font-semibold'
+                                    "
                                 >
-                                    <FontAwesomeIcon :icon="faPencil" class="text-[10px]" />
-                                </button>
+                                    {{ headerData.barcode || 'Belum diatur' }}
+                                </span>
                             </div>
-                        </div>
+                            <span
+                                class="shrink-0 flex items-center gap-1 text-[11px] font-medium text-main bg-main/10 group-hover:bg-main group-hover:text-white px-2 py-0.5 rounded transition-colors ml-2"
+                            >
+                                <FontAwesomeIcon :icon="faPencil" class="text-[9px]" />
+                                <span>{{ headerData.barcode ? 'Ubah' : 'Atur' }}</span>
+                            </span>
+                        </button>
 
                         <!-- Barcode SVG Render (Compact) -->
                         <div v-if="headerData.barcode" class="pt-0.5 flex justify-end">
@@ -136,7 +149,7 @@
 
                     <!-- Action Buttons -->
                     <div
-                        class="pt-2 border-t border-neutral-100 flex items-center justify-end gap-1.5"
+                        class="pt-1.5 border-t border-neutral-100 flex items-center justify-end gap-1.5"
                     >
                         <button
                             v-if="
@@ -146,7 +159,7 @@
                                 movementsData.length === 0
                             "
                             type="button"
-                            class="btn btn-sm btn-outline-main text-xs !py-1 !px-2.5"
+                            class="btn btn-sm btn-outline-main text-xs min-h-[34px] px-3 touch-target-sm"
                             @click="openInitialStockModal"
                         >
                             <FontAwesomeIcon :icon="faPlus" class="mr-1 text-[10px]" />
@@ -155,7 +168,7 @@
                         <button
                             v-if="!loading && movementsData.length > 0"
                             type="button"
-                            class="btn btn-sm btn-outline-secondary text-xs !py-1 !px-2.5"
+                            class="btn btn-sm btn-outline-secondary text-xs min-h-[34px] px-3 touch-target-sm"
                             @click="exportPdf"
                         >
                             <FontAwesomeIcon

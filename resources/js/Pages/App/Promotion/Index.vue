@@ -1,13 +1,11 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Daftar Promo">
-                <button class="btn btn-highlight-main" @click="openCreate">
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Buat Promo
-                </button>
-            </MainPageHeader>
-            <PromoFilter :filters="filters" />
+            <MainPageHeader title="Daftar Promo" />
+        </template>
+
+        <template #filter>
+            <PromoFilter :filters="filters" @create="openCreate" />
         </template>
         <Table :headers="headers" :data="promos.data" :action="true">
             <template #target_type="{ row }">
@@ -116,7 +114,7 @@ import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPlus, faEye, faEllipsisVertical } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faEllipsisVertical } from '@fortawesome/free-solid-svg-icons'
 import PromoFilter from './Components/PromoFilter.vue'
 import PromoForm from './Components/PromoForm.vue'
 import PromoDetail from './Components/PromoDetail.vue'

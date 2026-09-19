@@ -1,6 +1,6 @@
 <template>
-    <FilterBar>
-        <template #left>
+    <ActionBar>
+        <template #filters>
             <!-- Track Inventory Segmented / Filter -->
             <FilterSegmented
                 v-model="filterForm.track_inventory"
@@ -16,16 +16,36 @@
                 @clear="updateQuery"
             />
         </template>
-    </FilterBar>
+
+        <template #tools>
+            <ActionsDropdown label="Opsi Data" :items="actionItems" />
+        </template>
+
+        <template #create>
+            <button
+                type="button"
+                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                @click="$emit('create')"
+            >
+                <FontAwesomeIcon :icon="faPlus" />
+                <span>Tambah Baru</span>
+            </button>
+        </template>
+    </ActionBar>
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
-import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faFileExport, faFileImport, faPlus } from '@fortawesome/free-solid-svg-icons'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+
+const emit = defineEmits(['create', 'export-csv', 'open-import'])
 
 const props = defineProps({
     filters: {
@@ -33,6 +53,19 @@ const props = defineProps({
         default: () => ({}),
     },
 })
+
+const actionItems = computed(() => [
+    {
+        label: 'Ekspor CSV',
+        icon: faFileExport,
+        handler: () => emit('export-csv'),
+    },
+    {
+        label: 'Impor CSV',
+        icon: faFileImport,
+        handler: () => emit('open-import'),
+    },
+])
 
 const trackInventoryOptions = [
     { value: '', label: 'Semua Bahan' },

@@ -1,6 +1,6 @@
 <template>
-    <FilterBar>
-        <template #left>
+    <ActionBar>
+        <template #filters>
             <FilterSegmented
                 :model-value="visibility"
                 :options="visibilityOptions"
@@ -16,12 +16,25 @@
                 @clear="$emit('update:search', '')"
             />
         </template>
-    </FilterBar>
+
+        <template #create>
+            <button
+                type="button"
+                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                @click="$emit('create')"
+            >
+                <FontAwesomeIcon :icon="faPlus" />
+                <span>Tambah Jenis Bisnis</span>
+            </button>
+        </template>
+    </ActionBar>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 
@@ -44,7 +57,7 @@ const props = defineProps({
     },
 })
 
-defineEmits(['update:search', 'update:visibility'])
+defineEmits(['update:search', 'update:visibility', 'create'])
 
 const visibilityOptions = computed(() => [
     { value: 'all', label: 'Semua Status' },

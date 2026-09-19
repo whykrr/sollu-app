@@ -1,6 +1,6 @@
 <template>
-    <FilterBar>
-        <template #left>
+    <ActionBar>
+        <template #filters>
             <FilterSegmented
                 v-model="filterForm.status"
                 :options="statusOptions"
@@ -15,14 +15,14 @@
                 @clear="updateQuery"
             />
         </template>
-    </FilterBar>
+    </ActionBar>
 </template>
 
 <script setup>
 import { reactive, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import debounce from 'lodash/debounce'
-import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 

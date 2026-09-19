@@ -1,19 +1,15 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Peran & Hak Akses">
-                <button
-                    v-if="can($enums.PermissionEnum?.ROLE_CREATE)"
-                    type="button"
-                    class="btn btn-highlight-main"
-                    @click="openCreate"
-                >
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Tambah Peran
-                </button>
-            </MainPageHeader>
+            <MainPageHeader title="Peran & Hak Akses" />
+        </template>
 
-            <Filter :filters="filters" />
+        <template #filter>
+            <Filter
+                :filters="filters"
+                :can-create="can($enums.PermissionEnum?.ROLE_CREATE)"
+                @create="openCreate"
+            />
         </template>
 
         <FeatureLock
@@ -80,7 +76,7 @@ import { useModalStore } from '@/store/notification'
 import { useAuth } from '@/Composable/useAuth'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPencil, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons'
 
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'

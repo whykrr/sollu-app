@@ -1,9 +1,7 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Stok Saat Ini">
-                <ExportDropdown :items="exportItems" />
-            </MainPageHeader>
+            <MainPageHeader title="Stok Saat Ini"> </MainPageHeader>
         </template>
 
         <template #widgets>
@@ -56,22 +54,18 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import StockWidgets from './Components/StockWidgets.vue'
-import ExportDropdown from '@/Components/UI/ExportDropdown.vue'
-import { faFileExcel, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import StockFilter from './Components/StockFilter.vue'
 import Detail from './Components/Detail.vue'
 import { usePopUpStore } from '@/store/popup'
 
 const popUpStore = usePopUpStore()
 
-const props = defineProps({
+defineProps({
     stocks: {
         type: Object,
         default: () => ({ data: [], links: [] }),
@@ -89,37 +83,6 @@ const props = defineProps({
         default: () => ({}),
     },
 })
-
-const exportCsv = () => {
-    router.get(
-        route('inventories.stocks.export-csv', props.filters),
-        {},
-        { preserveScroll: true, preserveState: true }
-    )
-}
-
-const exportPdf = () => {
-    router.get(
-        route('inventories.stocks.export-pdf-list', props.filters),
-        {},
-        { preserveScroll: true, preserveState: true }
-    )
-}
-
-const exportItems = computed(() => [
-    {
-        label: 'Ekspor Excel / CSV',
-        icon: faFileExcel,
-        action: exportCsv,
-        class: 'text-emerald-600',
-    },
-    {
-        label: 'Ekspor PDF',
-        icon: faFilePdf,
-        action: exportPdf,
-        class: 'text-rose-600',
-    },
-])
 
 const headers = [
     { label: 'Outlet', field: 'outlet_name', sortable: false },

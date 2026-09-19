@@ -17,11 +17,11 @@ Saat membuat atau memodifikasi antarmuka di `resources/js`, Anda **WAJIB** memat
 
 - **Wrapper Utama:** Semua halaman modul wajib menggunakan `<MainPage>`.
 - **Tampilan Flat Minimalis (Tanpa Shadow):** Semua komponen di dalam slot `MainPage` harus flat tanpa drop-shadow.
-- **Keseragaman Header (`<MainPageHeader>`):** Wajib menggunakan `<MainPageHeader :title="..." :description="...">` dengan tombol aksi di slot default pada `<template #header>`.
+- **Keseragaman Header (`<MainPageHeader>`):** Wajib menggunakan `<MainPageHeader :title="..." :description="...">` murni untuk judul dan deskripsi. Tombol aksi formulir dipindahkan ke `ActionBar` agar header bersih.
 - **Hierarki Slot Non-Scrolling:**
-    1. `<template #header>`: Judul halaman & tombol aksi.
+    1. `<template #header>`: Judul halaman (`<MainPageHeader>`).
     2. `<template #widgets>`: Kartu KPI/ringkasan metrik (di antara header dan filter).
-    3. `<template #filter>`: Toolbar filter dan pencarian yang diekstrak.
+    3. `<template #filter>`: Toolbar terpadu `ActionBar` (filter, live search, dropdown `Opsi Data`, dan tombol `+ Tambah Data` di paling kanan).
     4. Default slot: Konten scrollable utama (`<Table>`).
     5. `<template #footer>`: Pagination bar.
        Seluruh elemen header, widget, dan filter WAJIB diletakkan di slot non-scrolling masing-masing agar **TIDAK ikut ter-scroll** saat tabel di default slot digulir.

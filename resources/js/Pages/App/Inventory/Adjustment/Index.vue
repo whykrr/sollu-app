@@ -1,27 +1,11 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Penyesuaian Stok">
-                <div class="flex items-end gap-2">
-                    <button
-                        v-if="can('inventory.adjustment.freeze')"
-                        class="btn btn-primary btn-sm"
-                        @click="openFreezeModal()"
-                    >
-                        <FontAwesomeIcon :icon="faLock" />
-                        Kelola Bekukan Stok
-                    </button>
-                    <button
-                        v-if="can('inventory.adjustment.create')"
-                        class="btn btn-highlight-main"
-                        @click="openForm()"
-                    >
-                        <FontAwesomeIcon :icon="faPlus" />
-                        Buat Penyesuaian
-                    </button>
-                </div>
-            </MainPageHeader>
-            <Filter :filters="filters" />
+            <MainPageHeader title="Penyesuaian Stok" />
+        </template>
+
+        <template #filter>
+            <Filter :filters="filters" @create="openForm()" @freeze="openFreezeModal()" />
         </template>
 
         <Table
@@ -94,7 +78,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { faEye, faPlus, faLock, faFilePdf } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { router, usePage } from '@inertiajs/vue3'
 import axios from 'axios'

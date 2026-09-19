@@ -4,16 +4,23 @@
             <MainPageHeader
                 title="Data Kategori Produk"
                 description="Kelola susunan dan hierarki pengelompokan produk serta menu"
-            >
-                <button
-                    v-if="can(enums.PermissionEnum?.CATEGORY_CREATE || 'category.create')"
-                    class="btn btn-main"
-                    @click="openCreateForm"
-                >
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Tambah Kategori
-                </button>
-            </MainPageHeader>
+            />
+        </template>
+
+        <template #filter>
+            <ActionBar>
+                <template #create>
+                    <button
+                        v-if="can(enums.PermissionEnum?.CATEGORY_CREATE || 'category.create')"
+                        type="button"
+                        class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                        @click="openCreateForm"
+                    >
+                        <FontAwesomeIcon :icon="faPlus" class="text-xs" />
+                        <span>Tambah Kategori</span>
+                    </button>
+                </template>
+            </ActionBar>
         </template>
 
         <!-- Category Tree List -->
@@ -58,6 +65,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faPlus, faFolderPlus } from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import CategoryTree from './Components/CategoryTree.vue'
 import CategoryForm from './Components/CategoryForm.vue'
 import { useModalStore } from '@/store/notification'

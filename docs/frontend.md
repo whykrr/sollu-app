@@ -20,6 +20,7 @@ Standar pengembangan frontend **Sollu App** berbasis **Vue 3 (Composition API `<
 9. **STANDARISASI ON-DEMAND DATA LOADING:** Data detail entitas lengkap dan data lookup form (opsi dropdown) WAJIB dimuat secara _asynchronous_ (Axios) hanya saat drawer dibuka. Wajib menyertakan skeleton loader / spinner saat fetching.
 10. **MANDATORY ENUM FOR CONDITIONS & FORM OPTIONS:** Dilarang keras menggunakan string literal/hardcode. Selalu gunakan `$enums.<EnumName>.<Case>` atau `useEnum()`.
 11. **MANDATORY FRONTEND UI & BUILD VERIFICATION:** Setiap pembuatan/perubahan komponen Vue WAJIB diverifikasi visual dan fungsional (bebas dari error kompilasi Vite/ESLint, verifikasi alur drawer `<PopUpPage>`, form field `@/Components/Form/`, dan toolbar filter).
+12. **MANDATORY MULTI-DEVICE ERGONOMICS & TOUCH TARGET STANDARDS:** Seluruh komponen UI WAJIB ergonomis dan adaptif untuk Laptop, Tablet (POS), dan Smartphone (Mobile). Target sentuh minimum: Mobile $\ge 44\text{px}$ (`.touch-target`), Tablet $\ge 36\text{px}$ (`.touch-target-sm`), Desktop $\ge 28\text{px}$. Input formulir wajib mencegah *auto-zoom* iOS Safari (gunakan `.form.adaptive` atau `text-base sm:text-xs`). Aksi formulir utama mobile wajib berada di *Thumb Zone* bawah (`#popUpFooter`), tabel mobile menyembunyikan kolom sekunder (`show: 'md'`), dan elemen melayang wajib menyertakan safe area insets (`safe-pb`). Lihat panduan lengkap di [docs/ui-ergonomics.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/ui-ergonomics.md).
 
 ---
 
@@ -190,6 +191,111 @@ const submit = () => {
 
 ---
 
+### 4.2. Standar Formulir: Progressive Disclosure & Wizard Pattern (3-Tier Architecture)
+
+Untuk mencegah pengguna mengalami *cognitive overload* pada formulir dengan banyak isian:
+
+#### A. Klasifikasi 3-Tier Formulir
+
+| Tier | Rentang Field | Pola Desain | Rekomendasi Modul |
+| :--- | :--- | :--- | :--- |
+| **Tier 1 (Simple)** | $\le 5$ field | Single flat vertical form, langsung tampil semua. | Kategori, Satuan UOM, Meja Kasir, Alasan Void. |
+| **Tier 2 (Progressive)** | $6 - 12$ field (Single domain) | Core fields (80%) tampak langsung + Advanced fields (20%) di `<DisclosureSection>` + Conditional triggers. | Bahan Baku (Raw Material), Pelanggan, Karyawan, Promo. |
+| **Tier 3 (Wizard / Tabs)** | $> 12$ field / Multi-domain | Asimetris: **Linear Stepper** (`<FormStepper>`) untuk Create, **Tabbed Navigation** (`<FormTabs>`) untuk Edit. | Produk (Varian & Resep), Purchase Order, Transfer Stok Antar-Outlet. |
+
+#### B. Pola Progressive Disclosure (Tier 2) dengan `<DisclosureSection>`
+
+```vue
+<template>
+    <form class="space-y-2" @submit.prevent="submit">
+        <!-- 1. Core Fields (80% Kasus Harian - Selalu Tampak) -->
+        <TextField v-model="form.name" label="Nama Bahan Baku" :feedback="form.errors.name" required />
+        <DropdownField v-model="form.uom_id" :options="uomOptions" label="Satuan" required />
+
+        <!-- 2. Conditional Trigger (Hanya muncul jika diaktifkan) -->
+        <label class="flex items-center justify-between border border-slate-200 p-2.5 rounded-xl cursor-pointer">
+            <span class="text-xs font-semibold text-slate-700">Lacak Stok Otomatis</span>
+            <input v-model="form.track_inventory" type="checkbox" class="rounded h-4 w-4 text-main" />
+        </label>
+        <NumberField v-if="form.track_inventory" v-model="form.min_stock" label="Minimum Stok Alert" />
+
+        <!-- 3. Advanced / Secondary Fields (Progressive Disclosure) -->
+        <DisclosureSection
+            title="Pengaturan Lanjutan"
+            description="SKU manual, barcode, dan catatan internal"
+            :badge="advancedOptionsCount"
+            :error="Boolean(form.errors.sku || form.errors.barcode)"
+        >
+            <TextField v-model="form.sku" label="SKU / Kode Barang" :feedback="form.errors.sku" />
+            <TextField v-model="form.barcode" label="Barcode Scanner" :feedback="form.errors.barcode" />
+            <TextareaField v-model="form.notes" label="Catatan Internal" rows="2" />
+        </DisclosureSection>
+
+        <!-- Sticky Footer Teleport -->
+        <Teleport v-if="isMounted" to="#popUpFooter">
+            <div class="flex justify-end gap-2 w-full">
+                <button type="button" class="btn btn-flat" @click="close">Batal</button>
+                <button type="submit" class="btn btn-main" :disabled="form.processing">Simpan</button>
+            </div>
+        </Teleport>
+    </form>
+</template>
+```
+
+#### C. Pola Asimetris Wizard & Tabbed (Tier 3)
+
+```vue
+<template>
+    <div>
+        <!-- Create Mode: Linear Stepper -->
+        <FormStepper
+            v-if="!isEdit"
+            :steps="steps"
+            v-model:current-step-index="currentStepIndex"
+            :errors="form.errors"
+        />
+
+        <!-- Edit Mode: Direct Tabbed Navigation -->
+        <FormTabs
+            v-else
+            :tabs="steps"
+            v-model="activeTabId"
+            :errors="form.errors"
+        />
+
+        <!-- Active Step / Tab Content -->
+        <div class="mt-2">
+            <component :is="activeComponent" :form="form" />
+        </div>
+
+        <!-- Sticky Teleport Footer Navigation -->
+        <Teleport v-if="isMounted" to="#popUpFooter">
+            <div class="flex items-center justify-between w-full">
+                <template v-if="!isEdit">
+                    <button type="button" class="btn btn-flat" :disabled="isFirstStep" @click="prevStep">
+                        Kembali
+                    </button>
+                    <button v-if="!isLastStep" type="button" class="btn btn-main" @click="nextStep">
+                        Lanjut
+                    </button>
+                    <button v-else type="button" class="btn btn-main" :disabled="form.processing" @click="submit">
+                        Simpan Data
+                    </button>
+                </template>
+                <template v-else>
+                    <button type="button" class="btn btn-flat" @click="close">Batal</button>
+                    <button type="button" class="btn btn-main" :disabled="form.processing" @click="submit">
+                        Simpan Perubahan
+                    </button>
+                </template>
+            </div>
+        </Teleport>
+    </div>
+</template>
+```
+
+---
+
 ## 5. Enum-Driven UI (Single Source of Truth)
 
 Dilarang meng-hardcode nilai status atau tipe di template/script.
@@ -229,14 +335,14 @@ if (item.status === enums.AdjustmentStatus.Draft) {
 
 ---
 
-## 6. Table Filter Toolbar & URL Sync Pattern (Diekstrak ke Komponen)
+### 6. Table Action & Filter Toolbar (`ActionBar`) & URL Sync Pattern
 
-Setiap filter modul diekstrak ke file komponen terpisah (`Components/{Entity}Filter.vue`) menggunakan komponen basis `@/Components/UI/Filter/` (**Inline Filter Toolbar**, dilarang menggunakan modal overlay):
+Setiap kontrol filter dan aksi modul diekstrak ke file komponen terpisah (`Components/{Entity}Filter.vue`) menggunakan komponen basis `@/Components/UI/ActionBar/ActionBar.vue` (**Inline Action Toolbar**, dilarang menggunakan modal popup filter):
 
 ```vue
 <template>
-    <FilterBar>
-        <template #left>
+    <ActionBar>
+        <template #filters>
             <!-- 1. Preset Tanggal & Rentang Waktu (Default: this_month) -->
             <FilterPresetDate
                 v-model="filterForm.preset"
@@ -263,22 +369,7 @@ Setiap filter modul diekstrak ke file komponen terpisah (`Components/{Entity}Fil
             />
         </template>
 
-        <!-- 4. Filter Actions (Ekspor & Impor) -->
-        <template #actions>
-            <FilterActions>
-                <ExportDropdown label="Ekspor" :items="exportOptions" />
-                <button
-                    type="button"
-                    class="btn btn-sm bg-white border border-gray-200 hover:border-gray-300 text-neutral-700 rounded-lg inline-flex items-center gap-1.5 transition"
-                    @click="$emit('open-import')"
-                >
-                    <FontAwesomeIcon :icon="faUpload" class="text-xs text-neutral-500" />
-                    <span>Impor</span>
-                </button>
-            </FilterActions>
-        </template>
-
-        <!-- 5. Search Bar -->
+        <!-- 4. Search Bar -->
         <template #search>
             <FilterSearch
                 v-model="filterForm.search"
@@ -286,29 +377,45 @@ Setiap filter modul diekstrak ke file komponen terpisah (`Components/{Entity}Fil
                 @clear="updateQuery"
             />
         </template>
-    </FilterBar>
+
+        <!-- 5. Data Tools (Dropdown Opsi Data: Ekspor & Impor) -->
+        <template #tools>
+            <ActionsDropdown label="Opsi Data" :items="actionItems" />
+        </template>
+
+        <!-- 6. Primary Action (Tombol Tambah Data di Paling Kanan) -->
+        <template #create>
+            <button
+                type="button"
+                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5"
+                @click="$emit('create')"
+            >
+                <FontAwesomeIcon :icon="faPlus" class="text-xs" />
+                <span>Tambah Data</span>
+            </button>
+        </template>
+    </ActionBar>
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import debounce from 'lodash/debounce'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faUpload } from '@fortawesome/free-solid-svg-icons'
-import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import { faPlus, faDownload, faUpload } from '@fortawesome/free-solid-svg-icons'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
-import FilterActions from '@/Components/UI/Filter/FilterActions.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
-import ExportDropdown from '@/Components/UI/ExportDropdown.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 
 const props = defineProps({
     filters: Object,
     categories: Array,
 })
 
-defineEmits(['open-import'])
+const emit = defineEmits(['open-import', 'create'])
 
 const filterForm = reactive({
     search: props.filters?.search || '',

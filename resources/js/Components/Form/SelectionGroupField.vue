@@ -11,7 +11,7 @@
                 {{ isAllSelected ? deselectAllLabel : selectAllLabel }}
             </button>
         </div>
-        <div class="flex flex-wrap gap-1">
+        <div class="flex flex-wrap gap-1.5 sm:gap-1">
             <div v-for="(opt, idx) in options" :key="idx" class="form-check" :class="$attrs.class">
                 <input
                     :id="inputName + idx"
@@ -24,7 +24,7 @@
                     @change="handleSelect(opt.value)"
                 />
                 <label
-                    class="btn"
+                    class="btn !text-xs !py-1.5 !px-2.5 sm:!py-1 sm:!px-2"
                     :class="[
                         {
                             'btn-outline-main': isSelected(opt.value),

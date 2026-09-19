@@ -1,6 +1,6 @@
 <template>
-    <FilterBar>
-        <template #left>
+    <ActionBar>
+        <template #filters>
             <!-- Date Preset & Range -->
             <FilterPresetDate
                 v-model="filterForm.preset"
@@ -37,19 +37,44 @@
                 @clear="updateQuery"
             />
         </template>
-    </FilterBar>
+
+        <template #tools>
+            <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                @click="$emit('freeze')"
+            >
+                <FontAwesomeIcon :icon="faLock" />
+                <span>Kelola Bekukan Stok</span>
+            </button>
+        </template>
+
+        <template #create>
+            <button
+                type="button"
+                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                @click="$emit('create')"
+            >
+                <FontAwesomeIcon :icon="faPlus" />
+                <span>Mulai Opname Baru</span>
+            </button>
+        </template>
+    </ActionBar>
 </template>
 
 <script setup>
 import { reactive, watch, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
-import { faStore } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faLock, faPlus, faStore } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
-import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+
+defineEmits(['create', 'freeze'])
 
 const props = defineProps({
     filters: {

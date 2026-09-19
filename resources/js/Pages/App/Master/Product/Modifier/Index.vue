@@ -1,19 +1,26 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Data Opsi Tambahan Produk">
-                <button class="btn btn-highlight-main" @click="openModal()">
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Tambah Baru
-                </button>
-            </MainPageHeader>
-            <div class="flex-1 border-r border-slate-200 pr-2">
-                <div class="flex items-center gap-2">
-                    <div>
-                        <FilterSearch v-model="search" />
-                    </div>
-                </div>
-            </div>
+            <MainPageHeader title="Data Opsi Tambahan Produk" />
+        </template>
+
+        <template #filter>
+            <ActionBar>
+                <template #search>
+                    <FilterSearch v-model="search" placeholder="Cari opsi tambahan..." />
+                </template>
+
+                <template #create>
+                    <button
+                        type="button"
+                        class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                        @click="openModal()"
+                    >
+                        <FontAwesomeIcon :icon="faPlus" class="text-xs" />
+                        <span>Tambah Opsi</span>
+                    </button>
+                </template>
+            </ActionBar>
         </template>
 
         <Table :headers="headers" :data="modifiers.data" :action="true">
@@ -59,6 +66,7 @@
 import { ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'

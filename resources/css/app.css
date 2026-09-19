@@ -271,6 +271,10 @@
             }
         }
 
+        &.adaptive {
+            @apply text-base! !py-2.5 !px-3 min-h-[42px] sm:text-xs! sm:!py-1.5 sm:!px-2.5 sm:min-h-[30px] sm:h-[30px];
+        }
+
         &.lg {
             @apply text-base! file:text-base !py-3 !px-5;
         }
@@ -282,6 +286,10 @@
 
     label:has(+ .form) {
         @apply mb-1.5 text-sm font-medium text-neutral-700;
+    }
+
+    label:has(+ .form.adaptive) {
+        @apply text-sm sm:!text-xs;
     }
 
     label:has(+ .form.sm) {
@@ -630,7 +638,7 @@
         }
 
         & tbody tr td {
-            @apply px-3 py-2 align-middle border-neutral-200 border-t transition-all duration-150 ease-in-out;
+            @apply px-3 py-2.5 sm:py-2 align-middle border-neutral-200 border-t transition-all duration-150 ease-in-out;
         }
 
         &.table-hovered tbody tr {
@@ -913,6 +921,30 @@
 
     .toast-card {
         @apply transition-all duration-300;
+    }
+
+    /* --------------------------------------------------------------------------
+       4.9 Ergonomic Touch Targets (Mobile >= 44px, Tablet >= 36px, Desktop >= 28px)
+       -------------------------------------------------------------------------- */
+    .touch-target {
+        @apply min-w-[44px] min-h-[44px] inline-flex items-center justify-center;
+    }
+
+    .touch-target-sm {
+        @apply min-w-[36px] min-h-[36px] inline-flex items-center justify-center;
+    }
+
+    .touch-target-lg {
+        @apply min-w-[48px] min-h-[48px] inline-flex items-center justify-center;
+    }
+
+    /* Safe Area Inset Helpers */
+    .safe-pb {
+        padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+    }
+
+    .safe-pt {
+        padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
     }
 }
 

@@ -1,6 +1,6 @@
 <template>
-    <FilterBar>
-        <template #left>
+    <ActionBar>
+        <template #filters>
             <!-- Product Type Filter -->
             <FilterDropdown
                 v-model="filterForm.product_type"
@@ -41,51 +41,6 @@
             />
         </template>
 
-        <template #actions>
-            <FilterActions>
-                <div
-                    class="inline-flex items-center p-0.5 bg-slate-100 rounded-lg border border-slate-200 h-[30px]"
-                >
-                    <button
-                        type="button"
-                        class="h-6 px-2 flex items-center justify-center rounded-md text-xs transition-colors duration-150"
-                        :class="
-                            viewMode === 'table'
-                                ? 'bg-white text-neutral-900 font-medium border border-slate-200/80 shadow-none'
-                                : 'text-neutral-500 hover:text-neutral-800'
-                        "
-                        title="Tampilan Tabel"
-                        @click="$emit('update:viewMode', 'table')"
-                    >
-                        <FontAwesomeIcon :icon="faTableList" class="text-xs" />
-                    </button>
-                    <button
-                        type="button"
-                        class="h-6 px-2 flex items-center justify-center rounded-md text-xs transition-colors duration-150"
-                        :class="
-                            viewMode === 'grid'
-                                ? 'bg-white text-neutral-900 font-medium border border-slate-200/80 shadow-none'
-                                : 'text-neutral-500 hover:text-neutral-800'
-                        "
-                        title="Tampilan Grid"
-                        @click="$emit('update:viewMode', 'grid')"
-                    >
-                        <FontAwesomeIcon :icon="faBorderAll" class="text-xs" />
-                    </button>
-                </div>
-
-                <button type="button" class="btn btn-flat btn-sm" @click="exportCsv">
-                    <FontAwesomeIcon :icon="faDownload" class="text-xs text-neutral-500" />
-                    <span>Ekspor</span>
-                </button>
-
-                <button type="button" class="btn btn-flat btn-sm" @click="$emit('open-import')">
-                    <FontAwesomeIcon :icon="faUpload" class="text-xs text-neutral-500" />
-                    <span>Impor</span>
-                </button>
-            </FilterActions>
-        </template>
-
         <template #search>
             <FilterSearch
                 v-model="filterForm.search"
@@ -93,7 +48,53 @@
                 @clear="updateQuery"
             />
         </template>
-    </FilterBar>
+
+        <template #tools>
+            <div
+                class="inline-flex items-center p-0.5 bg-slate-100 rounded-lg border border-slate-200 h-[30px]"
+            >
+                <button
+                    type="button"
+                    class="h-6 px-2 flex items-center justify-center rounded-md text-xs transition-colors duration-150 cursor-pointer"
+                    :class="
+                        viewMode === 'table'
+                            ? 'bg-white text-neutral-900 font-medium border border-slate-200/80 shadow-none'
+                            : 'text-neutral-500 hover:text-neutral-800'
+                    "
+                    title="Tampilan Tabel"
+                    @click="$emit('update:viewMode', 'table')"
+                >
+                    <FontAwesomeIcon :icon="faTableList" class="text-xs" />
+                </button>
+                <button
+                    type="button"
+                    class="h-6 px-2 flex items-center justify-center rounded-md text-xs transition-colors duration-150 cursor-pointer"
+                    :class="
+                        viewMode === 'grid'
+                            ? 'bg-white text-neutral-900 font-medium border border-slate-200/80 shadow-none'
+                            : 'text-neutral-500 hover:text-neutral-800'
+                    "
+                    title="Tampilan Grid"
+                    @click="$emit('update:viewMode', 'grid')"
+                >
+                    <FontAwesomeIcon :icon="faBorderAll" class="text-xs" />
+                </button>
+            </div>
+
+            <ActionsDropdown label="Opsi Data" :items="actionItems" />
+        </template>
+
+        <template #create>
+            <button
+                type="button"
+                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                @click="$emit('create')"
+            >
+                <FontAwesomeIcon :icon="faPlus" class="text-xs" />
+                <span>Tambah Produk</span>
+            </button>
+        </template>
+    </ActionBar>
 </template>
 
 <script setup>
@@ -109,12 +110,13 @@ import {
     faTag,
     faTableList,
     faBorderAll,
+    faPlus,
 } from '@fortawesome/free-solid-svg-icons'
-import FilterBar from '@/Components/UI/Filter/FilterBar.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
-import FilterActions from '@/Components/UI/Filter/FilterActions.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 import { useAuth } from '@/Composable/useAuth'
 
 const props = defineProps({
@@ -132,7 +134,7 @@ const props = defineProps({
     },
 })
 
-defineEmits(['open-import', 'update:viewMode'])
+const emit = defineEmits(['open-import', 'update:viewMode', 'create'])
 
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 const outletOptions = computed(() => {
@@ -203,4 +205,19 @@ const exportCsv = () => {
         }
     )
 }
+
+const actionItems = computed(() => [
+    {
+        label: 'Ekspor Data CSV',
+        icon: faDownload,
+        iconClass: 'text-emerald-600',
+        action: exportCsv,
+    },
+    {
+        label: 'Impor Data Massal',
+        icon: faUpload,
+        iconClass: 'text-blue-600',
+        action: () => emit('open-import'),
+    },
+])
 </script>

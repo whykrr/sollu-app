@@ -4,12 +4,7 @@
             <MainPageHeader
                 title="Data Produk"
                 description="Kelola katalog produk, harga, varian, dan ketersediaan di outlet"
-            >
-                <button class="btn btn-main btn-sm" @click="openCreate">
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Tambah Produk
-                </button>
-            </MainPageHeader>
+            />
         </template>
 
         <template #filter>
@@ -19,6 +14,7 @@
                 :view-mode="viewMode"
                 @update:view-mode="setViewMode"
                 @open-import="showImportModal = true"
+                @create="openCreate"
             />
         </template>
 
@@ -121,7 +117,7 @@ import Table from '@/Components/Tables/Table.vue'
 import DataGrid from '@/Components/DataGrid/DataGrid.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPlus, faPencil, faTrash, faImage } from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faTrash, faImage } from '@fortawesome/free-solid-svg-icons'
 import ProductFilter from './Components/ProductFilter.vue'
 import ProductCard from './Components/ProductCard.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'

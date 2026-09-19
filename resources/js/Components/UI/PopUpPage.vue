@@ -36,7 +36,7 @@
                 <button
                     id="closeModalBtn"
                     type="button"
-                    class="text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 rounded-lg w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center transition cursor-pointer shrink-0"
+                    class="text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 rounded-lg w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center transition cursor-pointer shrink-0 touch-target-sm"
                     aria-label="Tutup"
                     @click="requestClose(false)"
                 >
@@ -212,9 +212,9 @@ onUnmounted(() => {
 const sizeClasses = {
     sm: 'sm:max-w-md',
     md: 'sm:max-w-lg',
-    lg: 'sm:max-w-2xl',
-    xl: 'sm:max-w-4xl',
-    '2xl': 'sm:max-w-5xl',
+    lg: 'sm:max-w-xl lg:max-w-2xl',
+    xl: 'sm:max-w-2xl lg:max-w-4xl',
+    '2xl': 'sm:max-w-3xl lg:max-w-5xl',
 }
 
 const computedSizeClass = computed(() => {

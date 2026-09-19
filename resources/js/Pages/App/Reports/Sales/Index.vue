@@ -1,43 +1,43 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Laporan Penjualan">
-                <div class="flex flex-wrap items-center gap-2">
+            <MainPageHeader title="Laporan Penjualan" />
+        </template>
+
+        <template #filter>
+            <ActionBar>
+                <template #filters>
                     <div v-if="outletOptions.length > 1 && !selectedOutlet" class="w-48">
                         <GroupDropdownIconField
                             id="outlet-filter"
                             v-model="formFilters.outlet"
                             :icon="faStore"
-                            class="sm"
+                            size="sm"
                             :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
                             @change="applyFilters"
                         />
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5">
                         <input
                             v-model="formFilters.start_date"
                             type="date"
-                            class="form sm"
+                            class="form sm h-[30px]"
                             @change="applyFilters"
                         />
-                        <span>-</span>
+                        <span class="text-slate-400 text-xs">-</span>
                         <input
                             v-model="formFilters.end_date"
                             type="date"
-                            class="form sm"
+                            class="form sm h-[30px]"
                             @change="applyFilters"
                         />
                     </div>
-                    <div class="flex items-center gap-2 ml-auto">
-                        <button class="btn btn-outline-primary sm" @click="exportPdf">
-                            <FontAwesomeIcon :icon="faFilePdf" /> Ekspor PDF
-                        </button>
-                        <button class="btn btn-outline-success sm" @click="exportCsv">
-                            <FontAwesomeIcon :icon="faFileCsv" /> Ekspor CSV
-                        </button>
-                    </div>
-                </div>
-            </MainPageHeader>
+                </template>
+
+                <template #tools>
+                    <ActionsDropdown label="Opsi Data" :items="actionItems" />
+                </template>
+            </ActionBar>
         </template>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
@@ -125,10 +125,12 @@
 <script setup>
 import { computed } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
-import { faStore } from '@fortawesome/free-solid-svg-icons'
+import { faFileCsv, faFilePdf, faStore } from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
-import Pagination from '@/Components/Tables/Pagination.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
 import { useAuth } from '@/Composable/useAuth'
 import { formatIDR } from '@/Composable/currency-format'
@@ -176,4 +178,17 @@ const exportCsv = () => {
         preserveState: true,
     })
 }
+
+const actionItems = computed(() => [
+    {
+        label: 'Ekspor PDF',
+        icon: faFilePdf,
+        handler: exportPdf,
+    },
+    {
+        label: 'Ekspor CSV',
+        icon: faFileCsv,
+        handler: exportCsv,
+    },
+])
 </script>

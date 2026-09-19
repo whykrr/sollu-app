@@ -1,17 +1,11 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Data Pegawai">
-                <button class="btn btn-flat btn-sm">
-                    <FontAwesomeIcon :icon="faUpload" />
-                    Impor Data
-                </button>
-                <button class="btn btn-highlight-main" @click="openForm()">
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Tambah Baru
-                </button>
-            </MainPageHeader>
-            <Filter :filters="params" :roles="roles" />
+            <MainPageHeader title="Data Pegawai" />
+        </template>
+
+        <template #filter>
+            <Filter :filters="params" :roles="roles" @create="openForm()" />
         </template>
 
         <Table
@@ -100,7 +94,7 @@ import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import Table from '@/Components/Tables/Table.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPencil, faPlus, faUpload } from '@fortawesome/free-solid-svg-icons'
+import { faPencil } from '@fortawesome/free-solid-svg-icons'
 import { formatDateTimeSimple } from '@/Composable/date'
 import Form from '@/Pages/App/Employee/Components/Form.vue'
 import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue'

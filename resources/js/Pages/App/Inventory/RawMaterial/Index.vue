@@ -1,21 +1,16 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Data Bahan Baku">
-                <button class="btn btn-flat btn-sm" @click="exportCsv">
-                    <FontAwesomeIcon :icon="faDownload" />
-                    Ekspor CSV
-                </button>
-                <button class="btn btn-flat btn-sm" @click="showImportModal = true">
-                    <FontAwesomeIcon :icon="faUpload" />
-                    Impor CSV
-                </button>
-                <button class="btn btn-highlight-main" @click="openForm()">
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Tambah Baru
-                </button>
-            </MainPageHeader>
-            <RawMaterialFilter :filters="filters" />
+            <MainPageHeader title="Data Bahan Baku" />
+        </template>
+
+        <template #filter>
+            <RawMaterialFilter
+                :filters="filters"
+                @create="openForm()"
+                @export-csv="exportCsv"
+                @open-import="showImportModal = true"
+            />
         </template>
 
         <Table
@@ -75,7 +70,7 @@
 <script setup>
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
-import { faPlus, faUpload, faPencil, faTrash, faDownload } from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'

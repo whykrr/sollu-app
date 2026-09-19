@@ -89,22 +89,24 @@ Saat menggunakan atau mengedit komponen di `resources/js/Components/UI`, Anda **
 
 ---
 
-## 4. Ekosistem Filter (`@/Components/UI/Filter/`)
+## 4. Ekosistem Toolbar & Filter (`ActionBar` & `@/Components/UI/Filter/`)
 
-- **`FilterBar.vue`:** Wrapper layout toolbar filter (`<FilterBar><template #left>...</template><template #actions>...</template><template #search>...</template></FilterBar>`).
+- **`ActionBar.vue` (`@/Components/UI/ActionBar/ActionBar.vue`):** Wrapper toolbar terpadu halaman (`<ActionBar><template #filters>...</template><template #search>...</template><template #tools>...</template><template #create>...</template></ActionBar>`).
+- **`FilterBar.vue`:** Wrapper kompatibilitas transisi yang mendelegasikan ke `ActionBar.vue`.
 - **`FilterPresetDate.vue`:** Dropdown preset tanggal (_Hari Ini_, _7 Hari Terakhir_, _Bulan Ini_, _Kustom_) dan modal rentang tanggal. Default preset: `'this_month'`.
 - **`FilterSegmented.vue`:** Tab status/counter segmented pill (`<FilterSegmented v-model="form.status" :options="options" />`).
 - **`FilterDropdown.vue`:** Dropdown filter pill inline untuk kategori/outlet/supplier (`<FilterDropdown v-model="form.cat" label="Kategori" :options="opts" />`).
-- **`FilterActions.vue`:** Container untuk tombol aksi ekspor dan impor di toolbar filter.
 - **`FilterSearch.vue`:** Input pencarian teks live terstandarisasi (`<FilterSearch v-model="filterForm.search" placeholder="Cari..." />`).
 - **`FilterBadge.vue`:** Menampilkan kriteria filter yang aktif (`<FilterBadge @remove="resetStatus">Status: {{ status }}</FilterBadge>`).
 - **`FilterTrashData.vue`:** Toggle filter data terhapus.
-- **🚨 Dilarang menggunakan `<FilterModal.vue>` untuk penyaringan tabel utama.** Seluruh filter wajib menggunakan susunan inline toolbar di atas.
+- **🚨 Dilarang menggunakan `<FilterModal.vue>` untuk penyaringan tabel utama.** Seluruh filter dan aksi halaman wajib menggunakan susunan inline `ActionBar` di atas.
 
 ---
 
-## 5. Tab & Feature Locking
+## 5. Tab, Dropdown Data, & Feature Locking
 
+- **`ActionsDropdown.vue`:** Dropdown menu ringkas berikon dengan auto-collision positioning (`<ActionsDropdown label="Opsi Data" :items="actionItems" />`).
+- **`ExportDropdown.vue`:** Dropdown aksi ekspor data berbasis `ActionsDropdown` (`<ExportDropdown :items="exportOptions" />`).
 - **`Tab.vue`:** Navigasi tab dengan array `pages: [{ label, icon, page, props, badge }]`.
 - **`FeatureLock.vue`:** Proteksi kartu/fitur berbayar dengan overlay gembok (`<FeatureLock :feature="$enums.FeatureEnum.FEATURE_NAME">`).
-- **`ExportDropdown.vue`:** Dropdown aksi ekspor data (`<ExportDropdown :items="exportOptions" />`).
+

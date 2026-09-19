@@ -1,25 +1,15 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Daftar Pelanggan">
-                <button class="btn btn-flat btn-sm" @click="exportCsv">
-                    <FontAwesomeIcon :icon="faDownload" />
-                    Ekspor Data
-                </button>
-                <button class="btn btn-flat btn-sm" @click="showImportModal = true">
-                    <FontAwesomeIcon :icon="faUpload" />
-                    Impor Data
-                </button>
-                <button
-                    dusk="create-customer-button"
-                    class="btn btn-highlight-main"
-                    @click="openCreate"
-                >
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Tambah Pelanggan
-                </button>
-            </MainPageHeader>
-            <CustomerFilter :filters="filters" />
+            <MainPageHeader title="Daftar Pelanggan" />
+        </template>
+
+        <template #filter>
+            <CustomerFilter
+                :filters="filters"
+                @create="openCreate"
+                @open-import="showImportModal = true"
+            />
         </template>
 
         <Table :headers="headers" :data="tableData.data" :action="true">
@@ -95,12 +85,9 @@ import { useModalStore } from '@/store/notification'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
-    faPlus,
     faPencil,
     faTrash,
     faEye,
-    faUpload,
-    faDownload,
 } from '@fortawesome/free-solid-svg-icons'
 
 const popUpStore = usePopUpStore()
@@ -173,14 +160,6 @@ const openDetail = customer => {
 
 const archiveCustomer = id => {
     modal.openModalDelete(route('customers.destroy', id))
-}
-
-const exportCsv = () => {
-    router.get(
-        route('customers.export', props.filters),
-        {},
-        { preserveScroll: true, preserveState: true }
-    )
 }
 
 const modal = useModalStore()

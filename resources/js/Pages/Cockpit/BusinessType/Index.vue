@@ -4,12 +4,7 @@
             <MainPageHeader
                 title="Manajemen Jenis Bisnis"
                 description="Kelola data klasifikasi bisnis, urutan tampilan pendaftaran, serta personalisasi hak akses fitur bawaan"
-            >
-                <button type="button" class="btn btn-main btn-sm" @click="openCreate">
-                    <FontAwesomeIcon :icon="faPlus" class="mr-1.5" />
-                    Tambah Jenis Bisnis
-                </button>
-            </MainPageHeader>
+            />
         </template>
 
         <template #widgets>
@@ -29,6 +24,7 @@
                 v-model:visibility="visibilityFilter"
                 :visible-count="visibleCount"
                 :hidden-count="hiddenCount"
+                @create="openCreate"
             />
         </template>
 
@@ -149,7 +145,7 @@ import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPencil, faPlus, faSliders, faTrash, faStore } from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faSliders, faTrash, faStore } from '@fortawesome/free-solid-svg-icons'
 import { router } from '@inertiajs/vue3'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification.js'

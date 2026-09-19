@@ -1,38 +1,43 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Laporan Stock & Aset">
-                <div class="flex flex-wrap items-center gap-2">
+            <MainPageHeader title="Laporan Stock & Aset" />
+        </template>
+
+        <template #filter>
+            <ActionBar>
+                <template #filters>
                     <div v-if="outletOptions.length > 1 && !selectedOutlet" class="w-48">
                         <GroupDropdownIconField
                             id="outlet-filter"
                             v-model="formFilters.outlet"
                             :icon="faStore"
-                            class="sm"
+                            size="sm"
                             :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
                             @change="applyFilters"
                         />
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5">
                         <input
                             v-model="formFilters.start_date"
                             type="date"
-                            class="form sm"
+                            class="form sm h-[30px]"
                             @change="applyFilters"
                         />
-                        <span>-</span>
+                        <span class="text-slate-400 text-xs">-</span>
                         <input
                             v-model="formFilters.end_date"
                             type="date"
-                            class="form sm"
+                            class="form sm h-[30px]"
                             @change="applyFilters"
                         />
                     </div>
-                    <div class="ml-auto">
-                        <ExportDropdown :items="exportItems" />
-                    </div>
-                </div>
-            </MainPageHeader>
+                </template>
+
+                <template #tools>
+                    <ActionsDropdown label="Opsi Data" :items="actionItems" />
+                </template>
+            </ActionBar>
         </template>
 
         <div class="card card-body">
@@ -90,10 +95,11 @@ import { computed } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
 import { faFileExcel, faFilePdf, faStore } from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
-import Pagination from '@/Components/Tables/Pagination.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
-import ExportDropdown from '@/Components/UI/ExportDropdown.vue'
 import { useAuth } from '@/Composable/useAuth'
 import { formatNumberID } from '@/Composable/useNumberFormat'
 
@@ -139,18 +145,16 @@ const exportCsv = () => {
     })
 }
 
-const exportItems = computed(() => [
-    {
-        label: 'Ekspor Excel / CSV',
-        icon: faFileExcel,
-        action: exportCsv,
-        class: 'text-emerald-600',
-    },
+const actionItems = computed(() => [
     {
         label: 'Ekspor PDF',
         icon: faFilePdf,
-        action: exportPdf,
-        class: 'text-rose-600',
+        handler: exportPdf,
+    },
+    {
+        label: 'Ekspor Excel / CSV',
+        icon: faFileExcel,
+        handler: exportCsv,
     },
 ])
 </script>

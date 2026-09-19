@@ -1,31 +1,36 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Metode Pembayaran">
-                <button class="btn btn-highlight-main" @click="openCreate">
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Tambah Metode
-                </button>
-            </MainPageHeader>
+            <MainPageHeader title="Metode Pembayaran" />
+        </template>
 
-            <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex flex-wrap items-center gap-2 flex-1">
-                    <div class="w-64">
-                        <TextField
-                            v-model="filters.search"
-                            placeholder="Cari metode pembayaran..."
-                            :feedback="null"
-                        />
-                    </div>
-                    <div class="w-48">
-                        <DropdownField
-                            v-model="filters.type"
-                            placeholder="Semua Jenis"
-                            :options="[{ value: '', label: 'Semua Jenis' }, ...types]"
-                        />
-                    </div>
-                </div>
-            </div>
+        <template #filter>
+            <ActionBar>
+                <template #filters>
+                    <FilterDropdown
+                        v-model="filters.type"
+                        label="Jenis"
+                        :options="types"
+                        all-option-label="Semua Jenis"
+                    />
+                </template>
+                <template #search>
+                    <FilterSearch
+                        v-model="filters.search"
+                        placeholder="Cari metode pembayaran..."
+                    />
+                </template>
+                <template #create>
+                    <button
+                        type="button"
+                        class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                        @click="openCreate"
+                    >
+                        <FontAwesomeIcon :icon="faPlus" />
+                        <span>Tambah Metode</span>
+                    </button>
+                </template>
+            </ActionBar>
         </template>
 
         <div class="h-full flex-1 min-h-0 flex flex-col">
@@ -139,10 +144,11 @@ import { faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons'
 
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
+import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
+import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import DraggableTable from '@/Components/Tables/DraggableTable.vue'
-import TextField from '@/Components/Form/TextField.vue'
-import DropdownField from '@/Components/Form/DropdownField.vue'
 import PaymentMethodPopUp from './Components/PaymentMethodPopUp.vue'
 
 const headers = [

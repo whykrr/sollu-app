@@ -27,19 +27,47 @@ DILARANG KERAS menuliskan tag `<input>`, `<select>`, atau `<textarea>` mentah. G
 | **`RadioField`**             | Tombol radio tunggal                             | `<RadioField v-model="form.type" value="goods" label="Barang Jadi" />`                                  |
 | **`SelectionGroupField`**    | Grup pilihan (Single segmented / Multi-checkbox) | `<SelectionGroupField v-model="form.categories" :options="categoryOptions" multiple show-select-all />` |
 | **`QuillEditor`**            | Editor Rich Text WYSIWYG                         | `<QuillEditor v-model="form.description" label="Deskripsi" />`                                          |
-| **`GroupTextIconField`**     | Input teks dengan addon icon                     | `<GroupTextIconField v-model="search" :icon="faSearch" placeholder="Cari..." />`                        |
-| **`GroupDropdownIconField`** | Dropdown dengan addon icon                       | `<GroupDropdownIconField v-model="outlet" :icon="faStore" :options="outletOptions" />`                  |
+| **`DisclosureSection`**    | Collapsible section untuk opsi lanjutan (Progressive Disclosure) | `<DisclosureSection title="Opsi Lanjutan" :badge="activeCount"><TextField ... /></DisclosureSection>` |
+| **`FormStepper`**          | Visual Stepper indikator untuk Create Wizard (Tier 3)            | `<FormStepper :steps="steps" v-model:current-step-index="step" :errors="form.errors" />`               |
+| **`FormTabs`**             | Tab navigation untuk Edit Form (Tier 3)                          | `<FormTabs :tabs="tabs" v-model="activeTab" :errors="form.errors" />`                                  |
 
 ---
 
-## 2. Pengikatan Data & Validasi
+## 2. 🏛️ Klasifikasi Formulir (3-Tier Form Architecture)
+
+Untuk mencegah pengguna merasa *overwhelm* saat mengisi formulir, terapkan klasifikasi berikut:
+
+### Tier 1: Simple / Quick Form (≤ 5 Fields)
+- **Karakteristik:** Formulir cepat, flat vertikal tanpa collapsible/stepper.
+- **Contoh:** Kategori, Satuan UOM, Meja Kasir, Alasan Void.
+
+### Tier 2: Progressive Disclosure Form (6 – 12 Fields, Single Domain)
+- **Prinsip 80/20 (Core vs Advanced):**
+  - **Core Fields (80% Operasional Harian):** Wajib langsung terlihat di bagian atas (Nama, Harga, Kategori, Satuan).
+  - **Advanced Fields (20% Opsi Tambahan):** WAJIB dibungkus dalam `<DisclosureSection>` collapsible (SKU kustom, Barcode manual, Alert stok minimum, Tag, Catatan panjang).
+- **Trigger-based / Conditional Reveal:** Field dependen dilarang dirender jika toggle/pemicunya tidak aktif (misal: field *Minimum Stok* hanya muncul jika toggle *Lacak Stok* aktif).
+- **Contoh:** Bahan Baku (Raw Material), Pelanggan (Customer), Karyawan, Promo Diskon.
+
+### Tier 3: Complex Wizard & Tabbed Form (> 12 Fields atau Multi-Domain)
+- **Pola Asimetris (Create vs Edit):**
+  - **Mode Tambah / Create:** WAJIB gunakan **Linear Stepper** (`<FormStepper>`) memandu langkah demi langkah (Step 1 → Step 2 → Step 3).
+  - **Mode Ubah / Edit:** WAJIB gunakan **Direct Tabbed Navigation** (`<FormTabs>`) agar pengguna dapat langsung menuju bagian yang ingin disunting tanpa harus mengklik *next-next*.
+- **Contoh:** Produk Komprehensif (Info Dasar, Varian & Resep, Stok & Outlet), Purchase Order (Header, Detail Items, Ringkasan Biaya), Transfer Stok Antar-Outlet.
+
+---
+
+## 3. Pengikatan Data, Validasi & Error State
 
 - **Two-Way Binding:** Selalu gunakan `v-model="form.field_name"`.
 - **Error Feedback:** Teruskan pesan error validasi Inertia melalui `:feedback="form.errors.field_name"`. Dilarang mengikat class `is-invalid` secara manual.
+- **Auto-Open Collapsible on Error:** `<DisclosureSection>` secara otomatis terbuka jika terdapat error validasi pada field di dalamnya.
+- **Error Badging pada Stepper / Tabs:** Teruskan `:errors="form.errors"` ke `<FormStepper>` atau `<FormTabs>` agar step/tab yang bermasalah menampilkan indikator titik merah (*error dot*).
 
 ---
 
-## 3. Batasan Spacing Formulir
+## 4. Batasan Spacing & Ergonomi Drawer (`PopUpPage`)
 
 - **Spacing Antar-Input (Maksimal Skala 2):** Jarak antar bidang input formulir DILARANG melebihi skala 2 Tailwind (`space-y-2`, `gap-2`).
 - **Margin/Padding Komponen (Maksimal Skala 3):** Jangan menambahkan padding atau margin besar di dalam container form (`p-3` maksimum).
+- **Sticky Footer Actions (`#popUpFooter`):** Seluruh tombol aksi form (Batal, Simpan, Kembali, Lanjut) WAJIB di-teleport ke `#popUpFooter` agar berada di *Thumb Zone* bawah yang ergonomis.
+

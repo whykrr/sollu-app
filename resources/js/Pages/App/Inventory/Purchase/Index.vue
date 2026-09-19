@@ -1,13 +1,16 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Pembelian (Purchase Order)">
-                <button class="btn btn-highlight-main" @click="openForm()">
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Buat PO Baru
-                </button>
-            </MainPageHeader>
-            <PurchaseFilter :filters="filters" :suppliers="suppliers" :outlets="outlets" />
+            <MainPageHeader title="Pembelian (Purchase Order)" />
+        </template>
+
+        <template #filter>
+            <PurchaseFilter
+                :filters="filters"
+                :suppliers="suppliers"
+                :outlets="outlets"
+                @create="openForm()"
+            />
         </template>
 
         <Table
@@ -125,7 +128,6 @@ import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import axios from 'axios'
 import {
-    faPlus,
     faPencil,
     faTrash,
     faBoxOpen,

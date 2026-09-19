@@ -1,13 +1,11 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Data Supplier">
-                <button class="btn btn-highlight-main" @click="openForm()">
-                    <FontAwesomeIcon :icon="faPlus" />
-                    Tambah Baru
-                </button>
-            </MainPageHeader>
-            <SupplierFilter :filters="filters" />
+            <MainPageHeader title="Data Supplier" />
+        </template>
+
+        <template #filter>
+            <SupplierFilter :filters="filters" @create="openForm()" />
         </template>
         <Table
             :headers="headers"
@@ -70,7 +68,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { faPlus, faPencil, faTrash, faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faTrash, faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
