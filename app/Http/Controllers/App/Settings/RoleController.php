@@ -4,11 +4,14 @@ namespace App\Http\Controllers\App\Settings;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Enums\PermissionEnum;
 use App\Enums\RoleEnum;
+use App\Enums\RoleTemplateEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Settings\StoreRoleRequest;
 use App\Http\Requests\App\Settings\UpdateRoleRequest;
 use App\Models\Role;
+use App\Services\App\Role\RoleProvisioningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,6 +29,7 @@ class RoleController extends Controller
 
         $roles = Role::where('business_id', $request->user()->business_id)
             ->withCount('users')
+            ->with(['permissions:id,name'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('label', 'like', "%{$search}%")
@@ -33,11 +37,50 @@ class RoleController extends Controller
                 });
             })
             ->orderBy('created_at', 'asc')
-            ->get();
+            ->get()
+            ->map(function (Role $role) {
+                $permissions = $role->permissions;
+                $permissionsCount = $permissions->count();
+
+                $groupCounts = [];
+                foreach ($permissions as $permission) {
+                    $permEnum = PermissionEnum::tryFrom($permission->name);
+                    if (! $permEnum) {
+                        continue;
+                    }
+
+                    $grpKey = $permEnum->group();
+                    $grpLabel = $permEnum->groupLabel();
+
+                    if (! isset($groupCounts[$grpKey])) {
+                        $groupCounts[$grpKey] = [
+                            'key' => $grpKey,
+                            'label' => $grpLabel,
+                            'count' => 0,
+                        ];
+                    }
+
+                    $groupCounts[$grpKey]['count']++;
+                }
+
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'label' => $role->label,
+                    'is_default' => $role->is_default,
+                    'users_count' => $role->users_count,
+                    'permissions_count' => $permissionsCount,
+                    'summary_groups' => array_values($groupCounts),
+                ];
+            });
+
+        $businessType = $request->user()->business?->businessType?->code ?? 'general';
 
         return inertia('Settings/Role/Index', [
             'roles' => $roles,
             'filters' => $request->only(['search']),
+            'templates' => RoleTemplateEnum::formattedList(),
+            'businessType' => $businessType,
         ]);
     }
 
@@ -87,6 +130,30 @@ class RoleController extends Controller
         ]);
 
         $role->syncPermissions($data['permissions']);
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::CREATE_SUCCESS
+        );
+    }
+
+    /**
+     * Store a new role from a predefined template.
+     */
+    public function storeTemplate(Request $request, RoleProvisioningService $provisioningService)
+    {
+        $this->authorize('role.create');
+
+        $request->validate([
+            'template_key' => ['required', 'string'],
+        ]);
+
+        $template = RoleTemplateEnum::tryFrom($request->input('template_key'));
+        if (! $template) {
+            abort(Response::HTTP_UNPROCESSABLE_ENTITY, 'Template peran tidak valid.');
+        }
+
+        $provisioningService->applyTemplate($request->user()->business, $template->value);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

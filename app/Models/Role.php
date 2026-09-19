@@ -22,9 +22,17 @@ class Role extends SpatieRole
         'label',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+        ];
+    }
+
     public function getLabelAttribute(): string
     {
-        return RoleEnum::tryFrom($this->name)?->label()
+        return $this->attributes['label']
+            ?? RoleEnum::tryFrom($this->name)?->label()
             ?? $this->name;
     }
 }

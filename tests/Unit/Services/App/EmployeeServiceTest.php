@@ -19,13 +19,43 @@ class EmployeeServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed(\Database\Seeders\DatabaseSeeder::class);
         $this->service = new EmployeeService;
+    }
+
+    protected function createMerchantUser(): User
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Test Merchant',
+            'owner_name' => 'Owner Name',
+            'email' => 'owner_'.uniqid().'@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $user = User::create([
+            'business_id' => $business->id,
+            'name' => 'Owner User',
+            'email' => 'user_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+            'is_root_user' => true,
+        ]);
+
+        setPermissionsTeamId($business->id);
+
+        return $user;
     }
 
     public function test_it_creates_employee()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $this->actingAs($user);
 
         Notification::fake();
@@ -35,12 +65,18 @@ class EmployeeServiceTest extends TestCase
             'name' => 'Outlet Test',
         ]);
 
+        setPermissionsTeamId($user->business_id);
+        \App\Models\Role::firstOrCreate(
+            ['business_id' => $user->business_id, 'name' => 'cashier', 'guard_name' => 'business'],
+            ['label' => 'Kasir', 'is_default' => false]
+        );
+
         $data = [
             'name' => 'New Employee',
             'email' => 'employee@test.com',
             'phone' => '08123456789',
             'pin' => '1234',
-            'role' => 'cashier', // Assuming 'cashier' role exists from seeder
+            'role' => 'cashier',
             'outlets' => [$outlet->id],
         ];
 
@@ -61,9 +97,18 @@ class EmployeeServiceTest extends TestCase
 
     public function test_it_updates_employee()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $this->actingAs($user);
+
+        setPermissionsTeamId($user->business_id);
+        \App\Models\Role::firstOrCreate(
+            ['business_id' => $user->business_id, 'name' => 'cashier', 'guard_name' => 'business'],
+            ['label' => 'Kasir', 'is_default' => false]
+        );
+        \App\Models\Role::firstOrCreate(
+            ['business_id' => $user->business_id, 'name' => 'manager', 'guard_name' => 'business'],
+            ['label' => 'Manajer', 'is_default' => false]
+        );
 
         $employee = User::factory()->create([
             'business_id' => $user->business_id,
@@ -99,8 +144,7 @@ class EmployeeServiceTest extends TestCase
 
     public function test_it_soft_deletes_employee()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
 
         $employee = User::factory()->create([
             'business_id' => $user->business_id,
@@ -113,8 +157,7 @@ class EmployeeServiceTest extends TestCase
 
     public function test_it_restores_employee()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
 
         $employee = User::factory()->create([
             'business_id' => $user->business_id,
@@ -131,8 +174,7 @@ class EmployeeServiceTest extends TestCase
 
     public function test_it_force_deletes_employee()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
 
         $employee = User::factory()->create([
             'business_id' => $user->business_id,

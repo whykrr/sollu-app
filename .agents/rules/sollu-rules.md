@@ -21,6 +21,12 @@ Enum didistribusikan otomatis via Inertia Shared Props (`$enums`). Daftarkan enu
 **4. Dynamic Entities (Bukan Enum)**
 Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types` table). DILARANG KERAS mencari/membuat `BusinessTypeEnum`. Ambil opsi dropdown/grup via `BusinessType::getAllCached()`, `BusinessType::options()`, atau `BusinessType::grouped()`.
 
+**5. Sinkronisasi Template Peran & Hak Akses (Zero-Orphan Permission Policy)**
+Setiap kali ada penambahan kasus baru pada `App\Enums\PermissionEnum`:
+- WAJIB menetapkan method `label()`, `group()`, dan `groupLabel()`.
+- WAJIB memetakan kasus permission baru tersebut ke dalam template peran POS yang relevan pada `App\Enums\RoleTemplateEnum` (misal: permission operasional F&B dipetakan ke `CASHIER_FNB`, `MANAGER_FNB`, dsb.).
+- WAJIB menjalankan test otomatis `tests/Unit/Enums/RoleTemplateIntegrityTest.php` untuk memastikan seluruh relasi hak akses dan template peran tetap sinkron dan valid.
+
 ---
 
 ## B. Validasi Feature Plan (SaaS Entitlement)
@@ -211,3 +217,21 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 **4. Optimalisasi MCP Filesystem (`filesystem`)**
 
 - Gunakan tool MCP Filesystem sebagai pelengkap operasi file terstruktur (seperti listing direktori dengan ukuran atau inspeksi tree) di dalam ruang kerja proyek `/Users/whykrr/Documents/Projects/Laravel/sollu-app`.
+
+---
+
+## F. Standar Wording & UX Copywriting (Tone of Voice)
+
+**1. Prinsip Utama (Santai, Komunikatif, To the Point, Profesional)**
+- **Santai & Hangat:** DILARANG menggunakan bahasa formal birokratis/kaku (seperti *"Dimohon untuk...", "Pengguna wajib melaksanakan...", "Sistem mengeksekusi proses..."*). Gunakan sapaan akrab selayaknya rekan kerja cerdas (*"Yuk, ...", "Tokomu", "Bisnismu"*).
+- **Komunikatif & Solutif:** Selalu arahkan pengguna dengan penjelasan yang membimbing dan solutif.
+- **To the Point (Lugas & Ringkas):** Langsung pada inti pesan tanpa kalimat pembuka yang bertele-tele.
+- **Tetap Profesional & Jelas (*Clarity First*):** Hindari slang/bahasa gaul pasar berlebihan yang menurunkan kredibilitas. Istilah operasional bisnis baku (*SKU, Stok Opname, Resep, HPP, Void, Refund*) tetap digunakan secara presisi.
+
+**2. Standar Kontekstual UI**
+- **Empty State:** Wajib memuat pesan ramah dan Call-to-Action (CTA) jelas (Contoh: *"Belum ada produk nih. Yuk, tambah produk pertamamu!"*).
+- **Placeholder:** Gunakan sebagai contoh pengisian nyata (Contoh: *"Misal: Susu UHT Full Cream"*), bukan sekadar mengulang teks label.
+- **Notifikasi & Toast:** Singkat, hangat, dan melegakan (Contoh: *"Data berhasil disimpan!"*, *"Data berhasil dipindah ke sampah."*).
+- **Konfirmasi Hapus:** Jelaskan konsekuensi tindakan secara transparan tanpa menakut-nakuti (Contoh: *"Yakin mau hapus produk ini? Data akan dipindah ke sampah dan tidak tampil di kasir."*).
+- **Feature Lock / Upsell:** Fokus pada manfaat fitur secara positif (Contoh: *"Mau kelola resep otomatis? Yuk, tingkatkan paket tokomu ke Pro!"*).
+- _Lihat panduan lengkap di file `docs/ux-wording.md`._

@@ -59,6 +59,7 @@ Route::prefix('settings')
             'can:'.\App\Enums\PermissionEnum::ROLE_VIEW->value,
             'plan.feature:'.FeatureEnum::CUSTOM_ROLE->value,
         ])->group(function () {
+            Route::post('roles/template', [\App\Http\Controllers\App\Settings\RoleController::class, 'storeTemplate'])->name('roles.template');
             Route::resource('roles', \App\Http\Controllers\App\Settings\RoleController::class)->except(['create', 'edit']);
         });
 

@@ -134,6 +134,10 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    initialData: {
+        type: Object,
+        default: null,
+    },
 })
 
 const popUpStore = usePopUpStore()
@@ -181,8 +185,11 @@ const toggleGroup = group => {
 }
 
 const form = useForm({
-    label: props.role?.label || '',
-    permissions: props.role?.permissions?.map(p => (typeof p === 'string' ? p : p.name)) || [],
+    label: props.role?.label || props.initialData?.label || '',
+    permissions:
+        props.role?.permissions?.map(p => (typeof p === 'string' ? p : p.name)) ||
+        props.initialData?.permissions ||
+        [],
 })
 
 onMounted(async () => {

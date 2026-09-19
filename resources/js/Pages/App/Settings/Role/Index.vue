@@ -9,6 +9,7 @@
                 :filters="filters"
                 :can-create="can($enums.PermissionEnum?.ROLE_CREATE)"
                 @create="openCreate"
+                @open-template="openTemplate"
             />
         </template>
 
@@ -26,13 +27,30 @@
                         </div>
                     </template>
 
-                    <template #is_default="{ row }">
-                        <span
-                            class="badge text-xs font-medium"
-                            :class="row.is_default ? 'badge-info' : 'badge-neutral-500'"
-                        >
-                            {{ row.is_default ? 'Bawaan Sistem' : 'Kustom' }}
-                        </span>
+                    <template #permissions_summary="{ row }">
+                        <div v-if="row.name === $enums.RoleEnum?.OWNER || row.name === 'owner'">
+                            <span class="badge badge-success text-xs font-medium">
+                                Akses Penuh (Semua Modul)
+                            </span>
+                        </div>
+                        <div v-else class="flex items-center gap-1.5 flex-wrap">
+                            <span class="badge badge-info text-xs font-semibold">
+                                {{ row.permissions_count }} Izin
+                            </span>
+                            <span
+                                v-for="(grp, idx) in (row.summary_groups || []).slice(0, 3)"
+                                :key="idx"
+                                class="text-[11px] text-neutral-600 bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded"
+                            >
+                                {{ grp.label }} ({{ grp.count }})
+                            </span>
+                            <span
+                                v-if="row.summary_groups && row.summary_groups.length > 3"
+                                class="text-[11px] text-neutral-400 bg-slate-50 px-1 py-0.5 rounded"
+                            >
+                                +{{ row.summary_groups.length - 3 }} lainnya
+                            </span>
+                        </div>
                     </template>
 
                     <template #users_count="{ row }">
@@ -84,14 +102,15 @@ import Table from '@/Components/Tables/Table.vue'
 import FeatureLock from '@/Components/UI/FeatureLock.vue'
 import Filter from './Components/Filter.vue'
 import RoleFormPopUp from './Components/RoleFormPopUp.vue'
+import RoleTemplatePopUp from './Components/RoleTemplatePopUp.vue'
 
 const headers = [
     { field: 'name', label: 'Nama Peran', slot: 'name' },
-    { field: 'is_default', label: 'Tipe', slot: 'is_default' },
+    { field: 'permissions_summary', label: 'Ringkasan Hak Akses', slot: 'permissions_summary' },
     { field: 'users_count', label: 'Pengguna', slot: 'users_count' },
 ]
 
-defineProps({
+const props = defineProps({
     roles: {
         type: Array,
         required: true,
@@ -99,6 +118,14 @@ defineProps({
     filters: {
         type: Object,
         default: () => ({}),
+    },
+    templates: {
+        type: Array,
+        default: () => [],
+    },
+    businessType: {
+        type: String,
+        default: 'general',
     },
 })
 
@@ -111,6 +138,18 @@ const openCreate = () => {
         title: 'Tambah Peran Kustom',
         size: '2xl',
         component: RoleFormPopUp,
+    })
+}
+
+const openTemplate = () => {
+    popUpStore.open({
+        title: 'Template Peran Siap Pakai',
+        size: '2xl',
+        component: RoleTemplatePopUp,
+        props: {
+            templates: props.templates,
+            businessType: props.businessType,
+        },
     })
 }
 

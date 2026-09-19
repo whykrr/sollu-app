@@ -143,6 +143,7 @@ class RoleControllerTest extends TestCase
         $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user);
         setPermissionsTeamId($user->business_id);
+        $user->givePermissionTo(PermissionEnum::ROLE_CREATE->value);
 
         $response = $this->actingAs($user, 'business')->post("http://{$this->appDomain}/settings/roles", [
             'label' => 'Staff Keuangan',
@@ -216,5 +217,77 @@ class RoleControllerTest extends TestCase
         $response = $this->actingAs($user, 'business')->get("http://{$this->appDomain}/settings/roles/{$otherRole->id}");
 
         $response->assertStatus(403);
+    }
+
+    public function test_role_provisioning_service_only_provisions_owner(): void
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'fnb'],
+            ['name' => 'Food & Beverage', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'New F&B Cafe',
+            'owner_name' => 'Cafe Owner',
+            'email' => 'cafe_'.uniqid().'@test.test',
+            'phone' => '081299887766',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $provisioningService = new \App\Services\App\Role\RoleProvisioningService;
+        $provisioningService->provision($business);
+
+        $roles = \App\Models\Role::where('business_id', $business->id)->get();
+
+        $this->assertCount(1, $roles);
+        $this->assertEquals('owner', $roles->first()->name);
+        $this->assertTrue((bool) $roles->first()->is_default);
+    }
+
+    public function test_user_can_apply_role_template(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user);
+        setPermissionsTeamId($user->business_id);
+        $user->givePermissionTo(PermissionEnum::ROLE_CREATE->value);
+
+        $response = $this->actingAs($user, 'business')->post("http://{$this->appDomain}/settings/roles/template", [
+            'template_key' => \App\Enums\RoleTemplateEnum::CASHIER_FNB->value,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('roles', [
+            'business_id' => $user->business_id,
+            'label' => \App\Enums\RoleTemplateEnum::CASHIER_FNB->label(),
+            'is_default' => false,
+        ]);
+
+        $createdRole = \App\Models\Role::where('business_id', $user->business_id)
+            ->where('label', \App\Enums\RoleTemplateEnum::CASHIER_FNB->label())
+            ->first();
+
+        $this->assertNotNull($createdRole);
+        $this->assertNotEmpty($createdRole->permissions);
+    }
+
+    public function test_role_index_includes_permissions_summary_and_templates(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user);
+        setPermissionsTeamId($user->business_id);
+
+        $response = $this->actingAs($user, 'business')->get("http://{$this->appDomain}/settings/roles");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Settings/Role/Index')
+            ->has('roles')
+            ->has('templates')
+            ->has('businessType')
+            ->has('roles.0.permissions_count')
+            ->has('roles.0.summary_groups')
+        );
     }
 }

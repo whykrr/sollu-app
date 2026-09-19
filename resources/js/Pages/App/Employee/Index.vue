@@ -88,6 +88,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import Filter from '@/Pages/App/Employee/Components/Filter.vue'
 import { router } from '@inertiajs/vue3'
@@ -100,17 +101,25 @@ import Form from '@/Pages/App/Employee/Components/Form.vue'
 import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import { usePopUpStore } from '@/store/popup'
+import { useModalStore } from '@/store/notification'
 
 const popUpStore = usePopUpStore()
+const modalStore = useModalStore()
 
 const props = defineProps({
     users: Object,
     params: Object,
-    roles: Object,
+    roles: [Object, Array],
     user: Object,
 })
 
-const openForm = (user = null) => {
+const nonOwnerRoles = computed(() => {
+    if (!props.roles) return []
+    const rolesList = Array.isArray(props.roles) ? props.roles : Object.values(props.roles)
+    return rolesList.filter(r => (r.value ?? r.name) !== 'owner')
+})
+
+const openFormDirect = (user = null) => {
     popUpStore.open({
         title: user ? 'Detail karyawan' : 'Tambahkan karyawan baru',
         subTitle: user ? '#' + user.email : null,
@@ -120,8 +129,36 @@ const openForm = (user = null) => {
     })
 }
 
+const openForm = (user = null) => {
+    if (user) {
+        openFormDirect(user)
+        return
+    }
+
+    if (nonOwnerRoles.value.length === 0) {
+        modalStore.open({
+            type: 'warning',
+            title: 'Yuk, Siapkan Peran Karyawan Terlebih Dahulu 👋',
+            message:
+                'Saat ini bisnis Anda baru memiliki peran Pemilik Usaha (Owner). Memberikan peran Owner ke staf akan membuka seluruh wewenang bisnis, termasuk laporan omzet rahasia, pengaturan pembayaran, hingga hak kelola akun. Sebaiknya siapkan peran khusus karyawan terlebih dahulu (tersedia template siap pakai!).',
+            confirmText: '⚡ Buat Peran via Template',
+            cancelText: 'Tetap Lanjut Jadi Owner',
+            confirmClass: 'btn-main',
+            onConfirm: () => {
+                router.visit(route('settings.roles.index'))
+            },
+            onCancel: () => {
+                openFormDirect(null)
+            },
+        })
+        return
+    }
+
+    openFormDirect(null)
+}
+
 if (props.user) {
-    openForm(props.user)
+    openFormDirect(props.user)
 }
 
 const tableHeaders = [

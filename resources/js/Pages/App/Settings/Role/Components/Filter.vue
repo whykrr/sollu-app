@@ -9,15 +9,27 @@
         </template>
 
         <template #create>
-            <button
-                v-if="canCreate"
-                type="button"
-                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
-                @click="$emit('create')"
-            >
-                <FontAwesomeIcon :icon="faPlus" />
-                <span>Tambah Peran</span>
-            </button>
+            <div class="flex items-center gap-1.5">
+                <button
+                    v-if="canCreate"
+                    type="button"
+                    class="btn btn-outline-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer text-xs"
+                    @click="$emit('open-template')"
+                >
+                    <FontAwesomeIcon :icon="faBolt" />
+                    <span>Template Peran</span>
+                </button>
+
+                <button
+                    v-if="canCreate"
+                    type="button"
+                    class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer text-xs"
+                    @click="$emit('create')"
+                >
+                    <FontAwesomeIcon :icon="faPlus" />
+                    <span>+ Baru</span>
+                </button>
+            </div>
         </template>
     </ActionBar>
 </template>
@@ -27,11 +39,11 @@ import { reactive, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faBolt } from '@fortawesome/free-solid-svg-icons'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 
-defineEmits(['create'])
+defineEmits(['create', 'open-template'])
 
 const props = defineProps({
     filters: {
