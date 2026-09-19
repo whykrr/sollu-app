@@ -81,7 +81,7 @@
                 </button>
             </div>
 
-            <ActionsDropdown label="Opsi Data" :items="actionItems" />
+            <ActionsDropdown label="Opsi" :items="actionItems" />
         </template>
 
         <template #create>
@@ -91,7 +91,7 @@
                 @click="$emit('create')"
             >
                 <FontAwesomeIcon :icon="faPlus" class="text-xs" />
-                <span>Tambah Produk</span>
+                <span>Baru</span>
             </button>
         </template>
     </ActionBar>

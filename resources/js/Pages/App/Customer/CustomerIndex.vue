@@ -84,11 +84,7 @@ import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import {
-    faPencil,
-    faTrash,
-    faEye,
-} from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faTrash, faEye } from '@fortawesome/free-solid-svg-icons'
 
 const popUpStore = usePopUpStore()
 

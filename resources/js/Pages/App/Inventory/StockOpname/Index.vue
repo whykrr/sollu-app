@@ -5,11 +5,7 @@
         </template>
 
         <template #filter>
-            <Filter
-                :filters="filters"
-                @create="openForm()"
-                @freeze="openFreezeModal()"
-            />
+            <Filter :filters="filters" @create="openForm()" @freeze="openFreezeModal()" />
         </template>
 
         <Table
@@ -93,13 +89,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import {
-    faPencil,
-    faTrash,
-    faCheck,
-    faEye,
-    faFilePdf,
-} from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faTrash, faCheck, faEye, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'

@@ -40,11 +40,11 @@
                 tombol panah untuk mengubah urutan.
             </div>
 
-            <div class="grid grid-cols-4 gap-4">
+            <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 <div
                     v-for="(img, idx) in modelValue"
                     :key="img.id || idx"
-                    class="relative border rounded-xl overflow-hidden group aspect-square bg-slate-50 flex flex-col justify-between shadow-sm hover:shadow transition"
+                    class="relative border border-slate-200 rounded-xl overflow-hidden group aspect-square bg-slate-50 flex flex-col justify-between hover:border-slate-300 transition"
                 >
                     <img
                         :src="img.preview_url || img.url || img.image_url"
@@ -55,7 +55,7 @@
                     <!-- Cover Badge -->
                     <div
                         v-if="idx === 0"
-                        class="absolute top-2 left-2 z-10 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm"
+                        class="absolute top-1.5 left-1.5 z-10 bg-main text-white text-[10px] font-bold px-1.5 py-0.5 rounded"
                     >
                         Foto Utama
                     </div>
@@ -68,7 +68,7 @@
                         <div class="flex justify-end">
                             <button
                                 type="button"
-                                class="bg-red-500 hover:bg-red-600 text-white rounded-lg p-1.5 text-xs cursor-pointer transition shadow"
+                                class="bg-red-500 hover:bg-red-600 text-white rounded-lg p-1.5 text-xs cursor-pointer transition"
                                 title="Hapus Foto"
                                 @click="removeImage(idx)"
                             >

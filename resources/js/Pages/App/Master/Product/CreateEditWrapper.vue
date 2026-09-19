@@ -1,22 +1,22 @@
 <template>
-    <div v-if="isLoading" class="min-h-[400px] p-6">
+    <div v-if="isLoading" class="min-h-[400px] space-y-3">
         <!-- Pulse Skeleton Loader -->
-        <div class="animate-pulse space-y-6">
+        <div class="animate-pulse space-y-4">
             <!-- Stepper Skeleton -->
-            <div class="flex items-center justify-between mb-8">
-                <div v-for="i in 3" :key="i" class="flex flex-col items-center gap-2">
-                    <div class="h-8 w-8 bg-slate-200 rounded-full"></div>
-                    <div class="h-3 w-16 bg-slate-200 rounded-full"></div>
+            <div class="flex items-center justify-between mb-4">
+                <div v-for="i in 3" :key="i" class="flex flex-col items-center gap-1.5">
+                    <div class="size-8 bg-slate-200 rounded-full"></div>
+                    <div class="h-2.5 w-14 bg-slate-200 rounded-full"></div>
                 </div>
             </div>
 
             <!-- Content Skeleton -->
-            <div class="space-y-4">
-                <div class="h-6 w-1/4 bg-slate-200 rounded-lg"></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="h-10 bg-slate-200 rounded-lg"></div>
-                    <div class="h-10 bg-slate-200 rounded-lg"></div>
-                    <div class="h-20 bg-slate-200 rounded-lg col-span-2"></div>
+            <div class="space-y-3">
+                <div class="h-5 w-1/4 bg-slate-200 rounded-lg"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="h-9 bg-slate-200 rounded-lg"></div>
+                    <div class="h-9 bg-slate-200 rounded-lg"></div>
+                    <div class="h-16 bg-slate-200 rounded-lg col-span-2"></div>
                 </div>
             </div>
         </div>
@@ -31,6 +31,7 @@
         :categories="loadedCategories"
         :outlets="loadedOutlets"
         :uoms="loadedUoms"
+        @close="emit('close', $event)"
     />
 </template>
 
@@ -38,6 +39,8 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import CreateEdit from './CreateEdit.vue'
+
+const emit = defineEmits(['close'])
 
 const props = defineProps({
     editMode: { type: Boolean, default: false },

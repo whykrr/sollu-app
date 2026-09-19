@@ -301,7 +301,7 @@
     }
 
     .form-check {
-        @apply flex flex-wrap items-center gap-1;
+        @apply relative flex flex-wrap items-center gap-1;
 
         & input {
             @apply align-top w-4 h-4 p-0 m-0 bg-white border border-gray-200 rounded focus:ring-2 focus:ring-main/10 cursor-pointer;
@@ -337,7 +337,7 @@
     }
 
     .form-check-btn {
-        @apply absolute pointer-events-none;
+        @apply absolute top-0 left-0 w-0 h-0 opacity-0 pointer-events-none;
         clip: rect(0, 0, 0, 0);
 
         & + label {

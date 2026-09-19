@@ -12,7 +12,12 @@
             </button>
         </div>
         <div class="flex flex-wrap gap-1.5 sm:gap-1">
-            <div v-for="(opt, idx) in options" :key="idx" class="form-check" :class="$attrs.class">
+            <div
+                v-for="(opt, idx) in options"
+                :key="idx"
+                class="form-check relative"
+                :class="$attrs.class"
+            >
                 <input
                     :id="inputName + idx"
                     :name="name || inputName"

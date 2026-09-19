@@ -111,7 +111,9 @@
                 </div>
 
                 <!-- Card Actions -->
-                <div class="flex items-center justify-between gap-2 pt-3 mt-2 border-t border-slate-100">
+                <div
+                    class="flex items-center justify-between gap-2 pt-3 mt-2 border-t border-slate-100"
+                >
                     <button
                         type="button"
                         class="btn btn-flat btn-sm text-xs font-medium text-neutral-600 hover:text-neutral-900"

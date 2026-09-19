@@ -1,178 +1,122 @@
 <template>
-    <div class="space-y-4">
-        <div class="font-semibold text-lg border-b border-slate-200 pb-1">Informasi Dasar</div>
-        <div class="grid grid-cols-2 gap-3">
-            <div class="col-span-2 mb-2">
-                <label class="block text-sm font-medium text-slate-700 mb-1">Foto Produk</label>
-                <ProductImagesUploader v-model="form.images" :error="form.errors.images" />
-            </div>
+    <div class="space-y-3">
+        <!-- 1. Foto Produk -->
+        <div>
+            <label
+                class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+            >
+                Foto Produk
+            </label>
+            <ProductImagesUploader v-model="form.images" :error="form.errors.images" />
+        </div>
 
-            <div class="col-span-2">
-                <SelectionGroupField
-                    v-model="form.product_type"
-                    label="Tipe Produk"
-                    :options="productTypeOptions"
-                    name="product_type"
-                    class="btn-sm"
-                    @update:model-value="handleProductTypeChange"
-                />
-            </div>
+        <!-- 2. Tipe Produk -->
+        <div>
+            <SelectionGroupField
+                v-model="form.product_type"
+                label="Tipe Produk"
+                :options="productTypeOptions"
+                name="product_type"
+                class="btn-sm"
+                @update:model-value="handleProductTypeChange"
+            />
+        </div>
 
-            <div class="col-span-2">
+        <!-- 3. Nama Produk & Kategori (Core Fields 80/20) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="col-span-1 sm:col-span-2">
                 <TextField
                     v-model="form.name"
                     label="Nama Produk"
-                    :class="{ 'is-invalid': form.errors.name }"
+                    placeholder="Misal: Kopi Susu Gula Aren"
                     :error="form.errors.name"
                     required
                 />
             </div>
 
-            <div>
-                <TextField
-                    v-model="form.code"
-                    label="Kode Produk (Opsional)"
-                    placeholder="Contoh: PRD-001"
-                    :class="{ 'is-invalid': form.errors.code }"
-                    :error="form.errors.code"
-                />
-            </div>
-
-            <div>
+            <div class="col-span-1 sm:col-span-2">
                 <DropdownField
                     v-model="form.product_category_id"
                     :options="categoryOptions"
-                    label="Kategori"
+                    label="Kategori Produk"
                     placeholder="Pilih Kategori"
-                    :class="{ 'is-invalid': form.errors.product_category_id }"
                     :error="form.errors.product_category_id"
                 />
             </div>
+        </div>
 
-            <div class="col-span-2">
+        <!-- 4. Pengaturan Lanjutan (Progressive Disclosure) -->
+        <DisclosureSection
+            title="Pengaturan Lanjutan"
+            description="Kode SKU, barcode, deskripsi, visibilitas kasir & outlet"
+            :error="hasAdvancedError"
+        >
+            <div class="space-y-2 pt-1">
+                <!-- Kode & Barcode -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <TextField
+                        v-model="form.code"
+                        label="Kode Produk / SKU (Opsional)"
+                        placeholder="Misal: KOP-AREN-01"
+                        :error="form.errors.code"
+                    />
+
+                    <TextField
+                        v-model="form.barcode"
+                        label="Barcode (Opsional)"
+                        placeholder="Scan atau input barcode"
+                        :error="form.errors.barcode"
+                    />
+                </div>
+
+                <!-- Deskripsi -->
                 <TextareaField
                     v-model="form.description"
-                    label="Deskripsi"
-                    placeholder="Deskripsi produk atau layanan..."
+                    label="Deskripsi Produk"
+                    placeholder="Tuliskan keterangan detail atau komposisi produk..."
                     rows="2"
                     :error="form.errors.description"
                 />
-            </div>
 
-            <!-- Card Checklist Opsi Produk -->
-            <div class="col-span-2 space-y-2 mt-2">
-                <div class="text-sm font-semibold text-slate-700 mb-1">
-                    Pengaturan & Fitur Produk
-                </div>
-
-                <!-- Lacak Inventori (Hanya untuk tipe basic) -->
-                <FeatureLock
-                    v-if="form.product_type === 'basic'"
-                    :feature="$enums.FeatureEnum.INVENTORY_MANAGEMENT"
-                    as="div"
-                    class="w-full"
-                >
+                <!-- Switch Visibilitas POS & Jual -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                     <div
-                        class="flex items-center justify-between border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition w-full"
+                        class="flex items-center justify-between border border-slate-200 p-2.5 rounded-xl hover:bg-slate-50 transition"
                     >
                         <div>
-                            <div class="font-bold text-sm text-slate-800">
-                                Lacak Inventori (Stok)
+                            <div class="font-semibold text-xs text-slate-800">
+                                Tampilkan di Kasir
                             </div>
-                            <div class="text-xs text-slate-500">
-                                Lacak stok masuk, keluar, dan batas minimum stok untuk produk ini.
+                            <div class="text-[11px] text-slate-500">
+                                Muncul di katalog transaksi kasir
                             </div>
                         </div>
-                        <Switch v-model="form.track_inventory" size="md" />
+                        <Switch v-model="form.is_show" size="sm" />
                     </div>
-                </FeatureLock>
 
-                <!-- Pilihan Satuan UOM & Min Stok jika Lacak Stok Aktif -->
-                <div
-                    v-if="form.product_type === 'basic' && form.track_inventory"
-                    class="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl"
-                >
-                    <DropdownField
-                        v-model="form.uom_id"
-                        :options="uomOptions"
-                        label="Satuan (UOM)"
-                        placeholder="Pilih Satuan"
-                        :class="{ 'is-invalid': form.errors.uom_id }"
-                        :error="form.errors.uom_id"
-                        required
-                    />
-                    <TextField
-                        v-model="form.min_stock"
-                        type="number"
-                        label="Minimum Stok"
-                        placeholder="0"
-                        :error="form.errors.min_stock"
-                    />
-                </div>
-
-                <!-- Memiliki Varian Produk (Hanya untuk tipe basic) -->
-                <FeatureLock
-                    v-if="form.product_type === 'basic'"
-                    :feature="$enums.FeatureEnum.PRODUCT_VARIANTS"
-                    as="div"
-                    class="w-full"
-                >
                     <div
-                        class="flex items-center justify-between border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition w-full"
+                        class="flex items-center justify-between border border-slate-200 p-2.5 rounded-xl hover:bg-slate-50 transition"
                     >
                         <div>
-                            <div class="font-bold text-sm text-slate-800">
-                                Memiliki Varian Produk
-                            </div>
-                            <div class="text-xs text-slate-500">
-                                Aktifkan jika produk memiliki opsi variasi (seperti Ukuran, Rasa,
-                                atau Warna).
+                            <div class="font-semibold text-xs text-slate-800">Dapat Dijual</div>
+                            <div class="text-[11px] text-slate-500">
+                                Aktif untuk transaksi penjualan
                             </div>
                         </div>
-                        <Switch
-                            :model-value="form.has_variant"
-                            size="md"
-                            @change="handleVariantChange"
-                        />
+                        <Switch v-model="form.sellable" size="sm" />
                     </div>
-                </FeatureLock>
-
-                <!-- Tampilkan di Kasir / POS -->
-                <div
-                    class="flex items-center justify-between border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition w-full"
-                >
-                    <div>
-                        <div class="font-bold text-sm text-slate-800">Tampilkan di POS / Kasir</div>
-                        <div class="text-xs text-slate-500">
-                            Tampilkan produk ini dalam daftar katalog aplikasi kasir.
-                        </div>
-                    </div>
-                    <Switch v-model="form.is_show" size="md" />
                 </div>
 
-                <!-- Dapat Dijual -->
-                <div
-                    class="flex items-center justify-between border border-slate-200 p-3 rounded-xl hover:bg-slate-50 transition w-full"
-                >
-                    <div>
-                        <div class="font-bold text-sm text-slate-800">Dapat Dijual</div>
-                        <div class="text-xs text-slate-500">
-                            Produk tersedia untuk transaksi penjualan.
-                        </div>
-                    </div>
-                    <Switch v-model="form.sellable" size="md" />
-                </div>
-
-                <!-- Tersedia di Outlet (Ketersediaan Produk) -->
+                <!-- Ketersediaan Outlet (Multi-Outlet) -->
                 <div
                     v-if="outlets.length > 1 && !selectedOutlet"
-                    class="border border-slate-200 p-3 rounded-xl space-y-2 mt-2 w-full"
+                    class="border border-slate-200 p-2.5 rounded-xl space-y-1.5"
                 >
-                    <div class="font-bold text-sm text-slate-800">Tersedia di Outlet</div>
-                    <div class="text-xs text-slate-500 mb-2">
-                        Pilih outlet mana saja yang menjual produk ini.
+                    <div class="font-semibold text-xs text-slate-800">Ketersediaan di Outlet</div>
+                    <div class="text-[11px] text-slate-500">
+                        Pilih cabang / outlet yang menjual produk ini:
                     </div>
-                    <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
+                    <div class="bg-slate-50 border border-slate-200 p-2 rounded-lg">
                         <SelectionGroupField
                             v-model="selectedOutlets"
                             multiple
@@ -184,7 +128,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </DisclosureSection>
     </div>
 </template>
 
@@ -196,17 +140,14 @@ import TextareaField from '@/Components/Form/TextareaField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 import Switch from '@/Components/Form/Switch.vue'
+import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
 import ProductImagesUploader from './ProductImagesUploader.vue'
-import FeatureLock from '@/Components/UI/FeatureLock.vue'
 
 const { selectedOutlet } = useAuth()
 const form = inject('productForm')
 const categories = inject('categories', [])
-const uoms = inject('uoms', [])
 const outlets = inject('outlets', [])
 const outletStatusMap = inject('outletStatusMap', {})
-const isEdit = inject('isEdit')
-const originalProduct = inject('originalProduct')
 
 const productTypeOptions = [
     { value: 'basic', label: 'Barang Fisik' },
@@ -232,7 +173,8 @@ const handleProductTypeChange = val => {
 }
 
 const formattedOutlets = computed(() => {
-    return outlets.value.map(o => ({
+    const list = outlets && outlets.value !== undefined ? outlets.value : outlets
+    return (Array.isArray(list) ? list : []).map(o => ({
         value: o.id,
         label: o.name,
     }))
@@ -245,7 +187,8 @@ const selectedOutlets = computed({
             .map(id => Number(id) || id)
     },
     set: newVal => {
-        outlets.value.forEach(o => {
+        const list = outlets && outlets.value !== undefined ? outlets.value : outlets
+        ;(Array.isArray(list) ? list : []).forEach(o => {
             outletStatusMap.value[o.id] = false
         })
         newVal.forEach(id => {
@@ -253,22 +196,6 @@ const selectedOutlets = computed({
         })
     },
 })
-
-const handleVariantChange = isChecked => {
-    if (!isChecked && isEdit.value && originalProduct?.has_variant) {
-        if (
-            window.confirm(
-                'PERINGATAN: Menonaktifkan opsi ini akan menonaktifkan seluruh data varian produk sebelumnya (histori tidak dihapus). Apakah Anda yakin?'
-            )
-        ) {
-            form.has_variant = false
-        } else {
-            form.has_variant = true
-        }
-    } else {
-        form.has_variant = isChecked
-    }
-}
 
 const categoryOptions = computed(() => {
     const raw = categories && categories.value !== undefined ? categories.value : categories
@@ -279,16 +206,14 @@ const categoryOptions = computed(() => {
     }))
 })
 
-const uomOptions = computed(() => {
-    const raw = uoms && uoms.value !== undefined ? uoms.value : uoms
-    const list = Array.isArray(raw) ? raw : []
-    return list.map(u => ({
-        label:
-            u.label ||
-            (u.code && u.name && u.code.toLowerCase() !== u.name.toLowerCase()
-                ? `${u.name} (${u.code})`
-                : u.name || ''),
-        value: u.value !== undefined && u.value !== null ? u.value : u.id || '',
-    }))
+const hasAdvancedError = computed(() => {
+    return Boolean(
+        form.errors.code ||
+        form.errors.barcode ||
+        form.errors.description ||
+        form.errors.is_show ||
+        form.errors.sellable ||
+        form.errors.outlets
+    )
 })
 </script>

@@ -23,8 +23,10 @@
             v-if="viewMode === 'table'"
             :headers="headers"
             :data="products.data"
-            :sort="activeFilters?.sort ?? 'created_at'"
-            :sort-direction="activeFilters?.direction ?? 'desc'"
+            :sort="typeof activeFilters.sort === 'string' ? activeFilters.sort : 'created_at'"
+            :sort-direction="
+                typeof activeFilters.direction === 'string' ? activeFilters.direction : 'desc'
+            "
             :action="true"
             @row-click="openEdit"
         >
@@ -182,7 +184,15 @@ const props = defineProps({
     },
 })
 
-const activeFilters = computed(() => props.params || props.filters || {})
+const activeFilters = computed(() => {
+    if (props.params && typeof props.params === 'object' && !Array.isArray(props.params)) {
+        return props.params
+    }
+    if (props.filters && typeof props.filters === 'object' && !Array.isArray(props.filters)) {
+        return props.filters
+    }
+    return {}
+})
 
 const headers = [
     { label: 'Foto', field: 'image', slot: 'image', sortable: false },

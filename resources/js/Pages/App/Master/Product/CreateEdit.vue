@@ -1,78 +1,30 @@
 <template>
     <div>
-        <!-- Stepper indicator for Create Mode -->
-        <div v-if="!isEdit" class="mb-2">
-            <div class="flex items-center justify-between">
-                <template v-for="(step, index) in steps" :key="step.id">
-                    <div class="flex flex-col items-center">
-                        <div
-                            class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors"
-                            :class="[
-                                index < currentStepIndex ? 'bg-main text-white' : '',
-                                index === currentStepIndex
-                                    ? 'bg-main text-white ring-2 ring-main/20'
-                                    : '',
-                                index > currentStepIndex ? 'bg-neutral-100 text-neutral-500' : '',
-                            ]"
-                        >
-                            {{ index + 1 }}
-                        </div>
-                        <span
-                            class="mt-2 text-xs font-medium text-neutral-500"
-                            :class="{ 'text-main': index === currentStepIndex }"
-                        >
-                            {{ step.title }}
-                        </span>
-                    </div>
-                    <div
-                        v-if="index < steps.length - 1"
-                        class="h-1 flex-1 bg-neutral-100 mx-2 rounded-full overflow-hidden"
-                    >
-                        <div
-                            class="h-full bg-main transition-all"
-                            :style="{
-                                width: index < currentStepIndex ? '100%' : '0%',
-                            }"
-                        ></div>
-                    </div>
-                </template>
-            </div>
-        </div>
+        <!-- Stepper Indicator for Create Mode (Tier 3 Wizard) -->
+        <FormStepper
+            v-if="!isEdit"
+            v-model:current-step-index="currentStepIndex"
+            :steps="steps"
+            :errors="form.errors"
+            :allow-step-click="true"
+        />
 
-        <!-- Navigation Tabs for Edit Mode -->
-        <div v-else class="flex border-b border-slate-200 mb-4 gap-1">
-            <button
-                v-for="(step, index) in steps"
-                :key="step.id"
-                type="button"
-                class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px flex items-center gap-2"
-                :class="
-                    currentStepIndex === index
-                        ? 'border-main text-main font-semibold'
-                        : 'border-transparent text-slate-500 hover:text-slate-700'
-                "
-                @click="currentStepIndex = index"
-            >
-                <FontAwesomeIcon
-                    :icon="
-                        step.id === 'basic'
-                            ? faPencil
-                            : step.id === 'inventory'
-                              ? faBoxesStacked
-                              : faTag
-                    "
-                    class="text-xs"
-                />
-                {{ step.title }}
-            </button>
-        </div>
+        <!-- Tab Navigation for Edit Mode (Tier 3 Direct Tabbed Navigation) -->
+        <FormTabs
+            v-else
+            :tabs="steps"
+            :model-value="currentStepId"
+            :errors="form.errors"
+            @update:model-value="handleTabChange"
+        />
 
-        <!-- Dynamic Component -->
-        <div class="min-h-[400px]">
+        <!-- Dynamic Step Component -->
+        <div class="min-h-[400px] mt-2">
             <component :is="currentStep.component" />
         </div>
     </div>
 
+    <!-- Sticky Footer Actions (Thumb Zone Ergonomics) -->
     <Teleport v-if="isMounted" to="#popUpFooter">
         <div
             class="flex items-center w-full gap-2"
@@ -81,44 +33,47 @@
             <template v-if="!isEdit">
                 <button
                     type="button"
-                    class="btn btn-outline-main"
+                    class="btn btn-flat btn-sm"
                     :disabled="isFirstStep"
                     :class="{ 'opacity-50 cursor-not-allowed': isFirstStep }"
                     @click="prevStep"
                 >
-                    <FontAwesomeIcon :icon="faChevronLeft" class="mr-2" />
+                    <FontAwesomeIcon :icon="faChevronLeft" class="mr-1" />
                     Kembali
                 </button>
 
                 <button
                     v-if="!isLastStep"
                     type="button"
-                    class="btn btn-highlight-main"
+                    class="btn btn-main btn-sm"
                     @click="nextStep"
                 >
                     Lanjut
-                    <FontAwesomeIcon :icon="faChevronRight" class="ml-2" />
+                    <FontAwesomeIcon :icon="faChevronRight" class="ml-1" />
                 </button>
 
                 <button
                     v-else
                     type="button"
-                    class="btn btn-success"
+                    class="btn btn-main btn-sm"
                     :disabled="form.processing"
                     @click="submit"
                 >
-                    <FontAwesomeIcon :icon="faSave" class="mr-2" />
+                    <FontAwesomeIcon :icon="faSave" class="mr-1" />
                     Simpan Produk
                 </button>
             </template>
             <template v-else>
+                <button type="button" class="btn btn-flat btn-sm" @click="popUpStore.close()">
+                    Batal
+                </button>
                 <button
                     type="button"
-                    class="btn btn-success"
+                    class="btn btn-main btn-sm"
                     :disabled="form.processing"
                     @click="submit"
                 >
-                    <FontAwesomeIcon :icon="faSave" class="mr-2" />
+                    <FontAwesomeIcon :icon="faSave" class="mr-1" />
                     Simpan Perubahan
                 </button>
             </template>
@@ -140,10 +95,14 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { usePopUpStore } from '@/store/popup'
 import { useAuth } from '@/Composable/useAuth'
+import FormStepper from '@/Components/Form/FormStepper.vue'
+import FormTabs from '@/Components/Form/FormTabs.vue'
 
 import StepBasicInfo from './Components/StepBasicInfo.vue'
 import StepInventorySetup from './Components/StepInventorySetup.vue'
 import StepPricing from './Components/StepPricing.vue'
+
+defineEmits(['close'])
 
 const props = defineProps({
     editMode: { type: Boolean, default: false },
@@ -423,19 +382,57 @@ watch(
 )
 
 const steps = computed(() => {
-    let s = [{ id: 'basic', component: StepBasicInfo, title: 'Informasi Dasar' }]
-    if (form.product_type === 'basic' && (form.track_inventory || form.has_variant)) {
+    const s = [
+        {
+            id: 'basic',
+            component: StepBasicInfo,
+            title: 'Informasi Dasar',
+            icon: faPencil,
+            fields: [
+                'name',
+                'code',
+                'product_category_id',
+                'description',
+                'product_type',
+                'images',
+                'is_show',
+                'sellable',
+                'outlets',
+            ],
+        },
+    ]
+
+    if (form.product_type === 'basic') {
         s.push({
             id: 'inventory',
             component: StepInventorySetup,
-            title: 'Setup Inventori',
+            title: 'Stok & Varian',
+            icon: faBoxesStacked,
+            fields: [
+                'uom_id',
+                'min_stock',
+                'barcode',
+                'variants',
+                'variant_combinations',
+                'track_inventory',
+                'has_variant',
+            ],
         })
     }
-    s.push({ id: 'pricing', component: StepPricing, title: 'Harga & Outlet' })
+
+    s.push({
+        id: 'pricing',
+        component: StepPricing,
+        title: 'Harga & Outlet',
+        icon: faTag,
+        fields: ['base_price', 'outlet_prices'],
+    })
+
     return s
 })
 
 const currentStepIndex = ref(0)
+
 watch(
     () => steps.value,
     () => {
@@ -447,15 +444,23 @@ watch(
             }
         }
         if (currentStepIndex.value >= steps.value.length) {
-            currentStepIndex.value = steps.value.length - 1
+            currentStepIndex.value = Math.max(0, steps.value.length - 1)
         }
     },
     { immediate: true }
 )
 
-const currentStep = computed(() => steps.value[currentStepIndex.value])
+const currentStep = computed(() => steps.value[currentStepIndex.value] || steps.value[0])
+const currentStepId = computed(() => currentStep.value?.id || 'basic')
 const isFirstStep = computed(() => currentStepIndex.value === 0)
 const isLastStep = computed(() => currentStepIndex.value === steps.value.length - 1)
+
+const handleTabChange = tabId => {
+    const idx = steps.value.findIndex(s => s.id === tabId)
+    if (idx !== -1) {
+        currentStepIndex.value = idx
+    }
+}
 
 const nextStep = () => {
     if (!isLastStep.value) currentStepIndex.value++
