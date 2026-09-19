@@ -1,42 +1,53 @@
 <template>
     <div class="space-y-2">
-        <div class="flex justify-between items-center">
-            <h4 class="font-semibold text-lg">Riwayat Pergerakan</h4>
-        </div>
-
         <template v-if="movements && movements.length">
             <Table :headers="headers" :data="movements" :action="false">
-                <template #created_at="{ item }">
-                    {{ formatDateTimeSimple(item.created_at) }}
-                </template>
-                <template #movement_type="{ item }">
-                    <span class="badge badge-outline-main">{{
-                        formatMovementType(item.movement_type)
-                    }}</span>
-                </template>
-                <template #qty_change="{ item }">
-                    <span
-                        class="font-semibold"
-                        :class="item.qty_change > 0 ? 'text-success' : 'text-danger'"
-                    >
-                        {{ item.qty_change > 0 ? '+' : '' }}{{ item.qty_change_formatted }}
+                <template #created_at="{ item: row }">
+                    <span class="text-xs text-neutral-600 font-mono">
+                        {{ formatDateTimeSimple(row.created_at) }}
                     </span>
                 </template>
-                <template #creator="{ item }">
-                    {{ item.creator?.name || '-' }}
+                <template #movement_type="{ item: row }">
+                    <span class="badge badge-outline-main text-xs">
+                        {{ formatMovementType(row.movement_type) }}
+                    </span>
+                </template>
+                <template #qty_change="{ item: row }">
+                    <span
+                        class="font-semibold text-xs"
+                        :class="row.qty_change > 0 ? 'text-success' : 'text-danger'"
+                    >
+                        {{ row.qty_change > 0 ? '+' : '' }}{{ row.qty_change_formatted }}
+                    </span>
+                </template>
+                <template #stock_after="{ item: row }">
+                    <span class="text-xs font-medium text-neutral-800">
+                        {{ row.stock_after_formatted }}
+                    </span>
+                </template>
+                <template #creator="{ item: row }">
+                    <span class="text-xs text-neutral-600">
+                        {{ row.creator?.name || '-' }}
+                    </span>
                 </template>
             </Table>
         </template>
 
-        <div v-else class="text-center text-gray-500 py-4">Tidak ada riwayat pergerakan.</div>
+        <div v-else class="text-center text-neutral-400 py-6 text-sm">
+            Tidak ada riwayat pergerakan stok.
+        </div>
     </div>
 </template>
+
 <script setup>
 import Table from '@/Components/Tables/Table.vue'
 import { formatDateTimeSimple } from '@/Composable/date'
 
-const props = defineProps({
-    item: Object,
+defineProps({
+    item: {
+        type: Object,
+        default: () => ({}),
+    },
     movements: {
         type: Array,
         default: () => [],
@@ -80,7 +91,17 @@ const headers = [
         slot: 'qty_change',
         sortable: false,
     },
-    { label: 'Stok Akhir', field: 'stock_after_formatted', sortable: false },
-    { label: 'User', field: 'creator', slot: 'creator', sortable: false },
+    {
+        label: 'Stok Akhir',
+        field: 'stock_after_formatted',
+        slot: 'stock_after',
+        sortable: false,
+    },
+    {
+        label: 'User',
+        field: 'creator',
+        slot: 'creator',
+        sortable: false,
+    },
 ]
 </script>

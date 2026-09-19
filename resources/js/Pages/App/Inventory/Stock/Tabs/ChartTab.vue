@@ -1,14 +1,12 @@
 <template>
     <div class="space-y-2">
-        <h4 class="font-semibold text-lg">Tren Perubahan Stok (30 Hari Terakhir)</h4>
-
         <div
             v-if="!chart || !chart.data || !chart.data.some(d => d !== 0)"
-            class="text-center text-gray-500 py-4"
+            class="text-center text-neutral-400 py-6 text-sm"
         >
             Tidak ada pergerakan stok dalam 30 hari terakhir.
         </div>
-        <div v-else class="relative h-64 w-full">
+        <div v-else class="relative h-56 w-full pt-1">
             <canvas id="chart-stock-tab" />
         </div>
     </div>
@@ -19,7 +17,10 @@ import { onMounted, onUnmounted } from 'vue'
 import { Chart } from 'chart.js/auto'
 
 const props = defineProps({
-    item: Object,
+    item: {
+        type: Object,
+        default: () => ({}),
+    },
     chart: {
         type: Object,
         default: () => ({ labels: [], data: [] }),
@@ -72,7 +73,7 @@ onMounted(() => {
                                 display: true,
                             },
                             ticks: {
-                                display: false, // hide y-axis labels like SalesTrendChart
+                                display: false,
                             },
                             border: {
                                 display: false,

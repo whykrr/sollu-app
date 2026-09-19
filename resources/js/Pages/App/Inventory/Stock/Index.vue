@@ -7,22 +7,7 @@
         </template>
 
         <template #widgets>
-            <!-- Summary Card -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <Widget title="Total Produk" :icon="faBox" class="widget-main">
-                    {{ summary.total_item }} Barang
-                </Widget>
-                <Widget title="Total Nilai Stok" :icon="faMoneyBillWave" class="widget-teal">
-                    Rp
-                    {{ summary.total_nilai_stok?.toLocaleString('id-ID') || 0 }}
-                </Widget>
-                <Widget title="Stok Menipis" :icon="faExclamationTriangle" class="widget-warning">
-                    {{ summary.stok_menipis }} Item
-                </Widget>
-                <Widget title="Stok Habis" :icon="faTimesCircle" class="widget-danger">
-                    {{ summary.stok_habis }} Item
-                </Widget>
-            </div>
+            <StockWidgets :summary="summary" />
         </template>
 
         <template #filter>
@@ -77,16 +62,9 @@ import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
-import Widget from '@/Components/Widgets/Widget.vue'
+import StockWidgets from './Components/StockWidgets.vue'
 import ExportDropdown from '@/Components/UI/ExportDropdown.vue'
-import {
-    faBox,
-    faMoneyBillWave,
-    faExclamationTriangle,
-    faTimesCircle,
-    faFileExcel,
-    faFilePdf,
-} from '@fortawesome/free-solid-svg-icons'
+import { faFileExcel, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import StockFilter from './Components/StockFilter.vue'
 import Detail from './Components/Detail.vue'
 import { usePopUpStore } from '@/store/popup'
