@@ -27,6 +27,8 @@ class TransactionItem extends Model
         'qty',
         'discount_amount',
         'subtotal',
+        'unit_cogs',
+        'cogs_amount',
         'notes',
         'promo_name',
     ];
@@ -38,6 +40,8 @@ class TransactionItem extends Model
             'qty' => 'float',
             'discount_amount' => 'float',
             'subtotal' => 'float',
+            'unit_cogs' => 'float',
+            'cogs_amount' => 'float',
         ];
     }
 

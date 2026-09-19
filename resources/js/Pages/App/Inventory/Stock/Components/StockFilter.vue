@@ -53,13 +53,13 @@
         <template #search>
             <FilterSearch
                 v-model="filterForm.search"
-                placeholder="Cari nama produk, SKU, barcode..."
+                placeholder="Cari nama item, SKU, barcode..."
                 @clear="updateQuery"
             />
         </template>
 
         <template #tools>
-            <ActionsDropdown label="Opsi Data" :items="actionItems" />
+            <ActionsDropdown label="Opsi" :items="actionItems" />
         </template>
     </ActionBar>
 
@@ -85,6 +85,7 @@ import {
     faUpload,
     faFilePdf,
     faFileExcel,
+    faSliders,
 } from '@fortawesome/free-solid-svg-icons'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
@@ -94,6 +95,8 @@ import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue'
 
 import { useAuth } from '@/Composable/useAuth'
+
+const emit = defineEmits(['open-costing-modal'])
 
 const props = defineProps({
     filters: {
@@ -228,6 +231,17 @@ const actionItems = computed(() => [
         iconClass: 'text-blue-600',
         action: () => {
             showImportModal.value = true
+        },
+    },
+    {
+        divider: true,
+    },
+    {
+        label: 'Pengaturan Metode Aset',
+        icon: faSliders,
+        iconClass: 'text-sky-600',
+        action: () => {
+            emit('open-costing-modal')
         },
     },
 ])

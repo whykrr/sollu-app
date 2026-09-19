@@ -190,7 +190,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, markRaw } from 'vue'
+import { ref, computed, nextTick, onMounted, markRaw, watch } from 'vue'
 import Tab from '@/Components/UI/Tab.vue'
 import axios from 'axios'
 import JsBarcode from 'jsbarcode'
@@ -231,6 +231,32 @@ const currentBalanceData = ref(null)
 const movementsData = ref([])
 const chartData = ref(null)
 
+const renderBarcode = () => {
+    if (!headerData.value?.barcode || !barcodeRef.value) return
+    try {
+        JsBarcode(barcodeRef.value, String(headerData.value.barcode), {
+            format: 'CODE128',
+            width: 1.2,
+            height: 28,
+            displayValue: false,
+            margin: 0,
+        })
+    } catch (error) {
+        console.error('Failed to generate barcode:', error)
+    }
+}
+
+watch(
+    () => [headerData.value?.barcode, loading.value],
+    async ([barcode, isLoading]) => {
+        if (barcode && !isLoading) {
+            await nextTick()
+            renderBarcode()
+        }
+    },
+    { flush: 'post' }
+)
+
 onMounted(() => {
     if (props.item?.id) {
         fetchHeaderData()
@@ -245,20 +271,6 @@ const fetchHeaderData = async () => {
         currentBalanceData.value = response.data.current_balance
         movementsData.value = response.data.movements
         chartData.value = response.data.chart
-
-        if (headerData.value && headerData.value.barcode) {
-            nextTick(() => {
-                if (barcodeRef.value) {
-                    JsBarcode(barcodeRef.value, headerData.value.barcode, {
-                        format: 'CODE128',
-                        width: 1.2,
-                        height: 28,
-                        displayValue: false,
-                        margin: 0,
-                    })
-                }
-            })
-        }
     } catch (error) {
         console.error('Failed to load header data', error)
     } finally {

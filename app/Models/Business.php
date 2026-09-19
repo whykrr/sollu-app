@@ -281,6 +281,24 @@ class Business extends Model
     }
 
     /**
+     * Check if the business has explicitly configured an inventory costing method.
+     */
+    public function isCostingMethodConfigured(): bool
+    {
+        return isset($this->settings['inventory_costing_method']) && ! empty($this->settings['inventory_costing_method']);
+    }
+
+    /**
+     * Get the active inventory costing method (FIFO or Moving Average).
+     */
+    public function getCostingMethod(): \App\Enums\InventoryCostingMethod
+    {
+        $raw = $this->settings['inventory_costing_method'] ?? \App\Enums\InventoryCostingMethod::FIFO->value;
+
+        return \App\Enums\InventoryCostingMethod::tryFrom($raw) ?? \App\Enums\InventoryCostingMethod::FIFO;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function getSlugOptions(): SlugOptions

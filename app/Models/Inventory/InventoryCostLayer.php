@@ -26,12 +26,14 @@ class InventoryCostLayer extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'business_id',
         'inventory_item_id',
         'outlet_id',
         'purchase_price',
         'qty_purchased',
         'qty_remaining',
         'reference_id',
+        'reference_type',
         'created_at',
     ];
 
@@ -51,6 +53,11 @@ class InventoryCostLayer extends Model
     }
 
     // ── Relationships ────────────────────────────────────────────
+
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Business::class);
+    }
 
     public function inventoryItem(): BelongsTo
     {

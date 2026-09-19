@@ -42,6 +42,9 @@ class InventoryMovement extends Model
         'stock_before',
         'stock_after',
         'cost',
+        'unit_cost',
+        'total_cost',
+        'balance_value_after',
         'description',
         'reference_id',
         'reference_type',
@@ -62,7 +65,10 @@ class InventoryMovement extends Model
             'qty_change' => 'float',
             'stock_before' => 'float',
             'stock_after' => 'float',
-            'purchase_price' => 'float',
+            'cost' => 'float',
+            'unit_cost' => 'float',
+            'total_cost' => 'float',
+            'balance_value_after' => 'float',
             'created_at' => 'datetime',
         ];
     }

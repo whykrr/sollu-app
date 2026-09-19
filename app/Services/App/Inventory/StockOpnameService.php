@@ -4,8 +4,6 @@ namespace App\Services\App\Inventory;
 
 use App\Enums\InventoryMovementType;
 use App\Enums\StockOpnameStatus;
-use App\Models\Inventory\InventoryBalance;
-use App\Models\Inventory\InventoryMovement;
 use App\Models\Inventory\StockOpname;
 use App\Models\User;
 use App\Services\App\Master\ActivityLogService;
@@ -14,7 +12,8 @@ use Illuminate\Support\Facades\DB;
 class StockOpnameService
 {
     public function __construct(
-        protected ActivityLogService $activityLog
+        protected ActivityLogService $activityLog,
+        protected InventoryCostingService $costingService
     ) {}
 
     public function createOpname(array $data, User $creator): StockOpname
@@ -86,6 +85,10 @@ class StockOpnameService
                 abort(403, 'Opname harus dalam status Menunggu Persetujuan.');
             }
 
+            $opname->load(['outlet.business', 'items.inventoryItem']);
+            $outlet = $opname->outlet;
+            $business = $outlet?->business ?? $approver->business;
+
             // Optional: Re-update items if they were adjusted during approval
             if (isset($data['items'])) {
                 $opname->items()->delete();
@@ -100,36 +103,41 @@ class StockOpnameService
                         'difference_qty' => $actualQty - $systemQty,
                     ]);
                 }
+
+                $opname->load('items.inventoryItem');
             }
 
-            // Execute balance adjustment
+            // Execute balance adjustment via Costing Service
             foreach ($opname->items as $opnameItem) {
-                if ($opnameItem->difference_qty != 0) {
-                    $balance = InventoryBalance::firstOrCreate([
-                        'business_id' => $opname->business_id,
-                        'outlet_id' => $opname->outlet_id,
-                        'inventory_item_id' => $opnameItem->inventory_item_id,
-                    ], ['current_stock' => 0]);
+                $diffQty = (float) $opnameItem->difference_qty;
+                $invItem = $opnameItem->inventoryItem;
 
-                    $stockBefore = $balance->current_stock;
-                    $stockAfter = $opnameItem->actual_qty;
-
-                    $balance->update(['current_stock' => $stockAfter]);
-
-                    $movement = InventoryMovement::create([
-                        'business_id' => $opname->business_id,
-                        'outlet_id' => $opname->outlet_id,
-                        'inventory_item_id' => $opnameItem->inventory_item_id,
-                        'movement_type' => InventoryMovementType::Opname,
-                        'qty_change' => $opnameItem->difference_qty,
-                        'stock_before' => $stockBefore,
-                        'stock_after' => $stockAfter,
-                        'description' => 'Penyesuaian stok dari Opname: '.$opname->opname_number,
-                        'reference_id' => $opname->id,
-                        'reference_type' => StockOpname::class,
-                        'created_by' => $approver->id,
-                        'created_at' => now(),
-                    ]);
+                if ($diffQty > 0) {
+                    // Selisih Lebih: Masuk stok (+), bentuk layer FIFO dan update moving average
+                    $unitCost = (float) ($invItem->balances()->where('outlet_id', $outlet->id)->value('average_cost') ?? 0);
+                    $this->costingService->recordIncomingStock(
+                        business: $business,
+                        outlet: $outlet,
+                        item: $invItem,
+                        qty: $diffQty,
+                        unitCost: $unitCost,
+                        movementType: InventoryMovementType::OpnameSurplus,
+                        reference: $opname,
+                        description: 'Selisih Lebih Opname: '.$opname->opname_number,
+                        user: $approver
+                    );
+                } elseif ($diffQty < 0) {
+                    // Selisih Kurang: Keluar stok (-), potong layer FIFO dan catat beban selisih opname
+                    $this->costingService->recordOutgoingStock(
+                        business: $business,
+                        outlet: $outlet,
+                        item: $invItem,
+                        qty: abs($diffQty),
+                        movementType: InventoryMovementType::OpnameDeficit,
+                        reference: $opname,
+                        description: 'Selisih Kurang Opname: '.$opname->opname_number,
+                        user: $approver
+                    );
                 }
             }
 

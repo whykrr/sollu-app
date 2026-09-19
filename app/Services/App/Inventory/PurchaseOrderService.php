@@ -4,9 +4,7 @@ namespace App\Services\App\Inventory;
 
 use App\Enums\InventoryMovementType;
 use App\Enums\PurchaseOrderStatus;
-use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryCostLayer;
-use App\Models\Inventory\InventoryMovement;
 use App\Models\Inventory\PurchaseOrder;
 use App\Models\User;
 use App\Services\App\Master\ActivityLogService;
@@ -15,7 +13,8 @@ use Illuminate\Support\Facades\DB;
 class PurchaseOrderService
 {
     public function __construct(
-        protected ActivityLogService $activityLogService
+        protected ActivityLogService $activityLogService,
+        protected InventoryCostingService $costingService
     ) {}
 
     /**
@@ -141,6 +140,10 @@ class PurchaseOrderService
                 abort(403, 'Hanya PO berstatus Ordered yang dapat diterima.');
             }
 
+            $po->load(['outlet.business', 'items.inventoryItem']);
+            $outlet = $po->outlet;
+            $business = $outlet?->business ?? $receiver->business;
+
             $itemsMap = collect($receivedData['items'])->keyBy('id');
 
             foreach ($po->items as $poItem) {
@@ -157,53 +160,23 @@ class PurchaseOrderService
                         $poItem->converted_qty = $convertedQty;
                         $poItem->save();
 
-                        // 2. Update Balance
-                        $balance = InventoryBalance::firstOrCreate([
-                            'business_id' => $po->business_id,
-                            'outlet_id' => $po->outlet_id,
-                            'inventory_item_id' => $poItem->inventory_item_id,
-                        ], [
-                            'current_stock' => 0,
-                        ]);
-
-                        $stockBefore = $balance->current_stock;
-                        $stockAfter = $stockBefore + $convertedQty;
-                        $balance->update(['current_stock' => $stockAfter]);
-
-                        // 3. Cost Calculation
+                        // 2. Cost Calculation
                         $convertedPurchasePrice = $conversionFactor > 0
                             ? $poItem->purchase_price / $conversionFactor
                             : $poItem->purchase_price;
 
-                        // 4. Create Movement
-                        $movement = InventoryMovement::create([
-                            'business_id' => $po->business_id,
-                            'outlet_id' => $po->outlet_id,
-                            'inventory_item_id' => $poItem->inventory_item_id,
-                            'movement_type' => InventoryMovementType::Purchase,
-                            'qty_change' => $convertedQty,
-                            'stock_before' => $stockBefore,
-                            'stock_after' => $stockAfter,
-                            // 'purchase_price'    => $convertedPurchasePrice,
-                            'description' => 'Penerimaan barang dari PO: '.$po->po_number,
-                            'created_by' => $receiver->id,
-                            'created_at' => now(),
-                        ]);
-
-                        $movement->reference_id = $po->id;
-                        $movement->reference_type = PurchaseOrder::class;
-                        $movement->save();
-
-                        // 5. Create Cost Layer (FIFO)
-                        InventoryCostLayer::create([
-                            'inventory_item_id' => $poItem->inventory_item_id,
-                            'outlet_id' => $po->outlet_id,
-                            'purchase_price' => $convertedPurchasePrice,
-                            'qty_purchased' => $convertedQty,
-                            'qty_remaining' => $convertedQty,
-                            'reference_id' => $po->id,
-                            'created_at' => now(),
-                        ]);
+                        // 3. Rekam Stok Masuk, FIFO Layer & Moving Average via Costing Service
+                        $this->costingService->recordIncomingStock(
+                            business: $business,
+                            outlet: $outlet,
+                            item: $poItem->inventoryItem,
+                            qty: $convertedQty,
+                            unitCost: $convertedPurchasePrice,
+                            movementType: InventoryMovementType::Purchase,
+                            reference: $po,
+                            description: 'Penerimaan barang dari PO: '.$po->po_number,
+                            user: $receiver
+                        );
                     }
                 }
             }
@@ -225,38 +198,24 @@ class PurchaseOrderService
                 abort(403, 'Hanya PO berstatus Received yang dapat di-void.');
             }
 
+            $po->load(['outlet.business', 'items.inventoryItem']);
+            $outlet = $po->outlet;
+            $business = $outlet?->business ?? $voider->business;
+
             foreach ($po->items as $poItem) {
                 if ($poItem->converted_qty > 0) {
-                    $balance = InventoryBalance::where([
-                        'business_id' => $po->business_id,
-                        'outlet_id' => $po->outlet_id,
-                        'inventory_item_id' => $poItem->inventory_item_id,
-                    ])->first();
+                    $this->costingService->recordOutgoingStock(
+                        business: $business,
+                        outlet: $outlet,
+                        item: $poItem->inventoryItem,
+                        qty: (float) $poItem->converted_qty,
+                        movementType: InventoryMovementType::PurchaseVoid,
+                        reference: $po,
+                        description: 'Void penerimaan barang dari PO: '.$po->po_number,
+                        user: $voider
+                    );
 
-                    if ($balance) {
-                        $stockBefore = $balance->current_stock;
-                        $stockAfter = $stockBefore - $poItem->converted_qty;
-                        $balance->update(['current_stock' => $stockAfter]);
-
-                        $movement = InventoryMovement::create([
-                            'business_id' => $po->business_id,
-                            'outlet_id' => $po->outlet_id,
-                            'inventory_item_id' => $poItem->inventory_item_id,
-                            'movement_type' => InventoryMovementType::PurchaseVoid,
-                            'qty_change' => -$poItem->converted_qty,
-                            'stock_before' => $stockBefore,
-                            'stock_after' => $stockAfter,
-                            'description' => 'Void penerimaan barang dari PO: '.$po->po_number,
-                            'created_by' => $voider->id,
-                            'created_at' => now(),
-                        ]);
-
-                        $movement->reference_id = $po->id;
-                        $movement->reference_type = PurchaseOrder::class;
-                        $movement->save();
-                    }
-
-                    // Remove cost layer
+                    // Bersihkan layer FIFO yang berasal dari PO ini jika masih tersisa
                     InventoryCostLayer::where('reference_id', $po->id)
                         ->where('inventory_item_id', $poItem->inventory_item_id)
                         ->delete();

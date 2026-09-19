@@ -1,7 +1,25 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Stok Saat Ini"> </MainPageHeader>
+            <MainPageHeader title="Stok Saat Ini">
+                <button
+                    type="button"
+                    class="btn btn-flat btn-sm flex items-center gap-1.5 text-xs text-slate-700"
+                    title="Klik untuk melihat atau mengubah metode perhitungan aset persediaan"
+                    @click="openCostingModal(false)"
+                >
+                    <FontAwesomeIcon
+                        :icon="activeCostingMethod === 'fifo' ? faBoxesStacked : faCalculator"
+                        class="text-main"
+                    />
+                    <span>
+                        Metode Aset:
+                        <strong class="text-slate-900">{{
+                            activeCostingMethod === 'fifo' ? 'FIFO' : 'Moving Average'
+                        }}</strong>
+                    </span>
+                </button>
+            </MainPageHeader>
         </template>
 
         <template #widgets>
@@ -9,7 +27,11 @@
         </template>
 
         <template #filter>
-            <StockFilter :filters="filters" :categories="categories" />
+            <StockFilter
+                :filters="filters"
+                :categories="categories"
+                @open-costing-modal="openCostingModal(false)"
+            />
         </template>
 
         <Table :headers="headers" :data="stocks.data" :action="false" @row-click="openDetail">
@@ -54,6 +76,8 @@
 </template>
 
 <script setup>
+import { computed, onMounted } from 'vue'
+import { usePage } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
@@ -61,9 +85,47 @@ import Pagination from '@/Components/Tables/Pagination.vue'
 import StockWidgets from './Components/StockWidgets.vue'
 import StockFilter from './Components/StockFilter.vue'
 import Detail from './Components/Detail.vue'
+import InventoryCostingModal from './Components/InventoryCostingModal.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faBoxesStacked, faCalculator } from '@fortawesome/free-solid-svg-icons'
 import { usePopUpStore } from '@/store/popup'
+import { useModalStore } from '@/store/notification'
 
 const popUpStore = usePopUpStore()
+const modalStore = useModalStore()
+const page = usePage()
+
+const activeCostingMethod = computed(() => {
+    return page.props.auth?.business?.inventory_costing_method || 'fifo'
+})
+
+const isCostingConfigured = computed(() => {
+    return Boolean(page.props.auth?.business?.is_costing_configured)
+})
+
+const openCostingModal = (isSetupMode = false) => {
+    modalStore.open({
+        type: 'info',
+        title: isSetupMode
+            ? 'Yuk, Tentukan Metode Perhitungan Aset Tokomu 👋'
+            : 'Pengaturan Metode Perhitungan Aset Inventaris',
+        component: InventoryCostingModal,
+        props: {
+            currentMethod: activeCostingMethod.value,
+            isSetupMode,
+        },
+        size: 'max-w-2xl',
+        showFooter: false,
+    })
+}
+
+onMounted(() => {
+    // Seperti pendekatan setup peran pada modul karyawan:
+    // Jika belum pernah dikonfigurasi secara eksplisit, tampilkan modal panduan setup
+    if (!isCostingConfigured.value) {
+        openCostingModal(true)
+    }
+})
 
 defineProps({
     stocks: {

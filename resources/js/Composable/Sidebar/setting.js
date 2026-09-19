@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import {
+    faBoxes,
     faCalculator,
     faCashRegister,
     faClock,
@@ -59,6 +60,15 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
         label: 'Personalisasi Fitur',
         permissions: ['business.update'],
         activeRoute: 'settings.business.features',
+    },
+    {
+        type: 'item',
+        url: route('settings.inventory.index'),
+        icon: faBoxes,
+        label: 'Metode Aset Inventaris',
+        feature: enums.FeatureEnum.INVENTORY_MANAGEMENT,
+        permissions: ['business.view'],
+        activeRoute: 'settings.inventory',
     },
     {
         type: 'section',

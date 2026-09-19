@@ -13,12 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class StockAdjustmentService
 {
-    protected ActivityLogService $activityLogService;
-
-    public function __construct(ActivityLogService $activityLogService)
-    {
-        $this->activityLogService = $activityLogService;
-    }
+    public function __construct(
+        protected ActivityLogService $activityLogService,
+        protected InventoryCostingService $costingService
+    ) {}
 
     /**
      * Create a new draft stock adjustment.
@@ -49,7 +47,7 @@ class StockAdjustmentService
                     'unit_cost' => (isset($itemData['unit_cost']) && $itemData['qty_change'] > 0)
                                             ? $itemData['unit_cost']
                                             : null,
-                    'description' => $itemData['description'],
+                    'description' => $itemData['description'] ?? '',
                 ]);
             }
 
@@ -69,55 +67,59 @@ class StockAdjustmentService
         }
 
         return DB::transaction(function () use ($adjustment, $user) {
+            $adjustment->load(['outlet.business', 'items.inventoryItem']);
+            $outlet = $adjustment->outlet;
+            $business = $outlet?->business ?? $user->business;
+
             foreach ($adjustment->items as $item) {
-                $balance = InventoryBalance::firstOrCreate(
-                    [
-                        'business_id' => $adjustment->business_id,
-                        'outlet_id' => $adjustment->outlet_id,
-                        'inventory_item_id' => $item->inventory_item_id,
-                    ],
-                    [
-                        'current_stock' => 0,
-                    ]
-                );
+                $qtyChange = (float) $item->qty_change;
+                $invItem = $item->inventoryItem;
 
-                $stockBefore = $balance->current_stock;
-                $stockAfter = $stockBefore + $item->qty_change;
+                $balance = InventoryBalance::firstOrCreate([
+                    'business_id' => $adjustment->business_id,
+                    'outlet_id' => $adjustment->outlet_id,
+                    'inventory_item_id' => $item->inventory_item_id,
+                ], [
+                    'current_stock' => 0,
+                ]);
 
-                // don't allow negative stock (can be configured)
+                $stockBefore = (float) $balance->current_stock;
+                $stockAfter = $stockBefore + $qtyChange;
+
                 if ($stockAfter < 0) {
-                    throw new \Exception("Stok tidak mencukupi untuk item {$item->inventoryItem->name}. Stok saat ini: {$stockBefore}, perubahan: {$item->qty_change}.");
+                    throw new \Exception("Stok tidak mencukupi untuk item {$invItem->name}. Stok saat ini: {$stockBefore}, perubahan: {$qtyChange}.");
                 }
-
-                $balance->update(['current_stock' => $stockAfter]);
 
                 $item->update([
                     'stock_before' => $stockBefore,
                     'stock_after' => $stockAfter,
                 ]);
 
-                $cost = 0;
-                if ($item->qty_change > 0) {
-                    // In: Use manual unit_cost if provided, otherwise moving average (we can assume 0 or fetch from inventoryItem if it had moving avg)
-                    $cost = $item->unit_cost ?? 0;
-                } else {
-                    // Out: Use moving average (assume 0 for now)
-                    $cost = 0;
+                if ($qtyChange > 0) {
+                    $unitCost = (float) ($item->unit_cost ?? $balance->average_cost ?? $balance->last_cost ?? 0);
+                    $this->costingService->recordIncomingStock(
+                        business: $business,
+                        outlet: $outlet,
+                        item: $invItem,
+                        qty: $qtyChange,
+                        unitCost: $unitCost,
+                        movementType: $item->movement_type instanceof InventoryMovementType ? $item->movement_type : InventoryMovementType::AdjustmentIn,
+                        reference: $adjustment,
+                        description: $item->description ?: ('Penyesuaian Masuk ('.$adjustment->adjustment_number.')'),
+                        user: $user
+                    );
+                } elseif ($qtyChange < 0) {
+                    $this->costingService->recordOutgoingStock(
+                        business: $business,
+                        outlet: $outlet,
+                        item: $invItem,
+                        qty: abs($qtyChange),
+                        movementType: $item->movement_type instanceof InventoryMovementType ? $item->movement_type : InventoryMovementType::AdjustmentOut,
+                        reference: $adjustment,
+                        description: $item->description ?: ('Penyesuaian Keluar ('.$adjustment->adjustment_number.')'),
+                        user: $user
+                    );
                 }
-
-                $adjustment->inventoryMovements()->create([
-                    'business_id' => $adjustment->business_id,
-                    'outlet_id' => $adjustment->outlet_id,
-                    'inventory_item_id' => $item->inventory_item_id,
-                    'movement_type' => $item->movement_type,
-                    'qty_change' => $item->qty_change,
-                    'stock_before' => $stockBefore,
-                    'stock_after' => $stockAfter,
-                    'cost' => $cost,
-                    'description' => $item->description,
-                    'created_by' => $user->id,
-                    'created_at' => now(),
-                ]);
             }
 
             $adjustment->update([
@@ -165,32 +167,39 @@ class StockAdjustmentService
         }
 
         return DB::transaction(function () use ($adjustment, $user) {
+            $adjustment->load(['outlet.business', 'items.inventoryItem']);
+            $outlet = $adjustment->outlet;
+            $business = $outlet?->business ?? $user->business;
+
             foreach ($adjustment->items as $item) {
-                $balance = InventoryBalance::where('outlet_id', $adjustment->outlet_id)
-                    ->where('inventory_item_id', $item->inventory_item_id)
-                    ->first();
+                $qtyChange = (float) $item->qty_change;
+                $invItem = $item->inventoryItem;
 
-                if ($balance) {
-                    $stockBefore = $balance->current_stock;
-                    // Reversal movement: opposite of original qty_change
-                    $reversalQty = -$item->qty_change;
-                    $stockAfter = $stockBefore + $reversalQty;
-
-                    $balance->update(['current_stock' => $stockAfter]);
-
-                    $adjustment->inventoryMovements()->create([
-                        'business_id' => $adjustment->business_id,
-                        'outlet_id' => $adjustment->outlet_id,
-                        'inventory_item_id' => $item->inventory_item_id,
-                        'movement_type' => $item->movement_type,
-                        'qty_change' => $reversalQty,
-                        'stock_before' => $stockBefore,
-                        'stock_after' => $stockAfter,
-                        'cost' => 0, // Void reversal inherits cost 0 or previous
-                        'description' => 'Void: '.$item->description,
-                        'created_by' => $user->id,
-                        'created_at' => now(),
-                    ]);
+                // Reversal movement: opposite of original qty_change
+                if ($qtyChange > 0) {
+                    $this->costingService->recordOutgoingStock(
+                        business: $business,
+                        outlet: $outlet,
+                        item: $invItem,
+                        qty: $qtyChange,
+                        movementType: InventoryMovementType::AdjustmentOut,
+                        reference: $adjustment,
+                        description: 'Void Penyesuaian Masuk ('.$adjustment->adjustment_number.')',
+                        user: $user
+                    );
+                } elseif ($qtyChange < 0) {
+                    $unitCost = (float) ($item->unit_cost ?? $invItem->balances()->where('outlet_id', $outlet->id)->value('average_cost') ?? 0);
+                    $this->costingService->recordIncomingStock(
+                        business: $business,
+                        outlet: $outlet,
+                        item: $invItem,
+                        qty: abs($qtyChange),
+                        unitCost: $unitCost,
+                        movementType: InventoryMovementType::AdjustmentIn,
+                        reference: $adjustment,
+                        description: 'Void Penyesuaian Keluar ('.$adjustment->adjustment_number.')',
+                        user: $user
+                    );
                 }
             }
 

@@ -1,7 +1,25 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Laporan Stock & Aset" />
+            <MainPageHeader title="Laporan Stock & Aset">
+                <button
+                    type="button"
+                    class="btn btn-flat btn-sm flex items-center gap-1.5 text-xs text-slate-700"
+                    title="Klik untuk melihat atau mengubah metode perhitungan aset persediaan"
+                    @click="openCostingModal"
+                >
+                    <FontAwesomeIcon
+                        :icon="activeCostingMethod === 'fifo' ? faBoxesStacked : faCalculator"
+                        class="text-main"
+                    />
+                    <span>
+                        Metode Aset:
+                        <strong class="text-slate-900">{{
+                            activeCostingMethod === 'fifo' ? 'FIFO' : 'Moving Average'
+                        }}</strong>
+                    </span>
+                </button>
+            </MainPageHeader>
         </template>
 
         <template #filter>
@@ -92,15 +110,24 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useForm, router } from '@inertiajs/vue3'
-import { faFileExcel, faFilePdf, faStore } from '@fortawesome/free-solid-svg-icons'
+import { useForm, router, usePage } from '@inertiajs/vue3'
+import {
+    faBoxesStacked,
+    faCalculator,
+    faFileExcel,
+    faFilePdf,
+    faStore,
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
+import InventoryCostingModal from '@/Pages/App/Inventory/Stock/Components/InventoryCostingModal.vue'
 import { useAuth } from '@/Composable/useAuth'
+import { useModalStore } from '@/store/notification'
 import { formatNumberID } from '@/Composable/useNumberFormat'
 
 const props = defineProps({
@@ -108,7 +135,27 @@ const props = defineProps({
     stocks: Object,
 })
 
+const page = usePage()
+const modalStore = useModalStore()
 const { outlets: userOutlets, selectedOutlet } = useAuth()
+
+const activeCostingMethod = computed(() => {
+    return page.props.auth?.business?.inventory_costing_method || 'fifo'
+})
+
+const openCostingModal = () => {
+    modalStore.open({
+        type: 'info',
+        title: 'Pengaturan Metode Perhitungan Aset Inventaris',
+        component: InventoryCostingModal,
+        props: {
+            currentMethod: activeCostingMethod.value,
+            isSetupMode: false,
+        },
+        size: 'max-w-2xl',
+        showFooter: false,
+    })
+}
 
 const outletOptions = computed(() => {
     if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []

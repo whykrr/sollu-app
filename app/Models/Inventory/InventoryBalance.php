@@ -32,6 +32,9 @@ class InventoryBalance extends Model
         'outlet_id',
         'inventory_item_id',
         'current_stock',
+        'average_cost',
+        'last_cost',
+        'total_value',
     ];
 
     protected $appends = [
@@ -42,6 +45,9 @@ class InventoryBalance extends Model
     {
         return [
             'current_stock' => 'float',
+            'average_cost' => 'float',
+            'last_cost' => 'float',
+            'total_value' => 'float',
         ];
     }
 

@@ -4,7 +4,6 @@ namespace Tests\Unit\Services\App\Inventory;
 
 use App\Enums\StockOpnameStatus;
 use App\Models\Inventory\InventoryBalance;
-use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\StockOpname;
 use App\Models\User;
 use App\Services\App\Inventory\StockOpnameService;
@@ -28,7 +27,10 @@ class StockOpnameServiceTest extends TestCase
         $this->activityLogServiceMock = Mockery::mock(ActivityLogService::class);
         $this->activityLogServiceMock->shouldReceive('log')->andReturnNull();
 
-        $this->service = new StockOpnameService($this->activityLogServiceMock);
+        $this->service = new StockOpnameService(
+            $this->activityLogServiceMock,
+            app(\App\Services\App\Inventory\InventoryCostingService::class)
+        );
     }
 
     protected function tearDown(): void
@@ -40,11 +42,36 @@ class StockOpnameServiceTest extends TestCase
     private function setupBaseData()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
-        $business = $user->business;
-        $outlet = clone $business->outlets()->first();
 
-        $inventoryItem = InventoryItem::firstOrCreate([
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner',
+            'email' => 'owner_'.uniqid().'@test.com',
+            'phone' => '08123456789',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $user = User::create([
+            'business_id' => $business->id,
+            'name' => 'Test User',
+            'email' => 'user_'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $outlet = \App\Models\Outlet::create([
+            'business_id' => $business->id,
+            'name' => 'Main Outlet',
+            'is_active' => true,
+        ]);
+
+        $inventoryItem = \App\Models\Inventory\InventoryItem::firstOrCreate([
             'business_id' => $business->id,
         ], [
             'name' => 'Flour',

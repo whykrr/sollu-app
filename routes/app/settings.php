@@ -30,6 +30,13 @@ Route::prefix('settings')
                 Route::put('/features', [\App\Http\Controllers\App\Settings\FeatureSettingController::class, 'save'])->name('features.save');
             });
 
+        Route::prefix('inventory')
+            ->name('inventory.')
+            ->group(function () {
+                Route::get('/', [\App\Http\Controllers\App\Settings\InventorySettingController::class, 'index'])->name('index');
+                Route::put('/', [\App\Http\Controllers\App\Settings\InventorySettingController::class, 'update'])->name('update');
+            });
+
         Route::prefix('outlets')
             ->name('outlets.')
             ->group(function () {

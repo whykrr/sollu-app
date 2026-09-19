@@ -43,7 +43,13 @@ class SummaryUser
                         'label' => $role->label,
                     ])->toArray(),
                     'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
-                    'business' => $user->business ? $user->business->only('id', 'name', 'type', 'trial_end_at') : null,
+                    'business' => $user->business ? array_merge(
+                        $user->business->only('id', 'name', 'type', 'trial_end_at'),
+                        [
+                            'inventory_costing_method' => $user->business->getCostingMethod()->value,
+                            'is_costing_configured' => $user->business->isCostingMethodConfigured(),
+                        ]
+                    ) : null,
                     'subscription' => $user->business->subscriptions()->with('plan')->where('status', 'active')->first()?->toArray()
                         ?? $user->business->subscriptions()->with('plan')->latest()->first()?->toArray(),
                     'features' => $user->business ? $user->business->activePlanFeatures() : [],

@@ -8,6 +8,7 @@ use App\Enums\BusinessStatus;
 use App\Enums\CustomerGender;
 use App\Enums\DatePresetEnum;
 use App\Enums\FeatureEnum;
+use App\Enums\InventoryCostingMethod;
 use App\Enums\InventoryMovementType;
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentManualValidationStatus;
@@ -49,6 +50,7 @@ class FrontendEnumProvider
         CustomerGender::class,
         DatePresetEnum::class,
         FeatureEnum::class,
+        InventoryCostingMethod::class,
         InventoryMovementType::class,
         PaymentMethodType::class,
         PermissionEnum::class,

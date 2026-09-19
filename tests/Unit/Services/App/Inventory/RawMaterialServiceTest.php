@@ -25,18 +25,36 @@ class RawMaterialServiceTest extends TestCase
     private function setupBaseData()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
-        $business = $user->business;
 
-        // Ensure there is at least one active outlet
-        $outlet = $business->outlets()->first();
-        if (! $outlet) {
-            $outlet = Outlet::create(['business_id' => $business->id, 'name' => 'Outlet Test', 'is_active' => true]);
-        } else {
-            $outlet->update(['is_active' => true]);
-        }
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
 
-        // Let's create another inactive outlet to ensure it doesn't get a balance
+        $business = \App\Models\Business::create([
+            'name' => 'Test Business',
+            'owner_name' => 'Owner',
+            'email' => 'owner_'.uniqid().'@test.com',
+            'phone' => '08123456789',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $user = User::create([
+            'business_id' => $business->id,
+            'name' => 'Test User',
+            'email' => 'user_'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $outlet = Outlet::create([
+            'business_id' => $business->id,
+            'name' => 'Outlet Test',
+            'is_active' => true,
+        ]);
+
+        // Inactive outlet
         Outlet::create(['business_id' => $business->id, 'name' => 'Inactive Outlet', 'is_active' => false]);
 
         return [$user, $business, $outlet];

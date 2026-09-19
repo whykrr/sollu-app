@@ -4,8 +4,6 @@ namespace App\Services\App\Inventory;
 
 use App\Enums\InventoryMovementType;
 use App\Enums\StockTransferStatus;
-use App\Models\Inventory\InventoryBalance;
-use App\Models\Inventory\InventoryMovement;
 use App\Models\Inventory\StockTransfer;
 use App\Models\User;
 use App\Services\App\Master\ActivityLogService;
@@ -15,7 +13,8 @@ class StockTransferService
 {
     public function __construct(
         protected ActivityLogService $activityLogService,
-        protected StockFreezeService $stockFreezeService
+        protected StockFreezeService $stockFreezeService,
+        protected InventoryCostingService $costingService
     ) {}
 
     public function createTransfer(array $data, User $creator): StockTransfer
@@ -162,78 +161,50 @@ class StockTransferService
             $this->stockFreezeService->assertNotFrozen($transfer->fromOutlet);
             $this->stockFreezeService->assertNotFrozen($transfer->toOutlet);
 
-            $transfer->load('items.inventoryItem');
+            $transfer->load(['items.inventoryItem', 'fromOutlet.business', 'toOutlet.business']);
+            $business = $transfer->business ?? $transfer->fromOutlet?->business ?? $receiver->business;
+            $fromOutlet = $transfer->fromOutlet;
+            $toOutlet = $transfer->toOutlet;
 
             $itemsMap = collect($receivedData['items'])->keyBy('id');
 
             foreach ($transfer->items as $transferItem) {
                 if ($itemsMap->has($transferItem->id)) {
                     $qtyToReceive = (float) $itemsMap->get($transferItem->id)['qty_received'];
+                    $invItem = $transferItem->inventoryItem;
 
                     if ($qtyToReceive > 0) {
                         $transferItem->qty_received = $qtyToReceive;
                         $transferItem->save();
 
-                        // Source Balance (Deduct)
-                        $sourceBalance = InventoryBalance::firstOrCreate([
-                            'business_id' => $transfer->business_id,
-                            'outlet_id' => $transfer->from_outlet_id,
-                            'inventory_item_id' => $transferItem->inventory_item_id,
-                        ], ['current_stock' => 0]);
+                        // 1. Potong Stok & Hitung Nilai HPP di Outlet Asal (Transfer Out)
+                        $outResult = $this->costingService->recordOutgoingStock(
+                            business: $business,
+                            outlet: $fromOutlet,
+                            item: $invItem,
+                            qty: $qtyToReceive,
+                            movementType: InventoryMovementType::TransferOut,
+                            reference: $transfer,
+                            description: 'Transfer keluar ke '.$toOutlet->name.' (TF: '.$transfer->transfer_number.')',
+                            user: $receiver
+                        );
 
-                        $sourceStockBefore = $sourceBalance->current_stock;
-                        $sourceStockAfter = $sourceStockBefore - $qtyToReceive;
+                        // 2. Tambah Stok & Bawa Nilai HPP ke Outlet Tujuan (Transfer In)
+                        $transferUnitCost = $outResult['unit_cogs'] > 0
+                            ? $outResult['unit_cogs']
+                            : (float) ($invItem->balances()->where('outlet_id', $fromOutlet->id)->value('average_cost') ?? 0);
 
-                        if ($sourceStockAfter < 0) {
-                            abort(403, "Stok outlet asal tidak mencukupi untuk item {$transferItem->inventoryItem->name}. Stok saat ini: {$sourceStockBefore}, dikurangi: {$qtyToReceive}.");
-                        }
-
-                        $sourceBalance->update(['current_stock' => $sourceStockAfter]);
-
-                        // Destination Balance (Add)
-                        $destBalance = InventoryBalance::firstOrCreate([
-                            'business_id' => $transfer->business_id,
-                            'outlet_id' => $transfer->to_outlet_id,
-                            'inventory_item_id' => $transferItem->inventory_item_id,
-                        ], ['current_stock' => 0]);
-
-                        $destStockBefore = $destBalance->current_stock;
-                        $destStockAfter = $destStockBefore + $qtyToReceive;
-                        $destBalance->update(['current_stock' => $destStockAfter]);
-
-                        // Source Movement (Transfer Out)
-                        $outMovement = InventoryMovement::create([
-                            'business_id' => $transfer->business_id,
-                            'outlet_id' => $transfer->from_outlet_id,
-                            'inventory_item_id' => $transferItem->inventory_item_id,
-                            'movement_type' => InventoryMovementType::TransferOut,
-                            'qty_change' => -$qtyToReceive,
-                            'stock_before' => $sourceStockBefore,
-                            'stock_after' => $sourceStockAfter,
-                            'description' => 'Transfer keluar ke '.$transfer->toOutlet->name.' (TF: '.$transfer->transfer_number.')',
-                            'created_by' => $receiver->id,
-                            'created_at' => now(),
-                        ]);
-                        $outMovement->reference_id = $transfer->id;
-                        $outMovement->reference_type = StockTransfer::class;
-                        $outMovement->save();
-
-                        // Destination Movement (Transfer In)
-                        $inMovement = InventoryMovement::create([
-                            'business_id' => $transfer->business_id,
-                            'outlet_id' => $transfer->to_outlet_id,
-                            'inventory_item_id' => $transferItem->inventory_item_id,
-                            'movement_type' => InventoryMovementType::TransferIn,
-                            'qty_change' => $qtyToReceive,
-                            'stock_before' => $destStockBefore,
-                            'stock_after' => $destStockAfter,
-                            'description' => 'Transfer masuk dari '.$transfer->fromOutlet->name.' (TF: '.$transfer->transfer_number.')',
-                            'created_by' => $receiver->id,
-                            'created_at' => now(),
-                        ]);
-                        $inMovement->reference_id = $transfer->id;
-                        $inMovement->reference_type = StockTransfer::class;
-                        $inMovement->save();
+                        $this->costingService->recordIncomingStock(
+                            business: $business,
+                            outlet: $toOutlet,
+                            item: $invItem,
+                            qty: $qtyToReceive,
+                            unitCost: $transferUnitCost,
+                            movementType: InventoryMovementType::TransferIn,
+                            reference: $transfer,
+                            description: 'Transfer masuk dari '.$fromOutlet->name.' (TF: '.$transfer->transfer_number.')',
+                            user: $receiver
+                        );
                     }
                 }
             }

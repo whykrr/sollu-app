@@ -3,85 +3,134 @@
 namespace App\Services\App\Transaction;
 
 use App\Enums\InventoryMovementType;
-use App\Models\Inventory\InventoryBalance;
-use App\Models\Inventory\InventoryMovement;
+use App\Models\Business;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Sales\Transaction;
+use App\Services\App\Inventory\InventoryCostingService;
 use Illuminate\Support\Facades\DB;
 
 class InventoryDeductionService
 {
+    public function __construct(
+        protected InventoryCostingService $costingService
+    ) {}
+
     public function deductFromTransaction(Transaction $transaction): void
     {
         DB::transaction(function () use ($transaction) {
-            $transaction->load(['items.product.inventoryItems', 'outlet']);
+            $transaction->load([
+                'items.product.inventoryItems',
+                'items.product.activeRecipeVersion.recipeItems.inventoryItem',
+                'items.modifiers.modifierOption.modifierRecipeItems.inventoryItem',
+                'outlet.business',
+            ]);
 
-            $outletId = $transaction->outlet_id;
-            $businessId = $transaction->outlet?->business_id ?? $transaction->business_id ?? auth()->user()?->business_id;
+            $outlet = $transaction->outlet;
+            $business = $outlet?->business ?? Business::find($transaction->business_id ?? auth()->user()?->business_id);
+
+            if (! $outlet || ! $business) {
+                return;
+            }
 
             foreach ($transaction->items as $item) {
-                $inventoryItems = collect();
+                $itemTotalCogs = 0.0;
+                $itemQty = (float) $item->qty;
 
-                if ($item->inventory_item_id) {
-                    $invItem = \App\Models\Inventory\InventoryItem::find($item->inventory_item_id);
-                    if ($invItem) {
-                        $inventoryItems->push($invItem);
+                // 1. Skenario F&B: Produk Ber-Resep (BOM - Bill of Materials)
+                if ($item->product && $item->product->has_recipe && $item->product->activeRecipeVersion) {
+                    foreach ($item->product->activeRecipeVersion->recipeItems as $recipeItem) {
+                        $rawItem = $recipeItem->inventoryItem;
+                        if ($rawItem && $rawItem->track_inventory) {
+                            $rawQtyToDeduct = ((float) $recipeItem->qty) * $itemQty;
+                            if ($rawQtyToDeduct > 0) {
+                                $result = $this->costingService->recordOutgoingStock(
+                                    business: $business,
+                                    outlet: $outlet,
+                                    item: $rawItem,
+                                    qty: $rawQtyToDeduct,
+                                    movementType: InventoryMovementType::RecipeDeduction,
+                                    reference: $transaction,
+                                    description: 'Bahan Resep: '.$item->product_name.' ('.($transaction->receipt_number ?? $transaction->id).')',
+                                    user: auth()->user()
+                                );
+                                $itemTotalCogs += $result['total_cogs'];
+                            }
+                        }
+                    }
+
+                    // Deduksi Modifier / Topping Recipe Items jika ada
+                    foreach ($item->modifiers as $itemModifier) {
+                        if ($itemModifier->modifierOption && $itemModifier->modifierOption->modifierRecipeItems) {
+                            foreach ($itemModifier->modifierOption->modifierRecipeItems as $modRecipeItem) {
+                                $rawModItem = $modRecipeItem->inventoryItem;
+                                if ($rawModItem && $rawModItem->track_inventory) {
+                                    $modQtyToDeduct = ((float) $modRecipeItem->qty) * $itemQty;
+                                    if ($modQtyToDeduct > 0) {
+                                        $result = $this->costingService->recordOutgoingStock(
+                                            business: $business,
+                                            outlet: $outlet,
+                                            item: $rawModItem,
+                                            qty: $modQtyToDeduct,
+                                            movementType: InventoryMovementType::RecipeDeduction,
+                                            reference: $transaction,
+                                            description: 'Topping Resep: '.$itemModifier->modifierOption->name.' ('.($transaction->receipt_number ?? $transaction->id).')',
+                                            user: auth()->user()
+                                        );
+                                        $itemTotalCogs += $result['total_cogs'];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // 2. Skenario Retail: Produk Langsung (Direct Variant SKU / Basic Inventory Item)
+                    $inventoryItems = collect();
+
+                    if ($item->inventory_item_id) {
+                        $invItem = InventoryItem::find($item->inventory_item_id);
+                        if ($invItem) {
+                            $inventoryItems->push($invItem);
+                        }
+                    }
+
+                    if ($inventoryItems->isEmpty() && $item->product) {
+                        $product = $item->product;
+                        if ($product->has_variant && $item->variant_group_option_id) {
+                            $inventoryItems = $product->inventoryItems()
+                                ->whereHas('variantGroupOptions', function ($q) use ($item) {
+                                    $q->where('variant_group_options.id', $item->variant_group_option_id);
+                                })->get();
+                        } else {
+                            $inventoryItems = $product->inventoryItems;
+                        }
+                    }
+
+                    foreach ($inventoryItems as $inventoryItem) {
+                        if (! $inventoryItem->track_inventory) {
+                            continue;
+                        }
+
+                        if ($itemQty > 0) {
+                            $result = $this->costingService->recordOutgoingStock(
+                                business: $business,
+                                outlet: $outlet,
+                                item: $inventoryItem,
+                                qty: $itemQty,
+                                movementType: InventoryMovementType::Sale,
+                                reference: $transaction,
+                                description: 'Penjualan: '.$item->product_name.' ('.($transaction->receipt_number ?? $transaction->id).')',
+                                user: auth()->user()
+                            );
+                            $itemTotalCogs += $result['total_cogs'];
+                        }
                     }
                 }
 
-                if ($inventoryItems->isEmpty() && $item->product) {
-                    $product = $item->product;
-                    if ($product->has_variant && $item->variant_group_option_id) {
-                        $inventoryItems = $product->inventoryItems()
-                            ->whereHas('variantGroupOptions', function ($q) use ($item) {
-                                $q->where('variant_group_options.id', $item->variant_group_option_id);
-                            })->get();
-                    } else {
-                        $inventoryItems = $product->inventoryItems;
-                    }
-                }
-
-                if ($inventoryItems->isEmpty()) {
-                    continue;
-                }
-
-                foreach ($inventoryItems as $inventoryItem) {
-                    if (! $inventoryItem->track_inventory) {
-                        continue;
-                    }
-
-                    $balance = InventoryBalance::firstOrCreate(
-                        [
-                            'business_id' => $businessId,
-                            'outlet_id' => $outletId,
-                            'inventory_item_id' => $inventoryItem->id,
-                        ],
-                        [
-                            'current_stock' => 0,
-                        ]
-                    );
-
-                    $stockBefore = floatval($balance->current_stock);
-                    $qtyDeducted = floatval($item->qty);
-                    $stockAfter = $stockBefore - $qtyDeducted;
-
-                    $balance->update(['current_stock' => $stockAfter]);
-
-                    InventoryMovement::create([
-                        'business_id' => $businessId,
-                        'outlet_id' => $outletId,
-                        'inventory_item_id' => $inventoryItem->id,
-                        'movement_type' => InventoryMovementType::Sale->value,
-                        'qty_change' => -$qtyDeducted,
-                        'stock_before' => $stockBefore,
-                        'stock_after' => $stockAfter,
-                        'cost' => 0,
-                        'reference_id' => $transaction->id,
-                        'reference_type' => Transaction::class,
-                        'description' => 'Penjualan Invoice: '.($transaction->receipt_number ?? $transaction->id),
-                        'created_by' => auth()->id() ?? null,
-                        'created_at' => now(),
-                    ]);
-                }
+                // 3. Simpan snapshot COGS pada transaction_items untuk pelaporan Laba Rugi instan
+                $unitCogs = $itemQty > 0 ? ($itemTotalCogs / $itemQty) : 0.0;
+                $item->unit_cogs = $unitCogs;
+                $item->cogs_amount = $itemTotalCogs;
+                $item->save();
             }
         });
     }
@@ -89,74 +138,89 @@ class InventoryDeductionService
     public function restoreFromTransaction(Transaction $transaction): void
     {
         DB::transaction(function () use ($transaction) {
-            $transaction->load(['items.product.inventoryItems', 'outlet']);
+            $transaction->load([
+                'items.product.inventoryItems',
+                'items.product.activeRecipeVersion.recipeItems.inventoryItem',
+                'items.modifiers.modifierOption.modifierRecipeItems.inventoryItem',
+                'outlet.business',
+            ]);
 
-            $outletId = $transaction->outlet_id;
-            $businessId = $transaction->outlet?->business_id ?? $transaction->business_id ?? auth()->user()?->business_id;
+            $outlet = $transaction->outlet;
+            $business = $outlet?->business ?? Business::find($transaction->business_id ?? auth()->user()?->business_id);
+
+            if (! $outlet || ! $business) {
+                return;
+            }
 
             foreach ($transaction->items as $item) {
-                $inventoryItems = collect();
+                $itemQty = (float) $item->qty;
 
-                if ($item->inventory_item_id) {
-                    $invItem = \App\Models\Inventory\InventoryItem::find($item->inventory_item_id);
-                    if ($invItem) {
-                        $inventoryItems->push($invItem);
+                // Skenario Resep F&B
+                if ($item->product && $item->product->has_recipe && $item->product->activeRecipeVersion) {
+                    foreach ($item->product->activeRecipeVersion->recipeItems as $recipeItem) {
+                        $rawItem = $recipeItem->inventoryItem;
+                        if ($rawItem && $rawItem->track_inventory) {
+                            $rawQty = ((float) $recipeItem->qty) * $itemQty;
+                            if ($rawQty > 0) {
+                                $unitCost = (float) ($rawItem->balances()->where('outlet_id', $outlet->id)->value('average_cost') ?? 0);
+                                $this->costingService->recordIncomingStock(
+                                    business: $business,
+                                    outlet: $outlet,
+                                    item: $rawItem,
+                                    qty: $rawQty,
+                                    unitCost: $unitCost,
+                                    movementType: InventoryMovementType::RecipeReturn,
+                                    reference: $transaction,
+                                    description: 'Pembatalan Resep: '.$item->product_name.' ('.($transaction->receipt_number ?? $transaction->id).')',
+                                    user: auth()->user()
+                                );
+                            }
+                        }
                     }
-                }
+                } else {
+                    // Skenario Retail
+                    $inventoryItems = collect();
 
-                if ($inventoryItems->isEmpty() && $item->product) {
-                    $product = $item->product;
-                    if ($product->has_variant && $item->variant_group_option_id) {
-                        $inventoryItems = $product->inventoryItems()
-                            ->whereHas('variantGroupOptions', function ($q) use ($item) {
-                                $q->where('variant_group_options.id', $item->variant_group_option_id);
-                            })->get();
-                    } else {
-                        $inventoryItems = $product->inventoryItems;
-                    }
-                }
-
-                if ($inventoryItems->isEmpty()) {
-                    continue;
-                }
-
-                foreach ($inventoryItems as $inventoryItem) {
-                    if (! $inventoryItem->track_inventory) {
-                        continue;
+                    if ($item->inventory_item_id) {
+                        $invItem = InventoryItem::find($item->inventory_item_id);
+                        if ($invItem) {
+                            $inventoryItems->push($invItem);
+                        }
                     }
 
-                    $balance = InventoryBalance::firstOrCreate(
-                        [
-                            'business_id' => $businessId,
-                            'outlet_id' => $outletId,
-                            'inventory_item_id' => $inventoryItem->id,
-                        ],
-                        [
-                            'current_stock' => 0,
-                        ]
-                    );
+                    if ($inventoryItems->isEmpty() && $item->product) {
+                        $product = $item->product;
+                        if ($product->has_variant && $item->variant_group_option_id) {
+                            $inventoryItems = $product->inventoryItems()
+                                ->whereHas('variantGroupOptions', function ($q) use ($item) {
+                                    $q->where('variant_group_options.id', $item->variant_group_option_id);
+                                })->get();
+                        } else {
+                            $inventoryItems = $product->inventoryItems;
+                        }
+                    }
 
-                    $stockBefore = floatval($balance->current_stock);
-                    $qtyRestored = floatval($item->qty);
-                    $stockAfter = $stockBefore + $qtyRestored;
+                    foreach ($inventoryItems as $inventoryItem) {
+                        if (! $inventoryItem->track_inventory) {
+                            continue;
+                        }
 
-                    $balance->update(['current_stock' => $stockAfter]);
+                        $unitCost = (float) $item->unit_cogs > 0
+                            ? (float) $item->unit_cogs
+                            : (float) ($inventoryItem->balances()->where('outlet_id', $outlet->id)->value('average_cost') ?? 0);
 
-                    InventoryMovement::create([
-                        'business_id' => $businessId,
-                        'outlet_id' => $outletId,
-                        'inventory_item_id' => $inventoryItem->id,
-                        'movement_type' => InventoryMovementType::Sale->value,
-                        'qty_change' => +$qtyRestored,
-                        'stock_before' => $stockBefore,
-                        'stock_after' => $stockAfter,
-                        'cost' => 0,
-                        'reference_id' => $transaction->id,
-                        'reference_type' => Transaction::class,
-                        'description' => 'Pembatalan Invoice: '.($transaction->receipt_number ?? $transaction->id),
-                        'created_by' => auth()->id() ?? null,
-                        'created_at' => now(),
-                    ]);
+                        $this->costingService->recordIncomingStock(
+                            business: $business,
+                            outlet: $outlet,
+                            item: $inventoryItem,
+                            qty: $itemQty,
+                            unitCost: $unitCost,
+                            movementType: InventoryMovementType::SaleReturn,
+                            reference: $transaction,
+                            description: 'Retur/Pembatalan Penjualan: '.$item->product_name.' ('.($transaction->receipt_number ?? $transaction->id).')',
+                            user: auth()->user()
+                        );
+                    }
                 }
             }
         });
