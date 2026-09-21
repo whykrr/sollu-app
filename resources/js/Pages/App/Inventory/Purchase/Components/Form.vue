@@ -1,32 +1,72 @@
 <template>
-    <form class="space-y-2" @submit.prevent="submit">
+    <form class="space-y-3" @submit.prevent="submit">
+        <!-- Pilihan Mode Pembelian (Hanya saat Tambah Baru & memiliki fitur PO) -->
+        <div v-if="!purchase?.id && hasPOFeature" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
+            <SelectionGroupField
+                id="purchase_mode"
+                v-model="purchaseMode"
+                label="Jenis Dokumen Pembelian"
+                :options="[
+                    { label: 'Pesanan Pembelian (PO Draf)', value: 'po' },
+                    { label: 'Beli Langsung (Terima Stok & Surat Jalan)', value: 'direct' },
+                ]"
+            />
+            <p class="text-[11px] text-slate-500">
+                <span v-if="purchaseMode === 'po'">
+                    PO Draf: Dokumen pemesanan formal ke pemasok. Stok inventori baru akan bertambah saat barang tiba dan dicatat melalui alur penerimaan.
+                </span>
+                <span v-else>
+                    Beli Langsung: Mencatat pembelian yang langsung disertai pengiriman fisik barang/surat jalan. Stok inventori otomatis bertambah saat disimpan.
+                </span>
+            </p>
+        </div>
+
+        <!-- Informasi Utama Pembelian -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <DropdownField
                 id="supplier_id"
                 v-model="form.supplier_id"
-                label="Supplier"
-                placeholder="Pilih Supplier"
+                label="Pemasok (Supplier)"
+                placeholder="Pilih Pemasok..."
                 :options="supplierOptions"
                 :class="{ 'is-invalid': form.errors.supplier_id }"
                 :error="form.errors.supplier_id"
-                required
             />
 
-            <div>
-                <AsyncOutletDropdown
-                    id="outlet"
+            <!-- Pilihan Outlet: HANYA jika tidak ada selectedOutlet aktif di sidebar -->
+            <div v-if="!selectedOutlet">
+                <DropdownField
+                    id="outlet_id"
                     v-model="form.outlet_id"
-                    label="Pilih Outlet"
-                    placeholder="-- Pilih Outlet --"
+                    label="Outlet Tujuan"
+                    placeholder="Pilih Outlet..."
+                    :options="outletOptions"
                     :class="{ 'is-invalid': form.errors.outlet_id }"
                     :error="form.errors.outlet_id"
                     required
-                    @loaded="onOutletsLoaded"
                 />
-                <div v-if="form.errors.outlet_id" class="invalid-feedback">
-                    {{ form.errors.outlet_id }}
-                </div>
             </div>
+
+            <TextField
+                id="reference_number"
+                v-model="form.reference_number"
+                label="No. Referensi / Invoice Eksternal (Opsional)"
+                placeholder="Misal: INV-SUP-2026/09/01"
+                :class="{ 'is-invalid': form.errors.reference_number }"
+                :error="form.errors.reference_number"
+            />
+
+            <!-- Nomor Surat Jalan (Wajib diisi jika Beli Langsung) -->
+            <TextField
+                v-if="purchaseMode === 'direct'"
+                id="delivery_order_number"
+                v-model="form.delivery_order_number"
+                label="No. Surat Jalan Pemasok"
+                placeholder="Misal: SJ-2026-00891"
+                :class="{ 'is-invalid': form.errors.delivery_order_number }"
+                :error="form.errors.delivery_order_number"
+                required
+            />
 
             <TextField
                 id="order_date"
@@ -39,10 +79,11 @@
             />
 
             <TextField
+                v-if="purchaseMode === 'po'"
                 id="expected_date"
                 v-model="form.expected_date"
                 type="date"
-                label="Tanggal Diharapkan"
+                label="Tanggal Estimasi Tiba (Opsional)"
                 :class="{ 'is-invalid': form.errors.expected_date }"
                 :error="form.errors.expected_date"
             />
@@ -51,134 +92,256 @@
         <TextareaField
             id="notes"
             v-model="form.notes"
-            label="Catatan"
+            label="Catatan Pembelian"
+            placeholder="Tambahkan instruksi khusus atau catatan pengiriman..."
             :class="{ 'is-invalid': form.errors.notes }"
             :error="form.errors.notes"
+            rows="2"
         />
 
-        <!-- Item Section -->
-        <div class="mt-4 border-t pt-2">
-            <h3 class="text-lg font-semibold mb-2">Pilih Barang</h3>
-
-            <!-- Search Input -->
-            <div class="mb-2">
-                <input
-                    v-model="searchQuery"
-                    type="text"
-                    class="form-input text-sm w-full rounded-lg border-gray-300"
-                    placeholder="Cari nama barang atau bahan baku..."
-                    @input="onSearchInput"
-                />
-                <div v-if="isSearching" class="text-xs text-slate-500 py-1">Mencari...</div>
-
-                <!-- Search Results -->
-                <div
-                    v-if="searchQuery || searchResults.length > 0"
-                    class="border border-gray-200 rounded-lg p-2 max-h-48 overflow-y-auto space-y-1 mt-1 bg-white shadow-sm"
-                >
-                    <div
-                        v-for="item in searchResults"
-                        :key="item.id"
-                        class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer border-b last:border-0 border-gray-100"
-                        @click="selectItem(item)"
+        <!-- Section Daftar Barang yang Dipesan -->
+        <div class="border-t border-slate-200 pt-3 space-y-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">Daftar Barang</h3>
+                    <p class="text-xs text-slate-500">
+                        Pilih barang, tentukan kemasan satuan beli, serta sesuaikan harga dan diskon/pajak.
+                    </p>
+                </div>
+                <div class="w-full sm:w-80">
+                    <AsyncSelectField
+                        id="search_item"
+                        placeholder="Cari nama, SKU, atau barcode..."
+                        class="sm"
+                        :api-url="route('inventory.purchases.search-items')"
+                        :api-params="{
+                            outlet_id: form.outlet_id,
+                            supplier_id: form.supplier_id || undefined,
+                        }"
+                        search-param-name="query"
+                        :min-chars="2"
+                        :disabled="!form.outlet_id"
+                        @select="addItemFromSearch"
                     >
-                        <div>
-                            <div class="font-medium text-sm text-slate-800">
-                                {{ item.name }}
-                                <span class="text-xs text-slate-500"
-                                    >({{ item.uom?.name || '-' }})</span
-                                >
+                        <template #option="{ item }">
+                            <div class="flex items-center justify-between w-full">
+                                <div>
+                                    <div class="font-semibold text-xs text-slate-800">
+                                        {{ item.name }}
+                                        <span class="text-slate-500 font-normal">
+                                            ({{ item.uom?.name || '-' }})
+                                        </span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400">
+                                        SKU: {{ item.sku || '-' }}
+                                    </div>
+                                </div>
+                                <div class="text-right flex flex-col items-end">
+                                    <span
+                                        v-if="item.is_supplied"
+                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-800 gap-1"
+                                    >
+                                        <FontAwesomeIcon :icon="faCheck" /> Supplier
+                                    </span>
+                                    <span class="text-[11px] text-slate-500 mt-0.5">
+                                        Stok: {{ Number(item.current_stock || 0) }}
+                                    </span>
+                                </div>
                             </div>
-                            <div v-if="item.sku" class="text-xs text-slate-400">
-                                SKU: {{ item.sku }}
-                            </div>
-                        </div>
-                        <div>
-                            <span
-                                v-if="item.is_supplied"
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 gap-1"
-                            >
-                                <FontAwesomeIcon :icon="faCheck" />
-                                Terdaftar di Supplier Ini
-                            </span>
-                        </div>
-                    </div>
-                    <div
-                        v-if="searchResults.length === 0 && !isSearching"
-                        class="text-xs text-slate-500 text-center py-4"
-                    >
-                        Barang tidak ditemukan.
-                    </div>
+                        </template>
+                    </AsyncSelectField>
                 </div>
             </div>
 
-            <!-- Selected Items List -->
-            <h3 class="text-md font-semibold mb-2 mt-4">Daftar Barang yang Dipesan</h3>
-
+            <!-- Petunjuk Jika Outlet Belum Terpilih -->
             <div
-                v-if="form.items.length === 0"
-                class="text-center py-6 text-gray-500 border rounded-lg bg-gray-50/50"
+                v-if="!form.outlet_id"
+                class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
             >
-                Belum ada item ditambahkan.
+                Pilih outlet tujuan terlebih dahulu untuk mencari barang.
             </div>
 
-            <div v-else class="space-y-2">
+            <!-- Empty State Jika Belum Ada Barang -->
+            <div
+                v-else-if="form.items.length === 0"
+                class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
+            >
+                Belum ada barang ditambahkan. Cari dan pilih barang pada kolom pencarian di atas.
+            </div>
+
+            <!-- Daftar Item -->
+            <div v-else class="space-y-2 max-h-96 overflow-y-auto pr-1">
                 <div
                     v-for="(item, index) in form.items"
-                    :key="index"
-                    class="flex flex-col md:flex-row gap-2 md:items-center border px-3 py-2 rounded-lg bg-white"
+                    :key="item.inventory_item_id || index"
+                    class="p-2.5 border border-slate-200 rounded-lg bg-white space-y-2"
                 >
-                    <div class="flex-1 min-w-0">
-                        <div class="font-bold text-slate-800 truncate">
-                            {{ item.name }}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="text-xs font-bold text-slate-400 w-5 text-center">
+                                {{ index + 1 }}.
+                            </span>
+                            <div class="min-w-0">
+                                <div class="font-bold text-xs text-slate-800 truncate">
+                                    {{ item.name }}
+                                </div>
+                                <div class="text-[11px] text-slate-400 truncate">
+                                    SKU: {{ item.sku || '-' }} | Satuan Dasar:
+                                    <span class="font-medium text-slate-600">{{ item.base_uom_name || '-' }}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mt-1 max-w-40">
-                            <DropdownField
-                                :id="'uom_id_' + index"
-                                v-model="item.uom_id"
-                                :options="uomOptions"
-                                placeholder="Pilih Satuan"
-                                class="sm"
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div class="w-full md:w-32">
-                        <TextField
-                            :id="'qty_ordered_' + index"
-                            v-model="item.qty_ordered"
-                            type="number"
-                            label="Quantity"
-                            class="sm"
-                            min="1"
-                            required
-                        />
-                    </div>
-                    <div class="w-full md:w-40">
-                        <TextField
-                            :id="'purchase_price_' + index"
-                            v-model="item.purchase_price"
-                            type="number"
-                            label="Harga Satuan"
-                            min="0"
-                            class="sm"
-                            required
-                        />
-                    </div>
-                    <div class="pt-6 md:pt-0 shrink-0">
+
                         <button
                             type="button"
-                            class="btn btn-outline-danger btn-sm"
+                            class="btn btn-flat btn-sm text-danger h-7 w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                            title="Hapus barang"
                             @click="removeItem(index)"
                         >
                             <FontAwesomeIcon :icon="faTrash" />
                         </button>
                     </div>
+
+                    <!-- Input Grid: Satuan Beli, Kuantitas, Harga Beli, Diskon, Pajak -->
+                    <div class="grid grid-cols-12 gap-2 items-end pt-1.5 border-t border-slate-100">
+                        <!-- Satuan Pembelian (UOM) -->
+                        <div class="col-span-12 sm:col-span-3">
+                            <DropdownField
+                                :id="'uom_' + index"
+                                v-model="item.uom_id"
+                                label="Satuan Beli"
+                                class="sm"
+                                :options="uomOptions"
+                                :class="{
+                                    'is-invalid': form.errors[`items.${index}.uom_id`],
+                                }"
+                                :error="form.errors[`items.${index}.uom_id`]"
+                                required
+                            />
+                        </div>
+
+                        <!-- Kuantitas Pesan -->
+                        <div class="col-span-6 sm:col-span-2">
+                            <NumberField
+                                :id="'qty_' + index"
+                                v-model="item.qty_ordered"
+                                label="Kuantitas"
+                                class="sm"
+                                min="0.0001"
+                                step="any"
+                                :class="{
+                                    'is-invalid': form.errors[`items.${index}.qty_ordered`],
+                                }"
+                                :error="form.errors[`items.${index}.qty_ordered`]"
+                                required
+                            />
+                        </div>
+
+                        <!-- Harga Satuan Beli -->
+                        <div class="col-span-6 sm:col-span-3">
+                            <NumberField
+                                :id="'price_' + index"
+                                v-model="item.purchase_price"
+                                label="Harga Satuan (Rp)"
+                                class="sm"
+                                min="0"
+                                step="any"
+                                :class="{
+                                    'is-invalid': form.errors[`items.${index}.purchase_price`],
+                                }"
+                                :error="form.errors[`items.${index}.purchase_price`]"
+                                required
+                            />
+                        </div>
+
+                        <!-- Potongan Diskon (Rp) -->
+                        <div class="col-span-6 sm:col-span-2">
+                            <NumberField
+                                :id="'disc_' + index"
+                                v-model="item.discount_amount"
+                                label="Diskon (Rp)"
+                                class="sm"
+                                min="0"
+                                step="any"
+                                :class="{
+                                    'is-invalid': form.errors[`items.${index}.discount_amount`],
+                                }"
+                                :error="form.errors[`items.${index}.discount_amount`]"
+                            />
+                        </div>
+
+                        <!-- Pajak (Rp) -->
+                        <div class="col-span-6 sm:col-span-2">
+                            <NumberField
+                                :id="'tax_' + index"
+                                v-model="item.tax_amount"
+                                label="Pajak (Rp)"
+                                class="sm"
+                                min="0"
+                                step="any"
+                                :class="{
+                                    'is-invalid': form.errors[`items.${index}.tax_amount`],
+                                }"
+                                :error="form.errors[`items.${index}.tax_amount`]"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Konversi Satuan untuk Mode Beli Langsung & Subtotal Row -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-dashed border-slate-100 bg-slate-50/50 p-2 rounded">
+                        <div v-if="purchaseMode === 'direct'" class="flex items-center gap-2">
+                            <div class="w-32">
+                                <NumberField
+                                    :id="'conv_' + index"
+                                    v-model="item.conversion_factor"
+                                    label="Faktor Konversi"
+                                    class="sm"
+                                    min="0.0001"
+                                    step="any"
+                                    :class="{
+                                        'is-invalid': form.errors[`items.${index}.conversion_factor`],
+                                    }"
+                                    :error="form.errors[`items.${index}.conversion_factor`]"
+                                    required
+                                />
+                            </div>
+                            <div class="text-[11px] text-slate-500 self-end pb-1">
+                                Masuk Stok: <span class="font-bold text-emerald-600">{{ formatQuantity(Number(item.qty_ordered || 0) * Number(item.conversion_factor || 1)) }} {{ item.base_uom_name }}</span>
+                            </div>
+                        </div>
+                        <div v-else class="text-[11px] text-slate-400">
+                            Subtotal = (Qty × Harga) - Diskon + Pajak
+                        </div>
+
+                        <div class="text-right">
+                            <span class="text-[11px] text-slate-400 mr-2">Subtotal Baris:</span>
+                            <span class="font-bold text-xs text-slate-800">
+                                {{ formatCurrency(calculateRowSubtotal(item)) }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex justify-between items-center border-t mt-4 pt-4">
-                    <div class="font-bold text-lg text-slate-800">Total Pembelian:</div>
-                    <div class="font-bold text-xl text-main">
+                <!-- Error Global Items Jika Ada -->
+                <div v-if="form.errors.items" class="text-danger text-xs mt-1">
+                    {{ form.errors.items }}
+                </div>
+            </div>
+
+            <!-- Ringkasan Total Pembelian -->
+            <div
+                v-if="form.items.length > 0"
+                class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg mt-2"
+            >
+                <div>
+                    <div class="text-xs text-slate-500">Total Barang:</div>
+                    <div class="font-bold text-xs text-slate-800">
+                        {{ form.items.length }} Item ({{ totalQty }} Unit)
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-slate-500">Total Akhir Pembelian:</div>
+                    <div class="font-bold text-base text-main">
                         {{ formatCurrency(totalAmount) }}
                     </div>
                 </div>
@@ -193,10 +356,10 @@
         <button
             type="button"
             class="btn btn-main"
-            :disabled="form.processing || form.items.length === 0"
+            :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
             @click="submit"
         >
-            Simpan PO
+            {{ submitButtonText }}
         </button>
     </Teleport>
 </template>
@@ -204,17 +367,27 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import axios from 'axios'
-import { debounce } from 'lodash'
-import { usePopUpStore } from '@/store/popup'
-import TextField from '@/Components/Form/TextField.vue'
-import DropdownField from '@/Components/Form/DropdownField.vue'
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
-import TextareaField from '@/Components/Form/TextareaField.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCheck, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { useAuth } from '@/Composable/useAuth'
+import { useEnum } from '@/Composable/useEnum'
+import { usePlanFeature } from '@/Composable/usePlanFeature'
+import { usePopUpStore } from '@/store/popup'
+import TextField from '@/Components/Form/TextField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
+import DropdownField from '@/Components/Form/DropdownField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
+import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 
 const popUpStore = usePopUpStore()
+const { outlets: userOutlets, selectedOutlet } = useAuth()
+const { enums } = useEnum()
+const { hasFeature } = usePlanFeature()
+
+const hasPOFeature = computed(() => {
+    return hasFeature(enums.FeatureEnum?.PURCHASE_ORDERS || 'purchase_orders')
+})
 
 const props = defineProps({
     purchase: {
@@ -229,141 +402,164 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    initialMode: {
+        type: String,
+        default: 'po',
+    },
 })
 
-const loadedOutlets = ref([])
-
-const onOutletsLoaded = outlets => {
-    console.log(outlets)
-    loadedOutlets.value = outlets
-    if (!form.outlet_id && outlets.length === 1) {
-        form.outlet_id = outlets[0].id
-    }
-}
-
 const isMounted = ref(false)
+const purchaseMode = ref(
+    !hasPOFeature.value
+        ? 'direct'
+        : props.initialMode || 'po'
+)
+
 onMounted(() => {
     isMounted.value = true
 })
 
+const supplierOptions = computed(() =>
+    props.suppliers.map(s => ({
+        label: s.name,
+        value: s.id,
+    }))
+)
+
+const outletOptions = computed(() =>
+    (userOutlets.value || []).map(store => ({
+        label: store.name,
+        value: store.id,
+    }))
+)
+
+const uomOptions = computed(() =>
+    props.uoms.map(u => ({
+        label: `${u.name} (${u.code})`,
+        value: u.id,
+    }))
+)
+
 const form = useForm({
     supplier_id: '',
-    outlet_id: '',
+    outlet_id: selectedOutlet.value?.id || '',
+    reference_number: '',
+    delivery_order_number: '',
     order_date: new Date().toISOString().split('T')[0],
     expected_date: '',
     notes: '',
     items: [],
 })
 
-const searchQuery = ref('')
-const searchResults = ref([])
-const isSearching = ref(false)
+// Watch outlet changes: reset items if outlet changes
+watch(
+    () => form.outlet_id,
+    (newVal, oldVal) => {
+        if (oldVal && newVal !== oldVal && !props.purchase) {
+            form.items = []
+        }
+    }
+)
 
-const supplierOptions = computed(() => props.suppliers.map(s => ({ label: s.name, value: s.id })))
-const uomOptions = computed(() => props.uoms.map(u => ({ label: u.name, value: u.id })))
+const calculateRowSubtotal = item => {
+    const qty = Number(item.qty_ordered || 0)
+    const price = Number(item.purchase_price || 0)
+    const discount = Number(item.discount_amount || 0)
+    const tax = Number(item.tax_amount || 0)
+    const subtotal = qty * price - discount + tax
+    return Math.max(0, subtotal)
+}
 
 const totalAmount = computed(() => {
-    return form.items.reduce(
-        (sum, item) => sum + Number(item.qty_ordered || 0) * Number(item.purchase_price || 0),
-        0
-    )
+    return form.items.reduce((sum, item) => sum + calculateRowSubtotal(item), 0)
+})
+
+const totalQty = computed(() => {
+    return form.items.reduce((sum, item) => sum + Number(item.qty_ordered || 0), 0)
 })
 
 const formatCurrency = value => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-    }).format(value)
+        maximumFractionDigits: 0,
+    }).format(value || 0)
 }
 
-const onSearchInput = debounce(async () => {
-    if (!searchQuery.value) {
-        searchResults.value = []
-        return
-    }
+const formatQuantity = value => {
+    return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(value || 0))
+}
 
-    isSearching.value = true
-    try {
-        const response = await axios.get(route('inventory.purchases.search-items'), {
-            params: {
-                search: searchQuery.value,
-                supplier_id: form.supplier_id,
-            },
-        })
-        searchResults.value = response.data
-    } catch (e) {
-        console.error(e)
-    } finally {
-        isSearching.value = false
-    }
-}, 500)
-
-const selectItem = item => {
-    // Check if item already exists in form.items
+const addItemFromSearch = item => {
     const exists = form.items.find(i => i.inventory_item_id === item.id)
     if (exists) {
-        // optionally increment qty
-        exists.qty_ordered = Number(exists.qty_ordered) + 1
+        exists.qty_ordered = Number(exists.qty_ordered || 0) + 1
     } else {
-        form.items.push({
+        form.items.unshift({
             inventory_item_id: item.id,
             name: item.name,
-            uom_id: item.uom_id || '', // Default to item's inventory UOM
-            uom_name: item.uom?.name || '',
+            sku: item.sku || '-',
+            base_uom_id: item.uom_id || '',
+            base_uom_name: item.uom?.name || '-',
+            uom_id: item.uom_id || (props.uoms[0]?.id ?? ''),
             qty_ordered: 1,
             purchase_price: 0,
+            discount_amount: 0,
+            tax_amount: 0,
+            conversion_factor: 1,
         })
     }
-    // Clear search
-    searchQuery.value = ''
-    searchResults.value = []
 }
 
 const removeItem = index => {
     form.items.splice(index, 1)
 }
 
-// Re-search when supplier changes if there's an active query
-watch(
-    () => form.supplier_id,
-    () => {
-        if (searchQuery.value) {
-            onSearchInput()
-        }
-    }
-)
-
+// Inisialisasi Data jika Mode Edit
 watch(
     () => props.purchase,
     data => {
         form.reset()
-        searchQuery.value = ''
-        searchResults.value = []
 
         if (data) {
             form.supplier_id = data.supplier_id || ''
-            form.outlet_id = data.outlet_id || ''
+            form.outlet_id = data.outlet_id || selectedOutlet.value?.id || ''
+            form.reference_number = data.reference_number || ''
             form.order_date = data.order_date || new Date().toISOString().split('T')[0]
             form.expected_date = data.expected_date || ''
             form.notes = data.notes || ''
 
-            // Map existing items properly for display
             if (data.items && data.items.length > 0) {
                 form.items = data.items.map(i => ({
                     inventory_item_id: i.inventory_item_id,
-                    name: i.inventory_item?.name || 'Unknown Item',
+                    name: i.inventory_item?.name || 'Item',
+                    sku: i.inventory_item?.sku || '-',
+                    base_uom_id: i.inventory_item?.uom_id || '',
+                    base_uom_name: i.inventory_item?.uom?.name || '-',
                     uom_id: i.uom_id || i.inventory_item?.uom_id || '',
-                    uom_name: i.uom?.name || i.inventory_item?.uom?.name || '',
                     qty_ordered: i.qty_ordered,
                     purchase_price: i.purchase_price,
+                    discount_amount: i.discount_amount || 0,
+                    tax_amount: i.tax_amount || 0,
+                    conversion_factor: i.conversion_factor || 1,
                 }))
             } else {
                 form.items = []
             }
+        } else {
+            // Mode Tambah Baru
+            form.outlet_id = selectedOutlet.value?.id || (userOutlets.value?.length === 1 ? userOutlets.value[0].id : '')
         }
     },
     { immediate: true }
 )
+
+const submitButtonText = computed(() => {
+    if (props.purchase?.id) {
+        return 'Simpan Perubahan'
+    }
+    return purchaseMode.value === 'direct' ? 'Simpan & Terima Stok' : 'Simpan PO Draf'
+})
 
 const close = () => {
     form.clearErrors()
@@ -373,6 +569,12 @@ const close = () => {
 const submit = () => {
     if (props.purchase?.id) {
         form.put(route('inventory.purchases.update', props.purchase.id), {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => close(),
+        })
+    } else if (purchaseMode.value === 'direct') {
+        form.post(route('inventory.purchases.direct'), {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => close(),

@@ -1,7 +1,7 @@
 <template>
     <ActionBar>
         <template #filters>
-            <!-- Date Preset & Range -->
+            <!-- Preset Tanggal Terstandarisasi -->
             <FilterPresetDate
                 v-model="filterForm.preset"
                 v-model:start-date="filterForm.start_date"
@@ -9,27 +9,28 @@
                 @change="updateQuery"
             />
 
-            <!-- Status Filter -->
+            <!-- Dropdown Status PO -->
             <FilterDropdown
                 v-model="filterForm.status"
                 label="Status"
                 :options="statusOptions"
+                :icon="faTag"
                 all-option-label="Semua Status"
                 @change="updateQuery"
             />
 
-            <!-- Supplier Filter -->
+            <!-- Dropdown Pemasok -->
             <FilterDropdown
                 v-if="supplierOptions.length > 0"
                 v-model="filterForm.supplier_id"
-                label="Supplier"
+                label="Pemasok"
                 :options="supplierOptions"
                 :icon="faTruck"
-                all-option-label="Semua Supplier"
+                all-option-label="Semua Pemasok"
                 @change="updateQuery"
             />
 
-            <!-- Outlet Filter -->
+            <!-- Dropdown Outlet -->
             <FilterDropdown
                 v-if="outletOptions.length > 1 && !selectedOutlet"
                 v-model="filterForm.outlet_id"
@@ -44,19 +45,33 @@
         <template #search>
             <FilterSearch
                 v-model="filterForm.search"
-                placeholder="Cari nomor PO..."
+                placeholder="Cari nomor PO / referensi..."
                 @clear="updateQuery"
             />
         </template>
 
+        <template #tools>
+            <ActionsDropdown label="Opsi Data" :items="toolItems" />
+        </template>
+
         <template #create>
+            <!-- Jika memiliki fitur PO: gunakan dropdown action (+ Pembelian) -->
+            <ActionsDropdown
+                v-if="hasPOFeature"
+                label="Pembelian Baru"
+                :icon="faPlus"
+                :items="createActionItems"
+            />
+
+            <!-- Jika TIDAK memiliki fitur PO: tombol Beli Langsung biasa (tanpa dropdown) -->
             <button
+                v-else
                 type="button"
                 class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
-                @click="$emit('create')"
+                @click="$emit('create-direct')"
             >
                 <FontAwesomeIcon :icon="faPlus" />
-                <span>Buat PO Baru</span>
+                <span>Pembelian Baru</span>
             </button>
         </template>
     </ActionBar>
@@ -67,17 +82,32 @@ import { reactive, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPlus, faStore, faTruck } from '@fortawesome/free-solid-svg-icons'
+import {
+    faPlus,
+    faStore,
+    faTruck,
+    faFileCsv,
+    faBolt,
+    faTag,
+    faFileInvoice,
+} from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
+import { useEnum } from '@/Composable/useEnum'
+import { usePlanFeature } from '@/Composable/usePlanFeature'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 
-defineEmits(['create'])
+const emit = defineEmits(['create', 'create-direct', 'export-csv'])
 
 const props = defineProps({
     filters: {
+        type: Object,
+        default: () => ({}),
+    },
+    params: {
         type: Object,
         default: () => ({}),
     },
@@ -85,15 +115,27 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    outlets: {
+        type: Array,
+        default: () => [],
+    },
 })
 
 const { outlets: userOutlets, selectedOutlet } = useAuth()
-const outletOptions = computed(() =>
-    (userOutlets.value || []).map(store => ({
+const { enums } = useEnum()
+const { hasFeature } = usePlanFeature()
+
+const hasPOFeature = computed(() => {
+    return hasFeature(enums.FeatureEnum?.PURCHASE_ORDERS || 'purchase_orders')
+})
+
+const outletOptions = computed(() => {
+    const list = props.outlets?.length > 0 ? props.outlets : userOutlets.value || []
+    return list.map(store => ({
         value: String(store.id),
         label: store.name,
     }))
-)
+})
 
 const supplierOptions = computed(() => {
     return props.suppliers.map(sup => ({
@@ -102,29 +144,34 @@ const supplierOptions = computed(() => {
     }))
 })
 
-const statusOptions = [
-    { value: 'draft', label: 'Draft' },
-    { value: 'ordered', label: 'Ordered' },
-    { value: 'received', label: 'Received' },
-    { value: 'cancelled', label: 'Cancelled' },
-]
+const statusOptions = computed(() => [
+    { value: enums.PurchaseOrderStatus?.Draft || 'draft', label: 'Draf' },
+    { value: enums.PurchaseOrderStatus?.Ordered || 'ordered', label: 'Dipesan' },
+    {
+        value: enums.PurchaseOrderStatus?.PartialReceived || 'partial_received',
+        label: 'Diterima Sebagian',
+    },
+    { value: enums.PurchaseOrderStatus?.Received || 'received', label: 'Selesai' },
+    { value: enums.PurchaseOrderStatus?.Cancelled || 'cancelled', label: 'Dibatalkan' },
+])
+
+const activeFilters = computed(() => props.params || props.filters || {})
 
 const filterForm = reactive({
-    search: props.filters?.search ?? '',
-    preset: props.filters?.preset ?? 'this_month',
-    status: props.filters?.status ?? '',
-    supplier_id: props.filters?.supplier_id ? String(props.filters.supplier_id) : '',
-    outlet_id: props.filters?.outlet_id ? String(props.filters.outlet_id) : '',
-    start_date: props.filters?.start_date ?? '',
-    end_date: props.filters?.end_date ?? '',
+    search: activeFilters.value.search ?? '',
+    preset: activeFilters.value.preset ?? 'this_month',
+    status: activeFilters.value.status ?? '',
+    supplier_id: activeFilters.value.supplier_id ? String(activeFilters.value.supplier_id) : '',
+    outlet_id: activeFilters.value.outlet_id ? String(activeFilters.value.outlet_id) : '',
+    start_date: activeFilters.value.start_date ?? '',
+    end_date: activeFilters.value.end_date ?? '',
 })
 
-// Watch search with debounce
 watch(
     () => filterForm.search,
     debounce(() => {
         updateQuery()
-    }, 500)
+    }, 400)
 )
 
 const updateQuery = () => {
@@ -145,4 +192,39 @@ const updateQuery = () => {
         preserveScroll: true,
     })
 }
+
+const exportCsv = () => {
+    emit('export-csv', {
+        search: filterForm.search || undefined,
+        preset: filterForm.preset,
+        status: filterForm.status || undefined,
+        supplier_id: filterForm.supplier_id || undefined,
+        outlet_id: filterForm.outlet_id || undefined,
+        start_date: filterForm.start_date || undefined,
+        end_date: filterForm.end_date || undefined,
+    })
+}
+
+const createActionItems = computed(() => [
+    {
+        label: 'Pesanan Pembelian (PO Draf)',
+        description: 'Buat draf pemesanan barang ke pemasok',
+        icon: faFileInvoice,
+        action: () => emit('create'),
+    },
+    {
+        label: 'Beli Langsung (Direct Purchase)',
+        description: 'Catat pembelian dan langsung terima stok fisik',
+        icon: faBolt,
+        action: () => emit('create-direct'),
+    },
+])
+
+const toolItems = computed(() => [
+    {
+        label: 'Ekspor Riwayat Pembelian (CSV)',
+        icon: faFileCsv,
+        action: exportCsv,
+    },
+])
 </script>

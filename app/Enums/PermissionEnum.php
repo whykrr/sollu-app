@@ -152,6 +152,8 @@ enum PermissionEnum: string
     case PURCHASE_ORDER_APPROVE = 'purchase_order.approve';
     case PURCHASE_ORDER_CANCEL = 'purchase_order.cancel';
     case PURCHASE_ORDER_RECEIVE = 'purchase_order.receive';
+    case PURCHASE_ORDER_VOID = 'purchase_order.void';
+    case PURCHASE_ORDER_RETURN = 'purchase_order.return';
 
     /*
     |--------------------------------------------------------------------------
@@ -315,6 +317,8 @@ enum PermissionEnum: string
             self::PURCHASE_ORDER_APPROVE => 'Akses Approval Purchase Order',
             self::PURCHASE_ORDER_CANCEL => 'Akses Membatalkan Purchase Order',
             self::PURCHASE_ORDER_RECEIVE => 'Akses Penerimaan Purchase Order',
+            self::PURCHASE_ORDER_VOID => 'Akses Void Penerimaan Purchase Order',
+            self::PURCHASE_ORDER_RETURN => 'Akses Retur Pembelian Supplier',
 
             // Promo
             self::PROMO_ALL => 'Semua Akses Promo',
@@ -418,7 +422,9 @@ enum PermissionEnum: string
             self::PURCHASE_ORDER_UPDATE,
             self::PURCHASE_ORDER_APPROVE,
             self::PURCHASE_ORDER_CANCEL,
-            self::PURCHASE_ORDER_RECEIVE => 'inventory_and_supply',
+            self::PURCHASE_ORDER_RECEIVE,
+            self::PURCHASE_ORDER_VOID,
+            self::PURCHASE_ORDER_RETURN => 'inventory_and_supply',
 
             self::PROMO_ALL,
             self::PROMO_VIEW,

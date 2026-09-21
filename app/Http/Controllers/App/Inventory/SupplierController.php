@@ -22,11 +22,7 @@ class SupplierController extends Controller
 
         $suppliers = Supplier::currentBusiness()
             ->filters($validated)
-            ->when($request->sort, function ($query, $sort) use ($request) {
-                $query->orderBy($sort, $request->direction ?? 'asc');
-            }, function ($query) {
-                $query->latest();
-            })
+            ->sortable($request->get('sort', 'created_at'), $request->get('direction', 'desc'))
             ->paginate($request->per_page ?? 20)
             ->withQueryString();
 
@@ -35,6 +31,8 @@ class SupplierController extends Controller
             'filters' => [
                 'search' => $validated['search'] ?? '',
                 'is_active' => $validated['is_active'] ?? '',
+                'sort' => $request->get('sort', 'created_at'),
+                'direction' => $request->get('direction', 'desc'),
             ],
         ]);
     }
@@ -82,7 +80,9 @@ class SupplierController extends Controller
             $supplier->inventoryItems()->sync($validated['inventory_items']);
         }
 
-        return redirect()->back()->with('success', 'Supplier berhasil ditambahkan.');
+        return redirect()
+            ->back()
+            ->with('success', 'Data supplier berhasil disimpan!');
     }
 
     /**
@@ -101,7 +101,9 @@ class SupplierController extends Controller
             $supplier->inventoryItems()->sync([]);
         }
 
-        return redirect()->back()->with('success', 'Supplier berhasil diperbarui.');
+        return redirect()
+            ->back()
+            ->with('success', 'Perubahan data supplier berhasil disimpan.');
     }
 
     /**
@@ -115,11 +117,15 @@ class SupplierController extends Controller
         if ($supplier->purchaseOrders()->exists()) {
             $supplier->update(['is_active' => false]);
 
-            return redirect()->back()->with('error', 'Supplier tidak dapat dihapus karena memiliki riwayat Purchase Order. Status telah dinonaktifkan.');
+            return redirect()
+                ->back()
+                ->with('error', 'Supplier tidak dapat dihapus karena memiliki riwayat Purchase Order. Status telah dinonaktifkan.');
         }
 
         $supplier->delete();
 
-        return redirect()->back()->with('success', 'Supplier berhasil dihapus.');
+        return redirect()
+            ->back()
+            ->with('success', 'Data supplier berhasil dihapus.');
     }
 }

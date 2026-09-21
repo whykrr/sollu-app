@@ -8,6 +8,7 @@ use App\Enums\BusinessStatus;
 use App\Enums\CustomerGender;
 use App\Enums\DatePresetEnum;
 use App\Enums\FeatureEnum;
+use App\Enums\GoodsReceiptStatus;
 use App\Enums\InventoryCostingMethod;
 use App\Enums\InventoryMovementType;
 use App\Enums\InvoiceStatus;
@@ -22,6 +23,7 @@ use App\Enums\PromoStatus;
 use App\Enums\PromoTarget;
 use App\Enums\PromoType;
 use App\Enums\PurchaseOrderStatus;
+use App\Enums\PurchaseReturnStatus;
 use App\Enums\RoleEnum;
 use App\Enums\RoleTemplateEnum;
 use App\Enums\ShiftCashLogType;
@@ -53,6 +55,7 @@ class FrontendEnumProvider
         CustomerGender::class,
         DatePresetEnum::class,
         FeatureEnum::class,
+        GoodsReceiptStatus::class,
         InventoryCostingMethod::class,
         InventoryMovementType::class,
         NotificationCategoryEnum::class,
@@ -65,6 +68,7 @@ class FrontendEnumProvider
         PromoTarget::class,
         PromoType::class,
         PurchaseOrderStatus::class,
+        PurchaseReturnStatus::class,
         RoleEnum::class,
         RoleTemplateEnum::class,
         ShiftStatus::class,

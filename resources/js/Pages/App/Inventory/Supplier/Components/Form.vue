@@ -1,126 +1,146 @@
 <template>
     <div>
         <form class="space-y-2" @submit.prevent="submit">
+            <!-- 1. Core Fields (Selalu tampak) -->
             <TextField
                 id="name"
                 v-model="form.name"
                 label="Nama Supplier"
-                :class="{ 'is-invalid': form.errors.name }"
+                placeholder="Misal: PT Sumber Pangan Abadi"
                 :error="form.errors.name"
                 required
             />
 
-            <TextField
-                id="phone"
-                v-model="form.phone"
-                label="Nomor Telepon"
-                :class="{ 'is-invalid': form.errors.phone }"
-                :error="form.errors.phone"
-            />
-
-            <EmailField
-                id="email"
-                v-model="form.email"
-                label="Email"
-                :class="{ 'is-invalid': form.errors.email }"
-                :error="form.errors.email"
-            />
-
-            <TextareaField
-                id="address"
-                v-model="form.address"
-                label="Alamat"
-                :class="{ 'is-invalid': form.errors.address }"
-                :error="form.errors.address"
-            />
-
-            <TextareaField
-                id="notes"
-                v-model="form.notes"
-                label="Catatan"
-                :class="{ 'is-invalid': form.errors.notes }"
-                :error="form.errors.notes"
-            />
-
-            <div class="flex flex-col gap-1">
-                <label for="inventory_items">Bahan Baku & Barang (Yang disupply)</label>
-                <!-- New Search Input -->
-                <input
-                    v-model="searchQuery"
-                    type="text"
-                    class="form-input text-sm w-full rounded-lg border-gray-200"
-                    placeholder="Cari item inventory berdasarkan nama..."
-                    @input="onSearchInput"
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <TextField
+                    id="phone"
+                    v-model="form.phone"
+                    label="Nomor Telepon"
+                    placeholder="Misal: 081234567890"
+                    :error="form.errors.phone"
                 />
 
-                <!-- Loading state -->
-                <div v-if="isSearching" class="text-xs text-slate-500 py-1">Mencari...</div>
-
-                <!-- Checkbox List MainPage -->
-                <div
-                    v-if="searchQuery || searchResults.length > 0"
-                    class="border border-gray-200 rounded-lg p-2 max-h-48 overflow-y-auto space-y-1 mt-1 bg-gray-50/50"
-                >
-                    <label
-                        v-for="item in displayItems"
-                        :key="item.id"
-                        class="flex items-center gap-2 text-sm cursor-pointer hover:bg-white p-1.5 rounded transition-colors"
-                    >
-                        <input
-                            v-model="form.inventory_items"
-                            type="checkbox"
-                            :value="item.id"
-                            class="form-check-input rounded border-gray-300 text-main focus:ring-main"
-                        />
-                        <span class="text-slate-700">{{ item.name }}</span>
-                    </label>
-                    <div
-                        v-if="displayItems.length === 0 && !isSearching"
-                        class="text-xs text-slate-500 text-center py-4"
-                    >
-                        Item tidak ditemukan.
-                    </div>
-                </div>
-
-                <!-- Selected Items Badges -->
-                <div
-                    v-if="selectedItems.length > 0"
-                    class="flex flex-wrap items-center gap-1.5 mt-2"
-                >
-                    <div v-for="item in selectedItems" :key="item.id" class="filter-badge">
-                        <span>{{ item.name }}</span>
-                        <button
-                            type="button"
-                            class="filter-badge-remove"
-                            title="Hapus item"
-                            @click="removeSelectedItem(item.id)"
-                        >
-                            ✕
-                        </button>
-                    </div>
-                </div>
-
-                <span v-if="form.errors.inventory_items" class="form-feedback text-danger mt-1">{{
-                    form.errors.inventory_items
-                }}</span>
+                <EmailField
+                    id="email"
+                    v-model="form.email"
+                    label="Email"
+                    placeholder="Misal: supplier@sumberpangan.com"
+                    :error="form.errors.email"
+                />
             </div>
 
+            <!-- 2. Progressive Disclosure (Opsi Lanjutan & Alamat) -->
+            <DisclosureSection
+                title="Informasi Alamat & Bahan Baku"
+                description="Alamat pengiriman, catatan, dan daftar bahan yang disuplai"
+                :badge="selectedItems.length > 0 ? `${selectedItems.length} item` : null"
+                :error="Boolean(form.errors.address || form.errors.notes || form.errors.inventory_items)"
+            >
+                <TextareaField
+                    id="address"
+                    v-model="form.address"
+                    label="Alamat Lengkap"
+                    placeholder="Misal: Jl. Industri Raya No. 12, Pergudangan Blok C, Jakarta Barat"
+                    :error="form.errors.address"
+                    rows="2"
+                />
+
+                <TextareaField
+                    id="notes"
+                    v-model="form.notes"
+                    label="Catatan Khusus"
+                    placeholder="Misal: Minimal order 10 kg, jadwal pengiriman tiap Selasa & Kamis"
+                    :error="form.errors.notes"
+                    rows="2"
+                />
+
+                <div class="flex flex-col gap-1">
+                    <label class="label">Bahan Baku & Barang yang Disuplai</label>
+                    <div class="form-group sm">
+                        <span class="form-group-text">
+                            <FontAwesomeIcon :icon="faSearch" class="text-slate-400" />
+                        </span>
+                        <input
+                            v-model="searchQuery"
+                            type="text"
+                            class="form sm"
+                            placeholder="Cari bahan baku atau barang..."
+                            @input="onSearchInput"
+                        />
+                    </div>
+
+                    <!-- Loading state -->
+                    <div v-if="isSearching" class="text-xs text-slate-500 py-1">Mencari item...</div>
+
+                    <!-- Checkbox List -->
+                    <div
+                        v-if="searchQuery || searchResults.length > 0"
+                        class="border border-slate-200 rounded-lg p-2 max-h-40 overflow-y-auto space-y-1 mt-1 bg-slate-50/50"
+                    >
+                        <div
+                            v-for="item in displayItems"
+                            :key="item.id"
+                            class="form-check sm hover:bg-white p-1.5 rounded-lg transition-colors cursor-pointer"
+                        >
+                            <input
+                                :id="'supplier-item-' + item.id"
+                                v-model="form.inventory_items"
+                                type="checkbox"
+                                :value="item.id"
+                            />
+                            <label :for="'supplier-item-' + item.id" class="text-slate-700 font-medium flex-1">
+                                {{ item.name }}
+                            </label>
+                        </div>
+                        <div
+                            v-if="displayItems.length === 0 && !isSearching"
+                            class="text-xs text-slate-500 text-center py-3"
+                        >
+                            Item tidak ditemukan.
+                        </div>
+                    </div>
+
+                    <!-- Selected Items Badges -->
+                    <div
+                        v-if="selectedItems.length > 0"
+                        class="flex flex-wrap items-center gap-1.5 mt-1"
+                    >
+                        <div v-for="item in selectedItems" :key="item.id" class="filter-badge">
+                            <span>{{ item.name }}</span>
+                            <button
+                                type="button"
+                                class="filter-badge-remove"
+                                title="Hapus item"
+                                @click="removeSelectedItem(item.id)"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+
+                    <span v-if="form.errors.inventory_items" class="form-feedback text-danger mt-1">{{
+                        form.errors.inventory_items
+                    }}</span>
+                </div>
+            </DisclosureSection>
+
+            <!-- 3. Status Aktif -->
             <div
-                class="flex items-center justify-between border p-3 rounded-lg cursor-pointer hover:bg-slate-50 transition w-full mt-2"
-                @click="form.is_active = form.is_active ? 0 : 1"
+                class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition w-full"
+                @click="form.is_active = form.is_active ? false : true"
             >
                 <div>
-                    <div class="font-bold text-sm text-slate-700">Status Aktif</div>
+                    <div class="font-semibold text-xs text-slate-700">Status Aktif</div>
                     <div class="text-xs text-slate-500 mt-0.5">
                         {{
                             form.is_active
-                                ? 'Supplier dalam keadaan aktif dan dapat dipilih untuk pembuatan Purchase Order.'
-                                : 'Supplier ditangguhkan sementara dan disembunyikan dari pilihan transaksi.'
+                                ? 'Supplier aktif dan dapat dipilih untuk pembuatan Purchase Order.'
+                                : 'Supplier dinonaktifkan sementara dan disembunyikan dari pilihan transaksi.'
                         }}
                     </div>
                 </div>
                 <div @click.stop>
-                    <Switch id="is_active" v-model="form.is_active" />
+                    <Switch id="is_active" v-model="form.is_active" size="sm" />
                 </div>
             </div>
         </form>
@@ -141,10 +161,13 @@ import { ref, watch, computed, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
 import axios from 'axios'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import TextField from '@/Components/Form/TextField.vue'
 import EmailField from '@/Components/Form/EmailField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import Switch from '@/Components/Form/Switch.vue'
+import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
 
 const props = defineProps({
     supplier: {

@@ -4,6 +4,7 @@ namespace App\Models\Inventory;
 
 use App\Models\Business;
 use App\Trait\HasBusiness;
+use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -28,6 +29,7 @@ class Supplier extends Model
     use HasFactory;
     use HasUuids;
     use SoftDeletes;
+    use SortableModel;
 
     protected $fillable = [
         'business_id',
@@ -37,6 +39,19 @@ class Supplier extends Model
         'address',
         'notes',
         'is_active',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    protected array $sortable = [
+        'name',
+        'phone',
+        'email',
+        'address',
+        'is_active',
+        'created_at',
+        'updated_at',
     ];
 
     protected function casts(): array
@@ -62,6 +77,11 @@ class Supplier extends Model
     public function purchaseOrders(): HasMany
     {
         return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public function purchaseReturns(): HasMany
+    {
+        return $this->hasMany(PurchaseReturn::class);
     }
 
     // ── Scopes ───────────────────────────────────────────────────

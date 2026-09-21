@@ -86,6 +86,10 @@
             background-color: #17a2b8;
         }
 
+        .status-partial_received {
+            background-color: #e0a800;
+        }
+
         .status-received {
             background-color: #28a745;
         }
@@ -118,7 +122,7 @@
 
     @include('pdf.partials.header', [
         'business' => $business,
-        'outlet' => null, // Outlet goes inside the info-table in PO format
+        'outlet' => null,
         'title' => 'PURCHASE ORDER',
         'subtitle' => '#' . $po->po_number
     ])
@@ -136,10 +140,14 @@
                 {{ $po->outlet?->name ?? '-' }}<br>
                 {{ $po->outlet?->address ?? '' }}<br>
                 <br>
-                <strong>Tanggal PO:</strong> {{ $po->created_at->format('d M Y') }}<br><br>
+                <strong>Tanggal PO:</strong> {{ $po->order_date ? date('d M Y', strtotime($po->order_date)) : $po->created_at->format('d M Y') }}<br>
+                @if ($po->reference_number)
+                    <strong>No. Referensi:</strong> {{ $po->reference_number }}<br>
+                @endif
+                <br>
                 <strong>Status:</strong>
-                <span class="status-badge status-{{ $po->status }}">
-                    {{ strtoupper($po->status === 'cancelled' ? 'DIBATALKAN' : $po->status) }}
+                <span class="status-badge status-{{ is_string($po->status) ? $po->status : $po->status->value }}">
+                    {{ strtoupper(is_string($po->status) ? \App\Enums\PurchaseOrderStatus::tryFrom($po->status)?->label() ?? $po->status : $po->status->label()) }}
                 </span>
             </td>
         </tr>
@@ -151,10 +159,12 @@
                 <th>No</th>
                 <th>Nama Barang</th>
                 <th class="text-center">Jml Pesan</th>
-                @if ($po->status === 'received')
+                @if (in_array(is_string($po->status) ? $po->status : $po->status->value, ['partial_received', 'received']))
                     <th class="text-center">Jml Terima</th>
                 @endif
                 <th class="text-right">Harga Satuan</th>
+                <th class="text-right">Diskon</th>
+                <th class="text-right">Pajak</th>
                 <th class="text-right">Subtotal</th>
             </tr>
         </thead>
@@ -164,22 +174,24 @@
                     <td>{{ $index + 1 }}</td>
                     <td>
                         {{ $item->inventoryItem?->name ?? 'Item' }}
-                        <br><small style="color: #666;">Satuan: {{ $item->uom?->name ?? '-' }}</small>
+                        <br><small style="color: #666;">Satuan Beli: {{ $item->uom?->name ?? '-' }}</small>
                     </td>
                     <td class="text-center">
                         {{ rtrim(rtrim(number_format($item->qty_ordered, 2, ',', '.'), '0'), ',') }}</td>
-                    @if ($po->status === 'received')
+                    @if (in_array(is_string($po->status) ? $po->status : $po->status->value, ['partial_received', 'received']))
                         <td class="text-center">
                             {{ rtrim(rtrim(number_format($item->qty_received, 2, ',', '.'), '0'), ',') }}</td>
                     @endif
                     <td class="text-right">Rp {{ number_format($item->purchase_price, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item->discount_amount ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item->tax_amount ?? 0, 0, ',', '.') }}</td>
                     <td class="text-right">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="{{ $po->status === 'received' ? 5 : 4 }}" class="text-right" style="font-weight: bold;">
+                <td colspan="{{ in_array(is_string($po->status) ? $po->status : $po->status->value, ['partial_received', 'received']) ? 7 : 6 }}" class="text-right" style="font-weight: bold;">
                     TOTAL KESELURUHAN</td>
                 <td class="text-right" style="font-weight: bold; font-size: 16px;">Rp
                     {{ number_format($po->total_amount, 0, ',', '.') }}</td>

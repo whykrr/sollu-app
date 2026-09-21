@@ -6,11 +6,11 @@ use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Support\Facades\Auth;
 
-class StorePurchaseOrderRequest extends BaseInertiaFormRequest
+class DirectPurchaseRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_CREATE->value);
+        return Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_CREATE->value) ?? false;
     }
 
     public function rules(): array
@@ -19,8 +19,8 @@ class StorePurchaseOrderRequest extends BaseInertiaFormRequest
             'supplier_id' => ['nullable', 'uuid', 'exists:suppliers,id'],
             'outlet_id' => ['required', 'uuid', 'exists:outlets,id'],
             'reference_number' => ['nullable', 'string', 'max:100'],
+            'delivery_order_number' => ['nullable', 'string', 'max:100'],
             'order_date' => ['required', 'date'],
-            'expected_date' => ['nullable', 'date', 'after_or_equal:order_date'],
             'notes' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.inventory_item_id' => ['required', 'uuid', 'exists:inventory_items,id'],

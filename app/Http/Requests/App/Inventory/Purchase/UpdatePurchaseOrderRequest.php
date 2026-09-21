@@ -18,6 +18,7 @@ class UpdatePurchaseOrderRequest extends BaseInertiaFormRequest
         return [
             'supplier_id' => ['nullable', 'uuid', 'exists:suppliers,id'],
             'outlet_id' => ['required', 'uuid', 'exists:outlets,id'],
+            'reference_number' => ['nullable', 'string', 'max:100'],
             'order_date' => ['required', 'date'],
             'expected_date' => ['nullable', 'date', 'after_or_equal:order_date'],
             'notes' => ['nullable', 'string'],
@@ -26,6 +27,9 @@ class UpdatePurchaseOrderRequest extends BaseInertiaFormRequest
             'items.*.uom_id' => ['required', 'uuid', 'exists:uoms,id'],
             'items.*.qty_ordered' => ['required', 'numeric', 'min:0.01'],
             'items.*.purchase_price' => ['required', 'numeric', 'min:0'],
+            'items.*.discount_amount' => ['nullable', 'numeric', 'min:0'],
+            'items.*.tax_amount' => ['nullable', 'numeric', 'min:0'],
+            'items.*.conversion_factor' => ['nullable', 'numeric', 'min:0.0001'],
         ];
     }
 }

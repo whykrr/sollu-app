@@ -59,8 +59,10 @@ Route::prefix('inventories')->group(function () {
             // Purchases
             Route::middleware('plan.feature:'.FeatureEnum::PURCHASE_ORDERS->value)->group(function () {
                 Route::get('purchases/search-items', [StockPurchasesController::class, 'searchItems'])->name('purchases.search-items');
+                Route::get('purchases/export-csv', [StockPurchasesController::class, 'exportCsv'])->name('purchases.export-csv');
                 Route::get('purchases', [StockPurchasesController::class, 'index'])->name('purchases.index');
                 Route::post('purchases', [StockPurchasesController::class, 'store'])->name('purchases.store');
+                Route::post('purchases/direct', [StockPurchasesController::class, 'directStore'])->name('purchases.direct');
                 Route::get('purchases/{id}', [StockPurchasesController::class, 'show'])->name('purchases.show');
                 Route::put('purchases/{id}', [StockPurchasesController::class, 'update'])->name('purchases.update');
                 Route::delete('purchases/{id}', [StockPurchasesController::class, 'destroy'])->name('purchases.destroy');
@@ -69,6 +71,13 @@ Route::prefix('inventories')->group(function () {
                 Route::post('purchases/{id}/cancel', [StockPurchasesController::class, 'cancel'])->name('purchases.cancel');
                 Route::post('purchases/{id}/void', [StockPurchasesController::class, 'void'])->name('purchases.void');
                 Route::get('purchases/{id}/pdf', [StockPurchasesController::class, 'pdf'])->name('purchases.pdf');
+
+                // Goods Receipts & Returns
+                Route::post('purchases/receipts/{id}/void', [StockPurchasesController::class, 'voidReceipt'])->name('purchases.receipts.void');
+                Route::get('purchases/receipts/{id}/pdf', [StockPurchasesController::class, 'receiptPdf'])->name('purchases.receipts.pdf');
+                Route::post('purchases/returns', [StockPurchasesController::class, 'returnStore'])->name('purchases.returns.store');
+                Route::post('purchases/returns/{id}/void', [StockPurchasesController::class, 'voidReturn'])->name('purchases.returns.void');
+                Route::get('purchases/returns/{id}/pdf', [StockPurchasesController::class, 'returnPdf'])->name('purchases.returns.pdf');
             });
 
             // Stock Opnames

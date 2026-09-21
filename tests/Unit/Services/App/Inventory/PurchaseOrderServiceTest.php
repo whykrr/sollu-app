@@ -233,8 +233,81 @@ class PurchaseOrderServiceTest extends TestCase
         $balance = InventoryBalance::where('inventory_item_id', $inventoryItem->id)->first();
         $this->assertEquals(0, $balance->current_stock);
 
+        $receipt = \App\Models\Inventory\GoodsReceipt::where('purchase_order_id', $po->id)->first();
+        $this->assertNotNull($receipt);
         $this->assertDatabaseMissing('inventory_cost_layers', [
-            'reference_id' => $po->id,
+            'reference_id' => $receipt->id,
         ]);
+    }
+
+    public function test_it_creates_purchase_order_with_item_discounts_and_taxes()
+    {
+        [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
+
+        $data = [
+            'outlet_id' => $outlet->id,
+            'order_date' => now()->format('Y-m-d'),
+            'reference_number' => 'REF-12345',
+            'items' => [
+                [
+                    'inventory_item_id' => $inventoryItem->id,
+                    'qty_ordered' => 10,
+                    'purchase_price' => 1000,
+                    'discount_amount' => 500,
+                    'tax_amount' => 950,
+                ],
+            ],
+        ];
+
+        $po = $this->service->createPO($data, $user);
+
+        $this->assertEquals(10450, $po->total_amount);
+        $this->assertEquals('REF-12345', $po->reference_number);
+        $this->assertEquals(500, $po->items[0]->discount_amount);
+        $this->assertEquals(950, $po->items[0]->tax_amount);
+        $this->assertEquals(10450, $po->items[0]->subtotal);
+    }
+
+    public function test_it_creates_direct_purchase_with_instant_goods_receipt()
+    {
+        [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
+
+        $data = [
+            'outlet_id' => $outlet->id,
+            'order_date' => now()->format('Y-m-d'),
+            'delivery_order_number' => 'SJ-DIRECT-01',
+            'items' => [
+                [
+                    'inventory_item_id' => $inventoryItem->id,
+                    'qty_ordered' => 8,
+                    'purchase_price' => 2000,
+                    'discount_amount' => 1000,
+                    'tax_amount' => 0,
+                    'conversion_factor' => 2.0,
+                ],
+            ],
+        ];
+
+        $po = $this->service->directPurchase($data, $user);
+
+        $this->assertEquals(PurchaseOrderStatus::Received, $po->status);
+        $this->assertCount(1, $po->goodsReceipts);
+
+        $receipt = $po->goodsReceipts->first();
+        $this->assertEquals('SJ-DIRECT-01', $receipt->delivery_order_number);
+        $this->assertCount(1, $receipt->items);
+
+        $receiptItem = $receipt->items->first();
+        $this->assertEquals(8, $receiptItem->received_purchase_qty);
+        $this->assertEquals(2.0, $receiptItem->conversion_factor);
+        $this->assertEquals(16, $receiptItem->received_inventory_qty);
+        // Cost = (8 * 2000) - 1000 = 15000. Unit cost in inventory = 15000 / 16 = 937.5
+        $this->assertEquals(15000, $receiptItem->total_cost);
+        $this->assertEquals(937.5, $receiptItem->unit_cost);
+
+        // Check Inventory Stock
+        $balance = InventoryBalance::where('inventory_item_id', $inventoryItem->id)->first();
+        $this->assertNotNull($balance);
+        $this->assertEquals(16, $balance->current_stock);
     }
 }

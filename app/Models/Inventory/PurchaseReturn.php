@@ -2,7 +2,7 @@
 
 namespace App\Models\Inventory;
 
-use App\Enums\PurchaseOrderStatus;
+use App\Enums\PurchaseReturnStatus;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -19,15 +19,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property-read Business $business
  * @property-read Outlet $outlet
- * @property-read Supplier $supplier
+ * @property-read PurchaseOrder|null $purchaseOrder
+ * @property-read Supplier|null $supplier
  * @property-read User|null $creator
- * @property-read User|null $approver
- * @property-read Collection|PurchaseOrderItem[] $items
+ * @property-read Collection|PurchaseReturnItem[] $items
  *
  * @mixin \Eloquent
- * @mixin IdeHelperPurchaseOrder
+ * @mixin IdeHelperPurchaseReturn
  */
-class PurchaseOrder extends Model
+class PurchaseReturn extends Model
 {
     use HasBusiness;
     use HasFactory;
@@ -37,23 +37,20 @@ class PurchaseOrder extends Model
     protected $fillable = [
         'business_id',
         'outlet_id',
+        'purchase_order_id',
         'supplier_id',
-        'po_number',
+        'return_number',
+        'return_date',
+        'reason',
+        'total_return_amount',
         'status',
-        'order_date',
-        'expected_date',
-        'reference_number',
-        'notes',
-        'total_amount',
         'created_by',
-        'approved_by',
     ];
 
     protected array $sortable = [
-        'po_number',
-        'reference_number',
-        'order_date',
-        'total_amount',
+        'return_number',
+        'return_date',
+        'total_return_amount',
         'status',
         'created_at',
         'updated_at',
@@ -62,10 +59,9 @@ class PurchaseOrder extends Model
     protected function casts(): array
     {
         return [
-            'status' => PurchaseOrderStatus::class,
-            'order_date' => 'date',
-            'expected_date' => 'date',
-            'total_amount' => 'float',
+            'status' => PurchaseReturnStatus::class,
+            'return_date' => 'date',
+            'total_return_amount' => 'float',
         ];
     }
 
@@ -81,24 +77,14 @@ class PurchaseOrder extends Model
         return $this->belongsTo(Outlet::class);
     }
 
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class);
+    }
+
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
-    }
-
-    public function items(): HasMany
-    {
-        return $this->hasMany(PurchaseOrderItem::class);
-    }
-
-    public function goodsReceipts(): HasMany
-    {
-        return $this->hasMany(GoodsReceipt::class);
-    }
-
-    public function purchaseReturns(): HasMany
-    {
-        return $this->hasMany(PurchaseReturn::class);
     }
 
     public function creator(): BelongsTo
@@ -106,9 +92,9 @@ class PurchaseOrder extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function approver(): BelongsTo
+    public function items(): HasMany
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->hasMany(PurchaseReturnItem::class);
     }
 
     // ── Scopes ───────────────────────────────────────────────────
@@ -117,10 +103,7 @@ class PurchaseOrder extends Model
     {
         return $builder->when(
             $filters['search'] ?? false,
-            fn (Builder $q, $value) => $q->where(function (Builder $sub) use ($value) {
-                $sub->whereLike('po_number', "%{$value}%")
-                    ->orWhereLike('reference_number', "%{$value}%");
-            })
+            fn (Builder $q, $value) => $q->whereLike('return_number', "%{$value}%")
         )->when(
             $filters['status'] ?? false,
             fn (Builder $q, $value) => $q->where('status', $value)
@@ -128,14 +111,17 @@ class PurchaseOrder extends Model
             $filters['supplier_id'] ?? false,
             fn (Builder $q, $value) => $q->where('supplier_id', $value)
         )->when(
+            $filters['purchase_order_id'] ?? false,
+            fn (Builder $q, $value) => $q->where('purchase_order_id', $value)
+        )->when(
             $filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['start_date'] ?? false,
-            fn (Builder $q, $value) => $q->whereDate('order_date', '>=', $value)
+            fn (Builder $q, $value) => $q->whereDate('return_date', '>=', $value)
         )->when(
             $filters['end_date'] ?? false,
-            fn (Builder $q, $value) => $q->whereDate('order_date', '<=', $value)
+            fn (Builder $q, $value) => $q->whereDate('return_date', '<=', $value)
         );
     }
 }

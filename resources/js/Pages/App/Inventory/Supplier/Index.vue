@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Data Supplier" />
+            <MainPageHeader
+                title="Data Supplier"
+                description="Kelola daftar pemasok, kontak, dan bahan baku yang disuplai untuk kebutuhan pengadaan tokomu."
+            />
         </template>
 
         <template #filter>
@@ -11,44 +14,37 @@
             :headers="headers"
             :data="suppliers.data"
             :action="true"
-            :sort="route().params.sort"
-            :sort-direction="route().params.direction"
-            @sort="
-                (s, d) =>
-                    router.get(
-                        route('inventory.suppliers.index'),
-                        { ...route().params, sort: s, direction: d, page: 1 },
-                        { preserveState: true, preserveScroll: true }
-                    )
-            "
+            :sort="filters?.sort"
+            :sort-direction="filters?.direction"
+            @row-click="openForm"
         >
-            <template #contact="{ item }">
+            <template #contact="{ row }">
                 <div class="flex flex-col">
-                    <span v-if="item.phone" class="text-sm"
-                        ><FontAwesomeIcon :icon="faPhone" class="mr-1 text-gray-500" />{{
-                            item.phone
-                        }}</span
-                    >
-                    <span v-if="item.email" class="text-sm text-gray-500"
-                        ><FontAwesomeIcon :icon="faEnvelope" class="mr-1" />{{ item.email }}</span
-                    >
-                    <span v-if="!item.phone && !item.email">-</span>
+                    <span v-if="row.phone" class="text-sm">
+                        <FontAwesomeIcon :icon="faPhone" class="mr-1 text-gray-500" />
+                        {{ row.phone }}
+                    </span>
+                    <span v-if="row.email" class="text-sm text-gray-500">
+                        <FontAwesomeIcon :icon="faEnvelope" class="mr-1" />
+                        {{ row.email }}
+                    </span>
+                    <span v-if="!row.phone && !row.email">-</span>
                 </div>
             </template>
-            <template #is_active="{ item }">
-                <span class="badge" :class="item.is_active ? 'badge-success' : 'badge-danger'">
-                    {{ item.is_active ? 'Aktif' : 'Nonaktif' }}
+            <template #is_active="{ row }">
+                <span class="badge" :class="row.is_active ? 'badge-success' : 'badge-danger'">
+                    {{ row.is_active ? 'Aktif' : 'Nonaktif' }}
                 </span>
             </template>
-            <template #created_at="{ item }">
-                {{ formatDateTime(item.created_at) }}
+            <template #created_at="{ row }">
+                {{ formatDateTime(row.created_at) }}
             </template>
-            <template #actions="{ item }">
-                <div class="flex items-center gap-1">
-                    <button class="btn btn-highlight-main btn-sm" @click="openForm(item)">
+            <template #actions="{ row }">
+                <div class="flex items-center gap-1" @click.stop>
+                    <button class="btn btn-highlight-main btn-sm" @click="openForm(row)">
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
-                    <button class="btn btn-flat btn-sm text-danger" @click="confirmDelete(item)">
+                    <button class="btn btn-flat btn-sm text-danger" @click="confirmDelete(row)">
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>
                 </div>
@@ -67,7 +63,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import { faPencil, faTrash, faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import MainPage from '@/Components/UI/MainPage.vue'
@@ -79,12 +74,11 @@ import SupplierFilter from './Components/SupplierFilter.vue'
 import { useModalStore } from '@/store/notification'
 import { usePopUpStore } from '@/store/popup'
 import { formatDateTime } from '@/Composable/time'
-import { router } from '@inertiajs/vue3'
 
 const modalStore = useModalStore()
 const popUpStore = usePopUpStore()
 
-const props = defineProps({
+defineProps({
     suppliers: {
         type: Object,
         default: () => ({ data: [], links: [] }),
@@ -98,13 +92,14 @@ const props = defineProps({
 const headers = [
     { label: 'Nama', field: 'name', sortable: true },
     { label: 'Kontak', field: 'contact', slot: 'contact', sortable: false },
-    { label: 'Alamat', field: 'address', sortable: false },
+    { label: 'Alamat', field: 'address', sortable: false, show: 'md' },
     { label: 'Status', field: 'is_active', slot: 'is_active', sortable: false },
     {
         label: 'Dibuat',
         field: 'created_at',
         slot: 'created_at',
         sortable: true,
+        show: 'lg',
     },
 ]
 

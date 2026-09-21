@@ -57,9 +57,9 @@ enum InventoryMovementType: string
     {
         return match ($this) {
             self::InitialStock => 'badge-main',
-            self::Purchase, self::PurchaseReturn, self::TransferIn, self::AdjustmentIn, self::OpnameSurplus, self::RecipeReturn, self::SaleReturn => 'badge-success',
+            self::Purchase, self::TransferIn, self::AdjustmentIn, self::OpnameSurplus, self::RecipeReturn, self::SaleReturn => 'badge-success',
             self::Sale, self::RecipeDeduction, self::BundleDeduction => 'badge-info',
-            self::TransferOut => 'badge-warning',
+            self::TransferOut, self::PurchaseReturn => 'badge-warning',
             self::Waste, self::OpnameDeficit, self::PurchaseVoid, self::AdjustmentOut => 'badge-danger',
             self::Adjustment, self::Opname => 'badge-gray',
         };
@@ -102,7 +102,6 @@ enum InventoryMovementType: string
         return match ($this) {
             self::InitialStock,
             self::Purchase,
-            self::PurchaseReturn,
             self::TransferIn,
             self::AdjustmentIn,
             self::OpnameSurplus,
@@ -125,6 +124,7 @@ enum InventoryMovementType: string
             self::Waste,
             self::OpnameDeficit,
             self::PurchaseVoid,
+            self::PurchaseReturn,
             self::AdjustmentOut => true,
             default => false,
         };

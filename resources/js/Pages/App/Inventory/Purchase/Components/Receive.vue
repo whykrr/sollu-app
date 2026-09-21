@@ -1,83 +1,147 @@
 <template>
-    <form class="space-y-2" @submit.prevent="submit">
-        <div v-if="purchase" class="mb-2 bg-gray-100 p-4 rounded-lg">
-            <p><strong>Supplier:</strong> {{ purchase.supplier?.name }}</p>
-            <p><strong>Outlet:</strong> {{ purchase.outlet?.name }}</p>
+    <form class="space-y-3" @submit.prevent="submit">
+        <!-- Informasi Dokumen Pembelian -->
+        <div v-if="purchase" class="bg-slate-50 border border-slate-200 p-3 rounded-lg text-xs space-y-1.5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Nomor PO:</span>
+                    <span class="font-bold text-slate-800">{{ purchase.po_number }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Pemasok:</span>
+                    <span class="font-semibold text-slate-700">{{ purchase.supplier?.name || '-' }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Outlet Tujuan:</span>
+                    <span class="font-semibold text-slate-700">{{ purchase.outlet?.name || '-' }}</span>
+                </div>
+            </div>
+            <div v-if="purchase.reference_number" class="text-slate-500 pt-1 border-t border-slate-200/60">
+                <span class="text-slate-400">No. Referensi:</span> {{ purchase.reference_number }}
+            </div>
         </div>
 
-        <div class="border-t pt-2">
-            <h3 class="text-lg font-semibold mb-2">Input Penerimaan & Konversi</h3>
+        <!-- Input Surat Jalan & Tanggal Terima -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <TextField
+                id="delivery_order_number"
+                v-model="form.delivery_order_number"
+                label="Nomor Surat Jalan (DO)"
+                placeholder="Misal: SJ-2026-00129"
+                :class="{ 'is-invalid': form.errors.delivery_order_number }"
+                :error="form.errors.delivery_order_number"
+                required
+            />
+
+            <TextField
+                id="received_at"
+                v-model="form.received_at"
+                type="date"
+                label="Tanggal Diterima"
+                :class="{ 'is-invalid': form.errors.received_at }"
+                :error="form.errors.received_at"
+                required
+            />
+        </div>
+
+        <TextareaField
+            id="notes"
+            v-model="form.notes"
+            label="Catatan Penerimaan (Opsional)"
+            placeholder="Kondisi barang saat tiba, nomor polisi armada, atau catatan lain..."
+            :class="{ 'is-invalid': form.errors.notes }"
+            :error="form.errors.notes"
+            rows="2"
+        />
+
+        <!-- Input Penerimaan Barang -->
+        <div class="border-t border-slate-200 pt-2 space-y-2">
+            <div>
+                <h3 class="text-xs font-bold text-slate-800">Rincian Fisik Barang & Konversi Satuan</h3>
+                <p class="text-[11px] text-slate-500">
+                    Masukkan jumlah fisik barang yang diterima pada pengiriman ini. Sesuaikan faktor konversi jika kemasan berbeda dengan satuan dasar inventori.
+                </p>
+            </div>
 
             <div
                 v-if="form.items.length === 0"
-                class="text-center py-4 text-gray-500 border rounded-lg"
+                class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
             >
-                Data item tidak ditemukan.
+                Seluruh barang dalam pesanan pembelian ini telah diterima lengkap.
             </div>
 
-            <div v-else class="space-y-2">
+            <div v-else class="space-y-2 max-h-80 overflow-y-auto pr-1">
                 <div
                     v-for="(item, index) in form.items"
-                    :key="index"
-                    class="flex gap-2 items-center border p-3 rounded-lg"
+                    :key="item.purchase_order_item_id || index"
+                    class="p-2.5 border border-slate-200 rounded-lg bg-white space-y-2"
                 >
-                    <div class="flex-1">
-                        <div class="font-semibold">{{ item.name }}</div>
-                        <div class="text-sm text-gray-500">
-                            Dipesan: {{ item.qty_ordered }}
-                            {{ item.uom_name }}
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-xs text-slate-800">{{ item.name }}</div>
+                            <div class="text-[11px] text-slate-500">
+                                Dipesan: <span class="font-semibold text-slate-700">{{ formatQuantity(item.qty_ordered) }} {{ item.uom_name }}</span> |
+                                Belum Tiba: <span class="font-bold text-amber-600">{{ formatQuantity(item.outstanding_qty) }} {{ item.uom_name }}</span>
+                            </div>
                         </div>
-                        <div
-                            v-if="
-                                item.uom_name &&
-                                item.base_uom_name &&
-                                item.uom_name !== item.base_uom_name
-                            "
-                            class="text-xs text-blue-600 mt-1"
+                        <button
+                            v-if="form.items.length > 1"
+                            type="button"
+                            class="text-slate-400 hover:text-danger text-xs cursor-pointer p-1"
+                            title="Jangan terima barang ini sekarang"
+                            @click="removeItem(index)"
                         >
-                            Konversi: 1 {{ item.uom_name }} =
-                            {{ item.conversion_factor ?? '1' }}
-                            {{ item.base_uom_name }}
+                            <FontAwesomeIcon :icon="faTrash" />
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-12 gap-2 items-end pt-1 border-t border-slate-100">
+                        <div class="col-span-12 sm:col-span-4">
+                            <NumberField
+                                :id="'qty_rcv_' + index"
+                                v-model="item.qty_received"
+                                :label="'Jml Diterima (' + item.uom_name + ')'"
+                                class="sm"
+                                min="0.0001"
+                                :max="Number(item.outstanding_qty)"
+                                step="any"
+                                :class="{
+                                    'is-invalid': form.errors[`items.${index}.qty_received`],
+                                }"
+                                :error="form.errors[`items.${index}.qty_received`]"
+                                required
+                            />
                         </div>
-                    </div>
-                    <div class="w-32">
-                        <NumberField
-                            v-model="item.qty_ordered"
-                            label="Jml Diterima"
-                            class="sm"
-                            :class="{
-                                'is-invalid': form.errors[`items.${index}.qty_received`],
-                            }"
-                            :error="form.errors[`items.${index}.qty_received`]"
-                        />
-                    </div>
-                    <div class="w-32">
-                        <NumberField
-                            v-model="item.conversion_factor"
-                            label="Faktor Konversi"
-                            min="1"
-                            class="sm"
-                            step="any"
-                            :class="{
-                                'is-invalid': form.errors[`items.${index}.conversion_factor`],
-                            }"
-                            :error="form.errors[`items.${index}.conversion_factor`]"
-                            title="Faktor pengali ke satuan inventori (contoh: 1 dus = 24 botol, isi 24)"
-                        />
-                    </div>
-                    <div class="w-32 pt-6 text-sm text-gray-700">
-                        Masuk Stok:
-                        <strong
-                            >{{
-                                new Intl.NumberFormat('id-ID', {
-                                    maximumFractionDigits: 2,
-                                }).format(
-                                    Number(item.qty_received || 0) *
-                                        Number(item.conversion_factor || 1)
-                                )
-                            }}
-                            {{ item.base_uom_name }}</strong
-                        >
+
+                        <div class="col-span-12 sm:col-span-4">
+                            <NumberField
+                                :id="'conv_' + index"
+                                v-model="item.conversion_factor"
+                                label="Faktor Konversi"
+                                class="sm"
+                                min="0.0001"
+                                step="any"
+                                :class="{
+                                    'is-invalid': form.errors[`items.${index}.conversion_factor`],
+                                }"
+                                :error="form.errors[`items.${index}.conversion_factor`]"
+                                title="Faktor pengali ke satuan dasar inventori (contoh: 1 dus = 24 botol, isi 24)"
+                                required
+                            />
+                        </div>
+
+                        <div class="col-span-12 sm:col-span-4 pb-1 text-right sm:text-right">
+                            <div class="text-[11px] text-slate-400">Masuk Inventori:</div>
+                            <div class="font-bold text-xs text-emerald-600">
+                                {{
+                                    formatQuantity(
+                                        Number(item.qty_received || 0) *
+                                            Number(item.conversion_factor || 1)
+                                    )
+                                }}
+                                {{ item.base_uom_name }}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,7 +155,7 @@
         <button
             type="button"
             class="btn btn-main"
-            :disabled="form.processing || form.items.length === 0"
+            :disabled="form.processing || form.items.length === 0 || !form.delivery_order_number"
             @click="submit"
         >
             Simpan Penerimaan
@@ -102,9 +166,12 @@
 <script setup>
 import { watch, ref, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import { usePopUpStore } from '@/store/popup'
-import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
+import TextField from '@/Components/Form/TextField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
 
 const popUpStore = usePopUpStore()
 
@@ -121,30 +188,51 @@ onMounted(() => {
 })
 
 const form = useForm({
+    delivery_order_number: '',
+    received_at: new Date().toISOString().split('T')[0],
+    notes: '',
     items: [],
 })
+
+const formatQuantity = value => {
+    return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(value || 0))
+}
 
 watch(
     () => props.purchase,
     data => {
         form.reset()
         if (data && data.items) {
-            form.items = data.items.map(i => ({
-                id: i.id,
-                inventory_item_id: i.inventory_item_id,
-                name: i.inventory_item?.name || 'Unknown',
-                uom_name: i.uom?.code || '-',
-                base_uom_name: i.inventory_item?.uom?.code || '-',
-                qty_ordered: i.qty_ordered_formatted,
-                qty_received: i.qty_ordered_formatted, // default to fully received
-                conversion_factor: 1, // default conversion factor 1
-            }))
+            // Filter hanya item yang masih memiliki sisa kuantitas belum diterima (outstanding > 0)
+            const remainingItems = data.items
+                .map(i => {
+                    const ordered = Number(i.qty_ordered || 0)
+                    const received = Number(i.qty_received || 0)
+                    const outstanding = Math.max(0, ordered - received)
+                    return {
+                        purchase_order_item_id: i.id,
+                        name: i.inventory_item?.name || 'Item',
+                        uom_name: i.uom?.name || i.inventory_item?.uom?.name || '-',
+                        base_uom_name: i.inventory_item?.uom?.name || '-',
+                        qty_ordered: ordered,
+                        qty_received: outstanding, // default isi sisa
+                        outstanding_qty: outstanding,
+                        conversion_factor: Number(i.conversion_factor || 1),
+                    }
+                })
+                .filter(i => i.outstanding_qty > 0)
+
+            form.items = remainingItems
         } else {
             form.items = []
         }
     },
     { immediate: true }
 )
+
+const removeItem = index => {
+    form.items.splice(index, 1)
+}
 
 const close = () => {
     form.clearErrors()

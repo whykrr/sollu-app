@@ -1,15 +1,20 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Pembelian (Purchase Order)" />
+            <MainPageHeader
+                title="Pembelian"
+                description="Kelola pesanan pembelian barang ke pemasok dan pantau status penerimaan stok tokomu"
+            />
         </template>
 
         <template #filter>
             <PurchaseFilter
-                :filters="filters"
+                :params="params || filters"
                 :suppliers="suppliers"
                 :outlets="outlets"
-                @create="openForm()"
+                @create="openForm('po')"
+                @create-direct="openForm('direct')"
+                @export-csv="handleExportCsv"
             />
         </template>
 
@@ -17,94 +22,115 @@
             :headers="headers"
             :data="purchases.data"
             :action="true"
-            :sort="route().params.sort"
-            :sort-direction="route().params.direction || 'asc'"
+            :sort="params?.sort ?? 'created_at'"
+            :sort-direction="params?.direction ?? 'desc'"
+            @row-click="openDetail"
         >
-            <template #order_date="{ item }">
-                {{ formatDateID(item.created_at) }}
+            <template #po_number="{ row }">
+                <div class="font-bold text-xs text-slate-800">{{ row.po_number }}</div>
+                <div v-if="row.reference_number" class="text-[11px] text-slate-400">
+                    Ref: {{ row.reference_number }}
+                </div>
             </template>
-            <template #supplier="{ item }">
-                {{ item.supplier?.name || '-' }}
+            <template #order_date="{ row }">
+                {{ formatDateID(row.order_date || row.created_at) }}
             </template>
-            <template #outlet="{ item }">
-                {{ item.outlet?.name || '-' }}
+            <template #supplier="{ row }">
+                <span class="font-medium text-slate-800">{{ row.supplier?.name || '-' }}</span>
             </template>
-            <template #status="{ item }">
-                <span class="badge" :class="statusColor(item.status)">
-                    {{ statusLabel(item.status) }}
+            <template #outlet="{ row }">
+                <span class="text-slate-600">{{ row.outlet?.name || '-' }}</span>
+            </template>
+            <template #status="{ row }">
+                <span
+                    class="badge"
+                    :class="$enums.PurchaseOrderStatus._meta[row.status]?.color || 'badge-gray'"
+                >
+                    {{ $enums.PurchaseOrderStatus._meta[row.status]?.label || row.status }}
                 </span>
             </template>
-            <template #total_amount="{ item }">
-                {{ formatCurrency(item.total_amount) }}
+            <template #total_amount="{ row }">
+                <span class="font-semibold text-slate-800">
+                    {{ formatCurrency(row.total_amount) }}
+                </span>
             </template>
-            <template #actions="{ item }">
-                <div class="flex items-center gap-1">
+            <template #actions="{ row }">
+                <div class="flex items-center gap-1" @click.stop>
+                    <!-- Order PO (Draf -> Ordered) -->
                     <button
-                        v-if="item.status === $enums.PurchaseOrderStatus.Draft"
-                        class="btn btn-highlight-success btn-sm leading-0"
-                        title="Tandai sebagai Ordered"
-                        @click="confirmOrder(item)"
+                        v-if="row.status === $enums.PurchaseOrderStatus.Draft"
+                        class="btn btn-highlight-success btn-sm h-[30px]"
+                        title="Tandai sebagai Dipesan"
+                        @click="confirmOrder(row)"
                     >
-                        <FontAwesomeIcon :icon="faCheck" /> Order
+                        <FontAwesomeIcon :icon="faCheck" />
+                        <span class="hidden sm:inline">Order</span>
                     </button>
+
+                    <!-- Terima Barang (Ordered / PartialReceived) -->
                     <button
-                        v-if="item.status === $enums.PurchaseOrderStatus.Ordered"
-                        class="btn btn-highlight-success btn-sm"
-                        title="Terima Barang"
-                        @click="openReceive(item)"
+                        v-if="
+                            row.status === $enums.PurchaseOrderStatus.Ordered ||
+                            row.status === $enums.PurchaseOrderStatus.PartialReceived
+                        "
+                        class="btn btn-highlight-main btn-sm h-[30px]"
+                        title="Terima Barang Masuk"
+                        @click="openReceive(row)"
                     >
                         <FontAwesomeIcon :icon="faBoxOpen" />
+                        <span class="hidden sm:inline">Terima</span>
                     </button>
+
+                    <!-- Retur Barang (PartialReceived / Received) -->
                     <button
-                        v-if="item.status === $enums.PurchaseOrderStatus.Ordered"
-                        class="btn btn-flat btn-sm text-danger"
-                        title="Batalkan PO"
-                        @click="confirmCancel(item)"
+                        v-if="
+                            row.status === $enums.PurchaseOrderStatus.PartialReceived ||
+                            row.status === $enums.PurchaseOrderStatus.Received
+                        "
+                        class="btn btn-outline-danger btn-sm h-[30px]"
+                        title="Retur Barang ke Pemasok"
+                        @click="openReturn(row)"
+                    >
+                        <FontAwesomeIcon :icon="faRotateLeft" />
+                        <span class="hidden sm:inline">Retur</span>
+                    </button>
+
+                    <!-- Batalkan PO (Ordered) -->
+                    <button
+                        v-if="row.status === $enums.PurchaseOrderStatus.Ordered"
+                        class="btn btn-flat btn-sm text-danger h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                        title="Batalkan Pesanan"
+                        @click="confirmCancel(row)"
                     >
                         <FontAwesomeIcon :icon="faBan" />
                     </button>
-                    <button
-                        v-if="item.status === $enums.PurchaseOrderStatus.Received"
-                        class="btn btn-flat btn-sm text-danger"
-                        title="Void PO"
-                        @click="confirmVoid(item)"
-                    >
-                        <FontAwesomeIcon :icon="faUndo" />
-                    </button>
 
-                    <button
-                        v-if="
-                            item.status === $enums.PurchaseOrderStatus.Received ||
-                            item.status === $enums.PurchaseOrderStatus.Cancelled
-                        "
-                        class="btn btn-flat btn-sm text-gray-500"
-                        title="Lihat Detail"
-                        @click="openDetail(item)"
-                    >
-                        <FontAwesomeIcon :icon="faEye" />
-                    </button>
+                    <!-- Unduh PDF PO -->
                     <a
-                        :href="route('inventory.purchases.pdf', item.id)"
+                        :href="route('inventory.purchases.pdf', row.id)"
                         target="_blank"
-                        class="btn btn-flat btn-sm text-red-500"
-                        title="Download PDF"
+                        class="btn btn-flat btn-sm text-slate-500 hover:text-red-600 h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                        title="Unduh Berkas PDF PO"
                     >
                         <FontAwesomeIcon :icon="faFilePdf" />
                     </a>
 
+                    <!-- Edit Draf PO -->
                     <button
-                        v-if="item.status === $enums.PurchaseOrderStatus.Draft"
-                        class="btn btn-highlight-main btn-sm"
-                        title="Edit PO"
-                        @click="openForm(item)"
+                        v-if="row.status === $enums.PurchaseOrderStatus.Draft"
+                        class="btn btn-flat btn-sm text-slate-600 h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                        title="Edit Draf"
+                        @click="openForm('po', row)"
                     >
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
+
+                    <!-- Hapus Draf PO -->
                     <button
-                        v-if="item.status === $enums.PurchaseOrderStatus.Draft"
-                        class="btn btn-flat btn-sm text-danger"
-                        title="Hapus PO"
-                        @click="confirmDelete(item)"
+                        v-if="row.status === $enums.PurchaseOrderStatus.Draft"
+                        class="btn btn-flat btn-sm text-danger h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                        title="Hapus Draf"
+                        @click="confirmDelete(row)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>
@@ -113,12 +139,7 @@
         </Table>
 
         <template #footer>
-            <Pagination
-                :links="purchases.links"
-                :from="purchases.from"
-                :to="purchases.to"
-                :total="purchases.total"
-            />
+            <Pagination :meta="purchases.meta || purchases" />
         </template>
     </MainPage>
 </template>
@@ -133,25 +154,26 @@ import {
     faBoxOpen,
     faCheck,
     faBan,
-    faUndo,
-    faEye,
     faFilePdf,
+    faRotateLeft,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useModalStore } from '@/store/notification'
+import { useToastStore } from '@/store/toast'
+import { usePopUpStore } from '@/store/popup'
+import { formatDateID } from '@/Composable/date.js'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
-import Modal from '@/Components/Notifications/Modal.vue'
 import Form from './Components/Form.vue'
 import Receive from './Components/Receive.vue'
 import Detail from './Components/Detail.vue'
+import ReturnFormPopUp from './Components/ReturnFormPopUp.vue'
 import PurchaseFilter from './Components/PurchaseFilter.vue'
-import { usePopUpStore } from '@/store/popup'
-import { formatDateID, formatDateTimeID, formatDateTimeSimple } from '@/Composable/date.js'
 
 const modalStore = useModalStore()
+const toastStore = useToastStore()
 const popUpStore = usePopUpStore()
 
 const props = defineProps({
@@ -163,9 +185,17 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    outlets: {
+        type: Array,
+        default: () => [],
+    },
     uoms: {
         type: Array,
         default: () => [],
+    },
+    params: {
+        type: Object,
+        default: () => ({}),
     },
     filters: {
         type: Object,
@@ -174,17 +204,17 @@ const props = defineProps({
 })
 
 const headers = [
-    { label: 'Nomor PO', field: 'po_number', sortable: true },
+    { label: 'Nomor PO', field: 'po_number', slot: 'po_number', sortable: true },
     {
         label: 'Tanggal',
         field: 'order_date',
         slot: 'order_date',
         sortable: true,
     },
-    { label: 'Supplier', slot: 'supplier', sortable: false },
+    { label: 'Supplier / Pemasok', slot: 'supplier', sortable: false },
     { label: 'Outlet Tujuan', slot: 'outlet', sortable: false },
     {
-        label: 'Total',
+        label: 'Total Pembelian',
         field: 'total_amount',
         slot: 'total_amount',
         sortable: true,
@@ -196,27 +226,8 @@ const formatCurrency = value => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-    }).format(value)
-}
-
-const statusLabel = status => {
-    const labels = {
-        draft: 'Draf',
-        ordered: 'Order',
-        received: 'Diterima',
-        cancelled: 'Dibatalkan',
-    }
-    return labels[status] || status
-}
-
-const statusColor = status => {
-    const colors = {
-        draft: 'badge-gray',
-        ordered: 'badge-info',
-        received: 'badge-success',
-        cancelled: 'badge-danger',
-    }
-    return colors[status] || 'badge-gray'
+        maximumFractionDigits: 0,
+    }).format(value || 0)
 }
 
 const isLoadingData = ref(false)
@@ -231,7 +242,7 @@ const fetchPurchaseDetails = async id => {
         modalStore.addNotification({
             type: 'error',
             title: 'Gagal',
-            message: 'Gagal mengambil detail PO.',
+            message: 'Gagal mengambil detail pembelian.',
         })
         return null
     } finally {
@@ -239,17 +250,27 @@ const fetchPurchaseDetails = async id => {
     }
 }
 
-const openForm = async (item = null) => {
+const openForm = async (mode = 'po', item = null) => {
     let data = null
     if (item) {
         data = await fetchPurchaseDetails(item.id)
         if (!data) return
     }
     popUpStore.open({
-        title: 'Purchase Order',
+        title: item
+            ? 'Edit Pembelian'
+            : mode === 'direct'
+            ? 'Pembelian Langsung (Direct Purchase)'
+            : 'Pesanan Pembelian Baru (PO)',
+        subTitle: item ? '#' + item.po_number : undefined,
         size: 'xl',
         component: Form,
-        props: { purchase: data, suppliers: props.suppliers, uoms: props.uoms },
+        props: {
+            purchase: data,
+            suppliers: props.suppliers,
+            uoms: props.uoms,
+            initialMode: mode,
+        },
     })
 }
 
@@ -257,10 +278,22 @@ const openReceive = async item => {
     const data = await fetchPurchaseDetails(item.id)
     if (!data) return
     popUpStore.open({
-        title: 'Terima Barang',
+        title: 'Penerimaan Barang',
         subTitle: '#' + data.po_number,
         size: 'xl',
         component: Receive,
+        props: { purchase: data },
+    })
+}
+
+const openReturn = async item => {
+    const data = await fetchPurchaseDetails(item.id)
+    if (!data) return
+    popUpStore.open({
+        title: 'Retur Pembelian ke Pemasok',
+        subTitle: '#' + data.po_number,
+        size: 'xl',
+        component: ReturnFormPopUp,
         props: { purchase: data },
     })
 }
@@ -269,20 +302,26 @@ const openDetail = async item => {
     const data = await fetchPurchaseDetails(item.id)
     if (!data) return
     popUpStore.open({
-        title: 'Detail Purchase Order',
+        title: 'Detail Pembelian',
         subTitle: '#' + data.po_number,
-        size: 'lg',
+        size: 'xl',
         component: Detail,
-        props: { purchase: data },
+        props: {
+            purchase: data,
+        },
+        listeners: {
+            'open-receive': po => openReceive(po),
+            'open-return': po => openReturn(po),
+        },
     })
 }
 
 const confirmOrder = item => {
     modalStore.confirm({
-        title: 'Konfirmasi Order',
-        message: `Apakah Anda yakin ingin memproses PO ${item.po_number} menjadi Ordered?`,
+        title: 'Proses Pesanan',
+        message: `Yakin ingin memproses PO ${item.po_number} menjadi pesanan aktif?`,
         type: 'info',
-        confirmText: 'Ya, Process Order',
+        confirmText: 'Ya, Proses Pesanan',
         onConfirm: () => {
             router.post(
                 route('inventory.purchases.order', item.id),
@@ -295,8 +334,8 @@ const confirmOrder = item => {
 
 const confirmCancel = item => {
     modalStore.confirm({
-        title: 'Konfirmasi Batal',
-        message: `Apakah Anda yakin ingin membatalkan PO ${item.po_number}?`,
+        title: 'Batalkan Pembelian',
+        message: `Yakin ingin membatalkan PO ${item.po_number}? Pesanan yang dibatalkan tidak dapat diproses lagi.`,
         type: 'warning',
         confirmText: 'Ya, Batalkan',
         onConfirm: () => {
@@ -309,23 +348,16 @@ const confirmCancel = item => {
     })
 }
 
-const confirmVoid = item => {
-    modalStore.confirm({
-        title: 'Konfirmasi Void',
-        message: `Apakah Anda yakin ingin melakukan Void penerimaan PO ${item.po_number}? Stok akan dikembalikan seperti semula.`,
-        type: 'danger',
-        confirmText: 'Ya, Void',
-        onConfirm: () => {
-            router.post(
-                route('inventory.purchases.void', item.id),
-                {},
-                { preserveScroll: true, preserveState: true }
-            )
-        },
-    })
-}
-
 const confirmDelete = item => {
     modalStore.openModalDelete(route('inventory.purchases.destroy', item.id))
+}
+
+const handleExportCsv = filterData => {
+    toastStore.showToast({
+        title: 'Ekspor Sedang Diproses',
+        message: 'Permintaan ekspor data pembelian telah dikirim. Berkas akan segera diunduh.',
+        type: 'info',
+    })
+    window.location.href = route('inventory.purchases.export-csv', filterData)
 }
 </script>
