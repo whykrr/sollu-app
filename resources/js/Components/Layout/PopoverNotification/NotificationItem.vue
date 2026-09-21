@@ -1,9 +1,9 @@
 <template>
     <div
-        class="relative px-3.5 py-3 hover:bg-neutral-100/60 transition-all duration-150 ease-in-out group flex gap-3 text-left bg-white"
+        class="relative px-3.5 py-3 hover:bg-neutral-50 active:bg-neutral-100/80 transition-all duration-150 ease-in-out group flex gap-3 text-left bg-white touch-manipulation"
         :class="{ 'animate-pulse bg-neutral-100': isSkeleton }"
     >
-        <div class="flex-shrink-0">
+        <div class="flex-shrink-0 pt-0.5">
             <div
                 class="rounded-full w-9 h-9 flex items-center justify-center text-sm shadow-none"
                 :class="[iconConfig.bgClass, { 'bg-neutral-200 text-neutral-400': isSkeleton }]"
@@ -22,10 +22,10 @@
                         v-if="!notification?.read_at"
                         class="w-2 h-2 rounded-full bg-main flex-shrink-0"
                     />
-                    <span class="truncate">{{ notification.data?.title || 'Pemberitahuan' }}</span>
+                    <span class="truncate font-semibold">{{ notification.data?.title || 'Pemberitahuan' }}</span>
                     <span
                         v-if="categoryBadge"
-                        class="text-[10px] font-normal px-1.5 py-0.2 rounded border"
+                        class="text-[10px] font-medium px-1.5 py-0.2 rounded border shrink-0"
                         :class="categoryBadge.class"
                     >
                         {{ categoryBadge.label }}
@@ -42,14 +42,14 @@
                 <a
                     v-if="!isExpired"
                     :href="notification.data.action_url"
-                    class="btn btn-outline-main btn-xs rounded-lg font-medium text-xs px-2.5 py-1 inline-block"
+                    class="btn btn-outline-main btn-xs rounded-lg font-medium text-xs px-3 min-h-[34px] sm:min-h-[28px] inline-flex items-center touch-manipulation"
                 >
                     {{ notification.data.action_text || 'Lihat Detail' }}
                 </a>
                 <button
                     v-else
                     disabled
-                    class="text-xs text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded cursor-not-allowed"
+                    class="text-xs text-neutral-400 bg-neutral-100 px-2.5 min-h-[30px] rounded cursor-not-allowed inline-flex items-center"
                 >
                     Link Kedaluwarsa
                 </button>
@@ -61,24 +61,27 @@
             <div class="placeholder h-2 bg-neutral-200 rounded w-1/4" />
         </div>
 
+        <!-- Action buttons: Always visible on touchscreens, hover reveal on desktop -->
         <div
             v-if="!isSkeleton"
-            class="flex flex-col gap-1.5 items-end shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            class="flex flex-col gap-1 items-end shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
         >
             <button
                 v-if="!notification.read_at"
                 type="button"
-                class="text-neutral-400 hover:text-main p-1 rounded-md hover:bg-neutral-200/60 transition-colors"
+                class="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center text-neutral-400 hover:text-main active:text-main rounded-lg hover:bg-neutral-200/60 active:bg-neutral-200 transition-colors touch-manipulation"
                 title="Tandai dibaca"
-                @click="$emit('read', notification.id)"
+                aria-label="Tandai dibaca"
+                @click.stop="$emit('read', notification.id)"
             >
                 <FontAwesomeIcon :icon="faCheckDouble" class="text-xs" />
             </button>
             <button
                 type="button"
-                class="text-neutral-400 hover:text-danger p-1 rounded-md hover:bg-neutral-200/60 transition-colors"
+                class="w-8 h-8 sm:w-7 sm:h-7 flex items-center justify-center text-neutral-400 hover:text-danger active:text-danger rounded-lg hover:bg-neutral-200/60 active:bg-neutral-200 transition-colors touch-manipulation"
                 title="Hapus notifikasi"
-                @click="$emit('delete', notification.id)"
+                aria-label="Hapus notifikasi"
+                @click.stop="$emit('delete', notification.id)"
             >
                 <FontAwesomeIcon :icon="faTrash" class="text-xs" />
             </button>
