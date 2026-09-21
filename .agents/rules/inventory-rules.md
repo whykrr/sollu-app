@@ -12,7 +12,7 @@ Semua entitas inventori berada dalam namespace backend `App\Models\Inventory\` d
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
 │                             Inventory Domain Map                                 │
-├────────────────────────┬─────────────────────────────────────────────────────────┤
+├────────────────────────┼─────────────────────────────────────────────────────────┤
 │ InventoryItem          │ Master item inventori (bahan baku, barang jadi, SKU)     │
 │ InventoryBalance       │ Saldo stok berjalan per Outlet (current_stock, costs)    │
 │ InventoryCostLayer     │ Antrean batch biaya FIFO (qty_purchased, qty_remaining)  │
@@ -21,7 +21,9 @@ Semua entitas inventori berada dalam namespace backend `App\Models\Inventory\` d
 │ StockOpname (+Item)    │ Stock opname fisik, selisih sistem vs aktual, audit     │
 │ StockTransfer (+Item)  │ Transfer stok antar-outlet (pending, in-transit, rcv)   │
 │ PurchaseOrder (+Item)  │ Pengadaan PO dari Supplier (ordered, received, layers)  │
-│ Supplier               │ Data vendor/pemasok dan relasi item pengadaan           │
+│ GoodsReceipt (+Item)   │ Penerimaan fisik PO bertahap / multi-GR di outlet       │
+│ PurchaseReturn (+Item) │ Retur barang pembelian ke pemasok terikat GR item       │
+│ Supplier               │ Data vendor/pemasok dan kebijakan `return_period_days`  │
 │ Outlet.is_stock_frozen │ Status pembekuan transaksi stok outlet saat audit       │
 └────────────────────────┴─────────────────────────────────────────────────────────┘
 ```
@@ -38,6 +40,9 @@ Semua entitas inventori berada dalam namespace backend `App\Models\Inventory\` d
 | `StockOpname` | `stock_opnames` | `business_id`, `outlet_id` | Status transition: `InProgress` $\rightarrow$ `PendingApproval` $\rightarrow$ `Approved` / `Rejected`. |
 | `StockTransfer` | `stock_transfers` | `business_id` (`from_outlet_id`, `to_outlet_id`) | Status transition: `Pending` $\rightarrow$ `Approved` $\rightarrow$ `InTransit` $\rightarrow$ `Completed` / `Rejected`. |
 | `PurchaseOrder` | `purchase_orders` | `business_id`, `outlet_id` | Status transition: `Draft` $\rightarrow$ `Ordered` $\rightarrow$ `Received` / `Partial` / `Cancelled` / `Void`. |
+| `GoodsReceipt` | `goods_receipts` | `business_id`, `outlet_id` | Relasi ke `purchase_order_id`, nomor penerimaan `receipt_number`, pencatatan tanggal penerimaan `received_at`. |
+| `PurchaseReturn` | `purchase_returns` | `business_id`, `outlet_id` | Relasi ke `purchase_order_id`, nomor retur `return_number`, item terikat `goods_receipt_item_id`. |
+| `Supplier` | `suppliers` | `business_id` | Master vendor pemasok dengan batasan `return_period_days` (hari). |
 
 ---
 
@@ -93,6 +98,17 @@ Semua operasi penambahan, pengurangan, atau penyesuaian stok **WAJIB** melalui `
 2. **Outlet Tujuan (Transfer In):**
    - Eksekusi `recordIncomingStock(..., InventoryMovementType::TransferIn)` dengan `unitCost` bernilai sama persis dengan `unit_cogs` yang keluar dari outlet asal.
 3. **Konsistensi Nilai:** Dilarang me-reset atau mengabaikan HPP saat transfer barang antar-outlet.
+
+### 3.4. Aturan Penerimaan Barang, Retur, & Void Purchase (`GoodsReceiptService` & `PurchaseReturnService`)
+1. **Penerimaan Barang (`GoodsReceiptService`):**
+   - Mendukung penerimaan bertahap (*partial receiving*). Setiap penerimaan menghasilkan dokumen `GoodsReceipt` dan memicu `recordIncomingStock(..., InventoryMovementType::PurchaseIn)` sesuai kuantitas riil yang diterima.
+   - Status PO diperbarui otomatis: `Partial` jika belum seluruh item diterima, dan `Received` jika seluruh kuantitas terpenuhi.
+2. **Retur Pembelian (`PurchaseReturnService`):**
+   - Retur barang WAJIB merujuk pada `goods_receipt_item_id` aktif dan tidak melebihi selisih kuantitas yang diterima dikurangi retur sebelumnya.
+   - Validasi batas periode retur (`Supplier.return_period_days`): retur ditolak jika melebihi batas waktu sejak tanggal penerimaan.
+   - Retur memicu `recordOutgoingStock(..., InventoryMovementType::ReturnOut)` untuk memotong saldo stok fisik dan mengurangi kuantitas layer terkait.
+3. **Void Purchase Order:**
+   - Pembatalan seluruh PO (`PurchaseStatus::Voided`) mengunci transaksi dari seluruh aksi lanjutan (tidak bisa diedit, diterima, atau diretur lagi).
 
 ---
 

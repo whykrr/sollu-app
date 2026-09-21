@@ -149,3 +149,52 @@ Untuk memastikan performa aplikasi tetap cepat dan responsif:
    - Data yang dicache wajib berupa *Pure Array* atau tipe data primitif (bukan instance Model Eloquent).
 3. **Otomatisasi Invalidasi Cache:**
    - Invalidasi cache dilakukan via **Model Observers** (contoh: `UserCacheObserver`), bukan manual di dalam controller/service.
+
+---
+
+## 7. Sistem Notifikasi Terstandarisasi (`BaseNotification` & Dispatcher)
+
+Sistem notifikasi aplikasi mengikuti struktur terpadu berbasis antrean asinkron:
+
+1. **Wajib Mewarisi `BaseNotification`:**
+   - Seluruh notifikasi mewarisi `App\Notifications\BaseNotification` (`implements ShouldQueue`).
+   - Notifikasi memiliki payload terstruktur: `title`, `message`, `category` (`NotificationCategoryEnum`), `type` (`NotificationTypeEnum`), `scope` (`NotificationScopeEnum`), dan optional `action_url`.
+2. **Multi-Level Dispatching (`NotificationDispatcherService`):**
+   - **User Level (`sendToUser`):** Mengirimkan notifikasi langsung ke user spesifik.
+   - **Merchant Level (`sendToBusiness`):** Mengirimkan notifikasi ke seluruh staf dengan role tertentu (default: `owner`, `manager`) di bawah tenant tersebut.
+   - **Outlet Level (`sendToOutlet`):** Mengirimkan notifikasi ke karyawan yang bertugas pada outlet tertentu.
+3. **Kebijakan Retensi & Pembersihan:**
+   - Notifikasi yang telah dibaca $\ge 365\text{ hari}$ otomatis dipangkas melalui scheduler `php artisan notifications:prune --days=365` setiap malam pukul 02:30 WIB.
+
+---
+
+## 8. Navigasi & Breadcrumbs Terpusat (`BreadcrumbManager`)
+
+Sistem navigasi breadcrumbs dikelola terpusat oleh `App\Support\Breadcrumbs\BreadcrumbManager`:
+1. **Resolusi Berdasarkan Route Name:** `BreadcrumbManager` memetakan rute aktif ke hierarki judul, ikon, dan tautan halaman.
+2. **Distribusi Otomatis via Middleware:** Dikirimkan ke frontend sebagai shared prop Inertia (`breadcrumbs`) oleh `HandleAppInertiaRequests` dan `HandleCockpitInertiaRequests`.
+3. **Render Frontend:** Dirender otomatis oleh `@/Components/Layout/Header/Breadcrumbs.vue`.
+
+---
+
+## 9. Alur Domain Khusus: Purchasing V2 (Pengadaan, Penerimaan, & Retur)
+
+Alur pengadaan barang menerapkan siklus transaksi berlapis untuk menjamin integritas stok dan akuntansi:
+
+```
+┌─────────────────┐       ┌────────────────────┐       ┌──────────────────────┐
+│  PurchaseOrder  │ ────► │    GoodsReceipt    │ ────► │  InventoryCostLayer  │
+│(Draft -> Order) │       │(Partial / Multi-GR)│       │  & InventoryMovement │
+└────────┬────────┘       └─────────┬──────────┘       └──────────────────────┘
+         │                          │
+         ▼                          ▼
+┌─────────────────┐       ┌────────────────────┐
+│  Void Purchase  │       │   PurchaseReturn   │
+│(Cancel PO & GR) │       │(Locked by GR Item) │
+└─────────────────┘       └────────────────────┘
+```
+
+1. **Purchase Order (`PurchaseOrderService`):** Pembuatan pesanan pembelian ke vendor (`Supplier`).
+2. **Goods Receipt (`GoodsReceiptService`):** Penerimaan fisik barang di outlet. Mendukung penerimaan bertahap (*partial receipt*) yang menghasilkan mutasi stok masuk (`InventoryMovementType::PurchaseIn`) dan pembentukan layer biaya FIFO via `InventoryCostingService`.
+3. **Purchase Return (`PurchaseReturnService`):** Pengembalian barang rusak/salah ke vendor. Wajib merujuk pada item penerimaan spesifik (`goods_receipt_item_id`) dan mematuhi batas hari retur (`Supplier.return_period_days`). Menghasilkan mutasi stok keluar (`InventoryMovementType::ReturnOut`).
+4. **Void Purchase:** Pembatalan menyeluruh pesanan pembelian yang mengunci status menjadi `Voided` dan mencegah manipulasi lebih lanjut.

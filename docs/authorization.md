@@ -115,6 +115,22 @@ const { can, canAny, isOwner, hasRole } = useAuth()
 </template>
 ```
 
+### 2.5. Template Peran Operasional & Kebijakan Zero-Orphan Permission
+
+Untuk mempermudah penugasan wewenang staf outlet sesuai model bisnis (F&B / Retail), sistem menyediakan template peran baku via `App\Enums\RoleTemplateEnum`:
+
+- **Role Templates:**
+  - `OWNER`: Hak akses penuh ke seluruh modul sistem.
+  - `MANAGER_FNB` / `MANAGER_RETAIL`: Manajemen operasional harian, inventori, laporan, dan staf.
+  - `CASHIER_FNB` / `CASHIER_RETAIL`: Transaksi penjualan kasir, pembukaan/penutupan shift, dan log kas.
+  - `KITCHEN_FNB`: Tampilan pesanan dapur dan status penyajian.
+  - `INVENTORY_STAFF`: Penerimaan barang, stock opname, dan mutasi inventori.
+
+- **Kebijakan Zero-Orphan Permission (Zero-Orphan Policy):**
+  1. Setiap penambahan case baru pada `App\Enums\PermissionEnum` **WAJIB** menetapkan method `label()`, `group()`, dan `groupLabel()`.
+  2. Permission baru **WAJIB** dipetakan ke dalam template peran POS yang relevan pada `App\Enums\RoleTemplateEnum`.
+  3. Seluruh relasi permission dan template diverifikasi secara otomatis melalui unit test `tests/Unit/Enums/RoleTemplateIntegrityTest.php` untuk memastikan tidak ada hak akses yang tertinggal (*orphaned*).
+
 ---
 
 ## 3. Layer 2: SaaS Feature Plan Gating

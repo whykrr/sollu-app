@@ -153,18 +153,20 @@ class StockAdjustment extends Model
 
 ### 3.3. Inventory Domain (`App\Models\Inventory`)
 - `InventoryItem`: Master bahan baku/barang inventori.
-- `InventoryBalance`: Saldo stok berjalan per item per outlet fisik.
-- `InventoryMovement`: Buku besar log mutasi stok (*stock card/ledger*) yang mencatat setiap penambahan/pengurangan stok.
+- `InventoryBalance`: Saldo stok berjalan per item per outlet fisik (mendukung kalkulasi dan scoping saldo per outlet aktif).
+- `InventoryMovement`: Buku besar log mutasi stok (*stock card/ledger*) immutable yang mencatat setiap penambahan/pengurangan stok dengan tipe mutasi lengkap (`InventoryMovementType`: `PurchaseIn`, `AdjustmentIn`, `AdjustmentOut`, `OpnameSurplus`, `OpnameDeficit`, `TransferIn`, `TransferOut`, `SalesOut`, `Waste`, `ReturnIn`, `ReturnOut`, `InitialStock`).
 - `InventoryCostLayer`: Pencatatan lapisan biaya FIFO/Average untuk perhitungan HPP akurat.
 - `StockAdjustment` & `StockAdjustmentItem`: Penyesuaian stok manual (rusak, hilang, koreksi).
 - `StockOpname` & `StockOpnameItem`: Sensus audit fisik stok berkala.
 - `StockTransfer` & `StockTransferItem`: Mutasi perpindahan stok antar-outlet.
-- `PurchaseOrder` & `PurchaseOrderItem`: Pesanan pembelian ke vendor pemasok.
-- `Supplier`: Master pemasok/vendor bahan baku.
+- `PurchaseOrder` & `PurchaseOrderItem`: Pesanan pembelian ke vendor pemasok dengan siklus status (`Draft`, `Ordered`, `Received`, `Partial`, `Cancelled`, `Void`).
+- `GoodsReceipt` & `GoodsReceiptItem`: Penerimaan barang fisik dari PO pemasok (mendukung penerimaan parsial dan multi-GR).
+- `PurchaseReturn` & `PurchaseReturnItem`: Retur barang pembelian ke pemasok yang terikat pada item penerimaan barang (`goods_receipt_item_id`) dan tervalidasi terhadap batas waktu retur supplier.
+- `Supplier`: Master pemasok/vendor bahan baku (memuat kolom `return_period_days` untuk kebijakan batas waktu retur pembelian).
 
 ### 3.4. Sales & POS Domain (`App\Models\Sales`)
-- `Shift`: Sesi kerja kasir per mesin POS dengan saldo awal dan saldo akhir kas.
-- `ShiftCashLog`: Mutasi uang kas masuk/keluar selama kasir bertugas.
+- `Shift`: Sesi kerja kasir per mesin POS dengan saldo awal, saldo akhir kas, dan status siklus kerja kasir (`ShiftStatus`: `Open`, `Closed`).
+- `ShiftCashLog`: Mutasi uang kas masuk/keluar selama kasir bertugas (`ShiftCashLogType`: `CashIn`, `CashOut`).
 - `Transaction`: Transaksi penjualan utama (order POS).
 - `TransactionItem`: Rincian produk yang dipesan dalam satu transaksi.
 - `TransactionItemModifier`: Rincian modifier/topping yang dipilih pada item transaksi.

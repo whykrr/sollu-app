@@ -112,6 +112,17 @@ class StockAdjustmentServiceTest extends TestCase
 }
 ```
 
+### 2.3. Katalog Unit Test Service Layer Inti
+
+| Target Service | Lokasi Unit Test | Cakupan Uji Kunci |
+| :--- | :--- | :--- |
+| `InventoryCostingService` | `tests/Unit/Services/App/Inventory/InventoryCostingServiceTest.php` | Mutasi stok masuk/keluar, Moving Average, konsumsi layer FIFO, penanganan desimal. |
+| `GoodsReceiptService` | `tests/Unit/Services/App/Inventory/GoodsReceiptServiceTest.php` | Penerimaan barang parsial/multi-GR, update status PO, validasi stok beku. |
+| `PurchaseReturnService` | `tests/Unit/Services/App/Inventory/PurchaseReturnServiceTest.php` | Retur barang terikat GR item, pemotongan stok, validasi hari retur supplier. |
+| `StockAdjustmentService` | `tests/Unit/Services/App/Inventory/StockAdjustmentServiceTest.php` | Penyesuaian stok draf/approval, pencatatan ledger mutasi. |
+| `BreadcrumbManager` | `tests/Unit/Services/BreadcrumbManagerTest.php` | Resolusi rute, hierarki segmen navigasi, penanganan parameter dinamis. |
+| `RoleTemplateEnum` | `tests/Unit/Enums/RoleTemplateIntegrityTest.php` | Integritas zero-orphan permission dan sinkronisasi role template POS. |
+
 ---
 
 ## 3. Feature & HTTP Boundary Testing
@@ -124,6 +135,8 @@ Ditempatkan di `tests/Feature/`. Menguji rute HTTP, otorisasi RBAC, SaaS Feature
 - **RBAC Permission Gate:** Memastikan user tanpa permission yang sesuai ditolak (`HTTP 403`).
 - **Feature Plan Gating:** Memastikan tenant dengan paket basic ditolak saat mengakses fitur pro (`is_feature_locked: true`).
 - **On-Demand Data Loading:** Memastikan response payload `index()` ringan dan tidak mengandung relasi berat (`OnDemandDataLoadingTest`).
+- **Shift & POS Feature Tests:** Memastikan lifecycle shift kasir, log kas masuk/keluar, dan kalkulasi saldo kas tervalidasi (`ShiftFeatureTest`).
+- **Purchasing & Exception Handling:** Memastikan alur void purchase, pencegahan retur ganda, dan penanganan error domain teruji (`StockPurchasesControllerTest`, `ExceptionHandlingTest`).
 
 ---
 

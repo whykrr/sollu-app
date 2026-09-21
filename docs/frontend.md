@@ -51,19 +51,12 @@ Pola struktur utama untuk seluruh halaman modul:
 ```vue
 <template>
     <MainPage>
-        <!-- 1. Slot Header (NON-SCROLLABLE: Judul, Deskripsi & Tombol Aksi Utama) -->
+        <!-- 1. Slot Header (NON-SCROLLABLE: Judul & Deskripsi Halaman) -->
         <template #header>
             <MainPageHeader
                 title="Data Produk"
                 description="Kelola seluruh katalog dan harga barang"
-            >
-                <button class="btn btn-flat btn-sm" @click="exportCsv">
-                    <FontAwesomeIcon :icon="faDownload" /> Ekspor Data
-                </button>
-                <button class="btn btn-highlight-main btn-sm" @click="openCreate">
-                    <FontAwesomeIcon :icon="faPlus" /> Tambah Produk
-                </button>
-            </MainPageHeader>
+            />
         </template>
 
         <!-- 2. Slot Widgets (Opsional: Metrik Analitik / KPI Cards di antara Header dan Filter) -->
@@ -73,9 +66,9 @@ Pola struktur utama untuk seluruh halaman modul:
             </div>
         </template>
 
-        <!-- 3. Slot Filter (NON-SCROLLABLE: Toolbar Pencarian & Filter Data yang Diekstrak) -->
+        <!-- 3. Slot Filter (NON-SCROLLABLE: Toolbar Terpadu ActionBar yang Diekstrak) -->
         <template #filter>
-            <ProductFilter :filters="params" :categories="categories" />
+            <ProductFilter :filters="params" :categories="categories" @create="openCreate" />
         </template>
 
         <!-- 4. Default Slot (SCROLLABLE CONTAINER: Tabel Data dengan Single Action Row Link) -->
