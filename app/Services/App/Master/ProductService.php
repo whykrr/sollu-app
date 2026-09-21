@@ -45,6 +45,39 @@ class ProductService
                 'purchasable' => $data['purchasable'] ?? false,
             ]);
 
+            // Outlets Assignment & Active Outlet Resolution
+            $activeOutletIds = [];
+            if (! empty($data['outlets'])) {
+                $syncData = [];
+                foreach ($data['outlets'] as $out) {
+                    $isEnabled = $out['is_enabled'] ?? true;
+                    $syncData[$out['outlet_id']] = [
+                        'is_enabled' => $isEnabled,
+                        'is_available' => $out['is_available'] ?? true,
+                    ];
+                    if ($isEnabled) {
+                        $activeOutletIds[] = $out['outlet_id'];
+                    }
+                }
+                $product->outlets()->sync($syncData);
+            } else {
+                $businessOutlets = \App\Models\Outlet::where('business_id', $product->business_id)
+                    ->where('is_active', true)
+                    ->pluck('id');
+
+                if ($businessOutlets->isNotEmpty()) {
+                    $syncData = [];
+                    foreach ($businessOutlets as $outletId) {
+                        $syncData[$outletId] = [
+                            'is_enabled' => true,
+                            'is_available' => true,
+                        ];
+                        $activeOutletIds[] = $outletId;
+                    }
+                    $product->outlets()->sync($syncData);
+                }
+            }
+
             $singleInvItem = null;
             if ($product->product_type === 'basic' && ! $product->has_variant && $product->track_inventory) {
                 // Single variant inventory item only when track_inventory is enabled
@@ -57,7 +90,7 @@ class ProductService
                     'track_inventory' => true,
                     'min_stock' => $data['min_stock'] ?? 0,
                     'uom_id' => $data['uom_id'] ?? null,
-                ]);
+                ], $activeOutletIds);
             }
 
             // Base Price
@@ -75,33 +108,6 @@ class ProductService
                         'inventory_item_id' => $singleInvItem ? $singleInvItem->id : null,
                         'amount' => $op['amount'],
                     ]);
-                }
-            }
-
-            // Outlets Assignment
-            if (! empty($data['outlets'])) {
-                $syncData = [];
-                foreach ($data['outlets'] as $out) {
-                    $syncData[$out['outlet_id']] = [
-                        'is_enabled' => $out['is_enabled'] ?? true,
-                        'is_available' => $out['is_available'] ?? true,
-                    ];
-                }
-                $product->outlets()->sync($syncData);
-            } else {
-                $businessOutlets = \App\Models\Outlet::where('business_id', $product->business_id)
-                    ->where('is_active', true)
-                    ->pluck('id');
-
-                if ($businessOutlets->isNotEmpty()) {
-                    $syncData = [];
-                    foreach ($businessOutlets as $outletId) {
-                        $syncData[$outletId] = [
-                            'is_enabled' => true,
-                            'is_available' => true,
-                        ];
-                    }
-                    $product->outlets()->sync($syncData);
                 }
             }
 
@@ -142,7 +148,7 @@ class ProductService
                             'min_stock' => $combo['min_stock'] ?? 0,
                             'options' => $optIds,
                             'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
-                        ]);
+                        ], $activeOutletIds);
 
                         if (isset($combo['price'])) {
                             $product->prices()->create([
@@ -232,6 +238,28 @@ class ProductService
                 'purchasable' => $data['purchasable'] ?? $product->purchasable,
             ]);
 
+            // Outlet sync
+            $activeOutletIds = [];
+            if (isset($data['outlets'])) {
+                $syncData = [];
+                foreach ($data['outlets'] as $out) {
+                    $isEnabled = $out['is_enabled'] ?? true;
+                    $syncData[$out['outlet_id']] = [
+                        'is_enabled' => $isEnabled,
+                        'is_available' => $out['is_available'] ?? true,
+                    ];
+                    if ($isEnabled) {
+                        $activeOutletIds[] = $out['outlet_id'];
+                    }
+                }
+                $product->outlets()->sync($syncData);
+            } else {
+                $activeOutletIds = $product->outlets()
+                    ->wherePivot('is_enabled', true)
+                    ->pluck('outlets.id')
+                    ->all();
+            }
+
             $singleInvItem = null;
             if ($product->product_type === 'basic' && ! $product->has_variant) {
                 // Fetch all variant inventory items
@@ -252,7 +280,7 @@ class ProductService
                             'is_active' => true,
                         ]);
 
-                        $this->inventoryService->syncInventoryBalances($singleInvItem);
+                        $this->inventoryService->syncInventoryBalances($singleInvItem, $activeOutletIds);
 
                         // Deactivate others
                         if ($invItems->count() > 1) {
@@ -270,7 +298,7 @@ class ProductService
                             'track_inventory' => true,
                             'min_stock' => $data['min_stock'] ?? 0,
                             'uom_id' => $data['uom_id'] ?? null,
-                        ]);
+                        ], $activeOutletIds);
                     }
                 } else {
                     // If not tracking inventory, deactivate existing items without creating new ones
@@ -310,18 +338,6 @@ class ProductService
                         'amount' => $op['amount'],
                     ]);
                 }
-            }
-
-            // Outlet sync
-            if (isset($data['outlets'])) {
-                $syncData = [];
-                foreach ($data['outlets'] as $out) {
-                    $syncData[$out['outlet_id']] = [
-                        'is_enabled' => $out['is_enabled'] ?? true,
-                        'is_available' => $out['is_available'] ?? true,
-                    ];
-                }
-                $product->outlets()->sync($syncData);
             }
 
             // Variant sync
@@ -377,7 +393,7 @@ class ProductService
                                 'min_stock' => $combo['min_stock'] ?? 0,
                                 'options' => $optIds,
                                 'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
-                            ]);
+                            ], $activeOutletIds);
                         } else {
                             $invItem->update([
                                 'name' => $product->name.' - '.implode(' - ', $combo['options']),
@@ -391,7 +407,7 @@ class ProductService
                         }
 
                         if ($invItem->track_inventory) {
-                            $this->inventoryService->syncInventoryBalances($invItem);
+                            $this->inventoryService->syncInventoryBalances($invItem, $activeOutletIds);
                         }
 
                         if (isset($combo['price'])) {

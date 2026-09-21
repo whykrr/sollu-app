@@ -55,6 +55,7 @@ class InventoryServiceTest extends TestCase
             'name' => 'Product',
             'product_type' => 'basic',
         ]);
+        $product->outlets()->attach($outlet->id, ['is_enabled' => true, 'is_available' => true]);
 
         $variantGroup = \App\Models\Master\VariantGroup::create([
             'product_id' => $product->id,
@@ -96,6 +97,75 @@ class InventoryServiceTest extends TestCase
             'inventory_item_id' => $item->id,
             'outlet_id' => $outlet->id,
             'current_stock' => 0,
+        ]);
+    }
+
+    public function test_it_creates_variant_inventory_and_syncs_balances_for_specific_active_outlets()
+    {
+        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $business = $this->createTenant();
+
+        $outletA = Outlet::create([
+            'business_id' => $business->id,
+            'name' => 'Outlet A',
+            'is_active' => true,
+        ]);
+
+        $outletB = Outlet::create([
+            'business_id' => $business->id,
+            'name' => 'Outlet B',
+            'is_active' => true,
+        ]);
+
+        $product = Product::create([
+            'business_id' => $business->id,
+            'name' => 'Product Scoped',
+            'product_type' => 'basic',
+        ]);
+
+        $data = [
+            'business_id' => $business->id,
+            'name' => 'Product Scoped Item',
+            'product_id' => $product->id,
+            'sku' => 'PRD-SCOPED',
+            'track_inventory' => true,
+            'min_stock' => 5,
+        ];
+
+        // Only Outlet A is active for this item
+        $item = $this->service->createVariantInventory($data, [$outletA->id]);
+
+        $this->assertDatabaseHas('inventory_balances', [
+            'inventory_item_id' => $item->id,
+            'outlet_id' => $outletA->id,
+            'current_stock' => 0,
+        ]);
+
+        $this->assertDatabaseMissing('inventory_balances', [
+            'inventory_item_id' => $item->id,
+            'outlet_id' => $outletB->id,
+        ]);
+
+        // When Outlet B is activated later, sync balances creates balance for Outlet B without deleting Outlet A
+        $this->service->syncInventoryBalances($item, [$outletA->id, $outletB->id]);
+
+        $this->assertDatabaseHas('inventory_balances', [
+            'inventory_item_id' => $item->id,
+            'outlet_id' => $outletA->id,
+        ]);
+
+        $this->assertDatabaseHas('inventory_balances', [
+            'inventory_item_id' => $item->id,
+            'outlet_id' => $outletB->id,
+            'current_stock' => 0,
+        ]);
+
+        // When Outlet A is disabled (target is only Outlet B), Outlet A's balance is PRESERVED (not deleted)
+        $this->service->syncInventoryBalances($item, [$outletB->id]);
+
+        $this->assertDatabaseHas('inventory_balances', [
+            'inventory_item_id' => $item->id,
+            'outlet_id' => $outletA->id,
         ]);
     }
 

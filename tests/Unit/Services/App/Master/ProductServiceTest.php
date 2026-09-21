@@ -116,7 +116,7 @@ class ProductServiceTest extends TestCase
                 return $data['name'] === 'Basic Product'
                     && $data['sku'] === 'PRD-001'
                     && $data['track_inventory'] === true;
-            }))
+            }), Mockery::any())
             ->andReturn($invItem);
 
         $data = [
@@ -163,7 +163,10 @@ class ProductServiceTest extends TestCase
             'min_stock' => 0,
         ]);
 
-        $this->inventoryServiceMock->shouldReceive('syncInventoryBalances')->andReturnNull();
+        $this->inventoryServiceMock->shouldReceive('syncInventoryBalances')
+            ->once()
+            ->with(Mockery::type(InventoryItem::class), Mockery::any())
+            ->andReturnNull();
 
         $updateData = [
             'name' => 'New Name',

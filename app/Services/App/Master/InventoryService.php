@@ -2,11 +2,19 @@
 
 namespace App\Services\App\Master;
 
+use App\Models\Inventory\InventoryBalance;
 use App\Models\Master\InventoryItem;
+use App\Models\Outlet;
 
 class InventoryService
 {
-    public function createVariantInventory(array $data)
+    /**
+     * Create variant inventory item and initialize balances for active outlets.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<string>|null  $activeOutletIds
+     */
+    public function createVariantInventory(array $data, ?array $activeOutletIds = null): InventoryItem
     {
         $item = InventoryItem::create([
             'business_id' => $data['business_id'],
@@ -25,27 +33,47 @@ class InventoryService
         }
 
         if ($item->track_inventory) {
-            $this->syncInventoryBalances($item);
+            $this->syncInventoryBalances($item, $activeOutletIds);
         }
 
         return $item;
     }
 
-    public function syncInventoryBalances(InventoryItem $item)
+    /**
+     * Sync inventory balances for specified active outlets or active product outlets.
+     * Note: Non-active outlets are NOT deleted to preserve historical ledger & valuation data.
+     *
+     * @param  array<string>|null  $targetOutletIds
+     */
+    public function syncInventoryBalances(InventoryItem $item, ?array $targetOutletIds = null): void
     {
         if (! $item->track_inventory) {
             return;
         }
 
-        // Fetch all active outlets for this business
-        $outlets = \App\Models\Outlet::where('business_id', $item->business_id)
-            ->where('is_active', true)
-            ->get();
+        if ($targetOutletIds !== null) {
+            $outletIds = array_values(array_filter($targetOutletIds));
+        } elseif ($item->product_id) {
+            // Load outlets enabled for this product
+            $outletIds = $item->product()
+                ->first()
+                ?->outlets()
+                ->wherePivot('is_enabled', true)
+                ->pluck('outlets.id')
+                ->all() ?? [];
+        } else {
+            // Fallback for standalone / raw material items: all active business outlets
+            $outletIds = Outlet::query()
+                ->where('business_id', $item->business_id)
+                ->where('is_active', true)
+                ->pluck('id')
+                ->all();
+        }
 
-        foreach ($outlets as $outlet) {
-            \App\Models\Inventory\InventoryBalance::firstOrCreate([
+        foreach ($outletIds as $outletId) {
+            InventoryBalance::firstOrCreate([
                 'business_id' => $item->business_id,
-                'outlet_id' => $outlet->id,
+                'outlet_id' => $outletId,
                 'inventory_item_id' => $item->id,
             ], [
                 'current_stock' => 0,
