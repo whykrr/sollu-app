@@ -22,7 +22,9 @@
                         v-if="!notification?.read_at"
                         class="w-2 h-2 rounded-full bg-main flex-shrink-0"
                     />
-                    <span class="truncate font-semibold">{{ notification.data?.title || 'Pemberitahuan' }}</span>
+                    <span class="truncate font-semibold">{{
+                        notification.data?.title || 'Pemberitahuan'
+                    }}</span>
                     <span
                         v-if="categoryBadge"
                         class="text-[10px] font-medium px-1.5 py-0.2 rounded border shrink-0"

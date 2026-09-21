@@ -10,7 +10,9 @@
                 <template #movement_type="{ item: row }">
                     <span
                         class="badge text-xs"
-                        :class="getColor('InventoryMovementType', row.movement_type) || 'badge-gray'"
+                        :class="
+                            getColor('InventoryMovementType', row.movement_type) || 'badge-gray'
+                        "
                     >
                         {{ getLabel('InventoryMovementType', row.movement_type) }}
                     </span>

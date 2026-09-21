@@ -35,12 +35,14 @@
             </div>
 
             <div class="col-span-1 sm:col-span-2">
-                <DropdownField
+                <SearchableDropdownField
                     v-model="form.product_category_id"
                     :options="categoryOptions"
                     label="Kategori Produk"
                     placeholder="Pilih Kategori"
+                    search-placeholder="Cari kategori produk..."
                     :error="form.errors.product_category_id"
+                    clearable
                 />
             </div>
         </div>
@@ -137,7 +139,7 @@ import { inject, computed } from 'vue'
 import { useAuth } from '@/Composable/useAuth'
 import TextField from '@/Components/Form/TextField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
-import DropdownField from '@/Components/Form/DropdownField.vue'
+import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 import Switch from '@/Components/Form/Switch.vue'
 import DisclosureSection from '@/Components/Form/DisclosureSection.vue'

@@ -21,13 +21,15 @@
                     class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-100"
                 >
                     <div>
-                        <DropdownField
+                        <SearchableDropdownField
                             v-model="form.uom_id"
                             :options="uomOptions"
                             label="Satuan (UOM)"
                             placeholder="Pilih Satuan"
+                            search-placeholder="Cari satuan (UOM)..."
                             :error="form.errors.uom_id"
                             required
+                            clearable
                         />
                     </div>
                     <div v-if="!form.has_variant">
@@ -263,7 +265,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash, faPlus, faImage, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
-import DropdownField from '@/Components/Form/DropdownField.vue'
+import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import Switch from '@/Components/Form/Switch.vue'
 import FeatureLock from '@/Components/UI/FeatureLock.vue'
 

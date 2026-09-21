@@ -58,9 +58,7 @@
                     </div>
 
                     <!-- Mobile Filter Tabs: Semua, Sistem, Pesanan, Stok -->
-                    <div
-                        class="bg-neutral-50 border-b border-neutral-200/80 px-3 py-2 shrink-0"
-                    >
+                    <div class="bg-neutral-50 border-b border-neutral-200/80 px-3 py-2 shrink-0">
                         <div
                             class="bg-neutral-200/60 p-1 rounded-xl grid grid-cols-4 gap-1 text-xs font-medium text-neutral-500"
                         >
@@ -481,18 +479,17 @@ onMounted(() => {
     window.addEventListener('keydown', handleKeyDown)
 
     if (authUser.value?.id && window.Echo) {
-        window.Echo.private(`App.Models.User.${authUser.value.id}`)
-            .notification((notification) => {
-                unreadCount.value++
-                if (filterActive.value === 'all' || filterActive.value === notification.category) {
-                    notifications.value.unshift({
-                        id: notification.id,
-                        data: notification,
-                        created_at: new Date().toISOString(),
-                        read_at: null,
-                    })
-                }
-            })
+        window.Echo.private(`App.Models.User.${authUser.value.id}`).notification(notification => {
+            unreadCount.value++
+            if (filterActive.value === 'all' || filterActive.value === notification.category) {
+                notifications.value.unshift({
+                    id: notification.id,
+                    data: notification,
+                    created_at: new Date().toISOString(),
+                    read_at: null,
+                })
+            }
+        })
     }
 })
 

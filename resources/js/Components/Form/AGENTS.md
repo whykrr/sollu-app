@@ -12,24 +12,25 @@ Saat membuat atau mengedit formulir di seluruh aplikasi Sollu App, Anda **WAJIB*
 
 DILARANG KERAS menuliskan tag `<input>`, `<select>`, atau `<textarea>` mentah. Gunakan selalu komponen resmi di bawah ini:
 
-| Komponen                  | Kegunaan Utama                                                   | Contoh Penggunaan                                                                                       |
-| :------------------------ | :--------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------ |
-| **`TextField`**           | Input teks umum (`text`, `email`, `tel`, `url`)                  | `<TextField v-model="form.name" label="Nama Barang" :feedback="form.errors.name" />`                    |
-| **`TextareaField`**       | Area teks multiline                                              | `<TextareaField v-model="form.notes" label="Catatan" rows="3" />`                                       |
-| **`NumberField`**         | Input numerik / mata uang dengan auto format                     | `<NumberField v-model="form.price" label="Harga Jual" prefix="Rp" />`                                   |
-| **`PasswordField`**       | Kata sandi dengan toggle intip                                   | `<PasswordField v-model="form.password" label="Kata Sandi" />`                                          |
-| **`PinField`**            | PIN angka terproteksi                                            | `<PinField v-model="form.pin" label="PIN Otorisasi Kasir" />`                                           |
-| **`DropdownField`**       | Dropdown pilihan statis atau enum                                | `<DropdownField v-model="form.status" :options="getOptions('StatusEnum')" label="Status" />`            |
-| **`AsyncSelectField`**    | Dropdown pencarian async untuk data besar                        | `<AsyncSelectField v-model="form.item_id" endpoint="/api/items/search" label="Pilih Bahan" />`          |
-| **`AsyncOutletDropdown`** | Dropdown khusus outlet tenant                                    | `<AsyncOutletDropdown v-model="form.outlet_id" label="Outlet" />`                                       |
-| **`Switch`**              | Toggle switch boolean aktif / non-aktif                          | `<Switch v-model="form.is_active" label="Aktifkan Produk" />`                                           |
-| **`CheckboxField`**       | Kotak centang tunggal                                            | `<CheckboxField v-model="form.track_stock" label="Lacak Stok" />`                                       |
-| **`RadioField`**          | Tombol radio tunggal                                             | `<RadioField v-model="form.type" value="goods" label="Barang Jadi" />`                                  |
-| **`SelectionGroupField`** | Grup pilihan (Single segmented / Multi-checkbox)                 | `<SelectionGroupField v-model="form.categories" :options="categoryOptions" multiple show-select-all />` |
-| **`QuillEditor`**         | Editor Rich Text WYSIWYG                                         | `<QuillEditor v-model="form.description" label="Deskripsi" />`                                          |
-| **`DisclosureSection`**   | Collapsible section untuk opsi lanjutan (Progressive Disclosure) | `<DisclosureSection title="Opsi Lanjutan" :badge="activeCount"><TextField ... /></DisclosureSection>`   |
-| **`FormStepper`**         | Visual Stepper indikator untuk Create Wizard (Tier 3)            | `<FormStepper :steps="steps" v-model:current-step-index="step" :errors="form.errors" />`                |
-| **`FormTabs`**            | Tab navigation untuk Edit Form (Tier 3)                          | `<FormTabs :tabs="tabs" v-model="activeTab" :errors="form.errors" />`                                   |
+| Komponen                      | Kegunaan Utama                                                   | Contoh Penggunaan                                                                                         |
+| :---------------------------- | :--------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| **`TextField`**               | Input teks umum (`text`, `email`, `tel`, `url`)                  | `<TextField v-model="form.name" label="Nama Barang" :feedback="form.errors.name" />`                      |
+| **`TextareaField`**           | Area teks multiline                                              | `<TextareaField v-model="form.notes" label="Catatan" rows="3" />`                                         |
+| **`NumberField`**             | Input numerik / mata uang dengan auto format                     | `<NumberField v-model="form.price" label="Harga Jual" prefix="Rp" />`                                     |
+| **`PasswordField`**           | Kata sandi dengan toggle intip                                   | `<PasswordField v-model="form.password" label="Kata Sandi" />`                                            |
+| **`PinField`**                | PIN angka terproteksi                                            | `<PinField v-model="form.pin" label="PIN Otorisasi Kasir" />`                                             |
+| **`DropdownField`**           | Dropdown pilihan statis atau enum                                | `<DropdownField v-model="form.status" :options="getOptions('StatusEnum')" label="Status" />`              |
+| **`SearchableDropdownField`** | Dropdown pilihan lokal dengan fitur pencarian & floating popover | `<SearchableDropdownField v-model="form.category_id" :options="categories" label="Kategori" clearable />` |
+| **`AsyncSelectField`**        | Dropdown pencarian async untuk data besar                        | `<AsyncSelectField v-model="form.item_id" endpoint="/api/items/search" label="Pilih Bahan" />`            |
+| **`AsyncOutletDropdown`**     | Dropdown khusus outlet tenant                                    | `<AsyncOutletDropdown v-model="form.outlet_id" label="Outlet" />`                                         |
+| **`Switch`**                  | Toggle switch boolean aktif / non-aktif                          | `<Switch v-model="form.is_active" label="Aktifkan Produk" />`                                             |
+| **`CheckboxField`**           | Kotak centang tunggal                                            | `<CheckboxField v-model="form.track_stock" label="Lacak Stok" />`                                         |
+| **`RadioField`**              | Tombol radio tunggal                                             | `<RadioField v-model="form.type" value="goods" label="Barang Jadi" />`                                    |
+| **`SelectionGroupField`**     | Grup pilihan (Single segmented / Multi-checkbox)                 | `<SelectionGroupField v-model="form.categories" :options="categoryOptions" multiple show-select-all />`   |
+| **`QuillEditor`**             | Editor Rich Text WYSIWYG                                         | `<QuillEditor v-model="form.description" label="Deskripsi" />`                                            |
+| **`DisclosureSection`**       | Collapsible section untuk opsi lanjutan (Progressive Disclosure) | `<DisclosureSection title="Opsi Lanjutan" :badge="activeCount"><TextField ... /></DisclosureSection>`     |
+| **`FormStepper`**             | Visual Stepper indikator untuk Create Wizard (Tier 3)            | `<FormStepper :steps="steps" v-model:current-step-index="step" :errors="form.errors" />`                  |
+| **`FormTabs`**                | Tab navigation untuk Edit Form (Tier 3)                          | `<FormTabs :tabs="tabs" v-model="activeTab" :errors="form.errors" />`                                     |
 
 ---
 

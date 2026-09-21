@@ -28,7 +28,10 @@
                 {{ item.stock_after_formatted }}
             </template>
             <template #movement_type="{ item }">
-                <span class="badge text-xs" :class="getColor('InventoryMovementType', item.movement_type) || 'badge-gray'">
+                <span
+                    class="badge text-xs"
+                    :class="getColor('InventoryMovementType', item.movement_type) || 'badge-gray'"
+                >
                     {{ getLabel('InventoryMovementType', item.movement_type) }}
                 </span>
             </template>
