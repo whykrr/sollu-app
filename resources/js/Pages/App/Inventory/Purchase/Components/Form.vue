@@ -1,47 +1,27 @@
 <template>
     <form class="space-y-3" @submit.prevent="submit">
-        <!-- Pilihan Mode Pembelian (Hanya saat Tambah Baru & memiliki fitur PO) -->
-        <div v-if="!purchase?.id && hasPOFeature" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
-            <SelectionGroupField
-                id="purchase_mode"
-                v-model="purchaseMode"
-                label="Jenis Dokumen Pembelian"
-                :options="[
-                    { label: 'Pesanan Pembelian (PO Draf)', value: 'po' },
-                    { label: 'Beli Langsung (Terima Stok & Surat Jalan)', value: 'direct' },
-                ]"
-            />
-            <p class="text-[11px] text-slate-500">
-                <span v-if="purchaseMode === 'po'">
-                    PO Draf: Dokumen pemesanan formal ke pemasok. Stok inventori baru akan bertambah saat barang tiba dan dicatat melalui alur penerimaan.
-                </span>
-                <span v-else>
-                    Beli Langsung: Mencatat pembelian yang langsung disertai pengiriman fisik barang/surat jalan. Stok inventori otomatis bertambah saat disimpan.
-                </span>
-            </p>
-        </div>
-
         <!-- Informasi Utama Pembelian -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <DropdownField
+            <SearchableDropdownField
                 id="supplier_id"
                 v-model="form.supplier_id"
                 label="Pemasok (Supplier)"
                 placeholder="Pilih Pemasok..."
+                search-placeholder="Cari pemasok..."
                 :options="supplierOptions"
-                :class="{ 'is-invalid': form.errors.supplier_id }"
                 :error="form.errors.supplier_id"
+                clearable
             />
 
             <!-- Pilihan Outlet: HANYA jika tidak ada selectedOutlet aktif di sidebar -->
             <div v-if="!selectedOutlet">
-                <DropdownField
+                <SearchableDropdownField
                     id="outlet_id"
                     v-model="form.outlet_id"
                     label="Outlet Tujuan"
                     placeholder="Pilih Outlet..."
+                    search-placeholder="Cari outlet..."
                     :options="outletOptions"
-                    :class="{ 'is-invalid': form.errors.outlet_id }"
                     :error="form.errors.outlet_id"
                     required
                 />
@@ -105,7 +85,8 @@
                 <div>
                     <h3 class="text-sm font-bold text-slate-800">Daftar Barang</h3>
                     <p class="text-xs text-slate-500">
-                        Pilih barang, tentukan kemasan satuan beli, serta sesuaikan harga dan diskon/pajak.
+                        Pilih barang, tentukan kemasan satuan beli, serta sesuaikan harga dan
+                        diskon/pajak.
                     </p>
                 </div>
                 <div class="w-full sm:w-80">
@@ -187,7 +168,9 @@
                                 </div>
                                 <div class="text-[11px] text-slate-400 truncate">
                                     SKU: {{ item.sku || '-' }} | Satuan Dasar:
-                                    <span class="font-medium text-slate-600">{{ item.base_uom_name || '-' }}</span>
+                                    <span class="font-medium text-slate-600">{{
+                                        item.base_uom_name || '-'
+                                    }}</span>
                                 </div>
                             </div>
                         </div>
@@ -206,15 +189,15 @@
                     <div class="grid grid-cols-12 gap-2 items-end pt-1.5 border-t border-slate-100">
                         <!-- Satuan Pembelian (UOM) -->
                         <div class="col-span-12 sm:col-span-3">
-                            <DropdownField
+                            <SearchableDropdownField
                                 :id="'uom_' + index"
                                 v-model="item.uom_id"
                                 label="Satuan Beli"
-                                class="sm"
+                                size="sm"
+                                placeholder="Pilih Satuan..."
+                                search-placeholder="Cari satuan..."
                                 :options="uomOptions"
-                                :class="{
-                                    'is-invalid': form.errors[`items.${index}.uom_id`],
-                                }"
+                                :searchable="true"
                                 :error="form.errors[`items.${index}.uom_id`]"
                                 required
                             />
@@ -288,7 +271,9 @@
                     </div>
 
                     <!-- Konversi Satuan untuk Mode Beli Langsung & Subtotal Row -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-dashed border-slate-100 bg-slate-50/50 p-2 rounded">
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-dashed border-slate-100 bg-slate-50/50 p-2 rounded"
+                    >
                         <div v-if="purchaseMode === 'direct'" class="flex items-center gap-2">
                             <div class="w-32">
                                 <NumberField
@@ -299,14 +284,24 @@
                                     min="0.0001"
                                     step="any"
                                     :class="{
-                                        'is-invalid': form.errors[`items.${index}.conversion_factor`],
+                                        'is-invalid':
+                                            form.errors[`items.${index}.conversion_factor`],
                                     }"
                                     :error="form.errors[`items.${index}.conversion_factor`]"
                                     required
                                 />
                             </div>
                             <div class="text-[11px] text-slate-500 self-end pb-1">
-                                Masuk Stok: <span class="font-bold text-emerald-600">{{ formatQuantity(Number(item.qty_ordered || 0) * Number(item.conversion_factor || 1)) }} {{ item.base_uom_name }}</span>
+                                Masuk Stok:
+                                <span class="font-bold text-emerald-600"
+                                    >{{
+                                        formatQuantity(
+                                            Number(item.qty_ordered || 0) *
+                                                Number(item.conversion_factor || 1)
+                                        )
+                                    }}
+                                    {{ item.base_uom_name }}</span
+                                >
                             </div>
                         </div>
                         <div v-else class="text-[11px] text-slate-400">
@@ -318,6 +313,17 @@
                             <span class="font-bold text-xs text-slate-800">
                                 {{ formatCurrency(calculateRowSubtotal(item)) }}
                             </span>
+                        </div>
+                    </div>
+
+                    <!-- Peringatan Faktor Konversi Jika Satuan Berbeda Tapi Nilai 1 (Beli Langsung) -->
+                    <div
+                        v-if="purchaseMode === 'direct' && item.uom_id !== item.base_uom_id && Number(item.conversion_factor) === 1"
+                        class="p-2 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-800 flex items-start gap-1.5"
+                    >
+                        <FontAwesomeIcon :icon="faExclamationTriangle" class="text-amber-500 mt-0.5 shrink-0" />
+                        <div>
+                            <span class="font-semibold">Perhatian:</span> Satuan beli yang dipilih berbeda dengan satuan dasar inventori (<strong>{{ item.base_uom_name }}</strong>), tetapi faktor konversi masih bernilai 1. Pastikan isi konversinya sudah benar.
                         </div>
                     </div>
                 </div>
@@ -368,17 +374,16 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCheck, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
 import { usePlanFeature } from '@/Composable/usePlanFeature'
 import { usePopUpStore } from '@/store/popup'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
-import DropdownField from '@/Components/Form/DropdownField.vue'
+import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 
 const popUpStore = usePopUpStore()
 const { outlets: userOutlets, selectedOutlet } = useAuth()
@@ -409,11 +414,7 @@ const props = defineProps({
 })
 
 const isMounted = ref(false)
-const purchaseMode = ref(
-    !hasPOFeature.value
-        ? 'direct'
-        : props.initialMode || 'po'
-)
+const purchaseMode = ref(!hasPOFeature.value ? 'direct' : props.initialMode || 'po')
 
 onMounted(() => {
     isMounted.value = true
@@ -548,7 +549,9 @@ watch(
             }
         } else {
             // Mode Tambah Baru
-            form.outlet_id = selectedOutlet.value?.id || (userOutlets.value?.length === 1 ? userOutlets.value[0].id : '')
+            form.outlet_id =
+                selectedOutlet.value?.id ||
+                (userOutlets.value?.length === 1 ? userOutlets.value[0].id : '')
         }
     },
     { immediate: true }

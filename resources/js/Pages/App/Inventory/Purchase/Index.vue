@@ -81,18 +81,18 @@
                         <span class="hidden sm:inline">Terima</span>
                     </button>
 
-                    <!-- Retur Barang (PartialReceived / Received) -->
+                    <!-- Batalkan (Void) Pembelian (PartialReceived / Received) -->
                     <button
                         v-if="
-                            row.status === $enums.PurchaseOrderStatus.PartialReceived ||
-                            row.status === $enums.PurchaseOrderStatus.Received
+                            row.status === $enums.PurchaseOrderStatus.Received ||
+                            row.status === $enums.PurchaseOrderStatus.PartialReceived
                         "
-                        class="btn btn-outline-danger btn-sm h-[30px]"
-                        title="Retur Barang ke Pemasok"
-                        @click="openReturn(row)"
+                        v-can="$enums.PermissionEnum?.PURCHASE_ORDER_VOID"
+                        class="btn btn-flat btn-sm text-danger h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                        title="Batalkan (Void) Seluruh Pembelian"
+                        @click="confirmVoidPurchase(row)"
                     >
-                        <FontAwesomeIcon :icon="faRotateLeft" />
-                        <span class="hidden sm:inline">Retur</span>
+                        <FontAwesomeIcon :icon="faBan" />
                     </button>
 
                     <!-- Batalkan PO (Ordered) -->
@@ -155,7 +155,6 @@ import {
     faCheck,
     faBan,
     faFilePdf,
-    faRotateLeft,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useModalStore } from '@/store/notification'
@@ -260,8 +259,8 @@ const openForm = async (mode = 'po', item = null) => {
         title: item
             ? 'Edit Pembelian'
             : mode === 'direct'
-            ? 'Pembelian Langsung (Direct Purchase)'
-            : 'Pesanan Pembelian Baru (PO)',
+              ? 'Pembelian Langsung (Direct Purchase)'
+              : 'Pesanan Pembelian Baru (PO)',
         subTitle: item ? '#' + item.po_number : undefined,
         size: 'xl',
         component: Form,
@@ -286,15 +285,20 @@ const openReceive = async item => {
     })
 }
 
-const openReturn = async item => {
+const openReturn = async (item, selectedReceipt = null) => {
     const data = await fetchPurchaseDetails(item.id)
     if (!data) return
     popUpStore.open({
         title: 'Retur Pembelian ke Pemasok',
-        subTitle: '#' + data.po_number,
+        subTitle: selectedReceipt
+            ? `#${data.po_number} (${selectedReceipt.delivery_order_number || selectedReceipt.receipt_number})`
+            : '#' + data.po_number,
         size: 'xl',
         component: ReturnFormPopUp,
-        props: { purchase: data },
+        props: {
+            purchase: data,
+            selectedReceipt: selectedReceipt,
+        },
     })
 }
 
@@ -309,9 +313,9 @@ const openDetail = async item => {
         props: {
             purchase: data,
         },
-        listeners: {
+        events: {
             'open-receive': po => openReceive(po),
-            'open-return': po => openReturn(po),
+            'open-return': (po, receipt) => openReturn(po, receipt),
         },
     })
 }
@@ -334,13 +338,29 @@ const confirmOrder = item => {
 
 const confirmCancel = item => {
     modalStore.confirm({
-        title: 'Batalkan Pembelian',
+        title: 'Batalkan Pesanan',
         message: `Yakin ingin membatalkan PO ${item.po_number}? Pesanan yang dibatalkan tidak dapat diproses lagi.`,
         type: 'warning',
         confirmText: 'Ya, Batalkan',
         onConfirm: () => {
             router.post(
                 route('inventory.purchases.cancel', item.id),
+                {},
+                { preserveScroll: true, preserveState: true }
+            )
+        },
+    })
+}
+
+const confirmVoidPurchase = item => {
+    modalStore.confirm({
+        title: 'Batalkan (Void) Pembelian',
+        message: `Yakin ingin membatalkan seluruh transaksi pembelian ${item.po_number}? Seluruh surat jalan penerimaan barang akan dibatalkan, stok ditarik kembali, dan transaksi akan dikunci permanen.`,
+        type: 'danger',
+        confirmText: 'Ya, Batalkan Seluruh Pembelian',
+        onConfirm: () => {
+            router.post(
+                route('inventory.purchases.void', item.id),
                 {},
                 { preserveScroll: true, preserveState: true }
             )

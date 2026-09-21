@@ -20,7 +20,7 @@ Standar pengembangan frontend **Sollu App** berbasis **Vue 3 (Composition API `<
 9. **STANDARISASI ON-DEMAND DATA LOADING:** Data detail entitas lengkap dan data lookup form (opsi dropdown) WAJIB dimuat secara _asynchronous_ (Axios) hanya saat drawer dibuka. Wajib menyertakan skeleton loader / spinner saat fetching.
 10. **MANDATORY ENUM FOR CONDITIONS & FORM OPTIONS:** Dilarang keras menggunakan string literal/hardcode. Selalu gunakan `$enums.<EnumName>.<Case>` atau `useEnum()`.
 11. **MANDATORY FRONTEND UI & BUILD VERIFICATION:** Setiap pembuatan/perubahan komponen Vue WAJIB diverifikasi visual dan fungsional (bebas dari error kompilasi Vite/ESLint, verifikasi alur drawer `<PopUpPage>`, form field `@/Components/Form/`, dan toolbar filter).
-12. **MANDATORY MULTI-DEVICE ERGONOMICS & TOUCH TARGET STANDARDS:** Seluruh komponen UI WAJIB ergonomis dan adaptif untuk Laptop, Tablet (POS), dan Smartphone (Mobile). Target sentuh minimum: Mobile $\ge 44\text{px}$ (`.touch-target`), Tablet $\ge 36\text{px}$ (`.touch-target-sm`), Desktop $\ge 28\text{px}$. Input formulir wajib mencegah *auto-zoom* iOS Safari (gunakan `.form.adaptive` atau `text-base sm:text-xs`). Aksi formulir utama mobile wajib berada di *Thumb Zone* bawah (`#popUpFooter`), tabel mobile menyembunyikan kolom sekunder (`show: 'md'`), dan elemen melayang wajib menyertakan safe area insets (`safe-pb`). Lihat panduan lengkap di [docs/ui-ergonomics.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/ui-ergonomics.md).
+12. **MANDATORY MULTI-DEVICE ERGONOMICS & TOUCH TARGET STANDARDS:** Seluruh komponen UI WAJIB ergonomis dan adaptif untuk Laptop, Tablet (POS), dan Smartphone (Mobile). Target sentuh minimum: Mobile $\ge 44\text{px}$ (`.touch-target`), Tablet $\ge 36\text{px}$ (`.touch-target-sm`), Desktop $\ge 28\text{px}$. Input formulir wajib mencegah _auto-zoom_ iOS Safari (gunakan `.form.adaptive` atau `text-base sm:text-xs`). Aksi formulir utama mobile wajib berada di _Thumb Zone_ bawah (`#popUpFooter`), tabel mobile menyembunyikan kolom sekunder (`show: 'md'`), dan elemen melayang wajib menyertakan safe area insets (`safe-pb`). Lihat panduan lengkap di [docs/ui-ergonomics.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/ui-ergonomics.md).
 13. **MANDATORY UX COPYWRITING & WORDING STANDARDS (SANTAI, KOMUNIKATIF, TO THE POINT, PROFESIONAL):** Seluruh teks antarmuka (empty states, placeholders, toasts, modal konfirmasi, pesan error, label form) WAJIB menggunakan nada bicara ramah, lugas, tidak kaku/birokratis, namun tetap profesional dan presisi terhadap istilah bisnis. Dilarang menggunakan bahasa kaku ala Google Translate mentah atau slang pasar berlebihan. Lihat panduan lengkap di [docs/ux-wording.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/ux-wording.md).
 
 ---
@@ -194,15 +194,15 @@ const submit = () => {
 
 ### 4.2. Standar Formulir: Progressive Disclosure & Wizard Pattern (3-Tier Architecture)
 
-Untuk mencegah pengguna mengalami *cognitive overload* pada formulir dengan banyak isian:
+Untuk mencegah pengguna mengalami _cognitive overload_ pada formulir dengan banyak isian:
 
 #### A. Klasifikasi 3-Tier Formulir
 
-| Tier | Rentang Field | Pola Desain | Rekomendasi Modul |
-| :--- | :--- | :--- | :--- |
-| **Tier 1 (Simple)** | $\le 5$ field | Single flat vertical form, langsung tampil semua. | Kategori, Satuan UOM, Meja Kasir, Alasan Void. |
-| **Tier 2 (Progressive)** | $6 - 12$ field (Single domain) | Core fields (80%) tampak langsung + Advanced fields (20%) di `<DisclosureSection>` + Conditional triggers. | Bahan Baku (Raw Material), Pelanggan, Karyawan, Promo. |
-| **Tier 3 (Wizard / Tabs)** | $> 12$ field / Multi-domain | Asimetris: **Linear Stepper** (`<FormStepper>`) untuk Create, **Tabbed Navigation** (`<FormTabs>`) untuk Edit. | Produk (Varian & Resep), Purchase Order, Transfer Stok Antar-Outlet. |
+| Tier                       | Rentang Field                  | Pola Desain                                                                                                    | Rekomendasi Modul                                                    |
+| :------------------------- | :----------------------------- | :------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------- |
+| **Tier 1 (Simple)**        | $\le 5$ field                  | Single flat vertical form, langsung tampil semua.                                                              | Kategori, Satuan UOM, Meja Kasir, Alasan Void.                       |
+| **Tier 2 (Progressive)**   | $6 - 12$ field (Single domain) | Core fields (80%) tampak langsung + Advanced fields (20%) di `<DisclosureSection>` + Conditional triggers.     | Bahan Baku (Raw Material), Pelanggan, Karyawan, Promo.               |
+| **Tier 3 (Wizard / Tabs)** | $> 12$ field / Multi-domain    | Asimetris: **Linear Stepper** (`<FormStepper>`) untuk Create, **Tabbed Navigation** (`<FormTabs>`) untuk Edit. | Produk (Varian & Resep), Purchase Order, Transfer Stok Antar-Outlet. |
 
 #### B. Pola Progressive Disclosure (Tier 2) dengan `<DisclosureSection>`
 
@@ -210,15 +210,30 @@ Untuk mencegah pengguna mengalami *cognitive overload* pada formulir dengan bany
 <template>
     <form class="space-y-2" @submit.prevent="submit">
         <!-- 1. Core Fields (80% Kasus Harian - Selalu Tampak) -->
-        <TextField v-model="form.name" label="Nama Bahan Baku" :feedback="form.errors.name" required />
+        <TextField
+            v-model="form.name"
+            label="Nama Bahan Baku"
+            :feedback="form.errors.name"
+            required
+        />
         <DropdownField v-model="form.uom_id" :options="uomOptions" label="Satuan" required />
 
         <!-- 2. Conditional Trigger (Hanya muncul jika diaktifkan) -->
-        <label class="flex items-center justify-between border border-slate-200 p-2.5 rounded-xl cursor-pointer">
+        <label
+            class="flex items-center justify-between border border-slate-200 p-2.5 rounded-xl cursor-pointer"
+        >
             <span class="text-xs font-semibold text-slate-700">Lacak Stok Otomatis</span>
-            <input v-model="form.track_inventory" type="checkbox" class="rounded h-4 w-4 text-main" />
+            <input
+                v-model="form.track_inventory"
+                type="checkbox"
+                class="rounded h-4 w-4 text-main"
+            />
         </label>
-        <NumberField v-if="form.track_inventory" v-model="form.min_stock" label="Minimum Stok Alert" />
+        <NumberField
+            v-if="form.track_inventory"
+            v-model="form.min_stock"
+            label="Minimum Stok Alert"
+        />
 
         <!-- 3. Advanced / Secondary Fields (Progressive Disclosure) -->
         <DisclosureSection
@@ -228,7 +243,11 @@ Untuk mencegah pengguna mengalami *cognitive overload* pada formulir dengan bany
             :error="Boolean(form.errors.sku || form.errors.barcode)"
         >
             <TextField v-model="form.sku" label="SKU / Kode Barang" :feedback="form.errors.sku" />
-            <TextField v-model="form.barcode" label="Barcode Scanner" :feedback="form.errors.barcode" />
+            <TextField
+                v-model="form.barcode"
+                label="Barcode Scanner"
+                :feedback="form.errors.barcode"
+            />
             <TextareaField v-model="form.notes" label="Catatan Internal" rows="2" />
         </DisclosureSection>
 
@@ -236,7 +255,9 @@ Untuk mencegah pengguna mengalami *cognitive overload* pada formulir dengan bany
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex justify-end gap-2 w-full">
                 <button type="button" class="btn btn-flat" @click="close">Batal</button>
-                <button type="submit" class="btn btn-main" :disabled="form.processing">Simpan</button>
+                <button type="submit" class="btn btn-main" :disabled="form.processing">
+                    Simpan
+                </button>
             </div>
         </Teleport>
     </form>
@@ -257,12 +278,7 @@ Untuk mencegah pengguna mengalami *cognitive overload* pada formulir dengan bany
         />
 
         <!-- Edit Mode: Direct Tabbed Navigation -->
-        <FormTabs
-            v-else
-            :tabs="steps"
-            v-model="activeTabId"
-            :errors="form.errors"
-        />
+        <FormTabs v-else :tabs="steps" v-model="activeTabId" :errors="form.errors" />
 
         <!-- Active Step / Tab Content -->
         <div class="mt-2">
@@ -273,19 +289,35 @@ Untuk mencegah pengguna mengalami *cognitive overload* pada formulir dengan bany
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex items-center justify-between w-full">
                 <template v-if="!isEdit">
-                    <button type="button" class="btn btn-flat" :disabled="isFirstStep" @click="prevStep">
+                    <button
+                        type="button"
+                        class="btn btn-flat"
+                        :disabled="isFirstStep"
+                        @click="prevStep"
+                    >
                         Kembali
                     </button>
                     <button v-if="!isLastStep" type="button" class="btn btn-main" @click="nextStep">
                         Lanjut
                     </button>
-                    <button v-else type="button" class="btn btn-main" :disabled="form.processing" @click="submit">
+                    <button
+                        v-else
+                        type="button"
+                        class="btn btn-main"
+                        :disabled="form.processing"
+                        @click="submit"
+                    >
                         Simpan Data
                     </button>
                 </template>
                 <template v-else>
                     <button type="button" class="btn btn-flat" @click="close">Batal</button>
-                    <button type="button" class="btn btn-main" :disabled="form.processing" @click="submit">
+                    <button
+                        type="button"
+                        class="btn btn-main"
+                        :disabled="form.processing"
+                        @click="submit"
+                    >
                         Simpan Perubahan
                     </button>
                 </template>
@@ -293,6 +325,33 @@ Untuk mencegah pengguna mengalami *cognitive overload* pada formulir dengan bany
         </Teleport>
     </div>
 </template>
+```
+
+---
+
+### 4.2. Standarisasi Komponen Dropdown Formulir
+
+Untuk memastikan UX pengisian data tetap cepat dan efisien, pemilihan komponen dropdown wajib mengikuti aturan berikut:
+
+| Kriteria Data Dropdown                           | Komponen Standar Wajib                      | Karakteristik & Contoh Penggunaan                                                                                                                                                                       |
+| :----------------------------------------------- | :------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Enum / Status Ringkas ($\le 5$ opsi)**         | `<DropdownField>` / `<SelectionGroupField>` | Pilihan statis tanpa pencarian (contoh: Status Pesanan, Tipe Diskon, Segmentasi Arsip).                                                                                                                 |
+| **Master Data Lokal / Banyak Data ($> 5$ opsi)** | `<SearchableDropdownField>`                 | **Standar Wajib** untuk data yang dimuat dari master props (Satuan UOM, Pemasok/Supplier, Kategori, Outlet, Akun Akuntansi). Dilengkapi input pencarian cepat, navigasi keyboard, dan floating popover. |
+| **Data Dinamis Masif / Server-Side Search**      | `<AsyncSelectField>`                        | Opsi ribuan baris berbasis pencarian AJAX/server-side (contoh: pencarian katalog produk, SKU inventori, pencarian pelanggan dinamis).                                                                   |
+
+```vue
+<!-- Contoh SearchableDropdownField pada Baris Item / Drawer -->
+<SearchableDropdownField
+    v-model="item.uom_id"
+    label="Satuan Beli"
+    size="sm"
+    placeholder="Pilih Satuan..."
+    search-placeholder="Cari satuan..."
+    :options="uomOptions"
+    :searchable="true"
+    :error="form.errors[`items.${index}.uom_id`]"
+    required
+/>
 ```
 
 ---

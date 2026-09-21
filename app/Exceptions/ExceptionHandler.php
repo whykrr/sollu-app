@@ -144,6 +144,22 @@ class ExceptionHandler
 
             return redirect()->back()->with(FlashDataVariable::FAILED->value, ErrorMessage::TOO_MANY_REQUESTS);
         });
+
+        // HTTP Client / Business Errors (400 Bad Request, 422 Unprocessable, etc.)
+        $exceptions->render(function (HttpException $e, Request $request) {
+            $statusCode = $e->getStatusCode();
+            if (in_array($statusCode, [419, 403, 404], true)) {
+                return null;
+            }
+
+            if ($this->shouldRenderJson($request)) {
+                return response()->json(['message' => $e->getMessage()], $statusCode);
+            }
+
+            if (in_array($statusCode, [400, 422], true)) {
+                return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
+            }
+        });
     }
 
     /**

@@ -51,7 +51,7 @@
         </template>
 
         <template #tools>
-            <ActionsDropdown label="Opsi Data" :items="toolItems" />
+            <ActionsDropdown label="Opsi" :items="toolItems" />
         </template>
 
         <template #create>
@@ -61,6 +61,8 @@
                 label="Pembelian Baru"
                 :icon="faPlus"
                 :items="createActionItems"
+                button-class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                :menu-width="260"
             />
 
             <!-- Jika TIDAK memiliki fitur PO: tombol Beli Langsung biasa (tanpa dropdown) -->

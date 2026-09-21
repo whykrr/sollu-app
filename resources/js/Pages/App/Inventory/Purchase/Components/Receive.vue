@@ -1,7 +1,10 @@
 <template>
     <form class="space-y-3" @submit.prevent="submit">
         <!-- Informasi Dokumen Pembelian -->
-        <div v-if="purchase" class="bg-slate-50 border border-slate-200 p-3 rounded-lg text-xs space-y-1.5">
+        <div
+            v-if="purchase"
+            class="bg-slate-50 border border-slate-200 p-3 rounded-lg text-xs space-y-1.5"
+        >
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
                     <span class="text-slate-400 block text-[11px]">Nomor PO:</span>
@@ -9,14 +12,21 @@
                 </div>
                 <div>
                     <span class="text-slate-400 block text-[11px]">Pemasok:</span>
-                    <span class="font-semibold text-slate-700">{{ purchase.supplier?.name || '-' }}</span>
+                    <span class="font-semibold text-slate-700">{{
+                        purchase.supplier?.name || '-'
+                    }}</span>
                 </div>
                 <div>
                     <span class="text-slate-400 block text-[11px]">Outlet Tujuan:</span>
-                    <span class="font-semibold text-slate-700">{{ purchase.outlet?.name || '-' }}</span>
+                    <span class="font-semibold text-slate-700">{{
+                        purchase.outlet?.name || '-'
+                    }}</span>
                 </div>
             </div>
-            <div v-if="purchase.reference_number" class="text-slate-500 pt-1 border-t border-slate-200/60">
+            <div
+                v-if="purchase.reference_number"
+                class="text-slate-500 pt-1 border-t border-slate-200/60"
+            >
                 <span class="text-slate-400">No. Referensi:</span> {{ purchase.reference_number }}
             </div>
         </div>
@@ -57,9 +67,12 @@
         <!-- Input Penerimaan Barang -->
         <div class="border-t border-slate-200 pt-2 space-y-2">
             <div>
-                <h3 class="text-xs font-bold text-slate-800">Rincian Fisik Barang & Konversi Satuan</h3>
+                <h3 class="text-xs font-bold text-slate-800">
+                    Rincian Fisik Barang & Konversi Satuan
+                </h3>
                 <p class="text-[11px] text-slate-500">
-                    Masukkan jumlah fisik barang yang diterima pada pengiriman ini. Sesuaikan faktor konversi jika kemasan berbeda dengan satuan dasar inventori.
+                    Masukkan jumlah fisik barang yang diterima pada pengiriman ini. Sesuaikan faktor
+                    konversi jika kemasan berbeda dengan satuan dasar inventori.
                 </p>
             </div>
 
@@ -80,8 +93,16 @@
                         <div>
                             <div class="font-bold text-xs text-slate-800">{{ item.name }}</div>
                             <div class="text-[11px] text-slate-500">
-                                Dipesan: <span class="font-semibold text-slate-700">{{ formatQuantity(item.qty_ordered) }} {{ item.uom_name }}</span> |
-                                Belum Tiba: <span class="font-bold text-amber-600">{{ formatQuantity(item.outstanding_qty) }} {{ item.uom_name }}</span>
+                                Dipesan:
+                                <span class="font-semibold text-slate-700"
+                                    >{{ formatQuantity(item.qty_ordered) }}
+                                    {{ item.uom_name }}</span
+                                >
+                                | Belum Tiba:
+                                <span class="font-bold text-amber-600"
+                                    >{{ formatQuantity(item.outstanding_qty) }}
+                                    {{ item.uom_name }}</span
+                                >
                             </div>
                         </div>
                         <button
@@ -142,6 +163,17 @@
                                 {{ item.base_uom_name }}
                             </div>
                         </div>
+
+                        <!-- Peringatan Faktor Konversi Jika Satuan Berbeda Tapi Nilai 1 -->
+                        <div
+                            v-if="item.uom_name !== item.base_uom_name && Number(item.conversion_factor) === 1"
+                            class="col-span-12 p-2 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-800 flex items-start gap-1.5"
+                        >
+                            <FontAwesomeIcon :icon="faExclamationTriangle" class="text-amber-500 mt-0.5 shrink-0" />
+                            <div>
+                                <span class="font-semibold">Perhatian:</span> Satuan beli (<strong>{{ item.uom_name }}</strong>) berbeda dengan satuan dasar inventori (<strong>{{ item.base_uom_name }}</strong>), tetapi faktor konversi masih bernilai 1. Pastikan 1 {{ item.uom_name }} memang berisi 1 {{ item.base_uom_name }}.
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -167,7 +199,7 @@
 import { watch, ref, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import { usePopUpStore } from '@/store/popup'
 import NumberField from '@/Components/Form/NumberField.vue'
 import TextField from '@/Components/Form/TextField.vue'

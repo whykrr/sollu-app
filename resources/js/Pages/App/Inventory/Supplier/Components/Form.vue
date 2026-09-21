@@ -34,7 +34,9 @@
                 title="Informasi Alamat & Bahan Baku"
                 description="Alamat pengiriman, catatan, dan daftar bahan yang disuplai"
                 :badge="selectedItems.length > 0 ? `${selectedItems.length} item` : null"
-                :error="Boolean(form.errors.address || form.errors.notes || form.errors.inventory_items)"
+                :error="
+                    Boolean(form.errors.address || form.errors.notes || form.errors.inventory_items)
+                "
             >
                 <TextareaField
                     id="address"
@@ -43,6 +45,16 @@
                     placeholder="Misal: Jl. Industri Raya No. 12, Pergudangan Blok C, Jakarta Barat"
                     :error="form.errors.address"
                     rows="2"
+                />
+
+                <NumberField
+                    id="return_period_days"
+                    v-model="form.return_period_days"
+                    label="Masa Retur Pembelian (Hari)"
+                    placeholder="Bawaan: 7 hari"
+                    min="0"
+                    max="365"
+                    :error="form.errors.return_period_days"
                 />
 
                 <TextareaField
@@ -70,7 +82,9 @@
                     </div>
 
                     <!-- Loading state -->
-                    <div v-if="isSearching" class="text-xs text-slate-500 py-1">Mencari item...</div>
+                    <div v-if="isSearching" class="text-xs text-slate-500 py-1">
+                        Mencari item...
+                    </div>
 
                     <!-- Checkbox List -->
                     <div
@@ -88,7 +102,10 @@
                                 type="checkbox"
                                 :value="item.id"
                             />
-                            <label :for="'supplier-item-' + item.id" class="text-slate-700 font-medium flex-1">
+                            <label
+                                :for="'supplier-item-' + item.id"
+                                class="text-slate-700 font-medium flex-1"
+                            >
                                 {{ item.name }}
                             </label>
                         </div>
@@ -118,9 +135,11 @@
                         </div>
                     </div>
 
-                    <span v-if="form.errors.inventory_items" class="form-feedback text-danger mt-1">{{
-                        form.errors.inventory_items
-                    }}</span>
+                    <span
+                        v-if="form.errors.inventory_items"
+                        class="form-feedback text-danger mt-1"
+                        >{{ form.errors.inventory_items }}</span
+                    >
                 </div>
             </DisclosureSection>
 
@@ -165,6 +184,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import TextField from '@/Components/Form/TextField.vue'
 import EmailField from '@/Components/Form/EmailField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import Switch from '@/Components/Form/Switch.vue'
 import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
@@ -189,6 +209,7 @@ const form = useForm({
     email: '',
     address: '',
     notes: '',
+    return_period_days: 7,
     is_active: true,
     inventory_items: [],
 })
@@ -248,6 +269,7 @@ watch(
             form.email = data.email || ''
             form.address = data.address || ''
             form.notes = data.notes || ''
+            form.return_period_days = data.return_period_days ?? 7
             form.is_active = data.is_active ?? true
 
             knownItemsMap.value.clear()

@@ -9,7 +9,7 @@
                         ? 'btn btn-flat btn-sm w-[30px] h-[30px] !p-0 inline-flex items-center justify-center text-xs'
                         : 'btn btn-flat btn-sm h-[30px] inline-flex items-center gap-1.5 text-xs leading-4'),
                 'cursor-pointer transition-all duration-150',
-                { '!border-main/40 !bg-main/5': isOpen },
+                { '!border-main/40 !bg-main/5': isOpen && !buttonClass },
             ]"
             :title="title || label"
             :aria-label="label"
@@ -18,16 +18,20 @@
         >
             <FontAwesomeIcon
                 :icon="icon || (iconOnly ? faEllipsisVertical : faFolderOpen)"
-                :class="iconOnly ? 'text-sm' : 'text-xs text-neutral-500'"
+                :class="[iconOnly ? 'text-sm' : 'text-xs', buttonClass ? '' : 'text-neutral-500']"
             />
-            <span v-if="!iconOnly" class="text-xs leading-4 font-medium text-neutral-700">
+            <span
+                v-if="!iconOnly"
+                class="text-xs leading-4 font-medium"
+                :class="buttonClass ? '' : 'text-neutral-700'"
+            >
                 {{ label }}
             </span>
             <FontAwesomeIcon
                 v-if="!iconOnly && showCaret"
                 :icon="faChevronDown"
-                class="text-[10px] text-neutral-400 transition-transform duration-200"
-                :class="{ 'rotate-180': isOpen }"
+                class="text-[10px] transition-transform duration-200"
+                :class="[buttonClass ? 'opacity-80' : 'text-neutral-400', { 'rotate-180': isOpen }]"
             />
         </button>
 
@@ -104,12 +108,12 @@
 
                                 <!-- Label & Description -->
                                 <div class="min-w-0 flex-1">
-                                    <div class="font-medium text-xs leading-tight truncate">
+                                    <div class="font-medium text-xs leading-tight">
                                         {{ item.label }}
                                     </div>
                                     <div
                                         v-if="item.description"
-                                        class="text-[10px] text-neutral-400 leading-tight mt-0.5 truncate"
+                                        class="text-[10px] text-neutral-400 leading-tight mt-0.5"
                                     >
                                         {{ item.description }}
                                     </div>
@@ -200,39 +204,52 @@ const updatePosition = () => {
     const rect = triggerRef.value.getBoundingClientRect()
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
-    const width = Math.min(props.menuWidth, viewportWidth - 16)
-    const estimatedHeight = 220
+
+    const menuEl = menuRef.value
+    const actualWidth = menuEl ? menuEl.offsetWidth : props.menuWidth || 190
+    const effectiveWidth = Math.min(
+        Math.max(props.menuWidth || 190, actualWidth),
+        viewportWidth - 16
+    )
+    const estimatedHeight = menuEl ? menuEl.offsetHeight : 220
 
     // Vertical positioning: default below, flip to top if overflowing bottom
     let top = rect.bottom + 6
-    if (top + estimatedHeight > viewportHeight && rect.top > estimatedHeight) {
+    if (top + estimatedHeight > viewportHeight - 8 && rect.top > estimatedHeight + 6) {
         top = Math.max(8, rect.top - estimatedHeight - 6)
     }
 
     // Horizontal positioning: align right or left
     let left = rect.left
     if (props.align === 'right') {
-        left = rect.right - width
+        left = rect.right - effectiveWidth
     }
 
-    // Viewport bounds constraint
-    if (left < 8) left = 8
-    if (left + width > viewportWidth - 8) {
-        left = Math.max(8, viewportWidth - width - 8)
+    // Viewport bounds constraint (Strict - never overflow screen)
+    if (left + effectiveWidth > viewportWidth - 8) {
+        left = Math.max(8, viewportWidth - effectiveWidth - 8)
+    }
+    if (left < 8) {
+        left = 8
     }
 
     menuStyle.value = {
         top: `${top}px`,
         left: `${left}px`,
-        minWidth: `${width}px`,
+        minWidth: `${Math.min(props.menuWidth || 190, viewportWidth - 16)}px`,
+        maxWidth: `calc(100vw - 16px)`,
     }
 }
 
 const toggleDropdown = () => {
     isOpen.value = !isOpen.value
     if (isOpen.value) {
+        updatePosition()
         nextTick(() => {
             updatePosition()
+            requestAnimationFrame(() => {
+                updatePosition()
+            })
         })
     }
 }
@@ -243,8 +260,9 @@ const close = () => {
 
 const handleItemClick = item => {
     if (item.disabled) return
-    if (typeof item.action === 'function') {
-        item.action()
+    const callback = item.action || item.handler
+    if (typeof callback === 'function') {
+        callback()
     }
     close()
 }

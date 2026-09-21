@@ -59,7 +59,14 @@ class PurchaseReturnService
             $items = $data['items'] ?? [];
 
             foreach ($items as $itemData) {
-                $inventoryItemId = $itemData['inventory_item_id'];
+                $goodsReceiptItemId = $itemData['goods_receipt_item_id'] ?? null;
+                $grItem = null;
+
+                if ($goodsReceiptItemId) {
+                    $grItem = \App\Models\Inventory\GoodsReceiptItem::query()->find($goodsReceiptItemId);
+                }
+
+                $inventoryItemId = $grItem?->inventory_item_id ?? $itemData['inventory_item_id'];
                 $inventoryItem = InventoryItem::query()
                     ->where('business_id', $businessId)
                     ->findOrFail($inventoryItemId);
@@ -69,20 +76,57 @@ class PurchaseReturnService
                     continue;
                 }
 
-                $conversionFactor = (float) ($itemData['conversion_factor'] ?? 1.0);
-                if ($conversionFactor <= 0) {
-                    $conversionFactor = 1.0;
+                if ($grItem) {
+                    $receipt = $grItem->goodsReceipt ?? \App\Models\Inventory\GoodsReceipt::with(['purchaseOrder.supplier'])->find($grItem->goods_receipt_id);
+                    $receiptStatus = $receipt?->status;
+
+                    if ($receiptStatus === \App\Enums\GoodsReceiptStatus::Voided || $receiptStatus === 'voided') {
+                        abort(422, 'Penerimaan barang untuk surat jalan ini sudah dibatalkan sehingga tidak dapat diretur.');
+                    }
+
+                    // Validasi masa retur (Return Period Window)
+                    if ($receipt && ! $receipt->is_returnable) {
+                        $allowedDays = $receipt->purchaseOrder?->supplier?->getEffectiveReturnPeriodDays() ?? 7;
+                        abort(422, 'Batas waktu retur untuk surat jalan '.$receipt->receipt_number.' telah berakhir (maksimal '.$allowedDays.' hari sejak penerimaan fisik).');
+                    }
+
+                    $conversionFactor = (float) $grItem->conversion_factor;
+                    $maxReturnable = (float) $grItem->remaining_returnable_qty;
+
+                    if ($returnPurchaseQty > $maxReturnable + 0.0001) {
+                        abort(422, 'Kuantitas retur untuk '.$inventoryItem->name.' melebihi sisa penerimaan fisik surat jalan terkait.');
+                    }
+
+                    $unitCost = (float) ($itemData['unit_cost'] ?? $grItem->purchase_unit_cost ?? $grItem->unit_cost);
+                } else {
+                    $conversionFactor = (float) ($itemData['conversion_factor'] ?? 1.0);
+                    if ($conversionFactor <= 0) {
+                        $conversionFactor = 1.0;
+                    }
+                    $unitCost = (float) ($itemData['unit_cost'] ?? 0);
                 }
 
                 $returnInventoryQty = $returnPurchaseQty * $conversionFactor;
-                $unitCost = (float) ($itemData['unit_cost'] ?? 0);
+
+                // Validasi ketersediaan stok fisik di outlet saat ini
+                $balance = \App\Models\Inventory\InventoryBalance::query()
+                    ->where('outlet_id', $outlet->id)
+                    ->where('inventory_item_id', $inventoryItemId)
+                    ->first();
+
+                $currentStock = (float) ($balance?->current_stock ?? 0);
+                if ($currentStock < $returnInventoryQty - 0.0001) {
+                    $unitName = $inventoryItem->uom?->name ?? 'unit';
+                    abort(422, "Stok {$inventoryItem->name} di outlet saat ini tidak mencukupi untuk diretur (tersisa {$currentStock} {$unitName}, dibutuhkan {$returnInventoryQty} {$unitName}).");
+                }
                 $subtotal = $returnPurchaseQty * $unitCost;
                 $totalReturnAmount += $subtotal;
 
                 // 1. Catat baris retur
                 $return->items()->create([
                     'inventory_item_id' => $inventoryItemId,
-                    'uom_id' => $itemData['uom_id'] ?? null,
+                    'goods_receipt_item_id' => $goodsReceiptItemId,
+                    'uom_id' => $itemData['uom_id'] ?? $grItem?->uom_id ?? null,
                     'return_purchase_qty' => $returnPurchaseQty,
                     'conversion_factor' => $conversionFactor,
                     'return_inventory_qty' => $returnInventoryQty,
@@ -130,12 +174,16 @@ class PurchaseReturnService
                 $qtyToRestore = (float) $item->return_inventory_qty;
 
                 if ($qtyToRestore > 0) {
+                    $inventoryUnitCost = ((float) $item->return_inventory_qty > 0)
+                        ? ((float) $item->subtotal / (float) $item->return_inventory_qty)
+                        : (float) $item->unit_cost;
+
                     $this->costingService->recordIncomingStock(
                         business: $business,
                         outlet: $outlet,
                         item: $item->inventoryItem,
                         qty: $qtyToRestore,
-                        unitCost: (float) $item->unit_cost,
+                        unitCost: $inventoryUnitCost,
                         movementType: InventoryMovementType::AdjustmentIn,
                         reference: $return,
                         description: 'Void retur pembelian '.$return->return_number.($reason ? ' - Alasan: '.$reason : ''),

@@ -62,6 +62,56 @@ class GoodsReceipt extends Model
         ];
     }
 
+    protected $appends = [
+        'return_deadline',
+        'remaining_return_days',
+        'is_returnable',
+    ];
+
+    /**
+     * Batas akhir pengajuan retur untuk surat jalan ini.
+     */
+    public function getReturnDeadlineAttribute(): ?\Carbon\Carbon
+    {
+        if (! $this->received_at) {
+            return null;
+        }
+
+        $days = $this->purchaseOrder?->supplier?->getEffectiveReturnPeriodDays() ?? 7;
+
+        return $this->received_at->copy()->addDays($days)->endOfDay();
+    }
+
+    /**
+     * Sisa hari masa retur (0 jika hari terakhir, negatif jika sudah kedaluwarsa).
+     */
+    public function getRemainingReturnDaysAttribute(): int
+    {
+        $deadline = $this->return_deadline;
+        if (! $deadline) {
+            return 0;
+        }
+
+        return (int) ceil(now()->floatDiffInDays($deadline, false));
+    }
+
+    /**
+     * Status apakah surat jalan ini masih berada dalam masa retur yang sah.
+     */
+    public function getIsReturnableAttribute(): bool
+    {
+        if ($this->status !== GoodsReceiptStatus::Completed) {
+            return false;
+        }
+
+        $deadline = $this->return_deadline;
+        if (! $deadline) {
+            return false;
+        }
+
+        return now()->lessThanOrEqualTo($deadline);
+    }
+
     // ── Relationships ────────────────────────────────────────────
 
     public function business(): BelongsTo

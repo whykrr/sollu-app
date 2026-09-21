@@ -29,6 +29,7 @@ class PurchaseReturnItem extends Model
     protected $fillable = [
         'purchase_return_id',
         'inventory_item_id',
+        'goods_receipt_item_id',
         'uom_id',
         'return_purchase_qty',
         'conversion_factor',
@@ -59,6 +60,11 @@ class PurchaseReturnItem extends Model
     public function purchaseReturn(): BelongsTo
     {
         return $this->belongsTo(PurchaseReturn::class);
+    }
+
+    public function goodsReceiptItem(): BelongsTo
+    {
+        return $this->belongsTo(GoodsReceiptItem::class, 'goods_receipt_item_id');
     }
 
     public function inventoryItem(): BelongsTo

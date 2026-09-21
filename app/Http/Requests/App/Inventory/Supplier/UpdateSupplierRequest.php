@@ -19,6 +19,7 @@ class UpdateSupplierRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
+            'return_period_days' => ['nullable', 'integer', 'min:0', 'max:365'],
             'is_active' => ['boolean'],
             'inventory_items' => ['nullable', 'array'],
             'inventory_items.*' => ['uuid', 'exists:inventory_items,id'],

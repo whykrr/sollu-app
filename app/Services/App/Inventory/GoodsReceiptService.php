@@ -172,10 +172,38 @@ class GoodsReceiptService
                 abort(400, 'Penerimaan barang ini sudah dibatalkan sebelumnya.');
             }
 
-            $receipt->load(['purchaseOrder.items', 'items.inventoryItem', 'outlet.business']);
+            $receipt->load(['purchaseOrder.items', 'items.inventoryItem', 'items.purchaseReturnItems.purchaseReturn', 'outlet.business']);
             $po = $receipt->purchaseOrder;
             $outlet = $receipt->outlet;
             $business = $outlet?->business ?? $voider->business;
+
+            // 1. Validasi dependensi retur aktif
+            foreach ($receipt->items as $receiptItem) {
+                foreach ($receiptItem->purchaseReturnItems as $prItem) {
+                    $pr = $prItem->purchaseReturn;
+                    if ($pr && $pr->status !== \App\Enums\PurchaseReturnStatus::Voided) {
+                        abort(422, "Penerimaan barang ini memiliki riwayat retur aktif ({$pr->return_number}). Silakan batalkan (void) retur terlebih dahulu sebelum membatalkan penerimaan.");
+                    }
+                }
+            }
+
+            // 2. Validasi ketersediaan stok fisik di outlet (Anti-Negative Stock Guard)
+            foreach ($receipt->items as $receiptItem) {
+                $qtyToReverse = (float) $receiptItem->received_inventory_qty;
+                if ($qtyToReverse > 0) {
+                    $balance = \App\Models\Inventory\InventoryBalance::query()
+                        ->where('outlet_id', $outlet->id)
+                        ->where('inventory_item_id', $receiptItem->inventory_item_id)
+                        ->first();
+
+                    $currentStock = (float) ($balance?->current_stock ?? 0);
+                    if ($currentStock < $qtyToReverse - 0.0001) {
+                        $itemName = $receiptItem->inventoryItem?->name ?? 'Barang';
+                        $unitName = $receiptItem->inventoryItem?->uom?->name ?? 'unit';
+                        abort(422, "Penerimaan barang tidak dapat dibatalkan karena sisa stok {$itemName} di outlet tersisa {$currentStock} {$unitName}, kurang dari jumlah penerimaan yang hendak dibatalkan ({$qtyToReverse} {$unitName}).");
+                    }
+                }
+            }
 
             foreach ($receipt->items as $receiptItem) {
                 $qtyToReverse = (float) $receiptItem->received_inventory_qty;

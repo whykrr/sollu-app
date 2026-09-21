@@ -350,4 +350,114 @@ class GoodsReceiptServiceTest extends TestCase
 
         $this->service->createReceipt($po, ['items' => []], $user);
     }
+
+    public function test_it_prevents_voiding_goods_receipt_if_stock_is_insufficient()
+    {
+        [$user, $business, $outlet, $item, $supplier] = $this->setupBaseData();
+
+        $po = PurchaseOrder::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'supplier_id' => $supplier->id,
+            'po_number' => 'PO-VOID-GUARD-01',
+            'order_date' => now()->format('Y-m-d'),
+            'status' => PurchaseOrderStatus::Ordered,
+            'total_amount' => 100000,
+            'created_by' => $user->id,
+        ]);
+
+        $poItem = $po->items()->create([
+            'inventory_item_id' => $item->id,
+            'uom_id' => $item->uom_id,
+            'qty_ordered' => 10,
+            'purchase_price' => 10000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'subtotal' => 100000,
+        ]);
+
+        $receipt = $this->service->createReceipt($po, [
+            'delivery_order_number' => 'DO-GUARD-01',
+            'items' => [
+                [
+                    'purchase_order_item_id' => $poItem->id,
+                    'qty_received' => 10,
+                    'conversion_factor' => 1.0,
+                ],
+            ],
+        ], $user);
+
+        // Simulasi barang terjual di POS sehingga stok berkurang menjadi 3
+        InventoryBalance::where('inventory_item_id', $item->id)->update(['current_stock' => 3]);
+
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectExceptionMessage('kurang dari jumlah penerimaan');
+
+        $this->service->voidReceipt($receipt, $user, 'Salah catat');
+    }
+
+    public function test_it_prevents_voiding_goods_receipt_if_active_return_exists()
+    {
+        [$user, $business, $outlet, $item, $supplier] = $this->setupBaseData();
+
+        $po = PurchaseOrder::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'supplier_id' => $supplier->id,
+            'po_number' => 'PO-VOID-GUARD-02',
+            'order_date' => now()->format('Y-m-d'),
+            'status' => PurchaseOrderStatus::Ordered,
+            'total_amount' => 100000,
+            'created_by' => $user->id,
+        ]);
+
+        $poItem = $po->items()->create([
+            'inventory_item_id' => $item->id,
+            'uom_id' => $item->uom_id,
+            'qty_ordered' => 10,
+            'purchase_price' => 10000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'subtotal' => 100000,
+        ]);
+
+        $receipt = $this->service->createReceipt($po, [
+            'delivery_order_number' => 'DO-GUARD-02',
+            'items' => [
+                [
+                    'purchase_order_item_id' => $poItem->id,
+                    'qty_received' => 10,
+                    'conversion_factor' => 1.0,
+                ],
+            ],
+        ], $user);
+
+        $grItem = $receipt->items->first();
+
+        // Buat dokumen retur aktif
+        $pr = \App\Models\Inventory\PurchaseReturn::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'supplier_id' => $supplier->id,
+            'return_number' => 'PR-202609-001',
+            'return_date' => now()->format('Y-m-d'),
+            'status' => \App\Enums\PurchaseReturnStatus::Completed,
+            'created_by' => $user->id,
+        ]);
+
+        $pr->items()->create([
+            'inventory_item_id' => $item->id,
+            'goods_receipt_item_id' => $grItem->id,
+            'return_purchase_qty' => 2,
+            'conversion_factor' => 1,
+            'return_inventory_qty' => 2,
+            'unit_cost' => 10000,
+            'subtotal' => 20000,
+        ]);
+
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectExceptionMessage('memiliki riwayat retur aktif');
+
+        $this->service->voidReceipt($receipt, $user, 'Coba void yang sudah diretur');
+    }
 }

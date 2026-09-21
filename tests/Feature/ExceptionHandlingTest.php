@@ -173,4 +173,37 @@ class ExceptionHandlingTest extends TestCase
             'message' => ErrorMessage::TOO_MANY_REQUESTS,
         ]);
     }
+
+    public function test_web_unprocessable_entity_redirects_back_with_flash_message(): void
+    {
+        $appHost = config('domain.app', 'app.sollu.test');
+
+        Route::middleware('web')->get('/test-unprocessable-web', function () {
+            abort(422, 'Penerimaan barang ini memiliki riwayat retur aktif.');
+        });
+
+        $response = $this->withServerVariables(['HTTP_HOST' => $appHost])
+            ->from("http://{$appHost}/login")
+            ->get("http://{$appHost}/test-unprocessable-web");
+
+        $response->assertRedirect("http://{$appHost}/login");
+        $response->assertSessionHas(FlashDataVariable::FAILED->value, 'Penerimaan barang ini memiliki riwayat retur aktif.');
+    }
+
+    public function test_api_unprocessable_entity_returns_json_error(): void
+    {
+        $apiHost = config('domain.api', 'api.sollu.test');
+
+        Route::middleware('api')->get('/test-unprocessable-api', function () {
+            abort(422, 'Penerimaan barang ini memiliki riwayat retur aktif.');
+        });
+
+        $response = $this->withServerVariables(['HTTP_HOST' => $apiHost])
+            ->get("http://{$apiHost}/test-unprocessable-api");
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'message' => 'Penerimaan barang ini memiliki riwayat retur aktif.',
+        ]);
+    }
 }

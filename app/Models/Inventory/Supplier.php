@@ -38,6 +38,7 @@ class Supplier extends Model
         'email',
         'address',
         'notes',
+        'return_period_days',
         'is_active',
     ];
 
@@ -58,7 +59,18 @@ class Supplier extends Model
     {
         return [
             'is_active' => 'boolean',
+            'return_period_days' => 'integer',
         ];
+    }
+
+    /**
+     * Dapatkan masa retur efektif dalam satuan hari (default: 7 hari).
+     */
+    public function getEffectiveReturnPeriodDays(): int
+    {
+        return $this->return_period_days !== null && $this->return_period_days >= 0
+            ? (int) $this->return_period_days
+            : 7;
     }
 
     // ── Relationships ────────────────────────────────────────────

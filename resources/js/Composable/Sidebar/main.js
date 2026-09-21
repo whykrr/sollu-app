@@ -172,7 +172,7 @@ export const getMainSidebars = (enums = { FeatureEnum: {} }) => [
             {
                 type: 'item',
                 url: route('inventory.purchases.index'),
-                label: 'Pembelian (PO)',
+                label: 'Pembelian',
                 feature: enums.FeatureEnum.PURCHASE_ORDERS,
                 permissions: [],
                 activeRoute: 'inventory.purchases.',

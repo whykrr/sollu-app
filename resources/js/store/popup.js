@@ -34,7 +34,7 @@ export const usePopUpStore = defineStore('popup', {
                 size: options.size || 'md',
                 component: options.component ? markRaw(options.component) : null,
                 props: options.props || {},
-                events: options.events || {},
+                events: options.events || options.listeners || {},
                 onClose: options.onClose || null,
             }
         },

@@ -520,4 +520,123 @@ class StockPurchasesControllerTest extends TestCase
 
         Queue::assertPushed(ExportPurchaseOrderJob::class);
     }
+
+    public function test_user_can_void_entire_purchase_order_and_lock_status(): void
+    {
+        $po = PurchaseOrder::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'supplier_id' => $this->supplier->id,
+            'po_number' => 'PO-VOID-ALL-01',
+            'order_date' => now()->format('Y-m-d'),
+            'status' => PurchaseOrderStatus::Ordered,
+            'total_amount' => 100000,
+            'created_by' => $this->user->id,
+        ]);
+
+        $poItem = $po->items()->create([
+            'inventory_item_id' => $this->item->id,
+            'uom_id' => $this->uomPcs->id,
+            'qty_ordered' => 10,
+            'purchase_price' => 10000,
+            'subtotal' => 100000,
+        ]);
+
+        // Receive goods
+        app(\App\Services\App\Inventory\GoodsReceiptService::class)->createReceipt($po, [
+            'delivery_order_number' => 'SJ-VOID-ALL',
+            'items' => [
+                ['purchase_order_item_id' => $poItem->id, 'qty_received' => 10, 'conversion_factor' => 1.0],
+            ],
+        ], $this->user);
+
+        $po->refresh();
+        $this->assertEquals(PurchaseOrderStatus::Received, $po->status);
+
+        // Void PO
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/inventories/purchases/{$po->id}/void");
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value);
+
+        $po->refresh();
+        $this->assertEquals(PurchaseOrderStatus::Cancelled, $po->status);
+
+        // Verify that all receipts are voided
+        $this->assertEquals(0, $po->goodsReceipts()->where('status', GoodsReceiptStatus::Completed)->count());
+        $this->assertEquals(1, $po->goodsReceipts()->where('status', GoodsReceiptStatus::Voided)->count());
+
+        // Verify that attempting to receive on a Cancelled PO aborts with 403
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        app(\App\Services\App\Inventory\GoodsReceiptService::class)->createReceipt($po, [
+            'delivery_order_number' => 'SJ-FAIL',
+            'items' => [
+                ['purchase_order_item_id' => $poItem->id, 'qty_received' => 5, 'conversion_factor' => 1.0],
+            ],
+        ], $this->user);
+    }
+
+    public function test_voiding_goods_receipt_with_active_return_redirects_back_with_flash_error(): void
+    {
+        $po = PurchaseOrder::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'supplier_id' => $this->supplier->id,
+            'po_number' => 'PO-WITH-RETURN-01',
+            'order_date' => now()->format('Y-m-d'),
+            'status' => PurchaseOrderStatus::Ordered,
+            'total_amount' => 100000,
+            'created_by' => $this->user->id,
+        ]);
+
+        $poItem = $po->items()->create([
+            'inventory_item_id' => $this->item->id,
+            'uom_id' => $this->uomPcs->id,
+            'qty_ordered' => 10,
+            'purchase_price' => 10000,
+            'subtotal' => 100000,
+        ]);
+
+        // Receive goods
+        $receipt = app(\App\Services\App\Inventory\GoodsReceiptService::class)->createReceipt($po, [
+            'delivery_order_number' => 'SJ-WITH-RETURN',
+            'items' => [
+                ['purchase_order_item_id' => $poItem->id, 'qty_received' => 10, 'conversion_factor' => 1.0],
+            ],
+        ], $this->user);
+
+        $receiptItem = $receipt->items()->first();
+
+        // Create return
+        app(\App\Services\App\Inventory\PurchaseReturnService::class)->createReturn([
+            'outlet_id' => $this->outlet->id,
+            'supplier_id' => $this->supplier->id,
+            'purchase_order_id' => $po->id,
+            'return_date' => now()->format('Y-m-d'),
+            'reason' => 'Barang cacat',
+            'items' => [
+                [
+                    'goods_receipt_item_id' => $receiptItem->id,
+                    'inventory_item_id' => $this->item->id,
+                    'uom_id' => $this->uomPcs->id,
+                    'return_purchase_qty' => 2,
+                    'conversion_factor' => 1.0,
+                ],
+            ],
+        ], $this->user);
+
+        // Attempt to void receipt via HTTP request
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/inventories/purchases/receipts/{$receipt->id}/void");
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::FAILED->value);
+        $flashError = session(FlashDataVariable::FAILED->value);
+        $this->assertStringContainsString('riwayat retur aktif', $flashError);
+        $this->assertStringContainsString('Silakan batalkan (void) retur terlebih dahulu', $flashError);
+
+        // Receipt status must still be completed
+        $this->assertEquals(GoodsReceiptStatus::Completed, $receipt->refresh()->status);
+    }
 }

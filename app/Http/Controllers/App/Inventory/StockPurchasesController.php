@@ -84,7 +84,10 @@ class StockPurchasesController extends Controller
                 'items.inventoryItem.uom:id,name,code',
                 'items.uom:id,name,code',
                 'goodsReceipts.items.uom:id,name,code',
-                'goodsReceipts.items.inventoryItem:id,name,sku',
+                'goodsReceipts.items.inventoryItem:id,name,sku,uom_id',
+                'goodsReceipts.items.inventoryItem.uom:id,name,code',
+                'goodsReceipts.items.purchaseOrderItem',
+                'goodsReceipts.items.purchaseReturnItems.purchaseReturn:id,status',
                 'goodsReceipts.receiver:id,name',
                 'purchaseReturns.items.uom:id,name,code',
                 'purchaseReturns.items.inventoryItem:id,name,sku',
@@ -241,6 +244,22 @@ class StockPurchasesController extends Controller
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
             'Penerimaan barang berhasil dicatat.'
+        );
+    }
+
+    /**
+     * Void an entire purchase order and reverse all its stock receipts.
+     */
+    public function void(Request $request, string $id, PurchaseOrderService $service)
+    {
+        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_VOID->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+
+        $po = PurchaseOrder::currentBusiness()->findOrFail($id);
+        $service->void($po, Auth::user());
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            'Pembelian berhasil dibatalkan (void) dan seluruh stok telah disesuaikan.'
         );
     }
 
