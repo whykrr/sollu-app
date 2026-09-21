@@ -34,6 +34,8 @@ Route::middleware('auth:business')->group(function () {
         Cache::forgetPattern("auth:user:{$request->user()->id}:*");
         $request->fulfill();
 
+        $request->user()->notify(new \App\Notifications\EmailVerifiedNotification);
+
         return redirect()->route('overview')->with('success', 'Email berhasil di verifikasi!');
     })->middleware(['signed'])->name('verification.verify');
 

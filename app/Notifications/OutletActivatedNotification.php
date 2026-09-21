@@ -2,36 +2,33 @@
 
 namespace App\Notifications;
 
+use App\Enums\NotificationCategoryEnum;
+use App\Enums\NotificationScopeEnum;
+use App\Enums\NotificationTypeEnum;
 use App\Mail\OutletActivatedMail;
 use App\Models\Outlet;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Notification;
 
-class OutletActivatedNotification extends Notification implements ShouldQueue
+class OutletActivatedNotification extends BaseNotification
 {
-    use Queueable;
-
-    public function __construct(public Outlet $outlet) {}
-
-    public function via(object $notifiable): array
+    public function __construct(public Outlet $outlet)
     {
-        return ['mail', 'database'];
+        $this->category = NotificationCategoryEnum::SYSTEM;
+        $this->type = NotificationTypeEnum::SUCCESS;
+        $this->scope = NotificationScopeEnum::BUSINESS;
+        $this->businessId = $this->outlet->business_id;
+        $this->outletId = $this->outlet->id;
+        $this->title = 'Penambahan Outlet Berhasil';
+        $this->message = 'Pembayaran telah dikonfirmasi dan Outlet "'.$this->outlet->name.'" telah berhasil diaktifkan.';
+        $this->actionUrl = route('settings.outlets.index');
+        $this->actionText = 'Kelola Outlet';
+        $this->meta = [
+            'outlet_id' => $this->outlet->id,
+            'outlet_name' => $this->outlet->name,
+        ];
     }
 
     public function toMail(object $notifiable)
     {
         return (new OutletActivatedMail($this->outlet))->to($notifiable->email);
-    }
-
-    public function toDatabase(object $notifiable): array
-    {
-        return [
-            'type' => 'outlet_activated',
-            'title' => 'Penambahan Outlet Berhasil',
-            'message' => 'Pembayaran telah dikonfirmasi dan Outlet "'.$this->outlet->name.'" telah berhasil diaktifkan.',
-            'business_id' => $this->outlet->business_id,
-            'outlet_id' => $this->outlet->id,
-        ];
     }
 }

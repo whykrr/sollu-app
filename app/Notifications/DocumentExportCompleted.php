@@ -2,63 +2,25 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Notification;
+use App\Enums\NotificationCategoryEnum;
+use App\Enums\NotificationScopeEnum;
+use App\Enums\NotificationTypeEnum;
 
-class DocumentExportCompleted extends Notification implements ShouldQueue
+class DocumentExportCompleted extends BaseNotification
 {
-    use Queueable;
-
-    public $moduleName;
-
-    public $fileName;
-
-    public $downloadUrl;
-
-    public $expiresAt;
-
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(string $moduleName, string $fileName, string $downloadUrl, $expiresAt = null)
     {
-        $this->moduleName = $moduleName;
-        $this->fileName = $fileName;
-        $this->downloadUrl = $downloadUrl;
+        $this->category = NotificationCategoryEnum::SYSTEM;
+        $this->type = NotificationTypeEnum::SUCCESS;
+        $this->scope = NotificationScopeEnum::USER;
+        $this->title = 'Ekspor '.$moduleName.' Selesai';
+        $this->message = 'Dokumen laporan Anda sudah siap diunduh.';
+        $this->actionUrl = $downloadUrl;
+        $this->actionText = 'Unduh File';
         $this->expiresAt = $expiresAt;
-    }
-
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
-    {
-        $channels = ['database'];
-
-        if (! in_array(config('broadcasting.default'), ['log', 'null'])) {
-            $channels[] = 'broadcast';
-        }
-
-        return $channels;
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
-    {
-        return [
-            'type' => 'success',
-            'title' => 'Ekspor '.$this->moduleName.' Selesai',
-            'message' => 'Dokumen laporan Anda sudah siap diunduh.',
-            'action_url' => $this->downloadUrl,
-            'action_text' => 'Unduh File',
-            'expires_at' => $this->expiresAt,
+        $this->meta = [
+            'module' => $moduleName,
+            'file_name' => $fileName,
         ];
     }
 }

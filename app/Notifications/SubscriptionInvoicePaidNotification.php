@@ -2,17 +2,15 @@
 
 namespace App\Notifications;
 
+use App\Enums\NotificationCategoryEnum;
+use App\Enums\NotificationScopeEnum;
+use App\Enums\NotificationTypeEnum;
 use App\Mail\SubscriptionInvoice;
 use App\Models\Invoice;
 use App\Models\Payment;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Notification;
 
-class SubscriptionInvoicePaidNotification extends Notification implements ShouldQueue
+class SubscriptionInvoicePaidNotification extends BaseNotification
 {
-    use Queueable;
-
     public function __construct(
         public Invoice $invoice,
         public ?Payment $payment = null
@@ -22,11 +20,20 @@ class SubscriptionInvoicePaidNotification extends Notification implements Should
         if (! $this->payment) {
             $this->payment = $this->invoice->payments()->latest()->first();
         }
-    }
 
-    public function via(object $notifiable): array
-    {
-        return ['mail', 'database'];
+        $this->category = NotificationCategoryEnum::SYSTEM;
+        $this->type = NotificationTypeEnum::SUCCESS;
+        $this->scope = NotificationScopeEnum::BUSINESS;
+        $this->businessId = $this->invoice->business_id;
+        $this->title = 'Pembayaran Invoice Terverifikasi';
+        $this->message = 'Pembayaran untuk invoice #'.$this->invoice->invoice_number.' sebesar Rp '.number_format($this->invoice->total_amount, 0, ',', '.').' telah diverifikasi.';
+        $this->actionUrl = route('settings.billing.invoices.show', $this->invoice->invoice_number);
+        $this->actionText = 'Lihat Invoice';
+        $this->meta = [
+            'invoice_id' => $this->invoice->id,
+            'invoice_number' => $this->invoice->invoice_number,
+            'amount' => $this->invoice->total_amount,
+        ];
     }
 
     public function toMail(object $notifiable)
@@ -35,17 +42,5 @@ class SubscriptionInvoicePaidNotification extends Notification implements Should
 
         return (new SubscriptionInvoice($this->invoice, $this->payment))
             ->to($recipientEmail);
-    }
-
-    public function toArray(object $notifiable): array
-    {
-        return [
-            'type' => 'subscription_invoice_paid',
-            'title' => 'Pembayaran Invoice Terverifikasi',
-            'message' => 'Pembayaran untuk invoice #'.$this->invoice->invoice_number.' sebesar Rp '.number_format($this->invoice->total_amount, 0, ',', '.').' telah diverifikasi.',
-            'invoice_id' => $this->invoice->id,
-            'invoice_number' => $this->invoice->invoice_number,
-            'amount' => $this->invoice->total_amount,
-        ];
     }
 }

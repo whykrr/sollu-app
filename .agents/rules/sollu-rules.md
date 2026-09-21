@@ -235,3 +235,32 @@ Setiap kali ada penambahan kasus baru pada `App\Enums\PermissionEnum`:
 - **Konfirmasi Hapus:** Jelaskan konsekuensi tindakan secara transparan tanpa menakut-nakuti (Contoh: *"Yakin mau hapus produk ini? Data akan dipindah ke sampah dan tidak tampil di kasir."*).
 - **Feature Lock / Upsell:** Fokus pada manfaat fitur secara positif (Contoh: *"Mau kelola resep otomatis? Yuk, tingkatkan paket tokomu ke Pro!"*).
 - _Lihat panduan lengkap di file `docs/ux-wording.md`._
+
+---
+
+## G. Standarisasi Sistem Notifikasi & Isolasi Scope
+
+**1. Wajib Mewarisi `BaseNotification`**
+Seluruh notifikasi baru di aplikasi WAJIB mewarisi `App\Notifications\BaseNotification` (mengimplementasikan `ShouldQueue`). DILARANG membuat class notifikasi langsung dari `Notification` Laravel tanpa struktur data baku Sollu.
+
+**2. Isolasi Target Multi-Level (`NotificationDispatcherService`)**
+- **User Level:** Gunakan `$user->notify($notification)` atau `NotificationDispatcherService::sendToUser()`.
+- **Merchant Level:** Gunakan `NotificationDispatcherService::sendToBusiness($business, $notification, $roles = ['owner', 'manager'])`.
+- **Outlet Level:** Gunakan `NotificationDispatcherService::sendToOutlet($outlet, $notification, $roles = null)`.
+
+**3. Single Source of Truth Enums**
+- Kategori WAJIB menggunakan `NotificationCategoryEnum` (`SYSTEM`, `ORDER`, `INVENTORY`, `EMPLOYEE`).
+- Tipe visual WAJIB menggunakan `NotificationTypeEnum` (`INFO`, `SUCCESS`, `WARNING`, `DANGER`).
+- Scope WAJIB menggunakan `NotificationScopeEnum` (`USER`, `BUSINESS`, `OUTLET`).
+- DILARANG melakukan filtering notifikasi dengan string matching kasar (seperti `type LIKE '%...'`).
+
+**4. Alur Karyawan Baru & Password Default**
+- Penambahan karyawan baru WAJIB mengirimkan password default sementara melalui email resmi (`mail.employee.new`) dan memicu in-app notification selamat datang dengan tombol aksi langsung ke halaman ubah kata sandi/PIN (`route('settings.account.profile')`).
+
+**5. Standar UI Popover Notifikasi (4 Tab: Semua, Sistem, Pesanan, Stok)**
+- Dropdown notifikasi WAJIB mempertahankan layout grid 4 kolom simetris (`grid grid-cols-4`) dengan ukuran teks `text-[11px] sm:text-xs` pada kontainer 416px (`w-[26rem]`) tanpa text-wrapping.
+
+**6. Kebijakan Retensi & Scheduler Pruning**
+- Notifikasi read $\ge 1\text{ tahun}$ (365 hari) dan berkas ekspor kedaluwarsa $> 30\text{ hari}$ otomatis dihapus via scheduled cron `php artisan notifications:prune --days=365` setiap malam pukul 02:30 WIB (`routes/console.php`).
+- _Lihat panduan lengkap di `.agents/rules/notification-rules.md`._
+

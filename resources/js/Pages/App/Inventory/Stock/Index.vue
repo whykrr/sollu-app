@@ -1,25 +1,7 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Stok Saat Ini">
-                <button
-                    type="button"
-                    class="btn btn-flat btn-sm flex items-center gap-1.5 text-xs text-slate-700"
-                    title="Klik untuk melihat atau mengubah metode perhitungan aset persediaan"
-                    @click="openCostingModal(false)"
-                >
-                    <FontAwesomeIcon
-                        :icon="activeCostingMethod === 'fifo' ? faBoxesStacked : faCalculator"
-                        class="text-main"
-                    />
-                    <span>
-                        Metode Aset:
-                        <strong class="text-slate-900">{{
-                            activeCostingMethod === 'fifo' ? 'FIFO' : 'Moving Average'
-                        }}</strong>
-                    </span>
-                </button>
-            </MainPageHeader>
+            <MainPageHeader title="Stok Saat Ini" />
         </template>
 
         <template #widgets>
@@ -86,8 +68,6 @@ import StockWidgets from './Components/StockWidgets.vue'
 import StockFilter from './Components/StockFilter.vue'
 import Detail from './Components/Detail.vue'
 import InventoryCostingModal from './Components/InventoryCostingModal.vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faBoxesStacked, faCalculator } from '@fortawesome/free-solid-svg-icons'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'
 

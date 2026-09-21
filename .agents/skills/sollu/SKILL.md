@@ -30,6 +30,7 @@ Pedoman dan standar baku rekayasa perangkat lunak untuk seluruh modul dan kompon
 12. [PDF Document Generation (laravel-dompdf)](#12-pdf-document-generation-laravel-dompdf)
 13. [API Documentation Standards](#13-api-documentation-standards)
 14. [Model Context Protocol (MCP) Standards & Tooling Ecosystem](#14-model-context-protocol-mcp-standards--tooling-ecosystem)
+15. [Notification System Standards (BaseNotification, Multi-Tenant Scoping, Retensi & Ergonomi)](#15-notification-system-standards)
 
 ---
 
@@ -974,3 +975,86 @@ Seluruh AI Agent yang bekerja di repositori Sollu App WAJIB mengoptimalkan ekosi
     - Format: `<type>(<scope>): <subject>`
     - Contoh: `feat(sales): implement pos shift drawer closing validation`
     - Scope merujuk pada nama modul (e.g. `inventory`, `sales`, `master`, `employee`, `cockpit`, `core`).
+
+---
+
+## 15. Notification System Standards
+
+### 15.1. Overview & Saluran Pengiriman Terpadu
+
+Sistem notifikasi Sollu App dirancang untuk multi-tenancy yang aman, real-time, dan hemat penyimpanan:
+- **`database`**: Riwayat persisten tersimpan di tabel `notifications` (dibaca via popover lonceng).
+- **`mail`**: Email transaksi & kredensial (**password default karyawan baru**).
+- **`broadcast`**: Push WebSocket real-time (< 100ms) menggunakan Laravel Reverb & Echo ke private channels (`App.Models.User.{id}`, `outlets.{id}`, `businesses.{id}`).
+
+### 15.2. Anatomi Notifikasi Baku (`BaseNotification`)
+
+Seluruh class notifikasi **WAJIB** mewarisi `App\Notifications\BaseNotification`:
+
+```php
+namespace App\Notifications;
+
+use App\Enums\NotificationCategoryEnum;
+use App\Enums\NotificationScopeEnum;
+use App\Enums\NotificationTypeEnum;
+
+class NewOrderNotification extends BaseNotification
+{
+    public function __construct(
+        string $orderNumber,
+        string $sourceName,
+        float $totalAmount,
+        ?string $outletId = null,
+        ?string $businessId = null,
+        ?string $detailUrl = null
+    ) {
+        $this->afterCommit = true;
+        $this->category = NotificationCategoryEnum::ORDER;
+        $this->type = NotificationTypeEnum::INFO;
+        $this->scope = NotificationScopeEnum::OUTLET;
+        $this->businessId = $businessId;
+        $this->outletId = $outletId;
+        $this->title = "Pesanan Baru #{$orderNumber}";
+        $this->message = "Pesanan masuk dari {$sourceName} total Rp ".number_format($totalAmount, 0, ',', '.').".";
+        $this->actionUrl = $detailUrl;
+        $this->actionText = 'Lihat Pesanan';
+        $this->meta = [
+            'order_number' => $orderNumber,
+            'source' => $sourceName,
+            'total_amount' => $totalAmount,
+        ];
+    }
+}
+```
+
+### 15.3. Layanan Pengiriman Terpusat (`NotificationDispatcherService`)
+
+```php
+// 1. Pengiriman Level Pengguna (User Level)
+app(NotificationDispatcherService::class)->sendToUser($user, $notification);
+
+// 2. Pengiriman Level Bisnis/Merchant (Seluruh Owner & Manager di bisnis terkait)
+app(NotificationDispatcherService::class)->sendToBusiness($business, $notification, ['owner', 'manager']);
+
+// 3. Pengiriman Level Outlet (Seluruh staf yang terhubung ke outlet terkait)
+app(NotificationDispatcherService::class)->sendToOutlet($outlet, $notification);
+```
+
+### 15.4. Alur Karyawan Baru & Password Default
+
+1. **Pembuatan Akun**: Password default acak di-generate (`Str::random(10)`).
+2. **Pengiriman Notifikasi**: `NewEmployee($defaultPassword)` dikirimkan:
+   - Saluran `mail`: Email memuat detail login dan password sementara.
+   - Saluran `database`: Notifikasi selamat datang dengan link ganti kata sandi & setup PIN (`route('settings.account.profile')`).
+
+### 15.5. Strategi Retensi Database & Scheduler Pruning
+
+- **Kebijakan**: Notifikasi read $\ge 1\text{ tahun}$ (365 hari) dan link ekspor berkas kedaluwarsa $> 30\text{ hari}$ otomatis dibersihkan.
+- **Eksekusi**: Command `php artisan notifications:prune --days=365` dijalankan harian pukul 02:30 WIB (`routes/console.php`).
+- **Batching**: Penghapusan dilakukan secara bertahap (*chunked batches* 1.000 baris) untuk mencegah beban/lock pada PostgreSQL.
+
+### 15.6. Standar UI Popover (4 Tab Simetris)
+
+- Popover notifikasi menampilkan 4 tab: **Semua**, **Sistem**, **Pesanan**, dan **Stok** dalam layout `grid grid-cols-4` (kontainer 416px, zero text-wrapping).
+- Komponen frontend mendengarkan WebSocket private channel untuk penambahan notifikasi real-time dan audio alert (khusus pesanan baru).
+

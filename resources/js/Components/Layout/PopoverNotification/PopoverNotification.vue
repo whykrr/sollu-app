@@ -28,12 +28,12 @@
                     </button>
                 </div>
 
-                <!-- Filter Tabs matching TopBarAccount style -->
+                <!-- Filter Tabs: Semua, Sistem, Pesanan, Stok -->
                 <div
-                    class="bg-neutral-50 border border-neutral-100 rounded-xl p-1 flex gap-1 text-xs font-medium text-neutral-500 shrink-0"
+                    class="bg-neutral-50 border border-neutral-100 rounded-xl p-1 grid grid-cols-4 gap-1 text-[11px] sm:text-xs font-medium text-neutral-500 shrink-0"
                 >
                     <button
-                        class="flex-1 py-1.5 px-2 rounded-lg transition-all duration-150 ease-in-out text-center flex items-center justify-center gap-1.5"
+                        class="py-1.5 px-1 rounded-lg transition-all duration-150 ease-in-out text-center flex items-center justify-center gap-1"
                         :class="
                             filterActive === 'all'
                                 ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold'
@@ -44,13 +44,13 @@
                         <span>Semua</span>
                         <span
                             v-if="unreadCount > 0"
-                            class="bg-main/10 text-main text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                            class="bg-main/10 text-main text-[9px] px-1 py-0.5 rounded-full font-bold"
                         >
-                            {{ unreadCount }}
+                            {{ unreadCount > 99 ? '99+' : unreadCount }}
                         </span>
                     </button>
                     <button
-                        class="flex-1 py-1.5 px-2 rounded-lg transition-all duration-150 ease-in-out text-center"
+                        class="py-1.5 px-1 rounded-lg transition-all duration-150 ease-in-out text-center truncate"
                         :class="
                             filterActive === 'system'
                                 ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold'
@@ -61,7 +61,7 @@
                         Sistem
                     </button>
                     <button
-                        class="flex-1 py-1.5 px-2 rounded-lg transition-all duration-150 ease-in-out text-center"
+                        class="py-1.5 px-1 rounded-lg transition-all duration-150 ease-in-out text-center truncate"
                         :class="
                             filterActive === 'order'
                                 ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold'
@@ -70,6 +70,17 @@
                         @click="toggleFilter('order')"
                     >
                         Pesanan
+                    </button>
+                    <button
+                        class="py-1.5 px-1 rounded-lg transition-all duration-150 ease-in-out text-center truncate"
+                        :class="
+                            filterActive === 'inventory'
+                                ? 'bg-white text-neutral-800 shadow-sm border border-neutral-100 font-semibold'
+                                : 'hover:text-neutral-800 hover:bg-neutral-100/50'
+                        "
+                        @click="toggleFilter('inventory')"
+                    >
+                        Stok
                     </button>
                 </div>
 
@@ -115,7 +126,7 @@
                             Belum Ada Notifikasi
                         </h3>
                         <p class="text-xs text-neutral-500">
-                            Saat ini tidak ada pemberitahuan baru untuk Anda.
+                            Saat ini tidak ada pemberitahuan baru di kategori ini.
                         </p>
                     </div>
 
@@ -140,10 +151,11 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
+import { usePage } from '@inertiajs/vue3'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faClose, faListCheck, faBellSlash } from '@fortawesome/free-solid-svg-icons'
+import { faClose, faBellSlash } from '@fortawesome/free-solid-svg-icons'
 import NotificationItem from './NotificationItem.vue'
 
 const props = defineProps({
@@ -151,6 +163,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'update-unread-count'])
+
+const page = usePage()
+const authUser = computed(() => page.props.auth?.user)
 
 // State
 const filterActive = ref('all')
@@ -160,6 +175,7 @@ const unreadCount = ref(0)
 watch(unreadCount, val => {
     emit('update-unread-count', val)
 })
+
 const isLoading = ref(false)
 const isLoadingMore = ref(false)
 const currentPage = ref(1)
@@ -229,15 +245,10 @@ const markAllAsRead = async () => {
 
 const deleteNotification = async id => {
     try {
-        // Optimistic UI update
         notifications.value = notifications.value.filter(n => n.id !== id)
         await axios.delete(route('api.internal.notifications.destroy', id))
-
-        // Re-fetch to keep pagination in sync if needed, but not strictly necessary
-        // fetchNotifications(1);
     } catch (e) {
         console.error('Failed to delete notification', e)
-        // Rollback could be implemented here
     }
 }
 
@@ -251,11 +262,31 @@ watch(
     val => {
         if (val) {
             fetchNotifications(1)
-        } else {
-            // Optional: reset state when closed
-            // filterActive.value = 'all';
-            // notifications.value = [];
         }
     }
 )
+
+// Real-time Echo listeners
+onMounted(() => {
+    if (authUser.value?.id && window.Echo) {
+        window.Echo.private(`App.Models.User.${authUser.value.id}`)
+            .notification((notification) => {
+                unreadCount.value++
+                if (filterActive.value === 'all' || filterActive.value === notification.category) {
+                    notifications.value.unshift({
+                        id: notification.id,
+                        data: notification,
+                        created_at: new Date().toISOString(),
+                        read_at: null,
+                    })
+                }
+            })
+    }
+})
+
+onUnmounted(() => {
+    if (authUser.value?.id && window.Echo) {
+        window.Echo.leave(`App.Models.User.${authUser.value.id}`)
+    }
+})
 </script>

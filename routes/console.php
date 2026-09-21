@@ -21,3 +21,4 @@ Schedule::call(function () {
 })->daily();
 
 Schedule::command('subscription:renewal-notification')->dailyAt('08:00');
+Schedule::command('notifications:prune --days=365')->dailyAt('02:30');

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\App\Notification;
 
+use App\Enums\NotificationCategoryEnum;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -10,24 +12,27 @@ class NotificationController extends Controller
     /**
      * Get paginated notifications.
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $query = $request->user()->notifications();
+        $user = $request->user();
+        $query = $user->notifications();
 
-        // Basic filtering support
-        if ($request->filled('filter') && $request->filter !== 'all') {
-            if ($request->filter === 'system') {
-                $query->where('type', 'like', '%Csv%')
-                    ->orWhere('type', 'like', '%Welcome%');
-            } elseif ($request->filter === 'order') {
-                $query->where('type', 'like', '%Order%')
-                    ->orWhere('type', 'like', '%Transaction%');
-            }
+        // Filter by category enum
+        $filter = $request->input('filter', 'all');
+        if ($filter !== 'all' && in_array($filter, NotificationCategoryEnum::values(), true)) {
+            $query->where('data->category', $filter);
         }
 
-        $notifications = $query->paginate(15);
+        // Optional filter by outlet
+        if ($request->filled('outlet_id')) {
+            $query->where(function ($q) use ($request) {
+                $q->whereNull('data->outlet_id')
+                    ->orWhere('data->outlet_id', $request->input('outlet_id'));
+            });
+        }
 
-        $unreadCount = $request->user()->unreadNotifications()->count();
+        $notifications = $query->latest()->paginate(15);
+        $unreadCount = $user->unreadNotifications()->count();
 
         return response()->json([
             'notifications' => $notifications,
@@ -38,9 +43,12 @@ class NotificationController extends Controller
     /**
      * Mark a specific notification as read.
      */
-    public function markAsRead(Request $request, $id)
+    public function markAsRead(Request $request, string $id): JsonResponse
     {
-        $notification = $request->user()->notifications()->findOrFail($id);
+        $notification = $request->user()
+            ->notifications()
+            ->findOrFail($id);
+
         $notification->markAsRead();
 
         return response()->json(['success' => true]);
@@ -49,9 +57,11 @@ class NotificationController extends Controller
     /**
      * Mark all notifications as read for the user.
      */
-    public function markAllAsRead(Request $request)
+    public function markAllAsRead(Request $request): JsonResponse
     {
-        $request->user()->unreadNotifications->markAsRead();
+        $request->user()
+            ->unreadNotifications()
+            ->update(['read_at' => now()]);
 
         return response()->json(['success' => true]);
     }
@@ -59,9 +69,12 @@ class NotificationController extends Controller
     /**
      * Delete a specific notification.
      */
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, string $id): JsonResponse
     {
-        $notification = $request->user()->notifications()->findOrFail($id);
+        $notification = $request->user()
+            ->notifications()
+            ->findOrFail($id);
+
         $notification->delete();
 
         return response()->json(['success' => true]);

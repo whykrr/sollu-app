@@ -11,6 +11,9 @@ use App\Enums\FeatureEnum;
 use App\Enums\InventoryCostingMethod;
 use App\Enums\InventoryMovementType;
 use App\Enums\InvoiceStatus;
+use App\Enums\NotificationCategoryEnum;
+use App\Enums\NotificationScopeEnum;
+use App\Enums\NotificationTypeEnum;
 use App\Enums\PaymentManualValidationStatus;
 use App\Enums\PaymentMethodType;
 use App\Enums\PermissionEnum;
@@ -52,6 +55,9 @@ class FrontendEnumProvider
         FeatureEnum::class,
         InventoryCostingMethod::class,
         InventoryMovementType::class,
+        NotificationCategoryEnum::class,
+        NotificationScopeEnum::class,
+        NotificationTypeEnum::class,
         PaymentMethodType::class,
         PermissionEnum::class,
         PlanEnum::class,

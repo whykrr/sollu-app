@@ -2,33 +2,27 @@
 
 namespace App\Notifications;
 
+use App\Enums\NotificationCategoryEnum;
+use App\Enums\NotificationScopeEnum;
+use App\Enums\NotificationTypeEnum;
 use App\Models\User;
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
-class NewEmployee extends Notification
+class NewEmployee extends BaseNotification
 {
-    use Queueable;
-
-    protected $password;
-
     /**
      * Create a new notification instance.
      */
-    public function __construct(string $password)
+    public function __construct(protected string $password)
     {
-        $this->password = $password;
-    }
-
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
-    {
-        return ['mail'];
+        $this->afterCommit = true;
+        $this->category = NotificationCategoryEnum::SYSTEM;
+        $this->type = NotificationTypeEnum::INFO;
+        $this->scope = NotificationScopeEnum::USER;
+        $this->title = 'Selamat Bergabung di Sollu App!';
+        $this->message = 'Akun karyawanmu telah dibuat. Demi keamanan, silakan segera ubah kata sandi default dan atur PIN kasirmu di menu profil.';
+        $this->actionUrl = route('settings.account.profile');
+        $this->actionText = 'Ubah Password & PIN';
     }
 
     /**
@@ -41,6 +35,8 @@ class NewEmployee extends Notification
             ->markdown('mail.employee.new', [
                 'user' => $notifiable,
                 'defaultPassword' => $this->password,
+                'actionUrl' => route('login'),
+                'actionText' => 'Login Sekarang',
             ])
             ->action('Login Sekarang', route('login'));
     }

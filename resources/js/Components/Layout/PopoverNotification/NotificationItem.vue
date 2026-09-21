@@ -5,7 +5,7 @@
     >
         <div class="flex-shrink-0">
             <div
-                class="rounded-full w-9 h-9 flex items-center justify-center text-sm shadow-sm"
+                class="rounded-full w-9 h-9 flex items-center justify-center text-sm shadow-none"
                 :class="[iconConfig.bgClass, { 'bg-neutral-200 text-neutral-400': isSkeleton }]"
             >
                 <FontAwesomeIcon
@@ -22,16 +22,23 @@
                         v-if="!notification?.read_at"
                         class="w-2 h-2 rounded-full bg-main flex-shrink-0"
                     />
-                    <span class="truncate">{{ notification.data.title || 'Pemberitahuan' }}</span>
+                    <span class="truncate">{{ notification.data?.title || 'Pemberitahuan' }}</span>
+                    <span
+                        v-if="categoryBadge"
+                        class="text-[10px] font-normal px-1.5 py-0.2 rounded border"
+                        :class="categoryBadge.class"
+                    >
+                        {{ categoryBadge.label }}
+                    </span>
                 </div>
                 <div class="text-neutral-500 mt-1 leading-normal text-[13px] break-words">
-                    {{ notification.data.message }}
+                    {{ notification.data?.message }}
                 </div>
                 <div class="text-[11px] text-neutral-400 mt-1.5 font-normal">
                     {{ formatDateTime(notification.created_at) }}
                 </div>
             </div>
-            <div v-if="notification.data.action_url" class="pt-1.5">
+            <div v-if="notification.data?.action_url" class="pt-1.5">
                 <a
                     v-if="!isExpired"
                     :href="notification.data.action_url"
@@ -89,6 +96,8 @@ import {
     faCircleInfo,
     faCircleCheck,
     faTriangleExclamation,
+    faBoxesStacked,
+    faReceipt,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
@@ -105,37 +114,70 @@ const isSkeleton = computed(() => !props.notification || !props.notification.id)
 
 const isExpired = computed(() => {
     if (isSkeleton.value) return false
-    const expiresAt = props.notification.data.expires_at
+    const expiresAt = props.notification.data?.expires_at
     if (!expiresAt) return false
 
     return new Date(expiresAt) < new Date()
 })
 
+const categoryBadge = computed(() => {
+    if (isSkeleton.value) return null
+    const category = props.notification.data?.category
+
+    switch (category) {
+        case 'order':
+            return { label: 'Pesanan', class: 'bg-amber-50 text-amber-700 border-amber-200' }
+        case 'inventory':
+            return { label: 'Stok', class: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+        case 'system':
+            return { label: 'Sistem', class: 'bg-sky-50 text-sky-700 border-sky-200' }
+        case 'employee':
+            return { label: 'Karyawan', class: 'bg-purple-50 text-purple-700 border-purple-200' }
+        default:
+            return null
+    }
+})
+
 const iconConfig = computed(() => {
     if (isSkeleton.value) return { bgClass: '', icon: faShop }
 
-    const type = props.notification.data.type || 'info'
+    const type = props.notification.data?.type || 'info'
+    const category = props.notification.data?.category
+
+    let icon = faCircleInfo
+    if (category === 'order') {
+        icon = faReceipt
+    } else if (category === 'inventory') {
+        icon = faBoxesStacked
+    } else if (type === 'success') {
+        icon = faCircleCheck
+    } else if (type === 'warning' || type === 'danger' || type === 'error') {
+        icon = faTriangleExclamation
+    }
 
     switch (type) {
         case 'success':
             return {
                 bgClass: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
-                icon: faCircleCheck,
+                icon,
             }
         case 'warning':
             return {
                 bgClass: 'bg-amber-50 text-amber-600 border border-amber-100',
-                icon: faTriangleExclamation,
+                icon,
             }
         case 'danger':
         case 'error':
             return {
                 bgClass: 'bg-rose-50 text-rose-600 border border-rose-100',
-                icon: faTriangleExclamation,
+                icon,
             }
         case 'info':
         default:
-            return { bgClass: 'bg-sky-50 text-sky-600 border border-sky-100', icon: faCircleInfo }
+            return {
+                bgClass: 'bg-sky-50 text-sky-600 border border-sky-100',
+                icon,
+            }
     }
 })
 </script>

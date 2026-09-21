@@ -2,73 +2,37 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Notification;
+use App\Enums\NotificationCategoryEnum;
+use App\Enums\NotificationScopeEnum;
+use App\Enums\NotificationTypeEnum;
 
-class ExcelImportCompleted extends Notification implements ShouldQueue
+class ExcelImportCompleted extends BaseNotification
 {
-    use Queueable;
+    public function __construct(
+        string $moduleName,
+        int $successCount,
+        int $failedCount,
+        ?string $failedDownloadUrl = null,
+        $expiresAt = null
+    ) {
+        $this->category = NotificationCategoryEnum::SYSTEM;
+        $this->type = $failedCount > 0 ? NotificationTypeEnum::WARNING : NotificationTypeEnum::SUCCESS;
+        $this->scope = NotificationScopeEnum::USER;
+        $this->title = 'Impor '.$moduleName.' Selesai';
 
-    public $moduleName;
+        $message = "Berhasil memproses {$successCount} data.";
+        if ($failedCount > 0) {
+            $message .= " Terdapat {$failedCount} baris data gagal.";
+        }
+        $this->message = $message;
 
-    public $successCount;
-
-    public $failedCount;
-
-    public $failedDownloadUrl;
-
-    public $expiresAt;
-
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(string $moduleName, int $successCount, int $failedCount, ?string $failedDownloadUrl = null, $expiresAt = null)
-    {
-        $this->moduleName = $moduleName;
-        $this->successCount = $successCount;
-        $this->failedCount = $failedCount;
-        $this->failedDownloadUrl = $failedDownloadUrl;
+        $this->actionUrl = $failedDownloadUrl;
+        $this->actionText = $failedDownloadUrl ? 'Unduh Data Gagal' : null;
         $this->expiresAt = $expiresAt;
-    }
-
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
-    {
-        $channels = ['database'];
-
-        if (! in_array(config('broadcasting.default'), ['log', 'null'])) {
-            $channels[] = 'broadcast';
-        }
-
-        return $channels;
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
-    {
-        $title = 'Impor '.$this->moduleName.' Selesai';
-        $message = "Berhasil: {$this->successCount} baris.";
-
-        if ($this->failedCount > 0) {
-            $message .= " Gagal: {$this->failedCount} baris.";
-        }
-
-        return [
-            'type' => $this->failedCount > 0 ? 'warning' : 'success',
-            'title' => $title,
-            'message' => $message,
-            'action_url' => $this->failedDownloadUrl,
-            'action_text' => $this->failedDownloadUrl ? 'Unduh Data Gagal' : null,
-            'expires_at' => $this->expiresAt,
+        $this->meta = [
+            'module' => $moduleName,
+            'success_count' => $successCount,
+            'failed_count' => $failedCount,
         ];
     }
 }
