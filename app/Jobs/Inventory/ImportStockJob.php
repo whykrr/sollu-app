@@ -138,7 +138,7 @@ class ImportStockJob extends AbstractExcelImportJob
                         'business_id' => $this->businessId,
                         'outlet_id' => $outlet->id,
                         'inventory_item_id' => $item->id,
-                        'movement_type' => InventoryMovementType::Adjustment->value,
+                        'movement_type' => InventoryMovementType::InitialStock,
                         'qty_change' => $stokAwal,
                         'stock_before' => 0,
                         'stock_after' => $stokAwal,

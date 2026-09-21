@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\App\Inventory;
 
 use App\Constants\FlashDataVariable;
+use App\Enums\InventoryMovementType;
 use App\Http\Controllers\Controller;
 use App\Jobs\Inventory\ExportStockJob;
 use App\Jobs\Inventory\ImportStockJob;
@@ -361,7 +362,7 @@ class StockController extends Controller
                 'business_id' => Auth::user()->business_id,
                 'outlet_id' => $balance->outlet_id,
                 'inventory_item_id' => $balance->inventory_item_id,
-                'movement_type' => \App\Enums\InventoryMovementType::Adjustment->value,
+                'movement_type' => InventoryMovementType::InitialStock,
                 'qty_change' => $request->qty,
                 'stock_before' => 0,
                 'stock_after' => $request->qty,

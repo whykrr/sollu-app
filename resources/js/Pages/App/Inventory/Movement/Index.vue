@@ -7,6 +7,11 @@
         </template>
 
         <Table :headers="headers" :data="movements.data">
+            <template #created_at="{ item }">
+                <span class="text-xs text-neutral-600 font-mono">
+                    {{ formatDateTimeSimple(item.created_at) }}
+                </span>
+            </template>
             <template #qty_change="{ item }">
                 <span
                     :class="
@@ -23,8 +28,8 @@
                 {{ item.stock_after_formatted }}
             </template>
             <template #movement_type="{ item }">
-                <span class="badge" :class="movementTypeColor(item.movement_type)">
-                    {{ item.movement_type.replace('_', ' ').toUpperCase() }}
+                <span class="badge text-xs" :class="getColor('InventoryMovementType', item.movement_type) || 'badge-gray'">
+                    {{ getLabel('InventoryMovementType', item.movement_type) }}
                 </span>
             </template>
         </Table>
@@ -46,8 +51,9 @@ import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import { formatDateTimeSimple } from '@/Composable/date.js'
+import { useEnum } from '@/Composable/useEnum'
 
-const props = defineProps({
+defineProps({
     movements: {
         type: Object,
         default: () => ({ data: [], links: [] }),
@@ -65,6 +71,8 @@ const props = defineProps({
         default: () => ({}),
     },
 })
+
+const { getLabel, getColor } = useEnum()
 
 const headers = [
     {
@@ -102,18 +110,4 @@ const headers = [
     { label: 'Keterangan', field: 'description', sortable: false },
     { label: 'Oleh', field: 'creator.name', sortable: false },
 ]
-
-const movementTypeColor = type => {
-    const colors = {
-        purchase: 'badge-success',
-        sale: 'badge-info',
-        recipe_deduction: 'badge-info',
-        transfer_in: 'badge-success',
-        transfer_out: 'badge-warning',
-        adjustment: 'badge-gray',
-        waste: 'badge-danger',
-        opname: 'badge-gray',
-    }
-    return colors[type] || 'badge-gray'
-}
 </script>

@@ -8,8 +8,11 @@
                     </span>
                 </template>
                 <template #movement_type="{ item: row }">
-                    <span class="badge badge-outline-main text-xs">
-                        {{ formatMovementType(row.movement_type) }}
+                    <span
+                        class="badge text-xs"
+                        :class="getColor('InventoryMovementType', row.movement_type) || 'badge-gray'"
+                    >
+                        {{ getLabel('InventoryMovementType', row.movement_type) }}
                     </span>
                 </template>
                 <template #qty_change="{ item: row }">
@@ -42,6 +45,7 @@
 <script setup>
 import Table from '@/Components/Tables/Table.vue'
 import { formatDateTimeSimple } from '@/Composable/date'
+import { useEnum } from '@/Composable/useEnum'
 
 defineProps({
     item: {
@@ -54,23 +58,7 @@ defineProps({
     },
 })
 
-const movementTypeLabels = {
-    sale: 'Penjualan',
-    purchase: 'Pembelian',
-    adjustment: 'Penyesuaian',
-    recipe_deduction: 'Deduksi Resep',
-    bundle_deduction: 'Deduksi Bundle',
-    transfer_in: 'Transfer Masuk',
-    transfer_out: 'Transfer Keluar',
-    waste: 'Pemborosan',
-    opname: 'Stok Opname',
-    purchase_void: 'Void Pembelian',
-}
-
-const formatMovementType = type => {
-    if (!type) return '-'
-    return movementTypeLabels[type] || type
-}
+const { getLabel, getColor } = useEnum()
 
 const headers = [
     {

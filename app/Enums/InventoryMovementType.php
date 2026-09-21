@@ -29,6 +29,7 @@ enum InventoryMovementType: string
     public function label(): string
     {
         return match ($this) {
+            self::InitialStock => 'Stok Awal',
             self::Sale => 'Penjualan',
             self::SaleReturn => 'Retur/Void Penjualan',
             self::Purchase => 'Pembelian',
@@ -42,12 +43,110 @@ enum InventoryMovementType: string
             self::BundleDeduction => 'Deduksi Bundle',
             self::TransferIn => 'Transfer Masuk',
             self::TransferOut => 'Transfer Keluar',
-            self::Waste => 'Kerusakan / Kedaluwarsa (Waste)',
+            self::Waste => 'Kerusakan / Waste',
             self::Opname => 'Penyesuaian Opname',
             self::OpnameSurplus => 'Selisih Lebih Opname',
             self::OpnameDeficit => 'Selisih Kurang Opname',
-            self::InitialStock => 'Saldo Awal Stok',
         };
+    }
+
+    /**
+     * Get badge color CSS class.
+     */
+    public function color(): string
+    {
+        return match ($this) {
+            self::InitialStock => 'badge-main',
+            self::Purchase, self::PurchaseReturn, self::TransferIn, self::AdjustmentIn, self::OpnameSurplus, self::RecipeReturn, self::SaleReturn => 'badge-success',
+            self::Sale, self::RecipeDeduction, self::BundleDeduction => 'badge-info',
+            self::TransferOut => 'badge-warning',
+            self::Waste, self::OpnameDeficit, self::PurchaseVoid, self::AdjustmentOut => 'badge-danger',
+            self::Adjustment, self::Opname => 'badge-gray',
+        };
+    }
+
+    /**
+     * Group key for categorization.
+     */
+    public function group(): string
+    {
+        return match ($this) {
+            self::InitialStock => 'initial',
+            self::Purchase, self::PurchaseVoid, self::PurchaseReturn => 'purchase',
+            self::Sale, self::SaleReturn, self::RecipeDeduction, self::RecipeReturn, self::BundleDeduction => 'sales',
+            self::Adjustment, self::AdjustmentIn, self::AdjustmentOut, self::Opname, self::OpnameSurplus, self::OpnameDeficit, self::Waste => 'adjustment',
+            self::TransferIn, self::TransferOut => 'transfer',
+        };
+    }
+
+    /**
+     * Group label for categorization in UI.
+     */
+    public function groupLabel(): string
+    {
+        return match ($this->group()) {
+            'initial' => 'Stok Awal',
+            'purchase' => 'Pembelian & Pengadaan',
+            'sales' => 'Penjualan & Resep',
+            'adjustment' => 'Penyesuaian & Opname',
+            'transfer' => 'Transfer Stok',
+            default => 'Lainnya',
+        };
+    }
+
+    /**
+     * Determine if movement generally adds to inventory stock.
+     */
+    public function isIncrease(): bool
+    {
+        return match ($this) {
+            self::InitialStock,
+            self::Purchase,
+            self::PurchaseReturn,
+            self::TransferIn,
+            self::AdjustmentIn,
+            self::OpnameSurplus,
+            self::RecipeReturn,
+            self::SaleReturn => true,
+            default => false,
+        };
+    }
+
+    /**
+     * Determine if movement generally reduces inventory stock.
+     */
+    public function isDecrease(): bool
+    {
+        return match ($this) {
+            self::Sale,
+            self::RecipeDeduction,
+            self::BundleDeduction,
+            self::TransferOut,
+            self::Waste,
+            self::OpnameDeficit,
+            self::PurchaseVoid,
+            self::AdjustmentOut => true,
+            default => false,
+        };
+    }
+
+    /**
+     * Get grouped array of options for selection UI.
+     *
+     * @return array<string, array<int, array{value: string, label: string}>>
+     */
+    public static function grouped(): array
+    {
+        $result = [];
+        foreach (self::cases() as $case) {
+            $groupName = $case->groupLabel();
+            $result[$groupName][] = [
+                'value' => $case->value,
+                'label' => $case->label(),
+            ];
+        }
+
+        return $result;
     }
 
     public static function values(): array
