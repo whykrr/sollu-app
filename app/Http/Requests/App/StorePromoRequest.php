@@ -25,6 +25,8 @@ class StorePromoRequest extends BaseInertiaFormRequest
      */
     public function rules(): array
     {
+        $businessId = $this->user()?->business_id;
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -46,12 +48,20 @@ class StorePromoRequest extends BaseInertiaFormRequest
                 'array',
                 Rule::requiredIf(fn () => ! $this->applies_to_all_outlets),
             ],
-            'outlet_ids.*' => ['exists:outlets,id'],
+            'outlet_ids.*' => [
+                Rule::exists('outlets', 'id')->where(function ($query) use ($businessId) {
+                    return $query->where('business_id', $businessId);
+                }),
+            ],
             'inventory_item_ids' => [
                 'array',
                 Rule::requiredIf(fn () => $this->target_type === PromoTarget::Product->value),
             ],
-            'inventory_item_ids.*' => ['exists:inventory_items,id'],
+            'inventory_item_ids.*' => [
+                Rule::exists('inventory_items', 'id')->where(function ($query) use ($businessId) {
+                    return $query->where('business_id', $businessId);
+                }),
+            ],
         ];
     }
 

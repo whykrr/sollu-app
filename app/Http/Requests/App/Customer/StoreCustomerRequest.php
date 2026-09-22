@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\App\Customer;
 
+use App\Enums\CustomerGender;
+use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,7 +14,7 @@ class StoreCustomerRequest extends BaseInertiaFormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('customer.create');
+        return $this->user()?->can(PermissionEnum::CUSTOMER_CREATE->value) ?? false;
     }
 
     /**
@@ -20,21 +22,21 @@ class StoreCustomerRequest extends BaseInertiaFormRequest
      */
     public function rules(): array
     {
-        // Assuming business_id is obtained via auth context, not required from client
+        $businessId = $this->user()?->business_id;
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'phone' => [
                 'required',
                 'string',
-                // Unique per business_id (assumes business_id is available via auth or hidden input)
-                Rule::unique('customers')->where(function ($query) {
-                    return $query->where('business_id', auth()->user()->business_id ?? null);
+                Rule::unique('customers', 'phone')->where(function ($query) use ($businessId) {
+                    return $query->where('business_id', $businessId);
                 }),
             ],
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:500'],
             'birthdate' => ['nullable', 'date'],
-            'gender' => ['nullable', Rule::in(['male', 'female'])],
+            'gender' => ['nullable', Rule::enum(CustomerGender::class)],
             'notes' => ['nullable', 'string'],
             'is_active' => ['boolean'],
         ];

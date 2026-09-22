@@ -55,7 +55,7 @@
                 @click="$emit('create')"
             >
                 <FontAwesomeIcon :icon="faPlus" />
-                <span>Buat Promo</span>
+                <span>Promo Baru</span>
             </button>
         </template>
     </ActionBar>
@@ -68,6 +68,7 @@ import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faPlus, faStore } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
+import { useEnum } from '@/Composable/useEnum'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
@@ -82,6 +83,8 @@ const props = defineProps({
 })
 
 const { outlets: userOutlets, selectedOutlet } = useAuth()
+const { getOptions } = useEnum()
+
 const outletOptions = computed(() =>
     (userOutlets.value || []).map(store => ({
         value: String(store.id),
@@ -89,28 +92,15 @@ const outletOptions = computed(() =>
     }))
 )
 
-const statusOptions = [
-    { value: 'draft', label: 'Draf' },
-    { value: 'active', label: 'Aktif' },
-    { value: 'inactive', label: 'Nonaktif' },
-    { value: 'expired', label: 'Kedaluwarsa' },
-]
-
-const promoTypeOptions = [
-    { value: 'percentage', label: 'Persentase (%)' },
-    { value: 'fixed', label: 'Nominal Tetap (Rp)' },
-]
-
-const targetTypeOptions = [
-    { value: 'product', label: 'Per Produk' },
-    { value: 'bill', label: 'Per Bill' },
-]
+const statusOptions = computed(() => getOptions('PromoStatus'))
+const promoTypeOptions = computed(() => getOptions('PromoType'))
+const targetTypeOptions = computed(() => getOptions('PromoTarget'))
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
     status: props.filters?.status ?? '',
-    promo_type: props.filters?.promo_type ?? '',
-    target_type: props.filters?.target_type ?? '',
+    promo_type: props.filters?.promo_type ?? props.filters?.type ?? '',
+    target_type: props.filters?.target_type ?? props.filters?.target ?? '',
     outlet: props.filters?.outlet ? String(props.filters.outlet) : '',
 })
 
@@ -128,7 +118,9 @@ const updateQuery = () => {
         search: filterForm.search || undefined,
         status: filterForm.status || undefined,
         promo_type: filterForm.promo_type || undefined,
+        type: filterForm.promo_type || undefined,
         target_type: filterForm.target_type || undefined,
+        target: filterForm.target_type || undefined,
         outlet: filterForm.outlet || undefined,
         page: 1,
     }

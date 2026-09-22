@@ -1,27 +1,29 @@
 <template>
-    <form class="space-y-4" @submit.prevent="submit">
+    <form class="space-y-3" @submit.prevent="submit">
         <!-- Section 1: Informasi Dasar -->
         <div class="space-y-2">
-            <h3 class="text-sm font-semibold text-slate-700 uppercase">Informasi Dasar</h3>
             <TextField
                 id="name"
                 v-model="form.name"
                 label="Nama Promo"
+                placeholder="Misal: Diskon Gajian 10% atau Promo Opening"
                 :error="form.errors.name"
                 required
             />
             <TextareaField
                 id="description"
                 v-model="form.description"
-                label="Deskripsi"
+                label="Deskripsi (Opsional)"
+                placeholder="Penjelasan ringkas syarat dan ketentuan promo"
                 :error="form.errors.description"
+                rows="2"
             />
         </div>
 
-        <!-- Section 2: Tipe & Target -->
-        <div class="space-y-2 border-t pt-4">
-            <h3 class="text-sm font-semibold text-slate-700 uppercase">Tipe & Target Diskon</h3>
-            <div class="grid grid-cols-2 gap-2">
+        <!-- Section 2: Tipe & Target Diskon -->
+        <div class="space-y-2 border-t border-slate-100 pt-3">
+            <h4 class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Skema Diskon</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <DropdownField
                     id="target_type"
                     v-model="form.target_type"
@@ -38,11 +40,11 @@
                 />
             </div>
 
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <NumberField
                     id="discount_value"
                     v-model="form.discount_value"
-                    label="Nilai Diskon"
+                    :label="form.promo_type === 'percentage' ? 'Nilai Diskon (%)' : 'Nilai Diskon (Rp)'"
                     :error="form.errors.discount_value"
                     required
                 />
@@ -51,19 +53,20 @@
                     id="max_discount"
                     v-model="form.max_discount"
                     label="Batas Maksimum Diskon (Rp)"
+                    placeholder="Misal: 50000"
                     :error="form.errors.max_discount"
                 />
             </div>
         </div>
 
-        <!-- Section 3: Cakupan Produk -->
-        <div v-if="form.target_type === 'product'" class="space-y-2 border-t pt-4">
+        <!-- Section 3: Cakupan Produk (Kondisional) -->
+        <div v-if="form.target_type === 'product'" class="space-y-2 border-t border-slate-100 pt-3">
             <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-slate-700 uppercase mb-0">Cakupan Produk</h3>
+                <h4 class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-0">Cakupan Produk</h4>
                 <button
                     v-if="selectedProducts.length > 0"
                     type="button"
-                    class="text-xs text-primary-600 hover:text-primary-700 font-medium select-none"
+                    class="text-xs text-main hover:underline font-medium cursor-pointer"
                     @click="selectedProducts = []"
                 >
                     Hapus Semua
@@ -78,16 +81,16 @@
                 @select="addProduct"
             />
 
-            <div v-if="selectedProducts.length > 0" class="mt-2 space-y-1">
+            <div v-if="selectedProducts.length > 0" class="mt-2 space-y-1 max-h-48 overflow-y-auto">
                 <div
                     v-for="product in selectedProducts"
                     :key="product.id"
-                    class="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-200"
+                    class="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200 text-xs"
                 >
-                    <span class="text-sm">{{ product.name }}</span>
+                    <span class="font-medium text-slate-800">{{ product.name }}</span>
                     <button
                         type="button"
-                        class="text-danger hover:text-red-700"
+                        class="text-danger hover:text-rose-700 p-1"
                         @click="removeProduct(product.id)"
                     >
                         <FontAwesomeIcon :icon="faTimes" />
@@ -97,11 +100,11 @@
         </div>
 
         <!-- Section 4: Jadwal & Waktu -->
-        <div class="space-y-2 border-t pt-4">
-            <h3 class="text-sm font-semibold text-slate-700 uppercase">
-                Jadwal & Waktu Operasional
-            </h3>
-            <div class="grid grid-cols-2 gap-2">
+        <div class="space-y-2 border-t border-slate-100 pt-3">
+            <h4 class="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                Periode & Jam Operasional
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <TextField
                     id="start_date"
                     v-model="form.start_date"
@@ -119,7 +122,7 @@
                     required
                 />
             </div>
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <TextField
                     id="start_time"
                     v-model="form.start_time"
@@ -140,42 +143,29 @@
         <!-- Section 5: Cakupan Outlet -->
         <div
             v-if="!selectedOutlet && outlets.length > 1"
-            class="space-y-2 border-t border-slate-100 pt-4"
+            class="space-y-2 border-t border-slate-100 pt-3"
         >
-            <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <h4 class="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                 Cakupan Outlet
-            </h3>
-            <label
-                class="flex items-center justify-between border border-slate-200 p-3 rounded-xl cursor-pointer hover:bg-slate-50/80 transition-all w-full select-none"
-                :class="{
-                    'border-primary-200 bg-primary-50/20': form.applies_to_all_outlets,
-                }"
-            >
-                <div>
-                    <div class="font-semibold text-sm text-slate-800">Semua outlet</div>
-                    <div class="text-xs text-slate-500">
-                        Promo ini berlaku untuk semua outlet yang dimiliki.
-                    </div>
-                </div>
-                <input
-                    v-model="form.applies_to_all_outlets"
-                    type="checkbox"
-                    class="rounded h-4 w-4 text-primary focus:ring-primary-500 cursor-pointer"
-                />
-            </label>
+            </h4>
+            <Switch
+                v-model="form.applies_to_all_outlets"
+                label="Berlaku di Semua Outlet"
+                description="Promo dapat digunakan oleh seluruh gerai yang kamu miliki."
+            />
 
             <div v-if="!form.applies_to_all_outlets" class="mt-2 space-y-2">
-                <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2">
+                <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">
                     <SelectionGroupField
                         v-model="form.outlet_ids"
                         multiple
-                        label="Pilih Outlet"
+                        label="Pilih Outlet Tertentu"
                         :options="outlets"
                         name="outlet_ids"
                         class="sm btn-sm"
                     />
                 </div>
-                <div v-if="form.errors.outlet_ids" class="text-danger text-xs select-none">
+                <div v-if="form.errors.outlet_ids" class="text-danger text-xs">
                     {{ form.errors.outlet_ids }}
                 </div>
             </div>
@@ -183,14 +173,14 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex justify-end gap-2 w-full">
-                <button type="button" class="btn btn-flat" @click="popUpStore.close">Batal</button>
+                <button type="button" class="btn btn-flat" @click="handleCancel()">Batal</button>
                 <button
                     type="submit"
                     class="btn btn-highlight-main"
                     :disabled="form.processing"
                     @click="submit"
                 >
-                    {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
+                    {{ form.processing ? 'Menyimpan...' : 'Simpan Promo' }}
                 </button>
             </div>
         </Teleport>
@@ -201,7 +191,6 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import axios from 'axios'
-import { usePopUpStore } from '@/store/popup'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTimes } from '@fortawesome/free-solid-svg-icons'
 import TextField from '@/Components/Form/TextField.vue'
@@ -210,7 +199,10 @@ import DropdownField from '@/Components/Form/DropdownField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
+import Switch from '@/Components/Form/Switch.vue'
 import { useAuth } from '@/Composable/useAuth'
+import { useEnum } from '@/Composable/useEnum'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 
 const props = defineProps({
     promo: {
@@ -219,10 +211,9 @@ const props = defineProps({
     },
 })
 
-const popUpStore = usePopUpStore()
 const isMounted = ref(false)
-
 const { outlets: userOutlets, selectedOutlet } = useAuth()
+const { getOptions } = useEnum()
 
 const outlets = computed(
     () =>
@@ -232,15 +223,8 @@ const outlets = computed(
         })) || []
 )
 
-const targetTypeOptions = [
-    { value: 'product', label: 'Per Produk' },
-    { value: 'bill', label: 'Per Bill' },
-]
-
-const promoTypeOptions = [
-    { value: 'percentage', label: 'Persentase (%)' },
-    { value: 'fixed', label: 'Nominal Tetap (Rp)' },
-]
+const targetTypeOptions = computed(() => getOptions('PromoTarget'))
+const promoTypeOptions = computed(() => getOptions('PromoType'))
 
 const selectedProducts = ref(props.promo?.inventory_items || [])
 
@@ -263,6 +247,8 @@ const form = useForm({
         props.promo?.outlets?.map(o => o.id) ||
         (selectedOutlet.value ? [selectedOutlet.value.id] : []),
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 onMounted(async () => {
     isMounted.value = true
@@ -315,13 +301,13 @@ const removeProduct = id => {
 }
 
 const submit = () => {
-    if (props.promo) {
+    if (props.promo?.id) {
         form.put(route('promotions.update', props.promo.id), {
-            onSuccess: () => popUpStore.close(),
+            onSuccess: () => forceClose(),
         })
     } else {
         form.post(route('promotions.store'), {
-            onSuccess: () => popUpStore.close(),
+            onSuccess: () => forceClose(),
         })
     }
 }

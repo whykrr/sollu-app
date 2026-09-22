@@ -4,7 +4,9 @@ namespace App\Http\Controllers\App\Customer;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Enums\PermissionEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\App\Customer\GetCustomerRequest;
 use App\Http\Requests\App\Customer\StoreCustomerRequest;
 use App\Http\Requests\App\Customer\UpdateCustomerRequest;
 use App\Models\Master\Customer;
@@ -14,21 +16,16 @@ use Inertia\Inertia;
 
 class CustomerController extends Controller
 {
-    protected CustomerService $service;
-
-    public function __construct(CustomerService $service)
-    {
-        $this->service = $service;
-    }
+    public function __construct(protected CustomerService $service) {}
 
     /**
      * Display a listing of the customers.
      */
-    public function index(Request $request)
+    public function index(GetCustomerRequest $request)
     {
-        $this->authorize('customer.view');
         $filters = $request->only(['search', 'is_active', 'sort', 'direction']);
-        $customers = $this->service->getPaginated($filters);
+        $perPage = (int) $request->input('perpage', 15);
+        $customers = $this->service->getPaginated($filters, $perPage);
 
         return Inertia::render('Customer/CustomerIndex', [
             'filters' => $filters,
@@ -41,7 +38,12 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        $this->authorize('customer.view');
+        $this->authorize(PermissionEnum::CUSTOMER_VIEW->value);
+
+        if ($customer->business_id !== auth()->user()?->business_id) {
+            abort(403);
+        }
+
         $data = $customer->toArray();
         $summary = $this->service->getSummaryStats($customer);
         $data['summary'] = $summary;
@@ -72,6 +74,10 @@ class CustomerController extends Controller
      */
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
+        if ($customer->business_id !== $request->user()?->business_id) {
+            abort(403);
+        }
+
         $this->service->update($customer, $request->validated());
 
         return redirect()->back()->with(
@@ -85,7 +91,12 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        $this->authorize('customer.delete');
+        $this->authorize(PermissionEnum::CUSTOMER_DELETE->value);
+
+        if ($customer->business_id !== auth()->user()?->business_id) {
+            abort(403);
+        }
+
         $this->service->delete($customer);
 
         return redirect()->back()->with(
@@ -96,7 +107,7 @@ class CustomerController extends Controller
 
     public function importTemplate()
     {
-        $this->authorize('customer.create');
+        $this->authorize(PermissionEnum::CUSTOMER_CREATE->value);
         $headers = ['Nama Lengkap', 'Nomor Telepon', 'Email', 'Alamat', 'Tanggal Lahir', 'Jenis Kelamin', 'Catatan', 'Status'];
         $dummyData = ['Budi Santoso', '081234567890', 'budi@example.com', 'Jl. Merdeka No. 45', '1990-05-15', 'Laki-laki', 'Pelanggan VIP', 'Aktif'];
 
@@ -130,7 +141,7 @@ class CustomerController extends Controller
 
     public function import(Request $request)
     {
-        $this->authorize('customer.create');
+        $this->authorize(PermissionEnum::CUSTOMER_CREATE->value);
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:10240']);
         $path = $request->file('file')->store('imports', 'local');
 
@@ -138,7 +149,7 @@ class CustomerController extends Controller
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
-            'Proses impor data sedang berjalan di latar belakang.'
+            ResourceMessage::IMPORT_PROCESSING
         );
     }
 
@@ -147,9 +158,9 @@ class CustomerController extends Controller
      */
     public function search(Request $request)
     {
-        $this->authorize('customer.view');
-        $query = $request->input('q', '');
-        $limit = $request->input('limit', 10);
+        $this->authorize(PermissionEnum::CUSTOMER_VIEW->value);
+        $query = (string) $request->input('q', '');
+        $limit = (int) $request->input('limit', 10);
         $results = $this->service->searchActive($query, $limit);
 
         return response()->json($results);
@@ -157,14 +168,14 @@ class CustomerController extends Controller
 
     public function export(Request $request)
     {
-        $this->authorize('report.customer');
+        $this->authorize(PermissionEnum::REPORT_CUSTOMER->value);
         $filters = $request->only(['search', 'is_active']);
 
         \App\Jobs\Customer\ExportCustomerJob::dispatch(auth()->user(), $filters);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
-            'Proses ekspor CSV sedang berjalan di latar belakang.'
+            ResourceMessage::EXPORT_PROCESSING
         );
     }
 }

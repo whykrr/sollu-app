@@ -5,6 +5,7 @@ namespace App\Models\Master;
 use App\Models\Business;
 use App\Models\Sales\Transaction;
 use App\Trait\HasBusiness;
+use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +17,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Customer extends Model
 {
-    use HasBusiness, HasFactory, HasUuids;
+    use HasBusiness;
+    use HasFactory;
+    use HasUuids;
+    use SortableModel;
 
     protected $fillable = [
         'business_id',
@@ -29,6 +33,18 @@ class Customer extends Model
         'notes',
         'is_active',
         'created_by',
+    ];
+
+    /**
+     * Whitelist column names for sorting.
+     */
+    protected array $sortable = [
+        'name',
+        'phone',
+        'email',
+        'is_active',
+        'created_at',
+        'updated_at',
     ];
 
     public function business(): BelongsTo

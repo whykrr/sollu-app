@@ -17,7 +17,7 @@
         </template>
 
         <template #tools>
-            <ActionsDropdown label="Opsi Data" :items="actionItems" />
+            <ActionsDropdown label="Opsi" :items="actionItems" />
         </template>
 
         <template #create>
@@ -28,7 +28,7 @@
                 @click="$emit('create')"
             >
                 <FontAwesomeIcon :icon="faPlus" class="text-xs" />
-                <span>Tambah Pelanggan</span>
+                <span>Pelanggan Baru</span>
             </button>
         </template>
     </ActionBar>

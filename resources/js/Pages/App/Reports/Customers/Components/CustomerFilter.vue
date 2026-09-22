@@ -28,7 +28,7 @@
         </template>
 
         <template #tools>
-            <ActionsDropdown label="Opsi Data" :items="actionItems" />
+            <ActionsDropdown label="Opsi" :items="actionItems" />
         </template>
     </ActionBar>
 </template>

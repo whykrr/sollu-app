@@ -17,31 +17,27 @@ class CustomerService
      */
     public function getPaginated(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = Customer::withCount('transactions');
+        $query = Customer::currentBusiness()
+            ->withCount('transactions');
 
         // Apply search filter (name, phone, email)
         if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function (Builder $q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $q->whereLike('name', "%{$search}%")
+                    ->orWhereLike('phone', "%{$search}%")
+                    ->orWhereLike('email', "%{$search}%");
             });
         }
 
         // Filter by active status
-        if (isset($filters['is_active'])) {
-            $query->where('is_active', (bool) $filters['is_active']);
+        if (isset($filters['is_active']) && $filters['is_active'] !== '' && $filters['is_active'] !== null) {
+            $query->where('is_active', filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN));
         }
 
-        // Add ordering, can be extended later
-        if (isset($filters['sort'])) {
-            $query->orderBy($filters['sort'], $filters['direction'] ?? 'asc');
-        } else {
-            $query->orderBy('name');
-        }
-
-        return $query->paginate($perPage)->appends($filters);
+        return $query->sortable($filters['sort'] ?? 'name', $filters['direction'] ?? 'asc')
+            ->paginate($perPage)
+            ->appends($filters);
     }
 
     /**
@@ -65,7 +61,7 @@ class CustomerService
                     'invoice_number' => $trx->invoice?->invoice_number ?? $trx->transaction_number,
                     'date' => $trx->created_at->format('d M Y'),
                     'outlet_name' => $trx->outlet?->name ?? '-',
-                    'grand_total' => $trx->total,
+                    'grand_total' => (float) $trx->total,
                 ];
             });
 
@@ -127,12 +123,13 @@ class CustomerService
      */
     public function searchActive(string $query, int $limit = 10): \Illuminate\Database\Eloquent\Collection
     {
-        return Customer::where('is_active', true)
+        return Customer::currentBusiness()
+            ->where('is_active', true)
             ->where(function (Builder $q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                    ->orWhere('phone', 'like', "%{$query}%");
+                $q->whereLike('name', "%{$query}%")
+                    ->orWhereLike('phone', "%{$query}%");
             })
             ->limit($limit)
-            ->get(['id', 'name', 'phone']);
+            ->get(['id', 'business_id', 'name', 'phone']);
     }
 }

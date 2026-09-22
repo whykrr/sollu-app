@@ -6,6 +6,7 @@ use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\PermissionEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\App\Promotion\GetPromotionRequest;
 use App\Http\Requests\App\StorePromoRequest;
 use App\Http\Requests\App\UpdatePromoRequest;
 use App\Models\Promo;
@@ -18,21 +19,20 @@ class PromotionController extends Controller
         protected PromoService $promoService
     ) {}
 
-    public function index(Request $request)
+    public function index(GetPromotionRequest $request)
     {
-        $this->authorize(PermissionEnum::PROMO_VIEW->value);
-
         $limit = $request->query('limit', 20);
+        $filters = $request->only(['search', 'status', 'target', 'target_type', 'type', 'promo_type', 'outlet', 'sort', 'direction']);
 
         $promos = Promo::currentBusiness()
-            ->filters($request->only(['search', 'status', 'target', 'type', 'outlet']))
+            ->filters($filters)
             ->sortable($request->get('sort', 'updated_at'), $request->get('direction', 'desc'))
             ->paginate($limit)
             ->withQueryString();
 
         return inertia('Promotion/Index', [
             'promos' => $promos,
-            'filters' => $request->only(['search', 'status', 'target', 'type', 'outlet']),
+            'filters' => $filters,
         ]);
     }
 
@@ -40,7 +40,7 @@ class PromotionController extends Controller
     {
         $this->authorize(PermissionEnum::PROMO_VIEW->value);
 
-        if ($promotion->business_id !== $request->user()->business_id) {
+        if ($promotion->business_id !== $request->user()?->business_id) {
             abort(403);
         }
 
@@ -66,6 +66,10 @@ class PromotionController extends Controller
 
     public function update(UpdatePromoRequest $request, Promo $promotion)
     {
+        if ($promotion->business_id !== $request->user()?->business_id) {
+            abort(403);
+        }
+
         try {
             $this->promoService->update($promotion, $request->validated(), $request->user());
 
@@ -84,6 +88,10 @@ class PromotionController extends Controller
     public function destroy(Promo $promotion, Request $request)
     {
         $this->authorize(PermissionEnum::PROMO_DELETE->value);
+
+        if ($promotion->business_id !== $request->user()?->business_id) {
+            abort(403);
+        }
 
         try {
             $this->promoService->delete($promotion, $request->user());
@@ -104,12 +112,16 @@ class PromotionController extends Controller
     {
         $this->authorize(PermissionEnum::PROMO_PUBLISH->value);
 
+        if ($promotion->business_id !== $request->user()?->business_id) {
+            abort(403);
+        }
+
         try {
             $this->promoService->publish($promotion, $request->user());
 
             return redirect()->back()->with(
                 FlashDataVariable::SUCCESS->value,
-                'Promo berhasil dipublish!'
+                'Promo berhasil dipublikasikan.'
             );
         } catch (\InvalidArgumentException $e) {
             return redirect()->back()->with(
@@ -123,12 +135,16 @@ class PromotionController extends Controller
     {
         $this->authorize(PermissionEnum::PROMO_PUBLISH->value);
 
+        if ($promotion->business_id !== $request->user()?->business_id) {
+            abort(403);
+        }
+
         try {
             $this->promoService->unpublish($promotion, $request->user());
 
             return redirect()->back()->with(
                 FlashDataVariable::SUCCESS->value,
-                'Promo berhasil dinonaktifkan!'
+                'Promo berhasil dinonaktifkan.'
             );
         } catch (\InvalidArgumentException $e) {
             return redirect()->back()->with(

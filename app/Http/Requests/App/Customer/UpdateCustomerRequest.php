@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\App\Customer;
 
+use App\Enums\CustomerGender;
+use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,7 +14,7 @@ class UpdateCustomerRequest extends BaseInertiaFormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('customer.update');
+        return $this->user()?->can(PermissionEnum::CUSTOMER_UPDATE->value) ?? false;
     }
 
     /**
@@ -20,22 +22,22 @@ class UpdateCustomerRequest extends BaseInertiaFormRequest
      */
     public function rules(): array
     {
-        // Assume route model binding provides $this->customer
         $customerId = $this->route('customer')?->id;
+        $businessId = $this->user()?->business_id;
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'phone' => [
                 'required',
                 'string',
-                Rule::unique('customers')->ignore($customerId)->where(function ($query) {
-                    return $query->where('business_id', auth()->user()->business_id ?? null);
+                Rule::unique('customers', 'phone')->ignore($customerId)->where(function ($query) use ($businessId) {
+                    return $query->where('business_id', $businessId);
                 }),
             ],
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:500'],
             'birthdate' => ['nullable', 'date'],
-            'gender' => ['nullable', Rule::in(['male', 'female'])],
+            'gender' => ['nullable', Rule::enum(CustomerGender::class)],
             'notes' => ['nullable', 'string'],
             'is_active' => ['boolean'],
         ];

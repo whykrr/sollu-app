@@ -45,9 +45,12 @@ class Promo extends Model
 
     protected $sortable = [
         'name',
+        'discount_value',
         'start_date',
         'end_date',
+        'status',
         'created_at',
+        'updated_at',
     ];
 
     protected function casts(): array
@@ -98,6 +101,9 @@ class Promo extends Model
 
     public function scopeFilters(Builder $query, array $filters): Builder
     {
+        $target = $filters['target_type'] ?? $filters['target'] ?? null;
+        $type = $filters['promo_type'] ?? $filters['type'] ?? null;
+
         return $query->when(
             $filters['search'] ?? false,
             fn ($q, $value) => $q->whereLike('name', "%{$value}%")
@@ -105,10 +111,10 @@ class Promo extends Model
             $filters['status'] ?? false,
             fn ($q, $value) => $q->where('status', $value)
         )->when(
-            $filters['target'] ?? false,
+            $target,
             fn ($q, $value) => $q->where('target_type', $value)
         )->when(
-            $filters['type'] ?? false,
+            $type,
             fn ($q, $value) => $q->where('promo_type', $value)
         )->when(
             $filters['outlet'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),

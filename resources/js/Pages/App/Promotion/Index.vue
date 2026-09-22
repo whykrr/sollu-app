@@ -1,37 +1,48 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Daftar Promo" />
+            <MainPageHeader
+                title="Daftar Promo & Diskon"
+                description="Kelola diskon per produk atau per total transaksi (bill) untuk tokomu"
+            />
         </template>
 
         <template #filter>
             <PromoFilter :filters="filters" @create="openCreate" />
         </template>
-        <Table :headers="headers" :data="promos.data" :action="true">
+
+        <Table
+            :headers="headers"
+            :data="promos.data"
+            :sort="filters?.sort"
+            :sort-direction="filters?.direction"
+            :action="true"
+            @row-click="openDetail"
+        >
             <template #target_type="{ row }">
-                <span class="badge badge-neutral">{{
-                    row.target_type === 'product' ? 'Per Produk' : 'Per Bill'
-                }}</span>
+                <span class="badge badge-neutral">
+                    {{ row.target_type === $enums?.PromoTarget?.Product || row.target_type === 'product' ? 'Per Produk' : 'Per Bill' }}
+                </span>
             </template>
             <template #promo_value="{ row }">
-                <div v-if="row.promo_type === 'percentage'">
-                    {{ row.discount_value }}%
-                    <span v-if="row.max_discount" class="text-xs text-slate-500 block">
-                        (Max {{ formatCurrency(row.max_discount) }})
+                <div v-if="row.promo_type === $enums?.PromoType?.Percentage || row.promo_type === 'percentage'">
+                    <span class="font-bold text-slate-800">{{ row.discount_value }}%</span>
+                    <span v-if="row.max_discount" class="text-[11px] text-slate-500 block">
+                        (Maks. {{ formatIDR(row.max_discount) }})
                     </span>
                 </div>
                 <div v-else>
-                    {{ formatCurrency(row.discount_value) }}
+                    <span class="font-bold text-slate-800">{{ formatIDR(row.discount_value) }}</span>
                 </div>
             </template>
             <template #period="{ row }">
-                <div class="text-sm">
-                    {{ formatDate(row.start_date) }} -
-                    {{ formatDate(row.end_date) }}
+                <div class="text-xs font-medium text-slate-800">
+                    {{ formatDateID(row.start_date) }} -
+                    {{ formatDateID(row.end_date) }}
                 </div>
-                <div v-if="row.start_time && row.end_time" class="text-xs text-slate-500">
+                <div v-if="row.start_time && row.end_time" class="text-[11px] text-slate-500">
                     {{ formatTime(row.start_time) }} -
-                    {{ formatTime(row.end_time) }}
+                    {{ formatTime(row.end_time) }} WIB
                 </div>
             </template>
             <template #status="{ row }">
@@ -40,56 +51,46 @@
                 </span>
             </template>
             <template #actions="{ row }">
-                <div class="flex items-center gap-2 justify-end">
+                <div class="flex items-center gap-1.5 justify-end" @click.stop>
                     <button
                         class="btn btn-flat btn-sm"
-                        title="Detail Promo"
+                        title="Lihat Detail"
                         @click="openDetail(row)"
                     >
                         <FontAwesomeIcon :icon="faEye" />
                     </button>
-                    <div v-if="row.status !== 'expired' && !isExpired(row)" class="relative">
-                        <button
-                            class="btn btn-flat btn-sm"
-                            title="Opsi"
-                            @click.stop="toggleDropdown(row.id)"
-                        >
-                            <FontAwesomeIcon :icon="faEllipsisVertical" />
-                        </button>
-                        <div
-                            v-if="activeDropdownId === row.id"
-                            class="absolute right-0 top-8 bg-white border border-slate-200 shadow-lg rounded-lg py-1 z-10 w-48"
-                        >
-                            <button
-                                v-if="row.status === 'draft'"
-                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                                @click="(openEdit(row), closeDropdown())"
-                            >
-                                Ubah
-                            </button>
-                            <button
-                                v-if="row.status === 'draft' || row.status === 'inactive'"
-                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 text-success"
-                                @click="(publishPromo(row.id), closeDropdown())"
-                            >
-                                Publish
-                            </button>
-                            <button
-                                v-if="row.status === 'active'"
-                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 text-warning"
-                                @click="(unpublishPromo(row.id), closeDropdown())"
-                            >
-                                Nonaktifkan
-                            </button>
-                            <button
-                                v-if="row.status === 'draft'"
-                                class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 text-danger"
-                                @click="(deletePromo(row.id), closeDropdown())"
-                            >
-                                Hapus
-                            </button>
-                        </div>
-                    </div>
+                    <button
+                        v-if="row.status === 'draft' || row.status === $enums?.PromoStatus?.Draft"
+                        class="btn btn-flat btn-sm"
+                        title="Ubah Promo"
+                        @click="openEdit(row)"
+                    >
+                        <FontAwesomeIcon :icon="faPencil" />
+                    </button>
+                    <button
+                        v-if="row.status === 'draft' || row.status === 'inactive' || row.status === $enums?.PromoStatus?.Draft || row.status === $enums?.PromoStatus?.Inactive"
+                        class="btn btn-flat btn-sm text-emerald-600 hover:text-emerald-700"
+                        title="Publikasikan"
+                        @click="publishPromo(row.id)"
+                    >
+                        <FontAwesomeIcon :icon="faPlay" />
+                    </button>
+                    <button
+                        v-if="row.status === 'active' || row.status === $enums?.PromoStatus?.Active"
+                        class="btn btn-flat btn-sm text-amber-600 hover:text-amber-700"
+                        title="Nonaktifkan"
+                        @click="unpublishPromo(row.id)"
+                    >
+                        <FontAwesomeIcon :icon="faPause" />
+                    </button>
+                    <button
+                        v-if="row.status === 'draft' || row.status === $enums?.PromoStatus?.Draft"
+                        class="btn btn-flat btn-sm text-danger hover:text-rose-700"
+                        title="Hapus"
+                        @click="deletePromo(row.id)"
+                    >
+                        <FontAwesomeIcon :icon="faTrash" />
+                    </button>
                 </div>
             </template>
         </Table>
@@ -107,19 +108,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faEye, faEllipsisVertical } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faPencil, faPlay, faPause, faTrash } from '@fortawesome/free-solid-svg-icons'
 import PromoFilter from './Components/PromoFilter.vue'
 import PromoForm from './Components/PromoForm.vue'
 import PromoDetail from './Components/PromoDetail.vue'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification.js'
+import { formatIDR } from '@/Composable/currency-format'
+import { formatDateID } from '@/Composable/date'
 
 const popUpStore = usePopUpStore()
 const modal = useModalStore()
@@ -147,47 +149,11 @@ const headers = [
         label: 'Tipe & Nilai',
         field: 'discount_value',
         slot: 'promo_value',
-        sortable: false,
+        sortable: true,
     },
     { label: 'Periode', field: 'start_date', slot: 'period', sortable: true },
-    { label: 'Status', field: 'status', slot: 'status', sortable: false },
+    { label: 'Status', field: 'status', slot: 'status', sortable: true },
 ]
-
-const activeDropdownId = ref(null)
-
-const toggleDropdown = id => {
-    activeDropdownId.value = activeDropdownId.value === id ? null : id
-}
-
-const closeDropdown = () => {
-    activeDropdownId.value = null
-}
-
-onMounted(() => {
-    window.addEventListener('click', closeDropdown)
-})
-
-onUnmounted(() => {
-    window.removeEventListener('click', closeDropdown)
-})
-
-const formatCurrency = value => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(value || 0)
-}
-
-const formatDate = dateString => {
-    if (!dateString) return '-'
-    return new Date(dateString).toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    })
-}
 
 const formatTime = timeString => {
     if (!timeString) return ''
@@ -278,9 +244,9 @@ const openDetail = promo => {
 
 const publishPromo = id => {
     modal.open({
-        title: 'Konfirmasi Publish Promo',
+        title: 'Publikasikan Promo Ini?',
         message:
-            'Apakah Anda yakin ingin mempublikasikan promo ini? Setelah dipublikasikan, promo akan langsung aktif dan berlaku sesuai jadwal yang ditentukan.',
+            'Promo akan langsung aktif dan mulai berlaku di kasir sesuai jadwal periode yang telah ditentukan.',
         confirmButtonText: 'Ya, Publikasikan',
         cancelButtonText: 'Batal',
         onConfirm: () => {
@@ -290,7 +256,6 @@ const publishPromo = id => {
                 {
                     preserveScroll: true,
                     preserveState: true,
-                    onSuccess: () => popUpStore.close(),
                 }
             )
         },
@@ -299,11 +264,11 @@ const publishPromo = id => {
 
 const unpublishPromo = id => {
     modal.open({
-        title: 'Konfirmasi Nonaktifkan Promo',
+        title: 'Nonaktifkan Promo Ini?',
         type: 'warning',
         message:
-            'Apakah Anda yakin ingin menonaktifkan promo ini? Setelah dinonaktifkan, promo tidak akan berlaku lagi.',
-        confirmButtonText: 'Ya',
+            'Promo tidak akan lagi memotong tagihan transaksi kasir hingga diaktifkan kembali.',
+        confirmButtonText: 'Ya, Nonaktifkan',
         cancelButtonText: 'Batal',
         onConfirm: () => {
             router.post(
@@ -312,7 +277,6 @@ const unpublishPromo = id => {
                 {
                     preserveScroll: true,
                     preserveState: true,
-                    onSuccess: () => popUpStore.close(),
                 }
             )
         },
@@ -321,17 +285,16 @@ const unpublishPromo = id => {
 
 const deletePromo = id => {
     modal.open({
-        title: 'Konfirmasi Hapus Promo',
+        title: 'Hapus Promo Draf Ini?',
         type: 'danger',
         message:
-            'Apakah Anda yakin ingin menghapus promo draf ini? Tindakan ini tidak dapat dibatalkan.',
-        confirmButtonText: 'Ya',
+            'Promo draf ini akan dihapus secara permanen.',
+        confirmButtonText: 'Ya, Hapus',
         cancelButtonText: 'Batal',
         onConfirm: () => {
             router.delete(route('promotions.destroy', id), {
                 preserveScroll: true,
                 preserveState: true,
-                onSuccess: () => popUpStore.close(),
             })
         },
     })

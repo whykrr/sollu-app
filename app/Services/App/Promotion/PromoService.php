@@ -102,15 +102,26 @@ class PromoService
     {
         if (isset($data['applies_to_all_outlets']) && ! $data['applies_to_all_outlets']) {
             if (isset($data['outlet_ids']) && is_array($data['outlet_ids'])) {
-                $promo->outlets()->sync($data['outlet_ids']);
+                $validOutletIds = \App\Models\Outlet::where('business_id', $promo->business_id)
+                    ->whereIn('id', $data['outlet_ids'])
+                    ->pluck('id')
+                    ->all();
+                $promo->outlets()->sync($validOutletIds);
             }
         } else {
             $promo->outlets()->detach();
         }
 
-        if (isset($data['target_type']) && $data['target_type'] === PromoTarget::Product->value) {
+        $targetType = $data['target_type'] ?? $promo->target_type;
+        $targetTypeValue = $targetType instanceof PromoTarget ? $targetType->value : $targetType;
+
+        if ($targetTypeValue === PromoTarget::Product->value) {
             if (isset($data['inventory_item_ids']) && is_array($data['inventory_item_ids'])) {
-                $promo->inventoryItems()->sync($data['inventory_item_ids']);
+                $validItemIds = \App\Models\Inventory\InventoryItem::where('business_id', $promo->business_id)
+                    ->whereIn('id', $data['inventory_item_ids'])
+                    ->pluck('id')
+                    ->all();
+                $promo->inventoryItems()->sync($validItemIds);
             }
         } else {
             $promo->inventoryItems()->detach();

@@ -13,7 +13,11 @@
                     {{ getPromoValueDisplay() }}
                 </div>
                 <div class="text-xs opacity-90">
-                    {{ promo.target_type === 'product' ? 'Per Produk' : 'Per Bill' }}
+                    {{
+                        promo.target_type === 'product' || promo.target_type === $enums?.PromoTarget?.Product
+                            ? 'Per Produk'
+                            : 'Per Bill'
+                    }}
                 </div>
             </div>
         </div>
@@ -48,16 +52,21 @@
                 <h4 class="text-xs font-semibold text-slate-500 uppercase">Tipe Diskon</h4>
                 <p class="text-sm font-medium">
                     {{
-                        promo.promo_type === 'percentage' ? 'Persentase (%)' : 'Nominal Tetap (Rp)'
+                        promo.promo_type === 'percentage' || promo.promo_type === $enums?.PromoType?.Percentage
+                            ? 'Persentase (%)'
+                            : 'Nominal Tetap (Rp)'
                     }}
                 </p>
             </div>
-            <div v-if="promo.promo_type === 'percentage' && promo.max_discount" class="space-y-1">
+            <div
+                v-if="(promo.promo_type === 'percentage' || promo.promo_type === $enums?.PromoType?.Percentage) && promo.max_discount"
+                class="space-y-1"
+            >
                 <h4 class="text-xs font-semibold text-slate-500 uppercase">
                     Batas Maksimum Diskon
                 </h4>
                 <p class="text-sm font-medium">
-                    {{ formatCurrency(promo.max_discount) }}
+                    {{ formatIDR(promo.max_discount) }}
                 </p>
             </div>
         </div>
@@ -101,7 +110,10 @@
             </div>
 
             <!-- Cakupan Produk -->
-            <div v-if="detailedPromo.target_type === 'product'" class="space-y-2 border-t pt-4">
+            <div
+                v-if="detailedPromo.target_type === 'product' || detailedPromo.target_type === $enums?.PromoTarget?.Product"
+                class="space-y-2 border-t pt-4"
+            >
                 <h4 class="text-xs font-semibold text-slate-500 uppercase">
                     Produk yang Mendapat Diskon
                 </h4>
@@ -139,7 +151,7 @@
                     </button>
 
                     <button
-                        v-if="computedStatus === 'draft'"
+                        v-if="computedStatus === 'draft' || computedStatus === $enums?.PromoStatus?.Draft"
                         type="button"
                         class="btn border border-slate-300 hover:bg-slate-50"
                         @click="openEdit"
@@ -148,16 +160,21 @@
                     </button>
 
                     <button
-                        v-if="computedStatus === 'draft' || computedStatus === 'inactive'"
+                        v-if="
+                            computedStatus === 'draft' ||
+                            computedStatus === 'inactive' ||
+                            computedStatus === $enums?.PromoStatus?.Draft ||
+                            computedStatus === $enums?.PromoStatus?.Inactive
+                        "
                         type="button"
                         class="btn btn-highlight-main"
                         @click="publishPromo"
                     >
-                        Publish
+                        Publikasikan
                     </button>
 
                     <button
-                        v-if="computedStatus === 'active'"
+                        v-if="computedStatus === 'active' || computedStatus === $enums?.PromoStatus?.Active"
                         type="button"
                         class="btn border border-warning text-warning hover:bg-warning hover:text-white transition-colors"
                         @click="unpublishPromo"
@@ -179,6 +196,9 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import PromoForm from './PromoForm.vue'
 import { useModalStore } from '@/store/notification.js'
+import { useEnum } from '@/Composable/useEnum'
+import { formatIDR } from '@/Composable/currency-format'
+import { formatDateID } from '@/Composable/date'
 
 const props = defineProps({
     promo: {
@@ -197,6 +217,8 @@ const props = defineProps({
 
 const popUpStore = usePopUpStore()
 const modal = useModalStore()
+const { enums, getLabel } = useEnum()
+
 const isMounted = ref(false)
 const isLoadingDetail = ref(false)
 const detailedPromo = ref({ ...props.promo })
@@ -219,48 +241,28 @@ onMounted(async () => {
 const bannerClass = computed(() => {
     switch (props.computedStatus) {
         case 'active':
-            return 'bg-success/10 text-green-800 border border-success/20'
+        case enums.PromoStatus?.Active:
+            return 'bg-emerald-50 text-emerald-800 border border-emerald-200'
         case 'inactive':
-            return 'bg-warning/10 text-yellow-800 border border-warning/20'
+        case enums.PromoStatus?.Inactive:
+            return 'bg-amber-50 text-amber-800 border border-amber-200'
         case 'expired':
-            return 'bg-danger/10 text-red-800 border border-danger/20'
+        case enums.PromoStatus?.Expired:
+            return 'bg-rose-50 text-rose-800 border border-rose-200'
         case 'draft':
+        case enums.PromoStatus?.Draft:
         default:
             return 'bg-slate-100 text-slate-800 border border-slate-200'
     }
 })
 
 const getStatusLabel = status => {
-    switch (status) {
-        case 'active':
-            return 'Aktif'
-        case 'inactive':
-            return 'Nonaktif'
-        case 'expired':
-            return 'Kedaluwarsa'
-        case 'draft':
-            return 'Draf'
-        default:
-            return status
-    }
-}
-
-const formatCurrency = value => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(value || 0)
+    return getLabel('PromoStatus', status) || status
 }
 
 const formatDate = dateString => {
     if (!dateString) return '-'
-    return new Date(dateString).toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-    })
+    return formatDateID(dateString)
 }
 
 const formatTime = timeString => {
@@ -269,10 +271,13 @@ const formatTime = timeString => {
 }
 
 const getPromoValueDisplay = () => {
-    if (props.promo.promo_type === 'percentage') {
+    if (
+        props.promo.promo_type === 'percentage' ||
+        props.promo.promo_type === enums.PromoType?.Percentage
+    ) {
         return `${props.promo.discount_value}%`
     }
-    return formatCurrency(props.promo.discount_value)
+    return formatIDR(props.promo.discount_value)
 }
 
 const openEdit = () => {
@@ -288,9 +293,9 @@ const openEdit = () => {
 
 const publishPromo = () => {
     modal.open({
-        title: 'Konfirmasi Publish Promo',
+        title: 'Publikasikan Promo?',
         message:
-            'Apakah Anda yakin ingin mempublikasikan promo ini? Setelah dipublikasikan, promo akan langsung aktif dan berlaku sesuai jadwal yang ditentukan.',
+            'Promo akan langsung aktif dan mulai berlaku di kasir outlet terpilih sesuai jadwal periode promo.',
         confirmButtonText: 'Ya, Publikasikan',
         cancelButtonText: 'Batal',
         onConfirm: () => {
@@ -309,14 +314,14 @@ const publishPromo = () => {
 
 const unpublishPromo = () => {
     modal.open({
-        title: 'Konfirmasi Nonaktifkan Promo',
+        title: 'Nonaktifkan Promo?',
         message:
-            'Apakah Anda yakin ingin menonaktifkan promo ini? Setelah dinonaktifkan, promo tidak akan berlaku lagi.',
-        confirmButtonText: 'Ya',
+            'Promo ini akan dinonaktifkan dan tidak lagi diterapkan pada transaksi kasir.',
+        confirmButtonText: 'Ya, Nonaktifkan',
         cancelButtonText: 'Batal',
         onConfirm: () => {
             router.post(
-                route('promotions.publish', props.promo.id),
+                route('promotions.unpublish', props.promo.id),
                 {},
                 {
                     preserveScroll: true,

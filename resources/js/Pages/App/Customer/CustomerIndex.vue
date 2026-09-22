@@ -12,7 +12,14 @@
             />
         </template>
 
-        <Table :headers="headers" :data="tableData.data" :action="true">
+        <Table
+            :headers="headers"
+            :data="tableData.data"
+            :sort="filters?.sort"
+            :sort-direction="filters?.direction"
+            :action="true"
+            @row-click="openDetail"
+        >
             <template #name="{ row }">
                 <div class="font-bold text-slate-800">{{ row.name }}</div>
             </template>
@@ -27,7 +34,7 @@
                 <span v-else class="badge badge-neutral-500">Tidak Aktif</span>
             </template>
             <template #actions="{ row }">
-                <div class="flex items-center gap-2 justify-end">
+                <div class="flex items-center gap-2 justify-end" @click.stop>
                     <button
                         class="btn btn-flat btn-sm"
                         title="Detail Pelanggan"
@@ -103,9 +110,9 @@ const showImportModal = ref(false)
 
 const headers = [
     { label: 'Nama', field: 'name', slot: 'name', sortable: true },
-    { label: 'No. Telepon', field: 'phone', slot: 'phone', sortable: false },
-    { label: 'Email', field: 'email', slot: 'email', sortable: false },
-    { label: 'Status', field: 'is_active', slot: 'status', sortable: false },
+    { label: 'No. Telepon', field: 'phone', slot: 'phone', sortable: true },
+    { label: 'Email', field: 'email', slot: 'email', sortable: true },
+    { label: 'Status', field: 'is_active', slot: 'status', sortable: true },
 ]
 
 const tableData = computed(() => {
@@ -155,7 +162,20 @@ const openDetail = customer => {
 }
 
 const archiveCustomer = id => {
-    modal.openModalDelete(route('customers.destroy', id))
+    modal.open({
+        title: 'Hapus Pelanggan Ini?',
+        type: 'danger',
+        message:
+            'Data pelanggan ini akan dihapus dari daftar aktif. Riwayat transaksi sebelumnya tetap tersimpan.',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal',
+        onConfirm: () => {
+            router.delete(route('customers.destroy', id), {
+                preserveScroll: true,
+                preserveState: true,
+            })
+        },
+    })
 }
 
 const modal = useModalStore()
