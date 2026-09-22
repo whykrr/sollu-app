@@ -275,3 +275,31 @@ Seluruh notifikasi baru di aplikasi WAJIB mewarisi `App\Notifications\BaseNotifi
 - Notifikasi read $\ge 1\text{ tahun}$ (365 hari) dan berkas ekspor kedaluwarsa $> 30\text{ hari}$ otomatis dihapus via scheduled cron `php artisan notifications:prune --days=365` setiap malam pukul 02:30 WIB (`routes/console.php`).
 - _Lihat panduan lengkap di `.agents/rules/notification-rules.md`._
 
+---
+
+## H. Prinsip Pengalaman Pengguna (User-Centric Principles & Ergonomics)
+
+**1. Filosofi Utama**
+> **"Jangan membuat user belajar cara kerja aplikasi; buat aplikasi mengikuti cara kerja user."**
+> *(Aplikasi wajib beradaptasi dengan alur dan kebiasaan bisnis nyata pedagang/merchant, bukan memaksa pengguna mempelajari kerumitan teknis dan arsitektur sistem).*
+
+**2. 15 Prinsip Pengalaman Pengguna Wajib:**
+1. **Mudah di-Setup:** Wizard ringkas, default settings siap pakai untuk jenis usaha (`BusinessType`).
+2. **Mudah Dioperasikan:** Alur harian (POS, transaksi, opname) intuitif tanpa friksi kognitif.
+3. **Interface Tidak Ambigu:** Label tombol deskriptif (`"+ Tambah Produk"`, `"Simpan Perubahan"`), warna badge status semantik dan seragam.
+4. **Experience User Diutamakan:** Ergonomi multi-perangkat (Mobile $\ge 44\text{px}$, Tablet $\ge 36\text{px}$, Desktop $\ge 28\text{px}$), thumb zone mobile, anti-zoom iOS Safari, respons $<5\text{ detik}$.
+5. **Sederhana:** Desain Flat Minimalis tanpa shadow di dalam `<MainPage>`, non-scrolling header/filter, responsive column masking.
+6. **Jelas:** Gunakan bahasa familiar pedagang, bukan istilah developer/database/birokrasi.
+7. **Konsisten:** Pola `<MainPage>`, hierarki tombol (`.btn-xs`, `.btn-sm`, `.btn`), drawer `<PopUpPage>`, tabel `<Table>`, komponen `@/Components/Form/`.
+8. **Smart Default:** Otomatisasi pre-fill (outlet aktif, filter tanggal `'this_month'`, auto-generate SKU/kode, autofocus).
+9. **Minim Langkah:** Single action row click `@row-click`, shortcut POS, debounced inline search, dropdown `Opsi Data`.
+10. **Progressive Disclosure:** 3-Tier Form Architecture (Simple $\le 5$ fields $\rightarrow$ Progressive Disclosure $6-12$ fields via `<DisclosureSection>` $\rightarrow$ Wizard/Tabs $> 12$ fields).
+11. **Mencegah Kesalahan:** Real-time validation, proteksi form belum disimpan `useFormDirtyGuard`, modal konfirmasi sebelum aksi destruktif.
+12. **Mudah Diperbaiki:** Soft delete & pulihkan data dari sampah (`FilterTrashData`), tombol Batal aman.
+13. **Feedback Jelas:** Toast notification instan (`ResourceMessage`), loading spinner/skeleton, pesan error solutif.
+14. **Ikuti Cara Kerja User:** Alur sistem mengikuti alur nyata pedagang (stok fisik vs sistem, split payment, partial goods receipt).
+15. **Wording Santai Namun Tetap Profesional:** Nada bicara rekan kerja cerdas ("Yuk, ...", "Tokomu"), to the point, komunikatif & profesional.
+
+- _Lihat panduan lengkap di `.agents/rules/user-experience-principles.md`._
+
+

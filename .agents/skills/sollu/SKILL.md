@@ -16,6 +16,7 @@ Pedoman dan standar baku rekayasa perangkat lunak untuk seluruh modul dan kompon
 
 ## DAFTAR ISI
 
+0. [Core Philosophy & 15 User-Centric Principles](#0-core-philosophy--15-user-centric-principles)
 1. [Core Architecture & Tech Stack](#1-core-architecture--tech-stack)
 2. [Modular Monolith Architecture & Bounded Contexts](#2-modular-monolith-architecture--bounded-contexts)
 3. [Backend Standards (Laravel 11.9+ & PHP 8.3)](#3-backend-standards-laravel-119--php-83)
@@ -34,7 +35,36 @@ Pedoman dan standar baku rekayasa perangkat lunak untuk seluruh modul dan kompon
 
 ---
 
+## 0. Core Philosophy & 15 User-Centric Principles
+
+### 0.1. Filosofi Utama Desain Sistem
+> **"Jangan membuat user belajar cara kerja aplikasi; buat aplikasi mengikuti cara kerja user."**
+> *(Aplikasi wajib beradaptasi dengan alur dan kebiasaan bisnis nyata pedagang/merchant, bukan memaksa pengguna mempelajari kerumitan teknis dan arsitektur sistem).*
+
+### 0.2. 15 Prinsip Rekayasa Pengalaman Pengguna & Pemetaan Teknis
+
+| No | Prinsip | Deskripsi Operasional | Implementasi Teknis Baku |
+| :--- | :--- | :--- | :--- |
+| 1 | **Mudah di-Setup** | Konfigurasi awal cepat dan siap pakai tanpa manual panjang. | Onboarding wizard, default settings per `BusinessType`, registrasi tanpa hambatan. |
+| 2 | **Mudah Dioperasikan** | Aksi harian (kasir, transaksi, opname) intuitif dan cepat. | Transisi SPA Inertia, shortcut kasir, integrasi barcode scanner. |
+| 3 | **Interface Tidak Ambigu** | Tidak ada tombol atau status yang menimbulkan tanda tanya. | Label tombol deskriptif (`"+ Tambah Produk"`), status badge warna semantik dari Enum. |
+| 4 | **Experience User Diutamakan** | Mengoptimalkan kenyamanan penggunaan di laptop, tablet, dan HP. | Target sentuh $\ge 44\text{px}$ mobile / $\ge 36\text{px}$ tablet, thumb zone footer, anti-zoom iOS (`.form.adaptive`), performa $<5\text{s}$. |
+| 5 | **Sederhana** | Tampilkan hanya yang esensial, tanpa clutter visual. | Desain Flat Minimalis (*zero shadow* di `<MainPage>`), non-scrolling sticky header, responsive column masking. |
+| 6 | **Jelas** | Bahasa familiar pedagang/kasir, bukan istilah teknis/sistem. | Kosakata baku ramah (*"Sampah"*, *"Pulihkan"*, *"Draf"*, *"Unduh"*), hindari error code mentah. |
+| 7 | **Konsisten** | Pola layout, tombol, form, dan istilah selalu sama di seluruh modul. | Standar `<MainPage>`, hierarki `.btn`, drawer `<PopUpPage>`, tabel `<Table>`, form `@/Components/Form/`. |
+| 8 | **Smart Default** | Mengisi otomatis data yang sudah dapat diprediksi sistem. | Outlet aktif terpilih otomatis, filter tanggal default `'this_month'`, auto-generate SKU/kode, autofocus input. |
+| 9 | **Minim Langkah** | Tugas umum dapat diselesaikan dengan sedikit klik. | Single action `@row-click`, pencarian live inline debounced, dropdown `Opsi Data`. |
+| 10 | **Progressive Disclosure** | Form dan fitur kompleks hanya muncul saat dibutuhkan. | 3-Tier Form Architecture (Simple $\le 5$ fields $\rightarrow$ Progressive $6-12$ via `<DisclosureSection>` $\rightarrow$ Wizard/Tabs $> 12$). |
+| 11 | **Mencegah Kesalahan** | Melindungi user dari aksi keliru sebelum terjadi. | Proteksi form dirty via `useFormDirtyGuard`, modal konfirmasi aksi berisiko, disable button saat submit. |
+| 12 | **Mudah Diperbaiki** | Selalu sediakan jalan keluar jika terjadi kekeliruan. | Soft Deletes pada seluruh data utama, tombol Pulihkan dari sampah (`FilterTrashData`), tombol Batal aman. |
+| 13 | **Feedback Jelas** | Beritahu status keberhasilan/kegagalan aksi secara instan. | Toast notification (`ResourceMessage`), loading skeleton/spinner, pesan error solutif. |
+| 14 | **Ikuti Cara Kerja User** | Sistem mencerminkan kenyataan bisnis di lapangan. | Stok fisik vs sistem pada opname, partial goods receipt pengadaan, split bill kasir. |
+| 15 | **Wording Santai & Profesional** | Nada bicara asisten rekan kerja cerdas yang ramah dan solutif. | Sapaan *"Tokomu"*, *"Bisnismu"*, *"Yuk, ..."*, to-the-point, presisi istilah bisnis. |
+
+---
+
 ## 1. Core Architecture & Tech Stack
+
 
 ### 1.1. Official Technology Stack
 
@@ -758,6 +788,12 @@ if (can('settings.outlets.create')) {
 
 ### 8.3. Definition of Done (DoD) Checklist
 
+- [ ] **Filosofi & UX:** Mengikuti alur cara kerja pengguna (mudah di-setup, mudah dioperasikan, interface tidak ambigu, minim langkah).
+- [ ] **Smart Defaults:** Mengisi otomatis outlet aktif, filter tanggal default `'this_month'`, auto-SKU/barcode jika kosong, dan autofocus form.
+- [ ] **Progressive Disclosure:** Form menerapkan 3-tier architecture (Simple $\le 5$ fields, `<DisclosureSection>` 6-12 fields, Wizard/Tabs $> 12$ fields).
+- [ ] **Error Prevention & Dirty Guard:** Menggunakan `useFormDirtyGuard` pada form drawer/modal dan konfirmasi sebelum aksi destruktif.
+- [ ] **Wording & Tone:** Menggunakan bahasa ramah, santai namun profesional, to-the-point, bebas dari istilah teknis developer/database mentah.
+- [ ] **Instant Feedback:** Memberikan toast notification instan (`ResourceMessage`) untuk setiap mutasi dan loading state pada request async.
 - [ ] Backend logic & endpoints tested and returning accurate HTTP status codes.
 - [ ] Skema database & error log diverifikasi via MCP `laravel-boost` / `sollu-db` tanpa asumsi.
 - [ ] Dokumentasi framework & package diverifikasi via MCP `laravel-boost` (`search-docs`).
@@ -778,6 +814,7 @@ if (can('settings.outlets.create')) {
 - [ ] Tipe bisnis menggunakan model database `BusinessType` dinamis tanpa dependensi enum.
 
 ---
+
 
 ## 9. Service Layer Unit Testing (100% Mocking & In-Memory SQLite)
 

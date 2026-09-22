@@ -19,6 +19,7 @@ Before relying on a package's API, confirm its installed version:
 When diving into this project, you MUST refer to the official architecture documentation in the `docs/` directory:
 
 - [docs/architecture.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/architecture.md) — System Overview, Subdomain Routing, Modular Monolith & Decoupling Patterns, Execution Flow, Performance & On-Demand Data Loading Baseline.
+- [.agents/rules/user-experience-principles.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/.agents/rules/user-experience-principles.md) — Core Philosophy (*"Jangan membuat user belajar cara kerja aplikasi; buat aplikasi mengikuti cara kerja user"*) & 15 User-Centric Engineering Principles.
 - [docs/database.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/database.md) — Multi-Tenant Data Isolation (`business_id`, `outlet_id`), Model Standards (Laravel 11 `casts(): array`), Core Bounded Context Schemas, and Query Optimization.
 - [docs/authorization.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/authorization.md) — Dual-Layer Authorization: User RBAC (Spatie Permissions scoped to `business_id`, `useAuth`) and SaaS Feature Plan Gating (`FeatureEnum`, `PlanEnum`, `<FeatureLock>`, `usePlanFeature`).
 - [docs/frontend.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/frontend.md) — Frontend Standards: Vue 3 (`<script setup>`), Inertia.js 1.2, Tailwind CSS v4, `@/Components/Form/` (Zero Raw HTML inputs), `<PopUpPage>` & `usePopUpStore` Drawer Pattern, Enum-Driven UI.
@@ -27,6 +28,7 @@ When diving into this project, you MUST refer to the official architecture docum
 - [docs/api.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/api.md) — API Standards: `snake_case`, pure HTTP status codes, strict `(float)` numeric casting, Response Constants (`ResourceMessage`), Async Excel & PDF Generation, and OpenAPI/Postman synchronization.
 - [docs/testing.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/testing.md) — Automated Testing: Service Unit Tests (100% Mocking, `sqlite:memory`), Feature/Tenant Isolation Tests, E2E Testing via `browsermcp`, Linters (Pint, ESLint), and Definition of Done (DoD).
 - [docs/changelog.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/changelog.md) — Changelog & Versioning Standards: Keep a Changelog v1.1.0, Semantic Versioning (`vMAJOR.MINOR.PATCH`), Git Tagging Workflow, and Conventional Commit mapping.
+
 
 ## Skills Activation
 

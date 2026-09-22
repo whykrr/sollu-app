@@ -6,12 +6,18 @@ Standar penulisan teks antarmuka (*UX Copywriting* & *Microcopy*) untuk seluruh 
 
 ## 1. Filosofi & Karakter Tone of Voice
 
+### 🌟 Filosofi Utama
+> **"Jangan membuat user belajar cara kerja aplikasi; buat aplikasi mengikuti cara kerja user."**
+> *(Bahasa aplikasi harus berbicara dengan bahasa familiar pengguna/pedagang, bukan istilah teknis sistem, database, atau pengembang).*
+
 Sollu App adalah asisten digital operasional bisnis harian yang andal, gesit, dan bersahabat. Setiap kata yang tampil di layar harus mencerminkan karakter:
 
-1. **Santai & Hangat:** Hindari bahasa birokrasi, kaku, atau terasa seperti mesin/hukum formal. Gunakan tutur kata manusiawi yang akrab selayaknya rekan kerja yang cerdas.
-2. **Komunikatif & Membantu:** Arahkan pengguna dengan kalimat yang membimbing dan solutif.
-3. **To the Point (Lugas & Ringkas):** Langsung ke inti maksud. Jangan bertele-tele atau membuang ruang layar dengan pengantar yang tidak perlu.
-4. **Tetap Profesional & Jelas (*Clarity First*):** Santai bukan berarti menggunakan bahasa pasar/slang berlebihan (*alay/lebay*). Istilah teknis operasional (seperti *SKU*, *Stok Opname*, *Purchase Order*, *Void*, *Refund*) tetap dipertahankan dengan tepat.
+1. **Jelas & Familiar (Bukan Istilah Teknis):** Gunakan kosakata yang dipahami kasir dan pemilik toko harian. Hindari istilah teknis developer atau birokrasi formal (*"Unduh"* bukan *"Download"*, *"Sampah"* bukan *"Trash/Recycle Bin"*, *"Draf"* bukan *"Pending Review"*).
+2. **Santai & Hangat:** Hindari bahasa birokrasi, kaku, atau terasa seperti mesin/hukum formal. Gunakan tutur kata manusiawi yang akrab selayaknya rekan kerja yang cerdas (*"Yuk, ..."*, *"Tokomu"*, *"Bisnismu"*).
+3. **Komunikatif & Membantu:** Arahkan pengguna dengan kalimat yang membimbing dan solutif saat terjadi kendala.
+4. **To the Point (Lugas & Ringkas):** Langsung ke inti maksud. Sederhana — tampilkan hanya yang diperlukan tanpa kalimat pembuka yang bertele-tele.
+5. **Tetap Profesional & Jelas (*Clarity First*):** Santai bukan berarti menggunakan bahasa pasar/slang berlebihan (*alay/lebay*). Istilah teknis operasional bisnis (*SKU, Stok Opname, Purchase Order, Void, Refund*) tetap dipertahankan dengan tepat.
+6. **Feedback Jelas & Menenangkan:** Notifikasi dan pesan konfirmasi harus memberikan kepastian status aksi secara transparan.
 
 ---
 

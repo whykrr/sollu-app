@@ -2,9 +2,33 @@
 
 Standar pengembangan frontend **Sollu App** berbasis **Vue 3 (Composition API `<script setup>`)**, **Inertia.js 1.2**, dan **Tailwind CSS v4**.
 
+## 0. User-Centric Design Manifesto & 15 Core Principles
+
+### 🌟 Filosofi Utama
+> **"Jangan membuat user belajar cara kerja aplikasi; buat aplikasi mengikuti cara kerja user."**
+> *(Aplikasi wajib beradaptasi dengan alur dan kebiasaan bisnis nyata pedagang/merchant, bukan memaksa pengguna mempelajari kerumitan teknis sistem).*
+
+### 📋 15 Prinsip Pengalaman Pengguna Wajib:
+1. **Mudah di-Setup:** Konfigurasi awal cepat, default settings siap pakai per `BusinessType`, registrasi ringkas.
+2. **Mudah Dioperasikan:** Aksi harian (kasir POS, transaksi, opname) intuitif dan cepat.
+3. **Interface Tidak Ambigu:** Label tombol deskriptif (`"+ Tambah Produk"`, `"Simpan Perubahan"`), badge status semantik.
+4. **Experience User Diutamakan:** Ergonomi multi-perangkat (Mobile $\ge 44\text{px}$, Tablet $\ge 36\text{px}$, Desktop $\ge 28\text{px}$), thumb zone mobile, anti-zoom iOS Safari, respons $<5\text{s}$.
+5. **Sederhana:** Desain Flat Minimalis (*zero shadows* di container `<MainPage>`), non-scrolling sticky header, responsive column masking.
+6. **Jelas:** Gunakan bahasa familiar pedagang/kasir (*"Sampah"*, *"Pulihkan"*, *"Draf"*), bukan istilah teknis/sistem.
+7. **Konsisten:** Pola layout `<MainPage>`, hierarki tombol (`.btn-xs`, `.btn-sm`, `.btn`), drawer `<PopUpPage>`, tabel `<Table>`, form `@/Components/Form/`.
+8. **Smart Default:** Otomatisasi pre-fill (outlet aktif, preset tanggal `'this_month'`, auto-generate SKU/kode, autofocus).
+9. **Minim Langkah:** Single action row click `@row-click`, shortcut POS, debounced inline search, dropdown `Opsi Data`.
+10. **Progressive Disclosure:** 3-Tier Form Architecture (Simple $\le 5$ fields $\rightarrow$ Progressive Disclosure $6-12$ fields via `<DisclosureSection>` $\rightarrow$ Wizard/Tabs $> 12$ fields).
+11. **Mencegah Kesalahan:** Real-time validation, proteksi form belum disimpan `useFormDirtyGuard`, modal konfirmasi sebelum aksi destruktif.
+12. **Mudah Diperbaiki:** Soft delete & pulihkan data dari sampah (`FilterTrashData`), tombol Batal aman.
+13. **Feedback Jelas:** Toast notification instan (`ResourceMessage`), loading spinner/skeleton, pesan validasi solutif.
+14. **Ikuti Cara Kerja User:** Alur sistem mengikuti alur nyata pedagang (stok fisik vs sistem, split payment, partial goods receipt).
+15. **Wording Santai Namun Tetap Profesional:** Nada bicara rekan kerja cerdas ("Yuk, ...", "Tokomu"), to the point, komunikatif & profesional.
+
 ---
 
 ## 1. 🚨 10 Anti-Hallucination Core Rules
+
 
 1. **NO RAW HTML FORMS & TABLES:** Dilarang keras menuliskan tag `<input>`, `<select>`, `<textarea>`, atau `<table>` mentah. Wajib menggunakan komponen dari `@/Components/Form/` dan `@/Components/Tables/Table.vue`.
 2. **PROJECT-SPECIFIC TAILWIND STYLES:** Gunakan utility class bawaan proyek di `app.css` (`btn`, `btn-main`, `btn-outline-main`, `btn-danger`, `form`, `form-group`, dll).
