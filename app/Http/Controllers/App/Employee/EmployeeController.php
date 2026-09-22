@@ -10,6 +10,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Employee\GetEmployeeRequest;
 use App\Http\Requests\App\Employee\StoreEmployeeRequest;
 use App\Http\Requests\App\Employee\UpdateEmployeeRequest;
+use App\Jobs\Employee\ExportEmployeeJob;
+use App\Jobs\Employee\ImportEmployeeJob;
+use App\Models\Outlet;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\App\Employee\EmployeeService;
@@ -18,6 +21,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class EmployeeController extends Controller
 {
@@ -81,6 +88,119 @@ class EmployeeController extends Controller
         return response()->json([
             'data' => $user,
         ]);
+    }
+
+    /**
+     * Export employees to Excel in background queue.
+     */
+    public function export(Request $request): RedirectResponse
+    {
+        $this->authorize(PermissionEnum::USER_VIEW->value);
+
+        $filters = $request->only(['search', 'role', 'outlet', 'is_deleted']);
+
+        ExportEmployeeJob::dispatch($request->user(), $filters);
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::EXPORT_PROCESSING
+        );
+    }
+
+    /**
+     * Download template Excel for importing employees.
+     */
+    public function importTemplate(Request $request): BinaryFileResponse
+    {
+        $this->authorize(PermissionEnum::USER_CREATE->value);
+
+        $businessId = $request->user()->business_id;
+
+        $roles = Role::where('business_id', $businessId)
+            ->get()
+            ->map(fn (Role $r) => $r->label ?? $r->name)
+            ->values();
+
+        $outlets = Outlet::where('business_id', $businessId)
+            ->get()
+            ->pluck('name')
+            ->values();
+
+        $sampleRole = $roles->first() ?? 'Kasir';
+        $sampleOutlet = $outlets->first() ?? 'Outlet Utama';
+
+        $headers = [
+            'Nama Lengkap',
+            'Email',
+            'Nomor Telepon',
+            'PIN (6 Angka)',
+            'Peran',
+            'Outlet',
+        ];
+
+        $dummyData = [
+            [
+                'Ahmad Fauzi',
+                'ahmad.fauzi@contoh.com',
+                '081234567890',
+                '123456',
+                $sampleRole,
+                $sampleOutlet,
+            ],
+            [
+                'Siti Rahma',
+                'siti.rahma@contoh.com',
+                '081298765432',
+                '654321',
+                $sampleRole,
+                $outlets->count() > 1 ? $outlets->take(2)->implode(', ') : $sampleOutlet,
+            ],
+        ];
+
+        $export = new class($headers, $dummyData) implements FromArray, WithHeadings
+        {
+            public function __construct(
+                private array $headers,
+                private array $dummyData
+            ) {}
+
+            public function array(): array
+            {
+                return $this->dummyData;
+            }
+
+            public function headings(): array
+            {
+                return $this->headers;
+            }
+        };
+
+        return Excel::download($export, 'template_pegawai.xlsx');
+    }
+
+    /**
+     * Import employees from uploaded Excel file in background queue.
+     */
+    public function import(Request $request): RedirectResponse
+    {
+        $this->authorize(PermissionEnum::USER_CREATE->value);
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+        ], [
+            'file.required' => 'File Excel wajib diunggah.',
+            'file.mimes' => 'Format file harus berupa .xlsx, .xls, atau .csv.',
+            'file.max' => 'Ukuran file tidak boleh melebihi 10MB.',
+        ]);
+
+        $path = $request->file('file')->store('imports', 'local');
+
+        ImportEmployeeJob::dispatch($request->user(), $path);
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::IMPORT_PROCESSING
+        );
     }
 
     /**

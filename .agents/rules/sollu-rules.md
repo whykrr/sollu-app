@@ -2,7 +2,7 @@
 trigger: always_on
 ---
 
-# Rule: Sollu App Core (Enums & Feature Plan)
+# Rule: Sollu App Core
 
 ## A. PHP Enums as Single Source of Truth
 
@@ -23,6 +23,7 @@ Tipe Bisnis (`BusinessType`) bersifat 100% dinamis di database (`business_types`
 
 **5. Sinkronisasi Template Peran & Hak Akses (Zero-Orphan Permission Policy)**
 Setiap kali ada penambahan kasus baru pada `App\Enums\PermissionEnum`:
+
 - WAJIB menetapkan method `label()`, `group()`, dan `groupLabel()`.
 - WAJIB memetakan kasus permission baru tersebut ke dalam template peran POS yang relevan pada `App\Enums\RoleTemplateEnum` (misal: permission operasional F&B dipetakan ke `CASHIER_FNB`, `MANAGER_FNB`, dsb.).
 - WAJIB menjalankan test otomatis `tests/Unit/Enums/RoleTemplateIntegrityTest.php` untuk memastikan seluruh relasi hak akses dan template peran tetap sinkron dan valid.
@@ -180,11 +181,11 @@ Setiap kali ada penambahan kasus baru pada `App\Enums\PermissionEnum`:
     - **Tier 2 - Progressive Disclosure Form ($6-12$ fields, single domain):**
         - **Prinsip 80/20 Pareto Core Fields:** 80% input harian utama (Nama, Harga, Kategori) diletakkan di bagian atas (selalu tampak).
         - **Smart Collapsible (`<DisclosureSection>`):** 20% input lanjutan/opsional (SKU kustom, Barcode manual, Alert stok minimum, Tag, Catatan) WAJIB dibungkus dalam `<DisclosureSection>`. Otomatis terbuka jika ada error validasi di dalamnya.
-        - **Contextual / Trigger Reveal:** Input dependen (misal: *Minimum Stok*) dilarang dirender jika trigger utamanya (*Lacak Stok*) belum diaktifkan.
+        - **Contextual / Trigger Reveal:** Input dependen (misal: _Minimum Stok_) dilarang dirender jika trigger utamanya (_Lacak Stok_) belum diaktifkan.
     - **Tier 3 - Complex Wizard & Tabbed Form ($> 12$ fields atau multi-domain):**
         - **Asimetri Create vs Edit:** Mode Create WAJIB menggunakan **Linear Stepper** (`<FormStepper>`) memandu langkah demi langkah (Step 1 $\rightarrow$ Step 2 $\rightarrow$ Step 3). Mode Edit WAJIB menggunakan **Direct Tabbed Navigation** (`<FormTabs>`) agar user dapat langsung menuju tab yang ingin diedit tanpa mengulang stepper.
-        - **Error Badging & Step Validation:** Stepper/Tabs wajib menerima properti `:errors="form.errors"` untuk memunculkan indikator titik merah (*error dot*) pada langkah/tab yang bermasalah.
-        - **Sticky Teleport Footer:** Tombol navigasi (Batal, Kembali, Lanjut, Simpan) WAJIB di-teleport ke `#popUpFooter` di *Thumb Zone* bawah.
+        - **Error Badging & Step Validation:** Stepper/Tabs wajib menerima properti `:errors="form.errors"` untuk memunculkan indikator titik merah (_error dot_) pada langkah/tab yang bermasalah.
+        - **Sticky Teleport Footer:** Tombol navigasi (Batal, Kembali, Lanjut, Simpan) WAJIB di-teleport ke `#popUpFooter` di _Thumb Zone_ bawah.
 
 **12. Standar Form Lifecycle & Penanganan Form Dirty (`useFormDirtyGuard`)**
 
@@ -192,10 +193,10 @@ Setiap kali ada penambahan kasus baru pada `App\Enums\PermissionEnum`:
 - **Dilarang Bypass Store Close pada Tombol Batal:** Tombol Batal pada formulir **DILARANG KERAS** memanggil `popUpStore.close()` secara langsung di template (`@click="popUpStore.close()"` adalah anti-pattern). Tombol Batal WAJIB memicu method `handleCancel` dari `useFormDirtyGuard`.
 - **Wajib `forceClose()` pada `onSuccess`:** Saat form berhasil disubmit, handler `onSuccess` WAJIB memanggil `forceClose()` agar drawer tertutup bersih tanpa memicu modal konfirmasi.
 - **Standar Dialog Konfirmasi:** Jika form memiliki perubahan data (`isDirty === true`), penutupan via tombol Batal, tombol silang `✕` Header, klik backdrop, maupun tombol keyboard `Escape` otomatis memunculkan dialog konfirmasi terstandarisasi:
-    - Judul: *"Perubahan Belum Disimpan"*
-    - Pesan: *"Kamu memiliki perubahan data yang belum disimpan. Yakin mau membatalkan dan keluar dari formulir ini?"*
-    - Tombol Konfirmasi: *"Ya, Buang Perubahan"* (`btn-danger`)
-    - Tombol Batal: *"Lanjut Mengisi"* (sekunder)
+    - Judul: _"Perubahan Belum Disimpan"_
+    - Pesan: _"Kamu memiliki perubahan data yang belum disimpan. Yakin mau membatalkan dan keluar dari formulir ini?"_
+    - Tombol Konfirmasi: _"Ya, Buang Perubahan"_ (`btn-danger`)
+    - Tombol Batal: _"Lanjut Mengisi"_ (sekunder)
 
 ---
 
@@ -234,17 +235,19 @@ Setiap kali ada penambahan kasus baru pada `App\Enums\PermissionEnum`:
 ## F. Standar Wording & UX Copywriting (Tone of Voice)
 
 **1. Prinsip Utama (Santai, Komunikatif, To the Point, Profesional)**
-- **Santai & Hangat:** DILARANG menggunakan bahasa formal birokratis/kaku (seperti *"Dimohon untuk...", "Pengguna wajib melaksanakan...", "Sistem mengeksekusi proses..."*). Gunakan sapaan akrab selayaknya rekan kerja cerdas (*"Yuk, ...", "Tokomu", "Bisnismu"*).
+
+- **Santai & Hangat:** DILARANG menggunakan bahasa formal birokratis/kaku (seperti _"Dimohon untuk...", "Pengguna wajib melaksanakan...", "Sistem mengeksekusi proses..."_). Gunakan sapaan akrab selayaknya rekan kerja cerdas (_"Yuk, ...", "Tokomu", "Bisnismu"_).
 - **Komunikatif & Solutif:** Selalu arahkan pengguna dengan penjelasan yang membimbing dan solutif.
 - **To the Point (Lugas & Ringkas):** Langsung pada inti pesan tanpa kalimat pembuka yang bertele-tele.
-- **Tetap Profesional & Jelas (*Clarity First*):** Hindari slang/bahasa gaul pasar berlebihan yang menurunkan kredibilitas. Istilah operasional bisnis baku (*SKU, Stok Opname, Resep, HPP, Void, Refund*) tetap digunakan secara presisi.
+- **Tetap Profesional & Jelas (_Clarity First_):** Hindari slang/bahasa gaul pasar berlebihan yang menurunkan kredibilitas. Istilah operasional bisnis baku (_SKU, Stok Opname, Resep, HPP, Void, Refund_) tetap digunakan secara presisi.
 
 **2. Standar Kontekstual UI**
-- **Empty State:** Wajib memuat pesan ramah dan Call-to-Action (CTA) jelas (Contoh: *"Belum ada produk nih. Yuk, tambah produk pertamamu!"*).
-- **Placeholder:** Gunakan sebagai contoh pengisian nyata (Contoh: *"Misal: Susu UHT Full Cream"*), bukan sekadar mengulang teks label.
-- **Notifikasi & Toast:** Singkat, hangat, dan melegakan (Contoh: *"Data berhasil disimpan!"*, *"Data berhasil dipindah ke sampah."*).
-- **Konfirmasi Hapus:** Jelaskan konsekuensi tindakan secara transparan tanpa menakut-nakuti (Contoh: *"Yakin mau hapus produk ini? Data akan dipindah ke sampah dan tidak tampil di kasir."*).
-- **Feature Lock / Upsell:** Fokus pada manfaat fitur secara positif (Contoh: *"Mau kelola resep otomatis? Yuk, tingkatkan paket tokomu ke Pro!"*).
+
+- **Empty State:** Wajib memuat pesan ramah dan Call-to-Action (CTA) jelas (Contoh: _"Belum ada produk nih. Yuk, tambah produk pertamamu!"_).
+- **Placeholder:** Gunakan sebagai contoh pengisian nyata (Contoh: _"Misal: Susu UHT Full Cream"_), bukan sekadar mengulang teks label.
+- **Notifikasi & Toast:** Singkat, hangat, dan melegakan (Contoh: _"Data berhasil disimpan!"_, _"Data berhasil dipindah ke sampah."_).
+- **Konfirmasi Hapus:** Jelaskan konsekuensi tindakan secara transparan tanpa menakut-nakuti (Contoh: _"Yakin mau hapus produk ini? Data akan dipindah ke sampah dan tidak tampil di kasir."_).
+- **Feature Lock / Upsell:** Fokus pada manfaat fitur secara positif (Contoh: _"Mau kelola resep otomatis? Yuk, tingkatkan paket tokomu ke Pro!"_).
 - _Lihat panduan lengkap di file `docs/ux-wording.md`._
 
 ---
@@ -255,23 +258,28 @@ Setiap kali ada penambahan kasus baru pada `App\Enums\PermissionEnum`:
 Seluruh notifikasi baru di aplikasi WAJIB mewarisi `App\Notifications\BaseNotification` (mengimplementasikan `ShouldQueue`). DILARANG membuat class notifikasi langsung dari `Notification` Laravel tanpa struktur data baku Sollu.
 
 **2. Isolasi Target Multi-Level (`NotificationDispatcherService`)**
+
 - **User Level:** Gunakan `$user->notify($notification)` atau `NotificationDispatcherService::sendToUser()`.
 - **Merchant Level:** Gunakan `NotificationDispatcherService::sendToBusiness($business, $notification, $roles = ['owner', 'manager'])`.
 - **Outlet Level:** Gunakan `NotificationDispatcherService::sendToOutlet($outlet, $notification, $roles = null)`.
 
 **3. Single Source of Truth Enums**
+
 - Kategori WAJIB menggunakan `NotificationCategoryEnum` (`SYSTEM`, `ORDER`, `INVENTORY`, `EMPLOYEE`).
 - Tipe visual WAJIB menggunakan `NotificationTypeEnum` (`INFO`, `SUCCESS`, `WARNING`, `DANGER`).
 - Scope WAJIB menggunakan `NotificationScopeEnum` (`USER`, `BUSINESS`, `OUTLET`).
 - DILARANG melakukan filtering notifikasi dengan string matching kasar (seperti `type LIKE '%...'`).
 
 **4. Alur Karyawan Baru & Password Default**
+
 - Penambahan karyawan baru WAJIB mengirimkan password default sementara melalui email resmi (`mail.employee.new`) dan memicu in-app notification selamat datang dengan tombol aksi langsung ke halaman ubah kata sandi/PIN (`route('settings.account.profile')`).
 
 **5. Standar UI Popover Notifikasi (4 Tab: Semua, Sistem, Pesanan, Stok)**
+
 - Dropdown notifikasi WAJIB mempertahankan layout grid 4 kolom simetris (`grid grid-cols-4`) dengan ukuran teks `text-[11px] sm:text-xs` pada kontainer 416px (`w-[26rem]`) tanpa text-wrapping.
 
 **6. Kebijakan Retensi & Scheduler Pruning**
+
 - Notifikasi read $\ge 1\text{ tahun}$ (365 hari) dan berkas ekspor kedaluwarsa $> 30\text{ hari}$ otomatis dihapus via scheduled cron `php artisan notifications:prune --days=365` setiap malam pukul 02:30 WIB (`routes/console.php`).
 - _Lihat panduan lengkap di `.agents/rules/notification-rules.md`._
 
@@ -280,10 +288,12 @@ Seluruh notifikasi baru di aplikasi WAJIB mewarisi `App\Notifications\BaseNotifi
 ## H. Prinsip Pengalaman Pengguna (User-Centric Principles & Ergonomics)
 
 **1. Filosofi Utama**
+
 > **"Jangan membuat user belajar cara kerja aplikasi; buat aplikasi mengikuti cara kerja user."**
-> *(Aplikasi wajib beradaptasi dengan alur dan kebiasaan bisnis nyata pedagang/merchant, bukan memaksa pengguna mempelajari kerumitan teknis dan arsitektur sistem).*
+> _(Aplikasi wajib beradaptasi dengan alur dan kebiasaan bisnis nyata pedagang/merchant, bukan memaksa pengguna mempelajari kerumitan teknis dan arsitektur sistem)._
 
 **2. 15 Prinsip Pengalaman Pengguna Wajib:**
+
 1. **Mudah di-Setup:** Wizard ringkas, default settings siap pakai untuk jenis usaha (`BusinessType`).
 2. **Mudah Dioperasikan:** Alur harian (POS, transaksi, opname) intuitif tanpa friksi kognitif.
 3. **Interface Tidak Ambigu:** Label tombol deskriptif (`"+ Tambah Produk"`, `"Simpan Perubahan"`), warna badge status semantik dan seragam.
@@ -301,5 +311,3 @@ Seluruh notifikasi baru di aplikasi WAJIB mewarisi `App\Notifications\BaseNotifi
 15. **Wording Santai Namun Tetap Profesional:** Nada bicara rekan kerja cerdas ("Yuk, ...", "Tokomu"), to the point, komunikatif & profesional.
 
 - _Lihat panduan lengkap di `.agents/rules/user-experience-principles.md`._
-
-

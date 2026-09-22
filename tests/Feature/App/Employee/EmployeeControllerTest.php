@@ -269,7 +269,7 @@ class EmployeeControllerTest extends TestCase
         $this->assertDatabaseMissing('users', ['id' => $employee->id]);
     }
 
-    public function test_it_prevents_deleting_root_user_via_controller()
+    public function test_prevents_deleting_root_user_via_controller()
     {
         $response = $this->actingAs($this->user, 'business')
             ->from("http://{$this->appDomain}/employees")
@@ -279,5 +279,49 @@ class EmployeeControllerTest extends TestCase
             ->assertSessionHas(FlashDataVariable::FAILED->value);
 
         $this->assertDatabaseHas('users', ['id' => $this->user->id, 'deleted_at' => null]);
+    }
+
+    public function test_it_dispatches_export_employee_job(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+
+        $response = $this->actingAs($this->user, 'business')
+            ->from("http://{$this->appDomain}/employees")
+            ->get("http://{$this->appDomain}/employees/export?search=Kasir&role=cashier");
+
+        $response->assertRedirect("http://{$this->appDomain}/employees")
+            ->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::EXPORT_PROCESSING);
+
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\Employee\ExportEmployeeJob::class, function (\App\Jobs\Employee\ExportEmployeeJob $job) {
+            return $job->getModuleName() === 'Pegawai';
+        });
+    }
+
+    public function test_it_downloads_import_template_excel(): void
+    {
+        $response = $this->actingAs($this->user, 'business')
+            ->get("http://{$this->appDomain}/employees/import/template");
+
+        $response->assertOk();
+        $response->assertHeader('content-disposition');
+    }
+
+    public function test_it_handles_employee_excel_import(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+        \Illuminate\Support\Facades\Storage::fake('local');
+
+        $file = \Illuminate\Http\UploadedFile::fake()->create('employees.xlsx', 100, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+        $response = $this->actingAs($this->user, 'business')
+            ->from("http://{$this->appDomain}/employees")
+            ->post("http://{$this->appDomain}/employees/import", [
+                'file' => $file,
+            ]);
+
+        $response->assertRedirect("http://{$this->appDomain}/employees")
+            ->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::IMPORT_PROCESSING);
+
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\Employee\ImportEmployeeJob::class);
     }
 }

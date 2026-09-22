@@ -8,7 +8,12 @@
         </template>
 
         <template #filter>
-            <EmployeeFilter :filters="params" :roles="roles" @create="openCreate()" />
+            <EmployeeFilter
+                :filters="params"
+                :roles="roles"
+                @create="openCreate()"
+                @open-import="showImportModal = true"
+            />
         </template>
 
         <Table
@@ -142,17 +147,27 @@
                 :per-page="users.per_page ?? 20"
             />
         </template>
+
+        <!-- Modal Impor Data Massal Excel -->
+        <ImportCsvModal
+            :show="showImportModal"
+            module-name="Pegawai"
+            :template-url="route('employees.importTemplate')"
+            :import-url="route('employees.import')"
+            @close="showImportModal = false"
+        />
     </MainPage>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue'
+import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue'
 import EmployeeFilter from '@/Pages/App/Employee/Components/EmployeeFilter.vue'
 import EmployeeFormPopUp from '@/Pages/App/Employee/Components/EmployeeFormPopUp.vue'
 import EmployeeDetailPopUp from '@/Pages/App/Employee/Components/EmployeeDetailPopUp.vue'
@@ -164,6 +179,7 @@ import { faPencil, faEye } from '@fortawesome/free-solid-svg-icons'
 
 const popUpStore = usePopUpStore()
 const modalStore = useModalStore()
+const showImportModal = ref(false)
 
 const props = defineProps({
     users: {

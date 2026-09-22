@@ -80,8 +80,8 @@
             </div>
         </div>
 
-        <!-- Akses Outlet (Hanya jika bukan Root User) -->
-        <div v-if="!props.user?.is_root_user" class="space-y-1">
+        <!-- Akses Outlet (Hanya jika ada >1 outlet dan tidak sedang dalam mode single outlet terpilih di sidebar) -->
+        <div v-if="showOutletField" class="space-y-1">
             <label class="block text-xs font-medium text-slate-700">Akses Outlet</label>
             <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-lg">
                 <SelectionGroupField
@@ -167,17 +167,33 @@ const outletOptions = computed(() => {
     }))
 })
 
+const showOutletField = computed(() => {
+    if (props.user?.is_root_user) return false
+    if ((authOutlets.value || []).length <= 1) return false
+    if (selectedOutlet.value) return false
+    return true
+})
+
+const resolveInitialOutlets = user => {
+    if (user?.outlets && user.outlets.length > 0) {
+        return user.outlets.map(o => o.id)
+    }
+    if (selectedOutlet.value?.id) {
+        return [selectedOutlet.value.id]
+    }
+    if ((authOutlets.value || []).length > 0) {
+        return (authOutlets.value || []).map(o => o.id)
+    }
+    return []
+}
+
 const form = useForm({
     name: props.user?.name || '',
     email: props.user?.email || '',
     phone: props.user?.phone || '',
     pin: '',
     role: props.user?.roles?.[0]?.name || (roleOptions.value[0]?.value ?? ''),
-    outlets: props.user?.outlets
-        ? props.user.outlets.map(o => o.id)
-        : selectedOutlet.value
-          ? [selectedOutlet.value.id]
-          : (authOutlets.value || []).map(o => o.id),
+    outlets: resolveInitialOutlets(props.user),
 })
 
 const { handleCancel, forceClose } = useFormDirtyGuard({ form })
@@ -208,9 +224,7 @@ watch(
             if (user.roles && user.roles.length > 0) {
                 form.role = user.roles[0].name
             }
-            if (user.outlets && user.outlets.length > 0) {
-                form.outlets = user.outlets.map(o => o.id)
-            }
+            form.outlets = resolveInitialOutlets(user)
             showPinField.value = !user.has_pin
         }
     }

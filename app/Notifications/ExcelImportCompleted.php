@@ -13,7 +13,8 @@ class ExcelImportCompleted extends BaseNotification
         int $successCount,
         int $failedCount,
         ?string $failedDownloadUrl = null,
-        $expiresAt = null
+        $expiresAt = null,
+        ?string $actionText = null
     ) {
         $this->category = NotificationCategoryEnum::SYSTEM;
         $this->type = $failedCount > 0 ? NotificationTypeEnum::WARNING : NotificationTypeEnum::SUCCESS;
@@ -27,7 +28,7 @@ class ExcelImportCompleted extends BaseNotification
         $this->message = $message;
 
         $this->actionUrl = $failedDownloadUrl;
-        $this->actionText = $failedDownloadUrl ? 'Unduh Data Gagal' : null;
+        $this->actionText = $actionText ?? ($failedDownloadUrl ? ($failedCount > 0 ? 'Unduh Data Gagal' : 'Unduh Hasil Impor') : null);
         $this->expiresAt = $expiresAt;
         $this->meta = [
             'module' => $moduleName,

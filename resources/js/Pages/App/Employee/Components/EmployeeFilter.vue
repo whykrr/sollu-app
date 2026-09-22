@@ -39,6 +39,10 @@
             />
         </template>
 
+        <template #tools>
+            <ActionsDropdown label="Opsi" :items="actionItems" />
+        </template>
+
         <template #create>
             <button
                 type="button"
@@ -46,7 +50,7 @@
                 @click="$emit('create')"
             >
                 <FontAwesomeIcon :icon="faPlus" class="text-xs" />
-                <span>Pegawai Baru</span>
+                <span>Tambah Pegawai</span>
             </button>
         </template>
     </ActionBar>
@@ -57,12 +61,19 @@ import { reactive, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faUserShield, faMapMarkerAlt, faPlus } from '@fortawesome/free-solid-svg-icons'
+import {
+    faUserShield,
+    faMapMarkerAlt,
+    faPlus,
+    faDownload,
+    faUpload,
+} from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 
 const props = defineProps({
     filters: {
@@ -75,7 +86,7 @@ const props = defineProps({
     },
 })
 
-defineEmits(['create'])
+const emit = defineEmits(['create', 'open-import'])
 
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 
@@ -139,4 +150,32 @@ const updateQuery = () => {
         preserveScroll: true,
     })
 }
+
+const exportExcel = () => {
+    router.get(
+        route('employees.export', {
+            search: filterForm.search || undefined,
+            role: filterForm.role || undefined,
+            outlet: filterForm.outlet || undefined,
+            is_deleted: filterForm.is_deleted === '1' ? 1 : undefined,
+        }),
+        {},
+        { preserveScroll: true, preserveState: true }
+    )
+}
+
+const actionItems = computed(() => [
+    {
+        label: 'Ekspor Data Excel',
+        icon: faDownload,
+        iconClass: 'text-emerald-600',
+        action: exportExcel,
+    },
+    {
+        label: 'Impor Data Massal',
+        icon: faUpload,
+        iconClass: 'text-blue-600',
+        action: () => emit('open-import'),
+    },
+])
 </script>
