@@ -14,26 +14,22 @@
             :action="true"
             :sort="filters.sort"
             :sort-direction="filters.direction"
+            @row-click="openDetail"
         >
             <template #status="{ item }">
                 <span
                     class="badge"
-                    :class="{
-                        'badge-gray': item.status === $enums.AdjustmentStatus.Draft,
-                        'badge-success': item.status === $enums.AdjustmentStatus.Approved,
-                        'badge-danger': item.status === $enums.AdjustmentStatus.Rejected,
-                        'badge-warning': item.status === $enums.AdjustmentStatus.Voided,
-                    }"
+                    :class="getColor('AdjustmentStatus', item.status) || 'badge-gray'"
                 >
-                    {{ formatStatus(item.status) }}
+                    {{ getLabel('AdjustmentStatus', item.status) }}
                 </span>
             </template>
             <template #outlet="{ item }">
-                {{ item.outlet.name || '-' }}
+                {{ item.outlet?.name || '-' }}
             </template>
             <template #reason="{ item }">
-                <span class="capitalize">
-                    {{ formatReason(item.reason) }}
+                <span>
+                    {{ getLabel('AdjustmentReason', item.reason) }}
                 </span>
             </template>
             <template #items_count="{ item }">
@@ -43,22 +39,22 @@
                 <span>{{ formatDateTimeSimple(item.created_at) }}</span>
             </template>
             <template #creator="{ item }">
-                {{ item.creator.name || '-' }}
+                {{ item.creator?.name || '-' }}
             </template>
             <template #actions="{ item }">
                 <button
                     v-if="can('inventory.adjustment.read')"
                     class="btn btn-flat btn-sm"
                     title="Lihat Detail"
-                    @click="openDetail(item)"
+                    @click.stop="openDetail(item)"
                 >
                     <FontAwesomeIcon :icon="faEye" />
                 </button>
                 <button
-                    v-if="can('inventory.adjustment.read')"
+                    v-if="can('inventory.adjustment.export')"
                     class="btn btn-flat btn-sm text-danger"
                     title="Cetak Berita Acara"
-                    @click="exportPdf(item.id)"
+                    @click.stop="exportPdf(item.id)"
                 >
                     <FontAwesomeIcon :icon="faFilePdf" />
                 </button>
@@ -80,7 +76,7 @@
 import { ref } from 'vue'
 import { faEye, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { router, usePage } from '@inertiajs/vue3'
+import { usePage } from '@inertiajs/vue3'
 import axios from 'axios'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
@@ -91,12 +87,14 @@ import AdjustmentFormPopUp from './Components/AdjustmentFormPopUp.vue'
 import AdjustmentDetailPopUp from './Components/AdjustmentDetailPopUp.vue'
 import FreezeStockPopUp from '@/Components/Inventory/FreezeStockPopUp.vue'
 import { formatDateTimeSimple } from '@/Composable/date.js'
+import { useEnum } from '@/Composable/useEnum'
 import { usePopUpStore } from '@/store/popup'
 
 const page = usePage()
 const popUpStore = usePopUpStore()
+const { getLabel, getColor } = useEnum()
 
-const props = defineProps({
+defineProps({
     adjustments: {
         type: Object,
         default: () => ({ data: [], links: [] }),
@@ -109,8 +107,8 @@ const props = defineProps({
 
 const can = permission => {
     return (
-        page.props.auth.permissions.includes(permission) ||
-        page.props.auth.permissions.includes('inventory.*')
+        page.props.auth?.permissions?.includes(permission) ||
+        page.props.auth?.permissions?.includes('inventory.*')
     )
 }
 
@@ -123,44 +121,22 @@ const headers = [
         sortable: true,
     },
     { label: 'Outlet', slot: 'outlet', sortable: false },
-    { label: 'Alasan', field: 'reason', slot: 'reason', sortable: false },
+    { label: 'Alasan', field: 'reason', slot: 'reason', sortable: true },
     {
         label: 'Item',
         field: 'items_count',
         slot: 'items_count',
         sortable: false,
     },
-    { label: 'Status', field: 'status', slot: 'status', sortable: false },
+    { label: 'Status', field: 'status', slot: 'status', sortable: true },
     { label: 'Dibuat Oleh', slot: 'creator', sortable: false },
 ]
-
-const formatStatus = status => {
-    const map = {
-        draft: 'Draf',
-        approved: 'Disetujui',
-        rejected: 'Ditolak',
-        voided: 'Dibatalkan',
-    }
-    return map[status] || status
-}
-
-const formatReason = reason => {
-    const map = {
-        waste: 'Rusak / Terbuang',
-        expired: 'Kedaluwarsa',
-        lost: 'Hilang',
-        correction: 'Koreksi',
-        production: 'Produksi',
-        other: 'Lainnya',
-    }
-    return map[reason] || reason
-}
 
 const isLoadingDetail = ref(false)
 
 const openForm = () => {
     popUpStore.open({
-        title: 'Buat Draft Penyesuaian Stok',
+        title: 'Buat Draf Penyesuaian Stok',
         size: 'xl',
         component: AdjustmentFormPopUp,
     })
@@ -171,6 +147,7 @@ const exportPdf = id => {
 }
 
 const openDetail = async item => {
+    if (!item?.id) return
     isLoadingDetail.value = true
     try {
         const response = await axios.get(route('inventory.adjustments.show', item.id))

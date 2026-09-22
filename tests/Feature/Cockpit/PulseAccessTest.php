@@ -113,4 +113,40 @@ class PulseAccessTest extends TestCase
 
         putenv('PULSE_ALLOWED_EMAILS');
     }
+
+    public function test_pulse_user_resolver_resolves_both_business_user_and_cockpit_user(): void
+    {
+        $type = BusinessType::create(['name' => 'F&B', 'code' => 'fnb_iso']);
+        $business = Business::create([
+            'name' => 'Merchant Test',
+            'owner_name' => 'Test Owner',
+            'email' => 'merchant@test.com',
+            'phone' => '081234567891',
+            'business_type_id' => $type->id,
+            'trial_end_at' => now()->addDays(14),
+        ]);
+
+        $businessUser = User::factory()->create([
+            'business_id' => $business->id,
+            'name' => 'Tenant User',
+            'email' => 'tenant@test.com',
+        ]);
+
+        $resolver = app(\Laravel\Pulse\Contracts\ResolvesUsers::class);
+        $keys = collect([$businessUser->id, $this->activeAdmin->id, 'non-existent-uuid']);
+
+        $resolver->load($keys);
+
+        $resolvedBusiness = $resolver->find($businessUser->id);
+        $resolvedCockpit = $resolver->find($this->activeAdmin->id);
+        $resolvedMissing = $resolver->find('non-existent-uuid');
+
+        $this->assertSame('Tenant User', $resolvedBusiness->name);
+        $this->assertSame('tenant@test.com', $resolvedBusiness->extra);
+
+        $this->assertSame('Active Admin (Cockpit)', $resolvedCockpit->name);
+        $this->assertSame('active_admin@sollu.test', $resolvedCockpit->extra);
+
+        $this->assertSame('ID: non-existent-uuid', $resolvedMissing->name);
+    }
 }

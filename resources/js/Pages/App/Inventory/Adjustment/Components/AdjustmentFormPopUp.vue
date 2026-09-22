@@ -1,23 +1,30 @@
 <template>
     <div>
-        <form class="space-y-2" @submit.prevent="submit">
-            <div class="grid grid-cols-2 gap-2">
-                <AsyncOutletDropdown
-                    id="outlet"
-                    v-model="form.outlet_id"
-                    label="Pilih Outlet"
-                    placeholder="-- Pilih Outlet --"
-                    :class="{ 'is-invalid': form.errors.outlet_id }"
-                    :error="form.errors.outlet_id"
-                    @loaded="onOutletsLoaded"
-                />
+        <form class="space-y-3" @submit.prevent="submit">
+            <div
+                class="grid grid-cols-1 md:grid-cols-2 gap-2"
+                :class="{ '!grid-cols-1': !(outletOptions.length > 1 && !selectedOutlet) }"
+            >
+                <!-- Pilihan Outlet: HANYA jika outlet user > 1 DAN tidak ada selectedOutlet aktif di sidebar -->
+                <div v-if="outletOptions.length > 1 && !selectedOutlet">
+                    <SearchableDropdownField
+                        id="outlet_id"
+                        v-model="form.outlet_id"
+                        label="Pilih Outlet"
+                        placeholder="Pilih Outlet..."
+                        search-placeholder="Cari outlet..."
+                        :options="outletOptions"
+                        :error="form.errors.outlet_id"
+                        required
+                    />
+                </div>
 
                 <DropdownField
                     id="reason"
                     v-model="form.reason"
                     label="Alasan Utama"
                     placeholder="Pilih alasan..."
-                    :options="reasonOptions"
+                    :options="getOptions('AdjustmentReason')"
                     :class="{ 'is-invalid': form.errors.reason }"
                     :error="form.errors.reason"
                     required
@@ -27,46 +34,51 @@
             <TextareaField
                 id="notes"
                 v-model="form.notes"
-                label="Catatan Opsional"
+                label="Catatan Dokumen (Opsional)"
+                placeholder="Tambahkan catatan umum mengenai dokumen penyesuaian ini..."
                 :class="{ 'is-invalid': form.errors.notes }"
                 :error="form.errors.notes"
                 rows="2"
             />
 
-            <div class="mt-2 border-t pt-2">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-gray-700">Daftar Item</h3>
-                    <div class="w-72">
+            <div class="border-t border-slate-200 pt-3 space-y-2">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800">Daftar Barang</h3>
+                        <p class="text-xs text-slate-500">
+                            Cari dan tambahkan barang yang ingin disesuaikan stok fisiknya.
+                        </p>
+                    </div>
+                    <div class="w-full sm:w-80">
                         <AsyncSelectField
                             id="search_item"
-                            label="Cari Item (Min. 3 huruf)"
-                            placeholder="Cari nama, SKU, barcode..."
+                            label="Cari Barang"
+                            placeholder="Cari nama, SKU, atau barcode..."
                             class="sm"
                             :api-url="route('api.internal.inventory-items.search')"
                             :api-params="{
                                 outlet_id: form.outlet_id,
                             }"
-                            :min-chars="3"
+                            :min-chars="2"
                             :disabled="!form.outlet_id"
                             @select="addItemFromSearch"
                         >
                             <template #option="{ item }">
-                                <div class="flex justify-between items-center w-full">
+                                <div class="flex items-center justify-between w-full">
                                     <div>
-                                        <div class="font-semibold text-sm">
+                                        <div class="font-semibold text-xs text-slate-800">
                                             {{ item.name }}
                                         </div>
-                                        <div class="text-xs text-gray-500">
-                                            SKU:
-                                            {{ item.sku || '-' }}
+                                        <div class="text-[11px] text-slate-400">
+                                            SKU: {{ item.sku || '-' }}
                                         </div>
                                     </div>
-                                    <div class="text-right text-xs">
-                                        <div>
-                                            Sistem:
-                                            {{ Number(item.current_stock) }}
-                                            {{ item.uom?.name }}
-                                        </div>
+                                    <div class="text-right text-[11px] text-slate-500">
+                                        Stok:
+                                        <span class="font-medium text-slate-700">
+                                            {{ Number(item.current_stock ?? 0) }}
+                                        </span>
+                                        {{ item.uom?.name || '' }}
                                     </div>
                                 </div>
                             </template>
@@ -74,51 +86,65 @@
                     </div>
                 </div>
 
-                <div v-if="form.errors.items" class="text-danger text-sm mb-2">
+                <div v-if="form.errors.items" class="text-danger text-xs mb-1">
                     {{ form.errors.items }}
                 </div>
 
+                <!-- Petunjuk Jika Outlet Belum Terpilih -->
                 <div
-                    v-if="form.items.length === 0"
-                    class="text-center py-2 text-gray-500 border border-dashed rounded-lg"
+                    v-if="!form.outlet_id"
+                    class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
                 >
-                    Belum ada item yang ditambahkan. Silakan cari item pada kolom pencarian di atas.
+                    Pilih outlet terlebih dahulu untuk mencari barang inventori.
                 </div>
 
+                <!-- Empty State Jika Belum Ada Item -->
+                <div
+                    v-else-if="form.items.length === 0"
+                    class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
+                >
+                    Belum ada barang ditambahkan. Silakan cari dan pilih barang pada kolom pencarian di atas.
+                </div>
+
+                <!-- Daftar Item Penyesuaian -->
                 <div v-else class="space-y-2 max-h-96 overflow-y-auto pr-1">
                     <div
                         v-for="(item, index) in form.items"
                         :key="item.inventory_item_id || index"
-                        class="p-2 border rounded-lg bg-white shadow-sm space-y-2"
+                        class="p-3 border border-slate-200 rounded-lg bg-white space-y-2"
                     >
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="font-semibold text-gray-800">
-                                    {{ item.name }}
-                                </div>
-                                <div class="text-xs text-gray-500">
-                                    SKU: {{ item.sku || '-' }} | Satuan: {{ item.uom || '-' }} |
-                                    Stok saat ini di outlet:
-                                    <span class="font-medium text-gray-700">
-                                        {{ item.current_stock ?? 0 }}
-                                    </span>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="text-xs font-bold text-slate-400 w-5 text-center">
+                                    {{ index + 1 }}.
+                                </span>
+                                <div class="min-w-0">
+                                    <div class="font-bold text-xs text-slate-800 truncate">
+                                        {{ item.name }}
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 truncate">
+                                        SKU: {{ item.sku || '-' }} | Satuan:
+                                        <span class="font-medium text-slate-600">{{ item.uom || '-' }}</span>
+                                    </div>
                                 </div>
                             </div>
+
                             <button
                                 type="button"
-                                class="btn btn-highlight-danger btn-sm"
-                                title="Hapus Item"
+                                class="btn btn-flat btn-sm text-danger h-7 w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                                title="Hapus item"
                                 @click="removeItem(index)"
                             >
                                 <FontAwesomeIcon :icon="faTrash" />
                             </button>
                         </div>
 
-                        <div class="grid grid-cols-12 gap-2">
+                        <!-- Baris Input Grid: Qty Change, Unit Cost, Description -->
+                        <div class="grid grid-cols-12 gap-2 pt-1 border-t border-slate-100 items-start">
                             <div
                                 :class="
                                     item.qty_change > 0
-                                        ? 'col-span-12 md:col-span-6'
+                                        ? 'col-span-12 sm:col-span-6'
                                         : 'col-span-12'
                                 "
                             >
@@ -128,6 +154,7 @@
                                     label="Perubahan Qty (+/-)"
                                     placeholder="Misal: -2 atau 5"
                                     step="any"
+                                    class="sm"
                                     :class="{
                                         'is-invalid': form.errors[`items.${index}.qty_change`],
                                     }"
@@ -136,14 +163,15 @@
                                 />
                             </div>
 
-                            <div v-if="item.qty_change > 0" class="col-span-12 md:col-span-6">
+                            <div v-if="item.qty_change > 0" class="col-span-12 sm:col-span-6">
                                 <NumberField
                                     :id="'unit_cost_' + index"
                                     v-model="item.unit_cost"
-                                    label="HPP / Unit Cost (Opsional)"
+                                    label="HPP / Biaya Satuan (Opsional)"
                                     placeholder="Auto (Moving Avg)"
                                     min="0"
                                     step="any"
+                                    class="sm"
                                     :class="{
                                         'is-invalid': form.errors[`items.${index}.unit_cost`],
                                     }"
@@ -155,8 +183,9 @@
                                 <TextField
                                     :id="'desc_' + index"
                                     v-model="item.description"
-                                    label="Deskripsi / Alasan"
-                                    placeholder="Detail alasan untuk item ini"
+                                    label="Keterangan / Alasan Khusus Item"
+                                    placeholder="Misal: Rusak tertindih saat bongkar muat"
+                                    class="sm"
                                     :class="{
                                         'is-invalid': form.errors[`items.${index}.description`],
                                     }"
@@ -165,79 +194,135 @@
                                 />
                             </div>
                         </div>
+
+                        <!-- Baris Realtime Kalkulasi Stok -->
+                        <div class="flex items-center justify-between pt-1 border-t border-dashed border-slate-100 text-[11px] bg-slate-50/50 p-2 rounded">
+                            <div class="text-slate-500">
+                                Stok Saat Ini:
+                                <span class="font-bold text-slate-700">
+                                    {{ item.current_stock ?? 0 }} {{ item.uom || '' }}
+                                </span>
+                            </div>
+
+                            <div class="text-right">
+                                Proyeksi Stok Sesudah:
+                                <span
+                                    class="font-bold ml-1"
+                                    :class="
+                                        calculateProjectedStock(item) < 0
+                                            ? 'text-danger'
+                                            : 'text-emerald-600'
+                                    "
+                                >
+                                    {{ calculateProjectedStock(item) }} {{ item.uom || '' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ringkasan Total Penyesuaian -->
+                <div
+                    v-if="form.items.length > 0"
+                    class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg mt-2"
+                >
+                    <div>
+                        <div class="text-xs text-slate-500">Total Barang:</div>
+                        <div class="font-bold text-xs text-slate-800">
+                            {{ form.items.length }} Item
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-500">Total Perubahan Stok:</div>
+                        <div
+                            class="font-bold text-sm"
+                            :class="netQtyChange >= 0 ? 'text-emerald-600' : 'text-danger'"
+                        >
+                            {{ netQtyChange >= 0 ? '+' : '' }}{{ netQtyChange }} Unit
+                        </div>
                     </div>
                 </div>
             </div>
         </form>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
+            <button
+                type="button"
+                class="btn btn-flat"
+                :disabled="form.processing"
+                @click="close"
+            >
                 Batal
             </button>
             <button
                 type="button"
                 class="btn btn-main"
-                :disabled="form.processing || form.items.length === 0"
+                :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
                 @click="submit"
             >
-                Simpan Penyesuaian
+                Simpan sebagai Draf
             </button>
         </Teleport>
     </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { useAuth } from '@/Composable/useAuth'
+import { useEnum } from '@/Composable/useEnum'
+import { usePopUpStore } from '@/store/popup'
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
+import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faTrash } from '@fortawesome/free-solid-svg-icons'
-import { usePopUpStore } from '@/store/popup'
 
 const popUpStore = usePopUpStore()
+const { outlets: userOutlets, selectedOutlet } = useAuth()
+const { getOptions } = useEnum()
 
 const isMounted = ref(false)
 onMounted(() => {
     isMounted.value = true
 })
 
-const props = defineProps({
-    items: {
-        type: Array,
-        default: () => [],
-    },
-})
+const outletOptions = computed(() =>
+    (userOutlets.value || []).map(store => ({
+        label: store.name,
+        value: store.id,
+    }))
+)
 
 const form = useForm({
-    outlet_id: '',
+    outlet_id: selectedOutlet.value?.id || (userOutlets.value?.length === 1 ? userOutlets.value[0].id : ''),
     reason: '',
     notes: '',
     items: [],
 })
 
-const loadedOutlets = ref([])
-
-const onOutletsLoaded = outlets => {
-    console.log(outlets)
-    loadedOutlets.value = outlets
-    if (!form.outlet_id && outlets.length === 1) {
-        form.outlet_id = outlets[0].id
+// Watch outlet changes: reset items if outlet changes
+watch(
+    () => form.outlet_id,
+    (newVal, oldVal) => {
+        if (oldVal && newVal !== oldVal) {
+            form.items = []
+        }
     }
+)
+
+const calculateProjectedStock = item => {
+    const current = Number(item.current_stock || 0)
+    const change = Number(item.qty_change || 0)
+    return current + change
 }
 
-const reasonOptions = [
-    { label: 'Rusak / Terbuang (Waste)', value: 'waste' },
-    { label: 'Kedaluwarsa (Expired)', value: 'expired' },
-    { label: 'Hilang (Lost)', value: 'lost' },
-    { label: 'Koreksi Salah Input (Correction)', value: 'correction' },
-    { label: 'Produksi (Production)', value: 'production' },
-    { label: 'Lainnya (Other)', value: 'other' },
-]
+const netQtyChange = computed(() => {
+    return form.items.reduce((sum, item) => sum + Number(item.qty_change || 0), 0)
+})
 
 const addItemFromSearch = item => {
     const exists = form.items.find(i => i.inventory_item_id === item.id)
@@ -247,7 +332,7 @@ const addItemFromSearch = item => {
             name: item.name,
             sku: item.sku || '-',
             uom: item.uom?.name || '-',
-            current_stock: item.current_stock ?? 0,
+            current_stock: Number(item.current_stock ?? 0),
             qty_change: '',
             unit_cost: '',
             description: '',
@@ -258,24 +343,6 @@ const addItemFromSearch = item => {
 const removeItem = index => {
     form.items.splice(index, 1)
 }
-
-watch(
-    () => form.outlet_id,
-    (newVal, oldVal) => {
-        if (oldVal && newVal !== oldVal) {
-            form.items = []
-        }
-    }
-)
-
-onMounted(() => {
-    isMounted.value = true
-    form.clearErrors()
-    form.items = []
-    if (loadedOutlets.value.length === 1) {
-        form.outlet_id = loadedOutlets.value[0].id
-    }
-})
 
 const close = () => {
     form.reset()

@@ -66,6 +66,10 @@ class StockAdjustmentServiceTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
+        setPermissionsTeamId($business->id);
+        \Spatie\Permission\Models\Permission::findOrCreate('business.*', 'web');
+        $user->givePermissionTo('business.*');
+
         $outlet = \App\Models\Outlet::create([
             'business_id' => $business->id,
             'name' => 'Main Outlet',
@@ -127,8 +131,9 @@ class StockAdjustmentServiceTest extends TestCase
                 ],
             ],
         ];
-        $adj = $this->service->create($data, $user);
 
+        $adj = $this->service->create($data, $user);
+        $user->givePermissionTo('business.*');
         $approvedAdj = $this->service->approve($adj, $user);
 
         $this->assertEquals(AdjustmentStatus::Approved, $approvedAdj->status);
@@ -139,6 +144,32 @@ class StockAdjustmentServiceTest extends TestCase
         $movement = $approvedAdj->inventoryMovements()->first();
         $this->assertNotNull($movement);
         $this->assertEquals(5, $movement->qty_change);
+    }
+
+    public function test_it_fails_to_approve_if_user_created_adjustment_and_not_admin()
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Anda tidak dapat menyetujui penyesuaian yang Anda buat sendiri.');
+
+        [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
+
+        $data = [
+            'outlet_id' => $outlet->id,
+            'reason' => AdjustmentReason::Correction->value,
+            'notes' => 'Self created',
+            'items' => [
+                [
+                    'inventory_item_id' => $inventoryItem->id,
+                    'qty_change' => 5,
+                    'unit_cost' => 100,
+                    'description' => 'Add 5',
+                ],
+            ],
+        ];
+        $adj = $this->service->create($data, $user);
+
+        $user->revokePermissionTo('business.*');
+        $this->service->approve($adj, $user);
     }
 
     public function test_it_fails_to_approve_if_stock_becomes_negative()

@@ -8,6 +8,7 @@ use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Trait\HasBusiness;
+use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -43,6 +44,7 @@ class StockAdjustment extends Model
     use HasBusiness;
     use HasFactory;
     use HasUuids;
+    use SortableModel;
 
     protected $fillable = [
         'business_id',
@@ -54,6 +56,13 @@ class StockAdjustment extends Model
         'created_by',
         'approved_by',
         'approved_at',
+    ];
+
+    protected array $sortable = [
+        'adjustment_number',
+        'created_at',
+        'status',
+        'reason',
     ];
 
     protected function casts(): array

@@ -14,65 +14,68 @@
                 <div class="h-32 bg-gray-200 rounded"></div>
             </div>
         </div>
-        <div v-else-if="adjustment" class="space-y-2">
-            <div class="grid grid-cols-2 gap-2 text-sm">
+        <div v-else-if="adjustment" class="space-y-3">
+            <div class="grid grid-cols-2 gap-2 text-sm bg-slate-50/50 p-3 rounded-lg border border-slate-200">
                 <div>
-                    <p class="text-gray-500">Nomor Referensi</p>
-                    <p class="font-bold">{{ adjustment.adjustment_number }}</p>
+                    <p class="text-xs text-slate-500">Nomor Dokumen</p>
+                    <p class="font-bold text-slate-800">{{ adjustment.adjustment_number }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">Status</p>
+                    <p class="text-xs text-slate-500">Status</p>
                     <span
                         class="badge"
-                        :class="{
-                            'badge-gray': adjustment.status === $enums.AdjustmentStatus.Draft,
-                            'badge-success': adjustment.status === $enums.AdjustmentStatus.Approved,
-                            'badge-danger': adjustment.status === $enums.AdjustmentStatus.Rejected,
-                            'badge-warning': adjustment.status === $enums.AdjustmentStatus.Voided,
-                        }"
+                        :class="getColor('AdjustmentStatus', adjustment.status) || 'badge-gray'"
                     >
-                        {{ formatStatus(adjustment.status) }}
+                        {{ getLabel('AdjustmentStatus', adjustment.status) }}
                     </span>
                 </div>
                 <div>
-                    <p class="text-gray-500">Tanggal Dibuat</p>
-                    <p>{{ formatDateTimeSimple(adjustment.created_at) }}</p>
+                    <p class="text-xs text-slate-500">Tanggal Dibuat</p>
+                    <p class="text-slate-700">{{ formatDateTimeSimple(adjustment.created_at) }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">Dibuat Oleh</p>
-                    <p>{{ adjustment.creator?.name || '-' }}</p>
+                    <p class="text-xs text-slate-500">Dibuat Oleh</p>
+                    <p class="text-slate-700">{{ adjustment.creator?.name || '-' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">Outlet</p>
-                    <p>{{ adjustment.outlet?.name || '-' }}</p>
+                    <p class="text-xs text-slate-500">Outlet</p>
+                    <p class="text-slate-700">{{ adjustment.outlet?.name || '-' }}</p>
                 </div>
                 <div>
-                    <p class="text-gray-500">Alasan</p>
-                    <p class="capitalize">
-                        {{ formatReason(adjustment.reason) }}
+                    <p class="text-xs text-slate-500">Alasan</p>
+                    <p class="font-medium text-slate-700">
+                        {{ getLabel('AdjustmentReason', adjustment.reason) }}
                     </p>
                 </div>
-                <div v-if="adjustment.notes" class="col-span-2">
-                    <p class="text-gray-500">Catatan</p>
-                    <p class="whitespace-pre-line">{{ adjustment.notes }}</p>
+                <div v-if="adjustment.approver" class="col-span-2 border-t border-slate-200 pt-2 mt-1">
+                    <p class="text-xs text-slate-500">Diproses Oleh</p>
+                    <p class="text-slate-700">
+                        {{ adjustment.approver.name }}
+                        <span v-if="adjustment.approved_at" class="text-xs text-slate-400">
+                            ({{ formatDateTimeSimple(adjustment.approved_at) }})
+                        </span>
+                    </p>
+                </div>
+                <div v-if="adjustment.notes" class="col-span-2 border-t border-slate-200 pt-2 mt-1">
+                    <p class="text-xs text-slate-500">Catatan</p>
+                    <p class="whitespace-pre-line text-slate-700 text-xs">{{ adjustment.notes }}</p>
                 </div>
             </div>
 
-            <div class="mt-2">
-                <h4 class="font-bold text-gray-700">Item Penyesuaian</h4>
-                <div class="border rounded overflow-hidden">
-                    <table class="w-full text-sm text-left">
-                        <thead class="bg-gray-50 border-b">
+            <div>
+                <h4 class="font-bold text-xs text-slate-700 mb-1.5">Daftar Barang Penyesuaian</h4>
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
                             <tr>
-                                <th class="p-3">Item</th>
-                                <th class="p-3">Tipe</th>
-                                <th class="p-3 text-right">Perubahan Qty</th>
+                                <th class="p-2.5">Barang</th>
+                                <th class="p-2.5 text-right">Perubahan Qty</th>
                                 <th
                                     v-if="
                                         adjustment.status === $enums.AdjustmentStatus.Approved ||
                                         adjustment.status === $enums.AdjustmentStatus.Voided
                                     "
-                                    class="p-3 text-right"
+                                    class="p-2.5 text-right"
                                 >
                                     Stok Sebelum
                                 </th>
@@ -81,40 +84,38 @@
                                         adjustment.status === $enums.AdjustmentStatus.Approved ||
                                         adjustment.status === $enums.AdjustmentStatus.Voided
                                     "
-                                    class="p-3 text-right"
+                                    class="p-2.5 text-right"
                                 >
                                     Stok Sesudah
                                 </th>
-                                <th class="p-3">Deskripsi</th>
+                                <th class="p-2.5">Keterangan</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100 bg-white">
                             <tr
                                 v-for="item in adjustment.items"
                                 :key="item.id"
-                                class="border-b last:border-b-0"
                             >
-                                <td class="p-3">
-                                    {{ item.inventory_item?.name }} ({{
-                                        item.inventory_item?.uom?.name || '-'
-                                    }})
-                                </td>
-                                <td class="p-3 capitalize">
-                                    {{ item.movement_type }}
+                                <td class="p-2.5">
+                                    <div class="font-semibold text-slate-800">
+                                        {{ item.inventory_item?.name }}
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">
+                                        SKU: {{ item.inventory_item?.sku || '-' }} | Satuan: {{ item.inventory_item?.uom?.name || '-' }}
+                                    </div>
                                 </td>
                                 <td
-                                    class="p-3 text-right font-bold"
-                                    :class="item.qty_change > 0 ? 'text-success' : 'text-danger'"
+                                    class="p-2.5 text-right font-bold"
+                                    :class="item.qty_change > 0 ? 'text-emerald-600' : 'text-danger'"
                                 >
-                                    {{ item.qty_change > 0 ? '+' : ''
-                                    }}{{ item.qty_change_formatted }}
+                                    {{ item.qty_change > 0 ? '+' : '' }}{{ item.qty_change_formatted }}
                                 </td>
                                 <td
                                     v-if="
                                         adjustment.status === $enums.AdjustmentStatus.Approved ||
                                         adjustment.status === $enums.AdjustmentStatus.Voided
                                     "
-                                    class="p-3 text-right"
+                                    class="p-2.5 text-right text-slate-600"
                                 >
                                     {{ item.stock_before_formatted }}
                                 </td>
@@ -123,11 +124,11 @@
                                         adjustment.status === $enums.AdjustmentStatus.Approved ||
                                         adjustment.status === $enums.AdjustmentStatus.Voided
                                     "
-                                    class="p-3 text-right"
+                                    class="p-2.5 text-right font-semibold text-slate-800"
                                 >
                                     {{ item.stock_after_formatted }}
                                 </td>
-                                <td class="p-3">{{ item.description }}</td>
+                                <td class="p-2.5 text-slate-600">{{ item.description || '-' }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -137,32 +138,35 @@
             <!-- Approval Section -->
             <div
                 v-if="adjustment.status === $enums.AdjustmentStatus.Draft && canApprove"
-                class="bg-yellow-50 p-2 rounded border border-yellow-200 mt-2"
+                class="bg-amber-50 p-3 rounded-lg border border-amber-200 mt-2 space-y-2"
             >
-                <h4 class="font-bold text-yellow-800 mb-2">Tindakan Persetujuan</h4>
-                <p class="text-sm text-yellow-700 mb-2">
-                    Anda memiliki hak akses untuk menyetujui atau menolak penyesuaian stok ini.
-                    Pastikan data sudah benar.
-                </p>
+                <div>
+                    <h4 class="font-bold text-xs text-amber-900">Tindakan Persetujuan</h4>
+                    <p class="text-xs text-amber-800 mt-0.5">
+                        Pastikan seluruh data penyesuaian sudah sesuai kondisi fisik barang sebelum menyetujui.
+                    </p>
+                </div>
 
-                <div v-if="showRejectInput" class="mb-2">
+                <div v-if="showRejectInput" class="space-y-2">
                     <TextareaField
                         id="reject_notes"
                         v-model="rejectForm.notes"
                         label="Alasan Penolakan"
+                        placeholder="Tulis alasan mengapa penyesuaian ini ditolak..."
                         :class="{ 'is-invalid': rejectForm.errors.notes }"
                         :error="rejectForm.errors.notes"
+                        rows="2"
                         required
                     />
                 </div>
 
                 <div class="flex gap-2">
                     <template v-if="!showRejectInput">
-                        <button class="btn btn-success" :disabled="isProcessing" @click="approve">
-                            <FontAwesomeIcon :icon="faCheck" /> Setujui
+                        <button class="btn btn-main btn-sm" :disabled="isProcessing" @click="confirmApprove">
+                            <FontAwesomeIcon :icon="faCheck" /> Setujui Penyesuaian
                         </button>
                         <button
-                            class="btn btn-danger"
+                            class="btn btn-danger btn-sm"
                             :disabled="isProcessing"
                             @click="showRejectInput = true"
                         >
@@ -171,14 +175,14 @@
                     </template>
                     <template v-else>
                         <button
-                            class="btn btn-danger"
+                            class="btn btn-danger btn-sm"
                             :disabled="rejectForm.processing"
                             @click="reject"
                         >
                             Konfirmasi Tolak
                         </button>
                         <button
-                            class="btn btn-flat"
+                            class="btn btn-flat btn-sm"
                             :disabled="rejectForm.processing"
                             @click="showRejectInput = false"
                         >
@@ -193,9 +197,9 @@
                 class="mt-2 flex justify-end"
             >
                 <button
-                    class="btn btn-outline btn-danger"
+                    class="btn btn-flat btn-sm text-danger cursor-pointer"
                     :disabled="isProcessing"
-                    @click="voidAdjustment"
+                    @click="confirmVoid"
                 >
                     <FontAwesomeIcon :icon="faBan" /> Batalkan Penyesuaian (Void)
                 </button>
@@ -208,57 +212,6 @@
             </button>
         </Teleport>
     </div>
-
-    <!-- Approve Modal -->
-    <Modal
-        title="Konfirmasi Persetujuan"
-        :class="{ show: showApproveModal }"
-        @close="showApproveModal = false"
-    >
-        <p class="text-gray-600 mb-2">
-            Apakah Anda yakin ingin menyetujui penyesuaian ini? Stok akan diperbarui.
-        </p>
-        <template #footer>
-            <div class="flex justify-end gap-2">
-                <button
-                    class="btn btn-flat"
-                    :disabled="isProcessing"
-                    @click="showApproveModal = false"
-                >
-                    Batal
-                </button>
-                <button class="btn btn-success" :disabled="isProcessing" @click="executeApprove">
-                    <FontAwesomeIcon :icon="faCheck" /> Setujui
-                </button>
-            </div>
-        </template>
-    </Modal>
-
-    <!-- Void Modal -->
-    <Modal
-        title="Konfirmasi Batal (Void)"
-        :class="{ show: showVoidModal }"
-        @close="showVoidModal = false"
-    >
-        <p class="text-gray-600 mb-2">
-            Apakah Anda yakin ingin membatalkan (VOID) penyesuaian ini? Stok akan dikembalikan ke
-            keadaan sebelum penyesuaian.
-        </p>
-        <template #footer>
-            <div class="flex justify-end gap-2">
-                <button
-                    class="btn btn-flat"
-                    :disabled="isProcessing"
-                    @click="showVoidModal = false"
-                >
-                    Batal
-                </button>
-                <button class="btn btn-danger" :disabled="isProcessing" @click="executeVoid">
-                    <FontAwesomeIcon :icon="faBan" /> Batalkan Penyesuaian
-                </button>
-            </div>
-        </template>
-    </Modal>
 </template>
 
 <script setup>
@@ -267,14 +220,15 @@ import { useForm, router, usePage } from '@inertiajs/vue3'
 import { faCheck, faTimes, faBan } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import TextareaField from '@/Components/Form/TextareaField.vue'
-import Modal from '@/Components/Notifications/Modal.vue'
 import { formatDateTimeSimple } from '@/Composable/date.js'
+import { useEnum } from '@/Composable/useEnum'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'
 
 const page = usePage()
 const popUpStore = usePopUpStore()
 const modalStore = useModalStore()
+const { getLabel, getColor } = useEnum()
 
 const isMounted = ref(false)
 onMounted(() => {
@@ -294,8 +248,6 @@ const props = defineProps({
 
 const isProcessing = ref(false)
 const showRejectInput = ref(false)
-const showApproveModal = ref(false)
-const showVoidModal = ref(false)
 
 const rejectForm = useForm({
     notes: '',
@@ -303,8 +255,8 @@ const rejectForm = useForm({
 
 const can = permission => {
     return (
-        page.props.auth.permissions.includes(permission) ||
-        page.props.auth.permissions.includes('inventory.*')
+        page.props.auth?.permissions?.includes(permission) ||
+        page.props.auth?.permissions?.includes('inventory.*')
     )
 }
 
@@ -313,23 +265,20 @@ const canVoid = computed(() => can('inventory.adjustment.void'))
 
 const close = () => {
     showRejectInput.value = false
-    showApproveModal.value = false
-    showVoidModal.value = false
     rejectForm.reset()
     popUpStore.close()
 }
 
-const approve = () => {
+const confirmApprove = () => {
     modalStore.open({
         title: 'Konfirmasi Persetujuan',
-        message: 'Apakah Anda yakin ingin menyetujui penyesuaian ini? Stok akan diperbarui.',
-        confirmText: 'Setujui Penyesuaian',
-        confirmButtonClass: 'btn btn-danger',
+        message: 'Apakah kamu yakin ingin menyetujui penyesuaian ini? Stok barang akan segera diperbarui.',
+        confirmText: 'Ya, Setujui',
+        confirmButtonClass: 'btn btn-main',
         onConfirm: () => {
             executeApprove()
         },
     })
-    showApproveModal.value = true
 }
 
 const executeApprove = () => {
@@ -340,7 +289,6 @@ const executeApprove = () => {
         {
             preserveScroll: true,
             onSuccess: page => {
-                showApproveModal.value = false
                 const flash = page.props.app?.flash || {}
                 if (!flash.failed) {
                     close()
@@ -365,12 +313,12 @@ const reject = () => {
     })
 }
 
-const voidAdjustment = () => {
+const confirmVoid = () => {
     modalStore.open({
-        title: 'Konfirmasi Batal (Void)',
+        title: 'Konfirmasi Pembatalan (Void)',
         message:
-            'Apakah Anda yakin ingin membatalkan (VOID) penyesuaian ini? Stok akan dikembalikan ke keadaan sebelum penyesuaian.',
-        confirmText: 'Batalkan Penyesuaian',
+            'Apakah kamu yakin ingin membatalkan (VOID) dokumen penyesuaian ini? Pergerakan stok akan dikembalikan.',
+        confirmText: 'Ya, Batalkan Dokumen',
         confirmButtonClass: 'btn btn-danger',
         onConfirm: () => {
             executeVoid()
@@ -386,7 +334,6 @@ const executeVoid = () => {
         {
             preserveScroll: true,
             onSuccess: page => {
-                showVoidModal.value = false
                 const flash = page.props.app?.flash || {}
                 if (!flash.failed) {
                     close()
@@ -397,27 +344,5 @@ const executeVoid = () => {
             },
         }
     )
-}
-
-const formatStatus = status => {
-    const map = {
-        draft: 'Draf',
-        approved: 'Disetujui',
-        rejected: 'Ditolak',
-        voided: 'Dibatalkan',
-    }
-    return map[status] || status
-}
-
-const formatReason = reason => {
-    const map = {
-        waste: 'Rusak / Terbuang',
-        expired: 'Kedaluwarsa',
-        lost: 'Hilang',
-        correction: 'Koreksi',
-        production: 'Produksi',
-        other: 'Lainnya',
-    }
-    return map[reason] || reason
 }
 </script>

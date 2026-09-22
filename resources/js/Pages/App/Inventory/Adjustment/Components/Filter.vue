@@ -27,7 +27,7 @@
                 @change="updateQuery"
             />
 
-            <!-- Outlet Filter -->
+            <!-- Outlet Filter: HANYA jika outlet user > 1 DAN tidak ada selectedOutlet aktif di sidebar -->
             <FilterDropdown
                 v-if="outletOptions.length > 1 && !selectedOutlet"
                 v-model="filterForm.outlet_id"
@@ -48,15 +48,7 @@
         </template>
 
         <template #tools>
-            <button
-                v-if="can('inventory.adjustment.freeze')"
-                type="button"
-                class="btn btn-primary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
-                @click="$emit('freeze')"
-            >
-                <FontAwesomeIcon :icon="faLock" class="text-xs" />
-                <span>Kelola Bekukan Stok</span>
-            </button>
+            <ActionsDropdown v-if="toolItems.length > 0" label="Opsi" :items="toolItems" />
         </template>
 
         <template #create>
@@ -67,7 +59,7 @@
                 @click="$emit('create')"
             >
                 <FontAwesomeIcon :icon="faPlus" class="text-xs" />
-                <span>Buat Penyesuaian</span>
+                <span>Penyesuaian Baru</span>
             </button>
         </template>
     </ActionBar>
@@ -80,10 +72,12 @@ import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faStore, faLock, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
+import { useEnum } from '@/Composable/useEnum'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 
 const props = defineProps({
     filters: {
@@ -92,9 +86,11 @@ const props = defineProps({
     },
 })
 
-defineEmits(['create', 'freeze'])
+const emit = defineEmits(['create', 'freeze'])
 
 const { outlets: userOutlets, selectedOutlet, can } = useAuth()
+const { getOptions } = useEnum()
+
 const outletOptions = computed(() =>
     (userOutlets.value || []).map(store => ({
         value: String(store.id),
@@ -102,26 +98,24 @@ const outletOptions = computed(() =>
     }))
 )
 
-const statusOptions = [
-    { value: '', label: 'Semua Status' },
-    { value: 'draft', label: 'Draf' },
-    { value: 'approved', label: 'Disetujui' },
-    { value: 'rejected', label: 'Ditolak' },
-    { value: 'voided', label: 'Dibatalkan' },
-]
+const statusOptions = computed(() => getOptions('AdjustmentStatus'))
+const reasonOptions = computed(() => getOptions('AdjustmentReason'))
 
-const reasonOptions = [
-    { value: '', label: 'Semua Alasan' },
-    { value: 'damaged', label: 'Barang Rusak' },
-    { value: 'expired', label: 'Kadaluwarsa' },
-    { value: 'lost', label: 'Barang Hilang' },
-    { value: 'initial_stock', label: 'Stok Awal' },
-    { value: 'correction', label: 'Koreksi Data' },
-    { value: 'other', label: 'Lainnya' },
-]
+const toolItems = computed(() => {
+    const items = []
+    if (can('inventory.adjustment.freeze')) {
+        items.push({
+            label: 'Kelola Pembekuan Stok',
+            description: 'Kunci atau buka pergerakan stok per outlet',
+            icon: faLock,
+            action: () => emit('freeze'),
+        })
+    }
+    return items
+})
 
 const filterForm = reactive({
-    preset: props.filters?.preset || '',
+    preset: props.filters?.preset || 'this_month',
     date_from: props.filters?.date_from || '',
     date_to: props.filters?.date_to || '',
     status: props.filters?.status || '',
@@ -135,13 +129,13 @@ watch(
     () => filterForm.search,
     debounce(() => {
         updateQuery()
-    }, 500)
+    }, 400)
 )
 
 const updateQuery = () => {
     const query = {
         ...route().params,
-        preset: filterForm.preset || undefined,
+        preset: filterForm.preset !== 'this_month' ? filterForm.preset : undefined,
         date_from: filterForm.date_from || undefined,
         date_to: filterForm.date_to || undefined,
         status: filterForm.status || undefined,
@@ -151,7 +145,7 @@ const updateQuery = () => {
         page: 1,
     }
 
-    router.get(route('inventories.adjustments.index'), query, {
+    router.get(route('inventory.adjustments.index'), query, {
         preserveState: true,
         preserveScroll: true,
     })

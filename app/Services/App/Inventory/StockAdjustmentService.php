@@ -66,6 +66,10 @@ class StockAdjustmentService
             throw new \Exception('Hanya penyesuaian berstatus Draf yang dapat disetujui.');
         }
 
+        if (! $user->can('business.*') && $adjustment->created_by === $user->id) {
+            throw new \Exception('Anda tidak dapat menyetujui penyesuaian yang Anda buat sendiri.');
+        }
+
         return DB::transaction(function () use ($adjustment, $user) {
             $adjustment->load(['outlet.business', 'items.inventoryItem']);
             $outlet = $adjustment->outlet;
@@ -97,24 +101,32 @@ class StockAdjustmentService
 
                 if ($qtyChange > 0) {
                     $unitCost = (float) ($item->unit_cost ?? $balance->average_cost ?? $balance->last_cost ?? 0);
+                    $movementType = $item->movement_type instanceof InventoryMovementType
+                        ? ($item->movement_type === InventoryMovementType::Waste ? InventoryMovementType::Waste : InventoryMovementType::AdjustmentIn)
+                        : InventoryMovementType::AdjustmentIn;
+
                     $this->costingService->recordIncomingStock(
                         business: $business,
                         outlet: $outlet,
                         item: $invItem,
                         qty: $qtyChange,
                         unitCost: $unitCost,
-                        movementType: $item->movement_type instanceof InventoryMovementType ? $item->movement_type : InventoryMovementType::AdjustmentIn,
+                        movementType: $movementType,
                         reference: $adjustment,
                         description: $item->description ?: ('Penyesuaian Masuk ('.$adjustment->adjustment_number.')'),
                         user: $user
                     );
                 } elseif ($qtyChange < 0) {
+                    $movementType = $item->movement_type instanceof InventoryMovementType
+                        ? ($item->movement_type === InventoryMovementType::Waste ? InventoryMovementType::Waste : InventoryMovementType::AdjustmentOut)
+                        : InventoryMovementType::AdjustmentOut;
+
                     $this->costingService->recordOutgoingStock(
                         business: $business,
                         outlet: $outlet,
                         item: $invItem,
                         qty: abs($qtyChange),
-                        movementType: $item->movement_type instanceof InventoryMovementType ? $item->movement_type : InventoryMovementType::AdjustmentOut,
+                        movementType: $movementType,
                         reference: $adjustment,
                         description: $item->description ?: ('Penyesuaian Keluar ('.$adjustment->adjustment_number.')'),
                         user: $user

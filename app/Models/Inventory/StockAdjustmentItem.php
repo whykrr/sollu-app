@@ -2,6 +2,7 @@
 
 namespace App\Models\Inventory;
 
+use App\Enums\InventoryMovementType;
 use App\Models\Traits\HasQuantityFormatter;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -52,6 +53,7 @@ class StockAdjustmentItem extends Model
     protected function casts(): array
     {
         return [
+            'movement_type' => InventoryMovementType::class,
             'qty_change' => 'float',
             'unit_cost' => 'float',
             'stock_before' => 'float',

@@ -18,4 +18,14 @@ enum AdjustmentStatus: string
             self::Voided => 'Dibatalkan',
         };
     }
+
+    public function color(): string
+    {
+        return match ($this) {
+            self::Draft => 'badge-gray',
+            self::Approved => 'badge-success',
+            self::Rejected => 'badge-danger',
+            self::Voided => 'badge-warning',
+        };
+    }
 }

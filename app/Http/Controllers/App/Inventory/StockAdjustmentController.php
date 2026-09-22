@@ -24,22 +24,27 @@ class StockAdjustmentController extends Controller
         $sort = $request->input('sort', 'created_at');
         $direction = $request->input('direction', 'desc');
 
+        $filterData = $request->only(['search', 'status', 'reason', 'outlet_id', 'date_from', 'date_to', 'preset']);
+
         $adjustments = StockAdjustment::query()
             ->where('business_id', $businessId)
             ->with(['outlet', 'creator', 'approver'])
             ->withCount('items')
-            ->filters($request->only(['search', 'status', 'reason', 'outlet_id', 'date_from', 'date_to']))
-            ->orderBy($sort, $direction)
+            ->filters($filterData)
+            ->sortable($sort, $direction)
             ->paginate($request->input('per_page', 20))
             ->withQueryString();
 
+        $params = [
+            ...$filterData,
+            'sort' => $sort,
+            'direction' => $direction,
+        ];
+
         return inertia('Inventory/Adjustment/Index', [
             'adjustments' => $adjustments,
-            'filters' => [
-                ...$request->only(['search', 'status', 'reason', 'outlet_id', 'date_from', 'date_to']),
-                'sort' => $sort,
-                'direction' => $direction,
-            ],
+            'filters' => $params,
+            'params' => $params,
         ]);
     }
 
@@ -79,7 +84,7 @@ class StockAdjustmentController extends Controller
         try {
             $service->approve($stock_adjustment, Auth::user());
 
-            return redirect()->back()->with('success', 'Penyesuaian stok disetujui.');
+            return redirect()->back()->with('success', 'Penyesuaian stok berhasil disetujui.');
         } catch (\Exception $e) {
             return redirect()->back()->with('failed', $e->getMessage());
         }
@@ -93,7 +98,7 @@ class StockAdjustmentController extends Controller
         try {
             $service->reject($stock_adjustment, $request->input('notes'), Auth::user());
 
-            return redirect()->back()->with('success', 'Penyesuaian stok ditolak.');
+            return redirect()->back()->with('success', 'Penyesuaian stok berhasil ditolak.');
         } catch (\Exception $e) {
             return redirect()->back()->with('failed', $e->getMessage());
         }
@@ -122,7 +127,7 @@ class StockAdjustmentController extends Controller
      */
     public function exportPdf(string $id)
     {
-        Gate::authorize('inventory.adjustment.read');
+        Gate::authorize('inventory.adjustment.export');
 
         $businessId = Auth::user()->business_id;
 

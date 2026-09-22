@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\CockpitUser;
+use App\Support\Pulse\MultiGuardPulseUsers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Pulse\Contracts\ResolvesUsers;
 use Laravel\Pulse\Facades\Pulse;
 
 class PulseServiceProvider extends ServiceProvider
@@ -15,7 +17,7 @@ class PulseServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(ResolvesUsers::class, MultiGuardPulseUsers::class);
     }
 
     /**
@@ -26,7 +28,7 @@ class PulseServiceProvider extends ServiceProvider
         $this->gate();
 
         Pulse::user(fn ($user) => [
-            'name' => $user->name,
+            'name' => $user instanceof CockpitUser ? "{$user->name} (Cockpit)" : $user->name,
             'extra' => $user->email,
             'avatar' => method_exists($user, 'getPhotoUrlAttribute') ? $user->photo_url : null,
         ]);
