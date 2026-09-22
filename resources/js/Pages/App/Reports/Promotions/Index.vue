@@ -1,153 +1,103 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Laporan Promo" />
+            <MainPageHeader
+                title="Laporan Promo & Diskon"
+                description="Statistik efektivitas penggunaan kupon promo, frekuensi pemakaian, dan total diskon yang diberikan"
+            />
+        </template>
+
+        <template #widgets>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <WidgetMini
+                    :icon="faTags"
+                    variant="main"
+                    title="Total Pemakaian Promo"
+                    :value="`${formatNumberID(summary?.total_usage || 0)} Kali`"
+                />
+                <WidgetMini
+                    :icon="faPercent"
+                    variant="danger"
+                    title="Total Diskon Diberikan"
+                    :value="formatIDR(summary?.total_discount_given || 0)"
+                />
+                <WidgetMini
+                    :icon="faBullhorn"
+                    variant="success"
+                    title="Promo Aktif Dipakai"
+                    :value="`${formatNumberID(summary?.total_active_promos || 0)} Promo`"
+                />
+            </div>
         </template>
 
         <template #filter>
-            <ActionBar>
-                <template #filters>
-                    <div v-if="outletOptions.length > 1 && !selectedOutlet" class="w-48">
-                        <GroupDropdownIconField
-                            id="outlet-filter"
-                            v-model="formFilters.outlet"
-                            :icon="faStore"
-                            size="sm"
-                            :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
-                            @change="applyFilters"
-                        />
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <input
-                            v-model="formFilters.start_date"
-                            type="date"
-                            class="form sm h-[30px]"
-                            @change="applyFilters"
-                        />
-                        <span class="text-slate-400 text-xs">-</span>
-                        <input
-                            v-model="formFilters.end_date"
-                            type="date"
-                            class="form sm h-[30px]"
-                            @change="applyFilters"
-                        />
-                    </div>
-                </template>
-
-                <template #tools>
-                    <ActionsDropdown label="Opsi Data" :items="actionItems" />
-                </template>
-            </ActionBar>
+            <PromotionFilter :filters="filters" />
         </template>
 
-        <div class="card card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Nama Promo</th>
-                            <th>Tipe Promo</th>
-                            <th class="text-right">Total Pemakaian</th>
-                            <th class="text-right">Total Diskon Diberikan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in promotions.data" :key="index">
-                            <td>{{ item.promo_name }}</td>
-                            <td>
-                                <span class="badge badge-primary">{{ item.promo_type }}</span>
-                            </td>
-                            <td class="text-right">{{ formatNumberID(item.total_usage) }}x</td>
-                            <td class="text-right text-danger">
-                                {{ formatIDR(item.total_discount_given) }}
-                            </td>
-                        </tr>
-                        <tr v-if="promotions.data?.length === 0">
-                            <td colspan="4" class="text-center text-muted py-4">
-                                Tidak ada promo yang digunakan pada periode ini.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <Table :headers="headers" :data="promotions.data" :action="false">
+            <template #promo_name="{ row }">
+                <span class="font-medium text-xs text-neutral-900">{{ row.promo_name }}</span>
+            </template>
+            <template #promo_type="{ row }">
+                <span class="badge badge-neutral text-[11px] uppercase tracking-wider">
+                    {{ row.promo_type || 'Diskon' }}
+                </span>
+            </template>
+            <template #total_usage="{ row }">
+                <span class="text-xs font-semibold text-neutral-800">{{ formatNumberID(row.total_usage) }} Kali</span>
+            </template>
+            <template #total_discount_given="{ row }">
+                <span class="text-xs font-bold text-rose-600">{{ formatIDR(row.total_discount_given) }}</span>
+            </template>
+        </Table>
+
+        <template #footer>
             <Pagination
-                class="mt-4"
                 :links="promotions.links"
                 :from="promotions.from"
                 :to="promotions.to"
                 :total="promotions.total"
                 :per-page="promotions.per_page"
             />
-        </div>
+        </template>
     </MainPage>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useForm, router } from '@inertiajs/vue3'
-import { faFileCsv, faFilePdf, faStore } from '@fortawesome/free-solid-svg-icons'
+import {
+    faBullhorn,
+    faPercent,
+    faTags,
+} from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
-import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
-import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
+import WidgetMini from '@/Components/Widgets/WidgetMini.vue'
+import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
-import { useAuth } from '@/Composable/useAuth'
+import PromotionFilter from './Components/PromotionFilter.vue'
 import { formatIDR } from '@/Composable/currency-format'
 import { formatNumberID } from '@/Composable/useNumberFormat'
 
-const props = defineProps({
-    filters: Object,
-    promotions: Object,
-})
-
-const { outlets: userOutlets, selectedOutlet } = useAuth()
-
-const outletOptions = computed(() => {
-    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []
-    return userOutlets.value.map(store => ({
-        value: store.id,
-        label: store.name,
-    }))
-})
-
-const formFilters = useForm({
-    outlet: props.filters?.outlet ?? '',
-    start_date: props.filters?.start_date ?? '',
-    end_date: props.filters?.end_date ?? '',
-})
-
-const applyFilters = () => {
-    formFilters.get(route('reports.promotions.index'), {
-        preserveState: true,
-        preserveScroll: true,
-    })
-}
-
-const exportPdf = () => {
-    router.post(route('reports.promotions.export.pdf'), formFilters.data(), {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-const exportCsv = () => {
-    router.post(route('reports.promotions.export.csv'), formFilters.data(), {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-const actionItems = computed(() => [
-    {
-        label: 'Ekspor PDF',
-        icon: faFilePdf,
-        handler: exportPdf,
+defineProps({
+    filters: {
+        type: Object,
+        default: () => ({}),
     },
-    {
-        label: 'Ekspor CSV',
-        icon: faFileCsv,
-        handler: exportCsv,
+    summary: {
+        type: Object,
+        default: () => ({}),
     },
-])
+    promotions: {
+        type: Object,
+        default: () => ({ data: [] }),
+    },
+})
+
+const headers = [
+    { label: 'Nama Promo', field: 'promo_name', slot: 'promo_name' },
+    { label: 'Tipe', field: 'promo_type', slot: 'promo_type' },
+    { label: 'Pemakaian', field: 'total_usage', slot: 'total_usage' },
+    { label: 'Total Diskon Diberikan', field: 'total_discount_given', slot: 'total_discount_given' },
+]
 </script>
+

@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Laporan Stock & Aset">
+            <MainPageHeader
+                title="Laporan Stok & Aset"
+                description="Pergerakan mutasi stok barang persediaan, penyesuaian opname, dan valuasi aset"
+            >
                 <button
                     type="button"
                     class="btn btn-flat btn-sm flex items-center gap-1.5 text-xs text-slate-700"
@@ -22,122 +25,117 @@
             </MainPageHeader>
         </template>
 
-        <template #filter>
-            <ActionBar>
-                <template #filters>
-                    <div v-if="outletOptions.length > 1 && !selectedOutlet" class="w-48">
-                        <GroupDropdownIconField
-                            id="outlet-filter"
-                            v-model="formFilters.outlet"
-                            :icon="faStore"
-                            size="sm"
-                            :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
-                            @change="applyFilters"
-                        />
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <input
-                            v-model="formFilters.start_date"
-                            type="date"
-                            class="form sm h-[30px]"
-                            @change="applyFilters"
-                        />
-                        <span class="text-slate-400 text-xs">-</span>
-                        <input
-                            v-model="formFilters.end_date"
-                            type="date"
-                            class="form sm h-[30px]"
-                            @change="applyFilters"
-                        />
-                    </div>
-                </template>
-
-                <template #tools>
-                    <ActionsDropdown label="Opsi Data" :items="actionItems" />
-                </template>
-            </ActionBar>
+        <template #widgets>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                <WidgetMini
+                    :icon="faBoxesStacked"
+                    variant="main"
+                    title="Total Item Terpantau"
+                    :value="`${formatNumberID(summary?.total_items || 0)} Item`"
+                />
+                <WidgetMini
+                    :icon="faArrowDown"
+                    variant="success"
+                    title="Total Stok Masuk"
+                    :value="`${formatNumberID(summary?.period_qty_in || 0)}`"
+                />
+                <WidgetMini
+                    :icon="faArrowUp"
+                    variant="danger"
+                    title="Total Stok Keluar"
+                    :value="`${formatNumberID(summary?.period_qty_out || 0)}`"
+                />
+                <WidgetMini
+                    :icon="faMoneyBillWave"
+                    variant="amber"
+                    title="Total Nilai Aset"
+                    :value="formatIDR(summary?.total_asset_value || 0)"
+                />
+            </div>
         </template>
 
-        <div class="card card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Nama Item</th>
-                            <th class="text-right">Stok Awal</th>
-                            <th class="text-right text-success">Masuk</th>
-                            <th class="text-right text-danger">Keluar</th>
-                            <th class="text-right">Stok Akhir</th>
-                            <!-- <th class="text-right">Nilai Aset</th> -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in stocks.data" :key="index">
-                            <td>{{ item.item_name }}</td>
-                            <td class="text-right">
-                                {{ formatNumberID(item.starting_stock) }}
-                            </td>
-                            <td class="text-right text-success">
-                                {{ formatNumberID(item.stock_in) }}
-                            </td>
-                            <td class="text-right text-danger">
-                                {{ formatNumberID(item.stock_out) }}
-                            </td>
-                            <td class="text-right font-bold">
-                                {{ formatNumberID(item.closing_stock) }}
-                            </td>
-                            <!-- <td class="text-right">{{ formatIDR(item.asset_value) }}</td> -->
-                        </tr>
-                        <tr v-if="stocks.data?.length === 0">
-                            <td colspan="5" class="text-center text-muted py-4">
-                                Tidak ada pergerakan stok pada periode ini.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <template #filter>
+            <StockFilter :filters="filters" />
+        </template>
+
+        <Table :headers="headers" :data="stocks.data" :action="false">
+            <template #item_name="{ row }">
+                <div class="flex flex-col">
+                    <span class="font-medium text-xs text-neutral-900">{{ row.item_name }}</span>
+                    <span v-if="row.sku" class="text-[11px] text-neutral-500 font-mono">{{ row.sku }}</span>
+                </div>
+            </template>
+            <template #item_type="{ row }">
+                <span class="text-xs text-neutral-600 capitalize">{{ row.item_type || '-' }}</span>
+            </template>
+            <template #starting_stock="{ row }">
+                <span class="text-xs text-neutral-600">{{ formatNumberID(row.starting_stock) }}</span>
+            </template>
+            <template #stock_in="{ row }">
+                <span class="text-xs text-emerald-600 font-medium">+{{ formatNumberID(row.stock_in) }}</span>
+            </template>
+            <template #stock_out="{ row }">
+                <span class="text-xs text-rose-600 font-medium">-{{ formatNumberID(row.stock_out) }}</span>
+            </template>
+            <template #closing_stock="{ row }">
+                <span class="text-xs font-bold text-neutral-900">{{ formatNumberID(row.closing_stock) }}</span>
+            </template>
+            <template #closing_asset_value="{ row }">
+                <span class="text-xs font-bold text-neutral-900">{{ formatIDR(row.closing_asset_value) }}</span>
+            </template>
+        </Table>
+
+        <template #footer>
             <Pagination
-                class="mt-4"
                 :links="stocks.links"
                 :from="stocks.from"
                 :to="stocks.to"
                 :total="stocks.total"
                 :per-page="stocks.per_page"
             />
-        </div>
+        </template>
     </MainPage>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { useForm, router, usePage } from '@inertiajs/vue3'
+import { usePage } from '@inertiajs/vue3'
 import {
+    faArrowDown,
+    faArrowUp,
     faBoxesStacked,
     faCalculator,
-    faFileExcel,
-    faFilePdf,
-    faStore,
+    faMoneyBillWave,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
-import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
-import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
+import WidgetMini from '@/Components/Widgets/WidgetMini.vue'
+import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
+import StockFilter from './Components/StockFilter.vue'
 import InventoryCostingModal from '@/Pages/App/Inventory/Stock/Components/InventoryCostingModal.vue'
-import { useAuth } from '@/Composable/useAuth'
 import { useModalStore } from '@/store/notification'
+import { formatIDR } from '@/Composable/currency-format'
 import { formatNumberID } from '@/Composable/useNumberFormat'
 
-const props = defineProps({
-    filters: Object,
-    stocks: Object,
+defineProps({
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
+    summary: {
+        type: Object,
+        default: () => ({}),
+    },
+    stocks: {
+        type: Object,
+        default: () => ({ data: [] }),
+    },
 })
 
 const page = usePage()
 const modalStore = useModalStore()
-const { outlets: userOutlets, selectedOutlet } = useAuth()
 
 const activeCostingMethod = computed(() => {
     return page.props.auth?.business?.inventory_costing_method || 'fifo'
@@ -157,51 +155,14 @@ const openCostingModal = () => {
     })
 }
 
-const outletOptions = computed(() => {
-    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []
-    return userOutlets.value.map(store => ({
-        value: store.id,
-        label: store.name,
-    }))
-})
-
-const formFilters = useForm({
-    outlet: props.filters?.outlet ?? '',
-    start_date: props.filters?.start_date ?? '',
-    end_date: props.filters?.end_date ?? '',
-})
-
-const applyFilters = () => {
-    formFilters.get(route('reports.stocks.index'), {
-        preserveState: true,
-        preserveScroll: true,
-    })
-}
-
-const exportPdf = () => {
-    router.post(route('reports.stocks.export.pdf'), formFilters.data(), {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-const exportCsv = () => {
-    router.post(route('reports.stocks.export.csv'), formFilters.data(), {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-const actionItems = computed(() => [
-    {
-        label: 'Ekspor PDF',
-        icon: faFilePdf,
-        handler: exportPdf,
-    },
-    {
-        label: 'Ekspor Excel / CSV',
-        icon: faFileExcel,
-        handler: exportCsv,
-    },
-])
+const headers = [
+    { label: 'Item / SKU', field: 'item_name', slot: 'item_name' },
+    { label: 'Tipe', field: 'item_type', slot: 'item_type', show: 'sm' },
+    { label: 'Stok Awal', field: 'starting_stock', slot: 'starting_stock' },
+    { label: 'Masuk', field: 'stock_in', slot: 'stock_in' },
+    { label: 'Keluar', field: 'stock_out', slot: 'stock_out' },
+    { label: 'Stok Akhir', field: 'closing_stock', slot: 'closing_stock' },
+    { label: 'Nilai Aset', field: 'closing_asset_value', slot: 'closing_asset_value' },
+]
 </script>
+

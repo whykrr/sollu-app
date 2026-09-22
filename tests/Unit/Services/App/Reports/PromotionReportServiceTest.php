@@ -87,13 +87,68 @@ class PromotionReportServiceTest extends TestCase
             'discount_value' => 10000,
         ]);
 
+        // Other business promo & transaction to assert isolation
+        $otherBusiness = \App\Models\Business::create([
+            'name' => 'Other Merchant',
+            'owner_name' => 'Other Owner',
+            'email' => 'other_'.uniqid().'@test.test',
+            'phone' => '081234567891',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $otherOutlet = Outlet::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Other Outlet',
+            'is_active' => true,
+        ]);
+
+        $otherPromo = Promo::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Diskon Lain',
+            'promo_type' => 'fixed',
+            'target_type' => 'bill',
+            'discount_value' => 50000,
+            'start_date' => Carbon::now()->subDays(10),
+            'end_date' => Carbon::now()->addDays(10),
+            'created_by' => $user->id,
+        ]);
+
+        $otherTx = Transaction::create([
+            'outlet_id' => $otherOutlet->id,
+            'status' => 'completed',
+            'subtotal' => 200000,
+            'total' => 150000,
+            'transaction_number' => 'TRX-OTHER-1',
+            'created_at' => $now,
+        ]);
+
+        TransactionPromo::create([
+            'transaction_id' => $otherTx->id,
+            'promo_id' => $otherPromo->id,
+            'promo_name' => 'Diskon Lain',
+            'discount_type' => 'fixed',
+            'discount_amount' => 50000,
+            'discount_value' => 50000,
+        ]);
+
         $startDate = $now->copy()->subDay();
         $endDate = $now->copy()->addDay();
 
-        $result = $this->service->getReport($outlet->id, $startDate, $endDate);
+        $result = $this->service->getReport($business->id, [$outlet->id], $startDate, $endDate);
 
-        $this->assertNotEmpty($result->items());
-        $firstItem = $result->items()[0];
+        $this->assertArrayHasKey('summary', $result);
+        $this->assertArrayHasKey('promotions', $result);
+
+        $summary = $result['summary'];
+        $this->assertEquals(1, $summary['total_usage']);
+        $this->assertEquals(10000, $summary['total_discount_given']);
+        $this->assertEquals(1, $summary['total_active_promos']);
+
+        $promotions = $result['promotions'];
+        $this->assertNotEmpty($promotions->items());
+        $firstItem = $promotions->items()[0];
 
         $this->assertEquals('Diskon Merdeka', $firstItem->promo_name);
         $this->assertEquals('fixed', $firstItem->promo_type);

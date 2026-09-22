@@ -9,24 +9,24 @@ trait HasBusiness
 {
     /**
      * Scope: currentBusiness
-     *
-     * @return Builder
      */
-    public function scopeCurrentBusiness(Builder $query)
+    public function scopeCurrentBusiness(Builder $query, ?string $businessId = null): Builder
     {
-        return $query->where('business_id', Auth::user()->business_id);
+        $businessId = $businessId ?? Auth::user()?->business_id;
+
+        return $query->where($this->qualifyColumn('business_id'), $businessId);
     }
 
     /**
      * Scope: globalAndCurrentBusiness
-     *
-     * @return Builder
      */
-    public function scopeGlobalAndCurrentBusiness(Builder $query)
+    public function scopeGlobalAndCurrentBusiness(Builder $query, ?string $businessId = null): Builder
     {
-        return $query->where(function (Builder $query) {
-            $query->whereNull('business_id')
-                ->orWhere('business_id', Auth::user()->business_id);
+        $businessId = $businessId ?? Auth::user()?->business_id;
+
+        return $query->where(function (Builder $query) use ($businessId) {
+            $query->whereNull($this->qualifyColumn('business_id'))
+                ->orWhere($this->qualifyColumn('business_id'), $businessId);
         });
     }
 }

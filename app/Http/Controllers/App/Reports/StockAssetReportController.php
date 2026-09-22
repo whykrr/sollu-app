@@ -2,65 +2,103 @@
 
 namespace App\Http\Controllers\App\Reports;
 
+use App\Constants\FlashDataVariable;
+use App\Constants\ResourceMessage;
+use App\Enums\DatePresetEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\App\Reports\ExportReportRequest;
+use App\Http\Requests\App\Reports\GetStockReportRequest;
 use App\Jobs\Reports\ExportStockReportJob;
+use App\Jobs\Reports\Pdf\ExportStockReportPdfJob;
+use App\Services\App\Reports\ReportOutletResolver;
 use App\Services\App\Reports\StockAssetReportService;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class StockAssetReportController extends Controller
 {
-    public function index(Request $request, StockAssetReportService $service)
+    public function index(GetStockReportRequest $request, StockAssetReportService $service): Response
     {
-        $startDateParam = $request->get('start_date');
-        $endDateParam = $request->get('end_date');
-        $outletId = $request->get('outlet') ?: (\App\Helpers\SelectedOutlet::make()->currentId() ?? '');
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $businessId = (string) $user->business_id;
 
-        $now = Carbon::now();
-        $startDate = $startDateParam ? Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();
-        $endDate = $endDateParam ? Carbon::parse($endDateParam)->endOfDay() : $now->copy()->endOfDay();
+        $range = DatePresetEnum::resolveRange(
+            $request->input('period'),
+            $request->input('start_date'),
+            $request->input('end_date')
+        );
 
-        $data = $service->getReport($outletId, $startDate, $endDate);
+        $outletIds = ReportOutletResolver::resolve($user, $request->input('outlet'));
+        $startDate = Carbon::parse($range['start_date'])->startOfDay();
+        $endDate = Carbon::parse($range['end_date'])->endOfDay();
+
+        $data = $service->getReport(
+            $businessId,
+            $outletIds,
+            $startDate,
+            $endDate,
+            $request->validated()
+        );
 
         return Inertia::render('Reports/Stocks/Index', [
             'filters' => [
-                'start_date' => $startDate->toDateString(),
-                'end_date' => $endDate->toDateString(),
-                'outlet' => $outletId,
+                'period' => $range['preset'],
+                'start_date' => $range['start_date'],
+                'end_date' => $range['end_date'],
+                'outlet' => $request->input('outlet', ''),
+                'search' => $request->input('search', ''),
             ],
-            'stocks' => $data,
+            'summary' => $data['summary'],
+            'stocks' => $data['items'],
         ]);
     }
 
-    public function exportPdf(Request $request)
+    public function exportPdf(ExportReportRequest $request): RedirectResponse
     {
-        $startDateParam = $request->get('start_date');
-        $endDateParam = $request->get('end_date');
-        $outletId = $request->get('outlet') ?? '';
+        /** @var \App\Models\User $user */
+        $user = $request->user();
 
-        $now = \Carbon\Carbon::now();
-        $startDate = $startDateParam ? \Carbon\Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();
-        $endDate = $endDateParam ? \Carbon\Carbon::parse($endDateParam)->endOfDay() : $now->copy()->endOfDay();
+        $range = DatePresetEnum::resolveRange(
+            $request->input('period'),
+            $request->input('start_date'),
+            $request->input('end_date')
+        );
 
-        \App\Jobs\Reports\Pdf\ExportStockReportPdfJob::dispatch(\Illuminate\Support\Facades\Auth::user(), (array) $outletId, $startDate, $endDate);
+        $outletIds = ReportOutletResolver::resolve($user, $request->input('outlet'));
+        $startDate = Carbon::parse($range['start_date'])->startOfDay();
+        $endDate = Carbon::parse($range['end_date'])->endOfDay();
 
-        return redirect()->back()->with('success', 'Proses ekspor PDF sedang berjalan di latar belakang. Anda akan menerima notifikasi jika sudah selesai.');
+        ExportStockReportPdfJob::dispatch($user, $outletIds, $startDate, $endDate);
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::EXPORT_PROCESSING
+        );
     }
 
-    public function exportCsv(Request $request)
+    public function exportCsv(ExportReportRequest $request): RedirectResponse
     {
-        $startDateParam = $request->get('start_date');
-        $endDateParam = $request->get('end_date');
-        $outletId = $request->get('outlet') ?? '';
+        /** @var \App\Models\User $user */
+        $user = $request->user();
 
-        $now = Carbon::now();
-        $startDate = $startDateParam ? Carbon::parse($startDateParam)->startOfDay() : $now->copy()->startOfMonth();
-        $endDate = $endDateParam ? Carbon::parse($endDateParam)->endOfDay() : $now->copy()->endOfDay();
+        $range = DatePresetEnum::resolveRange(
+            $request->input('period'),
+            $request->input('start_date'),
+            $request->input('end_date')
+        );
 
-        ExportStockReportJob::dispatch(Auth::user(), (array) $outletId, $startDate, $endDate);
+        $outletIds = ReportOutletResolver::resolve($user, $request->input('outlet'));
+        $startDate = Carbon::parse($range['start_date'])->startOfDay();
+        $endDate = Carbon::parse($range['end_date'])->endOfDay();
 
-        return redirect()->back()->with('success', 'Proses ekspor CSV sedang berjalan di latar belakang. Anda akan menerima notifikasi jika sudah selesai.');
+        ExportStockReportJob::dispatch($user, $outletIds, $startDate, $endDate);
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            ResourceMessage::EXPORT_PROCESSING
+        );
     }
 }

@@ -10,29 +10,33 @@ class ProfitLossReportService
     /**
      * Dapatkan Laporan Laba Rugi (Profit & Loss) komprehensif untuk periode tertentu.
      *
+     * @param  array<string>  $outletIds
      * @param  array<string, mixed>  $filters
      * @return array<string, mixed>
      */
     public function getReport(
-        string|array $outletId,
+        string $businessId,
+        array $outletIds,
         Carbon $startDate,
         Carbon $endDate,
         array $filters = []
     ): array {
-        $outletIds = array_filter((array) $outletId);
+        $outletIds = array_values(array_filter($outletIds));
 
         // 1. Ringkasan Penjualan (Revenue / Omset)
         $salesSummary = DB::table('transactions')
-            ->when(! empty($outletIds), fn ($q) => $q->whereIn('outlet_id', $outletIds))
-            ->where('status', 'completed')
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
+            ->where('outlets.business_id', $businessId)
+            ->when(! empty($outletIds), fn ($q) => $q->whereIn('transactions.outlet_id', $outletIds))
+            ->where('transactions.status', 'completed')
+            ->whereBetween('transactions.created_at', [$startDate, $endDate])
             ->select(
-                DB::raw('COALESCE(SUM(subtotal), 0) as gross_sales'),
-                DB::raw('COALESCE(SUM(discount_amount), 0) as total_discounts'),
-                DB::raw('COALESCE(SUM(tax_amount), 0) as total_tax'),
-                DB::raw('COALESCE(SUM(service_charge_amount), 0) as total_service_charge'),
-                DB::raw('COALESCE(SUM(total), 0) as net_sales'),
-                DB::raw('COUNT(id) as transaction_count')
+                DB::raw('COALESCE(SUM(transactions.subtotal), 0) as gross_sales'),
+                DB::raw('COALESCE(SUM(transactions.discount_amount), 0) as total_discounts'),
+                DB::raw('COALESCE(SUM(transactions.tax_amount), 0) as total_tax'),
+                DB::raw('COALESCE(SUM(transactions.service_charge_amount), 0) as total_service_charge'),
+                DB::raw('COALESCE(SUM(transactions.total), 0) as net_sales'),
+                DB::raw('COUNT(transactions.id) as transaction_count')
             )
             ->first();
 
@@ -46,6 +50,8 @@ class ProfitLossReportService
         // 2. Ringkasan HPP (Cost of Goods Sold / COGS)
         $cogsSummary = DB::table('transaction_items')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
+            ->where('outlets.business_id', $businessId)
             ->when(! empty($outletIds), fn ($q) => $q->whereIn('transactions.outlet_id', $outletIds))
             ->where('transactions.status', 'completed')
             ->whereBetween('transactions.created_at', [$startDate, $endDate])
@@ -64,12 +70,13 @@ class ProfitLossReportService
 
         // 3. Ringkasan Beban Persediaan Operasional (Waste & Selisih Opname)
         $inventoryLosses = DB::table('inventory_movements')
-            ->when(! empty($outletIds), fn ($q) => $q->whereIn('outlet_id', $outletIds))
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('inventory_movements.business_id', $businessId)
+            ->when(! empty($outletIds), fn ($q) => $q->whereIn('inventory_movements.outlet_id', $outletIds))
+            ->whereBetween('inventory_movements.created_at', [$startDate, $endDate])
             ->select(
-                DB::raw("COALESCE(SUM(CASE WHEN movement_type = 'adjustment_out' THEN total_cost ELSE 0 END), 0) as waste_cost"),
-                DB::raw("COALESCE(SUM(CASE WHEN movement_type = 'opname_deficit' THEN total_cost ELSE 0 END), 0) as opname_deficit_cost"),
-                DB::raw("COALESCE(SUM(CASE WHEN movement_type = 'opname_surplus' THEN total_cost ELSE 0 END), 0) as opname_surplus_cost")
+                DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.movement_type = 'adjustment_out' THEN inventory_movements.total_cost ELSE 0 END), 0) as waste_cost"),
+                DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.movement_type = 'opname_deficit' THEN inventory_movements.total_cost ELSE 0 END), 0) as opname_deficit_cost"),
+                DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.movement_type = 'opname_surplus' THEN inventory_movements.total_cost ELSE 0 END), 0) as opname_surplus_cost")
             )
             ->first();
 
@@ -83,10 +90,10 @@ class ProfitLossReportService
         $operatingProfitMargin = $netSales > 0 ? round(($operatingProfit / $netSales) * 100, 2) : 0.0;
 
         // 4. Breakdown Per Hari
-        $dailyData = $this->getDailyBreakdown($outletIds, $startDate, $endDate);
+        $dailyData = $this->getDailyBreakdown($businessId, $outletIds, $startDate, $endDate);
 
         // 5. Breakdown Kategori Produk
-        $categoryData = $this->getCategoryBreakdown($outletIds, $startDate, $endDate);
+        $categoryData = $this->getCategoryBreakdown($businessId, $outletIds, $startDate, $endDate);
 
         return [
             'summary' => [
@@ -118,46 +125,64 @@ class ProfitLossReportService
      * @param  array<string>  $outletIds
      * @return array<int, array<string, mixed>>
      */
-    protected function getDailyBreakdown(array $outletIds, Carbon $startDate, Carbon $endDate): array
+    protected function getDailyBreakdown(string $businessId, array $outletIds, Carbon $startDate, Carbon $endDate): array
     {
+        $driver = DB::connection()->getDriverName();
+        $dateExpr = match ($driver) {
+            'pgsql' => "to_char(transactions.created_at, 'YYYY-MM-DD')",
+            'sqlite' => "strftime('%Y-%m-%d', transactions.created_at)",
+            default => 'DATE(transactions.created_at)',
+        };
+
+        $moveDateExpr = match ($driver) {
+            'pgsql' => "to_char(inventory_movements.created_at, 'YYYY-MM-DD')",
+            'sqlite' => "strftime('%Y-%m-%d', inventory_movements.created_at)",
+            default => 'DATE(inventory_movements.created_at)',
+        };
+
         // Penjualan harian
         $dailySales = DB::table('transactions')
-            ->when(! empty($outletIds), fn ($q) => $q->whereIn('outlet_id', $outletIds))
-            ->where('status', 'completed')
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
+            ->where('outlets.business_id', $businessId)
+            ->when(! empty($outletIds), fn ($q) => $q->whereIn('transactions.outlet_id', $outletIds))
+            ->where('transactions.status', 'completed')
+            ->whereBetween('transactions.created_at', [$startDate, $endDate])
             ->select(
-                DB::raw('DATE(created_at) as sale_date'),
-                DB::raw('COALESCE(SUM(subtotal), 0) as gross_sales'),
-                DB::raw('COALESCE(SUM(discount_amount), 0) as discount_amount'),
-                DB::raw('COALESCE(SUM(total), 0) as net_sales')
+                DB::raw("$dateExpr as sale_date"),
+                DB::raw('COALESCE(SUM(transactions.subtotal), 0) as gross_sales'),
+                DB::raw('COALESCE(SUM(transactions.discount_amount), 0) as discount_amount'),
+                DB::raw('COALESCE(SUM(transactions.total), 0) as net_sales')
             )
-            ->groupBy(DB::raw('DATE(created_at)'))
+            ->groupByRaw($dateExpr)
             ->get()
             ->keyBy('sale_date');
 
         // COGS harian
         $dailyCogs = DB::table('transaction_items')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
+            ->where('outlets.business_id', $businessId)
             ->when(! empty($outletIds), fn ($q) => $q->whereIn('transactions.outlet_id', $outletIds))
             ->where('transactions.status', 'completed')
             ->whereBetween('transactions.created_at', [$startDate, $endDate])
             ->select(
-                DB::raw('DATE(transactions.created_at) as sale_date'),
+                DB::raw("$dateExpr as sale_date"),
                 DB::raw('COALESCE(SUM(transaction_items.cogs_amount), 0) as cogs_amount')
             )
-            ->groupBy(DB::raw('DATE(transactions.created_at)'))
+            ->groupByRaw($dateExpr)
             ->get()
             ->keyBy('sale_date');
 
         // Beban persediaan harian
         $dailyLosses = DB::table('inventory_movements')
-            ->when(! empty($outletIds), fn ($q) => $q->whereIn('outlet_id', $outletIds))
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('inventory_movements.business_id', $businessId)
+            ->when(! empty($outletIds), fn ($q) => $q->whereIn('inventory_movements.outlet_id', $outletIds))
+            ->whereBetween('inventory_movements.created_at', [$startDate, $endDate])
             ->select(
-                DB::raw('DATE(created_at) as move_date'),
-                DB::raw("COALESCE(SUM(CASE WHEN movement_type IN ('adjustment_out', 'opname_deficit') THEN total_cost ELSE 0 END), 0) as total_losses")
+                DB::raw("$moveDateExpr as move_date"),
+                DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.movement_type IN ('adjustment_out', 'opname_deficit') THEN inventory_movements.total_cost ELSE 0 END), 0) as total_losses")
             )
-            ->groupBy(DB::raw('DATE(created_at)'))
+            ->groupByRaw($moveDateExpr)
             ->get()
             ->keyBy('move_date');
 
@@ -205,12 +230,15 @@ class ProfitLossReportService
      * @param  array<string>  $outletIds
      * @return array<int, array<string, mixed>>
      */
-    protected function getCategoryBreakdown(array $outletIds, Carbon $startDate, Carbon $endDate): array
+    protected function getCategoryBreakdown(string $businessId, array $outletIds, Carbon $startDate, Carbon $endDate): array
     {
         $categories = DB::table('transaction_items')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
             ->leftJoin('products', 'transaction_items.product_id', '=', 'products.id')
             ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
+            ->where('outlets.business_id', $businessId)
+            ->where('products.business_id', $businessId)
             ->when(! empty($outletIds), fn ($q) => $q->whereIn('transactions.outlet_id', $outletIds))
             ->where('transactions.status', 'completed')
             ->whereBetween('transactions.created_at', [$startDate, $endDate])

@@ -53,6 +53,7 @@ class OverviewTest extends TestCase
             'name' => 'Merchant User',
             'email' => 'user_'.uniqid().'@test.test',
             'password' => bcrypt('password'),
+            'is_root_user' => true,
         ]);
 
         setPermissionsTeamId($this->business->id);

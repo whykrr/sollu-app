@@ -43,7 +43,10 @@ class ExportCustomerReportPdfJob implements ShouldQueue
         Storage::makeDirectory('exports');
 
         $data = DB::table('transactions')
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
             ->join('customers', 'transactions.customer_id', '=', 'customers.id')
+            ->where('outlets.business_id', $this->user->business_id)
+            ->where('customers.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
                 $query->whereIn('transactions.outlet_id', $this->outletIds);
             })
@@ -55,7 +58,7 @@ class ExportCustomerReportPdfJob implements ShouldQueue
                 'customers.phone',
                 'customers.email',
                 DB::raw('COUNT(transactions.id) as total_visits'),
-                DB::raw('SUM(transactions.total) as total_spent'),
+                DB::raw('COALESCE(SUM(transactions.total), 0) as total_spent'),
                 DB::raw('MAX(transactions.created_at) as last_visit')
             )
             ->groupBy('customers.id', 'customers.name', 'customers.phone', 'customers.email')

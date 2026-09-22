@@ -14,21 +14,23 @@ class DashboardService
      * Get complete dashboard overview dataset for Tenant App with caching.
      *
      * @param  array<string, mixed>  $filters
+     * @param  array<string>  $accessibleOutletIds
      * @return array<string, mixed>
      */
-    public function getDashboardData(string $businessId, array $filters = []): array
+    public function getDashboardData(string $businessId, array $filters = [], array $accessibleOutletIds = []): array
     {
         $period = (string) ($filters['period'] ?? 'today');
         $outletId = ! empty($filters['outlet']) ? (string) $filters['outlet'] : null;
         $customStart = ! empty($filters['start_date']) ? (string) $filters['start_date'] : null;
         $customEnd = ! empty($filters['end_date']) ? (string) $filters['end_date'] : null;
 
-        $cacheKey = "app:dashboard:{$businessId}:{$period}:".($outletId ?? 'all').':'.($customStart ?? 'none').':'.($customEnd ?? 'none');
+        $accessibleKey = ! empty($accessibleOutletIds) ? implode(',', $accessibleOutletIds) : 'all';
+        $cacheKey = "app:dashboard:{$businessId}:{$period}:".($outletId ?? 'all').':'.($customStart ?? 'none').':'.($customEnd ?? 'none').':'.$accessibleKey;
 
-        return Cache::remember($cacheKey, 60, function () use ($businessId, $period, $outletId, $customStart, $customEnd) {
+        return Cache::remember($cacheKey, 60, function () use ($businessId, $period, $outletId, $customStart, $customEnd, $accessibleOutletIds) {
             [$startDate, $endDate, $prevStartDate, $prevEndDate, $periodLabel] = $this->resolveDateRanges($period, $customStart, $customEnd);
 
-            $outletIds = $this->resolveOutletIds($businessId, $outletId);
+            $outletIds = $this->resolveOutletIds($businessId, $outletId, $accessibleOutletIds);
             $isHourly = in_array($period, ['today', 'yesterday'], true) || ($startDate && $endDate && $startDate->isSameDay($endDate));
 
             $metrics = $this->getMetrics($businessId, $outletIds, $startDate, $endDate, $prevStartDate, $prevEndDate);
@@ -487,7 +489,7 @@ class DashboardService
                 now()->subDays(2)->endOfDay(),
                 'Kemarin',
             ],
-            '7_days' => [
+            '7_days', 'last_7_days' => [
                 now()->subDays(6)->startOfDay(),
                 now()->endOfDay(),
                 now()->subDays(13)->startOfDay(),
@@ -560,22 +562,28 @@ class DashboardService
     }
 
     /**
-     * Resolve outlet IDs array scoped to business.
+     * Resolve outlet IDs array scoped to business and user accessibility.
      *
+     * @param  array<string>  $accessibleOutletIds
      * @return array<string>
      */
-    protected function resolveOutletIds(string $businessId, ?string $outletId): array
+    protected function resolveOutletIds(string $businessId, ?string $outletId, array $accessibleOutletIds = []): array
     {
         if (! empty($outletId)) {
-            $exists = Outlet::query()
+            $query = Outlet::query()
                 ->where('business_id', $businessId)
-                ->where('id', $outletId)
-                ->exists();
+                ->where('id', $outletId);
+
+            if (! empty($accessibleOutletIds)) {
+                $query->whereIn('id', $accessibleOutletIds);
+            }
+
+            $exists = $query->exists();
 
             return $exists ? [$outletId] : [];
         }
 
-        return [];
+        return $accessibleOutletIds;
     }
 
     /**

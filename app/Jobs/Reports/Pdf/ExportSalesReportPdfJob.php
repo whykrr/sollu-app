@@ -42,27 +42,39 @@ class ExportSalesReportPdfJob implements ShouldQueue
 
         Storage::makeDirectory('exports');
 
+        $driver = DB::connection()->getDriverName();
+        $dateExpr = match ($driver) {
+            'pgsql' => "to_char(transactions.created_at, 'YYYY-MM-DD')",
+            'sqlite' => "strftime('%Y-%m-%d', transactions.created_at)",
+            default => 'DATE(transactions.created_at)',
+        };
+
         $dailySales = DB::table('transactions')
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
+            ->where('outlets.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
-                $query->whereIn('outlet_id', $this->outletIds);
+                $query->whereIn('transactions.outlet_id', $this->outletIds);
             })
-            ->where('status', 'completed')
-            ->whereBetween('created_at', [$this->startDate, $this->endDate])
+            ->where('transactions.status', 'completed')
+            ->whereBetween('transactions.created_at', [$this->startDate, $this->endDate])
             ->select(
-                DB::raw('DATE(created_at) as date'),
-                DB::raw('SUM(subtotal) as gross_sales'),
-                DB::raw('SUM(discount_amount) as total_discount'),
-                DB::raw('SUM(tax_amount) as total_tax'),
-                DB::raw('SUM(total) as net_sales')
+                DB::raw("$dateExpr as date"),
+                DB::raw('COALESCE(SUM(transactions.subtotal), 0) as gross_sales'),
+                DB::raw('COALESCE(SUM(transactions.discount_amount), 0) as total_discount'),
+                DB::raw('COALESCE(SUM(transactions.tax_amount), 0) as total_tax'),
+                DB::raw('COALESCE(SUM(transactions.total), 0) as net_sales')
             )
-            ->groupBy(DB::raw('DATE(created_at)'))
+            ->groupByRaw($dateExpr)
             ->orderBy('date', 'desc')
             ->limit(1000)
             ->get();
 
         $paymentMethods = DB::table('transaction_payments')
             ->join('transactions', 'transaction_payments.transaction_id', '=', 'transactions.id')
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
             ->join('payment_methods', 'transaction_payments.payment_method_id', '=', 'payment_methods.id')
+            ->where('outlets.business_id', $this->user->business_id)
+            ->where('payment_methods.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
                 $query->whereIn('transactions.outlet_id', $this->outletIds);
             })
@@ -71,7 +83,7 @@ class ExportSalesReportPdfJob implements ShouldQueue
             ->select(
                 'payment_methods.name as payment_name',
                 DB::raw('COUNT(transaction_payments.id) as total_transactions'),
-                DB::raw('SUM(transaction_payments.amount) as total_revenue')
+                DB::raw('COALESCE(SUM(transaction_payments.amount), 0) as total_revenue')
             )
             ->groupBy('payment_methods.id', 'payment_methods.name')
             ->limit(1000)

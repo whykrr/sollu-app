@@ -23,7 +23,10 @@ class ExportPromotionReportJob extends AbstractExcelExportJob
     {
         return DB::table('transaction_promos')
             ->join('transactions', 'transaction_promos.transaction_id', '=', 'transactions.id')
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
             ->join('promos', 'transaction_promos.promo_id', '=', 'promos.id')
+            ->where('outlets.business_id', $this->user->business_id)
+            ->where('promos.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
                 $query->whereIn('transactions.outlet_id', $this->outletIds);
             })
@@ -33,7 +36,7 @@ class ExportPromotionReportJob extends AbstractExcelExportJob
                 'promos.name as promo_name',
                 'promos.promo_type',
                 DB::raw('COUNT(transaction_promos.id) as total_usage'),
-                DB::raw('SUM(transaction_promos.discount_amount) as total_discount_given')
+                DB::raw('COALESCE(SUM(transaction_promos.discount_amount), 0) as total_discount_given')
             )
             ->groupBy('promos.id', 'promos.name', 'promos.promo_type')
             ->orderBy('total_usage', 'desc');

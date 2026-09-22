@@ -17,4 +17,6 @@ class ResourceMessage
     public const REGISTER_SUCCESS = 'Pendaftaran Berhasil!, Cek email Anda untuk verifikasi';
 
     public const IMPERSONATE_SUCCESS = 'Berhasil masuk sebagai merchant!';
+
+    public const EXPORT_PROCESSING = 'Laporan sedang disiapkan di latar belakang. Nanti kami kabari setelah selesai!';
 }

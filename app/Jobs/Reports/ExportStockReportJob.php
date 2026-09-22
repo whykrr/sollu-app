@@ -22,8 +22,10 @@ class ExportStockReportJob extends AbstractExcelExportJob
     public function getQuery()
     {
         $outletIds = $this->outletIds;
+        $businessId = $this->user->business_id;
 
         $balanceSub = DB::table('inventory_balances')
+            ->where('business_id', $businessId)
             ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('outlet_id', $outletIds);
             })
@@ -35,6 +37,8 @@ class ExportStockReportJob extends AbstractExcelExportJob
             ->leftJoinSub($balanceSub, 'balances', function ($join) {
                 $join->on('inventory_movements.inventory_item_id', '=', 'balances.inventory_item_id');
             })
+            ->where('inventory_items.business_id', $businessId)
+            ->where('inventory_movements.business_id', $businessId)
             ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('inventory_movements.outlet_id', $outletIds);
             })

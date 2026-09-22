@@ -1,194 +1,147 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Laporan Penjualan" />
+            <MainPageHeader
+                title="Laporan Penjualan"
+                description="Ringkasan transaksi penjualan harian, diskon, pajak, dan rincian metode pembayaran"
+            />
+        </template>
+
+        <template #widgets>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                <WidgetMini
+                    :icon="faReceipt"
+                    variant="main"
+                    title="Gross Omset"
+                    :value="formatIDR(summary?.gross_sales || 0)"
+                />
+                <WidgetMini
+                    :icon="faTag"
+                    variant="danger"
+                    title="Total Diskon"
+                    :value="formatIDR(summary?.total_discount || 0)"
+                />
+                <WidgetMini
+                    :icon="faPercent"
+                    variant="amber"
+                    title="Total Pajak"
+                    :value="formatIDR(summary?.total_tax || 0)"
+                />
+                <WidgetMini
+                    :icon="faMoneyBillWave"
+                    variant="success"
+                    title="Net Omset"
+                    :value="formatIDR(summary?.net_sales || 0)"
+                />
+            </div>
         </template>
 
         <template #filter>
-            <ActionBar>
-                <template #filters>
-                    <div v-if="outletOptions.length > 1 && !selectedOutlet" class="w-48">
-                        <GroupDropdownIconField
-                            id="outlet-filter"
-                            v-model="formFilters.outlet"
-                            :icon="faStore"
-                            size="sm"
-                            :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
-                            @change="applyFilters"
-                        />
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <input
-                            v-model="formFilters.start_date"
-                            type="date"
-                            class="form sm h-[30px]"
-                            @change="applyFilters"
-                        />
-                        <span class="text-slate-400 text-xs">-</span>
-                        <input
-                            v-model="formFilters.end_date"
-                            type="date"
-                            class="form sm h-[30px]"
-                            @change="applyFilters"
-                        />
-                    </div>
-                </template>
-
-                <template #tools>
-                    <ActionsDropdown label="Opsi Data" :items="actionItems" />
-                </template>
-            </ActionBar>
+            <SalesFilter v-model:tab="activeTab" :filters="filters" />
         </template>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-            <div class="lg:col-span-2 card card-body">
-                <h5 class="font-semibold mb-4">Laporan Harian</h5>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th class="text-right">Gross Omset</th>
-                                <th class="text-right">Diskon</th>
-                                <th class="text-right">Pajak</th>
-                                <th class="text-right">Net Omset</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(item, index) in dailySales.data" :key="index">
-                                <td>{{ item.date }}</td>
-                                <td class="text-right">
-                                    {{ formatIDR(item.gross_sales) }}
-                                </td>
-                                <td class="text-right text-danger">
-                                    {{ formatIDR(item.total_discount) }}
-                                </td>
-                                <td class="text-right">
-                                    {{ formatIDR(item.total_tax) }}
-                                </td>
-                                <td class="text-right font-bold">
-                                    {{ formatIDR(item.net_sales) }}
-                                </td>
-                            </tr>
-                            <tr v-if="dailySales.data?.length === 0">
-                                <td colspan="5" class="text-center text-muted py-4">
-                                    Tidak ada data penjualan pada periode ini.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <Pagination
-                    class="mt-4"
-                    :links="dailySales.links"
-                    :from="dailySales.from"
-                    :to="dailySales.to"
-                    :total="dailySales.total"
-                    :per-page="dailySales.per_page"
-                />
-            </div>
+        <!-- Daily Sales Table -->
+        <Table
+            v-if="activeTab === 'daily'"
+            :headers="headers"
+            :data="dailySales.data"
+            :action="false"
+        >
+            <template #gross_sales="{ row }">
+                <span class="text-xs text-neutral-700">{{ formatIDR(row.gross_sales) }}</span>
+            </template>
+            <template #total_discount="{ row }">
+                <span class="text-xs text-danger font-medium">{{ formatIDR(row.total_discount) }}</span>
+            </template>
+            <template #total_tax="{ row }">
+                <span class="text-xs text-neutral-600">{{ formatIDR(row.total_tax) }}</span>
+            </template>
+            <template #net_sales="{ row }">
+                <span class="text-xs font-bold text-neutral-900">{{ formatIDR(row.net_sales) }}</span>
+            </template>
+            <template #transaction_count="{ row }">
+                <span class="text-xs text-neutral-600">{{ formatNumberID(row.transaction_count) }} Trx</span>
+            </template>
+        </Table>
 
-            <div class="lg:col-span-1 card card-body">
-                <h5 class="font-semibold mb-4">Metode Pembayaran</h5>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead>
-                            <tr>
-                                <th>Metode</th>
-                                <th class="text-right">Transaksi</th>
-                                <th class="text-right">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(item, index) in paymentMethods" :key="index">
-                                <td>{{ item.payment_name }}</td>
-                                <td class="text-right">
-                                    {{ formatNumberID(item.total_transactions) }}
-                                </td>
-                                <td class="text-right">
-                                    {{ formatIDR(item.total_revenue) }}
-                                </td>
-                            </tr>
-                            <tr v-if="paymentMethods.length === 0">
-                                <td colspan="3" class="text-center text-muted py-4">
-                                    Tidak ada data pembayaran.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+        <!-- Payment Methods Table -->
+        <Table
+            v-else
+            :headers="paymentHeaders"
+            :data="paymentMethods || []"
+            :action="false"
+        >
+            <template #total_transactions="{ row }">
+                <span class="text-xs text-neutral-600">{{ formatNumberID(row.total_transactions) }} Trx</span>
+            </template>
+            <template #total_revenue="{ row }">
+                <span class="text-xs font-bold text-neutral-900">{{ formatIDR(row.total_revenue) }}</span>
+            </template>
+        </Table>
+
+        <template v-if="activeTab === 'daily'" #footer>
+            <Pagination
+                :links="dailySales.links"
+                :from="dailySales.from"
+                :to="dailySales.to"
+                :total="dailySales.total"
+                :per-page="dailySales.per_page"
+            />
+        </template>
     </MainPage>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useForm, router } from '@inertiajs/vue3'
-import { faFileCsv, faFilePdf, faStore } from '@fortawesome/free-solid-svg-icons'
+import { ref } from 'vue'
+import {
+    faMoneyBillWave,
+    faPercent,
+    faReceipt,
+    faTag,
+} from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
-import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
-import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
+import WidgetMini from '@/Components/Widgets/WidgetMini.vue'
+import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
-import { useAuth } from '@/Composable/useAuth'
+import SalesFilter from './Components/SalesFilter.vue'
 import { formatIDR } from '@/Composable/currency-format'
 import { formatNumberID } from '@/Composable/useNumberFormat'
 
-const props = defineProps({
-    filters: Object,
-    dailySales: Object,
-    paymentMethods: Array,
-})
+const activeTab = ref('daily')
 
-const { outlets: userOutlets, selectedOutlet } = useAuth()
-
-const outletOptions = computed(() => {
-    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []
-    return userOutlets.value.map(store => ({
-        value: store.id,
-        label: store.name,
-    }))
-})
-
-const formFilters = useForm({
-    outlet: props.filters?.outlet ?? '',
-    start_date: props.filters?.start_date ?? '',
-    end_date: props.filters?.end_date ?? '',
-})
-
-const applyFilters = () => {
-    formFilters.get(route('reports.sales.index'), {
-        preserveState: true,
-        preserveScroll: true,
-    })
-}
-
-const exportPdf = () => {
-    router.post(route('reports.sales.export.pdf'), formFilters.data(), {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-const exportCsv = () => {
-    router.post(route('reports.sales.export.csv'), formFilters.data(), {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-const actionItems = computed(() => [
-    {
-        label: 'Ekspor PDF',
-        icon: faFilePdf,
-        handler: exportPdf,
+defineProps({
+    filters: {
+        type: Object,
+        default: () => ({}),
     },
-    {
-        label: 'Ekspor CSV',
-        icon: faFileCsv,
-        handler: exportCsv,
+    summary: {
+        type: Object,
+        default: () => ({}),
     },
-])
+    dailySales: {
+        type: Object,
+        default: () => ({ data: [] }),
+    },
+    paymentMethods: {
+        type: Array,
+        default: () => [],
+    },
+})
+
+const headers = [
+    { label: 'Tanggal', field: 'date' },
+    { label: 'Gross Omset', field: 'gross_sales', slot: 'gross_sales' },
+    { label: 'Diskon', field: 'total_discount', slot: 'total_discount' },
+    { label: 'Pajak', field: 'total_tax', slot: 'total_tax', show: 'md' },
+    { label: 'Net Omset', field: 'net_sales', slot: 'net_sales' },
+    { label: 'Transaksi', field: 'transaction_count', slot: 'transaction_count', show: 'sm' },
+]
+
+const paymentHeaders = [
+    { label: 'Metode', field: 'payment_name' },
+    { label: 'Transaksi', field: 'total_transactions', slot: 'total_transactions' },
+    { label: 'Total', field: 'total_revenue', slot: 'total_revenue' },
+]
 </script>
+

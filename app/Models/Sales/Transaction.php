@@ -5,19 +5,22 @@ namespace App\Models\Sales;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
 use App\Models\Master\Customer;
+use App\Trait\HasBusiness;
+use App\Trait\SortableModel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @mixin IdeHelperTransaction
  */
 class Transaction extends Model
 {
-    use HasFactory;
-    use HasUuids;
+    use HasBusiness, HasFactory, HasUuids, SortableModel;
 
     protected $fillable = [
         'outlet_id',
@@ -37,6 +40,18 @@ class Transaction extends Model
         'payment_status',
         'status',
         'notes',
+    ];
+
+    protected array $sortable = [
+        'transaction_number',
+        'subtotal',
+        'discount_amount',
+        'tax_amount',
+        'total',
+        'status',
+        'payment_status',
+        'created_at',
+        'updated_at',
     ];
 
     protected function casts(): array
@@ -94,9 +109,33 @@ class Transaction extends Model
         return $this->hasMany(TransactionPromo::class);
     }
 
+    public function scopeCurrentBusiness(Builder $query, ?string $businessId = null): Builder
+    {
+        $businessId = $businessId ?? Auth::user()?->business_id;
+
+        return $query->whereHas('outlet', function (Builder $q) use ($businessId) {
+            $q->where('business_id', $businessId);
+        });
+    }
+
+    public function scopeForOutlet(Builder $query, string|array $outletIds): Builder
+    {
+        $ids = array_filter((array) $outletIds);
+        if (empty($ids)) {
+            return $query;
+        }
+
+        return $query->whereIn($this->qualifyColumn('outlet_id'), $ids);
+    }
+
     public function scopeFilters($query, array $filters)
     {
-        $query->when($filters['search'] ?? null, function ($query, $search) {
+        $user = Auth::user();
+        if ($user && $user->business_id) {
+            $query->currentBusiness($user->business_id);
+        }
+
+        return $query->when($filters['search'] ?? null, function ($query, $search) {
             $query->where(function ($query) use ($search) {
                 $query->where('transaction_number', 'like', '%'.$search.'%')
                     ->orWhereHas('invoice', function ($query) use ($search) {

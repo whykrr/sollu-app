@@ -5,6 +5,7 @@ namespace App\Http\Controllers\App\Overview;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Overview\GetOverviewRequest;
 use App\Services\App\Reports\DashboardService;
+use App\Services\App\Reports\ReportOutletResolver;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,7 +25,13 @@ class OverviewController extends Controller
         $businessId = (string) $user->business_id;
 
         $filters = $request->validated();
-        $dashboardData = $this->dashboardService->getDashboardData($businessId, $filters);
+        $accessibleOutletIds = ReportOutletResolver::resolve($user, $request->input('outlet'));
+
+        $dashboardData = $this->dashboardService->getDashboardData(
+            $businessId,
+            $filters,
+            $accessibleOutletIds
+        );
 
         return Inertia::render('Overview/Index', $dashboardData);
     }

@@ -77,13 +77,54 @@ class CustomerReportServiceTest extends TestCase
             'transaction_number' => 'TRX-002',
         ]);
 
+        // Other business customer & transaction to assert isolation
+        $otherBusiness = \App\Models\Business::create([
+            'name' => 'Other Merchant',
+            'owner_name' => 'Other Owner',
+            'email' => 'other_'.uniqid().'@test.test',
+            'phone' => '081234567891',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $otherOutlet = Outlet::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Other Outlet',
+            'is_active' => true,
+        ]);
+
+        $otherCustomer = Customer::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Other Customer',
+            'phone' => '0819999999',
+        ]);
+
+        Transaction::create([
+            'outlet_id' => $otherOutlet->id,
+            'customer_id' => $otherCustomer->id,
+            'status' => 'completed',
+            'total' => 888000,
+            'transaction_number' => 'TRX-OTHER-1',
+        ]);
+
         $startDate = Carbon::now()->subDays(1);
         $endDate = Carbon::now()->addDays(1);
 
-        $result = $this->service->getReport($outlet->id, $startDate, $endDate);
+        $result = $this->service->getReport($business->id, [$outlet->id], $startDate, $endDate);
 
-        $this->assertNotEmpty($result->items());
-        $firstItem = $result->items()[0];
+        $this->assertArrayHasKey('summary', $result);
+        $this->assertArrayHasKey('customers', $result);
+
+        $summary = $result['summary'];
+        $this->assertEquals(2, $summary['total_customer_visits']);
+        $this->assertEquals(125000, $summary['total_customer_spent']);
+        $this->assertEquals(1, $summary['total_unique_customers']);
+        $this->assertEquals(62500, $summary['average_spent_per_visit']);
+
+        $customers = $result['customers'];
+        $this->assertNotEmpty($customers->items());
+        $firstItem = $customers->items()[0];
 
         $this->assertEquals($customer->id, $firstItem->id);
         $this->assertEquals('John Doe', $firstItem->name);

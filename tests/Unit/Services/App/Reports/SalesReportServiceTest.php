@@ -81,13 +81,48 @@ class SalesReportServiceTest extends TestCase
             'amount' => 95000,
         ]);
 
+        // Another business transaction to assert isolation
+        $otherBusiness = \App\Models\Business::create([
+            'name' => 'Other Merchant',
+            'owner_name' => 'Other Owner',
+            'email' => 'other_'.uniqid().'@test.test',
+            'phone' => '081234567891',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $otherOutlet = Outlet::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Other Outlet',
+            'is_active' => true,
+        ]);
+
+        Transaction::create([
+            'outlet_id' => $otherOutlet->id,
+            'status' => 'completed',
+            'subtotal' => 500000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'total' => 500000,
+            'transaction_number' => 'TRX-OTHER-1',
+            'created_at' => $now,
+        ]);
+
         $startDate = $now->copy()->startOfDay();
         $endDate = $now->copy()->endOfDay();
 
-        $result = $this->service->getReport($outlet->id, $startDate, $endDate);
+        $result = $this->service->getReport($business->id, [$outlet->id], $startDate, $endDate);
 
         $this->assertArrayHasKey('daily_sales', $result);
         $this->assertArrayHasKey('payment_methods', $result);
+        $this->assertArrayHasKey('summary', $result);
+
+        $summary = $result['summary'];
+        $this->assertEquals(100000, $summary['gross_sales']);
+        $this->assertEquals(10000, $summary['total_discount']);
+        $this->assertEquals(5000, $summary['total_tax']);
+        $this->assertEquals(95000, $summary['net_sales']);
 
         $dailySales = $result['daily_sales'];
         $this->assertNotEmpty($dailySales->items());

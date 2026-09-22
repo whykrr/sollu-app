@@ -44,6 +44,8 @@ class ExportStockReportPdfJob implements ShouldQueue
 
         $movements = DB::table('inventory_movements')
             ->join('inventory_items', 'inventory_movements.inventory_item_id', '=', 'inventory_items.id')
+            ->where('inventory_items.business_id', $this->user->business_id)
+            ->where('inventory_movements.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
                 $query->whereIn('inventory_movements.outlet_id', $this->outletIds);
             })
@@ -60,6 +62,8 @@ class ExportStockReportPdfJob implements ShouldQueue
 
         $balances = DB::table('inventory_balances')
             ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
+            ->where('inventory_items.business_id', $this->user->business_id)
+            ->where('inventory_balances.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
                 $query->whereIn('inventory_balances.outlet_id', $this->outletIds);
             })

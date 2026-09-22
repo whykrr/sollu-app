@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-2 p-3 bg-white rounded-lg border border-neutral-200/80 shadow-xs">
+    <div class="flex flex-col gap-2 p-3 bg-white rounded-lg border border-neutral-200/80">
         <div class="flex flex-col sm:flex-row justify-between gap-2 items-start sm:items-center">
             <div>
                 <h3

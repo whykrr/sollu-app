@@ -115,20 +115,67 @@ class StockAssetReportServiceTest extends TestCase
             'created_at' => $now->copy()->addMinutes(5),
         ]);
 
+        // Other business inventory balance & movements to assert isolation
+        $otherBusiness = Business::create([
+            'name' => 'Other Business',
+            'owner_name' => 'Other Owner',
+            'email' => 'other_'.uniqid().'@test.com',
+            'phone' => '081234567892',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $this->business->business_type_id,
+        ]);
+
+        $otherOutlet = Outlet::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Other Outlet',
+            'is_active' => true,
+        ]);
+
+        $otherInvItem = InventoryItem::firstOrCreate([
+            'business_id' => $otherBusiness->id,
+        ], [
+            'name' => 'Barang Lain',
+            'sku' => 'LAIN-001',
+            'item_type' => 'raw_material',
+            'minimum_stock' => 5,
+        ]);
+
+        DB::table('inventory_balances')->insert([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'business_id' => $otherBusiness->id,
+            'outlet_id' => $otherOutlet->id,
+            'inventory_item_id' => $otherInvItem->id,
+            'current_stock' => 100,
+            'average_cost' => 50000,
+            'total_value' => 5000000,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
         $startDate = $now->copy()->startOfDay();
         $endDate = $now->copy()->endOfDay();
 
-        $result = $this->service->getReport($this->outlet->id, $startDate, $endDate);
+        $result = $this->service->getReport($this->business->id, [$this->outlet->id], $startDate, $endDate);
 
-        $this->assertNotEmpty($result->items());
-        $firstItem = $result->items()[0];
+        $this->assertArrayHasKey('summary', $result);
+        $this->assertArrayHasKey('items', $result);
+
+        $summary = $result['summary'];
+        $this->assertEquals(1, $summary['total_items']);
+        $this->assertEquals(20, $summary['period_qty_in']);
+        $this->assertEquals(5, $summary['period_qty_out']);
+        $this->assertEquals(180000, $summary['total_asset_value']);
+
+        $items = $result['items'];
+        $this->assertNotEmpty($items->items());
+        $firstItem = $items->items()[0];
 
         $this->assertEquals('Beras Organik', $firstItem->item_name);
         $this->assertEquals(0, $firstItem->starting_stock);
         $this->assertEquals(20, $firstItem->stock_in);
         $this->assertEquals(5, $firstItem->stock_out);
         $this->assertEquals(15, $firstItem->closing_stock);
-        $this->assertEquals(12000, $firstItem->unit_cost);
         $this->assertEquals(180000, $firstItem->closing_asset_value);
     }
 }

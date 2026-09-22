@@ -1,153 +1,98 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Laporan Produk" />
+            <MainPageHeader
+                title="Laporan Produk"
+                description="Analisis performa penjualan produk, kuantitas terjual, dan kontribusi pendapatan"
+            />
+        </template>
+
+        <template #widgets>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <WidgetMini
+                    :icon="faBoxesStacked"
+                    variant="main"
+                    title="Varian Produk Terjual"
+                    :value="`${formatNumberID(summary?.total_products || 0)} Item`"
+                />
+                <WidgetMini
+                    :icon="faCartShopping"
+                    variant="amber"
+                    title="Total Qty Terjual"
+                    :value="`${formatNumberID(summary?.total_qty || 0)} Pcs`"
+                />
+                <WidgetMini
+                    :icon="faMoneyBillWave"
+                    variant="success"
+                    title="Total Omset Produk"
+                    :value="formatIDR(summary?.total_sales || 0)"
+                />
+            </div>
         </template>
 
         <template #filter>
-            <ActionBar>
-                <template #filters>
-                    <div v-if="outletOptions.length > 1 && !selectedOutlet" class="w-48">
-                        <GroupDropdownIconField
-                            id="outlet-filter"
-                            v-model="formFilters.outlet"
-                            :icon="faStore"
-                            size="sm"
-                            :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
-                            @change="applyFilters"
-                        />
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <input
-                            v-model="formFilters.start_date"
-                            type="date"
-                            class="form sm h-[30px]"
-                            @change="applyFilters"
-                        />
-                        <span class="text-slate-400 text-xs">-</span>
-                        <input
-                            v-model="formFilters.end_date"
-                            type="date"
-                            class="form sm h-[30px]"
-                            @change="applyFilters"
-                        />
-                    </div>
-                </template>
-
-                <template #tools>
-                    <ActionsDropdown label="Opsi Data" :items="actionItems" />
-                </template>
-            </ActionBar>
+            <ProductFilter :filters="filters" />
         </template>
 
-        <div class="card card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Nama Produk</th>
-                            <th>Kategori</th>
-                            <th class="text-right">Qty Terjual</th>
-                            <th class="text-right">Total Penjualan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in products.data" :key="index">
-                            <td>{{ item.product_name }}</td>
-                            <td>{{ item.category_name || '-' }}</td>
-                            <td class="text-right">
-                                {{ formatNumberID(item.total_qty) }}
-                            </td>
-                            <td class="text-right">
-                                {{ formatIDR(item.total_sales) }}
-                            </td>
-                        </tr>
-                        <tr v-if="products.data.length === 0">
-                            <td colspan="4" class="text-center text-muted py-4">
-                                Tidak ada data penjualan produk pada periode ini.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <Table :headers="headers" :data="products.data" :action="false">
+            <template #category_name="{ row }">
+                <span class="text-xs text-neutral-600">{{ row.category_name || '-' }}</span>
+            </template>
+            <template #total_qty="{ row }">
+                <span class="text-xs font-semibold text-neutral-800">{{ formatNumberID(row.total_qty) }}</span>
+            </template>
+            <template #total_sales="{ row }">
+                <span class="text-xs font-bold text-neutral-900">{{ formatIDR(row.total_sales) }}</span>
+            </template>
+        </Table>
+
+        <template #footer>
             <Pagination
-                class="mt-4"
                 :links="products.links"
                 :from="products.from"
                 :to="products.to"
                 :total="products.total"
                 :per-page="products.per_page"
             />
-        </div>
+        </template>
     </MainPage>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useForm, router } from '@inertiajs/vue3'
-import { faFileCsv, faFilePdf, faStore } from '@fortawesome/free-solid-svg-icons'
+import {
+    faBoxesStacked,
+    faCartShopping,
+    faMoneyBillWave,
+} from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
-import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
-import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
+import WidgetMini from '@/Components/Widgets/WidgetMini.vue'
+import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
-import { useAuth } from '@/Composable/useAuth'
+import ProductFilter from './Components/ProductFilter.vue'
 import { formatIDR } from '@/Composable/currency-format'
 import { formatNumberID } from '@/Composable/useNumberFormat'
 
-const props = defineProps({
-    filters: Object,
-    products: Object,
-})
-
-const { outlets: userOutlets, selectedOutlet } = useAuth()
-
-const outletOptions = computed(() => {
-    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []
-    return userOutlets.value.map(store => ({
-        value: store.id,
-        label: store.name,
-    }))
-})
-
-const formFilters = useForm({
-    outlet: props.filters?.outlet ?? '',
-    start_date: props.filters?.start_date ?? '',
-    end_date: props.filters?.end_date ?? '',
-})
-
-const applyFilters = () => {
-    formFilters.get(route('reports.products.index'), {
-        preserveState: true,
-        preserveScroll: true,
-    })
-}
-
-const exportPdf = () => {
-    router.post(route('reports.products.export.pdf'), formFilters.data(), {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-const exportCsv = () => {
-    router.post(route('reports.products.export.csv'), formFilters.data(), {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-const actionItems = computed(() => [
-    {
-        label: 'Ekspor PDF',
-        icon: faFilePdf,
-        handler: exportPdf,
+defineProps({
+    filters: {
+        type: Object,
+        default: () => ({}),
     },
-    {
-        label: 'Ekspor CSV',
-        icon: faFileCsv,
-        handler: exportCsv,
+    summary: {
+        type: Object,
+        default: () => ({}),
     },
-])
+    products: {
+        type: Object,
+        default: () => ({ data: [] }),
+    },
+})
+
+const headers = [
+    { label: 'Nama Produk', field: 'product_name' },
+    { label: 'Kategori', field: 'category_name', slot: 'category_name', show: 'sm' },
+    { label: 'Qty Terjual', field: 'total_qty', slot: 'total_qty' },
+    { label: 'Total Penjualan', field: 'total_sales', slot: 'total_sales' },
+]
 </script>
+

@@ -6,6 +6,7 @@ use App\Enums\ShiftStatus;
 use App\Helpers\SelectedOutlet;
 use App\Models\Outlet;
 use App\Models\User;
+use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -20,7 +21,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class Shift extends Model
 {
-    use HasFactory, HasUuids, SortableModel;
+    use HasBusiness, HasFactory, HasUuids, SortableModel;
 
     protected $fillable = [
         'outlet_id',
@@ -77,14 +78,31 @@ class Shift extends Model
         return $this->hasMany(Transaction::class);
     }
 
+    public function scopeCurrentBusiness(Builder $query, ?string $businessId = null): Builder
+    {
+        $businessId = $businessId ?? Auth::user()?->business_id;
+
+        return $query->whereHas('outlet', function (Builder $q) use ($businessId) {
+            $q->where('business_id', $businessId);
+        });
+    }
+
+    public function scopeForOutlet(Builder $query, string|array $outletIds): Builder
+    {
+        $ids = array_filter((array) $outletIds);
+        if (empty($ids)) {
+            return $query;
+        }
+
+        return $query->whereIn($this->qualifyColumn('outlet_id'), $ids);
+    }
+
     public function scopeFilters(Builder $query, array $filters): void
     {
         $user = Auth::user();
 
         if ($user && $user->business_id) {
-            $query->whereHas('outlet', function (Builder $q) use ($user) {
-                $q->where('business_id', $user->business_id);
-            });
+            $query->currentBusiness($user->business_id);
         }
 
         $query->when($filters['outlet_id'] ?? SelectedOutlet::make()->currentId(), function (Builder $query, $outletId) {

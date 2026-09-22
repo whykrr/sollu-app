@@ -89,13 +89,69 @@ class ProductReportServiceTest extends TestCase
             'subtotal' => 100000,
         ]);
 
+        // Other business transaction to assert isolation
+        $otherBusiness = \App\Models\Business::create([
+            'name' => 'Other Merchant',
+            'owner_name' => 'Other Owner',
+            'email' => 'other_'.uniqid().'@test.test',
+            'phone' => '081234567891',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $otherOutlet = Outlet::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Other Outlet',
+            'is_active' => true,
+        ]);
+
+        $otherCategory = ProductCategory::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Other Category',
+        ]);
+
+        $otherProduct = Product::create([
+            'business_id' => $otherBusiness->id,
+            'product_category_id' => $otherCategory->id,
+            'name' => 'Other Product',
+            'product_type' => 'basic',
+        ]);
+
+        $otherTx = Transaction::create([
+            'outlet_id' => $otherOutlet->id,
+            'status' => 'completed',
+            'subtotal' => 999000,
+            'total' => 999000,
+            'transaction_number' => 'TRX-OTHER-1',
+            'created_at' => $now,
+        ]);
+
+        TransactionItem::create([
+            'transaction_id' => $otherTx->id,
+            'product_id' => $otherProduct->id,
+            'product_name' => 'Other Product',
+            'qty' => 10,
+            'price' => 99900,
+            'subtotal' => 999000,
+        ]);
+
         $startDate = $now->copy()->subDay();
         $endDate = $now->copy()->addDay();
 
-        $result = $this->service->getReport($outlet->id, $startDate, $endDate);
+        $result = $this->service->getReport($business->id, [$outlet->id], $startDate, $endDate);
 
-        $this->assertNotEmpty($result->items());
-        $firstItem = $result->items()[0];
+        $this->assertArrayHasKey('summary', $result);
+        $this->assertArrayHasKey('products', $result);
+
+        $summary = $result['summary'];
+        $this->assertEquals(1, $summary['total_products']);
+        $this->assertEquals(2, $summary['total_qty']);
+        $this->assertEquals(100000, $summary['total_sales']);
+
+        $products = $result['products'];
+        $this->assertNotEmpty($products->items());
+        $firstItem = $products->items()[0];
 
         $this->assertEquals('Nasi Goreng', $firstItem->product_name);
         $this->assertEquals('Food', $firstItem->category_name);

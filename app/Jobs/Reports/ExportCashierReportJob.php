@@ -22,7 +22,9 @@ class ExportCashierReportJob extends AbstractExcelExportJob
     public function getQuery()
     {
         return DB::table('shifts')
+            ->join('outlets', 'shifts.outlet_id', '=', 'outlets.id')
             ->join('users', 'shifts.user_id', '=', 'users.id')
+            ->where('outlets.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
                 $query->whereIn('shifts.outlet_id', $this->outletIds);
             })

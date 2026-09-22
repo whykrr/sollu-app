@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\App\Overview;
 
+use App\Enums\DatePresetEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class GetOverviewRequest extends BaseInertiaFormRequest
 {
@@ -23,11 +25,7 @@ class GetOverviewRequest extends BaseInertiaFormRequest
     public function rules(): array
     {
         return [
-            'period' => [
-                'nullable',
-                'string',
-                'in:today,yesterday,7_days,last_30_days,this_month,last_month,this_year,all_time,custom',
-            ],
+            'period' => ['nullable', 'string', Rule::enum(DatePresetEnum::class)],
             'outlet' => ['nullable', 'string', 'uuid'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],

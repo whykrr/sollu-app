@@ -1,135 +1,108 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Laporan Pelanggan" />
+            <MainPageHeader
+                title="Laporan Pelanggan"
+                description="Analisis retensi pelanggan, frekuensi kunjungan belanja, nilai transaksi, dan histori kedatangan"
+            />
+        </template>
+
+        <template #widgets>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                <WidgetMini
+                    :icon="faUsers"
+                    variant="main"
+                    title="Pelanggan Bertransaksi"
+                    :value="`${formatNumberID(summary?.total_unique_customers || 0)} Orang`"
+                />
+                <WidgetMini
+                    :icon="faReceipt"
+                    variant="amber"
+                    title="Total Kunjungan"
+                    :value="`${formatNumberID(summary?.total_customer_visits || 0)} Kali`"
+                />
+                <WidgetMini
+                    :icon="faMoneyBillWave"
+                    variant="success"
+                    title="Total Belanja"
+                    :value="formatIDR(summary?.total_customer_spent || 0)"
+                />
+                <WidgetMini
+                    :icon="faBasketShopping"
+                    variant="main"
+                    title="Rata-rata Transaksi (AOV)"
+                    :value="formatIDR(summary?.average_spent_per_visit || 0)"
+                />
+            </div>
         </template>
 
         <template #filter>
-            <ActionBar>
-                <template #filters>
-                    <div v-if="outletOptions.length > 1 && !selectedOutlet" class="w-48">
-                        <GroupDropdownIconField
-                            id="outlet-filter"
-                            v-model="formFilters.outlet"
-                            :icon="faStore"
-                            size="sm"
-                            :options="[{ value: '', label: 'Semua Outlet' }, ...outletOptions]"
-                            @change="applyFilters"
-                        />
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <input
-                            v-model="formFilters.start_date"
-                            type="date"
-                            class="form sm h-[30px]"
-                            @change="applyFilters"
-                        />
-                        <span class="text-slate-400 text-xs">-</span>
-                        <input
-                            v-model="formFilters.end_date"
-                            type="date"
-                            class="form sm h-[30px]"
-                            @change="applyFilters"
-                        />
-                    </div>
-                </template>
-
-                <template #tools>
-                    <ActionsDropdown label="Opsi Data" :items="actionItems" />
-                </template>
-            </ActionBar>
+            <CustomerFilter :filters="filters" />
         </template>
 
-        <div class="card card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Nama Pelanggan</th>
-                            <th>Kontak</th>
-                            <th class="text-right">Total Kunjungan</th>
-                            <th class="text-right">Total Belanja</th>
-                            <th class="text-right">Kunjungan Terakhir</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in customers.data" :key="index">
-                            <td class="font-bold">{{ item.name }}</td>
-                            <td>
-                                <div>{{ item.phone }}</div>
-                                <div class="text-sm text-muted">
-                                    {{ item.email || '-' }}
-                                </div>
-                            </td>
-                            <td class="text-right">{{ formatNumberID(item.total_visits) }}x</td>
-                            <td class="text-right font-bold text-success">
-                                {{ formatIDR(item.total_spent) }}
-                            </td>
-                            <td class="text-right">
-                                {{ formatDate(item.last_visit) }}
-                            </td>
-                        </tr>
-                        <tr v-if="customers.data.length === 0">
-                            <td colspan="5" class="text-center text-muted py-4">
-                                Tidak ada data pelanggan yang bertransaksi pada periode ini.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <Table :headers="headers" :data="customers.data" :action="false">
+            <template #name="{ row }">
+                <span class="font-medium text-xs text-neutral-900">{{ row.name }}</span>
+            </template>
+            <template #contact="{ row }">
+                <div class="flex flex-col text-xs text-neutral-600">
+                    <span>{{ row.phone || '-' }}</span>
+                    <span v-if="row.email" class="text-[11px] text-neutral-500">{{ row.email }}</span>
+                </div>
+            </template>
+            <template #total_visits="{ row }">
+                <span class="text-xs font-semibold text-neutral-800">{{ formatNumberID(row.total_visits) }} Kali</span>
+            </template>
+            <template #total_spent="{ row }">
+                <span class="text-xs font-bold text-neutral-900">{{ formatIDR(row.total_spent) }}</span>
+            </template>
+            <template #last_visit="{ row }">
+                <span class="text-xs text-neutral-600">{{ formatDate(row.last_visit) }}</span>
+            </template>
+        </Table>
+
+        <template #footer>
             <Pagination
-                class="mt-4"
                 :links="customers.links"
                 :from="customers.from"
                 :to="customers.to"
                 :total="customers.total"
                 :per-page="customers.per_page"
             />
-        </div>
+        </template>
     </MainPage>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useForm, router } from '@inertiajs/vue3'
-import { faFileExcel, faFilePdf, faStore } from '@fortawesome/free-solid-svg-icons'
+import {
+    faBasketShopping,
+    faMoneyBillWave,
+    faReceipt,
+    faUsers,
+} from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
-import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
-import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
+import WidgetMini from '@/Components/Widgets/WidgetMini.vue'
+import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
-import GroupDropdownIconField from '@/Components/Form/GroupDropdownIconField.vue'
-import { useAuth } from '@/Composable/useAuth'
+import CustomerFilter from './Components/CustomerFilter.vue'
 import { formatIDR } from '@/Composable/currency-format'
 import { formatNumberID } from '@/Composable/useNumberFormat'
 
-const props = defineProps({
-    filters: Object,
-    customers: Object,
+defineProps({
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
+    summary: {
+        type: Object,
+        default: () => ({}),
+    },
+    customers: {
+        type: Object,
+        default: () => ({ data: [] }),
+    },
 })
-
-const { outlets: userOutlets, selectedOutlet } = useAuth()
-
-const outletOptions = computed(() => {
-    if (!userOutlets.value || !Array.isArray(userOutlets.value)) return []
-    return userOutlets.value.map(store => ({
-        value: store.id,
-        label: store.name,
-    }))
-})
-
-const formFilters = useForm({
-    outlet: props.filters?.outlet ?? '',
-    start_date: props.filters?.start_date ?? '',
-    end_date: props.filters?.end_date ?? '',
-})
-
-const applyFilters = () => {
-    formFilters.get(route('reports.customers.index'), {
-        preserveState: true,
-        preserveScroll: true,
-    })
-}
 
 const formatDate = dateString => {
     if (!dateString) return '-'
@@ -141,30 +114,12 @@ const formatDate = dateString => {
     })
 }
 
-const exportPdf = () => {
-    router.post(route('reports.customers.export.pdf'), formFilters.data(), {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-const exportExcel = () => {
-    router.post(route('reports.customers.export.csv'), formFilters.data(), {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-const actionItems = computed(() => [
-    {
-        label: 'Ekspor PDF',
-        icon: faFilePdf,
-        handler: exportPdf,
-    },
-    {
-        label: 'Ekspor Excel',
-        icon: faFileExcel,
-        handler: exportExcel,
-    },
-])
+const headers = [
+    { label: 'Nama Pelanggan', field: 'name', slot: 'name' },
+    { label: 'Kontak', field: 'phone', slot: 'contact', show: 'sm' },
+    { label: 'Kunjungan', field: 'total_visits', slot: 'total_visits' },
+    { label: 'Total Belanja', field: 'total_spent', slot: 'total_spent' },
+    { label: 'Kunjungan Terakhir', field: 'last_visit', slot: 'last_visit', show: 'md' },
+]
 </script>
+

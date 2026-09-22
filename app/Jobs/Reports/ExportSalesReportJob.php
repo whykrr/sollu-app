@@ -21,20 +21,29 @@ class ExportSalesReportJob extends AbstractExcelExportJob
 
     public function getQuery()
     {
+        $driver = DB::connection()->getDriverName();
+        $dateExpr = match ($driver) {
+            'pgsql' => "to_char(transactions.created_at, 'YYYY-MM-DD')",
+            'sqlite' => "strftime('%Y-%m-%d', transactions.created_at)",
+            default => 'DATE(transactions.created_at)',
+        };
+
         return DB::table('transactions')
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
+            ->where('outlets.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
                 $query->whereIn('transactions.outlet_id', $this->outletIds);
             })
             ->where('transactions.status', 'completed')
             ->whereBetween('transactions.created_at', [$this->startDate, $this->endDate])
             ->select(
-                DB::raw('DATE(transactions.created_at) as date'),
-                DB::raw('SUM(transactions.subtotal) as gross_sales'),
-                DB::raw('SUM(transactions.discount_amount) as total_discount'),
-                DB::raw('SUM(transactions.tax_amount) as total_tax'),
-                DB::raw('SUM(transactions.total) as net_sales')
+                DB::raw("$dateExpr as date"),
+                DB::raw('COALESCE(SUM(transactions.subtotal), 0) as gross_sales'),
+                DB::raw('COALESCE(SUM(transactions.discount_amount), 0) as total_discount'),
+                DB::raw('COALESCE(SUM(transactions.tax_amount), 0) as total_tax'),
+                DB::raw('COALESCE(SUM(transactions.total), 0) as net_sales')
             )
-            ->groupBy(DB::raw('DATE(transactions.created_at)'))
+            ->groupByRaw($dateExpr)
             ->orderBy('date', 'desc');
     }
 

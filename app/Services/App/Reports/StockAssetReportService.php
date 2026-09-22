@@ -9,20 +9,47 @@ use Illuminate\Support\Facades\DB;
 class StockAssetReportService
 {
     /**
-     * Dapatkan Laporan Stok & Valuasi Aset Persediaan untuk periode tertentu.
+     * Dapatkan Laporan Lengkap Stok & Valuasi Aset Persediaan untuk periode tertentu.
+     *
+     * @param  array<string>  $outletIds
+     * @param  array<string, mixed>  $filters
+     * @return array<string, mixed>
      */
     public function getReport(
-        string|array $outletId,
+        string $businessId,
+        array $outletIds,
+        Carbon $startDate,
+        Carbon $endDate,
+        array $filters = []
+    ): array {
+        $outletIds = array_values(array_filter($outletIds));
+
+        return [
+            'summary' => $this->getValuationSummary($businessId, $outletIds, $startDate, $endDate),
+            'items' => $this->getPaginatedReport($businessId, $outletIds, $startDate, $endDate, $filters),
+        ];
+    }
+
+    /**
+     * Dapatkan data tabular terpaginasi untuk Laporan Stok & Valuasi Aset Persediaan.
+     *
+     * @param  array<string>  $outletIds
+     * @param  array<string, mixed>  $filters
+     */
+    public function getPaginatedReport(
+        string $businessId,
+        array $outletIds,
         Carbon $startDate,
         Carbon $endDate,
         array $filters = []
     ): LengthAwarePaginator {
-        $outletIds = array_filter((array) $outletId);
+        $outletIds = array_values(array_filter($outletIds));
         $perPage = (int) ($filters['perpage'] ?? 15);
         $search = $filters['search'] ?? null;
 
-        // 1. Ambil query master item persediaan
+        // 1. Ambil query master item persediaan terisolasi per business_id
         $query = DB::table('inventory_items')
+            ->where('inventory_items.business_id', $businessId)
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
                     $sub->where('inventory_items.name', 'ilike', "%{$search}%")
@@ -46,45 +73,48 @@ class StockAssetReportService
 
         // 2. Ambil saldo stok saat ini dan average_cost dari inventory_balances
         $balances = DB::table('inventory_balances')
-            ->whereIn('inventory_item_id', $itemIds)
-            ->when(! empty($outletIds), fn ($q) => $q->whereIn('outlet_id', $outletIds))
+            ->where('inventory_balances.business_id', $businessId)
+            ->whereIn('inventory_balances.inventory_item_id', $itemIds)
+            ->when(! empty($outletIds), fn ($q) => $q->whereIn('inventory_balances.outlet_id', $outletIds))
             ->select(
-                'inventory_item_id as item_id',
-                DB::raw('SUM(current_stock) as current_stock'),
-                DB::raw('AVG(average_cost) as average_cost'),
-                DB::raw('SUM(total_value) as total_value')
+                'inventory_balances.inventory_item_id as item_id',
+                DB::raw('SUM(inventory_balances.current_stock) as current_stock'),
+                DB::raw('AVG(inventory_balances.average_cost) as average_cost'),
+                DB::raw('SUM(inventory_balances.total_value) as total_value')
             )
-            ->groupBy('inventory_item_id')
+            ->groupBy('inventory_balances.inventory_item_id')
             ->get()
             ->keyBy('item_id');
 
         // 3. Ambil mutasi dalam periode [startDate, endDate]
         $movementsInPeriod = DB::table('inventory_movements')
-            ->whereIn('inventory_item_id', $itemIds)
-            ->when(! empty($outletIds), fn ($q) => $q->whereIn('outlet_id', $outletIds))
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('inventory_movements.business_id', $businessId)
+            ->whereIn('inventory_movements.inventory_item_id', $itemIds)
+            ->when(! empty($outletIds), fn ($q) => $q->whereIn('inventory_movements.outlet_id', $outletIds))
+            ->whereBetween('inventory_movements.created_at', [$startDate, $endDate])
             ->select(
-                'inventory_item_id as item_id',
-                DB::raw('SUM(CASE WHEN qty_change > 0 THEN qty_change ELSE 0 END) as qty_in'),
-                DB::raw('SUM(CASE WHEN qty_change < 0 THEN ABS(qty_change) ELSE 0 END) as qty_out'),
-                DB::raw('SUM(CASE WHEN qty_change > 0 THEN total_cost ELSE 0 END) as cost_in'),
-                DB::raw('SUM(CASE WHEN qty_change < 0 THEN total_cost ELSE 0 END) as cost_out')
+                'inventory_movements.inventory_item_id as item_id',
+                DB::raw('SUM(CASE WHEN inventory_movements.qty_change > 0 THEN inventory_movements.qty_change ELSE 0 END) as qty_in'),
+                DB::raw('SUM(CASE WHEN inventory_movements.qty_change < 0 THEN ABS(inventory_movements.qty_change) ELSE 0 END) as qty_out'),
+                DB::raw('SUM(CASE WHEN inventory_movements.qty_change > 0 THEN inventory_movements.total_cost ELSE 0 END) as cost_in'),
+                DB::raw('SUM(CASE WHEN inventory_movements.qty_change < 0 THEN inventory_movements.total_cost ELSE 0 END) as cost_out')
             )
-            ->groupBy('inventory_item_id')
+            ->groupBy('inventory_movements.inventory_item_id')
             ->get()
             ->keyBy('item_id');
 
         // 4. Ambil mutasi setelah periode (> endDate) untuk rekonstruksi saldo akhir tepat pada endDate
         $movementsAfterPeriod = DB::table('inventory_movements')
-            ->whereIn('inventory_item_id', $itemIds)
-            ->when(! empty($outletIds), fn ($q) => $q->whereIn('outlet_id', $outletIds))
-            ->where('created_at', '>', $endDate)
+            ->where('inventory_movements.business_id', $businessId)
+            ->whereIn('inventory_movements.inventory_item_id', $itemIds)
+            ->when(! empty($outletIds), fn ($q) => $q->whereIn('inventory_movements.outlet_id', $outletIds))
+            ->where('inventory_movements.created_at', '>', $endDate)
             ->select(
-                'inventory_item_id as item_id',
-                DB::raw('SUM(qty_change) as net_change_after'),
-                DB::raw('SUM(CASE WHEN qty_change > 0 THEN total_cost ELSE -total_cost END) as net_cost_after')
+                'inventory_movements.inventory_item_id as item_id',
+                DB::raw('SUM(inventory_movements.qty_change) as net_change_after'),
+                DB::raw('SUM(CASE WHEN inventory_movements.qty_change > 0 THEN inventory_movements.total_cost ELSE -inventory_movements.total_cost END) as net_cost_after')
             )
-            ->groupBy('inventory_item_id')
+            ->groupBy('inventory_movements.inventory_item_id')
             ->get()
             ->keyBy('item_id');
 
@@ -115,10 +145,10 @@ class StockAssetReportService
             $startingAssetValue = max(0, $startingStock * $avgCost);
 
             return (object) [
-                'item_id' => $item->item_id,
-                'item_name' => $item->item_name,
-                'sku' => $item->sku,
-                'item_type' => $item->item_type,
+                'item_id' => (string) $item->item_id,
+                'item_name' => (string) $item->item_name,
+                'sku' => (string) $item->sku,
+                'item_type' => (string) $item->item_type,
                 'starting_stock' => (float) $startingStock,
                 'stock_in' => (float) $qtyIn,
                 'stock_out' => (float) $qtyOut,
@@ -136,31 +166,37 @@ class StockAssetReportService
 
     /**
      * Dapatkan ringkasan total nilai aset persediaan (Summary KPIs).
+     *
+     * @param  array<string>  $outletIds
+     * @return array<string, float|int>
      */
     public function getValuationSummary(
-        string|array $outletId,
+        string $businessId,
+        array $outletIds,
         Carbon $startDate,
         Carbon $endDate
     ): array {
-        $outletIds = array_filter((array) $outletId);
+        $outletIds = array_values(array_filter($outletIds));
 
         $balances = DB::table('inventory_balances')
-            ->when(! empty($outletIds), fn ($q) => $q->whereIn('outlet_id', $outletIds))
+            ->where('inventory_balances.business_id', $businessId)
+            ->when(! empty($outletIds), fn ($q) => $q->whereIn('inventory_balances.outlet_id', $outletIds))
             ->select(
-                DB::raw('COUNT(DISTINCT inventory_item_id) as total_items'),
-                DB::raw('SUM(current_stock) as total_current_stock'),
-                DB::raw('SUM(total_value) as total_current_value')
+                DB::raw('COUNT(DISTINCT inventory_balances.inventory_item_id) as total_items'),
+                DB::raw('SUM(inventory_balances.current_stock) as total_current_stock'),
+                DB::raw('SUM(inventory_balances.total_value) as total_current_value')
             )
             ->first();
 
         $movements = DB::table('inventory_movements')
-            ->when(! empty($outletIds), fn ($q) => $q->whereIn('outlet_id', $outletIds))
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('inventory_movements.business_id', $businessId)
+            ->when(! empty($outletIds), fn ($q) => $q->whereIn('inventory_movements.outlet_id', $outletIds))
+            ->whereBetween('inventory_movements.created_at', [$startDate, $endDate])
             ->select(
-                DB::raw('SUM(CASE WHEN qty_change > 0 THEN qty_change ELSE 0 END) as total_qty_in'),
-                DB::raw('SUM(CASE WHEN qty_change < 0 THEN ABS(qty_change) ELSE 0 END) as total_qty_out'),
-                DB::raw('SUM(CASE WHEN qty_change > 0 THEN total_cost ELSE 0 END) as total_cost_in'),
-                DB::raw('SUM(CASE WHEN qty_change < 0 THEN total_cost ELSE 0 END) as total_cost_out')
+                DB::raw('SUM(CASE WHEN inventory_movements.qty_change > 0 THEN inventory_movements.qty_change ELSE 0 END) as total_qty_in'),
+                DB::raw('SUM(CASE WHEN inventory_movements.qty_change < 0 THEN ABS(inventory_movements.qty_change) ELSE 0 END) as total_qty_out'),
+                DB::raw('SUM(CASE WHEN inventory_movements.qty_change > 0 THEN inventory_movements.total_cost ELSE 0 END) as total_cost_in'),
+                DB::raw('SUM(CASE WHEN inventory_movements.qty_change < 0 THEN inventory_movements.total_cost ELSE 0 END) as total_cost_out')
             )
             ->first();
 

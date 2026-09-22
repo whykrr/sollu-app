@@ -151,7 +151,7 @@ class ProfitLossReportServiceTest extends TestCase
         $startDate = $now->copy()->startOfDay();
         $endDate = $now->copy()->endOfDay();
 
-        $report = $this->service->getReport($this->outlet->id, $startDate, $endDate);
+        $report = $this->service->getReport($this->business->id, [$this->outlet->id], $startDate, $endDate);
 
         $summary = $report['summary'];
 

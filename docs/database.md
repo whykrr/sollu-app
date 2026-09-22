@@ -35,6 +35,14 @@ Sollu App menerapkan strategi **Logical Multi-Tenancy (Row-Level Isolation)** di
 3. **Foreign Key Integrity:** Seluruh relasi di database diamankan dengan Foreign Key constraint ke tabel induk (`businesses` atau `outlets`) dengan aturan `onDelete('cascade')` atau `onDelete('restrict')`.
 4. **Primary Key Standard:** Menggunakan string UUID v4 via trait `Illuminate\Database\Eloquent\Concerns\HasUuids`.
 
+### 1.2. Kebijakan Isolasi Data Universal Lintas Layer (Universal Multi-Tenancy Policy)
+Isolasi data bukan hanya berlaku di layer pelaporan, melainkan wajib diterapkan secara ketat di **SEMUA layer aplikasi**:
+1. **Layer Model (`App\Models`):** Seluruh model entitas tenant WAJIB mengimplementasikan trait `App\Trait\HasBusiness` (`scopeCurrentBusiness(?string $businessId = null)`) dan/atau `App\Trait\HasOutlet` (`scopeSelectedOutlet()`, `scopeForOutlet($outletIds)`).
+2. **Layer Service & Repository:** Seluruh pemanggilan Eloquent Query Builder, agregasi analitik, atau DB query WAJIB diawali dengan `scopeCurrentBusiness()` atau klausa `where('business_id', $businessId)` serta pembatasan outlet yang diizinkan (`whereIn('outlet_id', $accessibleOutletIds)`). DILARANG KERAS mengeksekusi `DB::table(...)` tanpa filter tenant bisnis.
+3. **Layer Controller & Form Request:** Form Request wajib memvalidasi kepemilikan tenant atas data yang diinput/diakses (misal: validasi `exists` dengan scope `business_id`), serta mengotorisasi hak akses peran (`PermissionEnum`).
+4. **Layer Background Jobs (Queue):** Seluruh Job (Export CSV/Excel, Export PDF, Data Sync, Notifikasi) wajib membawa konteks tenant (`User $user` atau `business_id`) dan menyertakan filter `scopeCurrentBusiness($businessId)` pada query-nya.
+5. **Layer Analytics, Overview & Pelaporan:** Seluruh kalkulasi metrik, tren penjualan, valuasi stok, dan laporan berkala wajib memisahkan data agregasi KPI dari data tabular detail serta terisolasi 100% per tenant dan per outlet yang diizinkan.
+
 ---
 
 ## 2. Model Standards & Conventions (Laravel 11 & PHP 8.3)

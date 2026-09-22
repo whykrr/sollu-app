@@ -23,8 +23,11 @@ class ExportProductReportJob extends AbstractExcelExportJob
     {
         return DB::table('transaction_items')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
             ->join('products', 'transaction_items.product_id', '=', 'products.id')
             ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
+            ->where('outlets.business_id', $this->user->business_id)
+            ->where('products.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
                 $query->whereIn('transactions.outlet_id', $this->outletIds);
             })
@@ -33,8 +36,8 @@ class ExportProductReportJob extends AbstractExcelExportJob
             ->select(
                 'products.name as product_name',
                 'product_categories.name as category_name',
-                DB::raw('SUM(transaction_items.qty) as total_qty'),
-                DB::raw('SUM(transaction_items.subtotal) as total_sales')
+                DB::raw('COALESCE(SUM(transaction_items.qty), 0) as total_qty'),
+                DB::raw('COALESCE(SUM(transaction_items.subtotal), 0) as total_sales')
             )
             ->groupBy('products.id', 'products.name', 'product_categories.name')
             ->orderByDesc('total_qty');
