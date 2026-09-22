@@ -1,34 +1,37 @@
 <template>
     <div>
-        <form class="space-y-2" @submit.prevent="submit">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div
-                    v-if="!selectedOutlet && outletOptions.length > 1"
-                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
-                >
-                    <SelectionGroupField
+        <form class="space-y-3" @submit.prevent="submit">
+            <div
+                class="grid grid-cols-1 md:grid-cols-2 gap-2"
+                :class="{ '!grid-cols-1': !(userOutlets.length > 1 && !selectedOutlet) }"
+            >
+                <!-- Pilihan Outlet Asal: HANYA jika userOutlets > 1 DAN tidak ada selectedOutlet aktif di sidebar -->
+                <div v-if="userOutlets.length > 1 && !selectedOutlet">
+                    <SearchableDropdownField
                         id="from_outlet_id"
                         v-model="form.from_outlet_id"
-                        label="Dari Outlet"
-                        :options="outletOptions"
+                        label="Dari Outlet (Asal)"
+                        placeholder="Pilih Outlet Asal..."
+                        search-placeholder="Cari outlet..."
+                        :options="fromOutletOptions"
                         :error="form.errors.from_outlet_id"
                         :disabled="form.items.length > 0 && form.from_outlet_id !== ''"
-                        name="from_outlet_id"
-                        class="sm btn-sm"
+                        required
                     />
                 </div>
-                <div
-                    class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl space-y-2"
-                    :class="{ 'md:col-span-2': selectedOutlet || outletOptions.length <= 1 }"
-                >
-                    <SelectionGroupField
+
+                <!-- Pilihan Outlet Tujuan -->
+                <div>
+                    <SearchableDropdownField
                         id="to_outlet_id"
                         v-model="form.to_outlet_id"
-                        label="Ke Outlet"
+                        label="Ke Outlet (Tujuan)"
+                        placeholder="Pilih Outlet Tujuan..."
+                        search-placeholder="Cari outlet..."
                         :options="toOutletOptions"
                         :error="form.errors.to_outlet_id"
-                        name="to_outlet_id"
-                        class="sm btn-sm"
+                        :disabled="!form.from_outlet_id"
+                        required
                     />
                 </div>
             </div>
@@ -36,141 +39,223 @@
             <TextareaField
                 id="notes"
                 v-model="form.notes"
-                label="Catatan Transfer"
+                label="Catatan Mutasi (Opsional)"
+                placeholder="Tambahkan catatan mengenai mutasi/perpindahan barang ini..."
                 :class="{ 'is-invalid': form.errors.notes }"
                 :error="form.errors.notes"
+                rows="2"
             />
 
-            <div class="mt-2 border-t pt-2">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold">Item yang Ditransfer</h3>
-                    <div class="flex gap-2 items-end">
-                        <div class="w-72">
-                            <AsyncSelectField
-                                id="search_item"
-                                label="Cari Item (Min. 3 huruf)"
-                                placeholder="Cari nama, SKU, barcode..."
-                                class="sm"
-                                :api-url="route('api.internal.inventory-items.search')"
-                                :api-params="{
-                                    outlet_id: form.from_outlet_id,
-                                }"
-                                :min-chars="3"
-                                :disabled="!form.from_outlet_id"
-                                @select="addItemFromSearch"
-                            >
-                                <template #option="{ item }">
-                                    <div class="flex justify-between items-center w-full">
-                                        <div>
-                                            <div class="font-semibold text-sm">
-                                                {{ item.name }}
-                                            </div>
-                                            <div class="text-xs text-gray-500">
-                                                SKU: {{ item.sku || '-' }}
-                                            </div>
+            <div class="border-t border-slate-200 pt-3 space-y-2">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800">Daftar Barang Mutasi</h3>
+                        <p class="text-xs text-slate-500">
+                            Cari dan tambahkan barang yang ingin dipindahkan ke outlet tujuan.
+                        </p>
+                    </div>
+                    <div class="w-full sm:w-80">
+                        <AsyncSelectField
+                            id="search_item"
+                            label="Cari Barang"
+                            placeholder="Cari nama, SKU, atau barcode..."
+                            class="sm"
+                            :api-url="route('api.internal.inventory-items.search')"
+                            :api-params="{
+                                outlet_id: form.from_outlet_id,
+                            }"
+                            :min-chars="2"
+                            :disabled="!form.from_outlet_id"
+                            @select="addItemFromSearch"
+                        >
+                            <template #option="{ item }">
+                                <div class="flex items-center justify-between w-full">
+                                    <div>
+                                        <div class="font-semibold text-xs text-slate-800">
+                                            {{ item.name }}
                                         </div>
-                                        <div class="text-right text-xs">
-                                            <div>
-                                                Sistem:
-                                                {{ Number(item.current_stock) }}
-                                                {{ item.uom?.name }}
-                                            </div>
+                                        <div class="text-[11px] text-slate-400">
+                                            SKU: {{ item.sku || '-' }}
                                         </div>
                                     </div>
-                                </template>
-                            </AsyncSelectField>
-                        </div>
+                                    <div class="text-right text-[11px] text-slate-500">
+                                        Stok:
+                                        <span class="font-medium text-slate-700">
+                                            {{ Number(item.current_stock ?? 0) }}
+                                        </span>
+                                        {{ item.uom?.name || '' }}
+                                    </div>
+                                </div>
+                            </template>
+                        </AsyncSelectField>
                     </div>
                 </div>
 
+                <div v-if="form.errors.items" class="text-danger text-xs mb-1">
+                    {{ form.errors.items }}
+                </div>
+
+                <!-- Petunjuk Jika Outlet Belum Terpilih -->
                 <div
                     v-if="!form.from_outlet_id"
-                    class="text-center py-6 text-gray-500 border border-dashed rounded-lg"
+                    class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
                 >
-                    Silakan pilih "Dari Outlet" terlebih dahulu untuk mencari atau memuat stok item.
-                </div>
-                <div
-                    v-else-if="form.items.length === 0"
-                    class="text-center py-6 text-gray-500 border border-dashed rounded-lg"
-                >
-                    Belum ada item ditambahkan. Silakan cari atau muat item.
+                    Pilih outlet asal terlebih dahulu untuk mencari barang inventori.
                 </div>
 
-                <div v-else class="space-y-2 max-h-96 overflow-y-auto mt-2">
+                <!-- Empty State Jika Belum Ada Item -->
+                <div
+                    v-else-if="form.items.length === 0"
+                    class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
+                >
+                    Belum ada barang ditambahkan. Silakan cari dan pilih barang pada kolom pencarian
+                    di atas.
+                </div>
+
+                <!-- Daftar Item Mutasi -->
+                <div v-else class="space-y-2 max-h-96 overflow-y-auto pr-1">
                     <div
                         v-for="(item, index) in form.items"
-                        :key="item.inventory_item_id"
-                        class="flex gap-2 items-center border p-2 rounded-lg bg-white"
+                        :key="item.inventory_item_id || index"
+                        class="p-3 border border-slate-200 rounded-lg bg-white space-y-2"
                     >
-                        <div class="w-8 text-center text-gray-500 font-bold">
-                            {{ index + 1 }}
-                        </div>
-                        <div class="flex-1">
-                            <div class="font-semibold">{{ item.name }}</div>
-                            <div class="text-sm text-gray-500">
-                                SKU: {{ item.sku }} | Satuan: {{ item.uom }}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="text-xs font-bold text-slate-400 w-5 text-center">
+                                    {{ index + 1 }}.
+                                </span>
+                                <div class="min-w-0">
+                                    <div class="font-bold text-xs text-slate-800 truncate">
+                                        {{ item.name }}
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 truncate">
+                                        SKU: {{ item.sku || '-' }} | Satuan:
+                                        <span class="font-medium text-slate-600">{{
+                                            item.uom || '-'
+                                        }}</span>
+                                    </div>
+                                </div>
                             </div>
+
+                            <button
+                                type="button"
+                                class="btn btn-flat btn-sm text-danger h-7 w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                                title="Hapus item"
+                                @click="removeItem(index)"
+                            >
+                                <FontAwesomeIcon :icon="faTrash" />
+                            </button>
                         </div>
-                        <div class="w-32">
-                            <div class="text-xs text-gray-500 text-center">Stok Saat Ini</div>
-                            <div class="text-center font-semibold bg-gray-100 py-1 rounded">
-                                {{ item.system_qty }}
-                            </div>
-                        </div>
-                        <div class="w-40">
-                            <NumberField
-                                v-model="item.qty"
-                                type="number"
-                                label="Kuantitas Transfer"
-                                min="0.01"
-                                step="any"
-                                :class="{
-                                    'is-invalid': form.errors[`items.${index}.qty`],
-                                }"
-                                :error="form.errors[`items.${index}.qty`]"
-                            />
-                        </div>
-                        <button
-                            type="button"
-                            class="btn btn-highlight-danger"
-                            title="Hapus"
-                            @click="removeItem(index)"
+
+                        <!-- Baris Input Kuantitas Transfer -->
+                        <div
+                            class="grid grid-cols-12 gap-2 pt-1 border-t border-slate-100 items-start"
                         >
-                            <FontAwesomeIcon :icon="faTrash"></FontAwesomeIcon>
-                        </button>
+                            <div class="col-span-12 sm:col-span-6">
+                                <NumberField
+                                    :id="'qty_' + index"
+                                    v-model="item.qty"
+                                    label="Kuantitas Transfer"
+                                    placeholder="Misal: 10"
+                                    min="0.01"
+                                    step="any"
+                                    class="sm"
+                                    :class="{
+                                        'is-invalid': form.errors[`items.${index}.qty`],
+                                    }"
+                                    :error="form.errors[`items.${index}.qty`]"
+                                    required
+                                />
+                            </div>
+
+                            <div class="col-span-12 sm:col-span-6">
+                                <div class="text-xs font-semibold text-slate-700 mb-1">
+                                    Stok Saat Ini (Asal)
+                                </div>
+                                <div
+                                    class="h-[30px] flex items-center px-2.5 bg-slate-100 border border-slate-200 rounded text-xs font-semibold text-slate-700"
+                                >
+                                    {{ item.system_qty }} {{ item.uom }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real-time calculation bar -->
+                        <div
+                            class="flex items-center justify-between pt-1 border-t border-dashed border-slate-100 text-[11px] bg-slate-50/50 p-2 rounded"
+                        >
+                            <div class="text-slate-500">
+                                Stok Asal Sekarang:
+                                <span class="font-bold text-slate-700">
+                                    {{ item.system_qty }} {{ item.uom }}
+                                </span>
+                            </div>
+
+                            <div class="text-right">
+                                Sisa Stok Asal:
+                                <span
+                                    class="font-bold ml-1"
+                                    :class="
+                                        Number(item.system_qty || 0) - Number(item.qty || 0) < 0
+                                            ? 'text-danger'
+                                            : 'text-emerald-600'
+                                    "
+                                >
+                                    {{
+                                        (Number(item.system_qty || 0) - Number(item.qty || 0))
+                                            .toFixed(2)
+                                            .replace(/\.00$/, '')
+                                    }}
+                                    {{ item.uom }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div v-if="form.errors.items" class="text-danger text-sm mt-2">
-                    {{ form.errors.items }}
+                <!-- Ringkasan Total Mutasi -->
+                <div
+                    v-if="form.items.length > 0"
+                    class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg mt-2"
+                >
+                    <div>
+                        <div class="text-xs text-slate-500">Total Barang:</div>
+                        <div class="font-bold text-xs text-slate-800">
+                            {{ form.items.length }} Item
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-500">Total Kuantitas Transfer:</div>
+                        <div class="font-bold text-sm text-slate-800">
+                            {{ totalQtyTransfer }} Unit
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <div class="flex justify-between w-full">
-                <div class="text-gray-500 pt-2 font-medium">
-                    Total Item: {{ form.items.length }}
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        type="button"
-                        class="btn btn-flat"
-                        :disabled="form.processing"
-                        @click="handleCancel"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-main"
-                        :disabled="form.processing || form.items.length === 0"
-                        @click="submit"
-                    >
-                        {{ isEdit ? 'Simpan Perubahan' : 'Simpan Permintaan' }}
-                    </button>
-                </div>
-            </div>
+            <button
+                type="button"
+                class="btn btn-flat"
+                :disabled="form.processing"
+                @click="handleCancel"
+            >
+                Batal
+            </button>
+            <button
+                type="button"
+                class="btn btn-main"
+                :disabled="
+                    form.processing ||
+                    form.items.length === 0 ||
+                    !form.from_outlet_id ||
+                    !form.to_outlet_id
+                "
+                @click="submit"
+            >
+                {{ isEdit ? 'Simpan Perubahan' : 'Simpan sebagai Draf' }}
+            </button>
         </Teleport>
     </div>
 </template>
@@ -178,26 +263,30 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
-import { useAuth } from '@/Composable/useAuth'
-import NumberField from '@/Components/Form/NumberField.vue'
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
-import TextareaField from '@/Components/Form/TextareaField.vue'
-import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
+import { useAuth } from '@/Composable/useAuth'
+import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
+import TextareaField from '@/Components/Form/TextareaField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
+import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
 
 const props = defineProps({
-    outlets: Array,
-    transferData: Object, // For editing
+    transferData: {
+        type: Object,
+        default: null,
+    },
 })
 
 const emit = defineEmits(['refresh'])
-const { selectedOutlet } = useAuth()
+const { outlets: userOutlets, selectedOutlet } = useAuth()
 const isMounted = ref(false)
 
 const form = useForm({
-    from_outlet_id: '',
+    from_outlet_id:
+        selectedOutlet.value?.id ||
+        (userOutlets.value?.length === 1 ? userOutlets.value[0].id : ''),
     to_outlet_id: '',
     notes: '',
     items: [],
@@ -207,54 +296,59 @@ const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 const isEdit = computed(() => !!props.transferData)
 
-const outletOptions = computed(() => {
-    return (props.outlets || []).map(o => ({
-        label: o.is_stock_frozen ? `${o.name} (Dibekukan)` : o.name,
-        value: o.id,
-        disabled: o.is_stock_frozen,
+const fromOutletOptions = computed(() =>
+    (userOutlets.value || []).map(store => ({
+        label: store.name,
+        value: String(store.id),
     }))
-})
+)
 
-const toOutletOptions = computed(() => {
-    return (props.outlets || [])
-        .filter(o => o.id !== form.from_outlet_id)
-        .map(o => ({
-            label: o.is_stock_frozen ? `${o.name} (Dibekukan)` : o.name,
-            value: o.id,
-            disabled: o.is_stock_frozen,
+const toOutletOptions = computed(() =>
+    (userOutlets.value || [])
+        .filter(store => String(store.id) !== String(form.from_outlet_id))
+        .map(store => ({
+            label: store.name,
+            value: String(store.id),
         }))
+)
+
+const totalQtyTransfer = computed(() => {
+    const total = form.items.reduce((sum, item) => sum + Number(item.qty || 0), 0)
+    return total.toFixed(2).replace(/\.00$/, '')
 })
 
 watch(
     () => form.from_outlet_id,
-    newVal => {
-        if (!newVal) {
+    (newVal, oldVal) => {
+        if (oldVal && newVal !== oldVal) {
             form.items = []
+            if (form.to_outlet_id === newVal) {
+                form.to_outlet_id = ''
+            }
         }
     }
 )
 
 onMounted(() => {
     isMounted.value = true
-    form.reset()
     form.clearErrors()
 
     if (props.transferData) {
         form.from_outlet_id = props.transferData.from_outlet_id
+            ? String(props.transferData.from_outlet_id)
+            : ''
         form.to_outlet_id = props.transferData.to_outlet_id
-        form.notes = props.transferData.notes
-        form.items = props.transferData.items.map(i => ({
+            ? String(props.transferData.to_outlet_id)
+            : ''
+        form.notes = props.transferData.notes || ''
+        form.items = (props.transferData.items || []).map(i => ({
             inventory_item_id: i.inventory_item_id,
-            name: i.inventory_item?.name || '-',
-            sku: i.inventory_item?.sku || '-',
-            uom: i.inventory_item?.uom?.name || '-',
-            system_qty: i.current_stock || 0, // Ideally fetched from backend, but fallback to 0
-            qty: i.qty,
+            name: i.inventory_item?.name || i.inventoryItem?.name || '-',
+            sku: i.inventory_item?.sku || i.inventoryItem?.sku || '-',
+            uom: i.inventory_item?.uom?.name || i.inventoryItem?.uom?.name || '-',
+            system_qty: Number(i.current_stock ?? 0),
+            qty: Number(i.qty ?? 1),
         }))
-    } else if (selectedOutlet.value) {
-        form.from_outlet_id = selectedOutlet.value.id
-    } else if (props.outlets && props.outlets.length === 1) {
-        form.from_outlet_id = props.outlets[0].id
     }
 })
 
@@ -266,8 +360,8 @@ const addItemFromSearch = item => {
             name: item.name,
             sku: item.sku || '-',
             uom: item.uom?.name || '-',
-            system_qty: item.current_stock || 0,
-            qty: 1, // Default qty to transfer
+            system_qty: Number(item.current_stock ?? 0),
+            qty: 1,
         })
     }
 }
@@ -280,6 +374,7 @@ const submit = () => {
     if (isEdit.value) {
         form.put(route('inventory.transfers.update', props.transferData.id), {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: () => {
                 forceClose()
                 emit('refresh')
@@ -288,6 +383,7 @@ const submit = () => {
     } else {
         form.post(route('inventory.transfers.store'), {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: () => {
                 forceClose()
                 emit('refresh')

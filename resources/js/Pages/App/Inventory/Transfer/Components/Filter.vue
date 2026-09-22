@@ -1,6 +1,14 @@
 <template>
     <ActionBar>
         <template #filters>
+            <!-- Date Preset & Range -->
+            <FilterPresetDate
+                v-model="filterForm.preset"
+                v-model:start-date="filterForm.date_from"
+                v-model:end-date="filterForm.date_to"
+                @change="updateQuery"
+            />
+
             <!-- Status Filter -->
             <FilterDropdown
                 v-model="filterForm.status"
@@ -43,13 +51,13 @@
 
         <template #create>
             <button
-                v-if="canCreate"
+                v-if="can('inventory.transfer.create')"
                 type="button"
                 class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
                 @click="$emit('create')"
             >
-                <FontAwesomeIcon :icon="faPlus" />
-                <span>Buat Mutasi Stok</span>
+                <FontAwesomeIcon :icon="faPlus" class="text-xs" />
+                <span>Mutasi Baru</span>
             </button>
         </template>
     </ActionBar>
@@ -62,7 +70,9 @@ import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faPlus, faStore } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
+import { useEnum } from '@/Composable/useEnum'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
+import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 
@@ -73,13 +83,11 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
-    canCreate: {
-        type: Boolean,
-        default: true,
-    },
 })
 
-const { outlets: userOutlets, selectedOutlet } = useAuth()
+const { outlets: userOutlets, selectedOutlet, can } = useAuth()
+const { getOptions } = useEnum()
+
 const outletOptions = computed(() =>
     (userOutlets.value || []).map(store => ({
         value: String(store.id),
@@ -87,15 +95,12 @@ const outletOptions = computed(() =>
     }))
 )
 
-const statusOptions = [
-    { value: 'pending', label: 'Menunggu' },
-    { value: 'approved', label: 'Disetujui' },
-    { value: 'in_transit', label: 'Dalam Perjalanan' },
-    { value: 'completed', label: 'Selesai' },
-    { value: 'rejected', label: 'Ditolak' },
-]
+const statusOptions = computed(() => getOptions('StockTransferStatus'))
 
 const filterForm = reactive({
+    preset: props.filters?.preset || 'this_month',
+    date_from: props.filters?.date_from || '',
+    date_to: props.filters?.date_to || '',
     search: props.filters?.search ?? '',
     status: props.filters?.status ?? '',
     from_outlet_id: props.filters?.from_outlet_id ? String(props.filters.from_outlet_id) : '',
@@ -107,12 +112,15 @@ watch(
     () => filterForm.search,
     debounce(() => {
         updateQuery()
-    }, 500)
+    }, 400)
 )
 
 const updateQuery = () => {
     const query = {
         ...route().params,
+        preset: filterForm.preset !== 'this_month' ? filterForm.preset : undefined,
+        date_from: filterForm.date_from || undefined,
+        date_to: filterForm.date_to || undefined,
         search: filterForm.search || undefined,
         status: filterForm.status !== '' ? filterForm.status : undefined,
         from_outlet_id: filterForm.from_outlet_id !== '' ? filterForm.from_outlet_id : undefined,
@@ -120,7 +128,7 @@ const updateQuery = () => {
         page: 1,
     }
 
-    router.get(window.location.pathname, query, {
+    router.get(route('inventory.transfers.index'), query, {
         preserveState: true,
         preserveScroll: true,
     })

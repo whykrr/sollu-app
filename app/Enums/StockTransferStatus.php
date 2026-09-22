@@ -24,11 +24,11 @@ enum StockTransferStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::Pending => 'warning',
-            self::Approved => 'info',
-            self::InTransit => 'purple',
-            self::Completed => 'success',
-            self::Rejected => 'danger',
+            self::Pending => 'badge-warning',
+            self::Approved => 'badge-info',
+            self::InTransit => 'badge-purple',
+            self::Completed => 'badge-success',
+            self::Rejected => 'badge-danger',
         };
     }
 }

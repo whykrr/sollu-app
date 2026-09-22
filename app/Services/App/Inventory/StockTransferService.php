@@ -21,14 +21,24 @@ class StockTransferService
     public function createTransfer(array $data, User $creator): StockTransfer
     {
         return DB::transaction(function () use ($data, $creator) {
+            $fromOutlet = \App\Models\Outlet::find($data['from_outlet_id'] ?? null);
+            if ($fromOutlet) {
+                $this->stockFreezeService->assertNotFrozen($fromOutlet);
+            }
+            $toOutlet = \App\Models\Outlet::find($data['to_outlet_id'] ?? null);
+            if ($toOutlet) {
+                $this->stockFreezeService->assertNotFrozen($toOutlet);
+            }
+
             $data['business_id'] = $creator->business_id;
             $data['requested_by'] = $creator->id;
 
             $count = StockTransfer::where('business_id', $creator->business_id)
+                ->whereYear('created_at', now()->year)
                 ->whereMonth('created_at', now()->month)
                 ->count();
             $data['transfer_number'] = 'TF-'.now()->format('Ym').'-'.str_pad($count + 1, 3, '0', STR_PAD_LEFT);
-            $data['status'] = StockTransferStatus::Pending->value;
+            $data['status'] = StockTransferStatus::Pending;
 
             $transfer = StockTransfer::create($data);
 
@@ -54,8 +64,20 @@ class StockTransferService
     public function updateTransfer(StockTransfer $transfer, array $data): StockTransfer
     {
         return DB::transaction(function () use ($transfer, $data) {
-            if ($transfer->status !== StockTransferStatus::Pending->value) {
+            if ($transfer->status !== StockTransferStatus::Pending) {
                 abort(403, 'Hanya transfer berstatus Menunggu yang dapat diubah.');
+            }
+
+            $fromOutletId = $data['from_outlet_id'] ?? $transfer->from_outlet_id;
+            $toOutletId = $data['to_outlet_id'] ?? $transfer->to_outlet_id;
+
+            $fromOutlet = \App\Models\Outlet::find($fromOutletId);
+            if ($fromOutlet) {
+                $this->stockFreezeService->assertNotFrozen($fromOutlet);
+            }
+            $toOutlet = \App\Models\Outlet::find($toOutletId);
+            if ($toOutlet) {
+                $this->stockFreezeService->assertNotFrozen($toOutlet);
             }
 
             $transfer->update($data);
@@ -78,7 +100,7 @@ class StockTransferService
     public function approveTransfer(StockTransfer $transfer, User $approver): StockTransfer
     {
         return DB::transaction(function () use ($transfer, $approver) {
-            if ($transfer->status !== StockTransferStatus::Pending->value) {
+            if ($transfer->status !== StockTransferStatus::Pending) {
                 abort(403, 'Hanya transfer berstatus Menunggu yang dapat disetujui.');
             }
 
@@ -88,7 +110,7 @@ class StockTransferService
             $this->stockFreezeService->assertNotFrozen($transfer->toOutlet);
 
             $transfer->update([
-                'status' => StockTransferStatus::Approved->value,
+                'status' => StockTransferStatus::Approved,
                 'approved_by' => $approver->id,
             ]);
 
@@ -106,12 +128,12 @@ class StockTransferService
     public function rejectTransfer(StockTransfer $transfer, array $data, User $rejecter): StockTransfer
     {
         return DB::transaction(function () use ($transfer, $data, $rejecter) {
-            if ($transfer->status !== StockTransferStatus::Pending->value) {
+            if ($transfer->status !== StockTransferStatus::Pending) {
                 abort(403, 'Hanya transfer berstatus Menunggu yang dapat ditolak.');
             }
 
             $transfer->update([
-                'status' => StockTransferStatus::Rejected->value,
+                'status' => StockTransferStatus::Rejected,
                 'notes' => $data['notes'] ?? $transfer->notes,
             ]);
 
@@ -129,14 +151,14 @@ class StockTransferService
     public function shipTransfer(StockTransfer $transfer, User $shipper): StockTransfer
     {
         return DB::transaction(function () use ($transfer, $shipper) {
-            if ($transfer->status !== StockTransferStatus::Approved->value) {
+            if ($transfer->status !== StockTransferStatus::Approved) {
                 abort(403, 'Hanya transfer berstatus Disetujui yang dapat dikirim.');
             }
 
             $this->stockFreezeService->assertNotFrozen($transfer->fromOutlet);
 
             $transfer->update([
-                'status' => StockTransferStatus::InTransit->value,
+                'status' => StockTransferStatus::InTransit,
             ]);
 
             $this->activityLogService->log(
@@ -153,7 +175,7 @@ class StockTransferService
     public function completeTransfer(StockTransfer $transfer, array $receivedData, User $receiver): StockTransfer
     {
         return DB::transaction(function () use ($transfer, $receivedData, $receiver) {
-            if ($transfer->status !== StockTransferStatus::InTransit->value) {
+            if ($transfer->status !== StockTransferStatus::InTransit) {
                 abort(403, 'Hanya transfer berstatus Dalam Perjalanan yang dapat diterima.');
             }
 
@@ -210,7 +232,7 @@ class StockTransferService
                 }
             }
 
-            $transfer->status = StockTransferStatus::Completed->value;
+            $transfer->status = StockTransferStatus::Completed;
             $transfer->received_by = $receiver->id;
             $transfer->save();
 

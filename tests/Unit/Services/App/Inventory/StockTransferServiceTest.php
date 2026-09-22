@@ -120,7 +120,7 @@ class StockTransferServiceTest extends TestCase
         $transfer = $this->service->createTransfer($data, $user);
 
         $this->assertInstanceOf(StockTransfer::class, $transfer);
-        $this->assertEquals(StockTransferStatus::Pending->value, $transfer->status);
+        $this->assertEquals(StockTransferStatus::Pending, $transfer->status);
         $this->assertCount(1, $transfer->items);
         $this->assertStringStartsWith('TF-', $transfer->transfer_number);
     }
@@ -196,7 +196,7 @@ class StockTransferServiceTest extends TestCase
         ], $requester);
 
         $approved = $this->service->approveTransfer($transfer, $requester);
-        $this->assertEquals(StockTransferStatus::Approved->value, $approved->status);
+        $this->assertEquals(StockTransferStatus::Approved, $approved->status);
     }
 
     public function test_it_approves_transfer()
@@ -214,7 +214,7 @@ class StockTransferServiceTest extends TestCase
 
         $approvedTransfer = $this->service->approveTransfer($transfer, $user); // $user is admin
 
-        $this->assertEquals(StockTransferStatus::Approved->value, $approvedTransfer->status);
+        $this->assertEquals(StockTransferStatus::Approved, $approvedTransfer->status);
         $this->assertEquals($user->id, $approvedTransfer->approved_by);
     }
 
@@ -231,7 +231,7 @@ class StockTransferServiceTest extends TestCase
 
         $rejectedTransfer = $this->service->rejectTransfer($transfer, ['notes' => 'Rejected'], $user);
 
-        $this->assertEquals(StockTransferStatus::Rejected->value, $rejectedTransfer->status);
+        $this->assertEquals(StockTransferStatus::Rejected, $rejectedTransfer->status);
         $this->assertEquals('Rejected', $rejectedTransfer->notes);
     }
 
@@ -251,7 +251,7 @@ class StockTransferServiceTest extends TestCase
 
         $shippedTransfer = $this->service->shipTransfer($transfer, $user);
 
-        $this->assertEquals(StockTransferStatus::InTransit->value, $shippedTransfer->status);
+        $this->assertEquals(StockTransferStatus::InTransit, $shippedTransfer->status);
     }
 
     public function test_it_completes_transfer_and_updates_balances()
@@ -289,7 +289,7 @@ class StockTransferServiceTest extends TestCase
 
         $completedTransfer = $this->service->completeTransfer($transfer, $receivedData, $user);
 
-        $this->assertEquals(StockTransferStatus::Completed->value, $completedTransfer->status);
+        $this->assertEquals(StockTransferStatus::Completed, $completedTransfer->status);
 
         $sourceBalance = InventoryBalance::where('outlet_id', $outlet1->id)->where('inventory_item_id', $inventoryItem->id)->first();
         $this->assertEquals(5, $sourceBalance->current_stock); // 15 - 10

@@ -1,45 +1,44 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Mutasi Stok" />
+            <MainPageHeader
+                title="Mutasi Stok"
+                description="Kelola perpindahan stok barang antar cabang dan outlet"
+            />
         </template>
 
         <template #filter>
-            <Filter :filters="filters" :can-create="canCreate" @create="openForm()" />
+            <Filter :filters="filters" @create="openForm()" />
         </template>
 
         <Table
             :headers="headers"
             :data="transfers.data"
-            :action="true"
-            :sort="filters.sort"
-            :sort-direction="filters.direction"
+            :sort="filters?.sort || 'created_at'"
+            :sort-direction="filters?.direction || 'desc'"
+            @row-click="openDetail"
         >
-            <template #created_at="{ item }">
+            <template #created_at="{ row }">
                 {{
-                    new Date(item.created_at).toLocaleString('id-ID', {
+                    new Date(row.created_at).toLocaleString('id-ID', {
                         dateStyle: 'medium',
                         timeStyle: 'short',
                     })
                 }}
             </template>
-            <template #from_outlet_name="{ item }">
-                {{ item.from_outlet?.name || '-' }}
+            <template #from_outlet_name="{ row }">
+                {{ row.from_outlet?.name || row.fromOutlet?.name || '-' }}
             </template>
-            <template #to_outlet_name="{ item }">
-                {{ item.to_outlet?.name || '-' }}
+            <template #to_outlet_name="{ row }">
+                {{ row.to_outlet?.name || row.toOutlet?.name || '-' }}
             </template>
-            <template #status="{ item }">
-                <span class="badge" :class="statusColor(item.status)">
-                    {{ statusLabel(item.status) }}
+            <template #items_count="{ row }">
+                {{ row.items_count ?? row.items?.length ?? 0 }} Item
+            </template>
+            <template #status="{ row }">
+                <span class="badge" :class="getColor('StockTransferStatus', row.status)">
+                    {{ getLabel('StockTransferStatus', row.status) }}
                 </span>
-            </template>
-            <template #actions="{ item }">
-                <div class="flex items-center gap-2">
-                    <button class="btn btn-flat btn-sm" title="Detail" @click="openDetail(item)">
-                        <FontAwesomeIcon :icon="faEye" /> Detail
-                    </button>
-                </div>
             </template>
         </Table>
 
@@ -55,10 +54,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
-import { faEye } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
@@ -68,24 +64,17 @@ import TransferForm from './Components/TransferForm.vue'
 import TransferDetail from './Components/TransferDetail.vue'
 import TransferReceiveForm from './Components/TransferReceiveForm.vue'
 import { usePopUpStore } from '@/store/popup'
+import { useAuth } from '@/Composable/useAuth'
+import { useEnum } from '@/Composable/useEnum'
 
-const page = usePage()
 const popUpStore = usePopUpStore()
-const permissions = computed(() => page.props.auth.permissions || [])
-const canCreate = computed(
-    () =>
-        permissions.value.includes('inventory.transfer.create') ||
-        permissions.value.includes('business.*')
-)
+const { can: _can } = useAuth()
+const { getLabel, getColor } = useEnum()
 
-const props = defineProps({
+defineProps({
     transfers: {
         type: Object,
         default: () => ({ data: [], links: [] }),
-    },
-    outlets: {
-        type: Array,
-        default: () => [],
     },
     filters: {
         type: Object,
@@ -113,50 +102,27 @@ const headers = [
         slot: 'to_outlet_name',
         sortable: false,
     },
-    { label: 'Jumlah Item', field: 'items_count', sortable: false },
-    { label: 'Status', field: 'status', slot: 'status', sortable: false },
+    { label: 'Jumlah Item', field: 'items_count', slot: 'items_count', sortable: false },
+    { label: 'Status', field: 'status', slot: 'status', sortable: true },
 ]
-
-const statusLabel = status => {
-    const labels = {
-        pending: 'Menunggu',
-        approved: 'Disetujui',
-        in_transit: 'Dalam Perjalanan',
-        completed: 'Selesai',
-        rejected: 'Ditolak',
-    }
-    return labels[status] || status
-}
-
-const statusColor = status => {
-    const colors = {
-        pending: 'badge-warning',
-        approved: 'badge-info',
-        in_transit: 'badge-purple',
-        completed: 'badge-success',
-        rejected: 'badge-danger',
-    }
-    return colors[status] || 'badge-gray'
-}
 
 const openForm = () => {
     popUpStore.open({
-        title: 'Form Mutasi Stok',
+        title: 'Buat Mutasi Stok',
         size: 'xl',
         component: TransferForm,
-        props: { outlets: props.outlets },
         events: {
             refresh: refreshData,
         },
     })
 }
 
-const openDetail = item => {
+const openDetail = row => {
     popUpStore.open({
         title: 'Detail Mutasi Stok',
         size: 'xl',
         component: TransferDetail,
-        props: { transferId: item.id },
+        props: { transferId: row.id },
         events: {
             refresh: refreshData,
             openReceive: data => openReceive(data),
@@ -166,7 +132,7 @@ const openDetail = item => {
 
 const openReceive = data => {
     popUpStore.open({
-        title: 'Terima Transfer',
+        title: 'Terima Barang Mutasi',
         size: 'lg',
         component: TransferReceiveForm,
         props: { transferData: data },

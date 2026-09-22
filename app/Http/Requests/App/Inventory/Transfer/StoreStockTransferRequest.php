@@ -3,9 +3,9 @@
 namespace App\Http\Requests\App\Inventory\Transfer;
 
 use App\Enums\PermissionEnum;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseInertiaFormRequest;
 
-class StoreStockTransferRequest extends FormRequest
+class StoreStockTransferRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
