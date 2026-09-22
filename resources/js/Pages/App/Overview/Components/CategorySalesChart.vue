@@ -1,7 +1,5 @@
 <template>
-    <div
-        class="flex flex-col gap-2 p-3 bg-white rounded-lg border border-neutral-200/80 h-full"
-    >
+    <div class="flex flex-col gap-2 p-3 bg-white rounded-lg border border-neutral-200/80 h-full">
         <div>
             <h3 class="text-sm sm:text-base font-bold text-neutral-800 flex items-center gap-1.5">
                 <FontAwesomeIcon :icon="faLayerGroup" class="text-main text-xs" />

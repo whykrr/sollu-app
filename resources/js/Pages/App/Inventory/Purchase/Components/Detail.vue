@@ -416,9 +416,7 @@
                             }}</span>
                             <span class="font-semibold text-danger">
                                 -{{ formatQuantity(retItem.return_purchase_qty) }}
-                                {{
-                                    retItem.uom?.name || retItem.inventory_item?.uom?.name || '-'
-                                }}
+                                {{ retItem.uom?.name || retItem.inventory_item?.uom?.name || '-' }}
                                 ({{ formatCurrency(retItem.subtotal) }})
                             </span>
                         </div>

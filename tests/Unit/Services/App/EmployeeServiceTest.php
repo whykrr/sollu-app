@@ -184,4 +184,31 @@ class EmployeeServiceTest extends TestCase
 
         $this->assertDatabaseMissing('users', ['id' => $employee->id]);
     }
+
+    public function test_it_prevents_deleting_root_user()
+    {
+        $user = $this->createMerchantUser();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Akun pemilik usaha (Owner) tidak dapat dihapus.');
+
+        $this->service->delete($user);
+    }
+
+    public function test_it_prevents_deleting_self()
+    {
+        $user = $this->createMerchantUser();
+        $this->actingAs($user);
+
+        $employee = User::factory()->create([
+            'business_id' => $user->business_id,
+            'is_root_user' => false,
+        ]);
+        $this->actingAs($employee);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Kamu tidak dapat menghapus akunmu sendiri.');
+
+        $this->service->delete($employee);
+    }
 }

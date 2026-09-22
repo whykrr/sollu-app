@@ -39,10 +39,14 @@
                 <span class="text-xs text-neutral-600">{{ row.category_name || '-' }}</span>
             </template>
             <template #total_qty="{ row }">
-                <span class="text-xs font-semibold text-neutral-800">{{ formatNumberID(row.total_qty) }}</span>
+                <span class="text-xs font-semibold text-neutral-800">{{
+                    formatNumberID(row.total_qty)
+                }}</span>
             </template>
             <template #total_sales="{ row }">
-                <span class="text-xs font-bold text-neutral-900">{{ formatIDR(row.total_sales) }}</span>
+                <span class="text-xs font-bold text-neutral-900">{{
+                    formatIDR(row.total_sales)
+                }}</span>
             </template>
         </Table>
 
@@ -59,11 +63,7 @@
 </template>
 
 <script setup>
-import {
-    faBoxesStacked,
-    faCartShopping,
-    faMoneyBillWave,
-} from '@fortawesome/free-solid-svg-icons'
+import { faBoxesStacked, faCartShopping, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import WidgetMini from '@/Components/Widgets/WidgetMini.vue'
@@ -95,4 +95,3 @@ const headers = [
     { label: 'Total Penjualan', field: 'total_sales', slot: 'total_sales' },
 ]
 </script>
-

@@ -62,26 +62,38 @@
             <template #item_name="{ row }">
                 <div class="flex flex-col">
                     <span class="font-medium text-xs text-neutral-900">{{ row.item_name }}</span>
-                    <span v-if="row.sku" class="text-[11px] text-neutral-500 font-mono">{{ row.sku }}</span>
+                    <span v-if="row.sku" class="text-[11px] text-neutral-500 font-mono">{{
+                        row.sku
+                    }}</span>
                 </div>
             </template>
             <template #item_type="{ row }">
                 <span class="text-xs text-neutral-600 capitalize">{{ row.item_type || '-' }}</span>
             </template>
             <template #starting_stock="{ row }">
-                <span class="text-xs text-neutral-600">{{ formatNumberID(row.starting_stock) }}</span>
+                <span class="text-xs text-neutral-600">{{
+                    formatNumberID(row.starting_stock)
+                }}</span>
             </template>
             <template #stock_in="{ row }">
-                <span class="text-xs text-emerald-600 font-medium">+{{ formatNumberID(row.stock_in) }}</span>
+                <span class="text-xs text-emerald-600 font-medium"
+                    >+{{ formatNumberID(row.stock_in) }}</span
+                >
             </template>
             <template #stock_out="{ row }">
-                <span class="text-xs text-rose-600 font-medium">-{{ formatNumberID(row.stock_out) }}</span>
+                <span class="text-xs text-rose-600 font-medium"
+                    >-{{ formatNumberID(row.stock_out) }}</span
+                >
             </template>
             <template #closing_stock="{ row }">
-                <span class="text-xs font-bold text-neutral-900">{{ formatNumberID(row.closing_stock) }}</span>
+                <span class="text-xs font-bold text-neutral-900">{{
+                    formatNumberID(row.closing_stock)
+                }}</span>
             </template>
             <template #closing_asset_value="{ row }">
-                <span class="text-xs font-bold text-neutral-900">{{ formatIDR(row.closing_asset_value) }}</span>
+                <span class="text-xs font-bold text-neutral-900">{{
+                    formatIDR(row.closing_asset_value)
+                }}</span>
             </template>
         </Table>
 
@@ -165,4 +177,3 @@ const headers = [
     { label: 'Nilai Aset', field: 'closing_asset_value', slot: 'closing_asset_value' },
 ]
 </script>
-

@@ -44,28 +44,43 @@
             <template #cashier_name="{ row }">
                 <div class="flex flex-col">
                     <span class="font-medium text-xs text-neutral-900">{{ row.cashier_name }}</span>
-                    <span v-if="row.outlet_name" class="text-[11px] text-neutral-500">{{ row.outlet_name }}</span>
+                    <span v-if="row.outlet_name" class="text-[11px] text-neutral-500">{{
+                        row.outlet_name
+                    }}</span>
                 </div>
             </template>
             <template #shift_time="{ row }">
                 <div class="flex flex-col text-xs text-neutral-600">
                     <span>Buka: {{ formatDateTime(row.opened_at) }}</span>
-                    <span>Tutup: {{ row.closed_at ? formatDateTime(row.closed_at) : 'Masih Aktif' }}</span>
+                    <span
+                        >Tutup:
+                        {{ row.closed_at ? formatDateTime(row.closed_at) : 'Masih Aktif' }}</span
+                    >
                 </div>
             </template>
             <template #starting_cash="{ row }">
                 <span class="text-xs text-neutral-600">{{ formatIDR(row.starting_cash) }}</span>
             </template>
             <template #expected_ending_cash="{ row }">
-                <span class="text-xs text-neutral-700">{{ formatIDR(row.expected_ending_cash) }}</span>
+                <span class="text-xs text-neutral-700">{{
+                    formatIDR(row.expected_ending_cash)
+                }}</span>
             </template>
             <template #actual_ending_cash="{ row }">
-                <span class="text-xs font-semibold text-neutral-900">{{ formatIDR(row.actual_ending_cash) }}</span>
+                <span class="text-xs font-semibold text-neutral-900">{{
+                    formatIDR(row.actual_ending_cash)
+                }}</span>
             </template>
             <template #difference="{ row }">
                 <span
                     class="text-xs font-bold"
-                    :class="row.difference < 0 ? 'text-rose-600' : row.difference > 0 ? 'text-emerald-600' : 'text-neutral-500'"
+                    :class="
+                        row.difference < 0
+                            ? 'text-rose-600'
+                            : row.difference > 0
+                              ? 'text-emerald-600'
+                              : 'text-neutral-500'
+                    "
                 >
                     {{ formatIDR(row.difference) }}
                 </span>
@@ -145,4 +160,3 @@ const headers = [
     { label: 'Status', field: 'status', slot: 'status', show: 'sm' },
 ]
 </script>
-

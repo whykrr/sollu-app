@@ -21,18 +21,30 @@
         >
             <template #target_type="{ row }">
                 <span class="badge badge-neutral">
-                    {{ row.target_type === $enums?.PromoTarget?.Product || row.target_type === 'product' ? 'Per Produk' : 'Per Bill' }}
+                    {{
+                        row.target_type === $enums?.PromoTarget?.Product ||
+                        row.target_type === 'product'
+                            ? 'Per Produk'
+                            : 'Per Bill'
+                    }}
                 </span>
             </template>
             <template #promo_value="{ row }">
-                <div v-if="row.promo_type === $enums?.PromoType?.Percentage || row.promo_type === 'percentage'">
+                <div
+                    v-if="
+                        row.promo_type === $enums?.PromoType?.Percentage ||
+                        row.promo_type === 'percentage'
+                    "
+                >
                     <span class="font-bold text-slate-800">{{ row.discount_value }}%</span>
                     <span v-if="row.max_discount" class="text-[11px] text-slate-500 block">
                         (Maks. {{ formatIDR(row.max_discount) }})
                     </span>
                 </div>
                 <div v-else>
-                    <span class="font-bold text-slate-800">{{ formatIDR(row.discount_value) }}</span>
+                    <span class="font-bold text-slate-800">{{
+                        formatIDR(row.discount_value)
+                    }}</span>
                 </div>
             </template>
             <template #period="{ row }">
@@ -41,8 +53,7 @@
                     {{ formatDateID(row.end_date) }}
                 </div>
                 <div v-if="row.start_time && row.end_time" class="text-[11px] text-slate-500">
-                    {{ formatTime(row.start_time) }} -
-                    {{ formatTime(row.end_time) }} WIB
+                    {{ formatTime(row.start_time) }} - {{ formatTime(row.end_time) }} WIB
                 </div>
             </template>
             <template #status="{ row }">
@@ -68,7 +79,12 @@
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
-                        v-if="row.status === 'draft' || row.status === 'inactive' || row.status === $enums?.PromoStatus?.Draft || row.status === $enums?.PromoStatus?.Inactive"
+                        v-if="
+                            row.status === 'draft' ||
+                            row.status === 'inactive' ||
+                            row.status === $enums?.PromoStatus?.Draft ||
+                            row.status === $enums?.PromoStatus?.Inactive
+                        "
                         class="btn btn-flat btn-sm text-emerald-600 hover:text-emerald-700"
                         title="Publikasikan"
                         @click="publishPromo(row.id)"
@@ -287,8 +303,7 @@ const deletePromo = id => {
     modal.open({
         title: 'Hapus Promo Draf Ini?',
         type: 'danger',
-        message:
-            'Promo draf ini akan dihapus secara permanen.',
+        message: 'Promo draf ini akan dihapus secara permanen.',
         confirmButtonText: 'Ya, Hapus',
         cancelButtonText: 'Batal',
         onConfirm: () => {

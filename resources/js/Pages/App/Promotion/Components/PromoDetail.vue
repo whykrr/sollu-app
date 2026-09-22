@@ -14,7 +14,8 @@
                 </div>
                 <div class="text-xs opacity-90">
                     {{
-                        promo.target_type === 'product' || promo.target_type === $enums?.PromoTarget?.Product
+                        promo.target_type === 'product' ||
+                        promo.target_type === $enums?.PromoTarget?.Product
                             ? 'Per Produk'
                             : 'Per Bill'
                     }}
@@ -52,14 +53,19 @@
                 <h4 class="text-xs font-semibold text-slate-500 uppercase">Tipe Diskon</h4>
                 <p class="text-sm font-medium">
                     {{
-                        promo.promo_type === 'percentage' || promo.promo_type === $enums?.PromoType?.Percentage
+                        promo.promo_type === 'percentage' ||
+                        promo.promo_type === $enums?.PromoType?.Percentage
                             ? 'Persentase (%)'
                             : 'Nominal Tetap (Rp)'
                     }}
                 </p>
             </div>
             <div
-                v-if="(promo.promo_type === 'percentage' || promo.promo_type === $enums?.PromoType?.Percentage) && promo.max_discount"
+                v-if="
+                    (promo.promo_type === 'percentage' ||
+                        promo.promo_type === $enums?.PromoType?.Percentage) &&
+                    promo.max_discount
+                "
                 class="space-y-1"
             >
                 <h4 class="text-xs font-semibold text-slate-500 uppercase">
@@ -111,7 +117,10 @@
 
             <!-- Cakupan Produk -->
             <div
-                v-if="detailedPromo.target_type === 'product' || detailedPromo.target_type === $enums?.PromoTarget?.Product"
+                v-if="
+                    detailedPromo.target_type === 'product' ||
+                    detailedPromo.target_type === $enums?.PromoTarget?.Product
+                "
                 class="space-y-2 border-t pt-4"
             >
                 <h4 class="text-xs font-semibold text-slate-500 uppercase">
@@ -151,7 +160,10 @@
                     </button>
 
                     <button
-                        v-if="computedStatus === 'draft' || computedStatus === $enums?.PromoStatus?.Draft"
+                        v-if="
+                            computedStatus === 'draft' ||
+                            computedStatus === $enums?.PromoStatus?.Draft
+                        "
                         type="button"
                         class="btn border border-slate-300 hover:bg-slate-50"
                         @click="openEdit"
@@ -174,7 +186,10 @@
                     </button>
 
                     <button
-                        v-if="computedStatus === 'active' || computedStatus === $enums?.PromoStatus?.Active"
+                        v-if="
+                            computedStatus === 'active' ||
+                            computedStatus === $enums?.PromoStatus?.Active
+                        "
                         type="button"
                         class="btn border border-warning text-warning hover:bg-warning hover:text-white transition-colors"
                         @click="unpublishPromo"
@@ -315,8 +330,7 @@ const publishPromo = () => {
 const unpublishPromo = () => {
     modal.open({
         title: 'Nonaktifkan Promo?',
-        message:
-            'Promo ini akan dinonaktifkan dan tidak lagi diterapkan pada transaksi kasir.',
+        message: 'Promo ini akan dinonaktifkan dan tidak lagi diterapkan pada transaksi kasir.',
         confirmButtonText: 'Ya, Nonaktifkan',
         cancelButtonText: 'Batal',
         onConfirm: () => {

@@ -51,31 +51,36 @@
                 <span class="text-xs text-neutral-700">{{ formatIDR(row.gross_sales) }}</span>
             </template>
             <template #total_discount="{ row }">
-                <span class="text-xs text-danger font-medium">{{ formatIDR(row.total_discount) }}</span>
+                <span class="text-xs text-danger font-medium">{{
+                    formatIDR(row.total_discount)
+                }}</span>
             </template>
             <template #total_tax="{ row }">
                 <span class="text-xs text-neutral-600">{{ formatIDR(row.total_tax) }}</span>
             </template>
             <template #net_sales="{ row }">
-                <span class="text-xs font-bold text-neutral-900">{{ formatIDR(row.net_sales) }}</span>
+                <span class="text-xs font-bold text-neutral-900">{{
+                    formatIDR(row.net_sales)
+                }}</span>
             </template>
             <template #transaction_count="{ row }">
-                <span class="text-xs text-neutral-600">{{ formatNumberID(row.transaction_count) }} Trx</span>
+                <span class="text-xs text-neutral-600"
+                    >{{ formatNumberID(row.transaction_count) }} Trx</span
+                >
             </template>
         </Table>
 
         <!-- Payment Methods Table -->
-        <Table
-            v-else
-            :headers="paymentHeaders"
-            :data="paymentMethods || []"
-            :action="false"
-        >
+        <Table v-else :headers="paymentHeaders" :data="paymentMethods || []" :action="false">
             <template #total_transactions="{ row }">
-                <span class="text-xs text-neutral-600">{{ formatNumberID(row.total_transactions) }} Trx</span>
+                <span class="text-xs text-neutral-600"
+                    >{{ formatNumberID(row.total_transactions) }} Trx</span
+                >
             </template>
             <template #total_revenue="{ row }">
-                <span class="text-xs font-bold text-neutral-900">{{ formatIDR(row.total_revenue) }}</span>
+                <span class="text-xs font-bold text-neutral-900">{{
+                    formatIDR(row.total_revenue)
+                }}</span>
             </template>
         </Table>
 
@@ -93,12 +98,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import {
-    faMoneyBillWave,
-    faPercent,
-    faReceipt,
-    faTag,
-} from '@fortawesome/free-solid-svg-icons'
+import { faMoneyBillWave, faPercent, faReceipt, faTag } from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import WidgetMini from '@/Components/Widgets/WidgetMini.vue'
@@ -144,4 +144,3 @@ const paymentHeaders = [
     { label: 'Total', field: 'total_revenue', slot: 'total_revenue' },
 ]
 </script>
-

@@ -56,7 +56,8 @@ class PromotionControllerTest extends TestCase
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true, 'features' => [FeatureEnum::PROMO_MANAGEMENT->value]]
         );
 
-        $this->business = Business::create([
+        /** @var Business $business */
+        $business = Business::create([
             'name' => 'Test Merchant',
             'owner_name' => 'Merchant Owner',
             'email' => 'merchant_'.uniqid().'@test.test',
@@ -68,6 +69,7 @@ class PromotionControllerTest extends TestCase
                 'active_features' => [FeatureEnum::PROMO_MANAGEMENT->value],
             ],
         ]);
+        $this->business = $business;
 
         $basicPlan = SubscriptionPlan::where('code', PlanEnum::BASIC->value)->first();
         Subscription::create([
@@ -80,17 +82,21 @@ class PromotionControllerTest extends TestCase
         ]);
         $this->business->clearMemoizedFeatures();
 
-        $this->user = User::create([
+        /** @var User $user */
+        $user = User::create([
             'business_id' => $this->business->id,
             'name' => 'Promo Manager',
             'email' => 'user_'.uniqid().'@test.test',
             'password' => bcrypt('password'),
         ]);
+        $this->user = $user;
 
-        $this->outlet = Outlet::create([
+        /** @var Outlet $outlet */
+        $outlet = Outlet::create([
             'business_id' => $this->business->id,
             'name' => 'Outlet Utama',
         ]);
+        $this->outlet = $outlet;
 
         setPermissionsTeamId($this->business->id);
 
@@ -116,6 +122,7 @@ class PromotionControllerTest extends TestCase
 
     public function test_user_without_permission_cannot_view_promotions(): void
     {
+        /** @var User $unauthorizedUser */
         $unauthorizedUser = User::create([
             'business_id' => $this->business->id,
             'name' => 'No Perm User',

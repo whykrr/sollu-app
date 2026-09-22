@@ -38,7 +38,6 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasUuids;
     use Notifiable;
     use SoftDeletes;
-    use SoftDeletes;
     use SortableModel;
 
     /**
@@ -83,6 +82,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'created_at',
+        'updated_at',
     ];
 
     /**
@@ -146,7 +146,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $builder->when(
             $filters['search'] ?? false,
             fn ($builder, $value) => $builder->where(function ($q) use ($value) {
-                $q->whereLike('name', "%{$value}%")->orWhereLike('email', "%{$value}%");
+                $q->whereLike('name', "%{$value}%")
+                    ->orWhereLike('email', "%{$value}%")
+                    ->orWhereLike('phone', "%{$value}%");
             })
         )->when(
             $filters['role'] ?? false,
@@ -154,13 +156,13 @@ class User extends Authenticatable implements MustVerifyEmail
                 $q->where('roles.name', $value);
             })
         )->when(
-            $filters['outlet'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
+            $filters['outlet'] ?? null,
             fn (Builder $builder, $value) => $builder->whereHas('outlets', function (Builder $q) use ($value) {
                 $q->where('outlets.id', $value);
             })
         )->when(
             $filters['is_deleted'] ?? false,
-            fn (Builder $builder, $value) => $builder->withTrashed()
+            fn (Builder $builder, $value) => $builder->onlyTrashed()
         );
     }
 }

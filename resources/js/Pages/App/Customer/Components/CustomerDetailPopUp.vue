@@ -32,7 +32,9 @@
 
         <!-- Detail Info Grid -->
         <div class="bg-white p-4 rounded-xl border border-slate-200">
-            <h4 class="font-semibold text-xs text-slate-700 uppercase tracking-wider mb-3">Informasi Detail</h4>
+            <h4 class="font-semibold text-xs text-slate-700 uppercase tracking-wider mb-3">
+                Informasi Detail
+            </h4>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                     <span class="text-slate-500 block text-[11px]">Tanggal Lahir / Umur</span>
@@ -81,15 +83,23 @@
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div class="text-slate-500 text-[11px] mb-1">Terakhir Belanja</div>
                 <div class="font-bold text-sm text-slate-800">
-                    {{ detail?.summary?.last_transaction_date ? formatDateID(detail.summary.last_transaction_date) : '-' }}
+                    {{
+                        detail?.summary?.last_transaction_date
+                            ? formatDateID(detail.summary.last_transaction_date)
+                            : '-'
+                    }}
                 </div>
             </div>
         </div>
 
         <!-- Riwayat Transaksi Terakhir -->
         <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div class="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-                <h4 class="font-semibold text-xs text-slate-700 uppercase tracking-wider">Riwayat Transaksi Terakhir</h4>
+            <div
+                class="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between"
+            >
+                <h4 class="font-semibold text-xs text-slate-700 uppercase tracking-wider">
+                    Riwayat Transaksi Terakhir
+                </h4>
                 <span class="text-[11px] text-slate-500">Maks. 10 transaksi</span>
             </div>
             <div class="divide-y divide-slate-100">

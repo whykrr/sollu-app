@@ -42,7 +42,8 @@ class PromoServiceTest extends TestCase
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $this->business = Business::create([
+        /** @var Business $business */
+        $business = Business::create([
             'name' => 'Test Merchant',
             'owner_name' => 'Merchant Owner',
             'email' => 'merchant_'.uniqid().'@test.test',
@@ -51,13 +52,16 @@ class PromoServiceTest extends TestCase
             'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
+        $this->business = $business;
 
-        $this->user = User::create([
+        /** @var User $user */
+        $user = User::create([
             'business_id' => $this->business->id,
             'name' => 'Test User',
             'email' => 'user_'.uniqid().'@test.test',
             'password' => bcrypt('password'),
         ]);
+        $this->user = $user;
 
         $this->actingAs($this->user);
 
@@ -154,6 +158,7 @@ class PromoServiceTest extends TestCase
 
     public function test_it_updates_draft_promo(): void
     {
+        /** @var Promo $promo */
         $promo = Promo::create([
             'business_id' => $this->business->id,
             'name' => 'Old Promo',
@@ -179,6 +184,7 @@ class PromoServiceTest extends TestCase
 
     public function test_it_cannot_update_non_draft_promo(): void
     {
+        /** @var Promo $promo */
         $promo = Promo::create([
             'business_id' => $this->business->id,
             'name' => 'Old Promo',
@@ -200,6 +206,7 @@ class PromoServiceTest extends TestCase
 
     public function test_it_deletes_draft_promo(): void
     {
+        /** @var Promo $promo */
         $promo = Promo::create([
             'business_id' => $this->business->id,
             'name' => 'Old Promo',
@@ -225,6 +232,7 @@ class PromoServiceTest extends TestCase
 
     public function test_it_cannot_delete_active_promo(): void
     {
+        /** @var Promo $promo */
         $promo = Promo::create([
             'business_id' => $this->business->id,
             'name' => 'Old Promo',
@@ -246,6 +254,7 @@ class PromoServiceTest extends TestCase
 
     public function test_it_publishes_promo(): void
     {
+        /** @var Promo $promo */
         $promo = Promo::create([
             'business_id' => $this->business->id,
             'name' => 'Old Promo',
@@ -273,6 +282,7 @@ class PromoServiceTest extends TestCase
 
     public function test_it_cannot_publish_past_promo(): void
     {
+        /** @var Promo $promo */
         $promo = Promo::create([
             'business_id' => $this->business->id,
             'name' => 'Old Promo',
@@ -294,6 +304,7 @@ class PromoServiceTest extends TestCase
 
     public function test_it_unpublishes_promo(): void
     {
+        /** @var Promo $promo */
         $promo = Promo::create([
             'business_id' => $this->business->id,
             'name' => 'Old Promo',
@@ -319,6 +330,7 @@ class PromoServiceTest extends TestCase
 
     public function test_it_cannot_unpublish_non_active_promo(): void
     {
+        /** @var Promo $promo */
         $promo = Promo::create([
             'business_id' => $this->business->id,
             'name' => 'Old Promo',

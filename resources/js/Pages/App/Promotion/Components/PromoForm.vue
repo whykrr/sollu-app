@@ -22,7 +22,9 @@
 
         <!-- Section 2: Tipe & Target Diskon -->
         <div class="space-y-2 border-t border-slate-100 pt-3">
-            <h4 class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Skema Diskon</h4>
+            <h4 class="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                Skema Diskon
+            </h4>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <DropdownField
                     id="target_type"
@@ -44,7 +46,9 @@
                 <NumberField
                     id="discount_value"
                     v-model="form.discount_value"
-                    :label="form.promo_type === 'percentage' ? 'Nilai Diskon (%)' : 'Nilai Diskon (Rp)'"
+                    :label="
+                        form.promo_type === 'percentage' ? 'Nilai Diskon (%)' : 'Nilai Diskon (Rp)'
+                    "
                     :error="form.errors.discount_value"
                     required
                 />
@@ -62,7 +66,9 @@
         <!-- Section 3: Cakupan Produk (Kondisional) -->
         <div v-if="form.target_type === 'product'" class="space-y-2 border-t border-slate-100 pt-3">
             <div class="flex items-center justify-between">
-                <h4 class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-0">Cakupan Produk</h4>
+                <h4 class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-0">
+                    Cakupan Produk
+                </h4>
                 <button
                     v-if="selectedProducts.length > 0"
                     type="button"

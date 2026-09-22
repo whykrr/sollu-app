@@ -19,4 +19,6 @@ class ResourceMessage
     public const IMPERSONATE_SUCCESS = 'Berhasil masuk sebagai merchant!';
 
     public const EXPORT_PROCESSING = 'Laporan sedang disiapkan di latar belakang. Nanti kami kabari setelah selesai!';
+
+    public const IMPORT_PROCESSING = 'Data sedang diimpor di latar belakang. Nanti kami kabari setelah selesai!';
 }

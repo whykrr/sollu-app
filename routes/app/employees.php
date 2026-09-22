@@ -9,7 +9,7 @@ Route::prefix('employees')
     ->middleware('plan.feature:'.FeatureEnum::EMPLOYEE_MANAGEMENT->value)
     ->group(function () {
         Route::get('/', [EmployeeController::class, 'index'])->name('index');
-        Route::get('/{user}', [EmployeeController::class, 'index'])->name('show');
+        Route::get('/{user}', [EmployeeController::class, 'show'])->name('show');
         Route::post('/', [EmployeeController::class, 'store'])->name('store');
         Route::put('/{user}', [EmployeeController::class, 'update'])->name('update');
         Route::delete('/{user}', [EmployeeController::class, 'delete'])->name('delete');

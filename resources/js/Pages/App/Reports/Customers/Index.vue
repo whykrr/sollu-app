@@ -47,14 +47,20 @@
             <template #contact="{ row }">
                 <div class="flex flex-col text-xs text-neutral-600">
                     <span>{{ row.phone || '-' }}</span>
-                    <span v-if="row.email" class="text-[11px] text-neutral-500">{{ row.email }}</span>
+                    <span v-if="row.email" class="text-[11px] text-neutral-500">{{
+                        row.email
+                    }}</span>
                 </div>
             </template>
             <template #total_visits="{ row }">
-                <span class="text-xs font-semibold text-neutral-800">{{ formatNumberID(row.total_visits) }} Kali</span>
+                <span class="text-xs font-semibold text-neutral-800"
+                    >{{ formatNumberID(row.total_visits) }} Kali</span
+                >
             </template>
             <template #total_spent="{ row }">
-                <span class="text-xs font-bold text-neutral-900">{{ formatIDR(row.total_spent) }}</span>
+                <span class="text-xs font-bold text-neutral-900">{{
+                    formatIDR(row.total_spent)
+                }}</span>
             </template>
             <template #last_visit="{ row }">
                 <span class="text-xs text-neutral-600">{{ formatDate(row.last_visit) }}</span>
@@ -122,4 +128,3 @@ const headers = [
     { label: 'Kunjungan Terakhir', field: 'last_visit', slot: 'last_visit', show: 'md' },
 ]
 </script>
-

@@ -44,10 +44,14 @@
                 </span>
             </template>
             <template #total_usage="{ row }">
-                <span class="text-xs font-semibold text-neutral-800">{{ formatNumberID(row.total_usage) }} Kali</span>
+                <span class="text-xs font-semibold text-neutral-800"
+                    >{{ formatNumberID(row.total_usage) }} Kali</span
+                >
             </template>
             <template #total_discount_given="{ row }">
-                <span class="text-xs font-bold text-rose-600">{{ formatIDR(row.total_discount_given) }}</span>
+                <span class="text-xs font-bold text-rose-600">{{
+                    formatIDR(row.total_discount_given)
+                }}</span>
             </template>
         </Table>
 
@@ -64,11 +68,7 @@
 </template>
 
 <script setup>
-import {
-    faBullhorn,
-    faPercent,
-    faTags,
-} from '@fortawesome/free-solid-svg-icons'
+import { faBullhorn, faPercent, faTags } from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import WidgetMini from '@/Components/Widgets/WidgetMini.vue'
@@ -97,7 +97,10 @@ const headers = [
     { label: 'Nama Promo', field: 'promo_name', slot: 'promo_name' },
     { label: 'Tipe', field: 'promo_type', slot: 'promo_type' },
     { label: 'Pemakaian', field: 'total_usage', slot: 'total_usage' },
-    { label: 'Total Diskon Diberikan', field: 'total_discount_given', slot: 'total_discount_given' },
+    {
+        label: 'Total Diskon Diberikan',
+        field: 'total_discount_given',
+        slot: 'total_discount_given',
+    },
 ]
 </script>
-

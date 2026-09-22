@@ -1,80 +1,138 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Data Pegawai" />
+            <MainPageHeader
+                title="Daftar Pegawai"
+                description="Kelola hak akses kasir, manajer, staf outlet, dan otentikasi operasional bisnismu."
+            />
         </template>
 
         <template #filter>
-            <Filter :filters="params" :roles="roles" @create="openForm()" />
+            <EmployeeFilter :filters="params" :roles="roles" @create="openCreate()" />
         </template>
 
         <Table
             :headers="tableHeaders"
             :data="users.data"
-            :sort="params.sort ?? 'updated_at'"
+            :sort="params.sort ?? 'created_at'"
             :sort-direction="params.direction ?? 'desc'"
             :action="true"
+            @row-click="openDetail"
         >
             <template #name="{ row }">
-                {{ row.name }}
-                <span v-if="row.deleted_at" class="badge badge-neutral-500 p-1 text-xs">Arsip</span>
-                <span v-if="row.is_root_user" class="badge badge-warning p-1 text-xs">Root</span>
-            </template>
-            <template #roles="{ row }">
-                {{ row.roles[0].label }}
-            </template>
-            <template #outlets="{ row }">
-                <div class="space-x-0.5">
-                    <label
-                        v-for="(outlet, index) in row.outlets.slice(0, 2)"
-                        :key="index"
-                        class="badge text-sm badge-info text-nowrap"
-                        >{{ outlet.name }}</label
+                <div class="flex items-center gap-2">
+                    <div
+                        class="w-7 h-7 rounded-full bg-slate-100 text-slate-700 font-semibold flex items-center justify-center text-xs shrink-0"
                     >
-                    <label
-                        v-if="row.outlets.length > 2"
-                        class="badge text-sm badge-info text-nowrap"
-                        >+{{ row.outlets.length - 2 }} Lainnya</label
-                    >
+                        {{ getInitials(row.name) }}
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-semibold text-slate-800 text-xs">{{ row.name }}</span>
+                            <span
+                                v-if="row.is_root_user"
+                                class="badge badge-warning text-[10px] p-0.5 px-1.5"
+                            >
+                                Root
+                            </span>
+                            <span
+                                v-if="row.deleted_at"
+                                class="badge badge-neutral-500 text-[10px] p-0.5 px-1.5"
+                            >
+                                Arsip
+                            </span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 truncate">
+                            {{ row.email }}
+                        </div>
+                    </div>
                 </div>
             </template>
-            <template #created_at="{ row }">
-                {{ formatDateTimeSimple(row.created_at) }}
-            </template>
-            <template #actions="{ row }">
-                <button
-                    v-if="!row.deleted_at"
-                    class="btn btn-highlight-main btn-sm"
-                    title="Ubah"
-                    @click="getDetail(row.id)"
-                >
-                    <FontAwesomeIcon :icon="faPencil" />
-                </button>
 
-                <ButtonIconGroupArchive
-                    v-if="!row.is_root_user"
-                    :data="row"
-                    :url-delete="
-                        route('employees.delete', {
-                            user: row.id,
-                            ...props.params,
-                        })
-                    "
-                    :url-restore="
-                        route('employees.restore', {
-                            user: row.id,
-                            ...props.params,
-                        })
-                    "
-                    :url-destroy="
-                        route('employees.destroy', {
-                            user: row.id,
-                            ...props.params,
-                        })
-                    "
-                />
+            <template #roles="{ row }">
+                <span v-if="row.is_root_user" class="badge badge-warning text-xs"> Owner </span>
+                <span
+                    v-else-if="row.roles && row.roles.length > 0"
+                    class="badge badge-info text-xs"
+                >
+                    {{ row.roles[0].label || row.roles[0].name }}
+                </span>
+                <span v-else class="text-xs text-slate-400">-</span>
+            </template>
+
+            <template #outlets="{ row }">
+                <div v-if="row.is_root_user" class="text-xs text-slate-500">
+                    <span class="badge badge-success text-xs">Semua Outlet</span>
+                </div>
+                <div v-else-if="row.outlets && row.outlets.length > 0" class="flex flex-wrap gap-1">
+                    <span
+                        v-for="(outlet, index) in row.outlets.slice(0, 2)"
+                        :key="index"
+                        class="badge text-xs badge-neutral-500 text-nowrap"
+                    >
+                        {{ outlet.name }}
+                    </span>
+                    <span
+                        v-if="row.outlets.length > 2"
+                        class="badge text-xs badge-neutral-500 text-nowrap"
+                    >
+                        +{{ row.outlets.length - 2 }}
+                    </span>
+                </div>
+                <span v-else class="text-xs text-slate-400">-</span>
+            </template>
+
+            <template #created_at="{ row }">
+                <span class="text-xs text-slate-600">
+                    {{ formatDateTimeSimple(row.created_at) }}
+                </span>
+            </template>
+
+            <template #actions="{ row }">
+                <div class="flex items-center justify-end gap-1" @click.stop>
+                    <button
+                        class="btn btn-flat btn-sm"
+                        title="Detail Pegawai"
+                        @click="openDetail(row)"
+                    >
+                        <FontAwesomeIcon :icon="faEye" />
+                    </button>
+
+                    <button
+                        v-if="!row.deleted_at"
+                        class="btn btn-flat btn-sm"
+                        title="Ubah Data"
+                        @click="openEdit(row)"
+                    >
+                        <FontAwesomeIcon :icon="faPencil" />
+                    </button>
+
+                    <ButtonIconGroupArchive
+                        v-if="!row.is_root_user"
+                        :data="row"
+                        :url-delete="
+                            route('employees.delete', {
+                                user: row.id,
+                                ...props.params,
+                            })
+                        "
+                        :url-restore="
+                            route('employees.restore', {
+                                user: row.id,
+                                ...props.params,
+                            })
+                        "
+                        :url-destroy="
+                            route('employees.destroy', {
+                                user: row.id,
+                                ...props.params,
+                            })
+                        "
+                    />
+                </div>
             </template>
         </Table>
+
         <template #footer>
             <Pagination
                 :links="users.links"
@@ -89,28 +147,37 @@
 
 <script setup>
 import { computed } from 'vue'
-import Pagination from '@/Components/Tables/Pagination.vue'
-import Filter from '@/Pages/App/Employee/Components/Filter.vue'
 import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
-import Table from '@/Components/Tables/Table.vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPencil } from '@fortawesome/free-solid-svg-icons'
-import { formatDateTimeSimple } from '@/Composable/date'
-import Form from '@/Pages/App/Employee/Components/Form.vue'
-import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Pagination from '@/Components/Tables/Pagination.vue'
+import ButtonIconGroupArchive from '@/Components/Button/ButtonIconGroupArchive.vue'
+import EmployeeFilter from '@/Pages/App/Employee/Components/EmployeeFilter.vue'
+import EmployeeFormPopUp from '@/Pages/App/Employee/Components/EmployeeFormPopUp.vue'
+import EmployeeDetailPopUp from '@/Pages/App/Employee/Components/EmployeeDetailPopUp.vue'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'
+import { formatDateTimeSimple } from '@/Composable/date'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faPencil, faEye } from '@fortawesome/free-solid-svg-icons'
 
 const popUpStore = usePopUpStore()
 const modalStore = useModalStore()
 
 const props = defineProps({
-    users: Object,
-    params: Object,
-    roles: [Object, Array],
-    user: Object,
+    users: {
+        type: Object,
+        default: () => ({ data: [], links: [] }),
+    },
+    params: {
+        type: Object,
+        default: () => ({}),
+    },
+    roles: {
+        type: [Object, Array],
+        default: () => [],
+    },
 })
 
 const nonOwnerRoles = computed(() => {
@@ -119,28 +186,36 @@ const nonOwnerRoles = computed(() => {
     return rolesList.filter(r => (r.value ?? r.name) !== 'owner')
 })
 
-const openFormDirect = (user = null) => {
-    popUpStore.open({
-        title: user ? 'Detail karyawan' : 'Tambahkan karyawan baru',
-        subTitle: user ? '#' + user.email : null,
-        size: 'lg',
-        component: Form,
-        props: { user, roles: props.roles },
-    })
+const tableHeaders = [
+    { field: 'name', label: 'Nama Pegawai', slot: 'name', sortable: true },
+    { field: 'roles', label: 'Peran', slot: 'roles' },
+    { field: 'outlets', label: 'Akses Outlet', slot: 'outlets', show: 'md' },
+    {
+        field: 'created_at',
+        label: 'Terdaftar',
+        sortable: true,
+        slot: 'created_at',
+        show: 'lg',
+    },
+]
+
+const getInitials = name => {
+    if (!name) return '?'
+    return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase()
 }
 
-const openForm = (user = null) => {
-    if (user) {
-        openFormDirect(user)
-        return
-    }
-
+const openCreate = () => {
     if (nonOwnerRoles.value.length === 0) {
         modalStore.open({
             type: 'warning',
-            title: 'Yuk, Siapkan Peran Karyawan Terlebih Dahulu 👋',
+            title: 'Yuk, Siapkan Peran Pegawai Terlebih Dahulu 👋',
             message:
-                'Saat ini bisnis Anda baru memiliki peran Pemilik Usaha (Owner). Memberikan peran Owner ke staf akan membuka seluruh wewenang bisnis, termasuk laporan omzet rahasia, pengaturan pembayaran, hingga hak kelola akun. Sebaiknya siapkan peran khusus karyawan terlebih dahulu (tersedia template siap pakai!).',
+                'Saat ini bisnis Anda baru memiliki peran Pemilik Usaha (Owner). Memberikan peran Owner ke staf akan membuka seluruh wewenang bisnis. Sebaiknya siapkan peran khusus pegawai terlebih dahulu (tersedia template siap pakai!).',
             confirmText: '⚡ Buat Peran via Template',
             cancelText: 'Tetap Lanjut Jadi Owner',
             confirmClass: 'btn-main',
@@ -148,38 +223,46 @@ const openForm = (user = null) => {
                 router.visit(route('settings.roles.index'))
             },
             onCancel: () => {
-                openFormDirect(null)
+                popUpStore.open({
+                    title: 'Tambah Pegawai Baru',
+                    size: 'md',
+                    component: EmployeeFormPopUp,
+                    props: { roles: props.roles },
+                })
             },
         })
         return
     }
 
-    openFormDirect(null)
+    popUpStore.open({
+        title: 'Tambah Pegawai Baru',
+        size: 'md',
+        component: EmployeeFormPopUp,
+        props: { roles: props.roles },
+    })
 }
 
-if (props.user) {
-    openFormDirect(props.user)
+const openEdit = user => {
+    popUpStore.open({
+        title: 'Ubah Data Pegawai',
+        subTitle: '#' + user.email,
+        size: 'md',
+        component: EmployeeFormPopUp,
+        props: { user, roles: props.roles },
+    })
 }
 
-const tableHeaders = [
-    { field: 'name', label: 'Nama', slot: 'name', sortable: true },
-    { field: 'roles', label: 'Peran', slot: 'roles' },
-    { field: 'outlets', label: 'Outlet', slot: 'outlets', show: 'lg' },
-    {
-        field: 'created_at',
-        label: 'Dibuat',
-        sortable: true,
-        slot: 'created_at',
-    },
-]
-
-const getDetail = id => {
-    router.visit(route('employees.show', { user: id, ...props.params }), {
-        only: ['user'],
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: page => {
-            openForm(page.props.user)
+const openDetail = user => {
+    popUpStore.open({
+        title: 'Detail Pegawai',
+        subTitle: '#' + user.email,
+        size: 'lg',
+        component: EmployeeDetailPopUp,
+        props: { user, roles: props.roles },
+        events: {
+            edit: targetUser => {
+                openEdit(targetUser)
+            },
         },
     })
 }

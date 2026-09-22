@@ -77,7 +77,7 @@
         "ide": [
             "@php artisan ide-helper:generate",
             "@php artisan ide-helper:meta",
-            "@php artisan ide-helper:models --N --write-mixin"
+            "@php artisan ide-helper:models -N --write-mixin"
         ],
         "format": "vendor/bin/pint",
         "format:test": "vendor/bin/pint --test"

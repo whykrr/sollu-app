@@ -1,7 +1,14 @@
 <template>
     <ActionBar>
         <template #filters>
-            <!-- Role Filter -->
+            <!-- Trashed / Archived Filter Segmented -->
+            <FilterSegmented
+                v-model="filterForm.is_deleted"
+                :options="statusSegmentOptions"
+                @change="updateQuery"
+            />
+
+            <!-- Role Filter Dropdown -->
             <FilterDropdown
                 v-if="roleOptions.length > 0"
                 v-model="filterForm.role"
@@ -12,7 +19,7 @@
                 @change="updateQuery"
             />
 
-            <!-- Outlet Filter -->
+            <!-- Outlet Filter Dropdown -->
             <FilterDropdown
                 v-if="outletOptions.length > 1 && !selectedOutlet"
                 v-model="filterForm.outlet"
@@ -22,19 +29,12 @@
                 all-option-label="Semua Outlet"
                 @change="updateQuery"
             />
-
-            <!-- Trashed / Archived Filter -->
-            <FilterSegmented
-                v-model="filterForm.is_deleted"
-                :options="statusSegmentOptions"
-                @change="updateQuery"
-            />
         </template>
 
         <template #search>
             <FilterSearch
                 v-model="filterForm.search"
-                placeholder="Cari pegawai / email..."
+                placeholder="Cari nama, email, atau telepon..."
                 @clear="updateQuery"
             />
         </template>
@@ -46,7 +46,7 @@
                 @click="$emit('create')"
             >
                 <FontAwesomeIcon :icon="faPlus" class="text-xs" />
-                <span>Tambah Baru</span>
+                <span>Pegawai Baru</span>
             </button>
         </template>
     </ActionBar>
@@ -78,6 +78,7 @@ const props = defineProps({
 defineEmits(['create'])
 
 const { outlets: userOutlets, selectedOutlet } = useAuth()
+
 const outletOptions = computed(() =>
     (userOutlets.value || []).map(store => ({
         value: String(store.id),
@@ -86,8 +87,8 @@ const outletOptions = computed(() =>
 )
 
 const roleOptions = computed(() => {
-    return props.roles.map(r => ({
-        value: String(r.value ?? r.id),
+    return (props.roles || []).map(r => ({
+        value: String(r.value ?? r.id ?? r.name),
         label: r.label ?? r.name,
     }))
 })
@@ -103,6 +104,17 @@ const filterForm = reactive({
     role: props.filters?.role ? String(props.filters.role) : '',
     is_deleted: props.filters?.is_deleted ? '1' : '',
 })
+
+watch(
+    () => props.filters,
+    newFilters => {
+        filterForm.search = newFilters?.search ?? ''
+        filterForm.outlet = newFilters?.outlet ? String(newFilters.outlet) : ''
+        filterForm.role = newFilters?.role ? String(newFilters.role) : ''
+        filterForm.is_deleted = newFilters?.is_deleted ? '1' : ''
+    },
+    { deep: true }
+)
 
 // Watch search with debounce
 watch(

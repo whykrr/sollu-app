@@ -8,12 +8,14 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class EmployeeService
 {
     /**
      * Create a new employee.
      *
+     * @param  array<string, mixed>  $data
      *
      * @throws \Exception
      */
@@ -23,9 +25,7 @@ class EmployeeService
 
         DB::beginTransaction();
         try {
-            /**
-             * @var \App\Models\User $user
-             */
+            /** @var \App\Models\User $user */
             $user = Auth::user()->business->users()->create([
                 'name' => $data['name'],
                 'email' => $data['email'],
@@ -53,6 +53,7 @@ class EmployeeService
     /**
      * Update an existing employee.
      *
+     * @param  array<string, mixed>  $data
      *
      * @throws \Exception
      */
@@ -68,10 +69,12 @@ class EmployeeService
             $user->update($data);
 
             if (! $user->is_root_user) {
-                if (! $user->hasRole($data['role'])) {
+                if (isset($data['role']) && ! $user->hasRole($data['role'])) {
                     $user->syncRoles($data['role']);
                 }
-                $user->outlets()->sync($data['outlets']);
+                if (isset($data['outlets'])) {
+                    $user->outlets()->sync($data['outlets']);
+                }
             }
 
             DB::commit();
@@ -86,11 +89,18 @@ class EmployeeService
     /**
      * Soft delete an employee.
      *
-     *
      * @throws \Throwable
      */
     public function delete(User $user): void
     {
+        if ($user->is_root_user) {
+            throw new InvalidArgumentException('Akun pemilik usaha (Owner) tidak dapat dihapus.');
+        }
+
+        if (Auth::id() && $user->id === Auth::id()) {
+            throw new InvalidArgumentException('Kamu tidak dapat menghapus akunmu sendiri.');
+        }
+
         $user->deleteOrFail();
     }
 
@@ -103,10 +113,18 @@ class EmployeeService
     }
 
     /**
-     * Force delete an employee.
+     * Force delete an employee permanently.
      */
     public function destroy(User $user): void
     {
+        if ($user->is_root_user) {
+            throw new InvalidArgumentException('Akun pemilik usaha (Owner) tidak dapat dihapus.');
+        }
+
+        if (Auth::id() && $user->id === Auth::id()) {
+            throw new InvalidArgumentException('Kamu tidak dapat menghapus akunmu sendiri.');
+        }
+
         $user->forceDelete();
     }
 }

@@ -74,9 +74,7 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex items-center justify-end w-full gap-2">
-                <button type="button" class="btn btn-flat" @click="handleCancel()">
-                    Batal
-                </button>
+                <button type="button" class="btn btn-flat" @click="handleCancel()">Batal</button>
                 <button
                     type="submit"
                     class="btn btn-highlight-main"
@@ -129,21 +127,15 @@ const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 const hasOptionalError = computed(() => {
     return Boolean(
         form.errors.email ||
-            form.errors.birthdate ||
-            form.errors.gender ||
-            form.errors.address ||
-            form.errors.notes
+        form.errors.birthdate ||
+        form.errors.gender ||
+        form.errors.address ||
+        form.errors.notes
     )
 })
 
 const hasOptionalData = computed(() => {
-    return Boolean(
-        form.email ||
-            form.birthdate ||
-            form.gender ||
-            form.address ||
-            form.notes
-    )
+    return Boolean(form.email || form.birthdate || form.gender || form.address || form.notes)
 })
 
 onMounted(() => {
