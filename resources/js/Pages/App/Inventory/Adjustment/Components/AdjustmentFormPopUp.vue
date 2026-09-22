@@ -103,7 +103,8 @@
                     v-else-if="form.items.length === 0"
                     class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
                 >
-                    Belum ada barang ditambahkan. Silakan cari dan pilih barang pada kolom pencarian di atas.
+                    Belum ada barang ditambahkan. Silakan cari dan pilih barang pada kolom pencarian
+                    di atas.
                 </div>
 
                 <!-- Daftar Item Penyesuaian -->
@@ -124,7 +125,9 @@
                                     </div>
                                     <div class="text-[11px] text-slate-400 truncate">
                                         SKU: {{ item.sku || '-' }} | Satuan:
-                                        <span class="font-medium text-slate-600">{{ item.uom || '-' }}</span>
+                                        <span class="font-medium text-slate-600">{{
+                                            item.uom || '-'
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -140,7 +143,9 @@
                         </div>
 
                         <!-- Baris Input Grid: Qty Change, Unit Cost, Description -->
-                        <div class="grid grid-cols-12 gap-2 pt-1 border-t border-slate-100 items-start">
+                        <div
+                            class="grid grid-cols-12 gap-2 pt-1 border-t border-slate-100 items-start"
+                        >
                             <div
                                 :class="
                                     item.qty_change > 0
@@ -196,7 +201,9 @@
                         </div>
 
                         <!-- Baris Realtime Kalkulasi Stok -->
-                        <div class="flex items-center justify-between pt-1 border-t border-dashed border-slate-100 text-[11px] bg-slate-50/50 p-2 rounded">
+                        <div
+                            class="flex items-center justify-between pt-1 border-t border-dashed border-slate-100 text-[11px] bg-slate-50/50 p-2 rounded"
+                        >
                             <div class="text-slate-500">
                                 Stok Saat Ini:
                                 <span class="font-bold text-slate-700">
@@ -250,7 +257,7 @@
                 type="button"
                 class="btn btn-flat"
                 :disabled="form.processing"
-                @click="close"
+                @click="handleCancel"
             >
                 Batal
             </button>
@@ -273,7 +280,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
-import { usePopUpStore } from '@/store/popup'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
@@ -281,7 +288,6 @@ import TextareaField from '@/Components/Form/TextareaField.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
 
-const popUpStore = usePopUpStore()
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 const { getOptions } = useEnum()
 
@@ -298,11 +304,15 @@ const outletOptions = computed(() =>
 )
 
 const form = useForm({
-    outlet_id: selectedOutlet.value?.id || (userOutlets.value?.length === 1 ? userOutlets.value[0].id : ''),
+    outlet_id:
+        selectedOutlet.value?.id ||
+        (userOutlets.value?.length === 1 ? userOutlets.value[0].id : ''),
     reason: '',
     notes: '',
     items: [],
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 // Watch outlet changes: reset items if outlet changes
 watch(
@@ -344,17 +354,11 @@ const removeItem = index => {
     form.items.splice(index, 1)
 }
 
-const close = () => {
-    form.reset()
-    form.clearErrors()
-    popUpStore.close()
-}
-
 const submit = () => {
     form.post(route('inventory.adjustments.store'), {
         preserveScroll: true,
         preserveState: true,
-        onSuccess: () => close(),
+        onSuccess: () => forceClose(),
     })
 }
 </script>

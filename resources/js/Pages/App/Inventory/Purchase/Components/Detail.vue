@@ -218,7 +218,9 @@
                                     (SJ: {{ receipt.delivery_order_number }})
                                 </span>
                             </div>
-                            <div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-1.5 mt-0.5">
+                            <div
+                                class="text-[11px] text-slate-400 flex flex-wrap items-center gap-1.5 mt-0.5"
+                            >
                                 <span>Tgl Terima: {{ formatDateID(receipt.received_at) }}</span>
                                 <span>•</span>
                                 <span>Penerima: {{ receipt.receiver?.name || '-' }}</span>
@@ -326,7 +328,8 @@
                                     v-if="Number(rItem.conversion_factor) !== 1"
                                     class="text-slate-400 font-normal ml-1"
                                 >
-                                    (Masuk: {{ formatQuantity(rItem.received_inventory_qty) }} {{ rItem.inventory_item?.uom?.name || '-' }})
+                                    (Masuk: {{ formatQuantity(rItem.received_inventory_qty) }}
+                                    {{ rItem.inventory_item?.uom?.name || '-' }})
                                 </span>
                             </span>
                         </div>
@@ -408,10 +411,15 @@
                             :key="retItem.id"
                             class="flex justify-between items-center py-0.5 text-[11px]"
                         >
-                            <span class="text-slate-700 font-medium">{{ retItem.inventory_item?.name || 'Item' }}</span>
+                            <span class="text-slate-700 font-medium">{{
+                                retItem.inventory_item?.name || 'Item'
+                            }}</span>
                             <span class="font-semibold text-danger">
                                 -{{ formatQuantity(retItem.return_purchase_qty) }}
-                                {{ retItem.uom?.name || retItem.inventory_item?.uom?.name || '-' }} ({{ formatCurrency(retItem.subtotal) }})
+                                {{
+                                    retItem.uom?.name || retItem.inventory_item?.uom?.name || '-'
+                                }}
+                                ({{ formatCurrency(retItem.subtotal) }})
                             </span>
                         </div>
                     </div>
@@ -462,13 +470,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import {
-    faFilePdf,
-    faBoxOpen,
-    faReply,
-    faTrashCan,
-    faBan,
-} from '@fortawesome/free-solid-svg-icons'
+import { faFilePdf, faBoxOpen, faReply, faTrashCan, faBan } from '@fortawesome/free-solid-svg-icons'
 import { formatDateID } from '@/Composable/date'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'

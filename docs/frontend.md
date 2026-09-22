@@ -322,7 +322,7 @@ Untuk mencegah pengguna mengalami _cognitive overload_ pada formulir dengan bany
 
 ---
 
-### 4.2. Standarisasi Komponen Dropdown Formulir
+### 4.3. Standarisasi Komponen Dropdown Formulir
 
 Untuk memastikan UX pengisian data tetap cepat dan efisien, pemilihan komponen dropdown wajib mengikuti aturan berikut:
 
@@ -345,6 +345,56 @@ Untuk memastikan UX pengisian data tetap cepat dan efisien, pemilihan komponen d
     :error="form.errors[`items.${index}.uom_id`]"
     required
 />
+```
+
+---
+
+### 4.4. Standarisasi Form Lifecycle & Dirty State Confirmation (`useFormDirtyGuard`)
+
+Setiap formulir Create / Edit di dalam Drawer `<PopUpPage>` atau dialog modal **WAJIB** menerapkan proteksi *dirty state* melalui composable `@/Composable/useFormDirtyGuard`.
+
+#### A. Aturan Baku Form Dirty:
+1. **Dilarang Direct Store Close:** Dilarang keras memanggil `popUpStore.close()` secara langsung pada tombol Batal (`@click="popUpStore.close()"` adalah anti-pattern).
+2. **Wajib `handleCancel`:** Tombol Batal **WAJIB** memanggil `handleCancel` dari `useFormDirtyGuard({ form })`.
+3. **Wajib `forceClose` pada `onSuccess`:** Saat form berhasil disubmit, panggil `forceClose()` di dalam opsi `onSuccess` agar drawer menutup secara bersih tanpa memicu modal konfirmasi.
+4. **UX Copywriting Terstandarisasi:** Jika form memiliki perubahan (`isDirty === true`), penutupan via tombol Batal, tombol silang `✕` Header, klik backdrop, maupun tombol `Escape` otomatis memunculkan dialog konfirmasi:
+   - **Judul:** `"Perubahan Belum Disimpan"`
+   - **Pesan:** `"Kamu memiliki perubahan data yang belum disimpan. Yakin mau membatalkan dan keluar dari formulir ini?"`
+   - **Tombol Konfirmasi:** `"Ya, Buang Perubahan"` (merah / `btn-danger`)
+   - **Tombol Batal:** `"Lanjut Mengisi"` (sekunder)
+
+```vue
+<script setup>
+import { useForm } from '@inertiajs/vue3'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
+
+const form = useForm({
+    name: '',
+    outlet_id: '',
+})
+
+// Pasang dirty guard cukup 1 baris:
+const { handleCancel, forceClose, isDirty } = useFormDirtyGuard({ form })
+
+const submit = () => {
+    form.post(route('inventory.items.store'), {
+        preserveScroll: true,
+        onSuccess: () => forceClose(),
+    })
+}
+</script>
+
+<template>
+    <!-- ... form body ... -->
+    <Teleport v-if="isMounted" to="#popUpFooter">
+        <button type="button" class="btn btn-flat" :disabled="form.processing" @click="handleCancel">
+            Batal
+        </button>
+        <button type="button" class="btn btn-main" :disabled="form.processing" @click="submit">
+            Simpan
+        </button>
+    </Teleport>
+</template>
 ```
 
 ---

@@ -65,7 +65,12 @@
         </form>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
+            <button
+                type="button"
+                class="btn btn-flat"
+                :disabled="form.processing"
+                @click="handleCancel"
+            >
                 Batal
             </button>
             <button
@@ -83,7 +88,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import { usePopUpStore } from '@/store/popup'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import NumberField from '@/Components/Form/NumberField.vue'
 
 const props = defineProps({
@@ -91,12 +96,13 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['refresh'])
-const popUpStore = usePopUpStore()
 const isMounted = ref(false)
 
 const form = useForm({
     items: [],
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 onMounted(() => {
     isMounted.value = true
@@ -114,18 +120,13 @@ onMounted(() => {
     }
 })
 
-const close = () => {
-    form.clearErrors()
-    popUpStore.close()
-}
-
 const submit = () => {
     if (props.transferData?.id) {
         form.post(route('inventory.transfers.receive', props.transferData.id), {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
-                close()
+                forceClose()
                 emit('refresh')
             },
         })

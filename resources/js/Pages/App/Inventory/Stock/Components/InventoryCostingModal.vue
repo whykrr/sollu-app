@@ -222,7 +222,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useForm, usePage } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
@@ -237,6 +237,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useModalStore } from '@/store/notification'
 import { useToastStore } from '@/store/toast'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 
 const props = defineProps({
     currentMethod: {
@@ -262,13 +263,23 @@ const form = useForm({
     costing_method: selectedMethod.value,
 })
 
+const isMethodDirty = computed(() => selectedMethod.value !== initial)
+
+const { handleCancel: confirmCancel, forceClose } = useFormDirtyGuard({
+    isDirty: isMethodDirty,
+    onClose: () => {
+        modalStore.activeModal.isVisible = false
+        emit('close')
+    },
+})
+
 const handleSubmit = () => {
     form.costing_method = selectedMethod.value
 
     form.put(route('settings.inventory.update'), {
         preserveScroll: true,
         onSuccess: () => {
-            modalStore.activeModal.isVisible = false
+            forceClose()
             toastStore.success('Metode perhitungan aset berhasil diterapkan!')
             emit('saved', selectedMethod.value)
         },
@@ -285,14 +296,12 @@ const handleCancel = () => {
         form.put(route('settings.inventory.update'), {
             preserveScroll: true,
             onSuccess: () => {
-                modalStore.activeModal.isVisible = false
-                emit('close')
+                forceClose()
             },
         })
         return
     }
 
-    modalStore.activeModal.isVisible = false
-    emit('close')
+    confirmCancel()
 }
 </script>

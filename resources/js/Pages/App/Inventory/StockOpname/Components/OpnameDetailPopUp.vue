@@ -2,7 +2,9 @@
     <div>
         <div v-if="opname" class="space-y-3">
             <!-- Header Ringkasan Informasi -->
-            <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50/50 p-3 rounded-lg border border-slate-200">
+            <div
+                class="grid grid-cols-2 gap-2 text-xs bg-slate-50/50 p-3 rounded-lg border border-slate-200"
+            >
                 <div>
                     <p class="text-slate-500">Nomor Opname</p>
                     <p class="font-bold text-slate-800 text-sm">{{ opname.opname_number }}</p>
@@ -56,7 +58,9 @@
                 <div class="border border-slate-200 rounded-lg overflow-hidden">
                     <div class="max-h-80 overflow-y-auto">
                         <table class="w-full text-xs text-left">
-                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium sticky top-0">
+                            <thead
+                                class="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium sticky top-0"
+                            >
                                 <tr>
                                     <th class="p-2.5 w-10 text-center">No</th>
                                     <th class="p-2.5">Barang</th>
@@ -105,7 +109,9 @@
             </div>
 
             <!-- Ringkasan Footer -->
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+            <div
+                class="grid grid-cols-2 sm:grid-cols-5 gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+            >
                 <div class="text-center">
                     <div class="text-slate-500 text-[11px]">Total Barang</div>
                     <div class="font-bold text-slate-800 text-sm mt-0.5">
@@ -132,9 +138,7 @@
                 </div>
                 <div class="text-center col-span-2 sm:col-span-1">
                     <div class="text-slate-500 text-[11px]">Total Shortage</div>
-                    <div class="font-bold text-danger text-sm mt-0.5">
-                        -{{ summary.shortage }}
-                    </div>
+                    <div class="font-bold text-danger text-sm mt-0.5">-{{ summary.shortage }}</div>
                 </div>
             </div>
 
@@ -144,9 +148,12 @@
                 class="bg-amber-50 p-3 rounded-lg border border-amber-200 space-y-2"
             >
                 <div>
-                    <h4 class="font-bold text-xs text-amber-900">Tindakan Verifikasi & Persetujuan</h4>
+                    <h4 class="font-bold text-xs text-amber-900">
+                        Tindakan Verifikasi & Persetujuan
+                    </h4>
                     <p class="text-xs text-amber-800 mt-0.5">
-                        Menyetujui dokumen ini akan langsung menyesuaikan saldo fisik persediaan di sistem.
+                        Menyetujui dokumen ini akan langsung menyesuaikan saldo fisik persediaan di
+                        sistem.
                     </p>
                 </div>
 
@@ -205,12 +212,7 @@
         </div>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button
-                type="button"
-                class="btn btn-flat"
-                :disabled="isProcessing"
-                @click="close"
-            >
+            <button type="button" class="btn btn-flat" :disabled="isProcessing" @click="close">
                 Tutup
             </button>
         </Teleport>

@@ -157,7 +157,7 @@
                         type="button"
                         class="btn btn-flat"
                         :disabled="form.processing"
-                        @click="close"
+                        @click="handleCancel"
                     >
                         Batal
                     </button>
@@ -178,11 +178,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import axios from 'axios'
-import { usePopUpStore } from '@/store/popup'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import { useAuth } from '@/Composable/useAuth'
 import NumberField from '@/Components/Form/NumberField.vue'
-import DropdownField from '@/Components/Form/DropdownField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
@@ -195,7 +193,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['refresh'])
-const popUpStore = usePopUpStore()
 const { selectedOutlet } = useAuth()
 const isMounted = ref(false)
 
@@ -205,6 +202,8 @@ const form = useForm({
     notes: '',
     items: [],
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 const isEdit = computed(() => !!props.transferData)
 
@@ -277,17 +276,12 @@ const removeItem = index => {
     form.items.splice(index, 1)
 }
 
-const close = () => {
-    form.clearErrors()
-    popUpStore.close()
-}
-
 const submit = () => {
     if (isEdit.value) {
         form.put(route('inventory.transfers.update', props.transferData.id), {
             preserveScroll: true,
             onSuccess: () => {
-                close()
+                forceClose()
                 emit('refresh')
             },
         })
@@ -295,7 +289,7 @@ const submit = () => {
         form.post(route('inventory.transfers.store'), {
             preserveScroll: true,
             onSuccess: () => {
-                close()
+                forceClose()
                 emit('refresh')
             },
         })

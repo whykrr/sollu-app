@@ -166,12 +166,24 @@
 
                         <!-- Peringatan Faktor Konversi Jika Satuan Berbeda Tapi Nilai 1 -->
                         <div
-                            v-if="item.uom_name !== item.base_uom_name && Number(item.conversion_factor) === 1"
+                            v-if="
+                                item.uom_name !== item.base_uom_name &&
+                                Number(item.conversion_factor) === 1
+                            "
                             class="col-span-12 p-2 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-800 flex items-start gap-1.5"
                         >
-                            <FontAwesomeIcon :icon="faExclamationTriangle" class="text-amber-500 mt-0.5 shrink-0" />
+                            <FontAwesomeIcon
+                                :icon="faExclamationTriangle"
+                                class="text-amber-500 mt-0.5 shrink-0"
+                            />
                             <div>
-                                <span class="font-semibold">Perhatian:</span> Satuan beli (<strong>{{ item.uom_name }}</strong>) berbeda dengan satuan dasar inventori (<strong>{{ item.base_uom_name }}</strong>), tetapi faktor konversi masih bernilai 1. Pastikan 1 {{ item.uom_name }} memang berisi 1 {{ item.base_uom_name }}.
+                                <span class="font-semibold">Perhatian:</span> Satuan beli (<strong
+                                    >{{ item.uom_name }}</strong
+                                >) berbeda dengan satuan dasar inventori (<strong>{{
+                                    item.base_uom_name
+                                }}</strong
+                                >), tetapi faktor konversi masih bernilai 1. Pastikan 1
+                                {{ item.uom_name }} memang berisi 1 {{ item.base_uom_name }}.
                             </div>
                         </div>
                     </div>
@@ -181,7 +193,12 @@
     </form>
 
     <Teleport v-if="isMounted" to="#popUpFooter">
-        <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
+        <button
+            type="button"
+            class="btn btn-flat"
+            :disabled="form.processing"
+            @click="handleCancel"
+        >
             Batal
         </button>
         <button
@@ -200,12 +217,10 @@ import { watch, ref, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
-import { usePopUpStore } from '@/store/popup'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import NumberField from '@/Components/Form/NumberField.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
-
-const popUpStore = usePopUpStore()
 
 const props = defineProps({
     purchase: {
@@ -225,6 +240,8 @@ const form = useForm({
     notes: '',
     items: [],
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 const formatQuantity = value => {
     return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(value || 0))
@@ -266,17 +283,12 @@ const removeItem = index => {
     form.items.splice(index, 1)
 }
 
-const close = () => {
-    form.clearErrors()
-    popUpStore.close()
-}
-
 const submit = () => {
     if (props.purchase?.id) {
         form.post(route('inventory.purchases.receive', props.purchase.id), {
             preserveScroll: true,
             preserveState: true,
-            onSuccess: () => close(),
+            onSuccess: () => forceClose(),
         })
     }
 }

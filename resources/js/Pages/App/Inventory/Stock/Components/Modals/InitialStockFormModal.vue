@@ -32,7 +32,7 @@
                 type="button"
                 class="btn btn-outline-secondary"
                 :disabled="saving"
-                @click="emit('close')"
+                @click="handleCancel"
             >
                 Batal
             </button>
@@ -44,8 +44,9 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import axios from 'axios'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import TextField from '@/Components/Form/TextField.vue'
 
 const props = defineProps({
@@ -62,6 +63,12 @@ const purchasePrice = ref('')
 const saving = ref(false)
 const errors = reactive({ qty: '', purchase_price: '' })
 const generalError = ref('')
+
+const isDirty = computed(() => qty.value !== '' || purchasePrice.value !== '')
+const { handleCancel, forceClose } = useFormDirtyGuard({
+    isDirty,
+    onClose: () => emit('close'),
+})
 
 const save = async () => {
     errors.qty = ''
@@ -86,6 +93,7 @@ const save = async () => {
             qty: parseFloat(qty.value),
             purchase_price: parseFloat(purchasePrice.value),
         })
+        forceClose()
         emit('success')
     } catch (err) {
         generalError.value = err.response?.data?.message || 'Gagal menyimpan stok awal.'

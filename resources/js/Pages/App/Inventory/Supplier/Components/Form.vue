@@ -165,7 +165,12 @@
         </form>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
+            <button
+                type="button"
+                class="btn btn-flat"
+                :disabled="form.processing"
+                @click="handleCancel"
+            >
                 Batal
             </button>
             <button type="button" class="btn btn-main" :disabled="form.processing" @click="submit">
@@ -182,6 +187,7 @@ import { debounce } from 'lodash'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import TextField from '@/Components/Form/TextField.vue'
 import EmailField from '@/Components/Form/EmailField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
@@ -195,8 +201,6 @@ const props = defineProps({
         default: null,
     },
 })
-
-const emit = defineEmits(['close'])
 
 const isMounted = ref(false)
 onMounted(() => {
@@ -213,6 +217,8 @@ const form = useForm({
     is_active: true,
     inventory_items: [],
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 // For search
 const searchQuery = ref('')
@@ -303,23 +309,18 @@ watch(
     { immediate: true }
 )
 
-const close = () => {
-    form.clearErrors()
-    emit('close')
-}
-
 const submit = () => {
     if (props.supplier?.id) {
         form.put(route('inventory.suppliers.update', props.supplier.id), {
             preserveScroll: true,
             preserveState: true,
-            onSuccess: () => close(),
+            onSuccess: () => forceClose(),
         })
     } else {
         form.post(route('inventory.suppliers.store'), {
             preserveScroll: true,
             preserveState: true,
-            onSuccess: () => close(),
+            onSuccess: () => forceClose(),
         })
     }
 }

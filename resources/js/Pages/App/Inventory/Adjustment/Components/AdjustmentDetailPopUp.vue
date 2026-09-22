@@ -15,7 +15,9 @@
             </div>
         </div>
         <div v-else-if="adjustment" class="space-y-3">
-            <div class="grid grid-cols-2 gap-2 text-sm bg-slate-50/50 p-3 rounded-lg border border-slate-200">
+            <div
+                class="grid grid-cols-2 gap-2 text-sm bg-slate-50/50 p-3 rounded-lg border border-slate-200"
+            >
                 <div>
                     <p class="text-xs text-slate-500">Nomor Dokumen</p>
                     <p class="font-bold text-slate-800">{{ adjustment.adjustment_number }}</p>
@@ -47,7 +49,10 @@
                         {{ getLabel('AdjustmentReason', adjustment.reason) }}
                     </p>
                 </div>
-                <div v-if="adjustment.approver" class="col-span-2 border-t border-slate-200 pt-2 mt-1">
+                <div
+                    v-if="adjustment.approver"
+                    class="col-span-2 border-t border-slate-200 pt-2 mt-1"
+                >
                     <p class="text-xs text-slate-500">Diproses Oleh</p>
                     <p class="text-slate-700">
                         {{ adjustment.approver.name }}
@@ -66,7 +71,9 @@
                 <h4 class="font-bold text-xs text-slate-700 mb-1.5">Daftar Barang Penyesuaian</h4>
                 <div class="border border-slate-200 rounded-lg overflow-hidden">
                     <table class="w-full text-xs text-left">
-                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
+                        <thead
+                            class="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium"
+                        >
                             <tr>
                                 <th class="p-2.5">Barang</th>
                                 <th class="p-2.5 text-right">Perubahan Qty</th>
@@ -92,23 +99,24 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
-                            <tr
-                                v-for="item in adjustment.items"
-                                :key="item.id"
-                            >
+                            <tr v-for="item in adjustment.items" :key="item.id">
                                 <td class="p-2.5">
                                     <div class="font-semibold text-slate-800">
                                         {{ item.inventory_item?.name }}
                                     </div>
                                     <div class="text-[10px] text-slate-400">
-                                        SKU: {{ item.inventory_item?.sku || '-' }} | Satuan: {{ item.inventory_item?.uom?.name || '-' }}
+                                        SKU: {{ item.inventory_item?.sku || '-' }} | Satuan:
+                                        {{ item.inventory_item?.uom?.name || '-' }}
                                     </div>
                                 </td>
                                 <td
                                     class="p-2.5 text-right font-bold"
-                                    :class="item.qty_change > 0 ? 'text-emerald-600' : 'text-danger'"
+                                    :class="
+                                        item.qty_change > 0 ? 'text-emerald-600' : 'text-danger'
+                                    "
                                 >
-                                    {{ item.qty_change > 0 ? '+' : '' }}{{ item.qty_change_formatted }}
+                                    {{ item.qty_change > 0 ? '+' : ''
+                                    }}{{ item.qty_change_formatted }}
                                 </td>
                                 <td
                                     v-if="
@@ -143,7 +151,8 @@
                 <div>
                     <h4 class="font-bold text-xs text-amber-900">Tindakan Persetujuan</h4>
                     <p class="text-xs text-amber-800 mt-0.5">
-                        Pastikan seluruh data penyesuaian sudah sesuai kondisi fisik barang sebelum menyetujui.
+                        Pastikan seluruh data penyesuaian sudah sesuai kondisi fisik barang sebelum
+                        menyetujui.
                     </p>
                 </div>
 
@@ -162,7 +171,11 @@
 
                 <div class="flex gap-2">
                     <template v-if="!showRejectInput">
-                        <button class="btn btn-main btn-sm" :disabled="isProcessing" @click="confirmApprove">
+                        <button
+                            class="btn btn-main btn-sm"
+                            :disabled="isProcessing"
+                            @click="confirmApprove"
+                        >
                             <FontAwesomeIcon :icon="faCheck" /> Setujui Penyesuaian
                         </button>
                         <button
@@ -272,7 +285,8 @@ const close = () => {
 const confirmApprove = () => {
     modalStore.open({
         title: 'Konfirmasi Persetujuan',
-        message: 'Apakah kamu yakin ingin menyetujui penyesuaian ini? Stok barang akan segera diperbarui.',
+        message:
+            'Apakah kamu yakin ingin menyetujui penyesuaian ini? Stok barang akan segera diperbarui.',
         confirmText: 'Ya, Setujui',
         confirmButtonClass: 'btn btn-main',
         onConfirm: () => {

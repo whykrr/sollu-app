@@ -88,7 +88,13 @@ import Breadcrumbs from '@/Components/Layout/Header/Breadcrumbs.vue'
 import TopBarAccountCockpit from './TopBarAccountCockpit.vue'
 import TopBarNotification from '@/Components/Layout/Header/TopBarNotification.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faBars, faClose, faBinoculars, faServer, faHeartPulse } from '@fortawesome/free-solid-svg-icons'
+import {
+    faBars,
+    faClose,
+    faBinoculars,
+    faServer,
+    faHeartPulse,
+} from '@fortawesome/free-solid-svg-icons'
 import { useAppStore } from '@/store/app'
 
 const appStore = useAppStore()

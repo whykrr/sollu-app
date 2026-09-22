@@ -20,7 +20,10 @@
                     <span class="text-slate-400 block text-[11px]">Surat Jalan Referensi:</span>
                     <span class="font-semibold text-main">
                         {{ selectedReceipt.receipt_number }}
-                        <span v-if="selectedReceipt.delivery_order_number" class="text-slate-500 font-normal">
+                        <span
+                            v-if="selectedReceipt.delivery_order_number"
+                            class="text-slate-500 font-normal"
+                        >
                             (SJ: {{ selectedReceipt.delivery_order_number }})
                         </span>
                     </span>
@@ -73,7 +76,8 @@
                         Daftar Barang yang Dikembalikan
                     </h3>
                     <p class="text-[11px] text-slate-500">
-                        Kuantitas dan konversi dihitung akurat berdasarkan riwayat surat jalan penerimaan barang.
+                        Kuantitas dan konversi dihitung akurat berdasarkan riwayat surat jalan
+                        penerimaan barang.
                     </p>
                 </div>
             </div>
@@ -82,14 +86,16 @@
                 v-if="hasExpiredReceipts"
                 class="bg-amber-50/70 p-2.5 rounded-lg border border-amber-200/70 text-xs text-amber-800"
             >
-                <strong>Catatan:</strong> Beberapa barang penerimaan tidak dapat diretur karena telah melewati batas masa retur pemasok.
+                <strong>Catatan:</strong> Beberapa barang penerimaan tidak dapat diretur karena
+                telah melewati batas masa retur pemasok.
             </div>
 
             <div
                 v-if="form.items.length === 0"
                 class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
             >
-                Belum ada barang penerimaan yang dapat diretur atau seluruh masa retur telah berakhir.
+                Belum ada barang penerimaan yang dapat diretur atau seluruh masa retur telah
+                berakhir.
             </div>
 
             <div v-else class="space-y-2 max-h-80 overflow-y-auto pr-1">
@@ -116,15 +122,19 @@
                                 >
                                     Masa Retur: {{ item.remaining_days }} hr lagi
                                 </span>
-                                <span class="text-slate-500">
-                                    SKU: {{ item.sku || '-' }}
-                                </span>
+                                <span class="text-slate-500"> SKU: {{ item.sku || '-' }} </span>
                                 <span class="text-slate-300">•</span>
                                 <span class="text-slate-600 font-medium">
-                                    1 {{ item.uom_name }} = {{ formatQuantity(item.conversion_factor) }} {{ item.base_uom_name }}
+                                    1 {{ item.uom_name }} =
+                                    {{ formatQuantity(item.conversion_factor) }}
+                                    {{ item.base_uom_name }}
                                 </span>
-                                <span v-if="item.max_returnable_qty" class="text-amber-700 font-medium">
-                                    (Maks: {{ formatQuantity(item.max_returnable_qty) }} {{ item.uom_name }})
+                                <span
+                                    v-if="item.max_returnable_qty"
+                                    class="text-amber-700 font-medium"
+                                >
+                                    (Maks: {{ formatQuantity(item.max_returnable_qty) }}
+                                    {{ item.uom_name }})
                                 </span>
                             </div>
                         </div>
@@ -207,7 +217,9 @@
                         -{{ formatQuantity(totalInventoryQtyRetur) }} Satuan Dasar
                     </span>
                 </div>
-                <div class="flex items-center justify-between text-xs pt-1 border-t border-red-200/60">
+                <div
+                    class="flex items-center justify-between text-xs pt-1 border-t border-red-200/60"
+                >
                     <span class="text-red-700 font-semibold">Total Nilai Pengembalian:</span>
                     <span class="font-bold text-base text-danger">
                         {{ formatCurrency(totalReturAmount) }}
@@ -218,7 +230,12 @@
     </form>
 
     <Teleport v-if="isMounted" to="#popUpFooter">
-        <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
+        <button
+            type="button"
+            class="btn btn-flat"
+            :disabled="form.processing"
+            @click="handleCancel"
+        >
             Batal
         </button>
         <button
@@ -239,13 +256,12 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
-import { usePopUpStore } from '@/store/popup'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 
-const popUpStore = usePopUpStore()
 const { enums } = useEnum()
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 
@@ -281,6 +297,8 @@ const form = useForm({
     reason: '',
     items: [],
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 const hasExpiredReceipts = ref(false)
 
@@ -340,9 +358,7 @@ const populateForm = () => {
             )
 
             if (props.selectedReceipt) {
-                completedReceipts = completedReceipts.filter(
-                    r => r.id === props.selectedReceipt.id
-                )
+                completedReceipts = completedReceipts.filter(r => r.id === props.selectedReceipt.id)
             }
 
             completedReceipts.forEach(receipt => {
@@ -351,7 +367,7 @@ const populateForm = () => {
                     return
                 }
 
-                (receipt.items || []).forEach(grItem => {
+                ;(receipt.items || []).forEach(grItem => {
                     const remaining = Number(
                         grItem.remaining_returnable_qty !== undefined
                             ? grItem.remaining_returnable_qty
@@ -362,16 +378,14 @@ const populateForm = () => {
                         returnableItems.push({
                             goods_receipt_item_id: grItem.id,
                             receipt_number:
-                                receipt.delivery_order_number ||
-                                'SJ-' + receipt.id.substring(0, 6),
+                                receipt.delivery_order_number || 'SJ-' + receipt.id.substring(0, 6),
                             received_at: receipt.received_at,
                             remaining_days: receipt.remaining_return_days,
                             inventory_item_id: grItem.inventory_item_id,
                             name: grItem.inventory_item?.name || 'Item',
                             sku: grItem.inventory_item?.sku || '-',
                             uom_id: grItem.uom_id,
-                            uom_name:
-                                grItem.uom?.name || grItem.inventory_item?.uom?.name || '-',
+                            uom_name: grItem.uom?.name || grItem.inventory_item?.uom?.name || '-',
                             base_uom_name: grItem.inventory_item?.uom?.name || '-',
                             return_purchase_qty: remaining,
                             conversion_factor: Number(grItem.conversion_factor || 1),
@@ -379,7 +393,8 @@ const populateForm = () => {
                             unit_cost: Number(
                                 grItem.purchase_unit_cost !== undefined
                                     ? grItem.purchase_unit_cost
-                                    : (Number(grItem.unit_cost || 0) * Number(grItem.conversion_factor || 1))
+                                    : Number(grItem.unit_cost || 0) *
+                                          Number(grItem.conversion_factor || 1)
                             ),
                         })
                     }
@@ -399,16 +414,11 @@ watch(
     { deep: true }
 )
 
-const close = () => {
-    form.clearErrors()
-    popUpStore.close()
-}
-
 const submit = () => {
     form.post(route('inventory.purchases.returns.store'), {
         preserveScroll: true,
         preserveState: true,
-        onSuccess: () => close(),
+        onSuccess: () => forceClose(),
     })
 }
 </script>

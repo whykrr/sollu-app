@@ -186,6 +186,17 @@ Setiap kali ada penambahan kasus baru pada `App\Enums\PermissionEnum`:
         - **Error Badging & Step Validation:** Stepper/Tabs wajib menerima properti `:errors="form.errors"` untuk memunculkan indikator titik merah (*error dot*) pada langkah/tab yang bermasalah.
         - **Sticky Teleport Footer:** Tombol navigasi (Batal, Kembali, Lanjut, Simpan) WAJIB di-teleport ke `#popUpFooter` di *Thumb Zone* bawah.
 
+**12. Standar Form Lifecycle & Penanganan Form Dirty (`useFormDirtyGuard`)**
+
+- **Wajib Menggunakan `useFormDirtyGuard`:** Seluruh formulir Create dan Edit di dalam Drawer `<PopUpPage>` atau dialog modal WAJIB menggunakan composable `@/Composable/useFormDirtyGuard({ form })`.
+- **Dilarang Bypass Store Close pada Tombol Batal:** Tombol Batal pada formulir **DILARANG KERAS** memanggil `popUpStore.close()` secara langsung di template (`@click="popUpStore.close()"` adalah anti-pattern). Tombol Batal WAJIB memicu method `handleCancel` dari `useFormDirtyGuard`.
+- **Wajib `forceClose()` pada `onSuccess`:** Saat form berhasil disubmit, handler `onSuccess` WAJIB memanggil `forceClose()` agar drawer tertutup bersih tanpa memicu modal konfirmasi.
+- **Standar Dialog Konfirmasi:** Jika form memiliki perubahan data (`isDirty === true`), penutupan via tombol Batal, tombol silang `✕` Header, klik backdrop, maupun tombol keyboard `Escape` otomatis memunculkan dialog konfirmasi terstandarisasi:
+    - Judul: *"Perubahan Belum Disimpan"*
+    - Pesan: *"Kamu memiliki perubahan data yang belum disimpan. Yakin mau membatalkan dan keluar dari formulir ini?"*
+    - Tombol Konfirmasi: *"Ya, Buang Perubahan"* (`btn-danger`)
+    - Tombol Batal: *"Lanjut Mengisi"* (sekunder)
+
 ---
 
 ## E. Standar Penggunaan MCP (Model Context Protocol)

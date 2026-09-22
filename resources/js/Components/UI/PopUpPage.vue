@@ -172,7 +172,7 @@ const requestClose = (force = false) => {
     modalStore.confirm({
         title: 'Perubahan Belum Disimpan',
         message:
-            'Anda memiliki perubahan data yang belum disimpan. Apakah Anda yakin ingin membatalkan dan keluar dari formulir ini?',
+            'Kamu memiliki perubahan data yang belum disimpan. Yakin mau membatalkan dan keluar dari formulir ini?',
         type: 'warning',
         confirmText: 'Ya, Buang Perubahan',
         cancelText: 'Lanjut Mengisi',

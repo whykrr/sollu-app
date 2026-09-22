@@ -39,7 +39,10 @@
             <template #actions="{ item }">
                 <div class="flex items-center gap-1.5">
                     <button
-                        v-if="item.status === $enums.StockOpnameStatus.InProgress && can('inventory.opname.update')"
+                        v-if="
+                            item.status === $enums.StockOpnameStatus.InProgress &&
+                            can('inventory.opname.update')
+                        "
                         class="btn btn-highlight-main btn-sm"
                         title="Lanjutkan Opname"
                         @click.stop="openForm(item)"
@@ -47,7 +50,10 @@
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
-                        v-if="item.status === $enums.StockOpnameStatus.PendingApproval && can('inventory.opname.approve')"
+                        v-if="
+                            item.status === $enums.StockOpnameStatus.PendingApproval &&
+                            can('inventory.opname.approve')
+                        "
                         class="btn btn-info btn-sm"
                         title="Review & Setujui"
                         @click.stop="openDetail(item)"
@@ -57,7 +63,7 @@
                     <button
                         v-if="
                             (item.status === $enums.StockOpnameStatus.Approved ||
-                            item.status === $enums.StockOpnameStatus.Rejected) &&
+                                item.status === $enums.StockOpnameStatus.Rejected) &&
                             can('inventory.opname.read')
                         "
                         class="btn btn-flat btn-sm"
@@ -67,7 +73,10 @@
                         <FontAwesomeIcon :icon="faEye" />
                     </button>
                     <button
-                        v-if="item.status === $enums.StockOpnameStatus.InProgress && can('inventory.opname.delete')"
+                        v-if="
+                            item.status === $enums.StockOpnameStatus.InProgress &&
+                            can('inventory.opname.delete')
+                        "
                         class="btn btn-flat btn-sm text-danger"
                         title="Batalkan Opname"
                         @click.stop="confirmDelete(item)"
@@ -75,7 +84,10 @@
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>
                     <button
-                        v-if="item.status !== $enums.StockOpnameStatus.InProgress && can('inventory.opname.export')"
+                        v-if="
+                            item.status !== $enums.StockOpnameStatus.InProgress &&
+                            can('inventory.opname.export')
+                        "
                         class="btn btn-flat btn-sm text-danger"
                         title="Ekspor PDF"
                         @click.stop="exportPdf(item.id)"

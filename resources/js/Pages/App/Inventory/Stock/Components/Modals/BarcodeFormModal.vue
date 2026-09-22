@@ -14,7 +14,7 @@
                 type="button"
                 class="btn btn-outline-secondary"
                 :disabled="saving"
-                @click="emit('close')"
+                @click="handleCancel"
             >
                 Batal
             </button>
@@ -26,8 +26,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import axios from 'axios'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import TextField from '@/Components/Form/TextField.vue'
 
 const props = defineProps({
@@ -47,6 +48,12 @@ const barcode = ref(props.initialBarcode || '')
 const saving = ref(false)
 const error = ref('')
 
+const isDirty = computed(() => barcode.value !== (props.initialBarcode || ''))
+const { handleCancel, forceClose } = useFormDirtyGuard({
+    isDirty,
+    onClose: () => emit('close'),
+})
+
 const save = async () => {
     if (!barcode.value) {
         error.value = 'Barcode tidak boleh kosong.'
@@ -59,6 +66,7 @@ const save = async () => {
         await axios.patch(route('inventories.stocks.barcode.update', props.stockId), {
             barcode: barcode.value,
         })
+        forceClose()
         emit('success')
     } catch (err) {
         error.value = err.response?.data?.message || 'Gagal menyimpan barcode.'

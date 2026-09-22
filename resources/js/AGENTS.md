@@ -40,9 +40,10 @@ Saat membuat atau memodifikasi antarmuka di `resources/js`, Anda **WAJIB** memat
 - **Sortable Header Standard:** Setiap kolom yang dapat disortir WAJIB didefinisikan dengan `sortable: true` pada array `headers` dan meneruskan props `:sort="params?.sort"` serta `:sort-direction="params?.direction"` ke `<Table>`. Komponen akan menangani interaksi klik sort dan URL sync Inertia secara otomatis.
 - **Empty State Terpusat:** Penanganan _empty state_ ("data tidak ditemukan") ditangani secara terpusat di level komponen `<Table>`. DILARANG membuat container `v-if="data.length === 0"` manual di masing-masing page.
 
-## 5. Side Drawer (`<PopUpPage>` / `usePopUpStore()`) vs Modal Konfirmasi
+## 5. Side Drawer (`<PopUpPage>` / `usePopUpStore()`), Form Dirty Guard & Modal Konfirmasi
 
 - **`<PopUpPage>` / `usePopUpStore()` (Drawer Samping):** WAJIB untuk formulir _Create_, _Edit_, _Detail_, dan _Sub-page_. Dilarang menggunakan _full page redirect_ (`router.get()`) untuk sub-halaman.
+- **Wajib `useFormDirtyGuard`:** Setiap form di dalam drawer WAJIB menggunakan `const { handleCancel, forceClose } = useFormDirtyGuard({ form })`. Tombol Batal WAJIB memanggil `@click="handleCancel"`. Dilarang memanggil `popUpStore.close()` langsung di template! Pada callback `onSuccess` submit, panggil `forceClose()`.
 - **Isolasi Padding PopUpPage:** Slot default / body `PopUpPage.vue` sudah memiliki padding bawaan di tingkat komponen. Child view yang dirender di dalam PopUpPage **TIDAK BOLEH** menambahkan wrapper padding/margin luar lagi (cukup `<form class="space-y-2">` atau `<div>`).
 - **Sticky Footer Teleport:** Kirim tombol aksi di PopUpPage ke footer sticky drawer menggunakan `<Teleport v-if="isMounted" to="#popUpFooter">`.
 - **`<Modal>` / `useModalStore()` (Center Dialog):** STRICTLY khusus untuk konfirmasi singkat (Hapus Data, Archive, Alert Peringatan).

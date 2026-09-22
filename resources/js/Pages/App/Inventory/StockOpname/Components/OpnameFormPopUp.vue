@@ -129,7 +129,8 @@
                     v-else-if="form.items.length === 0"
                     class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
                 >
-                    Belum ada barang ditambahkan. Silakan cari barang atau klik tombol <strong>Muat Semua Barang</strong> di atas.
+                    Belum ada barang ditambahkan. Silakan cari barang atau klik tombol
+                    <strong>Muat Semua Barang</strong> di atas.
                 </div>
 
                 <!-- Daftar Item Opname -->
@@ -150,7 +151,9 @@
                                     </div>
                                     <div class="text-[11px] text-slate-400 truncate">
                                         SKU: {{ item.sku || '-' }} | Satuan:
-                                        <span class="font-medium text-slate-600">{{ item.uom || '-' }}</span>
+                                        <span class="font-medium text-slate-600">{{
+                                            item.uom || '-'
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -166,10 +169,14 @@
                         </div>
 
                         <!-- Grid Perhitungan: Stok Sistem, Stok Fisik, Selisih -->
-                        <div class="grid grid-cols-12 gap-2 pt-1 border-t border-slate-100 items-center">
+                        <div
+                            class="grid grid-cols-12 gap-2 pt-1 border-t border-slate-100 items-center"
+                        >
                             <div class="col-span-12 sm:col-span-4">
                                 <div class="text-[11px] text-slate-500 mb-1">Stok Sistem</div>
-                                <div class="bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-center py-1.5 rounded text-xs">
+                                <div
+                                    class="bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-center py-1.5 rounded text-xs"
+                                >
                                     {{ item.system_qty }} {{ item.uom || '' }}
                                 </div>
                             </div>
@@ -193,12 +200,15 @@
                             </div>
 
                             <div class="col-span-12 sm:col-span-4">
-                                <div class="text-[11px] text-slate-500 mb-1 text-center">Selisih Fisik</div>
+                                <div class="text-[11px] text-slate-500 mb-1 text-center">
+                                    Selisih Fisik
+                                </div>
                                 <div
                                     class="font-bold text-sm text-center py-1 rounded bg-slate-50/50 border border-dashed border-slate-200"
                                     :class="differenceColor(item.actual_qty, item.system_qty)"
                                 >
-                                    {{ formatDifference(item.actual_qty, item.system_qty) }} {{ item.uom || '' }}
+                                    {{ formatDifference(item.actual_qty, item.system_qty) }}
+                                    {{ item.uom || '' }}
                                 </div>
                             </div>
                         </div>
@@ -261,7 +271,7 @@
                 type="button"
                 class="btn btn-flat"
                 :disabled="form.processing"
-                @click="close"
+                @click="handleCancel"
             >
                 Batal
             </button>
@@ -295,8 +305,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import { useModalStore } from '@/store/notification'
-import { usePopUpStore } from '@/store/popup'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
@@ -309,9 +319,7 @@ const props = defineProps({
     },
 })
 
-const emit = defineEmits(['close'])
 const modalStore = useModalStore()
-const popUpStore = usePopUpStore()
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 const { getLabel, getColor } = useEnum()
 
@@ -336,6 +344,8 @@ const form = useForm({
     notes: props.opname?.notes || '',
     items: [],
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 const activeOutletId = computed(() => props.opname?.outlet_id || form.outlet_id)
 
@@ -471,13 +481,6 @@ const formatDifference = (actual, system) => {
     return '0'
 }
 
-const close = () => {
-    form.clearErrors()
-    form.reset()
-    popUpStore.close()
-    emit('close')
-}
-
 const confirmSubmit = type => {
     if (type === 'save') {
         modalStore.open({
@@ -504,7 +507,7 @@ const executeSubmit = () => {
     const options = {
         preserveScroll: true,
         preserveState: true,
-        onSuccess: () => close(),
+        onSuccess: () => forceClose(),
     }
 
     if (props.opname) {

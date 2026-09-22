@@ -318,12 +318,24 @@
 
                     <!-- Peringatan Faktor Konversi Jika Satuan Berbeda Tapi Nilai 1 (Beli Langsung) -->
                     <div
-                        v-if="purchaseMode === 'direct' && item.uom_id !== item.base_uom_id && Number(item.conversion_factor) === 1"
+                        v-if="
+                            purchaseMode === 'direct' &&
+                            item.uom_id !== item.base_uom_id &&
+                            Number(item.conversion_factor) === 1
+                        "
                         class="p-2 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-800 flex items-start gap-1.5"
                     >
-                        <FontAwesomeIcon :icon="faExclamationTriangle" class="text-amber-500 mt-0.5 shrink-0" />
+                        <FontAwesomeIcon
+                            :icon="faExclamationTriangle"
+                            class="text-amber-500 mt-0.5 shrink-0"
+                        />
                         <div>
-                            <span class="font-semibold">Perhatian:</span> Satuan beli yang dipilih berbeda dengan satuan dasar inventori (<strong>{{ item.base_uom_name }}</strong>), tetapi faktor konversi masih bernilai 1. Pastikan isi konversinya sudah benar.
+                            <span class="font-semibold">Perhatian:</span> Satuan beli yang dipilih
+                            berbeda dengan satuan dasar inventori (<strong>{{
+                                item.base_uom_name
+                            }}</strong
+                            >), tetapi faktor konversi masih bernilai 1. Pastikan isi konversinya
+                            sudah benar.
                         </div>
                     </div>
                 </div>
@@ -356,7 +368,12 @@
     </form>
 
     <Teleport v-if="isMounted" to="#popUpFooter">
-        <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
+        <button
+            type="button"
+            class="btn btn-flat"
+            :disabled="form.processing"
+            @click="handleCancel"
+        >
             Batal
         </button>
         <button
@@ -378,14 +395,13 @@ import { faCheck, faTrash, faExclamationTriangle } from '@fortawesome/free-solid
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
 import { usePlanFeature } from '@/Composable/usePlanFeature'
-import { usePopUpStore } from '@/store/popup'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
 
-const popUpStore = usePopUpStore()
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 const { enums } = useEnum()
 const { hasFeature } = usePlanFeature()
@@ -451,6 +467,8 @@ const form = useForm({
     notes: '',
     items: [],
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 // Watch outlet changes: reset items if outlet changes
 watch(
@@ -564,29 +582,24 @@ const submitButtonText = computed(() => {
     return purchaseMode.value === 'direct' ? 'Simpan & Terima Stok' : 'Simpan PO Draf'
 })
 
-const close = () => {
-    form.clearErrors()
-    popUpStore.close()
-}
-
 const submit = () => {
     if (props.purchase?.id) {
         form.put(route('inventory.purchases.update', props.purchase.id), {
             preserveScroll: true,
             preserveState: true,
-            onSuccess: () => close(),
+            onSuccess: () => forceClose(),
         })
     } else if (purchaseMode.value === 'direct') {
         form.post(route('inventory.purchases.direct'), {
             preserveScroll: true,
             preserveState: true,
-            onSuccess: () => close(),
+            onSuccess: () => forceClose(),
         })
     } else {
         form.post(route('inventory.purchases.store'), {
             preserveScroll: true,
             preserveState: true,
-            onSuccess: () => close(),
+            onSuccess: () => forceClose(),
         })
     }
 }

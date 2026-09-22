@@ -55,12 +55,16 @@
                         <div
                             class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white font-bold"
                             :class="
-                                formCosting.costing_method === 'fifo' ? 'bg-emerald-600' : 'bg-indigo-600'
+                                formCosting.costing_method === 'fifo'
+                                    ? 'bg-emerald-600'
+                                    : 'bg-indigo-600'
                             "
                         >
                             <FontAwesomeIcon
                                 :icon="
-                                    formCosting.costing_method === 'fifo' ? faBoxesStacked : faCalculator
+                                    formCosting.costing_method === 'fifo'
+                                        ? faBoxesStacked
+                                        : faCalculator
                                 "
                                 class="text-lg"
                             />
@@ -439,12 +443,18 @@
                         </div>
                         <div class="space-y-0.5">
                             <div class="flex items-center gap-2">
-                                <span class="text-xs font-medium text-slate-500">Mode Kontrol:</span>
+                                <span class="text-xs font-medium text-slate-500"
+                                    >Mode Kontrol:</span
+                                >
                                 <span
                                     class="badge text-xs font-semibold px-2 py-0.5"
                                     :class="formSod.enabled ? 'badge-info' : 'badge-gray'"
                                 >
-                                    {{ formSod.enabled ? 'Pemisahan Tugas Aktif' : 'Mode Fleksibel (UMKM)' }}
+                                    {{
+                                        formSod.enabled
+                                            ? 'Pemisahan Tugas Aktif'
+                                            : 'Mode Fleksibel (UMKM)'
+                                    }}
                                 </span>
                             </div>
                             <h3 class="text-base font-bold text-slate-800">
@@ -473,7 +483,9 @@
                 <!-- Quick Presets Card -->
                 <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                        <h4
+                            class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2"
+                        >
                             <FontAwesomeIcon :icon="faWandMagicSparkles" class="text-main" />
                             <span>Pilih Preset Cepat</span>
                         </h4>
@@ -522,7 +534,9 @@
                             type="button"
                             class="p-3 text-left rounded-lg border transition-all text-xs space-y-1"
                             :class="[
-                                formSod.enabled && formSod.rules.purchase_order_receive && !formSod.allow_owner_bypass
+                                formSod.enabled &&
+                                formSod.rules.purchase_order_receive &&
+                                !formSod.allow_owner_bypass
                                     ? 'border-main bg-main/5 font-semibold text-main'
                                     : 'border-slate-200 hover:border-slate-300 text-slate-700',
                             ]"
@@ -547,7 +561,8 @@
                             <span>Aturan Rinci Pemisahan Tugas</span>
                         </h4>
                         <p class="text-xs text-slate-500 mt-0.5">
-                            Pilih alur transaksi spesifik yang mewajibkan persetujuan dari orang yang berbeda.
+                            Pilih alur transaksi spesifik yang mewajibkan persetujuan dari orang
+                            yang berbeda.
                         </p>
                     </div>
 
@@ -555,11 +570,15 @@
                         <!-- Rule 1: Stock Adjustment -->
                         <div class="py-3.5 flex items-start justify-between gap-4">
                             <div class="space-y-1">
-                                <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                <div
+                                    class="text-xs font-bold text-slate-800 flex items-center gap-2"
+                                >
                                     <span>Penyesuaian Stok (Stock Adjustment)</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Pembuat draf penyesuaian (koreksi, barang rusak, kadaluwarsa) dilarang menyetujui drafnya sendiri. Wajib disetujui oleh staf/supervisor lain.
+                                    Pembuat draf penyesuaian (koreksi, barang rusak, kadaluwarsa)
+                                    dilarang menyetujui drafnya sendiri. Wajib disetujui oleh
+                                    staf/supervisor lain.
                                 </p>
                             </div>
                             <Switch
@@ -572,11 +591,14 @@
                         <!-- Rule 2: Stock Opname -->
                         <div class="py-3.5 flex items-start justify-between gap-4">
                             <div class="space-y-1">
-                                <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                <div
+                                    class="text-xs font-bold text-slate-800 flex items-center gap-2"
+                                >
                                     <span>Stock Opname & Rekonsiliasi</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Petugas yang menginput hasil hitungan fisik dilarang menyetujui atau memfinalisasi penyesuaian selisih opname.
+                                    Petugas yang menginput hasil hitungan fisik dilarang menyetujui
+                                    atau memfinalisasi penyesuaian selisih opname.
                                 </p>
                             </div>
                             <Switch
@@ -589,11 +611,14 @@
                         <!-- Rule 3: Stock Transfer Approval -->
                         <div class="py-3.5 flex items-start justify-between gap-4">
                             <div class="space-y-1">
-                                <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                <div
+                                    class="text-xs font-bold text-slate-800 flex items-center gap-2"
+                                >
                                     <span>Persetujuan Transfer Stok Cabang</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Staf yang mengajukan permintaan transfer antar-outlet dilarang menyetujui permintaannya sendiri.
+                                    Staf yang mengajukan permintaan transfer antar-outlet dilarang
+                                    menyetujui permintaannya sendiri.
                                 </p>
                             </div>
                             <Switch
@@ -606,11 +631,14 @@
                         <!-- Rule 4: Stock Transfer Receive -->
                         <div class="py-3.5 flex items-start justify-between gap-4">
                             <div class="space-y-1">
-                                <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                <div
+                                    class="text-xs font-bold text-slate-800 flex items-center gap-2"
+                                >
                                     <span>Pemisahan Pengirim & Penerima Transfer</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Staf yang mengirim barang dari outlet asal dilarang merangkap mencatat penerimaan barang di outlet tujuan.
+                                    Staf yang mengirim barang dari outlet asal dilarang merangkap
+                                    mencatat penerimaan barang di outlet tujuan.
                                 </p>
                             </div>
                             <Switch
@@ -623,11 +651,14 @@
                         <!-- Rule 5: Purchase Order vs Goods Receipt -->
                         <div class="py-3.5 flex items-start justify-between gap-4">
                             <div class="space-y-1">
-                                <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                <div
+                                    class="text-xs font-bold text-slate-800 flex items-center gap-2"
+                                >
                                     <span>Pemisahan Pembuat PO & Penerima Barang</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Staf pembuat pesanan pembelian (PO) dilarang mencatat penerimaan fisik surat jalan (Goods Receipt) untuk PO tersebut.
+                                    Staf pembuat pesanan pembelian (PO) dilarang mencatat penerimaan
+                                    fisik surat jalan (Goods Receipt) untuk PO tersebut.
                                 </p>
                             </div>
                             <Switch
@@ -648,7 +679,9 @@
                                 <span>Izin Bypass Pemilik Usaha (Owner Emergency Override)</span>
                             </div>
                             <p class="text-[11px] text-slate-500 leading-relaxed">
-                                Izinkan pemilik usaha (Owner / Superadmin) menyetujui transaksi mereka sendiri dalam kondisi mendesak/darurat, meskipun aturan SoD sedang aktif.
+                                Izinkan pemilik usaha (Owner / Superadmin) menyetujui transaksi
+                                mereka sendiri dalam kondisi mendesak/darurat, meskipun aturan SoD
+                                sedang aktif.
                             </p>
                         </div>
                         <Switch
@@ -707,24 +740,37 @@
                     </h4>
 
                     <div class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
-                        <div class="rounded-lg border border-slate-100 bg-slate-50/60 p-2.5 space-y-1">
-                            <div class="font-semibold text-slate-700">Prinsip 4 Mata (Four-Eyes Principle)</div>
+                        <div
+                            class="rounded-lg border border-slate-100 bg-slate-50/60 p-2.5 space-y-1"
+                        >
+                            <div class="font-semibold text-slate-700">
+                                Prinsip 4 Mata (Four-Eyes Principle)
+                            </div>
                             <p class="text-[11px] text-slate-500">
-                                Setiap transaksi yang mempengaruhi nilai saldo persediaan diverifikasi oleh setidaknya dua individu berbeda.
+                                Setiap transaksi yang mempengaruhi nilai saldo persediaan
+                                diverifikasi oleh setidaknya dua individu berbeda.
                             </p>
                         </div>
 
-                        <div class="rounded-lg border border-slate-100 bg-slate-50/60 p-2.5 space-y-1">
-                            <div class="font-semibold text-slate-700">Mencegah Kecurangan & Selisih</div>
+                        <div
+                            class="rounded-lg border border-slate-100 bg-slate-50/60 p-2.5 space-y-1"
+                        >
+                            <div class="font-semibold text-slate-700">
+                                Mencegah Kecurangan & Selisih
+                            </div>
                             <p class="text-[11px] text-slate-500">
-                                Mengurangi risiko pencurian barang yang ditutupi dengan pembuatan penyesuaian stok rusak fiktif secara sepihak.
+                                Mengurangi risiko pencurian barang yang ditutupi dengan pembuatan
+                                penyesuaian stok rusak fiktif secara sepihak.
                             </p>
                         </div>
 
-                        <div class="rounded-lg border border-slate-100 bg-slate-50/60 p-2.5 space-y-1">
+                        <div
+                            class="rounded-lg border border-slate-100 bg-slate-50/60 p-2.5 space-y-1"
+                        >
                             <div class="font-semibold text-slate-700">Kepatuhan Standar Audit</div>
                             <p class="text-[11px] text-slate-500">
-                                Memenuhi syarat audit internal dan laporan pertanggungjawaban akuntansi bisnis modern.
+                                Memenuhi syarat audit internal dan laporan pertanggungjawaban
+                                akuntansi bisnis modern.
                             </p>
                         </div>
                     </div>
@@ -847,9 +893,12 @@ const hasSodChanges = computed(() => {
         formSod.allow_owner_bypass !== (props.sodSettings?.allow_owner_bypass ?? true) ||
         formSod.rules.stock_adjustment !== (props.sodSettings?.rules?.stock_adjustment ?? true) ||
         formSod.rules.stock_opname !== (props.sodSettings?.rules?.stock_opname ?? true) ||
-        formSod.rules.stock_transfer_approval !== (props.sodSettings?.rules?.stock_transfer_approval ?? true) ||
-        formSod.rules.stock_transfer_receive !== (props.sodSettings?.rules?.stock_transfer_receive ?? true) ||
-        formSod.rules.purchase_order_receive !== (props.sodSettings?.rules?.purchase_order_receive ?? false)
+        formSod.rules.stock_transfer_approval !==
+            (props.sodSettings?.rules?.stock_transfer_approval ?? true) ||
+        formSod.rules.stock_transfer_receive !==
+            (props.sodSettings?.rules?.stock_transfer_receive ?? true) ||
+        formSod.rules.purchase_order_receive !==
+            (props.sodSettings?.rules?.purchase_order_receive ?? false)
     )
 })
 

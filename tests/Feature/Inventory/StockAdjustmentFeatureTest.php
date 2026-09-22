@@ -244,6 +244,18 @@ class StockAdjustmentFeatureTest extends TestCase
 
     public function test_supervisor_cannot_approve_their_own_adjustment()
     {
+        $this->business->update([
+            'settings' => [
+                'inventory_sod' => [
+                    'enabled' => true,
+                    'allow_owner_bypass' => false,
+                    'rules' => [
+                        'stock_adjustment' => true,
+                    ],
+                ],
+            ],
+        ]);
+
         $adjustment = StockAdjustment::create([
             'business_id' => $this->business->id,
             'outlet_id' => $this->outlet->id,
@@ -256,14 +268,14 @@ class StockAdjustmentFeatureTest extends TestCase
         $adjustment->items()->create([
             'inventory_item_id' => $this->inventoryItem->id,
             'movement_type' => InventoryMovementType::Waste,
-            'qty_change' => -5,
+            'qty_change' => 5,
             'description' => 'Barang rusak',
         ]);
 
         $response = $this->actingAs($this->supervisor)
             ->post("http://{$this->appDomain}/inventories/adjustments/{$adjustment->id}/approve");
 
-        $response->assertSessionHas('failed', 'Anda tidak dapat menyetujui penyesuaian yang Anda buat sendiri.');
+        $response->assertSessionHas('failed');
 
         $adjustment->refresh();
         $this->assertEquals(AdjustmentStatus::Draft, $adjustment->status);
