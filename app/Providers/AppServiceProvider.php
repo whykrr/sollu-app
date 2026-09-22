@@ -26,8 +26,11 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);
         }
 
-        // telescope config
-        if (config('telescope.enabled', env('TELESCOPE_ENABLED', true)) && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
+        // telescope config (strictly local/development only)
+        if ($this->app->environment('local', 'development')
+            && config('telescope.enabled', env('TELESCOPE_ENABLED', true))
+            && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)
+        ) {
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
         }

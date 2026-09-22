@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|SubscriptionManualPaymentMethod whereUpdatedAt($value)
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperSubscriptionManualPaymentMethod
  */
 class SubscriptionManualPaymentMethod extends Model
 {

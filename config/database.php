@@ -115,6 +115,23 @@ return [
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
 
+        'pulse' => [
+            'driver' => env('DB_PULSE_DRIVER', env('DB_CONNECTION', 'pgsql')),
+            'url' => env('DB_PULSE_URL', env('DB_URL')),
+            'host' => env('DB_PULSE_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('DB_PULSE_PORT', env('DB_PORT', '5432')),
+            'database' => env('DB_PULSE_DATABASE', env('DB_DATABASE', 'laravel')),
+            'username' => env('DB_PULSE_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('DB_PULSE_PASSWORD', env('DB_PASSWORD', '')),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prepared' => env('DB_PREPARED', true),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => env('DB_PULSE_SCHEMA', 'sollu_pulse'),
+            'sslmode' => 'prefer',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

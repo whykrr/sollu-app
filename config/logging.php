@@ -73,6 +73,32 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'json_daily' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/laravel-json.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => env('LOG_DAILY_DAYS', 14),
+            'formatter' => \Monolog\Formatter\JsonFormatter::class,
+            'processors' => [
+                \App\Logging\Processors\LogTraceContextProcessor::class,
+                \Monolog\Processor\PsrLogMessageProcessor::class,
+            ],
+            'replace_placeholders' => true,
+        ],
+
+        'loki' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/loki.log'),
+            'level' => env('LOG_LEVEL', 'info'),
+            'days' => env('LOG_DAILY_DAYS', 14),
+            'formatter' => \Monolog\Formatter\JsonFormatter::class,
+            'processors' => [
+                \App\Logging\Processors\LogTraceContextProcessor::class,
+                \Monolog\Processor\PsrLogMessageProcessor::class,
+            ],
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

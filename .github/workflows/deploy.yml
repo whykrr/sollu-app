@@ -100,7 +100,8 @@ jobs:
             echo "=> Re-caching and optimizing Laravel for production..."
             $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan optimize
 
-            echo "=> Restarting Redis Queue workers..."
+            echo "=> Gracefully restarting Laravel Horizon & Queue workers..."
+            $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan horizon:terminate || true
             $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T sollu-app php artisan queue:restart
 
             echo "=> Pruning unused old Docker images..."

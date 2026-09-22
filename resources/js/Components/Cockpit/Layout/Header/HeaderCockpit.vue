@@ -41,10 +41,32 @@
                 COCKPIT CONTROL CENTER
             </div>
         </div>
-        <div class="hidden relative sm:flex items-center space-x-2.5">
+        <div class="hidden relative sm:flex items-center space-x-2">
             <a
+                href="/horizon"
+                target="_blank"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold select-none transition-all duration-150"
+                title="Buka Horizon Queue Monitoring"
+            >
+                <FontAwesomeIcon :icon="faServer" class="text-emerald-400" />
+                <span>Horizon</span>
+            </a>
+
+            <a
+                href="/pulse"
+                target="_blank"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold select-none transition-all duration-150"
+                title="Buka Pulse Observability"
+            >
+                <FontAwesomeIcon :icon="faHeartPulse" class="text-rose-400" />
+                <span>Pulse</span>
+            </a>
+
+            <a
+                v-if="$page.props.features?.has_telescope"
                 href="/telescope"
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold select-none transition-all duration-150 shadow-xs"
+                target="_blank"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold select-none transition-all duration-150"
                 title="Buka Telescope Monitoring"
             >
                 <FontAwesomeIcon :icon="faBinoculars" class="text-indigo-400" />
@@ -66,7 +88,7 @@ import Breadcrumbs from '@/Components/Layout/Header/Breadcrumbs.vue'
 import TopBarAccountCockpit from './TopBarAccountCockpit.vue'
 import TopBarNotification from '@/Components/Layout/Header/TopBarNotification.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faBars, faClose, faBinoculars } from '@fortawesome/free-solid-svg-icons'
+import { faBars, faClose, faBinoculars, faServer, faHeartPulse } from '@fortawesome/free-solid-svg-icons'
 import { useAppStore } from '@/store/app'
 
 const appStore = useAppStore()

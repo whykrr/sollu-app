@@ -3,6 +3,7 @@ services:
     image: ghcr.io/whykrr/sollu-app:latest
     container_name: sollu-app
     restart: always
+    stop_grace_period: 60s
     depends_on:
       - sollu-redis
     ports:

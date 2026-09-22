@@ -8,7 +8,16 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-Schedule::command('telescope:prune --hours='.(int) env('TELESCOPE_PRUNE_HOURS', 24))->daily();
+// Horizon snapshot every 5 minutes for Redis queue metrics
+Schedule::command('horizon:snapshot')->everyFiveMinutes();
+
+// Pulse metrics retention (14 days auto-pruning)
+Schedule::command('pulse:clear --days='.(int) env('PULSE_PRUNE_DAYS', 14))->daily();
+
+// Telescope pruning (strictly non-production / development)
+if (! app()->isProduction() && class_exists(\Laravel\Telescope\Telescope::class)) {
+    Schedule::command('telescope:prune --hours='.(int) env('TELESCOPE_PRUNE_HOURS', 24))->daily();
+}
 
 Schedule::call(function () {
     $files = Illuminate\Support\Facades\Storage::disk('public')->files('exports');

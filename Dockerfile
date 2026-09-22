@@ -94,6 +94,10 @@ RUN mkdir -p /var/www/html/storage/framework/cache \
 # Linked storage untuk public access
 RUN ln -s /var/www/html/storage/app/public /var/www/html/public/storage
 
+# Setup crontab untuk menjalankan Laravel schedule:run via Linux crond setiap menit
+RUN echo "* * * * * su -s /bin/sh www-data -c 'php /var/www/html/artisan schedule:run --no-interaction' >> /var/www/html/storage/logs/schedule.log 2>&1" > /etc/crontabs/root \
+    && chmod 0600 /etc/crontabs/root
+
 EXPOSE 80 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

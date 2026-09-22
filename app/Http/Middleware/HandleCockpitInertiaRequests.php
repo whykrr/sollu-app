@@ -55,6 +55,11 @@ class HandleCockpitInertiaRequests extends Middleware
                 ? array_merge(
                     $request->user()->only(['id', 'name', 'email', 'email_verified_at']),
                 ) : null,
+            'features' => [
+                'has_telescope' => ! app()->isProduction() && (bool) config('telescope.enabled', true),
+                'has_horizon' => true,
+                'has_pulse' => true,
+            ],
         ]);
     }
 }
