@@ -15,14 +15,10 @@ class TransactionService
 {
     protected PriceCalculationService $priceCalculationService;
 
-    protected InventoryDeductionService $inventoryDeductionService;
-
     public function __construct(
-        PriceCalculationService $priceCalculationService,
-        InventoryDeductionService $inventoryDeductionService
+        PriceCalculationService $priceCalculationService
     ) {
         $this->priceCalculationService = $priceCalculationService;
-        $this->inventoryDeductionService = $inventoryDeductionService;
     }
 
     public function createTransaction(array $data, User $user): Transaction

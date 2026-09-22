@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Services\App\Transaction;
+namespace App\Services\App\Inventory;
 
+use App\Contracts\Inventory\InventoryDeductionServiceInterface;
 use App\Enums\InventoryMovementType;
 use App\Models\Business;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Sales\Transaction;
-use App\Services\App\Inventory\InventoryCostingService;
 use Illuminate\Support\Facades\DB;
 
-class InventoryDeductionService
+class InventoryDeductionService implements InventoryDeductionServiceInterface
 {
     public function __construct(
         protected InventoryCostingService $costingService
@@ -33,6 +33,11 @@ class InventoryDeductionService
             }
 
             foreach ($transaction->items as $item) {
+                // Pengecekan produk Jasa / Non-inventory secara dini (short-circuit)
+                if ($item->product && ! $item->product->track_inventory && ! $item->product->has_recipe) {
+                    continue;
+                }
+
                 $itemTotalCogs = 0.0;
                 $itemQty = (float) $item->qty;
 
@@ -58,25 +63,27 @@ class InventoryDeductionService
                         }
                     }
 
-                    // Deduksi Modifier / Topping Recipe Items jika ada
-                    foreach ($item->modifiers as $itemModifier) {
-                        if ($itemModifier->modifierOption && $itemModifier->modifierOption->modifierRecipeItems) {
-                            foreach ($itemModifier->modifierOption->modifierRecipeItems as $modRecipeItem) {
-                                $rawModItem = $modRecipeItem->inventoryItem;
-                                if ($rawModItem && $rawModItem->track_inventory) {
-                                    $modQtyToDeduct = ((float) $modRecipeItem->qty) * $itemQty;
-                                    if ($modQtyToDeduct > 0) {
-                                        $result = $this->costingService->recordOutgoingStock(
-                                            business: $business,
-                                            outlet: $outlet,
-                                            item: $rawModItem,
-                                            qty: $modQtyToDeduct,
-                                            movementType: InventoryMovementType::RecipeDeduction,
-                                            reference: $transaction,
-                                            description: 'Topping Resep: '.$itemModifier->modifierOption->name.' ('.($transaction->receipt_number ?? $transaction->id).')',
-                                            user: auth()->user()
-                                        );
-                                        $itemTotalCogs += $result['total_cogs'];
+                    // Pengurangan stok modifier resep jika ada
+                    if ($item->modifiers) {
+                        foreach ($item->modifiers as $itemModifier) {
+                            if ($itemModifier->modifierOption && $itemModifier->modifierOption->modifierRecipeItems) {
+                                foreach ($itemModifier->modifierOption->modifierRecipeItems as $modRecipeItem) {
+                                    $rawModItem = $modRecipeItem->inventoryItem;
+                                    if ($rawModItem && $rawModItem->track_inventory) {
+                                        $modQtyToDeduct = ((float) $modRecipeItem->qty) * $itemQty * ((float) $itemModifier->qty);
+                                        if ($modQtyToDeduct > 0) {
+                                            $result = $this->costingService->recordOutgoingStock(
+                                                business: $business,
+                                                outlet: $outlet,
+                                                item: $rawModItem,
+                                                qty: $modQtyToDeduct,
+                                                movementType: InventoryMovementType::RecipeDeduction,
+                                                reference: $transaction,
+                                                description: 'Topping Resep: '.$itemModifier->modifierOption->name.' ('.($transaction->receipt_number ?? $transaction->id).')',
+                                                user: auth()->user()
+                                            );
+                                            $itemTotalCogs += $result['total_cogs'];
+                                        }
                                     }
                                 }
                             }
@@ -96,12 +103,22 @@ class InventoryDeductionService
                     if ($inventoryItems->isEmpty() && $item->product) {
                         $product = $item->product;
                         if ($product->has_variant && $item->variant_group_option_id) {
-                            $inventoryItems = $product->inventoryItems()
+                            $invItem = $product->inventoryItems()
                                 ->whereHas('variantGroupOptions', function ($q) use ($item) {
                                     $q->where('variant_group_options.id', $item->variant_group_option_id);
-                                })->get();
+                                })
+                                ->whereHas('balances', function ($q) use ($outlet) {
+                                    $q->where('outlet_id', $outlet->id);
+                                })->first();
+
+                            if ($invItem) {
+                                $inventoryItems->push($invItem);
+                            }
                         } else {
-                            $inventoryItems = $product->inventoryItems;
+                            $invItem = $product->inventoryItems()->first();
+                            if ($invItem) {
+                                $inventoryItems->push($invItem);
+                            }
                         }
                     }
 
@@ -153,6 +170,11 @@ class InventoryDeductionService
             }
 
             foreach ($transaction->items as $item) {
+                // Pengabaian Cerdas
+                if ($item->product && ! $item->product->track_inventory && ! $item->product->has_recipe) {
+                    continue;
+                }
+
                 $itemQty = (float) $item->qty;
 
                 // Skenario Resep F&B
@@ -177,6 +199,34 @@ class InventoryDeductionService
                             }
                         }
                     }
+
+                    // Kembalikan stok modifier jika ada
+                    if ($item->modifiers) {
+                        foreach ($item->modifiers as $itemModifier) {
+                            if ($itemModifier->modifierOption && $itemModifier->modifierOption->modifierRecipeItems) {
+                                foreach ($itemModifier->modifierOption->modifierRecipeItems as $modRecipeItem) {
+                                    $rawModItem = $modRecipeItem->inventoryItem;
+                                    if ($rawModItem && $rawModItem->track_inventory) {
+                                        $modQty = ((float) $modRecipeItem->qty) * $itemQty * ((float) $itemModifier->qty);
+                                        if ($modQty > 0) {
+                                            $unitCost = (float) ($rawModItem->balances()->where('outlet_id', $outlet->id)->value('average_cost') ?? 0);
+                                            $this->costingService->recordIncomingStock(
+                                                business: $business,
+                                                outlet: $outlet,
+                                                item: $rawModItem,
+                                                qty: $modQty,
+                                                unitCost: $unitCost,
+                                                movementType: InventoryMovementType::RecipeReturn,
+                                                reference: $transaction,
+                                                description: 'Pembatalan Topping Resep: '.$itemModifier->modifierOption->name.' ('.($transaction->receipt_number ?? $transaction->id).')',
+                                                user: auth()->user()
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 } else {
                     // Skenario Retail
                     $inventoryItems = collect();
@@ -191,12 +241,22 @@ class InventoryDeductionService
                     if ($inventoryItems->isEmpty() && $item->product) {
                         $product = $item->product;
                         if ($product->has_variant && $item->variant_group_option_id) {
-                            $inventoryItems = $product->inventoryItems()
+                            $invItem = $product->inventoryItems()
                                 ->whereHas('variantGroupOptions', function ($q) use ($item) {
                                     $q->where('variant_group_options.id', $item->variant_group_option_id);
-                                })->get();
+                                })
+                                ->whereHas('balances', function ($q) use ($outlet) {
+                                    $q->where('outlet_id', $outlet->id);
+                                })->first();
+
+                            if ($invItem) {
+                                $inventoryItems->push($invItem);
+                            }
                         } else {
-                            $inventoryItems = $product->inventoryItems;
+                            $invItem = $product->inventoryItems()->first();
+                            if ($invItem) {
+                                $inventoryItems->push($invItem);
+                            }
                         }
                     }
 

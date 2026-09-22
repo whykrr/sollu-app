@@ -2,12 +2,17 @@
 
 namespace App\Listeners\Inventory;
 
+use App\Contracts\Inventory\InventoryDeductionServiceInterface;
 use App\Events\Transaction\TransactionReversed;
-use App\Services\App\Transaction\InventoryDeductionService;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class RestoreStockOnTransactionListener
+class RestoreStockOnTransactionListener implements ShouldQueue
 {
-    public function __construct(protected InventoryDeductionService $stockDeductionService) {}
+    public int $tries = 3;
+
+    public bool $afterCommit = true;
+
+    public function __construct(protected InventoryDeductionServiceInterface $stockDeductionService) {}
 
     public function handle(TransactionReversed $event): void
     {

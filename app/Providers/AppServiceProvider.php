@@ -34,6 +34,11 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
         }
+
+        $this->app->bind(
+            \App\Contracts\Inventory\InventoryDeductionServiceInterface::class,
+            \App\Services\App\Inventory\InventoryDeductionService::class
+        );
     }
 
     /**

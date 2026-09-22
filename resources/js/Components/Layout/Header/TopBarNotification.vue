@@ -14,7 +14,6 @@
         </a>
         <PopoverNotification
             :is-open="showNotification"
-            :unread-count="unreadCount"
             @close="showNotification = false"
             @update-unread-count="count => (unreadCount = count)"
         />
