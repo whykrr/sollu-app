@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Stock Opname" />
+            <MainPageHeader
+                title="Stok Opname"
+                description="Kelola sesi penghitungan fisik persediaan barang dan sesuaikan saldo stok di outlet tokomu"
+            />
         </template>
 
         <template #filter>
@@ -14,6 +17,7 @@
             :action="true"
             :sort="filters.sort"
             :sort-direction="filters.direction"
+            @row-click="openDetail"
         >
             <template #outlet="{ item }">
                 {{ item.outlet?.name || '-' }}
@@ -21,57 +25,63 @@
             <template #created_at="{ item }">
                 {{ formatDateTimeSimple(item.created_at) }}
             </template>
+            <template #items_count="{ item }">
+                <span>{{ item.items_count ?? 0 }} Item</span>
+            </template>
             <template #status="{ item }">
-                <span class="badge" :class="statusColor(item.status)">
-                    {{ statusLabel(item.status) }}
+                <span
+                    class="badge"
+                    :class="getColor('StockOpnameStatus', item.status) || 'badge-gray'"
+                >
+                    {{ getLabel('StockOpnameStatus', item.status) }}
                 </span>
             </template>
             <template #actions="{ item }">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
                     <button
-                        v-if="item.status === $enums.StockOpnameStatus.InProgress"
+                        v-if="item.status === $enums.StockOpnameStatus.InProgress && can('inventory.opname.update')"
                         class="btn btn-highlight-main btn-sm"
                         title="Lanjutkan Opname"
-                        @click="openForm(item)"
+                        @click.stop="openForm(item)"
                     >
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
-                        v-if="item.status === $enums.StockOpnameStatus.PendingApproval"
+                        v-if="item.status === $enums.StockOpnameStatus.PendingApproval && can('inventory.opname.approve')"
                         class="btn btn-info btn-sm"
-                        title="Review & Approve"
-                        @click="openDetail(item)"
+                        title="Review & Setujui"
+                        @click.stop="openDetail(item)"
                     >
                         <FontAwesomeIcon :icon="faCheck" /> Review
                     </button>
                     <button
                         v-if="
-                            item.status === $enums.StockOpnameStatus.Approved ||
-                            item.status === $enums.StockOpnameStatus.Rejected
+                            (item.status === $enums.StockOpnameStatus.Approved ||
+                            item.status === $enums.StockOpnameStatus.Rejected) &&
+                            can('inventory.opname.read')
                         "
-                        class="btn btn-main btn-sm"
+                        class="btn btn-flat btn-sm"
                         title="Lihat Detail"
-                        @click="openDetail(item)"
+                        @click.stop="openDetail(item)"
                     >
                         <FontAwesomeIcon :icon="faEye" />
                     </button>
                     <button
-                        v-if="item.status === $enums.StockOpnameStatus.InProgress"
+                        v-if="item.status === $enums.StockOpnameStatus.InProgress && can('inventory.opname.delete')"
                         class="btn btn-flat btn-sm text-danger"
                         title="Batalkan Opname"
-                        @click="confirmDelete(item)"
+                        @click.stop="confirmDelete(item)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>
-                    <a
-                        v-if="item.status !== 'in_progress'"
-                        :href="route('inventory.opnames.export.pdf', item.id)"
-                        target="_blank"
+                    <button
+                        v-if="item.status !== $enums.StockOpnameStatus.InProgress && can('inventory.opname.export')"
                         class="btn btn-flat btn-sm text-danger"
                         title="Ekspor PDF"
+                        @click.stop="exportPdf(item.id)"
                     >
                         <FontAwesomeIcon :icon="faFilePdf" />
-                    </a>
+                    </button>
                 </div>
             </template>
         </Table>
@@ -91,6 +101,8 @@
 import { ref } from 'vue'
 import { faPencil, faTrash, faCheck, faEye, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { usePage } from '@inertiajs/vue3'
+import axios from 'axios'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
@@ -101,12 +113,15 @@ import OpnameDetailPopUp from './Components/OpnameDetailPopUp.vue'
 import FreezeStockPopUp from '@/Components/Inventory/FreezeStockPopUp.vue'
 import { useModalStore } from '@/store/notification'
 import { usePopUpStore } from '@/store/popup'
+import { useEnum } from '@/Composable/useEnum'
 import { formatDateTimeSimple } from '@/Composable/date.js'
 
+const page = usePage()
 const modalStore = useModalStore()
 const popUpStore = usePopUpStore()
+const { getLabel, getColor } = useEnum()
 
-const props = defineProps({
+defineProps({
     opnames: {
         type: Object,
         default: () => ({ data: [], links: [] }),
@@ -117,6 +132,13 @@ const props = defineProps({
     },
 })
 
+const can = permission => {
+    return (
+        page.props.auth?.permissions?.includes(permission) ||
+        page.props.auth?.permissions?.includes('inventory.*')
+    )
+}
+
 const headers = [
     { label: 'Nomor Opname', field: 'opname_number', sortable: true },
     {
@@ -126,14 +148,11 @@ const headers = [
         sortable: true,
     },
     { label: 'Outlet', slot: 'outlet', sortable: false },
+    { label: 'Jumlah Item', slot: 'items_count', sortable: false },
     { label: 'Catatan', field: 'notes', sortable: true },
-    { label: 'Status', field: 'status', slot: 'status', sortable: false },
+    { label: 'Status', field: 'status', slot: 'status', sortable: true },
 ]
 
-import axios from 'axios'
-
-const showDetail = ref(false)
-const selectedItem = ref(null)
 const isLoading = ref(false)
 
 const openFreezeModal = () => {
@@ -146,46 +165,29 @@ const openFreezeModal = () => {
     })
 }
 
-const statusLabel = status => {
-    const labels = {
-        in_progress: 'Sedang Berjalan',
-        pending_approval: 'Menunggu Persetujuan',
-        approved: 'Disetujui',
-        rejected: 'Ditolak',
-    }
-    return labels[status] || status
-}
-
-const statusColor = status => {
-    const colors = {
-        in_progress: 'badge-warning',
-        pending_approval: 'badge-info',
-        approved: 'badge-success',
-        rejected: 'badge-danger',
-    }
-    return colors[status] || 'badge-gray'
+const exportPdf = id => {
+    window.open(route('inventory.opnames.export.pdf', id), '_blank')
 }
 
 const openForm = async (item = null) => {
-    if (item) {
+    if (item?.id) {
         try {
             isLoading.value = true
             const response = await axios.get(route('inventory.opnames.show', item.id))
             popUpStore.open({
-                title: 'Mulai / Update Opname',
+                title: 'Lanjutkan Stok Opname',
                 size: 'xl',
                 component: OpnameFormPopUp,
                 props: { opname: response.data },
             })
         } catch (error) {
             console.error('Failed to load detail', error)
-            return
         } finally {
             isLoading.value = false
         }
     } else {
         popUpStore.open({
-            title: 'Mulai / Update Opname',
+            title: 'Mulai Stok Opname Baru',
             size: 'xl',
             component: OpnameFormPopUp,
             props: { opname: null },
@@ -194,11 +196,12 @@ const openForm = async (item = null) => {
 }
 
 const openDetail = async item => {
+    if (!item?.id) return
     try {
         isLoading.value = true
         const response = await axios.get(route('inventory.opnames.show', item.id))
         popUpStore.open({
-            title: 'Detail Stock Opname',
+            title: 'Detail Stok Opname',
             size: 'xl',
             component: OpnameDetailPopUp,
             props: { opname: response.data },

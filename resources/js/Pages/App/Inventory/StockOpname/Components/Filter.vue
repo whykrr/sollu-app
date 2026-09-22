@@ -39,18 +39,12 @@
         </template>
 
         <template #tools>
-            <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
-                @click="$emit('freeze')"
-            >
-                <FontAwesomeIcon :icon="faLock" />
-                <span>Kelola Bekukan Stok</span>
-            </button>
+            <ActionsDropdown v-if="toolItems.length > 0" label="Opsi" :items="toolItems" />
         </template>
 
         <template #create>
             <button
+                v-if="can('inventory.opname.create')"
                 type="button"
                 class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
                 @click="$emit('create')"
@@ -69,12 +63,14 @@ import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faLock, faPlus, faStore } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
+import { useEnum } from '@/Composable/useEnum'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 
-defineEmits(['create', 'freeze'])
+const emit = defineEmits(['create', 'freeze'])
 
 const props = defineProps({
     filters: {
@@ -83,7 +79,9 @@ const props = defineProps({
     },
 })
 
-const { outlets: userOutlets, selectedOutlet } = useAuth()
+const { outlets: userOutlets, selectedOutlet, can } = useAuth()
+const { getOptions } = useEnum()
+
 const outletOptions = computed(() =>
     (userOutlets.value || []).map(store => ({
         value: String(store.id),
@@ -91,12 +89,20 @@ const outletOptions = computed(() =>
     }))
 )
 
-const statusOptions = [
-    { value: 'in_progress', label: 'Sedang Berjalan' },
-    { value: 'pending_approval', label: 'Menunggu Persetujuan' },
-    { value: 'approved', label: 'Disetujui' },
-    { value: 'rejected', label: 'Ditolak' },
-]
+const statusOptions = computed(() => getOptions('StockOpnameStatus'))
+
+const toolItems = computed(() => {
+    const items = []
+    if (can('inventory.opname.freeze') || can('inventory.adjustment.freeze')) {
+        items.push({
+            label: 'Kelola Pembekuan Stok',
+            description: 'Kunci atau buka pergerakan stok per outlet',
+            icon: faLock,
+            action: () => emit('freeze'),
+        })
+    }
+    return items
+})
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
@@ -127,7 +133,7 @@ const updateQuery = () => {
         page: 1,
     }
 
-    router.get(window.location.pathname, query, {
+    router.get(route('inventory.opnames.index'), query, {
         preserveState: true,
         preserveScroll: true,
     })

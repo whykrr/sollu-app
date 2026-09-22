@@ -170,6 +170,7 @@ class StockOpnameServiceTest extends TestCase
             'outlet_id' => $outlet->id,
             'inventory_item_id' => $inventoryItem->id,
             'current_stock' => 10,
+            'average_cost' => 5000,
         ]);
 
         $completeData = [
@@ -181,9 +182,45 @@ class StockOpnameServiceTest extends TestCase
         $completedOpname = $this->service->completeOpname($opname, $completeData, $user);
 
         $this->assertEquals(StockOpnameStatus::Approved, $completedOpname->status);
+        $this->assertEquals($user->id, $completedOpname->approved_by);
 
         $balance = InventoryBalance::where('inventory_item_id', $inventoryItem->id)->first();
-        $this->assertEquals(8, $balance->current_stock);
+        $this->assertEquals(8, (float) $balance->current_stock);
+    }
+
+    public function test_it_completes_opname_with_surplus()
+    {
+        [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
+
+        $opname = $this->service->createOpname([
+            'outlet_id' => $outlet->id,
+            'opname_date' => now()->format('Y-m-d'),
+            'items' => [],
+        ], $user);
+
+        $opname->status = StockOpnameStatus::PendingApproval;
+        $opname->save();
+
+        InventoryBalance::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'inventory_item_id' => $inventoryItem->id,
+            'current_stock' => 10,
+            'average_cost' => 5000,
+        ]);
+
+        $completeData = [
+            'items' => [
+                ['inventory_item_id' => $inventoryItem->id, 'system_qty' => 10, 'actual_qty' => 15], // +5 surplus
+            ],
+        ];
+
+        $completedOpname = $this->service->completeOpname($opname, $completeData, $user);
+
+        $this->assertEquals(StockOpnameStatus::Approved, $completedOpname->status);
+
+        $balance = InventoryBalance::where('inventory_item_id', $inventoryItem->id)->first();
+        $this->assertEquals(15, (float) $balance->current_stock);
     }
 
     public function test_it_rejects_opname()
@@ -203,6 +240,24 @@ class StockOpnameServiceTest extends TestCase
 
         $this->assertEquals(StockOpnameStatus::Rejected, $rejectedOpname->status);
         $this->assertEquals('Invalid count', $rejectedOpname->notes);
+        $this->assertEquals($user->id, $rejectedOpname->approved_by);
+    }
+
+    public function test_it_fails_to_reject_non_pending_opname()
+    {
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectExceptionMessage('Opname harus dalam status Menunggu Persetujuan untuk ditolak.');
+
+        [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
+
+        $opname = $this->service->createOpname([
+            'outlet_id' => $outlet->id,
+            'opname_date' => now()->format('Y-m-d'),
+            'items' => [],
+        ], $user);
+
+        // Status is InProgress
+        $this->service->rejectOpname($opname, ['notes' => 'Invalid'], $user);
     }
 
     public function test_it_prevents_self_approval_when_sod_enabled()
@@ -245,5 +300,43 @@ class StockOpnameServiceTest extends TestCase
                 ['inventory_item_id' => $inventoryItem->id, 'system_qty' => 10, 'actual_qty' => 8],
             ],
         ], $user);
+    }
+
+    public function test_it_allows_self_approval_when_sod_disabled()
+    {
+        [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
+
+        $business->update([
+            'settings' => [
+                'inventory_sod' => [
+                    'enabled' => false,
+                ],
+            ],
+        ]);
+
+        $opname = $this->service->createOpname([
+            'outlet_id' => $outlet->id,
+            'opname_date' => now()->format('Y-m-d'),
+            'items' => [],
+        ], $user);
+
+        $opname->status = StockOpnameStatus::PendingApproval;
+        $opname->save();
+
+        InventoryBalance::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'inventory_item_id' => $inventoryItem->id,
+            'current_stock' => 10,
+            'average_cost' => 5000,
+        ]);
+
+        $completedOpname = $this->service->completeOpname($opname, [
+            'items' => [
+                ['inventory_item_id' => $inventoryItem->id, 'system_qty' => 10, 'actual_qty' => 8],
+            ],
+        ], $user);
+
+        $this->assertEquals(StockOpnameStatus::Approved, $completedOpname->status);
     }
 }

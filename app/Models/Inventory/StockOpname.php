@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class StockOpname extends Model
 {
+    use \App\Trait\SortableModel;
     use HasBusiness;
     use HasFactory;
     use HasUuids;
@@ -41,9 +42,26 @@ class StockOpname extends Model
         'approved_by',
     ];
 
-    protected $casts = [
-        'status' => StockOpnameStatus::class,
+    /**
+     * @var array<int, string>
+     */
+    protected array $sortable = [
+        'opname_number',
+        'status',
+        'created_at',
+        'updated_at',
+        'notes',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => StockOpnameStatus::class,
+        ];
+    }
 
     // ── Relationships ────────────────────────────────────────────
 

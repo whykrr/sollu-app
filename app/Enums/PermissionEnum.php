@@ -122,6 +122,13 @@ enum PermissionEnum: string
     case INVENTORY_TRANSFER_SHIP = 'inventory.transfer.ship';
     case INVENTORY_TRANSFER_RECEIVE = 'inventory.transfer.receive';
     case INVENTORY_STOCK_OPNAME = 'inventory.stock_opname';
+    case INVENTORY_OPNAME_READ = 'inventory.opname.read';
+    case INVENTORY_OPNAME_CREATE = 'inventory.opname.create';
+    case INVENTORY_OPNAME_UPDATE = 'inventory.opname.update';
+    case INVENTORY_OPNAME_APPROVE = 'inventory.opname.approve';
+    case INVENTORY_OPNAME_DELETE = 'inventory.opname.delete';
+    case INVENTORY_OPNAME_EXPORT = 'inventory.opname.export';
+    case INVENTORY_OPNAME_FREEZE = 'inventory.opname.freeze';
     case INVENTORY_MOVEMENT = 'inventory.movement';
     case INVENTORY_PURCHASE = 'inventory.purchase';
     case INVENTORY_WASTE = 'inventory.waste';
@@ -297,6 +304,13 @@ enum PermissionEnum: string
             self::INVENTORY_TRANSFER_SHIP => 'Akses Kirim Transfer Inventori',
             self::INVENTORY_TRANSFER_RECEIVE => 'Akses Terima Transfer Inventori',
             self::INVENTORY_STOCK_OPNAME => 'Akses Stock Opname',
+            self::INVENTORY_OPNAME_READ => 'Akses Melihat Stock Opname',
+            self::INVENTORY_OPNAME_CREATE => 'Akses Membuat Stock Opname',
+            self::INVENTORY_OPNAME_UPDATE => 'Akses Memperbarui Stock Opname',
+            self::INVENTORY_OPNAME_APPROVE => 'Akses Approval Stock Opname',
+            self::INVENTORY_OPNAME_DELETE => 'Akses Menghapus Stock Opname',
+            self::INVENTORY_OPNAME_EXPORT => 'Akses Export Stock Opname',
+            self::INVENTORY_OPNAME_FREEZE => 'Akses Bekukan Stok Opname',
             self::INVENTORY_MOVEMENT => 'Akses Pergerakan Inventori',
             self::INVENTORY_PURCHASE => 'Akses Pembelian Inventori',
             self::INVENTORY_WASTE => 'Akses Waste Inventori',
@@ -407,6 +421,13 @@ enum PermissionEnum: string
             self::INVENTORY_TRANSFER_SHIP,
             self::INVENTORY_TRANSFER_RECEIVE,
             self::INVENTORY_STOCK_OPNAME,
+            self::INVENTORY_OPNAME_READ,
+            self::INVENTORY_OPNAME_CREATE,
+            self::INVENTORY_OPNAME_UPDATE,
+            self::INVENTORY_OPNAME_APPROVE,
+            self::INVENTORY_OPNAME_DELETE,
+            self::INVENTORY_OPNAME_EXPORT,
+            self::INVENTORY_OPNAME_FREEZE,
             self::INVENTORY_MOVEMENT,
             self::INVENTORY_PURCHASE,
             self::INVENTORY_WASTE,

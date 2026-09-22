@@ -21,17 +21,17 @@ class StockOpnameController extends Controller
     {
         $this->authorize('inventory.opname.read');
 
-        $businessId = Auth::user()->business_id;
         $sort = $request->query('sort', 'created_at');
         $direction = $request->query('direction', 'desc');
 
         $filterKeys = ['search', 'status', 'outlet_id', 'date_from', 'date_to'];
 
-        $opnames = StockOpname::currentBusiness()
+        $opnames = StockOpname::query()
+            ->currentBusiness()
             ->with(['outlet'])
             ->withCount('items')
             ->filters($request->only($filterKeys))
-            ->orderBy($sort, $direction)
+            ->sortable($sort, $direction)
             ->paginate($request->query('per_page', 20))
             ->withQueryString();
 
@@ -56,7 +56,8 @@ class StockOpnameController extends Controller
     {
         $this->authorize('inventory.opname.read');
 
-        $opname = StockOpname::currentBusiness()
+        $opname = StockOpname::query()
+            ->currentBusiness()
             ->with(['outlet', 'creator', 'approver', 'items.inventoryItem.uom'])
             ->findOrFail($id);
 
@@ -68,30 +69,30 @@ class StockOpnameController extends Controller
         $this->authorize('inventory.opname.create');
         $service->createOpname($request->validated(), Auth::user());
 
-        return redirect()->back()->with('success', 'Sesi Opname berhasil dibuat. Item dapat ditambahkan.');
+        return redirect()->back()->with('success', 'Sesi stock opname berhasil dimulai. Silakan catat hasil penghitungan fisik.');
     }
 
     public function update(UpdateStockOpnameRequest $request, string $id, StockOpnameService $service)
     {
         $this->authorize('inventory.opname.update');
-        $opname = StockOpname::currentBusiness()->findOrFail($id);
+        $opname = StockOpname::query()->currentBusiness()->findOrFail($id);
         $service->updateOpname($opname, $request->validated(), Auth::user());
 
-        return redirect()->back()->with('success', 'Data Opname berhasil diperbarui (Draft diajukan).');
+        return redirect()->back()->with('success', 'Hasil penghitungan fisik berhasil disimpan dan diajukan untuk persetujuan.');
     }
 
     public function destroy(string $id)
     {
         $this->authorize('inventory.opname.delete');
-        $opname = StockOpname::currentBusiness()->findOrFail($id);
+        $opname = StockOpname::query()->currentBusiness()->findOrFail($id);
 
         try {
             if ($opname->status !== StockOpnameStatus::InProgress) {
-                return redirect()->back()->with('error', 'Hanya sesi In Progress yang dapat dibatalkan.');
+                return redirect()->back()->with('failed', 'Hanya sesi opname yang sedang berjalan yang dapat dibatalkan.');
             }
             $opname->delete();
 
-            return redirect()->back()->with('success', 'Sesi Opname berhasil dihapus.');
+            return redirect()->back()->with('success', 'Sesi stock opname berhasil dibatalkan.');
         } catch (\Exception $e) {
             return redirect()->back()->with('failed', $e->getMessage());
         }
@@ -100,12 +101,12 @@ class StockOpnameController extends Controller
     public function approve(UpdateStockOpnameRequest $request, string $id, StockOpnameService $service)
     {
         $this->authorize('inventory.opname.approve');
-        $opname = StockOpname::currentBusiness()->findOrFail($id);
+        $opname = StockOpname::query()->currentBusiness()->findOrFail($id);
 
         try {
             $service->completeOpname($opname, $request->validated(), Auth::user());
 
-            return redirect()->back()->with('success', 'Opname disetujui, selisih stok telah dicatat.');
+            return redirect()->back()->with('success', 'Stock opname berhasil disetujui dan saldo persediaan telah disesuaikan.');
         } catch (\Exception $e) {
             return redirect()->back()->with('failed', $e->getMessage());
         }
@@ -116,12 +117,12 @@ class StockOpnameController extends Controller
         $this->authorize('inventory.opname.approve');
         $request->validate(['notes' => 'required|string']);
 
-        $opname = StockOpname::currentBusiness()->findOrFail($id);
+        $opname = StockOpname::query()->currentBusiness()->findOrFail($id);
 
         try {
             $service->rejectOpname($opname, $request->only('notes'), Auth::user());
 
-            return redirect()->back()->with('success', 'Opname ditolak.');
+            return redirect()->back()->with('success', 'Dokumen stock opname telah ditolak.');
         } catch (\Exception $e) {
             return redirect()->back()->with('failed', $e->getMessage());
         }
@@ -129,12 +130,15 @@ class StockOpnameController extends Controller
 
     public function exportPdf(string $id)
     {
-        $opname = StockOpname::with([
-            'outlet',
-            'creator',
-            'approver',
-            'items.inventoryItem.uom',
-        ])
+        $this->authorize('inventory.opname.export');
+
+        $opname = StockOpname::query()
+            ->with([
+                'outlet',
+                'creator',
+                'approver',
+                'items.inventoryItem.uom',
+            ])
             ->currentBusiness()
             ->findOrFail($id);
 

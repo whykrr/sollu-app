@@ -1,216 +1,266 @@
 <template>
     <div>
-        <div v-if="opname" class="space-y-2">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded-lg">
+        <div v-if="opname" class="space-y-3">
+            <!-- Header Ringkasan Informasi -->
+            <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50/50 p-3 rounded-lg border border-slate-200">
                 <div>
-                    <p class="mb-1">
-                        <strong>Nomor Opname:</strong>
-                        {{ opname.opname_number }}
-                    </p>
-                    <p class="mb-1"><strong>Outlet:</strong> {{ opname.outlet?.name }}</p>
-                    <p>
-                        <strong>Status:</strong>
-                        <span class="badge" :class="statusColor(opname.status)">
-                            {{ statusLabel(opname.status) }}
-                        </span>
-                    </p>
+                    <p class="text-slate-500">Nomor Opname</p>
+                    <p class="font-bold text-slate-800 text-sm">{{ opname.opname_number }}</p>
                 </div>
                 <div>
-                    <p class="mb-1">
-                        <strong>Dibuat Oleh:</strong>
-                        {{ opname.creator?.name || '-' }}
-                    </p>
-                    <p class="mb-1">
-                        <strong>Tanggal Dibuat:</strong>
-                        {{ formatDateTimeID(opname.created_at) }}
-                    </p>
-                    <p>
-                        <strong>Disetujui/Ditolak Oleh:</strong>
-                        {{ opname.approver?.name || '-' }}
-                    </p>
+                    <p class="text-slate-500">Status</p>
+                    <span
+                        class="badge"
+                        :class="getColor('StockOpnameStatus', opname.status) || 'badge-gray'"
+                    >
+                        {{ getLabel('StockOpnameStatus', opname.status) }}
+                    </span>
+                </div>
+                <div>
+                    <p class="text-slate-500">Outlet</p>
+                    <p class="font-semibold text-slate-700">{{ opname.outlet?.name || '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-500">Tanggal Sesi</p>
+                    <p class="text-slate-700">{{ formatDateTimeSimple(opname.created_at) }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-500">Dibuat Oleh</p>
+                    <p class="text-slate-700">{{ opname.creator?.name || '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-500">Disetujui / Ditolak Oleh</p>
+                    <p class="text-slate-700">{{ opname.approver?.name || '-' }}</p>
+                </div>
+                <div v-if="opname.notes" class="col-span-2 border-t border-slate-200 pt-2 mt-1">
+                    <p class="text-slate-500">Catatan Sesi</p>
+                    <p class="whitespace-pre-line text-slate-700 mt-0.5">{{ opname.notes }}</p>
                 </div>
             </div>
 
-            <div v-if="opname.notes" class="bg-gray-50 p-4 rounded-lg">
-                <p><strong>Catatan:</strong></p>
-                <p class="mt-1 whitespace-pre-wrap">{{ opname.notes }}</p>
-            </div>
-
-            <div class="mt-2 border-t pt-4">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold">Data Fisik Stok</h3>
-                    <a
-                        :href="route('inventory.opnames.export.pdf', opname.id)"
-                        target="_blank"
-                        class="btn btn-outline-main btn-sm"
+            <!-- Tabel Data Fisik Stok -->
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <h4 class="font-bold text-xs text-slate-700">Rincian Fisik Barang</h4>
+                    <button
+                        v-if="can('inventory.opname.export')"
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                        @click="exportPdf(opname.id)"
                     >
-                        <i class="fa fa-file-pdf"></i> Ekspor PDF
-                    </a>
+                        <FontAwesomeIcon :icon="faFilePdf" class="text-danger" />
+                        <span>Ekspor PDF</span>
+                    </button>
                 </div>
 
-                <div class="space-y-2 max-h-96 overflow-y-auto">
-                    <div
-                        v-for="(item, index) in opname.items"
-                        :key="item.id"
-                        class="flex gap-2 items-center border p-2 rounded-lg bg-white"
-                        :class="{
-                            'bg-red-50': Number(item.actual_qty) !== Number(item.system_qty),
-                        }"
-                    >
-                        <div class="w-8 text-center text-gray-500 font-bold">
-                            {{ index + 1 }}
-                        </div>
-                        <div class="flex-1">
-                            <div class="font-semibold">
-                                {{ item.inventory_item?.name }}
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                SKU: {{ item.inventory_item?.sku || '-' }} | Satuan:
-                                {{ item.inventory_item?.uom?.name || '-' }}
-                            </div>
-                        </div>
-                        <div class="w-32">
-                            <div class="text-xs text-gray-500 text-center">Stok Sistem</div>
-                            <div class="text-center font-semibold bg-gray-100 py-1 rounded">
-                                {{ formatNumberID(item.system_qty) }}
-                            </div>
-                        </div>
-                        <div class="w-32">
-                            <div class="text-xs text-gray-500 text-center">Stok Fisik</div>
-                            <div class="text-center font-semibold bg-gray-100 py-1 rounded">
-                                {{ formatNumberID(item.actual_qty) }}
-                            </div>
-                        </div>
-                        <div class="w-32 text-center">
-                            <div class="text-xs text-gray-500">Selisih</div>
-                            <div
-                                class="font-bold text-lg"
-                                :class="differenceColor(item.actual_qty, item.system_qty)"
-                            >
-                                {{ formatDifference(item.actual_qty, item.system_qty) }}
-                            </div>
-                        </div>
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <div class="max-h-80 overflow-y-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium sticky top-0">
+                                <tr>
+                                    <th class="p-2.5 w-10 text-center">No</th>
+                                    <th class="p-2.5">Barang</th>
+                                    <th class="p-2.5 text-right">Stok Sistem</th>
+                                    <th class="p-2.5 text-right">Stok Fisik</th>
+                                    <th class="p-2.5 text-right">Selisih</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 bg-white">
+                                <tr
+                                    v-for="(item, index) in opname.items"
+                                    :key="item.id || index"
+                                    :class="{
+                                        'bg-red-50/40': Number(item.difference_qty) !== 0,
+                                    }"
+                                >
+                                    <td class="p-2.5 text-center text-slate-400 font-bold">
+                                        {{ index + 1 }}
+                                    </td>
+                                    <td class="p-2.5">
+                                        <div class="font-semibold text-slate-800">
+                                            {{ item.inventory_item?.name }}
+                                        </div>
+                                        <div class="text-[10px] text-slate-400">
+                                            SKU: {{ item.inventory_item?.sku || '-' }} | Satuan:
+                                            {{ item.inventory_item?.uom?.name || '-' }}
+                                        </div>
+                                    </td>
+                                    <td class="p-2.5 text-right font-medium text-slate-600">
+                                        {{ Number(item.system_qty ?? 0) }}
+                                    </td>
+                                    <td class="p-2.5 text-right font-semibold text-slate-800">
+                                        {{ Number(item.actual_qty ?? 0) }}
+                                    </td>
+                                    <td
+                                        class="p-2.5 text-right font-bold"
+                                        :class="differenceColor(item.difference_qty)"
+                                    >
+                                        {{ formatDifference(item.difference_qty) }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Summary Footer -->
-            <div class="mt-2a grid grid-cols-2 md:grid-cols-5 gap-2 border-t pt-2">
-                <div class="text-center p-3 bg-gray-50 rounded">
-                    <div class="text-xs text-gray-500">Total Item</div>
-                    <div class="font-bold text-lg">
+            <!-- Ringkasan Footer -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                <div class="text-center">
+                    <div class="text-slate-500 text-[11px]">Total Barang</div>
+                    <div class="font-bold text-slate-800 text-sm mt-0.5">
                         {{ summary.totalItems }}
                     </div>
                 </div>
-                <div class="text-center p-3 bg-gray-50 rounded">
-                    <div class="text-xs text-gray-500">Cocok</div>
-                    <div class="font-bold text-lg">{{ summary.matched }}</div>
-                </div>
-                <div class="text-center p-3 bg-gray-50 rounded">
-                    <div class="text-xs text-gray-500">Berselisih</div>
-                    <div class="font-bold text-lg">{{ summary.diff }}</div>
-                </div>
-                <div class="text-center p-3 bg-green-50 rounded">
-                    <div class="text-xs text-gray-500">Total Surplus</div>
-                    <div class="font-bold text-lg text-success">
-                        +{{ formatNumberID(summary.surplus) }}
+                <div class="text-center">
+                    <div class="text-slate-500 text-[11px]">Cocok</div>
+                    <div class="font-bold text-slate-700 text-sm mt-0.5">
+                        {{ summary.matched }}
                     </div>
                 </div>
-                <div class="text-center p-3 bg-red-50 rounded">
-                    <div class="text-xs text-gray-500">Total Shortage</div>
-                    <div class="font-bold text-lg text-danger">
-                        -{{ formatNumberID(summary.shortage) }}
+                <div class="text-center">
+                    <div class="text-slate-500 text-[11px]">Berselisih</div>
+                    <div class="font-bold text-slate-800 text-sm mt-0.5">
+                        {{ summary.diff }}
                     </div>
+                </div>
+                <div class="text-center">
+                    <div class="text-slate-500 text-[11px]">Total Surplus</div>
+                    <div class="font-bold text-emerald-600 text-sm mt-0.5">
+                        +{{ summary.surplus }}
+                    </div>
+                </div>
+                <div class="text-center col-span-2 sm:col-span-1">
+                    <div class="text-slate-500 text-[11px]">Total Shortage</div>
+                    <div class="font-bold text-danger text-sm mt-0.5">
+                        -{{ summary.shortage }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bagian Persetujuan / Penolakan jika PendingApproval -->
+            <div
+                v-if="opname.status === $enums.StockOpnameStatus.PendingApproval && canApprove"
+                class="bg-amber-50 p-3 rounded-lg border border-amber-200 space-y-2"
+            >
+                <div>
+                    <h4 class="font-bold text-xs text-amber-900">Tindakan Verifikasi & Persetujuan</h4>
+                    <p class="text-xs text-amber-800 mt-0.5">
+                        Menyetujui dokumen ini akan langsung menyesuaikan saldo fisik persediaan di sistem.
+                    </p>
+                </div>
+
+                <div v-if="showRejectInput" class="space-y-2">
+                    <TextareaField
+                        id="reject_notes"
+                        v-model="rejectForm.notes"
+                        label="Alasan Penolakan"
+                        placeholder="Tulis alasan mengapa opname ini ditolak..."
+                        :class="{ 'is-invalid': rejectForm.errors.notes }"
+                        :error="rejectForm.errors.notes"
+                        rows="2"
+                        required
+                    />
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <template v-if="!showRejectInput">
+                        <button
+                            type="button"
+                            class="btn btn-main btn-sm h-[30px]"
+                            :disabled="isProcessing"
+                            @click="confirmApprove"
+                        >
+                            <FontAwesomeIcon :icon="faCheck" /> Setujui & Sesuaikan Stok
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-danger btn-sm h-[30px]"
+                            :disabled="isProcessing"
+                            @click="showRejectInput = true"
+                        >
+                            <FontAwesomeIcon :icon="faTimes" /> Tolak
+                        </button>
+                    </template>
+                    <template v-else>
+                        <button
+                            type="button"
+                            class="btn btn-danger btn-sm h-[30px]"
+                            :disabled="rejectForm.processing"
+                            @click="executeReject"
+                        >
+                            Konfirmasi Tolak
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-flat btn-sm h-[30px]"
+                            :disabled="rejectForm.processing"
+                            @click="showRejectInput = false"
+                        >
+                            Batal
+                        </button>
+                    </template>
                 </div>
             </div>
         </div>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button type="button" class="btn btn-flat" :disabled="form.processing" @click="close">
+            <button
+                type="button"
+                class="btn btn-flat"
+                :disabled="isProcessing"
+                @click="close"
+            >
                 Tutup
             </button>
-            <template v-if="opname && opname.status === $enums.StockOpnameStatus.PendingApproval">
-                <button
-                    type="button"
-                    class="btn btn-danger"
-                    :disabled="form.processing"
-                    @click="confirmAction('reject')"
-                >
-                    Tolak
-                </button>
-                <button
-                    type="button"
-                    class="btn btn-main"
-                    :disabled="form.processing"
-                    @click="confirmAction('approve')"
-                >
-                    Setujui & Sesuaikan Stok
-                </button>
-            </template>
         </Teleport>
     </div>
-    <!-- Confirmation Modal for Approve / Reject -->
-    <Modal
-        :class="{ show: showConfirm, hide: !showConfirm }"
-        :title="confirmTitle"
-        @close="showConfirm = false"
-    >
-        <p class="text-gray-600 mb-4">{{ confirmMessage }}</p>
-
-        <div v-if="actionType === 'reject'">
-            <TextareaField
-                id="reject_notes"
-                v-model="form.notes"
-                label="Alasan Penolakan (Wajib)"
-                :class="{ 'is-invalid': form.errors.notes }"
-                :error="form.errors.notes"
-            />
-        </div>
-
-        <template #footer>
-            <button class="btn btn-flat" @click="showConfirm = false">Batal</button>
-            <button
-                class="btn"
-                :class="actionType === 'reject' ? 'btn-danger' : 'btn-main'"
-                @click="executeAction"
-            >
-                Konfirmasi
-            </button>
-        </template>
-    </Modal>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useForm } from '@inertiajs/vue3'
-import Modal from '@/Components/Notifications/Modal.vue'
+import { useForm, router, usePage } from '@inertiajs/vue3'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faCheck, faTimes, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import TextareaField from '@/Components/Form/TextareaField.vue'
-import { formatDateTimeID } from '@/Composable/date'
-import { formatNumberID } from '@/Composable/useNumberFormat'
+import { formatDateTimeSimple } from '@/Composable/date'
+import { useEnum } from '@/Composable/useEnum'
+import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'
 
-const modal = useModalStore()
-
 const props = defineProps({
-    opname: Object,
+    opname: {
+        type: Object,
+        default: null,
+    },
 })
 
+const page = usePage()
 const emit = defineEmits(['close'])
+const popUpStore = usePopUpStore()
+const modalStore = useModalStore()
+const { getLabel, getColor } = useEnum()
+
 const isMounted = ref(false)
+const isProcessing = ref(false)
+const showRejectInput = ref(false)
 
 onMounted(() => {
     isMounted.value = true
 })
 
-const form = useForm({
+const rejectForm = useForm({
     notes: '',
-    items: [], // we will inject this just to satisfy UpdateStockOpnameRequest validation for approve method
 })
 
-const showConfirm = ref(false)
-const confirmTitle = ref('')
-const confirmMessage = ref('')
-const actionType = ref('')
+const can = permission => {
+    return (
+        page.props.auth?.permissions?.includes(permission) ||
+        page.props.auth?.permissions?.includes('inventory.*')
+    )
+}
+
+const canApprove = computed(() => can('inventory.opname.approve'))
 
 const summary = computed(() => {
     let totalItems = 0
@@ -222,108 +272,100 @@ const summary = computed(() => {
     if (props.opname && props.opname.items) {
         totalItems = props.opname.items.length
         props.opname.items.forEach(item => {
-            const diff = Number(item.difference_qty)
-            if (diff === 0) matched++
-            else diffCount++
-
-            if (diff > 0) surplus += diff
-            if (diff < 0) shortage += Math.abs(diff)
+            const diff = Number(item.difference_qty ?? 0)
+            if (diff === 0) {
+                matched++
+            } else {
+                diffCount++
+                if (diff > 0) surplus += diff
+                if (diff < 0) shortage += Math.abs(diff)
+            }
         })
     }
 
-    return { totalItems, matched, diff: diffCount, surplus, shortage }
+    return {
+        totalItems,
+        matched,
+        diff: diffCount,
+        surplus: Number(surplus.toFixed(2)),
+        shortage: Number(shortage.toFixed(2)),
+    }
 })
 
-const statusLabel = status => {
-    const labels = {
-        in_progress: 'Sedang Berjalan',
-        pending_approval: 'Menunggu Persetujuan',
-        approved: 'Disetujui',
-        rejected: 'Ditolak',
-    }
-    return labels[status] || status
+const differenceColor = diff => {
+    const val = Number(diff ?? 0)
+    if (val > 0) return 'text-emerald-600'
+    if (val < 0) return 'text-danger'
+    return 'text-slate-400'
 }
 
-const statusColor = status => {
-    const colors = {
-        in_progress: 'badge-warning',
-        pending_approval: 'badge-info',
-        approved: 'badge-success',
-        rejected: 'badge-danger',
-    }
-    return colors[status] || 'badge-gray'
-}
-
-const differenceColor = (actual, system) => {
-    const diff = Number(actual || 0) - Number(system || 0)
-    if (diff > 0) return 'text-success'
-    if (diff < 0) return 'text-danger'
-    return 'text-gray-400'
-}
-
-const formatDifference = (actual, system) => {
-    const diff = Number(actual || 0) - Number(system || 0)
-    const formatted = formatNumberID(Math.abs(diff))
-    if (diff > 0) return '+' + formatted
-    if (diff < 0) return '-' + formatted
+const formatDifference = diff => {
+    const val = Number(diff ?? 0)
+    const formatted = Math.abs(val)
+    if (val > 0) return '+' + formatted
+    if (val < 0) return '-' + formatted
     return '0'
 }
 
+const exportPdf = id => {
+    window.open(route('inventory.opnames.export.pdf', id), '_blank')
+}
+
 const close = () => {
-    form.clearErrors()
+    showRejectInput.value = false
+    rejectForm.reset()
+    popUpStore.close()
     emit('close')
 }
 
-const confirmAction = type => {
-    actionType.value = type
-    form.clearErrors()
-
-    if (type === 'approve') {
-        modal.open({
-            title: 'Setujui & Sesuaikan Stok',
-            message:
-                'Stok sistem akan langsung disesuaikan dengan hasil penghitungan fisik ini. Apakah Anda yakin?',
-            confirmText: 'Setujui & Sesuaikan Stok',
-            confirmButtonClass: 'btn btn-main',
-            onConfirm: () => {
-                form.items = props.opname.items.map(i => ({
-                    inventory_item_id: i.inventory_item_id,
-                    system_qty: i.system_qty,
-                    actual_qty: i.actual_qty,
-                }))
-
-                executeAction()
-            },
-        })
-    } else {
-        modal.open({
-            title: 'Tolak Opname',
-            message: 'Opname akan ditolak dan stok tidak akan disesuaikan. Silakan beri alasan.',
-            confirmText: 'Tolak Opname',
-            confirmButtonClass: 'btn btn-danger',
-            onConfirm: () => {
-                form.notes = ''
-                executeAction()
-            },
-        })
-    }
-    showConfirm.value = true
+const confirmApprove = () => {
+    modalStore.open({
+        title: 'Konfirmasi Persetujuan Stok Opname',
+        message:
+            'Saldo stok persediaan di sistem akan disesuaikan dengan hasil penghitungan fisik ini. Apakah kamu yakin ingin menyetujuinya?',
+        confirmText: 'Ya, Setujui',
+        confirmButtonClass: 'btn btn-main',
+        onConfirm: () => executeApprove(),
+    })
 }
 
-const executeAction = () => {
-    const options = {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: () => {
-            showConfirm.value = false
-            close()
-        },
+const executeApprove = () => {
+    if (!props.opname) return
+    isProcessing.value = true
+
+    const payload = {
+        notes: props.opname.notes || '',
+        items: (props.opname.items || []).map(i => ({
+            inventory_item_id: i.inventory_item_id,
+            system_qty: Number(i.system_qty ?? 0),
+            actual_qty: Number(i.actual_qty ?? i.system_qty ?? 0),
+        })),
     }
 
-    if (actionType.value === 'approve') {
-        form.post(route('inventory.opnames.approve', props.opname.id), options)
-    } else {
-        form.post(route('inventory.opnames.reject', props.opname.id), options)
-    }
+    router.post(route('inventory.opnames.approve', props.opname.id), payload, {
+        preserveScroll: true,
+        onSuccess: page => {
+            const flash = page.props.app?.flash || {}
+            if (!flash.failed) {
+                close()
+            }
+        },
+        onFinish: () => {
+            isProcessing.value = false
+        },
+    })
+}
+
+const executeReject = () => {
+    if (!props.opname) return
+    rejectForm.post(route('inventory.opnames.reject', props.opname.id), {
+        preserveScroll: true,
+        onSuccess: page => {
+            const flash = page.props.app?.flash || {}
+            if (!flash.failed) {
+                close()
+            }
+        },
+    })
 }
 </script>

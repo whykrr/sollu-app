@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Penyesuaian Stok" />
+            <MainPageHeader
+                title="Penyesuaian Stok"
+                description="Kelola koreksi selisih, barang rusak, atau barang hilang untuk menjaga akurasi inventaris tokomu"
+            />
         </template>
 
         <template #filter>
