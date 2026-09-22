@@ -29,7 +29,8 @@ class StockOpnameServiceTest extends TestCase
 
         $this->service = new StockOpnameService(
             $this->activityLogServiceMock,
-            app(\App\Services\App\Inventory\InventoryCostingService::class)
+            app(\App\Services\App\Inventory\InventoryCostingService::class),
+            app(\App\Services\App\Inventory\InventorySodService::class)
         );
     }
 
@@ -202,5 +203,47 @@ class StockOpnameServiceTest extends TestCase
 
         $this->assertEquals(StockOpnameStatus::Rejected, $rejectedOpname->status);
         $this->assertEquals('Invalid count', $rejectedOpname->notes);
+    }
+
+    public function test_it_prevents_self_approval_when_sod_enabled()
+    {
+        [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
+
+        $business->update([
+            'settings' => [
+                'inventory_sod' => [
+                    'enabled' => true,
+                    'allow_owner_bypass' => false,
+                    'rules' => [
+                        'stock_opname' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $opname = $this->service->createOpname([
+            'outlet_id' => $outlet->id,
+            'opname_date' => now()->format('Y-m-d'),
+            'items' => [],
+        ], $user);
+
+        $opname->status = StockOpnameStatus::PendingApproval;
+        $opname->save();
+
+        InventoryBalance::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'inventory_item_id' => $inventoryItem->id,
+            'current_stock' => 10,
+        ]);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Pemisahan tugas aktif');
+
+        $this->service->completeOpname($opname, [
+            'items' => [
+                ['inventory_item_id' => $inventoryItem->id, 'system_qty' => 10, 'actual_qty' => 8],
+            ],
+        ], $user);
     }
 }

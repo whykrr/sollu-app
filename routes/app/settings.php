@@ -35,6 +35,7 @@ Route::prefix('settings')
             ->group(function () {
                 Route::get('/', [\App\Http\Controllers\App\Settings\InventorySettingController::class, 'index'])->name('index');
                 Route::put('/', [\App\Http\Controllers\App\Settings\InventorySettingController::class, 'update'])->name('update');
+                Route::put('/sod', [\App\Http\Controllers\App\Settings\InventorySettingController::class, 'updateSod'])->name('sod.update');
             });
 
         Route::prefix('outlets')

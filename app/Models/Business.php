@@ -299,6 +299,32 @@ class Business extends Model
     }
 
     /**
+     * Get the inventory segregation of duties (SoD) configuration.
+     *
+     * @return array<string, mixed>
+     */
+    public function getInventorySodSettings(): array
+    {
+        return app(\App\Services\App\Inventory\InventorySodService::class)->getSettings($this);
+    }
+
+    /**
+     * Check if inventory segregation of duties (SoD) is enabled globally.
+     */
+    public function isInventorySodEnabled(): bool
+    {
+        return app(\App\Services\App\Inventory\InventorySodService::class)->isSodEnabled($this);
+    }
+
+    /**
+     * Check if business owner is allowed to bypass SoD checks.
+     */
+    public function allowsOwnerSodBypass(): bool
+    {
+        return app(\App\Services\App\Inventory\InventorySodService::class)->allowsOwnerBypass($this);
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function getSlugOptions(): SlugOptions

@@ -112,7 +112,9 @@ Semua operasi penambahan, pengurangan, atau penyesuaian stok **WAJIB** melalui `
 
 ---
 
-## 4. Pembekuan Stok Outlet (Stock Freeze Guard)
+## 4. Pembekuan Stok Outlet (Stock Freeze Guard) & Pemisahan Tugas (Segregation of Duties)
+
+### 4.1. Pembekuan Stok Outlet (Stock Freeze Guard)
 
 Outlet dapat dibekukan (`is_stock_frozen = true`) untuk keperluan stock opname atau audit fisik.
 
@@ -125,6 +127,38 @@ Outlet dapat dibekukan (`is_stock_frozen = true`) untuk keperluan stock opname a
    - Gunakan middleware `stock.not.frozen` pada grup route yang memutasi stok fisik.
 3. **Transfer Antar-Outlet:**
    - Transfer stok WAJIB memvalidasi kedua outlet: `$fromOutlet` dan `$toOutlet` tidak dalam kondisi beku.
+
+### 4.2. Kebijakan Pemisahan Tugas (Segregation of Duties / SoD)
+
+Untuk fleksibilitas berbagai jenis merchant (usaha mikro/kecil vs korporasi multi-outlet), aturan pencegahan *self-approval* dan pemisahan tugas diatur secara dinamis melalui konfigurasi `business->settings['inventory_sod']` dan dievaluasi terpusat via `App\Services\App\Inventory\InventorySodService`.
+
+1. **Skema JSON Konfigurasi:**
+   ```json
+   {
+     "inventory_sod": {
+       "enabled": false,
+       "allow_owner_bypass": true,
+       "rules": {
+         "stock_adjustment": true,
+         "stock_opname": true,
+         "stock_transfer_approval": true,
+         "stock_transfer_receive": true,
+         "purchase_order_receive": false,
+         "direct_purchase_allowed": true
+       }
+     }
+   }
+   ```
+2. **Matriks 5 Alur Terkendali SoD:**
+   - **Penyesuaian Stok (`StockAdjustment`):** Jika `rules.stock_adjustment = true`, pembuat draf dilarang menyetujui drafnya sendiri (`created_by !== approved_by`).
+   - **Stock Opname (`StockOpname`):** Jika `rules.stock_opname = true`, petugas pencatat hitungan fisik dilarang menyetujui/memfinalisasi opname (`created_by !== approved_by`).
+   - **Transfer Stok - Persetujuan (`StockTransfer`):** Jika `rules.stock_transfer_approval = true`, pengaju transfer dilarang menyetujui transfer (`requested_by !== approved_by`).
+   - **Transfer Stok - Penerimaan (`StockTransfer`):** Jika `rules.stock_transfer_receive = true`, pengirim dilarang mengeksekusi penerimaan di outlet tujuan (`shipper !== receiver`).
+   - **Penerimaan Barang PO (`GoodsReceipt`):** Jika `rules.purchase_order_receive = true`, pembuat PO dilarang mencatat penerimaan fisik barang (`po.created_by !== gr.received_by`).
+3. **Aturan Evaluasi di Service Layer:**
+   - **DILARANG KERAS** menulis pengecekan hardcode manual seperti `if ($user->id === $model->created_by)` di dalam service atau controller.
+   - **WAJIB** panggil method asersi terpusat dari `InventorySodService` (misal: `$this->inventorySodService->assertCanApproveAdjustment($adjustment, $user)`).
+   - Pesan error validasi SoD wajib menggunakan standar bahasa Indonesia Sollu yang ramah dan komunikatif.
 
 ---
 
@@ -198,6 +232,7 @@ Outlet dapat dibekukan (`is_stock_frozen = true`) untuk keperluan stock opname a
 | :--- | :--- | :--- |
 | Mengubah `InventoryBalance::update(['current_stock' => ...])` langsung. | Panggil `InventoryCostingService::recordIncomingStock()` atau `recordOutgoingStock()`. | Mencegah rusaknya antrean FIFO layer dan integritas buku besar mutasi. |
 | Hardcode string status seperti `if ($status === 'draft')`. | Gunakan enum `$enums.AdjustmentStatus.Draft` / `AdjustmentStatus::Draft`. | Menjamin konsistensi tipe dan mencegah bug typo. |
+| Melakukan hardcode validasi `if ($user->id === $created_by)` untuk self-approval. | Panggil `InventorySodService::assertCanApprove*()` yang membaca `business->settings['inventory_sod']`. | Menjaga fleksibilitas bagi merchant mikro/kecil dan kepatuhan bagi enterprise. |
 | Modul POS / Transaksi memanggil model `InventoryBalance::decrement()`. | Modul POS memanggil `InventoryDeductionService` atau memancarkan Domain Event. | Menjaga arsitektur Modular Monolith dan batas domain yang bersih. |
 | Menulis toolbar filter dan search inline di dalam `Index.vue`. | Ekstrak filter ke dalam komponen `Components/{Entity}Filter.vue` berbasis `ActionBar`. | Kerapian kode, modularitas, dan reusability. |
 | Menggunakan modal popup dialog (`FilterModal.vue`) untuk memfilter tabel. | Gunakan filter terpadu inline di slot `#filter` `ActionBar`. | Sesuai standar UX Sollu App (Flat Minimalis & Ergonomis). |

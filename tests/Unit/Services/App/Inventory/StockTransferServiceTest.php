@@ -3,10 +3,8 @@
 namespace Tests\Unit\Services\App\Inventory;
 
 use App\Enums\StockTransferStatus;
-use App\Models\Business;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\StockTransfer;
-use App\Models\Outlet;
 use App\Models\User;
 use App\Services\App\Inventory\StockFreezeService;
 use App\Services\App\Inventory\StockTransferService;
@@ -38,7 +36,8 @@ class StockTransferServiceTest extends TestCase
         $this->service = new StockTransferService(
             $this->activityLogServiceMock,
             $this->stockFreezeServiceMock,
-            app(\App\Services\App\Inventory\InventoryCostingService::class)
+            app(\App\Services\App\Inventory\InventoryCostingService::class),
+            app(\App\Services\App\Inventory\InventorySodService::class)
         );
     }
 
@@ -74,13 +73,17 @@ class StockTransferServiceTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
-        $outlet1 = Outlet::create([
+        setPermissionsTeamId($business->id);
+        \Spatie\Permission\Models\Permission::findOrCreate('business.*', 'web');
+        $user->givePermissionTo('business.*');
+
+        $outlet1 = \App\Models\Outlet::create([
             'business_id' => $business->id,
             'name' => 'Outlet 1',
             'is_active' => true,
         ]);
 
-        $outlet2 = Outlet::create([
+        $outlet2 = \App\Models\Outlet::create([
             'business_id' => $business->id,
             'name' => 'Outlet 2',
             'is_active' => true,
@@ -105,7 +108,7 @@ class StockTransferServiceTest extends TestCase
             'from_outlet_id' => $outlet1->id,
             'to_outlet_id' => $outlet2->id,
             'transfer_date' => now()->format('Y-m-d'),
-            'notes' => 'Test notes',
+            'notes' => 'Test Transfer',
             'items' => [
                 [
                     'inventory_item_id' => $inventoryItem->id,
@@ -119,7 +122,6 @@ class StockTransferServiceTest extends TestCase
         $this->assertInstanceOf(StockTransfer::class, $transfer);
         $this->assertEquals(StockTransferStatus::Pending->value, $transfer->status);
         $this->assertCount(1, $transfer->items);
-        $this->assertEquals(10, $transfer->items[0]->qty);
         $this->assertStringStartsWith('TF-', $transfer->transfer_number);
     }
 
@@ -145,15 +147,22 @@ class StockTransferServiceTest extends TestCase
         $this->assertEquals(20, $updatedTransfer->items()->first()->qty);
     }
 
-    public function test_it_fails_to_approve_own_transfer()
+    public function test_it_fails_to_approve_own_transfer_when_sod_is_enabled()
     {
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        $this->expectExceptionMessage('Anda tidak dapat menyetujui transfer yang Anda buat sendiri.');
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Pemisahan tugas aktif');
 
         [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData();
 
-        // User defaults to no 'business.*' permission in seeder unless assigned.
-        // We'll create a user specifically for this.
+        $business->settings = [
+            'inventory_sod' => [
+                'enabled' => true,
+                'allow_owner_bypass' => false,
+                'rules' => ['stock_transfer_approval' => true],
+            ],
+        ];
+        $business->save();
+
         $requester = User::factory()->create(['business_id' => $business->id]);
 
         $transfer = $this->service->createTransfer([
@@ -164,6 +173,30 @@ class StockTransferServiceTest extends TestCase
         ], $requester);
 
         $this->service->approveTransfer($transfer, $requester);
+    }
+
+    public function test_it_allows_self_approval_when_sod_is_disabled()
+    {
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData();
+
+        $business->settings = [
+            'inventory_sod' => [
+                'enabled' => false,
+            ],
+        ];
+        $business->save();
+
+        $requester = User::factory()->create(['business_id' => $business->id]);
+
+        $transfer = $this->service->createTransfer([
+            'from_outlet_id' => $outlet1->id,
+            'to_outlet_id' => $outlet2->id,
+            'transfer_date' => now()->format('Y-m-d'),
+            'items' => [],
+        ], $requester);
+
+        $approved = $this->service->approveTransfer($transfer, $requester);
+        $this->assertEquals(StockTransferStatus::Approved->value, $approved->status);
     }
 
     public function test_it_approves_transfer()

@@ -16,7 +16,8 @@ class GoodsReceiptService
 {
     public function __construct(
         protected ActivityLogService $activityLogService,
-        protected InventoryCostingService $costingService
+        protected InventoryCostingService $costingService,
+        protected InventorySodService $inventorySodService
     ) {}
 
     /**
@@ -28,6 +29,8 @@ class GoodsReceiptService
             if (! in_array($po->status, [PurchaseOrderStatus::Ordered, PurchaseOrderStatus::PartialReceived], true)) {
                 abort(403, 'Hanya pesanan berstatus Dipesan atau Diterima Sebagian yang dapat diproses penerimaannya.');
             }
+
+            $this->inventorySodService->assertCanReceivePurchaseOrder($po, $receiver);
 
             $po->load(['outlet.business', 'items.inventoryItem', 'supplier']);
             $outlet = $po->outlet;

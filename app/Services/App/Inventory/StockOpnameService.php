@@ -13,7 +13,8 @@ class StockOpnameService
 {
     public function __construct(
         protected ActivityLogService $activityLog,
-        protected InventoryCostingService $costingService
+        protected InventoryCostingService $costingService,
+        protected InventorySodService $inventorySodService
     ) {}
 
     public function createOpname(array $data, User $creator): StockOpname
@@ -84,6 +85,8 @@ class StockOpnameService
             if ($opname->status !== StockOpnameStatus::PendingApproval) {
                 abort(403, 'Opname harus dalam status Menunggu Persetujuan.');
             }
+
+            $this->inventorySodService->assertCanApproveOpname($opname, $approver);
 
             $opname->load(['outlet.business', 'items.inventoryItem']);
             $outlet = $opname->outlet;

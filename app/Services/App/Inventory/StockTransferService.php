@@ -14,7 +14,8 @@ class StockTransferService
     public function __construct(
         protected ActivityLogService $activityLogService,
         protected StockFreezeService $stockFreezeService,
-        protected InventoryCostingService $costingService
+        protected InventoryCostingService $costingService,
+        protected InventorySodService $inventorySodService
     ) {}
 
     public function createTransfer(array $data, User $creator): StockTransfer
@@ -81,9 +82,7 @@ class StockTransferService
                 abort(403, 'Hanya transfer berstatus Menunggu yang dapat disetujui.');
             }
 
-            if (! $approver->can('business.*') && $approver->id === $transfer->requested_by) {
-                abort(403, 'Anda tidak dapat menyetujui transfer yang Anda buat sendiri.');
-            }
+            $this->inventorySodService->assertCanApproveTransfer($transfer, $approver);
 
             $this->stockFreezeService->assertNotFrozen($transfer->fromOutlet);
             $this->stockFreezeService->assertNotFrozen($transfer->toOutlet);
@@ -157,6 +156,8 @@ class StockTransferService
             if ($transfer->status !== StockTransferStatus::InTransit->value) {
                 abort(403, 'Hanya transfer berstatus Dalam Perjalanan yang dapat diterima.');
             }
+
+            $this->inventorySodService->assertCanReceiveTransfer($transfer, $receiver);
 
             $this->stockFreezeService->assertNotFrozen($transfer->fromOutlet);
             $this->stockFreezeService->assertNotFrozen($transfer->toOutlet);

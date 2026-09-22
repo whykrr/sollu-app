@@ -30,7 +30,8 @@ class StockAdjustmentServiceTest extends TestCase
 
         $this->service = new StockAdjustmentService(
             $this->activityLogServiceMock,
-            app(\App\Services\App\Inventory\InventoryCostingService::class)
+            app(\App\Services\App\Inventory\InventoryCostingService::class),
+            app(\App\Services\App\Inventory\InventorySodService::class)
         );
     }
 
@@ -146,12 +147,21 @@ class StockAdjustmentServiceTest extends TestCase
         $this->assertEquals(5, $movement->qty_change);
     }
 
-    public function test_it_fails_to_approve_if_user_created_adjustment_and_not_admin()
+    public function test_it_fails_to_approve_if_sod_is_enabled_and_user_created_adjustment()
     {
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Anda tidak dapat menyetujui penyesuaian yang Anda buat sendiri.');
+        $this->expectExceptionMessage('Pemisahan tugas aktif');
 
         [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
+
+        $business->settings = [
+            'inventory_sod' => [
+                'enabled' => true,
+                'allow_owner_bypass' => true,
+                'rules' => ['stock_adjustment' => true],
+            ],
+        ];
+        $business->save();
 
         $data = [
             'outlet_id' => $outlet->id,
@@ -170,6 +180,38 @@ class StockAdjustmentServiceTest extends TestCase
 
         $user->revokePermissionTo('business.*');
         $this->service->approve($adj, $user);
+    }
+
+    public function test_it_allows_self_approval_when_sod_is_disabled()
+    {
+        [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
+
+        $business->settings = [
+            'inventory_sod' => [
+                'enabled' => false,
+            ],
+        ];
+        $business->save();
+
+        $user->revokePermissionTo('business.*');
+
+        $data = [
+            'outlet_id' => $outlet->id,
+            'reason' => AdjustmentReason::Correction->value,
+            'notes' => 'Self created with SoD disabled',
+            'items' => [
+                [
+                    'inventory_item_id' => $inventoryItem->id,
+                    'qty_change' => 5,
+                    'unit_cost' => 100,
+                    'description' => 'Add 5',
+                ],
+            ],
+        ];
+        $adj = $this->service->create($data, $user);
+        $approvedAdj = $this->service->approve($adj, $user);
+
+        $this->assertEquals(AdjustmentStatus::Approved, $approvedAdj->status);
     }
 
     public function test_it_fails_to_approve_if_stock_becomes_negative()

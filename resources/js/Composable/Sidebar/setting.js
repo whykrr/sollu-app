@@ -65,7 +65,7 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
         type: 'item',
         url: route('settings.inventory.index'),
         icon: faBoxes,
-        label: 'Metode Aset Inventaris',
+        label: 'Manajemen Inventaris',
         feature: enums.FeatureEnum.INVENTORY_MANAGEMENT,
         permissions: ['business.view'],
         activeRoute: 'settings.inventory',

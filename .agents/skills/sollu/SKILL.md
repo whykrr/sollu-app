@@ -654,6 +654,13 @@ if (can('settings.outlets.create')) {
 
 - Dilarang mengakses `usePage().props.auth` secara manual langsung jika composable `useAuth()` tersedia.
 
+### 6.5. Internal Control & Segregation of Duties (SoD Policy Layer)
+
+- **Lapisan Otorisasi Bertingkat:** Otorisasi aksi operasional inventori (Approval Penyesuaian, Opname, Transfer, PO vs Goods Receipt) mengevaluasi **2 Lapisan**:
+  1. *Lapisan RBAC:* Apakah pengguna memiliki izin peran (`$user->can('inventory.adjustment.approve')`).
+  2. *Lapisan SoD (Internal Control):* Apakah kebijakan `business->settings['inventory_sod']` membatasi *self-approval* atau pemisahan pengirim-penerima via `App\Services\App\Inventory\InventorySodService`.
+- **Dilarang Menulis Validasi SoD Hardcode:** DILARANG melakukan cek `if ($user->id === $model->created_by)` secara manual di controller/service. Seluruh evaluasi SoD WAJIB didelegasikan ke `InventorySodService` untuk menghormati preferensi fleksibilitas masing-masing merchant.
+
 ---
 
 ## 7. SaaS Feature Plan Gating (Subscription Entitlements)

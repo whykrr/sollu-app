@@ -38,7 +38,8 @@ class GoodsReceiptServiceTest extends TestCase
 
         $this->service = new GoodsReceiptService(
             $this->activityLogServiceMock,
-            app(InventoryCostingService::class)
+            app(InventoryCostingService::class),
+            app(\App\Services\App\Inventory\InventorySodService::class)
         );
     }
 
@@ -459,5 +460,58 @@ class GoodsReceiptServiceTest extends TestCase
         $this->expectExceptionMessage('memiliki riwayat retur aktif');
 
         $this->service->voidReceipt($receipt, $user, 'Coba void yang sudah diretur');
+    }
+
+    public function test_it_prevents_goods_receipt_by_po_creator_when_sod_enabled(): void
+    {
+        [$user, $business, $outlet, $item, $supplier] = $this->setupBaseData();
+
+        $business->update([
+            'settings' => [
+                'inventory_sod' => [
+                    'enabled' => true,
+                    'allow_owner_bypass' => false,
+                    'rules' => [
+                        'purchase_order_receive' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $po = PurchaseOrder::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'supplier_id' => $supplier->id,
+            'po_number' => 'PO-202609-009',
+            'order_date' => now()->format('Y-m-d'),
+            'status' => PurchaseOrderStatus::Ordered,
+            'total_amount' => 100000,
+            'created_by' => $user->id,
+        ]);
+
+        $poItem = $po->items()->create([
+            'inventory_item_id' => $item->id,
+            'uom_id' => $item->uom_id,
+            'qty_ordered' => 10,
+            'purchase_price' => 10000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'subtotal' => 100000,
+        ]);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Pemisahan tugas aktif');
+
+        $this->service->createReceipt($po, [
+            'delivery_order_number' => 'DO-12345',
+            'received_at' => now()->format('Y-m-d H:i:s'),
+            'items' => [
+                [
+                    'purchase_order_item_id' => $poItem->id,
+                    'qty_received' => 10,
+                    'conversion_factor' => 1.0,
+                ],
+            ],
+        ], $user);
     }
 }

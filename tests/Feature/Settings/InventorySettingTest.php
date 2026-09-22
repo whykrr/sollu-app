@@ -97,6 +97,7 @@ class InventorySettingTest extends TestCase
             ->has('isConfigured')
             ->has('options')
             ->has('stats')
+            ->has('sodSettings')
         );
     }
 
@@ -135,5 +136,53 @@ class InventorySettingTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['costing_method']);
+    }
+
+    public function test_authorized_user_can_update_inventory_sod_settings(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
+        $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
+        $user->givePermissionTo(PermissionEnum::BUSINESS_UPDATE->value);
+
+        $business = $user->business;
+        $this->assertFalse($business->isInventorySodEnabled());
+
+        $payload = [
+            'enabled' => true,
+            'allow_owner_bypass' => false,
+            'rules' => [
+                'stock_adjustment' => true,
+                'stock_opname' => true,
+                'stock_transfer_approval' => true,
+                'stock_transfer_receive' => true,
+                'purchase_order_receive' => true,
+            ],
+        ];
+
+        $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/inventory/sod", $payload);
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);
+
+        $business->refresh();
+        $this->assertTrue($business->isInventorySodEnabled());
+        $this->assertFalse($business->allowsOwnerSodBypass());
+        $this->assertTrue($business->getInventorySodSettings()['rules']['stock_adjustment']);
+    }
+
+    public function test_update_sod_settings_requires_valid_boolean_fields(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
+        $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
+        $user->givePermissionTo(PermissionEnum::BUSINESS_UPDATE->value);
+
+        $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/inventory/sod", [
+            'enabled' => 'not_a_boolean',
+            'rules' => 'invalid_rules_array',
+        ]);
+
+        $response->assertSessionHasErrors(['enabled', 'rules']);
     }
 }

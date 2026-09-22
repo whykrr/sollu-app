@@ -15,7 +15,8 @@ class StockAdjustmentService
 {
     public function __construct(
         protected ActivityLogService $activityLogService,
-        protected InventoryCostingService $costingService
+        protected InventoryCostingService $costingService,
+        protected InventorySodService $inventorySodService
     ) {}
 
     /**
@@ -66,9 +67,7 @@ class StockAdjustmentService
             throw new \Exception('Hanya penyesuaian berstatus Draf yang dapat disetujui.');
         }
 
-        if (! $user->can('business.*') && $adjustment->created_by === $user->id) {
-            throw new \Exception('Anda tidak dapat menyetujui penyesuaian yang Anda buat sendiri.');
-        }
+        $this->inventorySodService->assertCanApproveAdjustment($adjustment, $user);
 
         return DB::transaction(function () use ($adjustment, $user) {
             $adjustment->load(['outlet.business', 'items.inventoryItem']);
