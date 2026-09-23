@@ -12,7 +12,7 @@ Terima kasih atas pembayaran Anda. Kami ingin menginformasikan bahwa pembayaran 
 - **Nomor Telepon:** {{ $outlet->phone ?? '-' }}
 </x-mail::panel>
 
-Sekarang Anda dapat langsung mengelola produk, transaksi, dan stok pada outlet baru tersebut melalui Dashboard Sollu App.
+Sekarang Anda dapat langsung mengelola produk, transaksi, dan stok pada outlet baru tersebut melalui Dashboard {{ config('app.name') }}.
 
 <x-mail::button :url="config('app.url').'/settings/outlets'">
 Kelola Outlet

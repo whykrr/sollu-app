@@ -12,7 +12,7 @@
                     @if ($base64)
                         <img src="{{ $base64 }}" alt="{{ $business->name }}" style="max-width: 150px; max-height: 80px; object-fit: contain;">
                     @else
-                        <h2 style="margin: 0; color: #333;">{{ $business->name ?? 'Sollu App' }}</h2>
+                        <h2 style="margin: 0; color: #333;">{{ $business->name ?? config('app.name', 'Sollu Indonesia') }}</h2>
                     @endif
                 @else
                     @if(isset($business))
@@ -25,9 +25,9 @@
                             $solluBase64 = $solluData ? 'data:image/' . $solluType . ';base64,' . base64_encode($solluData) : '';
                         @endphp
                         @if ($solluBase64)
-                            <img src="{{ $solluBase64 }}" alt="Sollu App" style="max-width: 150px; max-height: 80px; object-fit: contain;">
+                            <img src="{{ $solluBase64 }}" alt="{{ config('app.name', 'Sollu Indonesia') }}" style="max-width: 150px; max-height: 80px; object-fit: contain;">
                         @else
-                            <h2 style="margin: 0; color: #333;">Sollu App</h2>
+                            <h2 style="margin: 0; color: #333;">{{ config('app.name', 'Sollu Indonesia') }}</h2>
                         @endif
                     @endif
                 @endif

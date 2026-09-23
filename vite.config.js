@@ -27,7 +27,7 @@ export default defineConfig({
             registerType: 'autoUpdate',
             injectRegister: false,
             manifest: {
-                name: 'Sollu App',
+                name: 'Sollu Indonesia',
                 short_name: 'Sollu',
                 description: 'Sollu Enterprise Management Platform',
                 theme_color: '#004AAD',

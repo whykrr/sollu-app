@@ -1,4 +1,4 @@
-# Sollu App - Point of Sale (SaaS)
+# Sollu Indonesia - Point of Sale (SaaS)
 
 Sollu POS adalah aplikasi Point of Sale berbasis SaaS yang dirancang khusus untuk bisnis dengan model multi-outlet. Setiap merchant dapat mengelola satu atau lebih outlet dengan sistem langganan (subscription) yang fleksibel.
 

@@ -8,7 +8,7 @@ Kami menginformasikan bahwa bukti pembayaran untuk invoice **{{ $invoiceNumber }
 **Alasan penolakan:**
 > {{ $rejectionReason }}
 
-Silakan unggah kembali bukti pembayaran yang benar melalui dashboard Sollu App Anda.
+Silakan unggah kembali bukti pembayaran yang benar melalui dashboard {{ config('app.name') }} Anda.
 
 <x-mail::button :url="config('app.url').'/settings/billing'">
 Unggah Ulang Bukti Pembayaran

@@ -18,7 +18,7 @@ class EmailVerifiedNotification extends BaseNotification
         $this->type = NotificationTypeEnum::SUCCESS;
         $this->scope = NotificationScopeEnum::USER;
         $this->title = 'Email Berhasil Diverifikasi';
-        $this->message = 'Alamat email tokomu telah berhasil diverifikasi. Seluruh fitur Sollu App kini siap digunakan secara maksimal.';
+        $this->message = 'Alamat email tokomu telah berhasil diverifikasi. Seluruh fitur '.config('app.name').' kini siap digunakan secara maksimal.';
         $this->actionUrl = route('overview');
         $this->actionText = 'Lihat Dashboard';
     }

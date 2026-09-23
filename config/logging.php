@@ -156,7 +156,7 @@ return [
         'discord' => [
             'driver' => 'slack',
             'url' => env('LOG_DISCORD_WEBHOOK_URL'),
-            'username' => 'Sollu App Log',
+            'username' => 'Sollu Indonesia Log',
             'emoji' => ':boom:',
             'level' => 'error',
             'replace_placeholders' => true,

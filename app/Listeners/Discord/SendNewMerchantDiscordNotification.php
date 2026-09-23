@@ -44,7 +44,7 @@ class SendNewMerchantDiscordNotification implements ShouldQueue
         $embed = [
             'title' => '🏪 Merchant Baru Mendaftar!',
             'url' => $fullCockpitUrl,
-            'description' => "Seorang pengguna baru saja mendaftarkan bisnis di **Sollu POS**.\n\n👉 **[Buka Detail Bisnis di Cockpit]({$fullCockpitUrl})**",
+            'description' => "Seorang pengguna baru saja mendaftarkan bisnis di **Sollu Indonesia**.\n\n👉 **[Buka Detail Bisnis di Cockpit]({$fullCockpitUrl})**",
             'color' => hexdec('10B981'), // Emerald Green
             'fields' => [
                 [

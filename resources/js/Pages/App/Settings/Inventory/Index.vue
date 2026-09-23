@@ -300,7 +300,7 @@
                         <div class="space-y-0.5">
                             <span class="font-semibold">Perpindahan Metode Dijamin 100% Aman</span>
                             <p class="text-[11px] leading-relaxed text-amber-700">
-                                Sollu App secara cerdas memelihara sinkronisasi data ganda
+                                Sollu Indonesia secara cerdas memelihara sinkronisasi data ganda
                                 (dual-ledger sync). Mengganti metode perhitungan tidak akan merusak
                                 atau mengubah angka penjualan masa lalu.
                             </p>

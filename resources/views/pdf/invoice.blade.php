@@ -114,7 +114,7 @@
 <body>
     <div class="invoice-box">
         @include('pdf.partials.header', [
-            'business' => null, // Sistem invoice, pakai fallback 'Sollu App'
+            'business' => null, // Sistem invoice, pakai fallback 'Sollu Indonesia'
             'title' => 'INVOICE',
             'subtitle' => '#' . $invoice->invoice_number,
         ])

@@ -115,10 +115,19 @@ Untuk menjaga konsistensi di seluruh modul, gunakan padanan kata baku berikut:
 | **Kelola** | Manajemen, Maintain | Untuk deskripsi fitur |
 | **Tokomu / Bisnismu** | Perusahaan Anda, Badan Usaha Anda | Sapaan yang lebih akrab dan personal |
 | **Yuk / Coba** | Silahkan, Harap, Dimohon | Kata ajakan yang hangat dan tidak kaku |
+| **Sollu Indonesia / Sollu** | Sollu App | Nama aplikasi resmi sesuai `APP_NAME` di `.env` / `config('app.name')`. Dilarang menggunakan "Sollu App". |
 
 ---
 
-## 5. Checklist Verifikasi Copywriting (DoD Wording)
+## 5. Standar Penamaan Aplikasi & Branding
+
+- **Nama Aplikasi Resmi:** **Sollu Indonesia** (atau cukup **Sollu** dalam konteks ringkas/slogan).
+- **🚨 LARANGAN PENGGUNAAN "Sollu App":** Dilarang keras menggunakan kata **"Sollu App"** pada email, notifikasi, halaman antarmuka (UI), invoice/dokumen PDF, maupun dokumen teknis/marketing.
+- **Dynamic Variable:** Pada template email/notifikasi/Blade, selalu utamakan penggunaan `config('app.name')` agar selalu sinkron dengan environment.
+
+---
+
+## 6. Checklist Verifikasi Copywriting (DoD Wording)
 
 Sebelum menyelesaikan pembuatan atau refactor tampilan UI, pastikan:
 
@@ -128,3 +137,4 @@ Sebelum menyelesaikan pembuatan atau refactor tampilan UI, pastikan:
 - [ ] Modal konfirmasi menjelaskan dampak aksi dengan bahasa yang mudah dimengerti.
 - [ ] Pesan validasi dan error memberikan solusi perbaikan bagi pengguna.
 - [ ] Istilah operasional bisnis tetap akurat dan konsisten.
+- [ ] Penamaan aplikasi menggunakan **Sollu Indonesia** atau `config('app.name')` (tidak ada "Sollu App").
