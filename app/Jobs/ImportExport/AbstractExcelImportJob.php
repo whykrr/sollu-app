@@ -107,18 +107,19 @@ abstract class AbstractExcelImportJob implements ShouldQueue
             }
         };
 
-        // Execute import from local disk path
-        Excel::import($importClass, Storage::disk('local')->path($this->filePath));
-
-        // Clean up the uploaded file
-        Storage::disk('local')->delete($this->filePath);
+        // Execute import from local disk path and ensure local file cleanup
+        try {
+            Excel::import($importClass, Storage::disk('local')->path($this->filePath));
+        } finally {
+            Storage::disk('local')->delete($this->filePath);
+        }
 
         $failedUrl = null;
         $failedCount = count($importClass->failedRows);
 
         // If there are failures, generate a failed rows Excel
         if ($failedCount > 0) {
-            Storage::makeDirectory('exports');
+            Storage::disk('public')->makeDirectory('exports');
             $failedFileName = 'failed_import_'.time().'.xlsx';
             $failedFilePath = 'exports/'.$failedFileName; // Public directory
 

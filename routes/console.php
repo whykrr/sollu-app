@@ -19,15 +19,12 @@ if (! app()->isProduction() && class_exists(\Laravel\Telescope\Telescope::class)
     Schedule::command('telescope:prune --hours='.(int) env('TELESCOPE_PRUNE_HOURS', 24))->daily();
 }
 
-Schedule::call(function () {
-    $files = Illuminate\Support\Facades\Storage::disk('public')->files('exports');
-    $now = now()->timestamp;
-    foreach ($files as $file) {
-        if ($now - Illuminate\Support\Facades\Storage::disk('public')->lastModified($file) > 86400) {
-            Illuminate\Support\Facades\Storage::disk('public')->delete($file);
-        }
-    }
-})->daily();
+// Prune expired export & orphaned import files (hourly execution on production)
+Schedule::command('exports:prune --hours=24')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->runInBackground();
 
 Schedule::command('subscription:renewal-notification')->dailyAt('08:00');
 Schedule::command('audit:manage-partitions --prune-days=365')->dailyAt('02:00');

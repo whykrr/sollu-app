@@ -170,7 +170,7 @@ class ImportProductJob extends AbstractExcelImportJob
         $failedCount = count($failedRows);
 
         if ($failedCount > 0) {
-            Storage::makeDirectory('exports');
+            Storage::disk('public')->makeDirectory('exports');
             $failedFileName = 'failed_import_'.time().'.xlsx';
             $failedFilePath = 'exports/'.$failedFileName;
 

@@ -4,10 +4,28 @@
             <td style="vertical-align: top;">
                 @if (isset($business) && $business->logo)
                     @php
-                        $path = \Illuminate\Support\Facades\Storage::disk('public')->path($business->logo);
-                        $type = file_exists($path) ? pathinfo($path, PATHINFO_EXTENSION) : '';
-                        $data = file_exists($path) ? file_get_contents($path) : '';
-                        $base64 = $data ? 'data:image/' . $type . ';base64,' . base64_encode($data) : '';
+                        $mediaDisk = config('filesystems.media_disk', config('filesystems.default', 'public'));
+                        $logoContent = null;
+                        $logoType = 'png';
+
+                        if (\Illuminate\Support\Facades\Storage::disk($mediaDisk)->exists($business->logo)) {
+                            $logoContent = \Illuminate\Support\Facades\Storage::disk($mediaDisk)->get($business->logo);
+                            $logoType = pathinfo($business->logo, PATHINFO_EXTENSION) ?: 'png';
+                        } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($business->logo)) {
+                            $logoContent = \Illuminate\Support\Facades\Storage::disk('public')->get($business->logo);
+                            $logoType = pathinfo($business->logo, PATHINFO_EXTENSION) ?: 'png';
+                        }
+
+                        $mimeType = match (strtolower($logoType)) {
+                            'jpg', 'jpeg' => 'image/jpeg',
+                            'png' => 'image/png',
+                            'webp' => 'image/webp',
+                            'gif' => 'image/gif',
+                            'svg' => 'image/svg+xml',
+                            default => 'image/png',
+                        };
+
+                        $base64 = $logoContent ? 'data:' . $mimeType . ';base64,' . base64_encode($logoContent) : '';
                     @endphp
                     @if ($base64)
                         <img src="{{ $base64 }}" alt="{{ $business->name }}" style="max-width: 150px; max-height: 80px; object-fit: contain;">

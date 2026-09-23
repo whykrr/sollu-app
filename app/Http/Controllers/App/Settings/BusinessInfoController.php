@@ -12,16 +12,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Business\SaveBusinessLogoRequest;
 use App\Http\Requests\App\BusinessUpdateRequest;
 use App\Models\Business;
+use App\Services\Core\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class BusinessInfoController extends Controller
 {
     public function __construct(
-        protected ActivityLoggerInterface $auditLogger
+        protected ActivityLoggerInterface $auditLogger,
+        protected ImageOptimizerService $imageOptimizerService
     ) {}
 
     public function index(Request $req): Response
@@ -93,9 +94,7 @@ class BusinessInfoController extends Controller
         $business = Business::findOrFail($business_id);
 
         if (! $request->hasFile('logo')) {
-            if ($business->logo && Storage::exists($business->logo)) {
-                Storage::delete($business->logo);
-            }
+            $this->imageOptimizerService->delete($business->logo);
             $business->logo = null;
             $business->save();
 
@@ -116,11 +115,14 @@ class BusinessInfoController extends Controller
             );
         }
 
-        $path = $request->file('logo')->store('business/image');
+        $oldLogo = $business->logo;
+        $path = $this->imageOptimizerService->optimizeAndStore(
+            $request->file('logo'),
+            'business/image',
+            'logo'
+        );
 
-        if ($business->logo && Storage::exists($business->logo)) {
-            Storage::delete($business->logo);
-        }
+        $this->imageOptimizerService->delete($oldLogo);
 
         $business->logo = $path;
         $business->save();

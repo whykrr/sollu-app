@@ -40,7 +40,7 @@ class ExportProductReportPdfJob implements ShouldQueue
             return;
         }
 
-        Storage::makeDirectory('exports');
+        Storage::disk('public')->makeDirectory('exports');
 
         $data = DB::table('transaction_items')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
@@ -67,7 +67,7 @@ class ExportProductReportPdfJob implements ShouldQueue
 
         $fileName = 'product_report_'.time().'.pdf';
 
-        $pdf = Pdf::loadView('pdf.reports.product_report', [
+        $pdf = Pdf::loadView('pdf.reports.products', [
             'data' => $data,
             'business' => $this->user->business,
             'outlet' => $this->user->activeOutlet,
@@ -75,7 +75,7 @@ class ExportProductReportPdfJob implements ShouldQueue
             'end_date' => $this->endDate,
         ])->setPaper('a4', 'landscape');
 
-        Storage::put('exports/'.$fileName, $pdf->output());
+        Storage::disk('public')->put('exports/'.$fileName, $pdf->output());
 
         $this->user->notify(new DocumentExportCompleted(
             'Laporan Produk',

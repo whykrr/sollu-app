@@ -3,6 +3,7 @@
 namespace App\Services\App\Master;
 
 use App\Models\Master\Product;
+use App\Services\Core\ImageOptimizerService;
 use Illuminate\Support\Facades\DB;
 
 class ProductService
@@ -10,8 +11,11 @@ class ProductService
     public function __construct(
         protected AuditLogService $auditLogService,
         protected InventoryService $inventoryService,
-        protected RecipeService $recipeService
-    ) {}
+        protected RecipeService $recipeService,
+        protected ?ImageOptimizerService $imageOptimizerService = null
+    ) {
+        $this->imageOptimizerService = $imageOptimizerService ?? app(ImageOptimizerService::class);
+    }
 
     public function createProduct(array $data)
     {
@@ -480,8 +484,11 @@ class ProductService
         });
     }
 
-    private function processProductImages(Product $product, array $images)
+    private function processProductImages(Product $product, array $images): void
     {
+        $existingImageUrls = $product->images()->pluck('image_url')->filter()->all();
+        $keptImageUrls = [];
+
         $product->images()->delete();
 
         $firstImageUrl = null;
@@ -491,7 +498,11 @@ class ProductService
 
             // Check if there is an uploaded file
             if (isset($img['image_file']) && $img['image_file'] instanceof \Illuminate\Http\UploadedFile) {
-                $imageUrl = $img['image_file']->store('products');
+                $imageUrl = $this->imageOptimizerService->optimizeAndStore(
+                    $img['image_file'],
+                    'products',
+                    'product'
+                );
             } else {
                 // If it is already a stored path/URL, clean it up to store only relative path
                 $storagePrefix = '/storage/';
@@ -501,6 +512,10 @@ class ProductService
                 }
             }
 
+            if ($imageUrl) {
+                $keptImageUrls[] = $imageUrl;
+            }
+
             $product->images()->create([
                 'image_url' => $imageUrl,
                 'sort_order' => $img['sort_order'] ?? $idx,
@@ -508,6 +523,13 @@ class ProductService
 
             if ($idx === 0) {
                 $firstImageUrl = $imageUrl;
+            }
+        }
+
+        // Delete orphaned image files from storage that are no longer kept
+        foreach ($existingImageUrls as $oldUrl) {
+            if (! in_array($oldUrl, $keptImageUrls, true)) {
+                $this->imageOptimizerService->delete($oldUrl);
             }
         }
 

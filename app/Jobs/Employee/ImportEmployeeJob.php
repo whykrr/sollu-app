@@ -236,13 +236,15 @@ class ImportEmployeeJob implements ShouldQueue
             }
         };
 
-        Excel::import($importClass, Storage::disk('local')->path($this->filePath));
-
-        Storage::disk('local')->delete($this->filePath);
+        try {
+            Excel::import($importClass, Storage::disk('local')->path($this->filePath));
+        } finally {
+            Storage::disk('local')->delete($this->filePath);
+        }
 
         $resultUrl = null;
         if (! empty($processedResults)) {
-            Storage::makeDirectory('exports');
+            Storage::disk('public')->makeDirectory('exports');
             $resultFileName = 'hasil_impor_pegawai_'.time().'.xlsx';
             $resultFilePath = 'exports/'.$resultFileName;
 

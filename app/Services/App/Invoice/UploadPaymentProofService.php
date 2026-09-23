@@ -6,12 +6,19 @@ use App\Enums\PaymentManualValidationStatus;
 use App\Events\Invoice\PaymentProofUploaded;
 use App\Models\Invoice;
 use App\Models\PaymentManualValidation;
+use App\Services\Core\ImageOptimizerService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class UploadPaymentProofService
 {
+    public function __construct(
+        protected ?ImageOptimizerService $imageOptimizerService = null
+    ) {
+        $this->imageOptimizerService = $imageOptimizerService ?? app(ImageOptimizerService::class);
+    }
+
     /**
      * Store payment proof, update/create manual validation record, and ensure a pending payment exists.
      *
@@ -20,7 +27,18 @@ class UploadPaymentProofService
     public function execute(Invoice $invoice, UploadFile|UploadedFile $file): PaymentManualValidation
     {
         return DB::transaction(function () use ($invoice, $file): PaymentManualValidation {
-            $path = $file->store('invoices/payment_proof');
+            $existingValidation = PaymentManualValidation::where('invoice_id', $invoice->id)->first();
+            $oldProofPath = $existingValidation?->payment_proof_url;
+
+            $path = $this->imageOptimizerService->optimizeAndStore(
+                $file,
+                'invoices/payment_proof',
+                'payment_proof'
+            );
+
+            if ($oldProofPath && $oldProofPath !== $path) {
+                $this->imageOptimizerService->delete($oldProofPath);
+            }
 
             $validation = PaymentManualValidation::updateOrCreate(
                 ['invoice_id' => $invoice->id],

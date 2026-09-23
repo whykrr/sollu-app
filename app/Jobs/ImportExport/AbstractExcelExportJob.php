@@ -62,7 +62,7 @@ abstract class AbstractExcelExportJob implements ShouldQueue
             return;
         }
 
-        Storage::makeDirectory('exports');
+        Storage::disk('public')->makeDirectory('exports');
 
         $fileName = $this->getFileName();
         // Force the extension to be .xlsx

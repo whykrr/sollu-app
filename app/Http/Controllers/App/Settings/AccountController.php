@@ -12,16 +12,17 @@ use App\Http\Requests\App\User\AccountChangePasswordRequest;
 use App\Http\Requests\App\User\AccountUpdateRequest;
 use App\Http\Requests\App\User\ChangePhotoRequest;
 use App\Models\User;
+use App\Services\Core\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class AccountController extends Controller
 {
     public function __construct(
-        protected ActivityLoggerInterface $auditLogger
+        protected ActivityLoggerInterface $auditLogger,
+        protected ImageOptimizerService $imageOptimizerService
     ) {}
 
     public function index(Request $req)
@@ -110,11 +111,14 @@ class AccountController extends Controller
     {
         $user = User::find(Auth::id());
 
-        $path = $request->file('photo')->store('user/photo');
+        $oldPhoto = $user->photo;
+        $path = $this->imageOptimizerService->optimizeAndStore(
+            $request->file('photo'),
+            'user/photo',
+            'avatar'
+        );
 
-        if ($user->photo && Storage::exists($user->photo)) {
-            Storage::delete($user->photo);
-        }
+        $this->imageOptimizerService->delete($oldPhoto);
 
         $user->photo = $path;
         $user->save();
@@ -132,9 +136,7 @@ class AccountController extends Controller
     {
         $user = User::find(Auth::id());
 
-        if ($user->photo && Storage::exists($user->photo)) {
-            Storage::delete($user->photo);
-        }
+        $this->imageOptimizerService->delete($user->photo);
 
         $user->photo = null;
         $user->save();
