@@ -1,11 +1,11 @@
 <template>
     <div
         v-if="shouldShowWidget"
-        class="flex flex-col gap-2 mt-2 rounded-xl border border-neutral-200/60 bg-slate-50/50 p-2.5 shadow-sm"
+        class="flex flex-col gap-2 rounded-xl border border-neutral-200/80 bg-slate-50 p-2.5"
     >
         <div>
             <div
-                class="inline-flex items-center gap-1.5 px-2 py-1 bg-gradient-to-r from-main to-secondary-dark text-white rounded-md text-[11px] font-medium tracking-wide shadow-sm"
+                class="inline-flex items-center gap-1.5 px-2 py-1 bg-gradient-to-r from-main to-secondary-dark text-white rounded-md text-[11px] font-medium tracking-wide"
             >
                 <FontAwesomeIcon :icon="faBolt" class="text-xs" />
                 {{ subscription?.plan?.name ?? 'Masa Uji Coba' }}

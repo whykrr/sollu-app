@@ -35,7 +35,9 @@
         <div class="grow min-w-0">
             <Breadcrumbs />
         </div>
-        <div class="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
+        <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
+            <TopBarHelp />
+
             <TopBarNotification />
 
             <div class="hidden sm:block w-px h-6 bg-gray-200" />
@@ -50,6 +52,7 @@
 import Breadcrumbs from '@/Components/Layout/Header/Breadcrumbs.vue'
 import TopBarAccount from '@/Components/Layout/Header/TopBarAccount.vue'
 import TopBarBusiness from '@/Components/Layout/Header/TopBarBusiness.vue'
+import TopBarHelp from '@/Components/Layout/Header/TopBarHelp.vue'
 import TopBarNotification from '@/Components/Layout/Header/TopBarNotification.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faBars, faClose } from '@fortawesome/free-solid-svg-icons'

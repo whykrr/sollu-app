@@ -48,6 +48,7 @@ class HandleAppInertiaRequests extends Middleware
                 'home_route' => 'overview',
                 'breadcrumbs' => \App\Support\Breadcrumbs\BreadcrumbManager::forApp($request),
                 'help_center_url' => fn () => SystemSetting::get('help_center_url', '#'),
+                'whatsapp_support_number' => fn () => SystemSetting::get('whatsapp_support_number', ''),
                 'flash' => [
                     'success' => $request->session()->get('success'),
                     'failed' => $request->session()->get('failed'),

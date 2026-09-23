@@ -87,10 +87,12 @@
 import { computed } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faRightFromBracket, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faRightFromBracket, faUser, faShop, faCreditCard } from '@fortawesome/free-solid-svg-icons'
 import TopBarDropdown from '@/Components/Layout/Header/TopBarDropdown.vue'
+import { useAuth } from '@/Composable/useAuth'
 
 const auth = computed(() => usePage().props.auth)
+const { can, isOwner } = useAuth()
 
 const initials = computed(() => {
     const name = auth.value?.name || ''
@@ -102,17 +104,38 @@ const initials = computed(() => {
         .toUpperCase()
 })
 
-const accountLinks = [
-    {
-        label: 'Pusat Akun',
-        icon: faUser,
-        link: route('settings.account.profile'),
-    },
-    {
+const accountLinks = computed(() => {
+    const links = [
+        {
+            label: 'Pusat Akun',
+            icon: faUser,
+            link: route('settings.account.profile'),
+        },
+    ]
+
+    if (isOwner.value || can('business.view')) {
+        links.push({
+            label: 'Pengaturan Usaha',
+            icon: faShop,
+            link: route('settings.business.detail'),
+        })
+    }
+
+    if (isOwner.value || can('business.billing')) {
+        links.push({
+            label: 'Langganan & Tagihan',
+            icon: faCreditCard,
+            link: route('settings.billing.index'),
+        })
+    }
+
+    links.push({
         label: 'Keluar',
         icon: faRightFromBracket,
         link: route('logout'),
         method: 'delete',
-    },
-]
+    })
+
+    return links
+})
 </script>

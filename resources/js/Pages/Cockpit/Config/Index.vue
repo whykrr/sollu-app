@@ -61,8 +61,8 @@
                                 <span>Link Pusat Bantuan (Help Center)</span>
                             </div>
                             <div class="text-xs text-neutral-500 mt-0.5">
-                                Tautan tujuan saat pengguna menekan tombol "Pusat Bantuan" di
-                                sidebar merchant.
+                                Tautan tujuan saat pengguna menekan tombol "Dokumentasi & Panduan"
+                                di popover bantuan.
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-start gap-2">
@@ -71,7 +71,7 @@
                                     id="help_center_url"
                                     v-model="form.help_center_url"
                                     type="text"
-                                    placeholder="cth. https://help.sollu.id atau https://wa.me/628123456789"
+                                    placeholder="cth. https://help.sollu.id"
                                     :error="form.errors.help_center_url"
                                 />
                             </div>
@@ -97,6 +97,57 @@
                                 class="text-indigo-600 hover:underline flex items-center gap-1 break-all"
                             >
                                 <span>{{ form.help_center_url }}</span>
+                                <FontAwesomeIcon :icon="faArrowUpFromBracket" class="text-[10px]" />
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-neutral-100 flex flex-col gap-2">
+                        <div>
+                            <div class="font-medium text-neutral-800 flex items-center gap-1.5">
+                                <FontAwesomeIcon
+                                    :icon="faWhatsapp"
+                                    class="text-emerald-600 text-sm"
+                                />
+                                <span>Nomor WhatsApp Dukungan CS</span>
+                            </div>
+                            <div class="text-xs text-neutral-500 mt-0.5">
+                                Nomor WhatsApp CS untuk bantuan langsung pengguna (cth. 081234567890
+                                atau 6281234567890).
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-start gap-2">
+                            <div class="flex-1">
+                                <TextField
+                                    id="whatsapp_support_number"
+                                    v-model="form.whatsapp_support_number"
+                                    type="text"
+                                    placeholder="cth. 081234567890"
+                                    :error="form.errors.whatsapp_support_number"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                class="btn btn-main btn-sm h-[38px] px-3 shrink-0 flex items-center justify-center gap-1.5"
+                                :disabled="form.processing"
+                                @click="submitSettings"
+                            >
+                                <FontAwesomeIcon :icon="faSave" />
+                                <span>{{ form.processing ? 'Menyimpan...' : 'Simpan' }}</span>
+                            </button>
+                        </div>
+                        <div
+                            v-if="form.whatsapp_support_number"
+                            class="text-xs text-neutral-400 flex items-center gap-1"
+                        >
+                            <span>Tautan chat aktif:</span>
+                            <a
+                                :href="`https://wa.me/${form.whatsapp_support_number}`"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-emerald-600 hover:underline flex items-center gap-1 break-all"
+                            >
+                                <span>https://wa.me/{{ form.whatsapp_support_number }}</span>
                                 <FontAwesomeIcon :icon="faArrowUpFromBracket" class="text-[10px]" />
                             </a>
                         </div>
@@ -186,6 +237,7 @@ import {
     faCircleQuestion,
     faArrowUpFromBracket,
 } from '@fortawesome/free-solid-svg-icons'
+import { faWhatsapp } from '@fortawesome/free-brands-svg-icons'
 import { Link, router, useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
@@ -201,6 +253,7 @@ const props = defineProps({
 
 const form = useForm({
     help_center_url: props.settings?.help_center_url || '',
+    whatsapp_support_number: props.settings?.whatsapp_support_number || '',
 })
 
 const submitSettings = () => {

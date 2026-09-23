@@ -16,17 +16,17 @@ import {
 
 export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
     {
-        type: 'section',
-        label: 'Akun & Bisnis',
-        separator: false,
-    },
-    {
         type: 'item',
         url: route('settings.account.profile'),
         icon: faUserCircle,
         label: 'Pusat Akun',
         permissions: [],
         activeRoute: 'settings.account',
+    },
+    {
+        type: 'section',
+        label: 'Bisnis',
+        separator: false,
     },
     {
         type: 'item',
@@ -55,7 +55,6 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
     {
         type: 'section',
         label: 'Manajemen Outlet & Operasional',
-        separator: true,
     },
     {
         type: 'item',
@@ -105,7 +104,6 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
     {
         type: 'section',
         label: 'Transaksi & Keamanan',
-        separator: true,
     },
     {
         type: 'item',

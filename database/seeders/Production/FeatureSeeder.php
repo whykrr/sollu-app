@@ -381,23 +381,23 @@ class FeatureSeeder extends Seeder
             ],
         ];
 
+        $now = now();
+        $records = array_map(function ($item) use ($now) {
+            $item['is_active'] = true;
+            $item['created_at'] = $now;
+            $item['updated_at'] = $now;
+
+            return $item;
+        }, $features);
+
         // set active feature for production is false
         Feature::query()->update(['is_active' => false]);
 
-        foreach ($features as $item) {
-            Feature::updateOrCreate(
-                ['code' => $item['code']],
-                [
-                    'name' => $item['name'],
-                    'description' => $item['description'],
-                    'module' => $item['module'],
-                    'group' => $item['group'],
-                    'group_label' => $item['group_label'],
-                    'sort_order' => $item['sort_order'],
-                    'is_active' => true,
-                ]
-            );
-        }
+        Feature::upsert(
+            $records,
+            ['code'],
+            ['name', 'description', 'module', 'group', 'group_label', 'sort_order', 'is_active', 'updated_at']
+        );
 
         Feature::clearCache();
     }

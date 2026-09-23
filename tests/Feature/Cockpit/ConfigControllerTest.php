@@ -40,6 +40,7 @@ class ConfigControllerTest extends TestCase
     public function test_can_view_config_page_with_settings(): void
     {
         SystemSetting::set('help_center_url', 'https://help.sollu.id');
+        SystemSetting::set('whatsapp_support_number', '6281234567890');
 
         $response = $this->actingAs($this->admin, 'cockpit')
             ->get("http://{$this->cockpitHost}/config");
@@ -49,14 +50,17 @@ class ConfigControllerTest extends TestCase
             ->component('Cockpit/Config/Index')
             ->has('settings.help_center_url')
             ->where('settings.help_center_url', 'https://help.sollu.id')
+            ->has('settings.whatsapp_support_number')
+            ->where('settings.whatsapp_support_number', '6281234567890')
         );
     }
 
-    public function test_can_update_help_center_url_setting(): void
+    public function test_can_update_settings(): void
     {
         $response = $this->actingAs($this->admin, 'cockpit')
             ->put("http://{$this->cockpitHost}/config/settings", [
-                'help_center_url' => 'https://wa.me/628123456789',
+                'help_center_url' => 'https://help.sollu.id',
+                'whatsapp_support_number' => '081234567890',
             ]);
 
         $response->assertRedirect();
@@ -65,7 +69,8 @@ class ConfigControllerTest extends TestCase
             ResourceMessage::UPDATE_SUCCESS
         );
 
-        $this->assertEquals('https://wa.me/628123456789', SystemSetting::get('help_center_url'));
+        $this->assertEquals('https://help.sollu.id', SystemSetting::get('help_center_url'));
+        $this->assertEquals('6281234567890', SystemSetting::get('whatsapp_support_number'));
     }
 
     public function test_auto_prefixes_https_when_scheme_missing(): void
@@ -79,9 +84,10 @@ class ConfigControllerTest extends TestCase
         $this->assertEquals('https://help.sollu.id', SystemSetting::get('help_center_url'));
     }
 
-    public function test_app_inertia_shares_help_center_url(): void
+    public function test_app_inertia_shares_settings(): void
     {
         SystemSetting::set('help_center_url', 'https://help.sollu.id');
+        SystemSetting::set('whatsapp_support_number', '6281234567890');
 
         $type = \App\Models\BusinessType::create([
             'code' => 'retail',
@@ -115,6 +121,8 @@ class ConfigControllerTest extends TestCase
         $response->assertInertia(fn (Assert $page) => $page
             ->has('app.help_center_url')
             ->where('app.help_center_url', 'https://help.sollu.id')
+            ->has('app.whatsapp_support_number')
+            ->where('app.whatsapp_support_number', '6281234567890')
         );
     }
 

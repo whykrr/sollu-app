@@ -51,10 +51,23 @@ class UomSeeder extends Seeder
             ['code' => 'TRIP', 'name' => 'Trip', 'category' => 'service'],
         ];
 
-        foreach ($units as $unit) {
+        $now = now();
+        $records = array_map(function ($unit) use ($now) {
             $code = ucwords(strtolower($unit['code']));
-            $unit['code'] = $code;
-            Uom::updateOrCreate(['code' => $code], $unit);
-        }
+
+            return [
+                'code' => $code,
+                'name' => $unit['name'],
+                'category' => $unit['category'],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }, $units);
+
+        Uom::upsert(
+            $records,
+            ['code'],
+            ['name', 'category', 'updated_at']
+        );
     }
 }
