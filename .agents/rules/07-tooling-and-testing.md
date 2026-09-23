@@ -32,6 +32,15 @@ Ruang kerja Sollu App telah dilengkapi dengan MCP servers yang terkonfigurasi. A
   - **DILARANG KERAS** mengeksekusi mutasi skema (`CREATE`, `ALTER`, `DROP`) atau mutasi data (`INSERT`, `UPDATE`, `DELETE`) secara langsung via MCP.
   - Seluruh mutasi skema **WAJIB** melalui Laravel Migration, dan mutasi data **WAJIB** melalui Service/Model/Seeder aplikasi.
 
+### D. Sollu Project Inspector MCP (`sollu-project`)
+- **Server:** `App\Mcp\Servers\SolluProjectServer` (`php artisan mcp:start sollu-project`).
+- **Peralatan Analisis & Inspeksi Codebase Native:**
+  - `check_enum_integrity`: Memvalidasi kepatuhan Single Source of Truth Enum, *Zero-Orphan Permission* pada `PermissionEnum` & `RoleTemplateEnum`, exposure `$enums` di `FrontendEnumProvider`, dan sinkronisasi `FeatureEnum` database.
+  - `trace_feature_stack`: Memetakan Route name atau URI path secara instan ke Controller, Action, Form Request rules, Injected Services, dan file halaman Inertia Vue beserta sibling components.
+  - `audit_tenant_isolation`: Mengaudit seluruh Model Eloquent untuk memastikan isolasi tenant `business_id` & `outlet_id`, relasi `business()`, dan penerapan `SoftDeletes`.
+  - `inspect_inventory_state`: Menginspeksi saldo stok item (`InventoryBalance`), antrean layer FIFO aktif (`InventoryCostLayer`), status *Stock Freeze* outlet, dan riwayat ledger (`InventoryMovement`).
+  - `lint_agent_rules`: Linter otomatis kepatuhan kode terhadap aturan baku `.agents/rules/` (larangan shadow di `MainPage`, `casts(): array` method Laravel 11, proteksi `useFormDirtyGuard`).
+
 ---
 
 ## 2. Penegakan Pengujian Otomatis (Testing Enforcement)

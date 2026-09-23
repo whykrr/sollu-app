@@ -220,10 +220,11 @@ return [
     'environments' => [
         'production' => [
             'supervisor-1' => [
-                'minProcesses' => 2,
-                'maxProcesses' => 10,
+                'minProcesses' => 1,
+                'maxProcesses' => 3, // Jangan lebih dari 3 pada RAM 1GB
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
+                'memory' => 64, // Restart worker jika memori > 64MB
             ],
         ],
 

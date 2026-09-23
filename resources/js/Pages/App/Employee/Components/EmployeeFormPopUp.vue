@@ -22,12 +22,13 @@
         />
 
         <!-- Telepon -->
-        <NumberField
+        <TextField
             id="phone"
             v-model="form.phone"
             label="Nomor Telepon"
             placeholder="Misal: 081234567890"
             :error="form.errors.phone"
+            type="tel"
         />
 
         <!-- PIN -->
@@ -134,7 +135,6 @@ import { useModalStore } from '@/store/notification'
 import { formatDateTime } from '@/Composable/time'
 import TextField from '@/Components/Form/TextField.vue'
 import EmailField from '@/Components/Form/EmailField.vue'
-import NumberField from '@/Components/Form/NumberField.vue'
 import PinField from '@/Components/Form/PinField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 

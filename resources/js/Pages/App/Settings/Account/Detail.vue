@@ -51,12 +51,13 @@
                             </p>
                         </div>
 
-                        <NumberField
+                        <TextField
                             id="phone"
                             v-model="formProfile.phone"
                             label="Nomor Telepon"
                             placeholder="Contoh: 081234567890"
                             :feedback="formProfile.errors.phone"
+                            type="tel"
                         />
                     </div>
 
@@ -162,7 +163,6 @@ import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import EmailField from '@/Components/Form/EmailField.vue'
-import NumberField from '@/Components/Form/NumberField.vue'
 import PasswordField from '@/Components/Form/PasswordField.vue'
 import PhotoCropper from './Components/PhotoCropper.vue'
 

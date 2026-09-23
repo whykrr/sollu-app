@@ -20,6 +20,14 @@
                 "/Users/whykrr/Documents/Projects/Laravel/sollu-app"
             ]
         },
+        "sollu-project": {
+            "command": "php",
+            "args": [
+                "/Users/whykrr/Documents/Projects/Laravel/sollu-app/artisan",
+                "mcp:start",
+                "sollu-project"
+            ]
+        },
         "git": {
             "command": "npx",
             "args": ["-y", "git-mcp-server"],
