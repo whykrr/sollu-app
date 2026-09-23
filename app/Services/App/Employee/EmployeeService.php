@@ -2,6 +2,8 @@
 
 namespace App\Services\App\Employee;
 
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Models\User;
 use App\Notifications\NewEmployee;
 use Illuminate\Support\Carbon;
@@ -12,6 +14,14 @@ use InvalidArgumentException;
 
 class EmployeeService
 {
+    protected ActivityLoggerInterface $auditLogger;
+
+    public function __construct(
+        ?ActivityLoggerInterface $auditLogger = null
+    ) {
+        $this->auditLogger = $auditLogger ?? app(ActivityLoggerInterface::class);
+    }
+
     /**
      * Create a new employee.
      *
@@ -39,6 +49,21 @@ class EmployeeService
             $user->assignRole($data['role']);
             $user->outlets()->attach($data['outlets']);
 
+            $this->auditLogger->log(
+                module: AuditModuleEnum::EMPLOYEES->value,
+                action: 'employee.created',
+                description: "Menambahkan staf baru: {$user->name}",
+                subject: $user,
+                causer: Auth::user(),
+                properties: [
+                    'new' => [
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $data['role'],
+                    ],
+                ]
+            );
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -62,6 +87,12 @@ class EmployeeService
         DB::beginTransaction();
 
         try {
+            $before = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+            ];
+
             if (empty($data['pin'])) {
                 unset($data['pin']);
             }
@@ -76,6 +107,22 @@ class EmployeeService
                     $user->outlets()->sync($data['outlets']);
                 }
             }
+
+            $this->auditLogger->log(
+                module: AuditModuleEnum::EMPLOYEES->value,
+                action: 'employee.updated',
+                description: "Memperbarui data staf: {$user->name}",
+                subject: $user,
+                causer: Auth::user(),
+                properties: [
+                    'old' => $before,
+                    'new' => [
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'phone' => $user->phone,
+                    ],
+                ]
+            );
 
             DB::commit();
         } catch (\Exception $e) {
@@ -101,6 +148,14 @@ class EmployeeService
             throw new InvalidArgumentException('Kamu tidak dapat menghapus akunmu sendiri.');
         }
 
+        $this->auditLogger->log(
+            module: AuditModuleEnum::EMPLOYEES->value,
+            action: 'employee.deleted',
+            description: "Memindahkan akun staf ke sampah: {$user->name}",
+            subject: $user,
+            causer: Auth::user()
+        );
+
         $user->deleteOrFail();
     }
 
@@ -110,6 +165,14 @@ class EmployeeService
     public function restore(User $user): void
     {
         $user->restore();
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::EMPLOYEES->value,
+            action: 'employee.restored',
+            description: "Memulihkan akun staf: {$user->name}",
+            subject: $user,
+            causer: Auth::user()
+        );
     }
 
     /**
@@ -124,6 +187,14 @@ class EmployeeService
         if (Auth::id() && $user->id === Auth::id()) {
             throw new InvalidArgumentException('Kamu tidak dapat menghapus akunmu sendiri.');
         }
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::EMPLOYEES->value,
+            action: 'employee.destroyed',
+            description: "Menghapus permanen akun staf: {$user->name}",
+            subject: $user,
+            causer: Auth::user()
+        );
 
         $user->forceDelete();
     }

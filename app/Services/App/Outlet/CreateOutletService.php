@@ -2,6 +2,8 @@
 
 namespace App\Services\App\Outlet;
 
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Models\Outlet;
 use App\Models\OutletAuditLog;
 use App\Models\User;
@@ -10,10 +12,15 @@ use Illuminate\Support\Facades\DB;
 
 class CreateOutletService
 {
+    protected ActivityLoggerInterface $auditLogger;
+
     public function __construct(
         protected BillingEngine $billingEngine,
-        protected OutletProvisioningService $provisioningService
-    ) {}
+        protected OutletProvisioningService $provisioningService,
+        ?ActivityLoggerInterface $auditLogger = null
+    ) {
+        $this->auditLogger = $auditLogger ?? app(ActivityLoggerInterface::class);
+    }
 
     public function execute(array $data, User $user)
     {
@@ -49,6 +56,23 @@ class CreateOutletService
                 'action' => 'created',
                 'metadata' => ['data' => $data],
             ]);
+
+            $this->auditLogger->log(
+                module: AuditModuleEnum::SETTINGS->value,
+                action: 'outlet.created',
+                description: "Menambahkan cabang outlet baru: {$outlet->name}",
+                subject: $outlet,
+                causer: $user,
+                businessId: $user->business_id,
+                outletId: $outlet->id,
+                properties: [
+                    'new' => [
+                        'name' => $outlet->name,
+                        'address' => $outlet->address,
+                        'phone' => $outlet->phone,
+                    ],
+                ]
+            );
 
             // Generate prorated invoice if business is subscribed to an active plan
             $invoice = null;

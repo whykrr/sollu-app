@@ -4,6 +4,8 @@ namespace App\Http\Controllers\App\Settings;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\User\AccountChangePasswordRequest;
 use App\Http\Requests\App\User\AccountUpdateRequest;
@@ -17,6 +19,10 @@ use Illuminate\Validation\ValidationException;
 
 class AccountController extends Controller
 {
+    public function __construct(
+        protected ActivityLoggerInterface $auditLogger
+    ) {}
+
     public function index(Request $req)
     {
         $user = User::find(Auth::id());
@@ -29,6 +35,11 @@ class AccountController extends Controller
     public function save(AccountUpdateRequest $req)
     {
         $user = Auth::user();
+        $before = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+        ];
 
         /**
          * @var User
@@ -39,6 +50,22 @@ class AccountController extends Controller
         $user->save();
 
         Cache::delete("auth:user:{$user->id}:info");
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::AUTH->value,
+            action: 'account.profile_updated',
+            description: 'Memperbarui informasi profil akun',
+            subject: $user,
+            causer: $user,
+            properties: [
+                'old' => $before,
+                'new' => [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                ],
+            ]
+        );
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
@@ -62,6 +89,14 @@ class AccountController extends Controller
          */
         $user->password = $req->validated('new_password');
         $user->save();
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::AUTH->value,
+            action: 'account.password_changed',
+            description: 'Mengubah kata sandi akun',
+            subject: $user,
+            causer: $user
+        );
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

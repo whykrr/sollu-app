@@ -4,6 +4,8 @@ namespace App\Http\Controllers\App\Settings;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Enums\PermissionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Business\SaveBusinessLogoRequest;
@@ -17,6 +19,10 @@ use Inertia\Response;
 
 class BusinessInfoController extends Controller
 {
+    public function __construct(
+        protected ActivityLoggerInterface $auditLogger
+    ) {}
+
     public function index(Request $req): Response
     {
         $this->authorize(PermissionEnum::BUSINESS_VIEW->value);
@@ -38,12 +44,39 @@ class BusinessInfoController extends Controller
          * @var Business
          */
         $business = Business::findOrFail($business_id);
+        $before = [
+            'name' => $business->name,
+            'email' => $business->email,
+            'phone' => $business->phone,
+            'owner_name' => $business->owner_name,
+            'address' => $business->address,
+        ];
+
         $business->name = $req->validated('name');
         $business->email = $req->validated('email');
         $business->phone = $req->validated('phone');
         $business->owner_name = $req->validated('owner_name');
         $business->address = $req->validated('address');
         $business->save();
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::SETTINGS->value,
+            action: 'business.updated',
+            description: 'Memperbarui profil informasi usaha',
+            subject: $business,
+            causer: Auth::user(),
+            businessId: $business->id,
+            properties: [
+                'old' => $before,
+                'new' => [
+                    'name' => $business->name,
+                    'email' => $business->email,
+                    'phone' => $business->phone,
+                    'owner_name' => $business->owner_name,
+                    'address' => $business->address,
+                ],
+            ]
+        );
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
@@ -63,6 +96,15 @@ class BusinessInfoController extends Controller
             $business->logo = null;
             $business->save();
 
+            $this->auditLogger->log(
+                module: AuditModuleEnum::SETTINGS->value,
+                action: 'business.logo_removed',
+                description: 'Menghapus logo usaha',
+                subject: $business,
+                causer: Auth::user(),
+                businessId: $business->id
+            );
+
             return redirect()->back()->with(
                 FlashDataVariable::SUCCESS->value,
                 ResourceMessage::UPDATE_SUCCESS
@@ -77,6 +119,15 @@ class BusinessInfoController extends Controller
 
         $business->logo = $path;
         $business->save();
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::SETTINGS->value,
+            action: 'business.logo_updated',
+            description: 'Memperbarui logo usaha',
+            subject: $business,
+            causer: Auth::user(),
+            businessId: $business->id
+        );
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

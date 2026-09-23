@@ -2,6 +2,8 @@
 
 namespace App\Services\App\Outlet;
 
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Enums\FeatureEnum;
 use App\Models\Outlet;
 use App\Models\OutletAuditLog;
@@ -11,6 +13,14 @@ use Illuminate\Validation\ValidationException;
 
 class ManageOutletDeviceService
 {
+    protected ActivityLoggerInterface $auditLogger;
+
+    public function __construct(
+        ?ActivityLoggerInterface $auditLogger = null
+    ) {
+        $this->auditLogger = $auditLogger ?? app(ActivityLoggerInterface::class);
+    }
+
     public function createDevice(Outlet $outlet, array $data, $user)
     {
         $business = $outlet->business ?? $user->business;
@@ -41,6 +51,19 @@ class ManageOutletDeviceService
                 'action' => 'device_added',
                 'metadata' => ['device' => $device->toArray()],
             ]);
+
+            $this->auditLogger->log(
+                module: AuditModuleEnum::SETTINGS->value,
+                action: 'device.created',
+                description: "Menghubungkan perangkat kasir baru: {$device->device_name}",
+                subject: $device,
+                causer: $user,
+                businessId: $outlet->business_id,
+                outletId: $outlet->id,
+                properties: [
+                    'device' => $device->toArray(),
+                ]
+            );
 
             return $device;
         });
@@ -76,6 +99,20 @@ class ManageOutletDeviceService
                 'metadata' => ['old' => $oldData, 'new' => $data],
             ]);
 
+            $this->auditLogger->log(
+                module: AuditModuleEnum::SETTINGS->value,
+                action: 'device.updated',
+                description: "Memperbarui data perangkat kasir: {$device->device_name}",
+                subject: $device,
+                causer: $user,
+                businessId: $device->outlet?->business_id ?? $user->business_id,
+                outletId: $device->outlet_id,
+                properties: [
+                    'old' => $oldData,
+                    'new' => $data,
+                ]
+            );
+
             return $device;
         });
     }
@@ -89,6 +126,16 @@ class ManageOutletDeviceService
                 'action' => 'device_deleted',
                 'metadata' => ['device' => $device->toArray()],
             ]);
+
+            $this->auditLogger->log(
+                module: AuditModuleEnum::SETTINGS->value,
+                action: 'device.deleted',
+                description: "Menghapus perangkat kasir: {$device->device_name}",
+                subject: $device,
+                causer: $user,
+                businessId: $device->outlet?->business_id ?? $user->business_id,
+                outletId: $device->outlet_id
+            );
 
             $device->tokens()->delete();
             \Illuminate\Support\Facades\Cache::forget("pos_device_{$device->id}");

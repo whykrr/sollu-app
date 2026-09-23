@@ -136,12 +136,12 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
     },
     {
         type: 'item',
-        url: '#',
+        url: route('settings.activity-logs.index'),
         icon: faHistory,
         label: 'Log Aktivitas',
         feature: enums.FeatureEnum.AUDIT_LOGS,
-        permissions: [],
-        activeRoute: 'settings.audit-logs',
+        permissions: ['setting.audit'],
+        activeRoute: 'settings.activity-logs',
     },
 ]
 

@@ -39,6 +39,11 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\Inventory\InventoryDeductionServiceInterface::class,
             \App\Services\App\Inventory\InventoryDeductionService::class
         );
+
+        $this->app->singleton(
+            \App\Contracts\Audit\ActivityLoggerInterface::class,
+            \App\Services\App\Audit\ActivityLogService::class
+        );
     }
 
     /**

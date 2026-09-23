@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\API\POS;
 
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\POS\CloseShiftRequest;
 use App\Http\Requests\API\POS\OpenShiftRequest;
@@ -10,6 +12,10 @@ use App\Models\Sales\Shift;
 
 class ShiftController extends Controller
 {
+    public function __construct(
+        protected ActivityLoggerInterface $auditLogger
+    ) {}
+
     public function open(OpenShiftRequest $request)
     {
         $device = $request->user();
@@ -21,6 +27,20 @@ class ShiftController extends Controller
             'opening_cash' => $request->validated('opening_cash'),
             'status' => 'open',
         ]);
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::POS->value,
+            action: 'shift.opened',
+            description: 'Buka shift kasir dengan modal awal Rp '.number_format((float) $shift->opening_cash, 0, ',', '.'),
+            subject: $shift,
+            causer: $shift->user,
+            businessId: $shift->outlet?->business_id ?? $device->business_id,
+            outletId: $shift->outlet_id,
+            properties: [
+                'shift_number' => $shift->shift_number,
+                'opening_cash' => (float) $shift->opening_cash,
+            ]
+        );
 
         return $this->successResponse($shift, 'Shift berhasil dibuka');
     }
@@ -44,6 +64,20 @@ class ShiftController extends Controller
             'status' => 'closed',
         ]);
 
+        $this->auditLogger->log(
+            module: AuditModuleEnum::POS->value,
+            action: 'shift.closed',
+            description: 'Tutup shift kasir dengan kas akhir Rp '.number_format((float) $shift->closing_cash, 0, ',', '.'),
+            subject: $shift,
+            causer: $shift->user,
+            businessId: $shift->outlet?->business_id ?? $device->business_id,
+            outletId: $shift->outlet_id,
+            properties: [
+                'shift_number' => $shift->shift_number,
+                'closing_cash' => (float) $shift->closing_cash,
+            ]
+        );
+
         return $this->successResponse($shift, 'Shift berhasil ditutup');
     }
 
@@ -61,6 +95,21 @@ class ShiftController extends Controller
         }
 
         $log = $shift->cashLogs()->create($request->validated());
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::POS->value,
+            action: 'shift.cash_movement',
+            description: "Mutasi kas kasir ({$log->type}) sebesar Rp ".number_format((float) $log->amount, 0, ',', '.'),
+            subject: $shift,
+            causer: $shift->user,
+            businessId: $shift->outlet?->business_id ?? $device->business_id,
+            outletId: $shift->outlet_id,
+            properties: [
+                'type' => $log->type,
+                'amount' => (float) $log->amount,
+                'note' => $log->note,
+            ]
+        );
 
         return $this->successResponse($log, 'Cash log berhasil ditambahkan');
     }

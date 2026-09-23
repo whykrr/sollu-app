@@ -153,4 +153,15 @@ Route::prefix('settings')
                 Route::get('/', [\App\Http\Controllers\App\Settings\OperationalSettingController::class, 'index'])->name('index');
                 Route::put('/', [\App\Http\Controllers\App\Settings\OperationalSettingController::class, 'update'])->name('update');
             });
+
+        Route::middleware([
+            'can:'.\App\Enums\PermissionEnum::SETTING_AUDIT->value,
+            'plan.feature:'.FeatureEnum::AUDIT_LOGS->value,
+        ])
+            ->prefix('activity-logs')
+            ->name('activity-logs.')
+            ->group(function () {
+                Route::get('/', [\App\Http\Controllers\App\Settings\ActivityLogController::class, 'index'])->name('index');
+                Route::get('/{activityLog}', [\App\Http\Controllers\App\Settings\ActivityLogController::class, 'show'])->name('show');
+            });
     });

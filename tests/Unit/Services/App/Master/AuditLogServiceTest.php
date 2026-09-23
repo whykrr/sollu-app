@@ -2,10 +2,13 @@
 
 namespace Tests\Unit\Services\App\Master;
 
+use App\Enums\AuditModuleEnum;
+use App\Jobs\Audit\RecordActivityLogJob;
 use App\Models\Business;
 use App\Models\User;
 use App\Services\App\Master\AuditLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -50,6 +53,8 @@ class AuditLogServiceTest extends TestCase
 
     public function test_it_logs_audit_trail_successfully()
     {
+        Queue::fake();
+
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
         [$business, $user] = $this->createTenant();
 
@@ -61,26 +66,27 @@ class AuditLogServiceTest extends TestCase
 
         $this->service->log(
             $business->id,
-            'App\\Models\\Product',
+            'product',
             $entityId,
             'update',
             $before,
             $after
         );
 
-        $this->assertDatabaseHas('audit_logs', [
-            'business_id' => $business->id,
-            'actor_id' => $user->id,
-            'entity_type' => 'App\\Models\\Product',
-            'entity_id' => $entityId,
-            'action' => 'update',
-            'before_value' => json_encode($before),
-            'after_value' => json_encode($after),
-        ]);
+        Queue::assertPushed(RecordActivityLogJob::class, function (RecordActivityLogJob $job) use ($business, $user, $before, $after) {
+            return $job->payload['business_id'] === $business->id
+                && $job->payload['causer_id'] === $user->id
+                && $job->payload['module'] === AuditModuleEnum::PRODUCTS->value
+                && $job->payload['action'] === 'product.update'
+                && $job->payload['properties']['old'] === $before
+                && $job->payload['properties']['new'] === $after;
+        });
     }
 
     public function test_it_logs_without_auth_user()
     {
+        Queue::fake();
+
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
         [$business] = $this->createTenant();
 
@@ -88,18 +94,15 @@ class AuditLogServiceTest extends TestCase
 
         $this->service->log(
             $business->id,
-            'App\\Models\\Product',
+            'product',
             $entityId,
             'delete'
         );
 
-        $this->assertDatabaseHas('audit_logs', [
-            'business_id' => $business->id,
-            'entity_type' => 'App\\Models\\Product',
-            'entity_id' => $entityId,
-            'action' => 'delete',
-            'before_value' => null,
-            'after_value' => null,
-        ]);
+        Queue::assertPushed(RecordActivityLogJob::class, function (RecordActivityLogJob $job) use ($business) {
+            return $job->payload['business_id'] === $business->id
+                && $job->payload['module'] === AuditModuleEnum::PRODUCTS->value
+                && $job->payload['action'] === 'product.delete';
+        });
     }
 }

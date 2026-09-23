@@ -2,6 +2,8 @@
 
 namespace App\Services\App\Outlet;
 
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Models\Outlet;
 use App\Models\OutletAuditLog;
 use App\Models\User;
@@ -9,6 +11,14 @@ use Illuminate\Support\Facades\DB;
 
 class ManageOutletStatusService
 {
+    protected ActivityLoggerInterface $auditLogger;
+
+    public function __construct(
+        ?ActivityLoggerInterface $auditLogger = null
+    ) {
+        $this->auditLogger = $auditLogger ?? app(ActivityLoggerInterface::class);
+    }
+
     public function toggleStatus(Outlet $outlet, bool $isActive, User $user): Outlet
     {
         if ($isActive) {
@@ -63,6 +73,19 @@ class ManageOutletStatusService
             'action' => $action,
         ]);
 
+        $this->auditLogger->log(
+            module: AuditModuleEnum::SETTINGS->value,
+            action: 'outlet.status_toggled',
+            description: "Mengubah status cabang {$outlet->name} menjadi ".($isActive ? 'Aktif' : 'Nonaktif'),
+            subject: $outlet,
+            causer: $user,
+            businessId: $outlet->business_id,
+            outletId: $outlet->id,
+            properties: [
+                'is_active' => $isActive,
+            ]
+        );
+
         return $outlet;
     }
 
@@ -74,6 +97,17 @@ class ManageOutletStatusService
                 'user_id' => $user->id,
                 'action' => 'deleted',
             ]);
+
+            $this->auditLogger->log(
+                module: AuditModuleEnum::SETTINGS->value,
+                action: 'outlet.deleted',
+                description: "Memindahkan cabang outlet ke sampah: {$outlet->name}",
+                subject: $outlet,
+                causer: $user,
+                businessId: $outlet->business_id,
+                outletId: $outlet->id
+            );
+
             $outlet->delete();
         });
     }
@@ -89,6 +123,16 @@ class ManageOutletStatusService
                 'user_id' => $user->id,
                 'action' => 'restored',
             ]);
+
+            $this->auditLogger->log(
+                module: AuditModuleEnum::SETTINGS->value,
+                action: 'outlet.restored',
+                description: "Memulihkan cabang outlet: {$outlet->name}",
+                subject: $outlet,
+                causer: $user,
+                businessId: $outlet->business_id,
+                outletId: $outlet->id
+            );
 
             return $outlet;
         });
@@ -115,6 +159,16 @@ class ManageOutletStatusService
                 'user_id' => $user->id,
                 'action' => 'set_as_main',
             ]);
+
+            $this->auditLogger->log(
+                module: AuditModuleEnum::SETTINGS->value,
+                action: 'outlet.set_main',
+                description: "Menjadikan {$outlet->name} sebagai outlet utama",
+                subject: $outlet,
+                causer: $user,
+                businessId: $outlet->business_id,
+                outletId: $outlet->id
+            );
 
             return $outlet;
         });

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\App\Settings;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\RoleEnum;
 use App\Enums\RoleTemplateEnum;
@@ -18,6 +20,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoleController extends Controller
 {
+    public function __construct(
+        protected ActivityLoggerInterface $auditLogger
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -131,6 +137,21 @@ class RoleController extends Controller
 
         $role->syncPermissions($data['permissions']);
 
+        $this->auditLogger->log(
+            module: AuditModuleEnum::EMPLOYEES->value,
+            action: 'role.created',
+            description: "Menambahkan peran baru: {$role->label}",
+            subject: $role,
+            causer: $request->user(),
+            properties: [
+                'new' => [
+                    'name' => $role->name,
+                    'label' => $role->label,
+                    'permissions' => $data['permissions'],
+                ],
+            ]
+        );
+
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
             ResourceMessage::CREATE_SUCCESS
@@ -155,6 +176,18 @@ class RoleController extends Controller
 
         $provisioningService->applyTemplate($request->user()->business, $template->value);
 
+        $this->auditLogger->log(
+            module: AuditModuleEnum::EMPLOYEES->value,
+            action: 'role.template_applied',
+            description: "Menerapkan template peran: {$template->label()}",
+            subject: null,
+            causer: $request->user(),
+            properties: [
+                'template_key' => $template->value,
+                'template_label' => $template->label(),
+            ]
+        );
+
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
             ResourceMessage::CREATE_SUCCESS
@@ -178,6 +211,11 @@ class RoleController extends Controller
             abort(Response::HTTP_FORBIDDEN, 'Role Owner tidak dapat diubah izinnya.');
         }
 
+        $before = [
+            'label' => $role->label,
+            'permissions' => $role->permissions()->pluck('name')->toArray(),
+        ];
+
         if (! $role->is_default) {
             $role->update([
                 'label' => $data['label'],
@@ -185,6 +223,21 @@ class RoleController extends Controller
         }
 
         $role->syncPermissions($data['permissions']);
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::EMPLOYEES->value,
+            action: 'role.updated',
+            description: "Memperbarui hak akses peran: {$role->label}",
+            subject: $role,
+            causer: $request->user(),
+            properties: [
+                'old' => $before,
+                'new' => [
+                    'label' => $role->label,
+                    'permissions' => $data['permissions'],
+                ],
+            ]
+        );
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
@@ -212,6 +265,14 @@ class RoleController extends Controller
         if ($role->users()->count() > 0) {
             abort(Response::HTTP_FORBIDDEN, 'Role masih digunakan oleh pengguna aktif.');
         }
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::EMPLOYEES->value,
+            action: 'role.deleted',
+            description: "Menghapus peran: {$role->label}",
+            subject: $role,
+            causer: $request->user()
+        );
 
         $role->delete();
 

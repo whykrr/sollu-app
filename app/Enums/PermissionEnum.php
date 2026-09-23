@@ -215,6 +215,7 @@ enum PermissionEnum: string
     case SETTING_PAYMENT = 'setting.payment';
     case SETTING_DEVICE = 'setting.device';
     case SETTING_PRINTER = 'setting.printer';
+    case SETTING_AUDIT = 'setting.audit';
 
     public function label(): string
     {
@@ -367,6 +368,7 @@ enum PermissionEnum: string
             self::SETTING_PAYMENT => 'Akses Pengaturan Pembayaran',
             self::SETTING_DEVICE => 'Akses Pengaturan Device',
             self::SETTING_PRINTER => 'Akses Pengaturan Printer',
+            self::SETTING_AUDIT => 'Akses Melihat Log Aktivitas',
         };
     }
 
@@ -486,7 +488,8 @@ enum PermissionEnum: string
             self::SETTING_RECEIPT,
             self::SETTING_PAYMENT,
             self::SETTING_DEVICE,
-            self::SETTING_PRINTER => 'settings_and_business',
+            self::SETTING_PRINTER,
+            self::SETTING_AUDIT => 'settings_and_business',
 
             self::USER_ALL,
             self::USER_VIEW,

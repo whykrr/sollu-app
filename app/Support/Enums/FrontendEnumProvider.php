@@ -4,6 +4,7 @@ namespace App\Support\Enums;
 
 use App\Enums\AdjustmentReason;
 use App\Enums\AdjustmentStatus;
+use App\Enums\AuditModuleEnum;
 use App\Enums\BusinessStatus;
 use App\Enums\CustomerGender;
 use App\Enums\DatePresetEnum;
@@ -52,6 +53,7 @@ class FrontendEnumProvider
     protected static array $frontendEnums = [
         AdjustmentReason::class,
         AdjustmentStatus::class,
+        AuditModuleEnum::class,
         BusinessStatus::class,
         CustomerGender::class,
         DatePresetEnum::class,

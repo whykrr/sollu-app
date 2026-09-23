@@ -4,6 +4,8 @@ namespace App\Http\Controllers\App\Settings;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Enums\InventoryCostingMethod;
 use App\Enums\PermissionEnum;
 use App\Helpers\SummaryUser;
@@ -25,7 +27,8 @@ class InventorySettingController extends Controller
 {
     public function __construct(
         protected InventoryCostingService $costingService,
-        protected InventorySodService $sodService
+        protected InventorySodService $sodService,
+        protected ActivityLoggerInterface $auditLogger
     ) {}
 
     public function index(Request $request): Response
@@ -62,8 +65,22 @@ class InventorySettingController extends Controller
 
         /** @var Business */
         $business = Auth::user()->business;
+        $oldMethod = $business->getCostingMethod();
 
         $this->costingService->switchCostingMethod($business, $newMethod);
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::SETTINGS->value,
+            action: 'inventory_settings.costing_method_switched',
+            description: "Mengubah metode valuasi persediaan menjadi {$newMethod->label()}",
+            subject: $business,
+            causer: $request->user(),
+            businessId: $business->id,
+            properties: [
+                'old' => ['costing_method' => $oldMethod->value],
+                'new' => ['costing_method' => $newMethod->value],
+            ]
+        );
 
         SummaryUser::cacheDelete($request->user()->id);
 
@@ -81,6 +98,8 @@ class InventorySettingController extends Controller
         $business = Auth::user()->business;
 
         $settings = $business->settings ?? [];
+        $oldSod = $settings['inventory_sod'] ?? [];
+
         $settings['inventory_sod'] = [
             'enabled' => $validated['enabled'],
             'allow_owner_bypass' => $validated['allow_owner_bypass'],
@@ -89,6 +108,19 @@ class InventorySettingController extends Controller
 
         $business->settings = $settings;
         $business->save();
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::SETTINGS->value,
+            action: 'inventory_settings.sod_updated',
+            description: 'Memperbarui konfigurasi pemisahan tugas (SoD) persediaan',
+            subject: $business,
+            causer: $request->user(),
+            businessId: $business->id,
+            properties: [
+                'old' => $oldSod,
+                'new' => $settings['inventory_sod'],
+            ]
+        );
 
         SummaryUser::cacheDelete($request->user()->id);
 

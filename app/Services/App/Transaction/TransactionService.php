@@ -2,6 +2,8 @@
 
 namespace App\Services\App\Transaction;
 
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Enums\InvoiceStatus;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
@@ -13,12 +15,13 @@ use Illuminate\Support\Facades\DB;
 
 class TransactionService
 {
-    protected PriceCalculationService $priceCalculationService;
+    protected ActivityLoggerInterface $auditLogger;
 
     public function __construct(
-        PriceCalculationService $priceCalculationService
+        protected PriceCalculationService $priceCalculationService,
+        ?ActivityLoggerInterface $auditLogger = null
     ) {
-        $this->priceCalculationService = $priceCalculationService;
+        $this->auditLogger = $auditLogger ?? app(ActivityLoggerInterface::class);
     }
 
     public function createTransaction(array $data, User $user): Transaction
@@ -256,6 +259,20 @@ class TransactionService
             // We will let the deduction service or here handle the track_stock check.
             TransactionCompleted::dispatch($transaction);
 
+            $this->auditLogger->log(
+                module: AuditModuleEnum::POS->value,
+                action: 'transaction.invoice_issued',
+                description: "Menerbitkan faktur tagihan transaksi #{$transaction->transaction_number}",
+                subject: $transaction,
+                causer: $user,
+                businessId: $user->business_id,
+                outletId: $transaction->outlet_id,
+                properties: [
+                    'transaction_number' => $transaction->transaction_number,
+                    'total' => (float) $transaction->total,
+                ]
+            );
+
             return $transaction;
         });
     }
@@ -266,8 +283,8 @@ class TransactionService
             throw new \Exception('Transaksi tidak valid untuk pelunasan.');
         }
 
-        return DB::transaction(function () use ($transaction, $data) {
-            $transaction->payments()->create([
+        return DB::transaction(function () use ($transaction, $data, $user) {
+            $payment = $transaction->payments()->create([
                 'payment_method_id' => $data['payment_method_id'],
                 'amount' => $data['amount'],
                 'notes' => $data['notes'] ?? null,
@@ -287,6 +304,21 @@ class TransactionService
 
             $transaction->save();
 
+            $this->auditLogger->log(
+                module: AuditModuleEnum::POS->value,
+                action: 'transaction.payment_recorded',
+                description: "Mencatat pembayaran transaksi #{$transaction->transaction_number} sebesar Rp ".number_format((float) $data['amount'], 0, ',', '.'),
+                subject: $transaction,
+                causer: $user,
+                businessId: $user->business_id,
+                outletId: $transaction->outlet_id,
+                properties: [
+                    'payment_id' => $payment->id,
+                    'amount' => (float) $data['amount'],
+                    'paid_total' => (float) $paidAmount,
+                ]
+            );
+
             return $transaction;
         });
     }
@@ -297,7 +329,7 @@ class TransactionService
             throw new \Exception('Hanya transaksi draf atau belum lunas yang bisa dibatalkan.');
         }
 
-        return DB::transaction(function () use ($transaction) {
+        return DB::transaction(function () use ($transaction, $user) {
             // Jika sebelumnya unpaid/partial, artinya stok sudah terpotong
             if (in_array($transaction->status, [TransactionStatus::Unpaid, TransactionStatus::Partial])) {
                 TransactionReversed::dispatch($transaction);
@@ -311,6 +343,16 @@ class TransactionService
                 $transaction->invoice->update(['status' => InvoiceStatus::Cancelled]);
             }
 
+            $this->auditLogger->log(
+                module: AuditModuleEnum::POS->value,
+                action: 'transaction.cancelled',
+                description: "Membatalkan transaksi #{$transaction->transaction_number}",
+                subject: $transaction,
+                causer: $user,
+                businessId: $user->business_id,
+                outletId: $transaction->outlet_id
+            );
+
             return $transaction;
         });
     }
@@ -321,7 +363,7 @@ class TransactionService
             throw new \Exception('Hanya transaksi lunas yang bisa di-void.');
         }
 
-        return DB::transaction(function () use ($transaction) {
+        return DB::transaction(function () use ($transaction, $user) {
             TransactionReversed::dispatch($transaction);
 
             $transaction->update([
@@ -331,6 +373,16 @@ class TransactionService
             if ($transaction->invoice) {
                 $transaction->invoice->update(['status' => InvoiceStatus::Cancelled]);
             }
+
+            $this->auditLogger->log(
+                module: AuditModuleEnum::POS->value,
+                action: 'transaction.voided',
+                description: "Melakukan void pada transaksi #{$transaction->transaction_number}",
+                subject: $transaction,
+                causer: $user,
+                businessId: $user->business_id,
+                outletId: $transaction->outlet_id
+            );
 
             return $transaction;
         });

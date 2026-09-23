@@ -220,6 +220,7 @@ enum RoleTemplateEnum: string
                 PermissionEnum::REPORT_INVENTORY->value,
                 PermissionEnum::REPORT_SHIFT->value,
                 PermissionEnum::REPORT_PRODUCT->value,
+                PermissionEnum::SETTING_AUDIT->value,
             ],
 
             self::SUPERVISOR_FNB => [
@@ -357,6 +358,7 @@ enum RoleTemplateEnum: string
                 PermissionEnum::REPORT_INVENTORY->value,
                 PermissionEnum::REPORT_SHIFT->value,
                 PermissionEnum::REPORT_PRODUCT->value,
+                PermissionEnum::SETTING_AUDIT->value,
             ],
 
             self::FRONT_DESK_SERVICE => [
@@ -406,6 +408,7 @@ enum RoleTemplateEnum: string
                 PermissionEnum::REPORT_SHIFT->value,
                 PermissionEnum::REPORT_PRODUCT->value,
                 PermissionEnum::REPORT_CUSTOMER->value,
+                PermissionEnum::SETTING_AUDIT->value,
             ],
 
             self::FINANCE_ACCOUNTING => [
@@ -420,6 +423,7 @@ enum RoleTemplateEnum: string
                 PermissionEnum::TRANSACTION_VIEW->value,
                 PermissionEnum::PURCHASE_ORDER_VIEW->value,
                 PermissionEnum::INVENTORY_VIEW->value,
+                PermissionEnum::SETTING_AUDIT->value,
             ],
         };
     }
