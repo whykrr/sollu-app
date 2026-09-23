@@ -70,11 +70,7 @@
                 Terakhir diperbarui: {{ formatDateTime(outlet.updated_at) }}
             </span>
             <span v-else></span>
-            <button
-                class="btn btn-main px-6 py-2 rounded-lg shadow-sm font-medium"
-                :disabled="formOutlet.processing"
-                @click="submitForm"
-            >
+            <button class="btn btn-main" :disabled="formOutlet.processing" @click="submitForm">
                 Simpan Perubahan
             </button>
         </div>

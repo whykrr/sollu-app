@@ -17,7 +17,7 @@ import {
 export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
     {
         type: 'section',
-        label: 'Pengaturan Umum',
+        label: 'Akun & Bisnis',
         separator: false,
     },
     {
@@ -38,15 +38,6 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
     },
     {
         type: 'item',
-        url: route('settings.outlets.index'),
-        icon: faMapMarkerAlt,
-        label: 'Outlet',
-        feature: enums.FeatureEnum.MULTI_OUTLET,
-        permissions: ['outlet.view'],
-        activeRoute: 'settings.outlets',
-    },
-    {
-        type: 'item',
         url: route('settings.billing.index'),
         icon: faCreditCard,
         label: 'Langganan & Tagihan',
@@ -62,18 +53,18 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
         activeRoute: 'settings.business.features',
     },
     {
-        type: 'item',
-        url: route('settings.inventory.index'),
-        icon: faBoxes,
-        label: 'Manajemen Inventaris',
-        feature: enums.FeatureEnum.INVENTORY_MANAGEMENT,
-        permissions: ['business.view'],
-        activeRoute: 'settings.inventory',
+        type: 'section',
+        label: 'Manajemen Outlet & Operasional',
+        separator: true,
     },
     {
-        type: 'section',
-        label: 'Pengaturan Operasional & POS',
-        separator: true,
+        type: 'item',
+        url: route('settings.outlets.index'),
+        icon: faMapMarkerAlt,
+        label: 'Outlet',
+        feature: enums.FeatureEnum.MULTI_OUTLET,
+        permissions: ['outlet.view'],
+        activeRoute: 'settings.outlets',
     },
     {
         type: 'item',
@@ -95,12 +86,12 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
     },
     {
         type: 'item',
-        url: route('settings.receipt.index'),
-        icon: faReceipt,
-        label: 'Layout Struk & Nota',
-        feature: enums.FeatureEnum.OUTLET_MANAGEMENT,
-        permissions: ['setting.receipt', 'outlet.view'],
-        activeRoute: 'settings.receipt',
+        url: route('settings.inventory.index'),
+        icon: faBoxes,
+        label: 'Manajemen Inventaris',
+        feature: enums.FeatureEnum.INVENTORY_MANAGEMENT,
+        permissions: ['business.view'],
+        activeRoute: 'settings.inventory',
     },
     {
         type: 'item',
@@ -112,6 +103,11 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
         activeRoute: 'settings.taxes',
     },
     {
+        type: 'section',
+        label: 'Transaksi & Keamanan',
+        separator: true,
+    },
+    {
         type: 'item',
         url: route('settings.payment-methods.index'),
         icon: faCreditCard,
@@ -119,6 +115,15 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
         feature: enums.FeatureEnum.OUTLET_MANAGEMENT,
         permissions: ['setting.payment'],
         activeRoute: 'settings.payment-methods',
+    },
+    {
+        type: 'item',
+        url: route('settings.receipt.index'),
+        icon: faReceipt,
+        label: 'Layout Struk & Nota',
+        feature: enums.FeatureEnum.OUTLET_MANAGEMENT,
+        permissions: ['setting.receipt', 'outlet.view'],
+        activeRoute: 'settings.receipt',
     },
     {
         type: 'item',

@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Perangkat (POS & Kasir)" />
+            <MainPageHeader
+                title="Perangkat (POS & Kasir)"
+                description="Kelola perangkat POS dan kasir yang terhubung ke outletmu."
+            />
         </template>
 
         <template #filter>
@@ -36,7 +39,7 @@
             <div
                 v-for="device in devices"
                 :key="device.id"
-                class="bg-white rounded-xl border border-slate-200 shadow-xs p-5 flex flex-col justify-between transition-all hover:shadow-md"
+                class="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between transition-all hover:border-slate-300 hover:bg-slate-50/50"
             >
                 <div>
                     <div class="flex items-start justify-between gap-2 mb-3">

@@ -1,14 +1,17 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Informasi Usaha" />
+            <MainPageHeader
+                title="Informasi Usaha"
+                description="Atur identitas dan detail usahamu seperti nama, alamat, dan logo bisnis."
+            />
         </template>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12">
             <!-- Left Column: Business Form -->
             <div class="lg:col-span-7 flex flex-col gap-4">
                 <!-- Card 1: Identitas Usaha -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -78,10 +81,10 @@
 
                 <!-- Sticky Bottom Action Bar -->
                 <div
-                    class="flex justify-end sticky bottom-4 z-10 bg-white/90 backdrop-blur-xs p-4 rounded-xl border border-slate-200 shadow-sm"
+                    class="flex justify-end sticky bottom-4 z-10 bg-white/90 backdrop-blur-xs p-3 rounded-xl border border-slate-200"
                 >
                     <button
-                        class="btn btn-main px-6 py-2.5 rounded-lg shadow-sm font-medium flex items-center gap-2"
+                        class="btn btn-main flex items-center gap-2"
                         :disabled="business.processing"
                         @click="saveDetail"
                     >
@@ -96,7 +99,7 @@
             <!-- Right Column: Logo Card -->
             <div class="lg:col-span-5">
                 <div
-                    class="sticky top-0 bg-white rounded-xl border border-slate-200 shadow-xs p-5 flex flex-col gap-4"
+                    class="sticky top-0 bg-white rounded-xl border border-slate-200 p-5 flex flex-col gap-4"
                 >
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-2 flex items-center gap-2"

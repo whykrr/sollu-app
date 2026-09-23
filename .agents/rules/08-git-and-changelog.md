@@ -1,4 +1,8 @@
-# Rule: Standar Changelog & Git Version Tagging
+---
+trigger: always_on
+---
+
+# Rule 08: Git Workflow, Semantic Versioning & Standar Changelog
 
 Dokumen ini mendefinisikan aturan baku pembuatan, pemeliharaan, dan format file `CHANGELOG.md` serta manajemen Git Version Tagging di **Sollu App**.
 
@@ -8,8 +12,8 @@ Dokumen ini mendefinisikan aturan baku pembuatan, pemeliharaan, dan format file 
 
 1. **Keep a Changelog Standard:** Struktur changelog wajib mematuhi standar [Keep a Changelog v1.1.0](https://keepachangelog.com/).
 2. **Semantic Versioning (SemVer):** Penomoran versi wajib mengikuti format `vMAJOR.MINOR.PATCH` (contoh: `v1.2.3`) atau format pre-release `vMAJOR.MINOR.PATCH-beta.X` / `vMAJOR.MINOR.PATCH-rc.X`.
-3. **Berorientasi Manusia (Human-Readable):** Changelog ditujukan untuk manusia (developer, user, stakeholder), BUKAN sekadar salinan mentah (*raw dump*) git commit log.
-4. **Git Tag sebagai Single Source of Truth (SSOT):** Setiap heading rilis pada `CHANGELOG.md` WAJIB memiliki pasangan Git Tag beranotasi yang sah di repositori.
+3. **Berorientasi Manusia (Human-Readable):** Changelog ditujukan untuk manusia (developer, user, stakeholder), **BUKAN** sekadar salinan mentah (*raw dump*) git commit log.
+4. **Git Tag sebagai Single Source of Truth (SSOT):** Setiap heading rilis pada `CHANGELOG.md` **WAJIB** memiliki pasangan Git Tag beranotasi yang sah di repositori.
 5. **Section `[Unreleased]` Wajib Ada:** Perubahan yang telah di-commit ke branch utama tetapi belum di-tag ke versi rilis baru wajib dicatat di bawah section `## [Unreleased]`.
 
 ---
@@ -54,53 +58,7 @@ git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:"* %s (%h)"
 
 ---
 
-## 4. Format Struktur File `CHANGELOG.md`
-
-```markdown
-# Changelog
-
-Semua perubahan penting pada proyek **Sollu App** didokumentasikan di file ini.
-Format ini berbasis pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/lang/id/).
-
----
-
-## [Unreleased]
-
-### Added
-- **Shift Management:** Peningkatan antarmuka shift kasir dan riwayat operasional harian.
-
-### Changed
-- **MCP Ecosystem:** Pembaruan konfigurasi MCP tooling untuk standardisasi Git & Database tool.
-
----
-
-## [v1.2.3] - 2026-03-15
-
-### Changed
-- **Routing & Client:** Simplifikasi integrasi ZiggyVue dengan menghapus konfigurasi duplikat yang tidak digunakan.
-
----
-
-## [v1.2.2] - 2026-03-10
-
-### Added
-- **Monitoring:** Endpoint pemeriksaan kesehatan sistem (`/health`) beserta automated health tests.
-
----
-
-## [v1.2.1] - 2026-03-01
-
-### Added
-- **Merchant Impersonation:** Route impersonation untuk merchant dan komponen drawer detail bisnis.
-- **Routing:** Restrukturisasi route app dan cockpit dengan namespace `App`.
-
-### Fixed
-- **Auth:** Perbaikan layout login pada guard Cockpit.
-```
-
----
-
-## 5. Standar Semantic Versioning (SemVer) di Sollu App
+## 4. Standar Semantic Versioning (SemVer) di Sollu App
 
 1. **MAJOR (`vX.0.0`):** Perubahan arsitektur besar, *breaking changes* pada database schema publik/API, atau perombakan modul fundamental yang tidak *backward-compatible*.
 2. **MINOR (`v1.X.0`):** Penambahan modul fitur baru (misal: Modul Promosi, Shift Kasir, Subscription Billing) yang tetap kompatibel ke belakang.
@@ -109,17 +67,16 @@ Format ini berbasis pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/
 
 ---
 
-## 6. Prosedur Release & Git Tagging
+## 5. Prosedur Release & Git Tagging
 
 Ketika merilis versi baru, ikuti tahapan berikut secara berurutan:
 
 1. **Verifikasi Kualitas:**
-   - Jalankan `vendor/bin/pint --dirty` / `composer run format`
+   - Jalankan `vendor/bin/pint --dirty`
    - Jalankan `npm run lint` & `npm run format`
    - Pastikan seluruh test lolos (`php artisan test --compact`)
 2. **Perbarui `CHANGELOG.md`:**
    - Pindahkan item dari `## [Unreleased]` ke section versi baru `## [vX.Y.Z] - YYYY-MM-DD`.
-   - Tambahkan link referensi diff di bagian bawah file jika menggunakan link komparasi Git.
 3. **Commit Perubahan Versi:**
    - Format commit: `chore(release): bump version to vX.Y.Z and update changelog`
 4. **Buat Git Tag Beranotasi:**
@@ -128,8 +85,7 @@ Ketika merilis versi baru, ikuti tahapan berikut secara berurutan:
      git tag -a v1.2.4 -m "Release v1.2.4: Ringkasan singkat fitur utama"
      ```
 5. **Push ke Remote:**
-   - Push commit dan tag secara eksplisit:
-     ```bash
-     git push origin master
-     git push origin v1.2.4
-     ```
+   ```bash
+   git push origin master
+   git push origin v1.2.4
+   ```

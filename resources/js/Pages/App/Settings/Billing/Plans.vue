@@ -56,7 +56,7 @@
             <div
                 v-for="(plan, index) in activePlans"
                 :key="index"
-                class="bg-white rounded-xl border flex flex-col h-full shadow-xs hover:shadow-md transition-shadow relative overflow-hidden"
+                class="bg-white rounded-xl border flex flex-col h-full transition-colors relative overflow-hidden hover:border-slate-300"
                 :class="{
                     'border-main ring-2 ring-main/20':
                         subscription && subscription.plan_id === plan.id,
@@ -105,7 +105,7 @@
                         <div>
                             <span
                                 v-if="subscription && subscription.plan_id === plan.id"
-                                class="px-2.5 py-1 bg-main text-white text-xs rounded-full font-semibold inline-flex items-center gap-1 shadow-xs"
+                                class="px-2.5 py-1 bg-main text-white text-xs rounded-full font-semibold inline-flex items-center gap-1"
                             >
                                 <span
                                     class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"

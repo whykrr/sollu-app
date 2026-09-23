@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Metode Pembayaran" />
+            <MainPageHeader
+                title="Metode Pembayaran"
+                description="Atur metode pembayaran yang tersedia di kasir, seperti tunai, QRIS, atau transfer bank."
+            />
         </template>
 
         <template #filter>

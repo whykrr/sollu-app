@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Pajak & Biaya Layanan">
+            <MainPageHeader
+                title="Pajak & Biaya Layanan"
+                description="Atur tarif pajak, biaya layanan, dan pembulatan harga yang berlaku di outletmu."
+            >
                 <SettingOutletSelector
                     v-if="outlets && outlets.length > 1"
                     :outlets="outlets"
@@ -11,11 +14,11 @@
             </MainPageHeader>
         </template>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12">
             <!-- Form Column -->
-            <div class="lg:col-span-7 flex flex-col gap-6">
+            <div class="lg:col-span-7 flex flex-col gap-4">
                 <!-- Card Pajak -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -69,7 +72,7 @@
                 </div>
 
                 <!-- Card Pembulatan -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -111,10 +114,10 @@
 
                 <!-- Submit Button -->
                 <div
-                    class="flex justify-end sticky bottom-4 z-10 bg-white/90 backdrop-blur-xs p-4 rounded-xl border border-slate-200 shadow-sm"
+                    class="flex justify-end sticky bottom-4 z-10 bg-white/90 backdrop-blur-xs p-3 rounded-xl border border-slate-200"
                 >
                     <button
-                        class="btn btn-main px-6 py-2.5 rounded-lg shadow-sm font-medium flex items-center gap-2"
+                        class="btn btn-main flex items-center gap-2"
                         :disabled="form.processing"
                         @click="submitForm"
                     >
@@ -126,9 +129,7 @@
 
             <!-- Simulation Calculation Column -->
             <div class="lg:col-span-5">
-                <div
-                    class="sticky top-20 bg-white rounded-xl border border-slate-200 shadow-xs p-5"
-                >
+                <div class="sticky top-20 bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-sm font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >

@@ -27,7 +27,7 @@
                     @click="$emit('create')"
                 >
                     <FontAwesomeIcon :icon="faPlus" />
-                    <span>+ Baru</span>
+                    <span>Peran Baru</span>
                 </button>
             </div>
         </template>

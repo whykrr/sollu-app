@@ -5,7 +5,7 @@
             <div class="relative">
                 <img
                     :src="preview"
-                    class="size-48 rounded-2xl object-contain p-2 border-2 border-slate-200 bg-slate-50 shadow-xs"
+                    class="size-48 rounded-2xl object-contain p-2 border-2 border-slate-200 bg-slate-50"
                 />
             </div>
 

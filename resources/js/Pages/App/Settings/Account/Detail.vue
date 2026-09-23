@@ -1,14 +1,17 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Pusat Akun" />
+            <MainPageHeader
+                title="Pusat Akun"
+                description="Kelola informasi profil, foto, dan keamanan akun kamu di sini."
+            />
         </template>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12">
             <!-- Left Column: Forms -->
             <div class="lg:col-span-7 flex flex-col gap-4">
                 <!-- Card 1: Profil Akun -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -59,7 +62,7 @@
 
                     <div class="flex justify-end pt-4 border-t border-slate-100 mt-4">
                         <button
-                            class="btn btn-main px-5 py-2.5 rounded-lg shadow-sm font-medium flex items-center gap-2"
+                            class="btn btn-main flex items-center gap-2"
                             :disabled="formProfile.processing"
                             @click="saveDetail"
                         >
@@ -72,7 +75,7 @@
                 </div>
 
                 <!-- Card 2: Ganti Password -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -108,7 +111,7 @@
 
                     <div class="flex justify-end pt-4 border-t border-slate-100 mt-5">
                         <button
-                            class="btn btn-main px-5 py-2.5 rounded-lg shadow-sm font-medium flex items-center gap-2"
+                            class="btn btn-main flex items-center gap-2"
                             :disabled="formChangePassword.processing"
                             @click="changePassword"
                         >
@@ -124,7 +127,7 @@
             <!-- Right Column: Profile Photo Card -->
             <div class="lg:col-span-5">
                 <div
-                    class="sticky top-0 bg-white rounded-xl border border-slate-200 shadow-xs p-5 flex flex-col gap-4"
+                    class="sticky top-0 bg-white rounded-xl border border-slate-200 p-5 flex flex-col gap-4"
                 >
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-2 flex items-center gap-2"

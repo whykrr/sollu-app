@@ -18,10 +18,10 @@
             <div v-for="log in outlet.audit_logs" :key="log.id" class="relative">
                 <!-- Timeline dot -->
                 <div
-                    class="absolute -left-[25px] mt-1.5 w-4 h-4 rounded-full bg-white border-2 border-main flex items-center justify-center shadow-sm"
+                    class="absolute -left-[25px] mt-1.5 w-4 h-4 rounded-full bg-white border-2 border-main flex items-center justify-center"
                 ></div>
 
-                <div class="bg-white border rounded-lg p-4 shadow-sm ml-2">
+                <div class="bg-white border rounded-lg p-4 ml-2">
                     <div class="flex justify-between items-start gap-4 mb-2">
                         <div class="font-semibold text-slate-800 capitalize">
                             {{ formatAction(log.action) }}

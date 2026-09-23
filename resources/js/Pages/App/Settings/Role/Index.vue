@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Peran & Hak Akses" />
+            <MainPageHeader
+                title="Peran & Hak Akses"
+                description="Buat dan atur peran karyawan beserta hak akses yang sesuai untuk tiap posisi."
+            />
         </template>
 
         <template #filter>

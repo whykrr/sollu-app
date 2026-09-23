@@ -2,7 +2,7 @@
 trigger: always_on
 ---
 
-# Rule: Sollu App User Experience & User-Centric Principles
+# Rule 01: Filosofi Inti & Prinsip Pengalaman Pengguna (User-Centric Principles)
 
 ## 🌟 Filosofi Inti
 > **"Jangan membuat user belajar cara kerja aplikasi; buat aplikasi mengikuti cara kerja user."**
@@ -10,46 +10,46 @@ trigger: always_on
 
 ---
 
-## 📋 15 Prinsip Utama Pengalaman Pengguna (User-Centric Principles)
+## 📋 15 Prinsip Utama Rekayasa Berpusat Pengguna (User-Centric Principles)
 
 ### 1. Mudah di-Setup (*Frictionless Setup & Onboarding*)
 - **Prinsip:** Konfigurasi awal harus dapat diselesaikan dalam hitungan menit tanpa manual book yang rumit.
 - **Implementasi:**
-  - Onboarding wizard yang ringkas dan ramah.
-  - Nilai konfigurasi bawaan (default settings) sudah siap pakai untuk jenis usaha merchant (`BusinessType`).
-  - Tidak membebani pengguna dengan formulir registrasi yang panjang di awal.
+  - Onboarding wizard yang ringkas, hangat, dan membimbing.
+  - Nilai konfigurasi bawaan (*default settings*) sudah siap pakai sesuai jenis usaha merchant (`BusinessType`).
+  - Tidak membebani pengguna dengan formulir registrasi yang panjang dan melelahkan di awal.
 
 ### 2. Mudah Dioperasikan (*Effortless Daily Operations*)
 - **Prinsip:** Pekerjaan operasional berulang (kasir POS, pencatatan transaksi, cek stok) dapat dijalankan dengan lancar tanpa hambatan mental.
 - **Implementasi:**
-  - Layout POS dan dashboard memprioritaskan alur kerja cepat.
-  - Shortcut keyboard dan dukungan barcode scanner pada pencarian item.
-  - Transisi halaman instan menggunakan Inertia.js SPA tanpa reload penuh.
+  - Layout POS dan dashboard memprioritaskan kecepatan dan alur kerja harian.
+  - Dukungan shortcut keyboard dan integrasi barcode scanner pada pencarian item.
+  - Transisi halaman instan menggunakan Inertia.js SPA tanpa reload penuh browser.
 
 ### 3. Interface Tidak Ambigu (*Unambiguous Interface & Clarity*)
 - **Prinsip:** Setiap elemen visual harus memiliki maksud yang gamblang dan tidak menimbulkan tanda tanya atau keraguan.
 - **Implementasi:**
   - Label tombol menjelaskan aksi nyata (`"+ Tambah Produk"`, `"Simpan Perubahan"`), bukan kata umum ambigu (`"Proses"`, `"OK"`).
   - Status data (badge) memiliki warna semantik yang konsisten dan label yang jelas (`Draft` abu-abu, `Disetujui` hijau, `Dibatalkan` merah).
-  - Indikator visual jelas pada field wajib (`required`) dan field opsional.
+  - Indikator visual jelas pada field wajib (*required indicator*) dan field opsional.
 
 ### 4. Experience User Diutamakan (*User Experience First*)
 - **Prinsip:** Seluruh keputusan teknis dan desain harus berorientasi pada kemudahan dan kenyamanan pengguna di berbagai perangkat.
 - **Implementasi:**
   - **Ergonomi Multi-Device:** Target sentuh minimum Mobile $\ge 44\times 44\text{px}$ (`.touch-target`), Tablet $\ge 36\times 36\text{px}$ (`.touch-target-sm`), Desktop $\ge 28\times 28\text{px}$ (`.btn-sm`, `.form.sm`).
   - **Thumb Zone Mobile:** Aksi utama formulir di smartphone wajib berada di sticky footer bawah (`#popUpFooter`).
-  - **Anti-Zoom iOS Safari:** Input form mobile wajib berkuran $\ge 16\text{px}$ (`.form.adaptive` / `text-base sm:text-xs`).
-  - **Performa Responsif:** Waktu respons API dan halaman tidak boleh melebihi 5 detik.
+  - **Anti-Zoom iOS Safari:** Input form mobile wajib berukuran font $\ge 16\text{px}$ (`.form.adaptive` / `text-base sm:text-xs`).
+  - **Performa Responsif:** Waktu respons API dan render halaman tidak boleh melebihi 5 detik.
 
 ### 5. Sederhana — Tampilkan Hanya yang Diperlukan (*Simplicity & Clutter-Free*)
 - **Prinsip:** Hilangkan distraksi visual dan beban kognitif yang tidak perlu.
 - **Implementasi:**
   - **Desain Flat Minimalis:** Komponen di dalam container `<MainPage>` **DILARANG MENGGUNAKAN SHADOW** (`shadow`, `shadow-sm`, dll). Gunakan garis batas tipis (`border-slate-200`) dan latar warna solid (`bg-white` / `bg-slate-50`).
-  - **Non-Scrolling Sticky Header:** Header, widget analitik, dan filter toolbar tetap di atas slot non-scrolling, default slot khusus untuk tabel data scrollable.
-  - Sembunyikan informasi sekunder pada tampilan mobile menggunakan responsive column masking (`show: 'md'` pada `<Table>`).
+  - **Non-Scrolling Sticky Header:** Header, widget analitik, dan filter toolbar tetap di atas slot non-scrolling; default slot khusus untuk tabel data scrollable.
+  - Sembunyikan informasi sekunder pada tampilan mobile menggunakan *responsive column masking* (`show: 'md'` atau `show: 'lg'` pada `<Table>`).
 
 ### 6. Jelas — Gunakan Bahasa yang Familiar, Bukan Istilah Teknis (*Familiar Language*)
-- **Prinsip:** Gunakan kosakata pedagang dan bahasa bisnis harian, hindari jargon developer, database, atau hukum birokratis.
+- **Prinsip:** Gunakan kosakata pedagang dan bahasa bisnis harian, hindari jargon developer, database, birokrasi kaku, atau hukum formal.
 - **Implementasi:**
   - Gunakan istilah baku yang ramah: `"Sampah"` (bukan *Trash/Recycle Bin*), `"Pulihkan"` (bukan *Restore*), `"Draf"` (bukan *Pending Review*), `"Unduh"` (bukan *Download*).
   - Hindari pesan error teknis seperti *"SQLSTATE[23000]: Integrity constraint violation"*; gantikan dengan *"Nama produk sudah digunakan. Coba ganti dengan nama lain ya."*
@@ -60,7 +60,7 @@ trigger: always_on
   - **Layout Seragam:** Semua modul menggunakan wrapper `<MainPage>` dengan hierarki slot baku (`#header`, `#widgets`, `#filter`, default slot, `#footer`).
   - **Toolbar Terpadu:** Seluruh toolbar filter menggunakan `@/Components/UI/ActionBar/ActionBar.vue` dengan tombol aksi utama di paling kanan.
   - **Hierarki Tombol:** `.btn-xs` (tabel padat), `.btn-sm` (header/filter), `.btn` (submit form/modal), `.btn-lg` (POS hero).
-  - **Komponen Form Terpusat:** Selalu gunakan `@/Components/Form/` (`TextField`, `DropdownField`, `NumberField`, dll). Dilarang tag HTML mentah.
+  - **Komponen Form Terpusat:** Selalu gunakan `@/Components/Form/` (`TextField`, `DropdownField`, `NumberField`, dll). Dilarang keras menggunakan tag HTML mentah.
 
 ### 8. Smart Default (*Intelligent Pre-fills*)
 - **Prinsip:** Otomatisasi pengisian hal-hal yang sudah bisa diprediksi oleh sistem agar pengguna tidak mengulang pengisian yang sama.
@@ -73,8 +73,8 @@ trigger: always_on
 ### 9. Minim Langkah (*Minimal Steps for Common Tasks*)
 - **Prinsip:** Pekerjaan umum dengan frekuensi tinggi harus dapat diselesaikan dengan sedikit klik/aksi.
 - **Implementasi:**
-  - **Single Action Row Click:** Klik baris tabel (`@row-click`) langsung membuka detail/edit tanpa perlu mengklik ikon tombol kecil terpisah.
-  - **Pencarian Live Inline:** Pencarian tabel langsung aktif dengan debounce 500ms tanpa perlu menekan tombol "Cari" atau membuka modal filter popup terpisah.
+  - **Single Action Row Click:** Baris tabel dengan 1 aksi utama wajib menggunakan `@row-click` langsung untuk membuka detail/edit (tanpa tombol ikon aksi terpisah).
+  - **Pencarian Live Inline:** Pencarian tabel langsung aktif dengan debounce 500ms tanpa perlu menekan tombol "Cari" atau membuka modal filter terpisah.
   - **Dropdown Opsi Data:** Aksi ekspor Excel/PDF dan impor massal terpadu dalam satu dropdown `<ActionsDropdown label="Opsi Data" />`.
 
 ### 10. Progressive Disclosure (*3-Tier Form Architecture*)
@@ -116,4 +116,4 @@ trigger: always_on
 - **Implementasi:**
   - Gunakan sapaan akrab: *"Tokomu"*, *"Bisnismu"*, *"Yuk, tambah produk pertamamu!"*.
   - Langsung ke inti pesan tanpa kalimat pembuka bertele-tele.
-  - Ikuti panduan baku di [docs/ux-wording.md](file:///Users/whykrr/Documents/Projects/Laravel/sollu-app/docs/ux-wording.md) dan `.agents/rules/wording-rules.md`.
+  - Ikuti panduan baku di `02-ux-wording.md`.

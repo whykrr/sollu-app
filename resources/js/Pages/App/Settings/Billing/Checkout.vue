@@ -285,7 +285,7 @@
                                     billing_cycle: billingCycle,
                                     payment_method: paymentMethod,
                                 }"
-                                class="btn btn-main w-full py-2.5 text-center flex justify-center items-center rounded-lg font-bold text-xs shadow-xs hover:shadow-sm transition-all"
+                                class="btn btn-main w-full py-2.5 text-center flex justify-center items-center rounded-lg font-bold text-xs transition-all"
                             >
                                 Lanjutkan Pembayaran
                             </Link>

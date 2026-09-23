@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Data Outlet" />
+            <MainPageHeader
+                title="Data Outlet"
+                description="Lihat dan kelola semua outlet yang terdaftar di bisnismu."
+            />
         </template>
 
         <template #filter>
@@ -23,7 +26,7 @@
             <div
                 v-for="outlet in outlets.data"
                 :key="outlet.id"
-                class="bg-white rounded-xl border border-slate-200 shadow-xs p-5 flex flex-col justify-between transition-all hover:shadow-md"
+                class="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between transition-all hover:border-slate-300 hover:bg-slate-50/50"
             >
                 <div>
                     <!-- Header Card -->

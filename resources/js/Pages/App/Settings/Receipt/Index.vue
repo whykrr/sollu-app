@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Layout Struk & Nota">
+            <MainPageHeader
+                title="Layout Struk & Nota"
+                description="Kustomisasi tampilan struk kasir, mulai dari header, rincian transaksi, hingga footer."
+            >
                 <SettingOutletSelector
                     v-if="outlets && outlets.length > 1"
                     :outlets="outlets"
@@ -15,7 +18,7 @@
             <!-- Left Column: Settings Form -->
             <div class="lg:col-span-7 flex flex-col gap-4">
                 <!-- Card 1: Format Kertas & Perilaku Cetak -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -51,7 +54,7 @@
                 </div>
 
                 <!-- Card 2: Header Struk -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -123,7 +126,7 @@
                 </div>
 
                 <!-- Card 3: Rincian Transaksi (Body) -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -208,7 +211,7 @@
                 </div>
 
                 <!-- Card 4: Footer Struk -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
@@ -261,13 +264,9 @@
 
                 <!-- Submit Button -->
                 <div
-                    class="flex justify-end sticky bottom-4 z-10 bg-white/90 backdrop-blur-xs p-4 rounded-xl border border-slate-200 shadow-sm"
+                    class="flex justify-end sticky bottom-4 z-10 bg-white/90 backdrop-blur-xs p-3 rounded-xl border border-slate-200"
                 >
-                    <button
-                        class="btn btn-main px-6 py-2.5 rounded-lg shadow-sm font-medium"
-                        :disabled="form.processing"
-                        @click="submitForm"
-                    >
+                    <button class="btn btn-main" :disabled="form.processing" @click="submitForm">
                         <FontAwesomeIcon :icon="faSave" />
                         <span>Simpan Pengaturan Struk</span>
                     </button>

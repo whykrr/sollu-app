@@ -89,11 +89,7 @@
         </div>
 
         <div class="flex justify-end mt-4 pt-4 border-t border-slate-100">
-            <button
-                class="btn btn-main px-6 py-2 rounded-lg shadow-sm font-medium"
-                :disabled="form.processing"
-                @click="submitForm"
-            >
+            <button class="btn btn-main" :disabled="form.processing" @click="submitForm">
                 Simpan Pengaturan
             </button>
         </div>

@@ -1,4 +1,8 @@
-# Rule: Standarisasi Sistem Notifikasi & Isolasi Multi-Tenant
+---
+trigger: always_on
+---
+
+# Rule 11: Standarisasi Sistem Notifikasi & Isolasi Multi-Tenant
 
 Pedoman baku pembuatan, pengiriman, dan manajemen notifikasi di **Sollu App** (Laravel 11, Reverb WebSocket, Vue 3, Inertia.js 1.2).
 

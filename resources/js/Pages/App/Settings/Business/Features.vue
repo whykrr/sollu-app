@@ -13,7 +13,7 @@
             <div
                 v-for="(features, groupName) in featureGroups"
                 :key="groupName"
-                class="bg-white rounded-xl border border-slate-200 shadow-xs p-5"
+                class="bg-white rounded-xl border border-slate-200 p-5"
             >
                 <h3
                     class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4"
@@ -75,10 +75,10 @@
 
         <!-- Sticky Bottom Action Bar -->
         <div
-            class="flex justify-end sticky bottom-4 z-20 bg-white/90 backdrop-blur-xs p-4 rounded-xl border border-slate-200 shadow-sm mx-0 lg:mx-0"
+            class="flex justify-end sticky bottom-4 z-20 bg-white/90 backdrop-blur-xs p-3 rounded-xl border border-slate-200 mx-0 lg:mx-0"
         >
             <button
-                class="btn btn-main px-6 py-2.5 rounded-lg shadow-sm font-medium flex items-center gap-2"
+                class="btn btn-main flex items-center gap-2"
                 :disabled="form.processing"
                 @click="save"
             >

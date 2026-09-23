@@ -1,7 +1,10 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Jam Operasional Outlet">
+            <MainPageHeader
+                title="Jam Operasional Outlet"
+                description="Tentukan jadwal buka-tutup harian outletmu untuk tiap hari dalam seminggu."
+            >
                 <SettingOutletSelector
                     v-if="outlets && outlets.length > 1"
                     :outlets="outlets"
@@ -12,7 +15,7 @@
         </template>
 
         <div class="max-w-4xl flex flex-col gap-4 pb-8">
-            <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+            <div class="bg-white rounded-xl border border-slate-200 p-5">
                 <div
                     class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-4"
                 >
@@ -93,10 +96,10 @@
 
             <!-- Submit Button -->
             <div
-                class="flex justify-end sticky bottom-4 z-10 bg-white/90 backdrop-blur-xs p-4 rounded-xl border border-slate-200 shadow-sm"
+                class="flex justify-end sticky bottom-4 z-10 bg-white/90 backdrop-blur-xs p-3 rounded-xl border border-slate-200"
             >
                 <button
-                    class="btn btn-main px-6 py-2.5 rounded-lg shadow-sm font-medium flex items-center gap-2"
+                    class="btn btn-main flex items-center gap-2"
                     :disabled="form.processing"
                     @click="submitForm"
                 >

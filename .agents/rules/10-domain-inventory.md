@@ -1,4 +1,8 @@
-# Rule: Sollu App Inventory Module Standards
+---
+trigger: always_on
+---
+
+# Rule 10: Standar Domain Modul Inventori
 
 Panduan dan aturan baku rekayasa perangkat lunak khusus **Modul Inventory** pada **Sollu App**.
 Setiap AI Agent yang bekerja atau bersinggungan dengan modul inventori **WAJIB** membaca, mematuhi, dan memperbarui aturan ini agar eksekusi berjalan optimal dengan penggunaan *context window* yang minimal.
@@ -158,7 +162,6 @@ Untuk fleksibilitas berbagai jenis merchant (usaha mikro/kecil vs korporasi mult
 3. **Aturan Evaluasi di Service Layer:**
    - **DILARANG KERAS** menulis pengecekan hardcode manual seperti `if ($user->id === $model->created_by)` di dalam service atau controller.
    - **WAJIB** panggil method asersi terpusat dari `InventorySodService` (misal: `$this->inventorySodService->assertCanApproveAdjustment($adjustment, $user)`).
-   - Pesan error validasi SoD wajib menggunakan standar bahasa Indonesia Sollu yang ramah dan komunikatif.
 
 ---
 
@@ -173,82 +176,28 @@ Untuk fleksibilitas berbagai jenis merchant (usaha mikro/kecil vs korporasi mult
 
 ---
 
-## 6. Standar Backend (Controllers, Services, Requests)
+## 6. Standar Backend & Frontend Khusus Inventori
 
 1. **Thin Controller:**
-   - Controller di `app/Http/Controllers/App/Inventory/` hanya bertugas menerima HTTP request, memverifikasi otorisasi (`$this->authorize` / `v-can`), memanggil Domain Service, dan merender Inertia/JSON response.
+   - Controller di `app/Http/Controllers/App/Inventory/` hanya bertugas menerima HTTP request, otorisasi, memanggil Domain Service, dan render respons.
 2. **Database Transaction:**
    - Setiap operasi mutasi inventori di Service Layer WAJIB dibungkus dalam `DB::transaction(function () { ... })`.
-3. **Form Request Standards:**
-   - Request di `app/Http/Requests/App/Inventory/` wajib meng-extend `BaseInertiaFormRequest`.
-   - Gunakan `Rule::enum(EnumName::class)` untuk validasi kolom enum.
-   - Sertakan validasi sorting (`sort` dan `direction`) via trait `SortableModel`.
-4. **Anti Over-Fetching di `index()`:**
-   - Endpoint `index()` HANYA me-load data ringkasan paginasi.
-   - Detail resep, antrean cost layer, dan riwayat mutasi lengkap WAJIB dimuat secara on-demand via `show()` atau async endpoint saat drawer dibuka.
+3. **Anti Over-Fetching di `index()`:**
+   - Endpoint `index()` HANYA me-load data ringkasan paginasi. Detail antrean cost layer dan riwayat mutasi dimuat on-demand via `show()` / PopUp drawer.
+4. **Layout Halaman & Filter:**
+   - Seluruh halaman inventori menggunakan `<MainPage>` dan toolbar `ActionBar` yang diekstrak ke `{Entity}Filter.vue`. Single action row click `@row-click="openDetail"` dengan `:action="false"`.
 
 ---
 
-## 7. Standar Frontend (Pages, Components & UI Ergonomics)
-
-1. **Struktur Layout Halaman:**
-   - Seluruh halaman modul inventori (`Stock`, `Movement`, `Purchase`, `Adjustment`, `StockOpname`, `Transfer`, `Supplier`, `RawMaterial`) WAJIB menggunakan `<MainPage>`.
-   - Slot non-scrolling:
-     - `<template #header>`: `MainPageHeader` (Judul & deskripsi).
-     - `<template #widgets>`: Kartu KPI / metrik stok (`StockWidgets.vue`).
-     - `<template #filter>`: Toolbar terpadu (`ActionBar`).
-   - Default slot: Tabel data (`<Table>`).
-   - `<template #footer>`: Paginasi (`<Pagination>`).
-2. **Ekstraksi Wajib Komponen Filter:**
-   - Toolbar filter WAJIB diekstrak ke `Components/{Entity}Filter.vue` (misal: `StockFilter.vue`, `PurchaseFilter.vue`, `Filter.vue`).
-   - Gunakan `<ActionBar>`:
-     - Sisi Kiri (`#filters`): Preset tanggal (`FilterPresetDate`), status segmented (`FilterSegmented`), filter dropdown (`FilterDropdown`).
-     - Sisi Kanan: Pencarian (`FilterSearch`), dropdown berkas (`ActionsDropdown label="Opsi Data"`), dan tombol Tambah (`+ Tambah ...`) di **PALING KANAN**.
-3. **Standar PopUp Drawer (`PopUpPage`):**
-   - Form pembuatan/edit dan tampilan detail WAJIB menggunakan drawer `<PopUpPage>` melalui `usePopUpStore()`.
-   - Body modal sudah memiliki padding bawaan; child form DILARANG menambahkan wrapper margin/padding ganda.
-4. **Tabel & Aksi Baris (Single Action vs Multiple Actions):**
-   - **Single Action (Buka Detail / Edit):** Gunakan `@row-click="openDetail"` pada `<Table>` dengan `:action="false"` bawaan. DILARANG membuat tombol tunggal di dalam slot `#actions`.
-   - **Multiple Actions:** Aktifkan `:action="true"` HANYA jika terdapat $>1$ tombol independen (misal: Cetak PDF + Batalkan).
-5. **Zero Raw HTML Inputs:**
-   - Seluruh form input WAJIB menggunakan komponen terstandarisasi di `@/Components/Form/` (`TextField`, `DropdownField`, `NumberField`, `SelectionGroupField`, `Switch`).
-
----
-
-## 8. Standar Pengujian Otomatis (Automated Testing)
-
-1. **Unit Testing Service (100% Mocking):**
-   - Lokasi: `tests/Unit/Services/App/Inventory/` (`InventoryCostingServiceTest.php`, `StockAdjustmentServiceTest.php`, `StockOpnameServiceTest.php`, `StockTransferServiceTest.php`, `PurchaseOrderServiceTest.php`, `StockFreezeServiceTest.php`).
-   - Unit test service fokus pada kalkulasi matematika COGS, alokasi layer FIFO, pembaruan moving average, dan transisi status.
-2. **Feature & Integration Testing:**
-   - Lokasi: `tests/Feature/App/Inventory/`.
-   - Uji isolasi tenant (`business_id`), pencegahan mutasi saat outlet beku (`stock.not.frozen`), hak akses peran (`PermissionEnum`), dan plan feature gating (`FeatureEnum`).
-
----
-
-## 9. Anti-Patterns & Larangan Keras (Do's & Don'ts)
-
-| Anti-Pattern (SALAH) | Standar Baku (BENAR) | Rationale / Dampak |
-| :--- | :--- | :--- |
-| Mengubah `InventoryBalance::update(['current_stock' => ...])` langsung. | Panggil `InventoryCostingService::recordIncomingStock()` atau `recordOutgoingStock()`. | Mencegah rusaknya antrean FIFO layer dan integritas buku besar mutasi. |
-| Hardcode string status seperti `if ($status === 'draft')`. | Gunakan enum `$enums.AdjustmentStatus.Draft` / `AdjustmentStatus::Draft`. | Menjamin konsistensi tipe dan mencegah bug typo. |
-| Melakukan hardcode validasi `if ($user->id === $created_by)` untuk self-approval. | Panggil `InventorySodService::assertCanApprove*()` yang membaca `business->settings['inventory_sod']`. | Menjaga fleksibilitas bagi merchant mikro/kecil dan kepatuhan bagi enterprise. |
-| Modul POS / Transaksi memanggil model `InventoryBalance::decrement()`. | Modul POS memanggil `InventoryDeductionService` atau memancarkan Domain Event. | Menjaga arsitektur Modular Monolith dan batas domain yang bersih. |
-| Menulis toolbar filter dan search inline di dalam `Index.vue`. | Ekstrak filter ke dalam komponen `Components/{Entity}Filter.vue` berbasis `ActionBar`. | Kerapian kode, modularitas, dan reusability. |
-| Menggunakan modal popup dialog (`FilterModal.vue`) untuk memfilter tabel. | Gunakan filter terpadu inline di slot `#filter` `ActionBar`. | Sesuai standar UX Sollu App (Flat Minimalis & Ergonomis). |
-| Me-load relasi `costLayers` atau seluruh item detail pada `index()`. | Muat detail dan relasi berat secara on-demand via `show()` / PopUp drawer. | Mencegah memory leak dan degradasi performa render Inertia. |
-
----
-
-## 10. Protokol Pemeliharaan Mandiri Agen (Self-Evolution Mandate)
+## 7. Protokol Pemeliharaan Mandiri Agen (Self-Evolution Mandate)
 
 > [!IMPORTANT]
 > **KEWAJIBAN PEMELIHARAAN OTOMATIS OLEH AI AGENT:**
-> Setiap kali seorang AI Agent melakukan salah satu dari tindakan berikut:
+> Setiap kali seorang AI Agent:
 > 1. Menambahkan entitas, relasi, atau tabel baru pada domain inventori.
 > 2. Menambah kasus baru pada enum inventori (`InventoryMovementType`, `AdjustmentReason`, dll.).
 > 3. Mengubah formula atau logika pada `InventoryCostingService` / Service inventori lainnya.
 > 4. Mengubah alur otorisasi, middleware, atau rute `routes/app/inventories.php`.
 > 5. Merefaktor atau menambahkan komponen Vue/Inertia pada halaman inventori.
 >
-> **Agent WAJIB secara proaktif memperbarui dan merefaktor file aturan ini (`.agents/rules/inventory-rules.md`)** agar tabel matriks, enum, dan invariant di atas selalu akurat dan sinkron dengan codebase riil. Jadikan pembaruan aturan ini sebagai bagian dari *Definition of Done (DoD)* sebelum menyelesaikan pekerjaan.
+> **Agent WAJIB secara proaktif memperbarui file aturan ini (`.agents/rules/10-domain-inventory.md`)** agar tabel matriks, enum, dan invariant di atas selalu akurat dan sinkron dengan codebase riil. Jadikan pembaruan aturan ini sebagai bagian dari *Definition of Done (DoD)* sebelum menyelesaikan pekerjaan.
