@@ -7,6 +7,7 @@ use App\Enums\AdjustmentStatus;
 use App\Enums\BusinessStatus;
 use App\Enums\CustomerGender;
 use App\Enums\DatePresetEnum;
+use App\Enums\DeviceTypeEnum;
 use App\Enums\FeatureEnum;
 use App\Enums\GoodsReceiptStatus;
 use App\Enums\InventoryCostingMethod;
@@ -54,6 +55,7 @@ class FrontendEnumProvider
         BusinessStatus::class,
         CustomerGender::class,
         DatePresetEnum::class,
+        DeviceTypeEnum::class,
         FeatureEnum::class,
         GoodsReceiptStatus::class,
         InventoryCostingMethod::class,

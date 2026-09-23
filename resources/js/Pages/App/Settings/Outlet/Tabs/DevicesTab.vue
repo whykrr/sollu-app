@@ -216,10 +216,10 @@ const form = useForm({
 })
 
 const deviceTypes = [
-    { value: 'pos', label: 'POS Terminal' },
-    { value: 'printer', label: 'Printer' },
-    { value: 'edc', label: 'EDC Machine' },
-    { value: 'kds', label: 'Kitchen Display' },
+    { value: 'pos_terminal', label: 'POS Terminal (Desktop)' },
+    { value: 'pos_mobile', label: 'POS Mobile (Tablet/HP)' },
+    { value: 'kiosk', label: 'Kiosk / Self-Service (Segera Hadir)', disabled: true },
+    { value: 'kitchen_display', label: 'Kitchen Device (Segera Hadir)', disabled: true },
 ]
 
 const tableHeaders = [

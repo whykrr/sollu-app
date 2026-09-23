@@ -4,6 +4,7 @@ namespace App\Http\Controllers\App\Settings;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
@@ -28,31 +29,79 @@ class DeviceSettingController extends Controller
     {
         $this->authorize(PermissionEnum::SETTING_DEVICE->value);
 
-        $businessId = $request->user()->business_id;
+        $user = $request->user();
+        $businessId = $user->business_id;
+
         $outlets = Outlet::where('business_id', $businessId)
             ->where('is_active', true)
             ->select('id', 'name', 'slug')
             ->orderBy('name')
             ->get();
 
-        $selectedOutletId = $request->get('outlet_id')
-            ?? SelectedOutlet::make()->get()?->id
-            ?? $outlets->first()?->id;
+        $sidebarOutlet = SelectedOutlet::make($user)->get();
+        $filterOutletId = $sidebarOutlet ? $sidebarOutlet->id : ($request->get('outlet') ?: $request->get('outlet_id'));
 
-        $targetOutlet = $outlets->firstWhere('id', $selectedOutletId) ?? $outlets->first();
+        $query = OutletDevice::query()
+            ->with(['outlet:id,name,slug'])
+            ->withCount('tokens')
+            ->whereHas('outlet', function ($q) use ($businessId) {
+                $q->where('business_id', $businessId);
+            });
 
-        $devices = [];
-        if ($targetOutlet) {
-            $devices = OutletDevice::where('outlet_id', $targetOutlet->id)
-                ->withCount('tokens')
-                ->orderBy('created_at', 'desc')
-                ->get();
+        if ($filterOutletId) {
+            $query->where('outlet_id', $filterOutletId);
         }
+
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('device_name', 'like', "%{$search}%")
+                    ->orWhere('serial_number', 'like', "%{$search}%")
+                    ->orWhereHas('outlet', function ($oq) use ($search) {
+                        $oq->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($request->filled('device_type')) {
+            $query->where('device_type', $request->get('device_type'));
+        }
+
+        if ($request->has('is_active') && $request->get('is_active') !== null && $request->get('is_active') !== '') {
+            $query->where('is_active', filter_var($request->get('is_active'), FILTER_VALIDATE_BOOLEAN));
+        }
+
+        $sort = $request->get('sort', 'created_at');
+        $direction = $request->get('direction', 'desc');
+        $query->sortable($sort, $direction);
+
+        $devices = $query->paginate((int) $request->get('perpage', 12))->withQueryString();
+
+        $business = $user->business;
+        $hasMultiDevice = $business ? $business->hasPlanFeature(FeatureEnum::MULTI_DEVICE) : false;
+
+        $outletDeviceCounts = OutletDevice::whereHas('outlet', function ($q) use ($businessId) {
+            $q->where('business_id', $businessId);
+        })
+            ->selectRaw('outlet_id, count(*) as count')
+            ->groupBy('outlet_id')
+            ->pluck('count', 'outlet_id')
+            ->toArray();
 
         return Inertia::render('Settings/Device/Index', [
             'outlets' => $outlets,
-            'selectedOutlet' => $targetOutlet,
+            'selectedOutlet' => $sidebarOutlet,
             'devices' => $devices,
+            'filters' => [
+                'outlet' => $filterOutletId,
+                'search' => $request->get('search', ''),
+                'device_type' => $request->get('device_type', ''),
+                'is_active' => $request->get('is_active', ''),
+                'sort' => $sort,
+                'direction' => $direction,
+            ],
+            'hasMultiDevice' => $hasMultiDevice,
+            'outletDeviceCounts' => $outletDeviceCounts,
             'otpData' => session('otp_data'),
         ]);
     }
@@ -62,7 +111,7 @@ class DeviceSettingController extends Controller
         $this->authorize(PermissionEnum::SETTING_DEVICE->value);
 
         $validated = $request->validated();
-        $outletId = $validated['outlet_id'] ?? $request->input('outlet_id');
+        $outletId = $validated['outlet_id'];
 
         $outlet = Outlet::where('business_id', $request->user()->business_id)
             ->findOrFail($outletId);

@@ -36,6 +36,7 @@ class SubscriptionPlanSeeder extends Seeder
                     'product_categories',
                     'promo_management',
                     'basic_reports',
+                    'outlet_management',
                 ],
             ],
             'basic' => [
@@ -78,6 +79,7 @@ class SubscriptionPlanSeeder extends Seeder
                     'advanced_reports',
                     'sales_reports',
                     'product_reports',
+                    'outlet_management',
                 ],
             ],
             'pro' => [
@@ -120,9 +122,9 @@ class SubscriptionPlanSeeder extends Seeder
                     'advanced_reports',
                     'sales_reports',
                     'product_reports',
+                    'outlet_management',
                     // Pro features
                     'multi_device',
-                    'device_management',
                     'operational_hours',
                     'receipt_customization',
                     'tax_and_service_charge',

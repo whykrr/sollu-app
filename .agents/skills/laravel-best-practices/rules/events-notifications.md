@@ -50,8 +50,3 @@ Notification::route('mail', 'admin@example.com')->notify(new SystemAlert());
 ## Implement `HasLocalePreference` on Notifiable Models
 
 Implement `HasLocalePreference::preferredLocale()` on a notifiable model when notifications and mailables should use the recipient's locale. Laravel also preserves that locale for queued delivery. An explicit `locale()` call can still override the preference for an individual notification.
-
-## Sollu App Notification Standard: Extend `BaseNotification` & Use Dispatcher
-
-In Sollu App, all notification classes MUST extend `App\Notifications\BaseNotification` (which implements `ShouldQueue` and standardizes the database/broadcast JSON payload with `NotificationCategoryEnum`, `NotificationTypeEnum`, and `NotificationScopeEnum`). For multi-tenant isolation, dispatch notifications through `App\Services\App\Notification\NotificationDispatcherService`.
-

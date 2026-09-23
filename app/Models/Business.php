@@ -281,6 +281,14 @@ class Business extends Model
     }
 
     /**
+     * Alias for hasFeature to support plan feature checks.
+     */
+    public function hasPlanFeature(\App\Enums\FeatureEnum $feature): bool
+    {
+        return $this->hasFeature($feature);
+    }
+
+    /**
      * Check if the business has explicitly configured an inventory costing method.
      */
     public function isCostingMethodConfigured(): bool
