@@ -19,9 +19,10 @@ Sollu App menggunakan arsitektur *Single Container Modular Monolith* berbasis **
 |  |    |                                                                        |  |
 |  |    +---> [program:nginx]           (Port 80 HTTP Proxy -> /dev/stdout)     |  |
 |  |    +---> [program:php-fpm]         (Port 9000 FastCGI -> /dev/stdout)      |  |
-|  |    +---> [program:queue-worker]    (Redis Queue -> storage/logs/worker.log) |  |
+|  |    +---> [program:horizon]         (Horizon Queue -> storage/logs/horizon) |  |
 |  |    +---> [program:reverb]          (Port 8080 WS -> storage/logs/reverb.log)|  |
 |  |    +---> [program:cron]            (Alpine crond -> storage/logs/schedule)  |  |
+|  |    +---> [program:pulse-check]     (Pulse Server -> storage/logs/pulse-check)|  |
 |  +-----------------------------------------------------------------------------+  |
 |                                         |                                         |
 |                                         v (sollu-network)                         |
@@ -52,6 +53,7 @@ Supervisor bertindak sebagai init process (PID 1) di dalam container `sollu-app`
 | **`horizon`** | `php artisan horizon` | `SIGTERM` | **3600s** (1 jam) | `storage/logs/horizon.log` |
 | **`reverb`** | `php artisan reverb:start ...` | `SIGTERM` | 15s | `storage/logs/reverb.log` |
 | **`cron`** | `crond -f -l 2` | `SIGTERM` | 10s | `/dev/stdout` |
+| **`pulse-check`** | `php artisan pulse:check` | `SIGTERM` | 10s | `storage/logs/pulse-check.log` |
 
 ### Penjelasan Standar Graceful Shutdown:
 1. **Laravel Horizon (`stopwaitsecs=3600`, `stopasgroup=true`, `killasgroup=true`):**
@@ -82,6 +84,9 @@ Job background dan event WebSocket dialihkan ke berkas khusus di dalam `storage/
 - **Laravel Reverb:**
   - Standard Log: `storage/logs/reverb.log` (`maxbytes=10MB`, `backups=3`)
   - Error Log: `storage/logs/reverb-error.log` (`maxbytes=10MB`, `backups=3`)
+- **Laravel Pulse Check:**
+  - Standard Log: `storage/logs/pulse-check.log` (`maxbytes=10MB`, `backups=3`)
+  - Error Log: `storage/logs/pulse-check-error.log` (`maxbytes=10MB`, `backups=3`)
 - **Schedule Cron:**
   - Log Output: `storage/logs/schedule.log`
 - **Structured JSON Logs (Grafana Loki):**
@@ -92,6 +97,7 @@ Job background dan event WebSocket dialihkan ke berkas khusus di dalam `storage/
 > ```bash
 > docker compose exec sollu-app tail -f storage/logs/horizon.log
 > docker compose exec sollu-app tail -f storage/logs/reverb.log
+> docker compose exec sollu-app tail -f storage/logs/pulse-check.log
 > ```
 
 ---
@@ -137,7 +143,8 @@ Alur deployment otomatis dikonfigurasi melalui `.github/workflows/deploy.yml` da
 │ 5. php artisan optimize   │
 │ 6. horizon:terminate      │
 │ 7. queue:restart          │
-│ 8. docker image prune     │
+│ 8. pulse:restart          │
+│ 9. docker image prune     │
 └───────────────────────────┘
 ```
 
@@ -159,9 +166,10 @@ docker compose -f docker-compose.prod.yml exec -T sollu-app php artisan route:cl
 docker compose -f docker-compose.prod.yml exec -T sollu-app php artisan view:clear
 docker compose -f docker-compose.prod.yml exec -T sollu-app php artisan optimize
 
-# 5. Graceful restart Horizon & Queue worker agar membaca kode terbaru
+# 5. Graceful restart Horizon, Queue worker & Pulse agar membaca kode terbaru
 docker compose -f docker-compose.prod.yml exec -T sollu-app php artisan horizon:terminate || true
 docker compose -f docker-compose.prod.yml exec -T sollu-app php artisan queue:restart
+docker compose -f docker-compose.prod.yml exec -T sollu-app php artisan pulse:restart
 
 # 6. Bersihkan image lama yang sudah tidak terpakai
 docker image prune -f
@@ -193,9 +201,10 @@ docker compose exec sollu-app supervisorctl status
 Output yang diharapkan:
 ```
 cron                             RUNNING   pid 14, uptime 2 days, 4:12:00
+horizon                          RUNNING   pid 12, uptime 2 days, 4:12:00
 nginx                            RUNNING   pid 11, uptime 2 days, 4:12:00
 php-fpm                          RUNNING   pid 10, uptime 2 days, 4:12:00
-queue-worker                     RUNNING   pid 12, uptime 2 days, 4:12:00
+pulse-check                      RUNNING   pid 15, uptime 2 days, 4:12:00
 reverb                           RUNNING   pid 13, uptime 2 days, 4:12:00
 ```
 
