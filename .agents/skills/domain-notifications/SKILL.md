@@ -1,8 +1,13 @@
 ---
-trigger: always_on
+name: domain-notifications
+description: >-
+    Knowledge and standards for Notification System in Sollu App. Covers BaseNotification, 3-channel dispatch
+    (database, mail, broadcast/Reverb), Multi-Level Tenant Scoping (User, Business, Outlet via NotificationDispatcherService),
+    NotificationCategoryEnum, NotificationTypeEnum, NotificationScopeEnum, employee default passwords, UI popover, and pruning cron schedules.
+    Activate whenever creating, dispatching, or modifying notifications, broadcast events, email alerts, or notification retention.
 ---
 
-# Rule 11: Standarisasi Sistem Notifikasi & Isolasi Multi-Tenant
+# Domain Skill: Sistem Notifikasi & Isolasi Multi-Tenant
 
 Pedoman baku pembuatan, pengiriman, dan manajemen notifikasi di **Sollu App** (Laravel 11, Reverb WebSocket, Vue 3, Inertia.js 1.2).
 
@@ -10,14 +15,14 @@ Pedoman baku pembuatan, pengiriman, dan manajemen notifikasi di **Sollu App** (L
 
 ## 1. Prinsip Utama & Arsitektur Dasar
 
-**1. Wajib Mewarisi `BaseNotification`**
-Seluruh notifikasi baru di aplikasi **WAJIB** mewarisi abstract class `App\Notifications\BaseNotification` yang mengimplementasikan `ShouldQueue`.
-**DILARANG KERAS** membuat notifikasi yang mewarisi langsung `Illuminate\Notifications\Notification` tanpa struktur data baku Sollu.
+1. **Wajib Mewarisi `BaseNotification`:**
+   - Seluruh notifikasi baru di aplikasi **WAJIB** mewarisi abstract class `App\Notifications\BaseNotification` yang mengimplementasikan `ShouldQueue`.
+   - **DILARANG KERAS** membuat notifikasi yang mewarisi langsung `Illuminate\Notifications\Notification` tanpa struktur data baku Sollu.
 
-**2. Tiga Saluran Pengiriman Terintegrasi (`via`)**
-- **`database`**: Menyimpan record ke tabel `notifications` untuk dibaca di riwayat popover lonceng.
-- **`mail`**: Mengirimkan email formal (verifikasi, tagihan invoice, **password default karyawan baru**).
-- **`broadcast`**: Mengirimkan push real-time (< 100ms) via Laravel Reverb & Echo ke private channel (`App.Models.User.{id}`, `outlets.{id}`, `businesses.{id}`).
+2. **Tiga Saluran Pengiriman Terintegrasi (`via`):**
+   - **`database`**: Menyimpan record ke tabel `notifications` untuk dibaca di riwayat popover lonceng.
+   - **`mail`**: Mengirimkan email formal (verifikasi, tagihan invoice, password default karyawan baru).
+   - **`broadcast`**: Mengirimkan push real-time (< 100ms) via Laravel Reverb & Echo ke private channel (`App.Models.User.{id}`, `outlets.{id}`, `businesses.{id}`).
 
 ---
 
@@ -91,11 +96,7 @@ Saat menambahkan karyawan baru di `EmployeeService`:
 
 ## 7. Strategi Retensi Database & Scheduler Pruning
 
-Untuk mencegah database overload seiring pertambahan volume notifikasi:
-- **Kebijakan Pruning**:
-  - Notifikasi yang sudah dibaca (`read_at IS NOT NULL`) otomatis dihapus setelah berumur **$\ge 1\text{ tahun}$ (365 hari)**.
-  - Notifikasi berkas ekspor/impor kedaluwarsa (`expires_at`) otomatis dihapus setelah **30 hari**.
-  - Notifikasi usang tak pernah dibaca otomatis dihapus setelah **2 tahun**.
-- **Otomatisasi Cron**:
-  - Command: `php artisan notifications:prune --days=365`
-  - Terdaftar di `routes/console.php` berjalan harian pukul **02:30 WIB** dengan *chunked batch deletion* (1.000 baris per batch).
+- Notifikasi yang sudah dibaca (`read_at IS NOT NULL`) otomatis dihapus setelah $\ge 365$ hari.
+- Notifikasi berkas ekspor/impor kedaluwarsa (`expires_at`) otomatis dihapus setelah 30 hari.
+- Notifikasi usang tak pernah dibaca otomatis dihapus setelah 2 tahun.
+- Command: `php artisan notifications:prune --days=365` di `routes/console.php` harian pukul 02:30 WIB (chunked 1.000 baris/batch).

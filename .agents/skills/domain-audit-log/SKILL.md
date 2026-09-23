@@ -1,7 +1,14 @@
-# Rule 12: Standarisasi Modul Audit Log & Jejak Aktivitas
+---
+name: domain-audit-log
+description: >-
+    Knowledge and standards for Audit Log & Activity Tracking Domain in Sollu App. Covers ActivityLoggerInterface,
+    RecordActivityLogJob, AuditModuleEnum, table partitioning, event matrices, and partition pruning scheduler.
+    Activate whenever adding audit trails, logging user actions, managing activity logs, or working on compliance/audit data.
+---
+
+# Domain Skill: Modul Audit Log & Jejak Aktivitas
 
 Panduan dan aturan baku rekayasa perangkat lunak khusus **Modul Audit Log (Jejak Aktivitas)** pada **Sollu App**.
-Setiap AI Agent atau developer yang bekerja, merefaktor, atau membuat fitur baru di seluruh modul **WAJIB** membaca dan mematuhi aturan ini agar setiap aktivitas penting tercatat secara konsisten, aman, dan berkinerja tinggi.
 
 ---
 
@@ -43,8 +50,6 @@ Setiap AI Agent atau developer yang bekerja, merefaktor, atau membuat fitur baru
 ---
 
 ## 3. Matriks Standard Event Modul & Format Aksi
-
-Ketika membuat fitur baru atau merefaktor service lama, pastikan peristiwa penting berikut dicatat:
 
 | Modul (`module`) | Aksi Baku (`action`) | Contoh Deskripsi (`description`) |
 | :--- | :--- | :--- |
@@ -111,8 +116,5 @@ class ProductService
 
 ## 5. Kebijakan Retensi 1 Tahun (365 Hari) via Scheduler
 
-1. **Auto-Pruning Command:**
-   - `App\Console\Commands\ManageAuditPartitionsCommand` (`php artisan audit:manage-partitions --prune-days=365`).
-2. **Scheduler:**
-   - Dijalankan setiap hari pukul **02:00 WIB** di `routes/console.php`.
-   - Membuat partisi bulan berikutnya secara otomatis dan menghapus partisi yang seluruh datanya berumur $> 365$ hari via `DROP TABLE`.
+1. **Auto-Pruning Command:** `App\Console\Commands\ManageAuditPartitionsCommand` (`php artisan audit:manage-partitions --prune-days=365`).
+2. **Scheduler:** Dijalankan setiap hari pukul 02:00 WIB di `routes/console.php` (membuat partisi baru dan drop partisi $> 365$ hari).

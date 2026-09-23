@@ -1,15 +1,19 @@
 ---
-trigger: always_on
+name: domain-inventory
+description: >-
+    Knowledge and standards for Inventory Domain in Sollu App. Covers InventoryItem, InventoryBalance,
+    InventoryCostLayer (FIFO/Moving Average), InventoryMovement ledger, StockAdjustment, StockOpname,
+    StockTransfer, PurchaseOrder, GoodsReceipt, PurchaseReturn, Stock Freeze Guard, and Segregation of Duties (SoD).
+    Activate whenever working on inventory, stock costing, transfers, opname, goods receipt, or supplier returns.
 ---
 
-# Rule 10: Standar Domain Modul Inventori
+# Domain Skill: Modul Inventori (Inventory Domain)
 
 Panduan dan aturan baku rekayasa perangkat lunak khusus **Modul Inventory** pada **Sollu App**.
-Setiap AI Agent yang bekerja atau bersinggungan dengan modul inventori **WAJIB** membaca, mematuhi, dan memperbarui aturan ini agar eksekusi berjalan optimal dengan penggunaan *context window* yang minimal.
 
 ---
 
-## 1. Ringkasan Domain & Matriks Entitas (High-Density Cheat Sheet)
+## 1. Ringkasan Domain & Matriks Entitas
 
 Semua entitas inventori berada dalam namespace backend `App\Models\Inventory\` dan terisolasi secara multi-tenant (`business_id` dan `outlet_id`).
 
@@ -66,12 +70,6 @@ DILARANG KERAS menggunakan string literal untuk memvalidasi tipe atau status inv
 | `StockTransferStatus` | `Pending`, `Approved`, `InTransit`, `Completed`, `Rejected` | Status pengiriman `StockTransfer`. |
 | `PurchaseOrderStatus` | `Draft`, `Ordered`, `Received`, `Partial`, `Cancelled`, `Void` | Status pengadaan barang `PurchaseOrder`. |
 
-### Distribusi ke Frontend
-- Frontend Vue mengakses enum melalui:
-  - Script Setup: `const { enums, getOptions, getLabel, getColor } = useEnum()`
-  - Template: `$enums.InventoryMovementType.PurchaseIn`, `$enums.AdjustmentStatus.Draft`
-  - Dropdown Options: `:options="getOptions('AdjustmentReason')"`
-
 ---
 
 ## 3. Invarian Kritis Costing Engine & COGS (Valuasi Stok)
@@ -119,85 +117,33 @@ Semua operasi penambahan, pengurangan, atau penyesuaian stok **WAJIB** melalui `
 ## 4. Pembekuan Stok Outlet (Stock Freeze Guard) & Pemisahan Tugas (Segregation of Duties)
 
 ### 4.1. Pembekuan Stok Outlet (Stock Freeze Guard)
-
 Outlet dapat dibekukan (`is_stock_frozen = true`) untuk keperluan stock opname atau audit fisik.
-
-1. **Pemeriksaan Wajib:**
-   - Semua mutasi stok (Penyesuaian Stok, Transfer, PO Receive, Void) WAJIB memeriksa status pembekuan:
-     ```php
-     $this->stockFreezeService->assertNotFrozen($outlet);
-     ```
-2. **Middleware Route:**
-   - Gunakan middleware `stock.not.frozen` pada grup route yang memutasi stok fisik.
-3. **Transfer Antar-Outlet:**
-   - Transfer stok WAJIB memvalidasi kedua outlet: `$fromOutlet` dan `$toOutlet` tidak dalam kondisi beku.
+1. Semua mutasi stok (Penyesuaian Stok, Transfer, PO Receive, Void) WAJIB memeriksa status pembekuan via `$this->stockFreezeService->assertNotFrozen($outlet)`.
+2. Middleware route: `stock.not.frozen`.
+3. Transfer stok WAJIB memvalidasi kedua outlet: `$fromOutlet` dan `$toOutlet` tidak beku.
 
 ### 4.2. Kebijakan Pemisahan Tugas (Segregation of Duties / SoD)
-
-Untuk fleksibilitas berbagai jenis merchant (usaha mikro/kecil vs korporasi multi-outlet), aturan pencegahan *self-approval* dan pemisahan tugas diatur secara dinamis melalui konfigurasi `business->settings['inventory_sod']` dan dievaluasi terpusat via `App\Services\App\Inventory\InventorySodService`.
-
-1. **Skema JSON Konfigurasi:**
-   ```json
-   {
-     "inventory_sod": {
-       "enabled": false,
-       "allow_owner_bypass": true,
-       "rules": {
-         "stock_adjustment": true,
-         "stock_opname": true,
-         "stock_transfer_approval": true,
-         "stock_transfer_receive": true,
-         "purchase_order_receive": false,
-         "direct_purchase_allowed": true
-       }
-     }
-   }
-   ```
-2. **Matriks 5 Alur Terkendali SoD:**
-   - **Penyesuaian Stok (`StockAdjustment`):** Jika `rules.stock_adjustment = true`, pembuat draf dilarang menyetujui drafnya sendiri (`created_by !== approved_by`).
-   - **Stock Opname (`StockOpname`):** Jika `rules.stock_opname = true`, petugas pencatat hitungan fisik dilarang menyetujui/memfinalisasi opname (`created_by !== approved_by`).
-   - **Transfer Stok - Persetujuan (`StockTransfer`):** Jika `rules.stock_transfer_approval = true`, pengaju transfer dilarang menyetujui transfer (`requested_by !== approved_by`).
-   - **Transfer Stok - Penerimaan (`StockTransfer`):** Jika `rules.stock_transfer_receive = true`, pengirim dilarang mengeksekusi penerimaan di outlet tujuan (`shipper !== receiver`).
-   - **Penerimaan Barang PO (`GoodsReceipt`):** Jika `rules.purchase_order_receive = true`, pembuat PO dilarang mencatat penerimaan fisik barang (`po.created_by !== gr.received_by`).
-3. **Aturan Evaluasi di Service Layer:**
-   - **DILARANG KERAS** menulis pengecekan hardcode manual seperti `if ($user->id === $model->created_by)` di dalam service atau controller.
-   - **WAJIB** panggil method asersi terpusat dari `InventorySodService` (misal: `$this->inventorySodService->assertCanApproveAdjustment($adjustment, $user)`).
+Dievaluasi terpusat via `App\Services\App\Inventory\InventorySodService` berdasarkan `business->settings['inventory_sod']`:
+- **Stock Adjustment:** Draf creator dilarang menyetujui drafnya sendiri.
+- **Stock Opname:** Petugas hitungan fisik dilarang menyetujui opname.
+- **Transfer Approval:** Pengaju transfer dilarang menyetujui transfer.
+- **Transfer Receive:** Pengirim dilarang mengeksekusi penerimaan di outlet tujuan.
+- **PO Receive:** Pembuat PO dilarang mencatat penerimaan fisik barang.
+- **DILARANG KERAS** menulis pengecekan hardcode manual di controller. WAJIB panggil `InventorySodService`.
 
 ---
 
 ## 5. Komunikasi Lintas Modul & Integrasi Penjualan (Decoupling)
 
-1. **🚨 LARANGAN KERAS MUTASI LANGSUNG:**
-   - Modul POS / Kasir / Transaksi / Penjualan **DILARANG KERAS** melakukan operasi Eloquent `insert`/`update`/`delete` langsung pada tabel `inventory_balances`, `inventory_cost_layers`, atau `inventory_movements`.
-2. **Pemotongan Stok Penjualan:**
-   - Modul Transaksi WAJIB memanggil `App\Services\App\Transaction\InventoryDeductionService` atau melempar Domain Event (`TransactionCompleted`) yang ditangkap oleh listener inventori.
-3. **Komposisi Resep / Bahan Baku:**
-   - Pemotongan item komposit/resep diproses secara transaksional per bahan penyusun dengan mencatat movement `InventoryMovementType::SalesOut`.
+1. **LARANGAN KERAS MUTASI LANGSUNG:** Modul POS / Kasir / Penjualan dilarang mutasi langsung ke `inventory_balances`, `inventory_cost_layers`, atau `inventory_movements`.
+2. **Pemotongan Stok:** Transaksi memanggil `InventoryDeductionService` atau melempar Domain Event (`TransactionCompleted`).
+3. **Resep / Bahan Baku:** Diproses secara transaksional per bahan penyusun dengan mencatat movement `InventoryMovementType::SalesOut`.
 
 ---
 
 ## 6. Standar Backend & Frontend Khusus Inventori
 
-1. **Thin Controller:**
-   - Controller di `app/Http/Controllers/App/Inventory/` hanya bertugas menerima HTTP request, otorisasi, memanggil Domain Service, dan render respons.
-2. **Database Transaction:**
-   - Setiap operasi mutasi inventori di Service Layer WAJIB dibungkus dalam `DB::transaction(function () { ... })`.
-3. **Anti Over-Fetching di `index()`:**
-   - Endpoint `index()` HANYA me-load data ringkasan paginasi. Detail antrean cost layer dan riwayat mutasi dimuat on-demand via `show()` / PopUp drawer.
-4. **Layout Halaman & Filter:**
-   - Seluruh halaman inventori menggunakan `<MainPage>` dan toolbar `ActionBar` yang diekstrak ke `{Entity}Filter.vue`. Single action row click `@row-click="openDetail"` dengan `:action="false"`.
-
----
-
-## 7. Protokol Pemeliharaan Mandiri Agen (Self-Evolution Mandate)
-
-> [!IMPORTANT]
-> **KEWAJIBAN PEMELIHARAAN OTOMATIS OLEH AI AGENT:**
-> Setiap kali seorang AI Agent:
-> 1. Menambahkan entitas, relasi, atau tabel baru pada domain inventori.
-> 2. Menambah kasus baru pada enum inventori (`InventoryMovementType`, `AdjustmentReason`, dll.).
-> 3. Mengubah formula atau logika pada `InventoryCostingService` / Service inventori lainnya.
-> 4. Mengubah alur otorisasi, middleware, atau rute `routes/app/inventories.php`.
-> 5. Merefaktor atau menambahkan komponen Vue/Inertia pada halaman inventori.
->
-> **Agent WAJIB secara proaktif memperbarui file aturan ini (`.agents/rules/10-domain-inventory.md`)** agar tabel matriks, enum, dan invariant di atas selalu akurat dan sinkron dengan codebase riil. Jadikan pembaruan aturan ini sebagai bagian dari *Definition of Done (DoD)* sebelum menyelesaikan pekerjaan.
+1. **Thin Controller:** Controller di `app/Http/Controllers/App/Inventory/` hanya HTTP request, otorisasi, panggil Service, dan render respons.
+2. **Database Transaction:** Setiap mutasi di Service Layer WAJIB dibungkus `DB::transaction(function () { ... })`.
+3. **Anti Over-Fetching:** `index()` HANYA paginasi ringkasan. Detail cost layer & riwayat pergerakan dimuat on-demand via `show()` / PopUp drawer.
+4. **Layout Halaman:** Menggunakan `<MainPage>`, `ActionBar` diekstrak ke `{Entity}Filter.vue`, single action row click `@row-click="openDetail"` dengan `:action="false"`.
