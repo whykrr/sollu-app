@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col h-full">
-        <!-- Stepper -->
+        <!-- Stepper Header -->
         <div class="flex items-center justify-center mb-6">
             <div class="flex items-center space-x-4">
                 <div class="flex items-center">
@@ -13,8 +13,9 @@
                     <span
                         class="ml-2 font-medium"
                         :class="step >= 1 ? 'text-slate-800' : 'text-slate-400'"
-                        >Informasi</span
                     >
+                        Informasi
+                    </span>
                 </div>
                 <div class="w-12 h-0.5 bg-slate-200" :class="{ 'bg-main': step >= 2 }"></div>
                 <div class="flex items-center">
@@ -27,8 +28,9 @@
                     <span
                         class="ml-2 font-medium"
                         :class="step >= 2 ? 'text-slate-800' : 'text-slate-400'"
-                        >{{ hasProratedAmount ? 'Estimasi' : 'Konfirmasi' }}</span
                     >
+                        {{ hasProratedAmount ? 'Estimasi' : 'Konfirmasi' }}
+                    </span>
                 </div>
 
                 <template v-if="hasProratedAmount">
@@ -45,8 +47,9 @@
                         <span
                             class="ml-2 font-medium"
                             :class="step >= 3 ? 'text-slate-800' : 'text-slate-400'"
-                            >Pembayaran</span
                         >
+                            Pembayaran
+                        </span>
                     </div>
                 </template>
             </div>
@@ -55,8 +58,8 @@
         <!-- Step 1: Informasi Dasar -->
         <div v-if="step === 1" class="flex-1">
             <div class="mb-4">
-                <p class="text-sm text-slate-500">
-                    Lengkapi informasi dasar mengenai outlet baru Anda.
+                <p class="text-xs text-slate-500">
+                    Lengkapi informasi dasar mengenai outlet baru tokomu.
                 </p>
             </div>
             <div class="space-y-2">
@@ -64,14 +67,14 @@
                     id="name"
                     v-model="formOutlet.name"
                     label="Nama Outlet"
-                    placeholder="Contoh: Cabang Sudirman"
+                    placeholder="Contoh: Cabang Sudirman / Outlet Pusat"
                     :feedback="formOutlet.errors.name"
                     required
                 />
                 <TextareaField
                     id="address"
                     v-model="formOutlet.address"
-                    placeholder="Masukkan alamat lengkap outlet"
+                    placeholder="Masukkan alamat lengkap outlet..."
                     :feedback="formOutlet.errors.address"
                     label="Alamat Lengkap"
                     rows="4"
@@ -82,7 +85,7 @@
         <!-- Step 2: Konfirmasi / Estimasi -->
         <div v-if="step === 2" class="flex-1">
             <div class="mb-4">
-                <p class="text-sm text-slate-500">
+                <p class="text-xs text-slate-500">
                     {{
                         hasProratedAmount
                             ? 'Berikut adalah estimasi biaya prorasi untuk penambahan outlet.'
@@ -90,19 +93,19 @@
                     }}
                 </p>
             </div>
-            <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 mb-4">
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-4">
                 <div class="mb-3">
-                    <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold"
-                        >Nama Outlet</span
-                    >
+                    <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">
+                        Nama Outlet
+                    </span>
                     <p class="font-medium text-slate-800 mt-1">
                         {{ formOutlet.name || '-' }}
                     </p>
                 </div>
                 <div>
-                    <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold"
-                        >Alamat</span
-                    >
+                    <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">
+                        Alamat
+                    </span>
                     <p class="font-medium text-slate-800 mt-1 whitespace-pre-wrap">
                         {{ formOutlet.address || '-' }}
                     </p>
@@ -113,29 +116,27 @@
                 v-if="hasProratedAmount"
                 class="border border-slate-200 rounded-xl p-4 bg-white mb-4"
             >
-                <h4 class="font-bold text-gray-800 mb-3 text-sm">Estimasi Tagihan Prorasi</h4>
+                <h4 class="font-bold text-slate-800 mb-3 text-sm">Estimasi Tagihan Prorasi</h4>
                 <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                    <span class="text-sm text-gray-600">Penambahan 1 Outlet Baru</span>
-                    <span class="font-semibold text-gray-800">{{ formatIDR(proratedAmount) }}</span>
+                    <span class="text-xs text-slate-600">Penambahan 1 Outlet Baru</span>
+                    <span class="font-semibold text-slate-800">{{ formatIDR(proratedAmount) }}</span>
                 </div>
                 <div class="flex justify-between items-center py-3 mt-1">
-                    <span class="font-bold text-gray-800">Total Pembayaran</span>
-                    <span class="font-bold text-lg text-main">{{ formatIDR(proratedAmount) }}</span>
+                    <span class="font-bold text-slate-800 text-sm">Total Pembayaran</span>
+                    <span class="font-bold text-base text-main">{{ formatIDR(proratedAmount) }}</span>
                 </div>
-                <p class="text-xs text-gray-500 mt-2 leading-relaxed">
-                    * Tagihan prorasi dihitung berdasarkan sisa hari aktif dari paket langganan Anda
-                    saat ini. Outlet akan aktif setelah pembayaran diselesaikan.
+                <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+                    * Tagihan prorasi dihitung berdasarkan sisa hari aktif dari paket langganan tokomu saat ini. Outlet akan aktif setelah pembayaran diselesaikan.
                 </p>
             </div>
 
             <div
                 v-if="!hasProratedAmount"
-                class="bg-blue-50 text-blue-700 p-4 rounded-xl text-sm flex gap-3 items-start"
+                class="bg-blue-50 text-blue-700 p-3.5 rounded-xl text-xs flex gap-2.5 items-start border border-blue-100"
             >
-                <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5" />
+                <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5 text-blue-500 shrink-0" />
                 <p>
-                    Setelah outlet dibuat, Anda dapat mengkonfigurasi pengaturan tambahan seperti
-                    karyawan, jam operasional, dan perangkat di halaman detail outlet.
+                    Setelah outlet dibuat, kamu dapat mengelola pengaturan tambahan seperti perangkat kasir, meja, dan jam operasional.
                 </p>
             </div>
         </div>
@@ -143,18 +144,18 @@
         <!-- Step 3: Pembayaran -->
         <div v-if="step === 3 && hasProratedAmount" class="flex-1">
             <div class="mb-4">
-                <p class="text-sm text-slate-500">
+                <p class="text-xs text-slate-500">
                     Pilih metode pembayaran untuk melunasi tagihan outlet baru.
                 </p>
             </div>
 
-            <div class="space-y-3">
+            <div class="space-y-2.5">
                 <label
-                    class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none"
+                    class="relative flex cursor-pointer rounded-lg border bg-white p-3.5 focus:outline-none transition-colors"
                     :class="
                         formOutlet.payment_method === 'midtrans'
                             ? 'border-main ring-1 ring-main bg-main/5'
-                            : 'border-gray-300'
+                            : 'border-slate-200 hover:border-slate-300'
                     "
                 >
                     <input
@@ -166,29 +167,27 @@
                     />
                     <span class="flex flex-1">
                         <span class="flex flex-col">
-                            <span class="block text-sm font-bold text-gray-900"
-                                >Pembayaran Online Otomatis</span
-                            >
-                            <span
-                                class="mt-1 flex items-center text-xs text-gray-500 leading-relaxed"
-                                >QRIS, Virtual Account, Kartu Kredit, Gopay. Verifikasi
-                                instan.</span
-                            >
+                            <span class="block text-sm font-semibold text-slate-900">
+                                Pembayaran Online Otomatis
+                            </span>
+                            <span class="mt-1 flex items-center text-xs text-slate-500 leading-relaxed">
+                                QRIS, Virtual Account, Kartu Kredit, Gopay. Verifikasi instan.
+                            </span>
                         </span>
                     </span>
                     <FontAwesomeIcon
                         v-if="formOutlet.payment_method === 'midtrans'"
                         :icon="faCheckCircle"
-                        class="h-5 w-5 text-main"
+                        class="size-5 text-main shrink-0 mt-0.5"
                     />
                 </label>
 
                 <label
-                    class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none"
+                    class="relative flex cursor-pointer rounded-lg border bg-white p-3.5 focus:outline-none transition-colors"
                     :class="
                         formOutlet.payment_method === 'manual'
                             ? 'border-main ring-1 ring-main bg-main/5'
-                            : 'border-gray-300'
+                            : 'border-slate-200 hover:border-slate-300'
                     "
                 >
                     <input
@@ -200,50 +199,67 @@
                     />
                     <span class="flex flex-1">
                         <span class="flex flex-col">
-                            <span class="block text-sm font-bold text-gray-900"
-                                >Transfer Bank Manual</span
-                            >
-                            <span
-                                class="mt-1 flex items-center text-xs text-gray-500 leading-relaxed"
-                                >Transfer langsung ke rekening resmi. Butuh unggah bukti
-                                bayar.</span
-                            >
+                            <span class="block text-sm font-semibold text-slate-900">
+                                Transfer Bank Manual
+                            </span>
+                            <span class="mt-1 flex items-center text-xs text-slate-500 leading-relaxed">
+                                Transfer langsung ke rekening resmi. Butuh unggah bukti bayar.
+                            </span>
                         </span>
                     </span>
                     <FontAwesomeIcon
                         v-if="formOutlet.payment_method === 'manual'"
                         :icon="faCheckCircle"
-                        class="h-5 w-5 text-main"
+                        class="size-5 text-main shrink-0 mt-0.5"
                     />
                 </label>
             </div>
 
             <div
-                class="bg-blue-50 text-blue-700 p-4 rounded-xl text-sm flex gap-3 items-start mt-4"
+                class="bg-blue-50 text-blue-700 p-3.5 rounded-xl text-xs flex gap-2.5 items-start mt-4 border border-blue-100"
             >
-                <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5" />
-                <p>Anda akan dialihkan ke halaman tagihan setelah menekan tombol "Buat Outlet".</p>
+                <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5 text-blue-500 shrink-0" />
+                <p>Kamu akan dialihkan ke halaman tagihan setelah menekan tombol "Buat Outlet".</p>
             </div>
         </div>
     </div>
 
     <Teleport v-if="isMounted" to="#popUpFooter">
         <div class="flex justify-between w-full">
-            <button v-if="step > 1" class="btn btn-outline-main" @click="step--">Kembali</button>
-            <div v-else></div>
-            <!-- Spacer -->
+            <button
+                v-if="step > 1"
+                type="button"
+                class="btn btn-secondary px-4 py-2 rounded-lg text-sm cursor-pointer"
+                @click="step--"
+            >
+                Kembali
+            </button>
+            <button
+                v-else
+                type="button"
+                class="btn btn-secondary px-4 py-2 rounded-lg text-sm cursor-pointer"
+                @click="handleCancel"
+            >
+                Batal
+            </button>
 
-            <button v-if="step < totalSteps" class="btn btn-main" @click="nextStep">
+            <button
+                v-if="step < totalSteps"
+                type="button"
+                class="btn btn-main px-5 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                @click="nextStep"
+            >
                 Selanjutnya
             </button>
             <button
                 v-if="step === totalSteps"
-                class="btn btn-success"
+                type="button"
+                class="btn btn-main px-5 py-2 rounded-lg text-sm font-medium cursor-pointer"
                 :disabled="formOutlet.processing"
                 @click="submitForm"
             >
-                <FontAwesomeIcon :icon="faCheck" class="mr-1" />
-                Buat Outlet
+                <FontAwesomeIcon :icon="faCheck" class="mr-1.5" />
+                <span>Buat Outlet</span>
             </button>
         </div>
     </Teleport>
@@ -254,13 +270,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faInfoCircle, faCheck, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
-import { usePopUpStore } from '@/store/popup'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import { formatIDR } from '@/Composable/currency-format'
 
 import TextField from '@/Components/Form/TextField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 
-const popUpStore = usePopUpStore()
 const isMounted = ref(false)
 
 const props = defineProps({
@@ -290,33 +305,27 @@ const totalSteps = computed(() => {
 const step = ref(1)
 
 const formOutlet = useForm({
-    name: null,
-    address: null,
+    name: '',
+    address: '',
     payment_method: 'midtrans',
 })
 
+const { handleCancel, forceClose } = useFormDirtyGuard({ form: formOutlet })
+
 const nextStep = () => {
-    // Basic validation
     if (!formOutlet.name) {
-        formOutlet.setError('name', 'Nama outlet wajib diisi.')
+        formOutlet.setError('name', 'Nama outlet belum diisi nih.')
         return
     }
     formOutlet.clearErrors()
     step.value++
 }
 
-const closeWizard = () => {
-    formOutlet.reset()
-    formOutlet.clearErrors()
-    step.value = 1
-    popUpStore.close()
-}
-
 const submitForm = () => {
     formOutlet.post(route('settings.outlets.store'), {
         preserveScroll: true,
         onSuccess: () => {
-            closeWizard()
+            forceClose()
         },
     })
 }

@@ -3,12 +3,17 @@
         <template #header>
             <MainPageHeader
                 title="Data Outlet"
-                description="Lihat dan kelola semua outlet yang terdaftar di bisnismu."
+                description="Lihat dan kelola seluruh cabang dan outlet operasional yang terdaftar di bisnismu."
             />
         </template>
 
         <template #filter>
-            <Filter :filters="params" @create="handleAddOutlet" />
+            <OutletFilter
+                :filters="params"
+                :view-mode="viewMode"
+                @update:view-mode="setViewMode"
+                @create="handleAddOutlet"
+            />
         </template>
 
         <!-- Modal Tagihan Penambahan Outlet Belum Dibayar -->
@@ -18,185 +23,189 @@
             @close="showUnpaidModal = false"
         />
 
-        <!-- Outlets Grid List -->
-        <div
-            v-if="outlets?.data && outlets.data.length > 0"
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-        >
-            <div
-                v-for="outlet in outlets.data"
-                :key="outlet.id"
-                class="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between transition-all hover:border-slate-300 hover:bg-slate-50/50"
+        <!-- Konten Utama: Dual Mode (Tabel & Kartu) -->
+        <template v-if="outlets?.data && outlets.data.length > 0">
+            <!-- Mode Tabel -->
+            <Table
+                v-if="viewMode === 'table'"
+                :headers="tableHeaders"
+                :data="outlets.data"
+                :action="true"
+                :sort="params?.sort"
+                :sort-direction="params?.direction"
+                @row-click="openEdit"
             >
-                <div>
-                    <!-- Header Card -->
-                    <div class="flex items-start justify-between gap-2 mb-3">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                            <div
-                                class="size-9 rounded-lg flex items-center justify-center shrink-0"
-                                :class="
-                                    outlet.is_main_outlet
-                                        ? 'bg-amber-100 text-amber-600'
-                                        : 'bg-main/10 text-main'
-                                "
-                            >
-                                <FontAwesomeIcon :icon="faStore" />
-                            </div>
-                            <div class="min-w-0">
-                                <h4
-                                    class="font-semibold text-slate-800 text-sm leading-snug truncate"
-                                    :title="outlet.name"
-                                >
-                                    {{ outlet.name }}
-                                </h4>
-                                <span
-                                    v-if="outlet.is_main_outlet"
-                                    class="text-xs font-medium text-amber-600 flex items-center gap-1"
-                                >
-                                    <FontAwesomeIcon :icon="faStar" class="text-[10px]" />
-                                    Outlet Utama
-                                </span>
-                                <span v-else class="text-xs text-slate-500"> Cabang </span>
-                            </div>
-                        </div>
-                        <span
-                            v-if="outlet.is_active"
-                            class="badge badge-success text-[11px] font-semibold shrink-0 inline-flex items-center gap-1"
+                <template #name="{ row }">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <div
+                            class="size-7 rounded-md flex items-center justify-center shrink-0 text-xs"
+                            :class="
+                                row.is_main_outlet
+                                    ? 'bg-amber-100 text-amber-600'
+                                    : 'bg-main/10 text-main'
+                            "
                         >
-                            <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Aktif
-                        </span>
-                        <span
-                            v-else
-                            class="badge badge-danger text-[11px] font-semibold shrink-0 inline-flex items-center gap-1"
-                        >
-                            <span class="size-1.5 rounded-full bg-rose-500"></span>
-                            Nonaktif
-                        </span>
-                    </div>
-
-                    <!-- Metadata Body -->
-                    <div
-                        class="space-y-1.5 text-xs text-slate-600 py-2 border-t border-b border-slate-100 my-3"
-                    >
-                        <div class="flex justify-between gap-2">
-                            <span class="text-slate-400 shrink-0">Alamat:</span>
+                            <FontAwesomeIcon :icon="faStore" />
+                        </div>
+                        <div class="flex flex-col min-w-0">
                             <span
-                                class="text-slate-700 text-right line-clamp-2"
-                                :title="outlet.address || '-'"
+                                class="font-medium text-slate-800 text-xs truncate"
+                                :title="row.name"
                             >
-                                {{ outlet.address || '-' }}
+                                {{ row.name }}
                             </span>
-                        </div>
-                        <div class="flex justify-between gap-2">
-                            <span class="text-slate-400 shrink-0">Telepon:</span>
-                            <span class="text-slate-700 font-mono">
-                                {{ outlet.phone || '-' }}
-                            </span>
-                        </div>
-                        <div class="flex justify-between gap-2">
-                            <span class="text-slate-400 shrink-0">Email:</span>
                             <span
-                                class="text-slate-700 truncate max-w-[180px]"
-                                :title="outlet.email || '-'"
+                                v-if="row.is_main_outlet"
+                                class="text-[11px] font-medium text-amber-600 inline-flex items-center gap-1"
                             >
-                                {{ outlet.email || '-' }}
-                            </span>
-                        </div>
-                        <div class="flex justify-between gap-2">
-                            <span class="text-slate-400 shrink-0">Dibuat:</span>
-                            <span class="text-slate-700">
-                                {{ formatDateTimeSimple(outlet.created_at) }}
+                                <FontAwesomeIcon :icon="faStar" class="text-[9px]" />
+                                <span>Outlet Utama</span>
                             </span>
                         </div>
                     </div>
-                </div>
+                </template>
 
-                <!-- Footer Card Action Area -->
-                <div class="flex items-center justify-between gap-2 pt-2">
-                    <!-- Left: Main Outlet status / trigger -->
+                <template #address="{ row }">
                     <span
-                        v-if="outlet.is_main_outlet"
-                        class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200/80 px-2.5 py-1.5 rounded-lg"
+                        class="text-xs text-slate-600 truncate max-w-xs block"
+                        :title="row.address || '-'"
                     >
-                        <FontAwesomeIcon :icon="faStar" />
-                        <span>Outlet Utama</span>
+                        {{ row.address || '-' }}
                     </span>
-                    <button
-                        v-else
-                        type="button"
-                        class="btn btn-outline-main btn-sm text-xs rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
-                        :disabled="!outlet.is_active"
-                        :title="
-                            !outlet.is_active
-                                ? 'Aktifkan outlet terlebih dahulu untuk menjadikannya outlet utama'
-                                : 'Jadikan Outlet Utama'
-                        "
-                        @click="confirmSetMainOutlet(outlet)"
-                    >
-                        <FontAwesomeIcon :icon="faStar" />
-                        <span>Jadikan Outlet Utama</span>
-                    </button>
+                </template>
 
-                    <!-- Right: Edit & Status actions -->
-                    <div class="flex items-center gap-1">
+                <template #phone="{ row }">
+                    <span v-if="row.phone" class="text-xs text-slate-700 font-mono">
+                        {{ row.phone }}
+                    </span>
+                    <span v-else class="text-xs text-slate-400">-</span>
+                </template>
+
+                <template #email="{ row }">
+                    <span
+                        v-if="row.email"
+                        class="text-xs text-slate-600 truncate max-w-[180px] block"
+                        :title="row.email"
+                    >
+                        {{ row.email }}
+                    </span>
+                    <span v-else class="text-xs text-slate-400">-</span>
+                </template>
+
+                <template #is_active="{ row }">
+                    <span
+                        v-if="row.is_active"
+                        class="badge badge-success text-[11px] font-semibold shrink-0 inline-flex items-center gap-1"
+                    >
+                        <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Aktif
+                    </span>
+                    <span
+                        v-else
+                        class="badge badge-danger text-[11px] font-semibold shrink-0 inline-flex items-center gap-1"
+                    >
+                        <span class="size-1.5 rounded-full bg-rose-500"></span>
+                        Nonaktif
+                    </span>
+                </template>
+
+                <template #actions="{ row }">
+                    <div class="flex items-center gap-1 justify-end" @click.stop>
+                        <button
+                            v-if="!row.is_main_outlet"
+                            type="button"
+                            class="btn btn-outline-main btn-xs rounded-lg px-2 py-1 flex items-center gap-1 cursor-pointer"
+                            :disabled="!row.is_active"
+                            :title="
+                                !row.is_active
+                                    ? 'Aktifkan outlet terlebih dahulu untuk menjadikannya outlet utama'
+                                    : 'Jadikan Outlet Utama'
+                            "
+                            @click.stop="confirmSetMainOutlet(row)"
+                        >
+                            <FontAwesomeIcon :icon="faStar" class="text-[10px]" />
+                            <span class="hidden sm:inline">Utama</span>
+                        </button>
+
                         <button
                             type="button"
-                            class="btn btn-highlight-main btn-sm rounded-lg"
+                            class="btn btn-highlight-main btn-xs rounded-lg cursor-pointer"
                             title="Ubah Data Outlet"
-                            @click="openEdit(outlet)"
+                            @click.stop="openEdit(row)"
                         >
                             <FontAwesomeIcon :icon="faPencil" />
                         </button>
 
-                        <template v-if="!outlet.is_main_outlet">
+                        <template v-if="!row.is_main_outlet">
                             <button
-                                v-if="outlet.is_active"
+                                v-if="row.is_active"
                                 type="button"
-                                class="btn btn-highlight-success btn-sm rounded-lg"
+                                class="btn btn-highlight-danger btn-xs rounded-lg cursor-pointer"
                                 title="Nonaktifkan Outlet"
-                                @click="disabledOutlet(outlet.id)"
+                                @click.stop="disabledOutlet(row.id)"
                             >
                                 <FontAwesomeIcon :icon="faToggleOff" />
                             </button>
                             <button
                                 v-else
                                 type="button"
-                                class="btn btn-highlight-danger btn-sm rounded-lg"
+                                class="btn btn-highlight-success btn-xs rounded-lg cursor-pointer"
                                 title="Aktifkan Outlet"
-                                @click="enabledOutlet(outlet.id)"
+                                @click.stop="enabledOutlet(row.id)"
                             >
                                 <FontAwesomeIcon :icon="faToggleOn" />
                             </button>
                         </template>
                     </div>
-                </div>
-            </div>
-        </div>
+                </template>
+            </Table>
+
+            <!-- Mode Kartu (Grid) -->
+            <DataGrid
+                v-else
+                :data="outlets.data"
+                grid-class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+                @row-click="openEdit"
+            >
+                <template #default="{ row }">
+                    <OutletCard
+                        :outlet="row"
+                        @click="openEdit(row)"
+                        @edit="openEdit(row)"
+                        @set-main="confirmSetMainOutlet"
+                        @disable="disabledOutlet"
+                        @enable="enabledOutlet"
+                    />
+                </template>
+            </DataGrid>
+        </template>
 
         <!-- Empty State -->
         <div
             v-else
-            class="bg-white rounded-xl border border-slate-200 p-12 text-center flex flex-col items-center justify-center"
+            class="bg-white rounded-xl border border-slate-200 p-12 text-center flex flex-col items-center justify-center my-4"
         >
             <div
                 class="size-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-2xl mb-4"
             >
                 <FontAwesomeIcon :icon="faStore" />
             </div>
-            <h3 class="text-base font-semibold text-slate-800 mb-1">Belum Ada Outlet Terdaftar</h3>
+            <h3 class="text-base font-semibold text-slate-800 mb-1">
+                Belum Ada Outlet Terdaftar
+            </h3>
             <p class="text-xs text-slate-500 max-w-sm mb-6">
-                Daftarkan cabang atau outlet baru untuk mengelola operasional dan transaksi bisnis
-                Anda.
+                Daftarkan cabang atau outlet baru untuk mengelola operasional dan transaksi bisnismu.
             </p>
             <button
-                class="btn btn-main px-4 py-2 rounded-lg flex items-center gap-2"
+                type="button"
+                class="btn btn-main px-4 py-2 rounded-lg flex items-center gap-2 cursor-pointer"
                 @click="handleAddOutlet"
             >
                 <FontAwesomeIcon :icon="faPlus" />
                 <span>Tambah Outlet Sekarang</span>
             </button>
         </div>
+
         <template #footer>
             <Pagination
                 :links="outlets.links"
@@ -210,7 +219,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
@@ -223,13 +232,15 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 import MainPage from '@/Components/UI/MainPage.vue'
+import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
+import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
-import Filter from './Components/Filter.vue'
+import DataGrid from '@/Components/DataGrid/DataGrid.vue'
+import OutletFilter from './Components/OutletFilter.vue'
+import OutletCard from './Components/OutletCard.vue'
 import Wizard from './Components/Wizard.vue'
 import UnpaidInvoiceModal from './Components/UnpaidInvoiceModal.vue'
 import EditOutletPopUp from './Components/EditOutletPopUp.vue'
-import { formatDateTimeSimple } from '@/Composable/date'
-import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'
 
@@ -237,14 +248,44 @@ const popUpStore = usePopUpStore()
 const modalStore = useModalStore()
 
 const props = defineProps({
-    outlets: Object,
-    params: Object,
-    subscription: Object,
-    proratedAmount: Number,
+    outlets: {
+        type: Object,
+        default: () => ({ data: [] }),
+    },
+    params: {
+        type: Object,
+        default: () => ({}),
+    },
+    subscription: {
+        type: Object,
+        default: null,
+    },
+    proratedAmount: {
+        type: Number,
+        default: 0,
+    },
 })
+
+// View Mode state (saved in localStorage)
+const STORAGE_KEY = 'sollu_outlets_view_mode'
+const viewMode = ref(localStorage.getItem(STORAGE_KEY) || 'table')
+
+const setViewMode = mode => {
+    viewMode.value = mode
+    localStorage.setItem(STORAGE_KEY, mode)
+}
 
 const showUnpaidModal = ref(false)
 const unpaidInvoice = ref({ number: '', url: '' })
+
+// Table Headers configuration
+const tableHeaders = computed(() => [
+    { label: 'Nama Outlet', field: 'name', slot: 'name', sortable: true },
+    { label: 'Alamat', field: 'address', slot: 'address', show: 'sm' },
+    { label: 'Telepon', field: 'phone', slot: 'phone', show: 'md' },
+    { label: 'Email', field: 'email', slot: 'email', show: 'lg' },
+    { label: 'Status', field: 'is_active', slot: 'is_active' },
+])
 
 const handleAddOutlet = () => {
     popUpStore.open({
@@ -261,6 +302,7 @@ const handleAddOutlet = () => {
 const openEdit = outlet => {
     popUpStore.open({
         title: 'Ubah Data Outlet',
+        size: 'md',
         component: EditOutletPopUp,
         props: {
             outlet,
@@ -273,9 +315,10 @@ const confirmSetMainOutlet = outlet => {
 
     modalStore.confirm({
         title: 'Jadikan Outlet Utama?',
-        message: `Apakah Anda yakin ingin menetapkan "${outlet.name}" sebagai Outlet Utama? Status outlet utama pada cabang sebelumnya akan dialihkan.`,
+        message: `Apakah kamu yakin ingin menetapkan "${outlet.name}" sebagai Outlet Utama? Status outlet utama pada cabang sebelumnya akan dialihkan.`,
         confirmText: 'Ya, Jadikan Utama',
         cancelText: 'Batal',
+        type: 'warning',
         onConfirm: () => {
             router.put(
                 route('settings.outlets.set-main', { outlet: outlet.id }),
@@ -290,10 +333,19 @@ const confirmSetMainOutlet = outlet => {
 }
 
 const disabledOutlet = id => {
-    router.delete(route('settings.outlets.disabled', { outlet: id }), {
-        only: ['outlets'],
-        preserveState: true,
-        preserveScroll: true,
+    modalStore.confirm({
+        title: 'Nonaktifkan Outlet?',
+        message: 'Outlet ini akan dinonaktifkan dan staf tidak dapat mengakses transaksi pada outlet ini sampai diaktifkan kembali.',
+        confirmText: 'Ya, Nonaktifkan',
+        cancelText: 'Batal',
+        type: 'danger',
+        onConfirm: () => {
+            router.delete(route('settings.outlets.disabled', { outlet: id }), {
+                only: ['outlets', 'flash'],
+                preserveState: true,
+                preserveScroll: true,
+            })
+        },
     })
 }
 
@@ -302,7 +354,7 @@ const enabledOutlet = id => {
         route('settings.outlets.enabled', { outlet: id }),
         {},
         {
-            only: ['outlets', 'errors'],
+            only: ['outlets', 'errors', 'flash'],
             preserveState: true,
             preserveScroll: true,
             onError: errors => {

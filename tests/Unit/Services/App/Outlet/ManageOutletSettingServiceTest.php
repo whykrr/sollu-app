@@ -20,10 +20,36 @@ class ManageOutletSettingServiceTest extends TestCase
         $this->service = new ManageOutletSettingService;
     }
 
+    protected function createMerchantUser(): User
+    {
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'Merchant Test Business',
+            'owner_name' => 'Merchant Owner',
+            'email' => 'merchant_'.uniqid().'@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        return User::create([
+            'business_id' => $business->id,
+            'name' => 'Merchant User',
+            'email' => 'user_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+            'is_root_user' => true,
+        ]);
+    }
+
     public function test_it_upserts_settings()
     {
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $user = User::first();
+        $user = $this->createMerchantUser();
         $outlet = Outlet::create([
             'business_id' => $user->business_id,
             'name' => 'Outlet Test',

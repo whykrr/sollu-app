@@ -27,6 +27,7 @@ class GetOutletRequest extends FormRequest
             'direction' => 'nullable|in:asc,desc',
             'perpage' => 'nullable|integer|min:1|max:100',
             'search' => 'nullable|string|max:255',
+            'is_active' => 'nullable|in:true,false,1,0',
         ];
     }
 }

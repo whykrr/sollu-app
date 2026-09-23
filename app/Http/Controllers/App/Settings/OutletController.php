@@ -6,13 +6,17 @@ use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Outlet\CreateOutletRequest;
+use App\Http\Requests\App\Outlet\GetOutletRequest;
 use App\Http\Requests\App\Outlet\UpdateOutletRequest;
 use App\Models\Outlet;
 use App\Services\App\Outlet\CreateOutletService;
 use App\Services\App\Outlet\ManageOutletStatusService;
 use App\Services\App\Outlet\UpdateOutletService;
 use App\Services\App\Subscription\BillingEngine;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response;
+use Inertia\ResponseFactory;
 
 class OutletController extends Controller
 {
@@ -26,7 +30,7 @@ class OutletController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $req, ?Outlet $outlet = null)
+    public function index(GetOutletRequest $req, ?Outlet $outlet = null): Response|ResponseFactory
     {
         $sort = $req->filled('sort') ? $req->get('sort') : 'created_at';
         $direction = $req->filled('direction') ? $req->get('direction') : 'asc';
@@ -39,12 +43,19 @@ class OutletController extends Controller
                         ->orWhere('phone', 'like', "%{$search}%");
                 });
             })
+            ->when($req->filled('is_active'), function ($q) use ($req) {
+                $isActive = filter_var($req->get('is_active'), FILTER_VALIDATE_BOOLEAN);
+                $q->where('is_active', $isActive);
+            })
             ->sortable($sort, $direction)
             ->paginate($req->get('perpage', 20))
             ->appends($req->query());
 
         $business = $req->user()->business;
-        $subscription = $business->subscriptions()->with('plan')->where('status', 'active')->first();
+        $subscription = $business->subscriptions()
+            ->with('plan')
+            ->where('status', 'active')
+            ->first();
 
         $proratedAmount = $subscription ? $this->billingEngine->calculateProratedCost($subscription) : 0;
 
@@ -60,12 +71,13 @@ class OutletController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateOutletRequest $req)
+    public function store(CreateOutletRequest $req): RedirectResponse
     {
         $result = $this->createOutletService->execute($req->validated(), $req->user());
 
         if (! empty($result['invoice'])) {
-            return redirect()->route('settings.billing.invoices.show', $result['invoice']->invoice_number)
+            return redirect()
+                ->route('settings.billing.invoices.show', $result['invoice']->invoice_number)
                 ->with(FlashDataVariable::SUCCESS->value, 'Outlet berhasil dibuat. Silakan selesaikan pembayaran tagihan prorasi untuk mengaktifkan outlet.');
         }
 
@@ -78,7 +90,7 @@ class OutletController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateOutletRequest $request, Outlet $outlet)
+    public function update(UpdateOutletRequest $request, Outlet $outlet): RedirectResponse
     {
         $this->updateOutletService->execute($outlet, $request->validated(), $request->user());
 
@@ -88,7 +100,7 @@ class OutletController extends Controller
         );
     }
 
-    public function disabled(Request $request, Outlet $outlet)
+    public function disabled(Request $request, Outlet $outlet): RedirectResponse
     {
         $this->manageStatusService->toggleStatus($outlet, false, $request->user());
 
@@ -98,7 +110,7 @@ class OutletController extends Controller
         );
     }
 
-    public function enabled(Request $request, Outlet $outlet)
+    public function enabled(Request $request, Outlet $outlet): RedirectResponse
     {
         $this->manageStatusService->toggleStatus($outlet, true, $request->user());
 
@@ -108,7 +120,7 @@ class OutletController extends Controller
         );
     }
 
-    public function destroy(Request $request, Outlet $outlet)
+    public function destroy(Request $request, Outlet $outlet): RedirectResponse
     {
         $this->manageStatusService->delete($outlet, $request->user());
 
@@ -118,7 +130,7 @@ class OutletController extends Controller
         );
     }
 
-    public function restore(Request $request, string $id)
+    public function restore(Request $request, string $id): RedirectResponse
     {
         $this->manageStatusService->restore($id, $request->user());
 
@@ -128,7 +140,7 @@ class OutletController extends Controller
         );
     }
 
-    public function setMain(Request $request, Outlet $outlet)
+    public function setMain(Request $request, Outlet $outlet): RedirectResponse
     {
         $business = $request->user()->business;
         if ($outlet->business_id !== $business?->id) {

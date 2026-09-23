@@ -4,7 +4,7 @@
             id="name"
             v-model="form.name"
             label="Nama Outlet"
-            placeholder="Masukkan nama outlet"
+            placeholder="Contoh: Outlet Pusat / Cabang Sudirman"
             :feedback="form.errors.name"
             required
         />
@@ -21,7 +21,7 @@
                 id="email"
                 v-model="form.email"
                 label="Email Outlet"
-                placeholder="outlet@example.com"
+                placeholder="outlet@tokomu.com"
                 :feedback="form.errors.email"
             />
         </div>
@@ -30,7 +30,7 @@
             id="address"
             v-model="form.address"
             label="Alamat Lengkap"
-            placeholder="Masukkan alamat outlet"
+            placeholder="Masukkan alamat lengkap outlet..."
             rows="3"
             :feedback="form.errors.address"
         />
@@ -39,14 +39,14 @@
             <div class="flex justify-end gap-2 w-full">
                 <button
                     type="button"
-                    class="btn btn-secondary px-4 py-2 rounded-lg text-sm"
-                    @click="popUpStore.close()"
+                    class="btn btn-secondary px-4 py-2 rounded-lg text-sm cursor-pointer"
+                    @click="handleCancel"
                 >
                     Batal
                 </button>
                 <button
                     type="button"
-                    class="btn btn-main px-5 py-2 rounded-lg text-sm font-medium shadow-sm"
+                    class="btn btn-main px-5 py-2 rounded-lg text-sm font-medium cursor-pointer"
                     :disabled="form.processing"
                     @click="submitForm"
                 >
@@ -60,7 +60,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import { usePopUpStore } from '@/store/popup'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import TextField from '@/Components/Form/TextField.vue'
 import EmailField from '@/Components/Form/EmailField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
@@ -72,7 +72,6 @@ const props = defineProps({
     },
 })
 
-const popUpStore = usePopUpStore()
 const isMounted = ref(false)
 
 const form = useForm({
@@ -81,6 +80,8 @@ const form = useForm({
     email: '',
     address: '',
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 watch(
     () => props.outlet,
@@ -101,7 +102,7 @@ const submitForm = () => {
     form.put(route('settings.outlets.update', { outlet: props.outlet.id }), {
         preserveScroll: true,
         onSuccess: () => {
-            popUpStore.close()
+            forceClose()
         },
     })
 }
