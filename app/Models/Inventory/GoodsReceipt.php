@@ -22,7 +22,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read PurchaseOrder|null $purchaseOrder
  * @property-read User|null $receiver
  * @property-read Collection|GoodsReceiptItem[] $items
- *
  * @mixin \Eloquent
  * @mixin IdeHelperGoodsReceipt
  */

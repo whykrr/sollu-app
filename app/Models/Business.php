@@ -20,7 +20,6 @@ use Spatie\Sluggable\SlugOptions;
  * @property-read Collection|Outlet[] $outlets
  * @property-read Collection|User[] $users
  * @property-read Collection|Product[] $products
- *
  * @mixin \Eloquent
  * @mixin IdeHelperBusiness
  */

@@ -13,6 +13,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @mixin IdeHelperActivityLog
+ */
 class ActivityLog extends Model
 {
     use HasFactory;

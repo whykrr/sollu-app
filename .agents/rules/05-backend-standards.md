@@ -16,8 +16,10 @@
 
 ---
 
-## 2. Standar Laravel 11
-- **Model Type Casts:** Wajib menggunakan method `casts(): array` bawaan Laravel 11, bukan properti `$casts`:
+## 2. Standar Laravel 12
+- **UUIDv7 Default:** Semua pembentukan Primary Key (via `HasUuids`) dan fungsi `Str::uuid()` di Laravel 12 harus menghasilkan UUIDv7. Hal ini meningkatkan efisiensi indexing.
+- **Larangan SVG (Keamanan):** Sistem *secara mutlak* menolak *upload* gambar berekstensi `.svg` karena rentan terhadap serangan XSS. Laravel 12 secara *default* sudah memblokirnya pada *rule* `'image'`. Pastikan tidak ada celah form request yang menggunakan *rule* manual yang melegalkan SVG.
+- **Model Type Casts:** Wajib menggunakan method `casts(): array` bawaan Laravel, bukan properti `$casts`:
   ```php
   protected function casts(): array
   {

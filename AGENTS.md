@@ -1,7 +1,7 @@
 # Sollu App - AI Agent Guidelines
 
 ## 1. Project Context & Stack
-- **Backend:** Laravel 11, PHP 8.3 (Strict types, constructor promotion, `casts(): array`).
+- **Backend:** Laravel 12, PHP 8.3 (Strict types, constructor promotion, `casts(): array`).
 - **Frontend:** Vue 3 (Script Setup), Inertia.js 1.2 SPA, Tailwind CSS v4.
 - **Database:** PostgreSQL (Multi-tenant scoped by `business_id` & `outlet_id`).
 - **Realtime:** Laravel Reverb & Echo WebSocket.

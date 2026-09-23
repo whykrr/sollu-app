@@ -23,7 +23,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Supplier|null $supplier
  * @property-read User|null $creator
  * @property-read Collection|PurchaseReturnItem[] $items
- *
  * @mixin \Eloquent
  * @mixin IdeHelperPurchaseReturn
  */

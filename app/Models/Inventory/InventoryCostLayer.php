@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property-read InventoryItem $inventoryItem
  * @property-read Outlet $outlet
- *
  * @mixin \Eloquent
  * @mixin IdeHelperInventoryCostLayer
  */

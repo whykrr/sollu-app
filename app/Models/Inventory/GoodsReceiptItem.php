@@ -17,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read InventoryItem $inventoryItem
  * @property-read Uom|null $uom
  * @property-read \Illuminate\Database\Eloquent\Collection<int, PurchaseReturnItem> $purchaseReturnItems
- *
  * @mixin \Eloquent
  * @mixin IdeHelperGoodsReceiptItem
  */

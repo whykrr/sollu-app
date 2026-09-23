@@ -21,7 +21,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection|InventoryBalance[] $balances
  * @property-read Collection|InventoryMovement[] $movements
  * @property-read Collection|InventoryCostLayer[] $costLayers
- *
  * @mixin \Eloquent
  * @mixin IdeHelperInventoryItem
  */

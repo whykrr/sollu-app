@@ -205,6 +205,7 @@ class SessionIsolationTest extends TestCase
 
         $appHost = config('domain.app', 'app.sollu.test');
 
+        $this->withoutExceptionHandling();
         $response = $this->actingAs($merchantUser, 'business')
             ->withServerVariables(['HTTP_HOST' => $appHost])
             ->delete("http://{$appHost}/logout");

@@ -1,7 +1,7 @@
 ---
 name: sollu
 description: >-
-    Comprehensive standards and guidelines for Sollu App (Laravel 11.9+, PHP 8.3, Vue 3, Inertia.js 1.2, Tailwind CSS v4).
+    Comprehensive standards and guidelines for Sollu App (Laravel 12, PHP 8.3, Vue 3, Inertia.js 1.2, Tailwind CSS v4).
     Covers Core Architecture, Modular Monolith, Backend (Controllers, Services, Models, FormRequests, Constants),
     Frontend (Vue 3, PopUpPage, Form Fields, Table Filters), PHP Enums as Single Source of Truth, RBAC (Spatie Permissions),
     SaaS Feature Plan Gating, Code Quality (Pint, ESLint, DoD), Unit Testing (100% Mocking), Web Integration & E2E Testing,
@@ -68,7 +68,7 @@ Pedoman dan standar baku rekayasa perangkat lunak untuk seluruh modul dan kompon
 
 ### 1.1. Official Technology Stack
 
-- **Backend Framework:** Laravel 11.9+ (`laravel/framework` ^11.9, PHP 8.3).
+- **Backend Framework:** Laravel 12 (`laravel/framework` ^12.0, PHP 8.3).
 - **Frontend Engine:** Vue 3 (Composition API `<script setup>`), Inertia.js 1.2 (`@inertiajs/vue3` ^1.2.0, `inertia-laravel` ^1.3).
 - **Styling & Build Tool:** Tailwind CSS v4 (`@tailwindcss/postcss` ^4.1.11, `tailwindcss` ^4.1.11), Vite 6 (`vite` ^6.3.5).
 - **Core Packages & State:** Pinia (^2.3.0), Ziggy (^2.3), Spatie Laravel Permission (^6.20), FontAwesome 6 (^6.7.1).
@@ -246,7 +246,7 @@ class PromoEvaluationService
 
 ---
 
-## 3. Backend Standards (Laravel 11.9+ & PHP 8.3)
+## 3. Backend Standards (Laravel 12 & PHP 8.3)
 
 ### 3.1. Mandatory MCP Laravel Boost & Database Diagnostics
 
@@ -265,7 +265,7 @@ class PromoEvaluationService
     - _Service-injected:_ Logika bisnis kompleks wajib di-offload ke Service Class via Constructor Injection.
 - **Authorization:** Gunakan `$this->authorize('permission.name')` atau `Gate::authorize()`. Dilarang menggunakan middleware di `__construct()`.
 
-### 3.3. Model Standards (Laravel 11)
+### 3.3. Model Standards (Laravel 12)
 
 - **Member Ordering:**
     1. `use` Traits (satu per baris: `use HasFactory, HasUuids, SoftDeletes, SortableModel;`)

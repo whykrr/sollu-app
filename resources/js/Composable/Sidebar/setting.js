@@ -26,6 +26,7 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
     {
         type: 'section',
         label: 'Bisnis',
+        permissions: ['business.view', 'business.billing', 'business.update'],
         separator: false,
     },
     {
@@ -55,6 +56,7 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
     {
         type: 'section',
         label: 'Manajemen Outlet & Operasional',
+        permissions: ['outlet.view', 'setting.device', 'setting.tax'],
     },
     {
         type: 'item',
@@ -104,6 +106,13 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
     {
         type: 'section',
         label: 'Transaksi & Keamanan',
+        permissions: [
+            'transaction.view',
+            'setting.payment',
+            'setting.receipt',
+            'role.view',
+            'setting.audit',
+        ],
     },
     {
         type: 'item',

@@ -16,7 +16,6 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  * @property \Carbon\Carbon|null $updated_at
  * @property-read Outlet $outlet
  * @property-read PaymentMethod $paymentMethod
- *
  * @mixin IdeHelperOutletPaymentMethod
  */
 class OutletPaymentMethod extends Pivot

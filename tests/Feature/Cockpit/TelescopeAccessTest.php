@@ -31,6 +31,10 @@ class TelescopeAccessTest extends TestCase
         if (! $this->app->providerIsLoaded(\Laravel\Telescope\TelescopeServiceProvider::class)) {
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(\App\Providers\TelescopeServiceProvider::class);
+            
+            $this->artisan('migrate', [
+                '--path' => 'vendor/laravel/telescope/database/migrations'
+            ]);
         }
 
         $this->cockpitHost = config('domain.cockpit', 'cockpit.sollu.test');
