@@ -45,6 +45,7 @@ Struktur direktori test mencerminkan namespace class asli:
 ```php
 namespace Tests\Unit\Services\App\Inventory;
 
+use App\Contracts\Audit\ActivityLoggerInterface;
 use App\Enums\AdjustmentReason;
 use App\Enums\AdjustmentStatus;
 use App\Models\Business;
@@ -53,7 +54,6 @@ use App\Models\Inventory\StockAdjustment;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Services\App\Inventory\StockAdjustmentService;
-use App\Services\AuditLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
@@ -63,16 +63,16 @@ class StockAdjustmentServiceTest extends TestCase
     use RefreshDatabase;
 
     protected StockAdjustmentService $service;
-    protected $auditLogServiceMock;
+    protected $activityLoggerMock;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->auditLogServiceMock = Mockery::mock(AuditLogService::class);
-        $this->app->instance(AuditLogService::class, $this->auditLogServiceMock);
+        $this->activityLoggerMock = Mockery::mock(ActivityLoggerInterface::class);
+        $this->app->instance(ActivityLoggerInterface::class, $this->activityLoggerMock);
 
-        $this->service = new StockAdjustmentService($this->auditLogServiceMock);
+        $this->service = new StockAdjustmentService($this->activityLoggerMock);
     }
 
     protected function tearDown(): void
@@ -88,7 +88,7 @@ class StockAdjustmentServiceTest extends TestCase
         $user = User::factory()->create(['business_id' => $business->id]);
         $item = InventoryItem::factory()->create(['business_id' => $business->id]);
 
-        $this->auditLogServiceMock
+        $this->activityLoggerMock
             ->shouldReceive('log')
             ->once();
 
@@ -116,10 +116,12 @@ class StockAdjustmentServiceTest extends TestCase
 
 | Target Service | Lokasi Unit Test | Cakupan Uji Kunci |
 | :--- | :--- | :--- |
+| `ImageOptimizerService` | `tests/Unit/Services/Core/ImageOptimizerServiceTest.php` | Konversi WebP otomatis, resize bounded dimensions, pelestarian aspect ratio, memory cleanup. |
+| `UploadPaymentProofService` | `tests/Unit/Services/App/Invoice/UploadPaymentProofServiceTest.php` | Validasi ekstensi/ukuran file bukti transfer, pemanggilan optimizer, update status invoice. |
 | `InventoryCostingService` | `tests/Unit/Services/App/Inventory/InventoryCostingServiceTest.php` | Mutasi stok masuk/keluar, Moving Average, konsumsi layer FIFO, penanganan desimal. |
 | `GoodsReceiptService` | `tests/Unit/Services/App/Inventory/GoodsReceiptServiceTest.php` | Penerimaan barang parsial/multi-GR, update status PO, validasi stok beku. |
 | `PurchaseReturnService` | `tests/Unit/Services/App/Inventory/PurchaseReturnServiceTest.php` | Retur barang terikat GR item, pemotongan stok, validasi hari retur supplier. |
-| `StockAdjustmentService` | `tests/Unit/Services/App/Inventory/StockAdjustmentServiceTest.php` | Penyesuaian stok draf/approval, pencatatan ledger mutasi. |
+| `StockAdjustmentService` | `tests/Unit/Services/App/Inventory/StockAdjustmentServiceTest.php` | Penyesuaian stok draf/approval, pencatatan ledger mutasi, verifikasi SoD. |
 | `BreadcrumbManager` | `tests/Unit/Services/BreadcrumbManagerTest.php` | Resolusi rute, hierarki segmen navigasi, penanganan parameter dinamis. |
 | `RoleTemplateEnum` | `tests/Unit/Enums/RoleTemplateIntegrityTest.php` | Integritas zero-orphan permission dan sinkronisasi role template POS. |
 
@@ -127,13 +129,14 @@ class StockAdjustmentServiceTest extends TestCase
 
 ## 3. Feature & HTTP Boundary Testing
 
-Ditempatkan di `tests/Feature/`. Menguji rute HTTP, otorisasi RBAC, SaaS Feature Gating, CSRF, dan integritas data on-demand.
+Ditempatkan di `tests/Feature/`. Menguji rute HTTP, otorisasi RBAC, SaaS Feature Gating, CSRF, upload berkas, dan integritas data on-demand.
 
 ### 3.1. Area Pengujian Feature Wajib
 
 - **Tenant Isolation:** Memastikan user dari Bisnis A tidak dapat mengakses atau memanipulasi data milik Bisnis B (`HTTP 403 / 404`).
 - **RBAC Permission Gate:** Memastikan user tanpa permission yang sesuai ditolak (`HTTP 403`).
 - **Feature Plan Gating:** Memastikan tenant dengan paket basic ditolak saat mengakses fitur pro (`is_feature_locked: true`).
+- **File Upload & Storage Isolation:** Memastikan unggah avatar akun (`AccountPhotoTest`) dan logo bisnis (`BusinessLogoTest`) menggunakan `Storage::fake('public')`, menghasilkan format WebP teroptimasi, dan membersihkan berkas lama saat diubah/dihapus.
 - **On-Demand Data Loading:** Memastikan response payload `index()` ringan dan tidak mengandung relasi berat (`OnDemandDataLoadingTest`).
 - **Shift & POS Feature Tests:** Memastikan lifecycle shift kasir, log kas masuk/keluar, dan kalkulasi saldo kas tervalidasi (`ShiftFeatureTest`).
 - **Purchasing & Exception Handling:** Memastikan alur void purchase, pencegahan retur ganda, dan penanganan error domain teruji (`StockPurchasesControllerTest`, `ExceptionHandlingTest`).

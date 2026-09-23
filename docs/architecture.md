@@ -198,3 +198,73 @@ Alur pengadaan barang menerapkan siklus transaksi berlapis untuk menjamin integr
 2. **Goods Receipt (`GoodsReceiptService`):** Penerimaan fisik barang di outlet. Mendukung penerimaan bertahap (*partial receipt*) yang menghasilkan mutasi stok masuk (`InventoryMovementType::PurchaseIn`) dan pembentukan layer biaya FIFO via `InventoryCostingService`.
 3. **Purchase Return (`PurchaseReturnService`):** Pengembalian barang rusak/salah ke vendor. Wajib merujuk pada item penerimaan spesifik (`goods_receipt_item_id`) dan mematuhi batas hari retur (`Supplier.return_period_days`). Menghasilkan mutasi stok keluar (`InventoryMovementType::ReturnOut`).
 4. **Void Purchase:** Pembatalan menyeluruh pesanan pembelian yang mengunci status menjadi `Voided` dan mencegah manipulasi lebih lanjut.
+
+---
+
+## 10. Audit & Activity Logging Subsystem
+
+Sistem pencatatan jejak audit aktivitas (*Audit Trail*) mengadopsi arsitektur event-driven asinkron dan partisi database:
+
+```
+┌───────────────────────────┐
+│ Domain Service / Handler  │
+└─────────────┬─────────────┘
+              │ calls $this->activityLogger->log(...)
+              ▼
+┌───────────────────────────┐
+│   ActivityLogService      │
+│(App\Contracts\Audit\...)  │
+└─────────────┬─────────────┘
+              │ dispatches to Redis queue
+              ▼
+┌───────────────────────────┐
+│   RecordActivityLogJob    │
+└─────────────┬─────────────┘
+              │ inserts into partitioned table
+              ▼
+┌────────────────────────────────────────────────────────┐
+│ PostgreSQL Partitioned Table: activity_logs            │
+│ ├── activity_logs_p2026_08                             │
+│ ├── activity_logs_p2026_09                             │
+│ └── activity_logs_pYYYY_MM (Auto-created by scheduler) │
+└────────────────────────────────────────────────────────┘
+```
+
+1. **Kontrak Terstandarisasi (`ActivityLoggerInterface`):**
+   - Layanan bisnis menyuntikkan `App\Contracts\Audit\ActivityLoggerInterface`.
+   - Menggunakan `AuditModuleEnum` untuk standarisasi nama modul (Auth, Inventory, Sales, Master, Settings, Employee, Billing, Promo, Report).
+2. **Eksekusi Asinkron:** Job `RecordActivityLogJob` dieksekusi di antrean latar belakang sehingga pencatatan audit tidak menambah latensi HTTP response.
+3. **Database Partitioning (PostgreSQL):**
+   - Tabel induk `activity_logs` dipartisi secara bulanan (`RANGE (created_at)`).
+   - Scheduler `php artisan audit:create-partitions` berjalan otomatis untuk menyiapkan partisi bulan berikutnya.
+   - Scheduler `php artisan audit:prune-partitions --retention-months=12` memangkas partisi lama di luar masa retensi kepatuhan tanpa membebani VACUUM database.
+
+---
+
+## 11. Core Image Optimization Engine (`ImageOptimizerService`)
+
+Untuk menjaga performa aplikasi dan konsumsi storage, pemrosesan berkas gambar dipusatkan pada `App\Services\Core\ImageOptimizerService`:
+
+1. **Konversi Otomatis ke WebP:** Semua file gambar yang diupload (JPEG, PNG, GIF, BMP) otomatis dikonversi ke format modern WebP dengan kompresi kualitas adaptif (default $82\%$).
+2. **Batasan Dimensi Maksimum (Max Bounds & Aspect Ratio):**
+   - **Avatar / Foto Profil:** $400 \times 400\text{ px}$.
+   - **Logo Bisnis:** $600 \times 600\text{ px}$.
+   - **Katalog Produk:** $1200 \times 1200\text{ px}$.
+   - **Bukti Transfer Pembayaran:** $1600 \times 1600\text{ px}$.
+   - Dimensi asli yang lebih kecil dari batas tidak akan di-upscale untuk mencegah penurunan ketajaman gambar.
+3. **Memory-Safe GD Processing:** Alokasi memori PHP diamankan dan resource GD dibersihkan via `imagedestroy()` pada blok `finally` untuk mencegah memory leak saat concurrency tinggi.
+4. **Pembersihan Otomatis Berkas Lama:** Menggantikan gambar lama saat update (misal: ganti avatar/logo/foto produk) dengan menghapus file lama dari disk `public` secara otomatis.
+
+---
+
+## 12. Segregation of Duties (SoD) & Inventory Integrity
+
+Untuk mencegah *fraud* dan ketidaksesuaian stok fisik pada operasional tenant multi-outlet:
+
+1. **Prinsip Maker-Checker (Pemisahan Wewenang):**
+   - User yang membuat/mengajukan draf Stock Adjustment, Stock Opname, atau Stock Transfer **DILARANG KERAS** menyetujui (*approve*) atau menyelesaikan (*finalize*) transaksinya sendiri.
+   - Pengecekan diverifikasi pada level Service Layer (`App\Services\App\Inventory\*`) dan Authorization Policy.
+2. **Decoupled Stock Deduction (`InventoryDeductionService`):**
+   - Kasir POS saat checkout hanya mencatat transaksi penjualan.
+   - Pemotongan saldo inventori dan pembentukan lapisan biaya HPP dijalankan melalui event listener `DeductInventoryOnSaleListener` yang memanggil `InventoryDeductionService` secara terisolasi.
+

@@ -219,3 +219,21 @@ if (hasFeature(enums.FeatureEnum.PROMO_MANAGEMENT)) {
    ```
 5. **Pasang Proteksi:** Tambahkan `$this->authorize()` pada Controller/FormRequest dan `middleware('plan.feature:...')` pada route.
 6. **Implementasi UI:** Pasang directive `v-can` atau wrapper `<FeatureLock>`.
+
+---
+
+## 5. Segregation of Duties (SoD) & Maker-Checker Policies
+
+Untuk transaksi bernilai tinggi atau memengaruhi nilai buku inventori fisik:
+
+1. **Prinsip Maker-Checker:**
+   - Karyawan yang membuat (*creator / maker*) draf Stock Adjustment, Stock Opname, atau Stock Transfer dilarang bertindak sebagai pihak yang menyetujui/memvalidasi (*approver / checker*).
+2. **Penerapan Teknis:**
+   ```php
+   // Contoh verifikasi SoD di Service Layer / Policy
+   if ($stockAdjustment->created_by === $user->id && ! $user->hasRole('owner')) {
+       throw new BusinessException('Anda tidak dapat menyetujui pengajuan penyesuaian stok yang Anda buat sendiri.');
+   }
+   ```
+3. **Pengecualian Khusus:** Role `owner` dapat memiliki wewenang override mutlak sesuai konfigurasi bisnis.
+

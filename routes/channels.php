@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (string) $user->id === (string) $id;
-}, ['guards' => ['business', 'cockpit', 'web']]);
+}, ['guards' => ['business', 'web']]);
 
 Broadcast::channel('businesses.{id}', function ($user, $id) {
     return (string) $user->business_id === (string) $id;

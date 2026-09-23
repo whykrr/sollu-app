@@ -3,28 +3,34 @@
 Sollu POS adalah aplikasi Point of Sale berbasis SaaS yang dirancang khusus untuk bisnis dengan model multi-outlet. Setiap merchant dapat mengelola satu atau lebih outlet dengan sistem langganan (subscription) yang fleksibel.
 
 ## 🚀 Fitur Utama
-- **Multi-Outlet Management:** Kelola beberapa cabang toko dalam satu akun merchant.
-- **Sistem Langganan (SaaS):** Fleksibilitas paket berlangganan untuk merchant.
-- **Role & Permission:** Hak akses sistem yang komprehensif untuk pemilik, manajer, dan kasir (menggunakan Spatie).
-- **Payment Gateway Integration:** Mendukung pembayaran online terintegrasi (Midtrans).
-- **Ekspor Dokumen:** Cetak struk dan laporan dalam format PDF.
-- **Dashboard & Analitik:** Visualisasi data interaktif menggunakan Chart.js.
+- **Multi-Outlet & Multi-Tenant Management:** Isolasi penuh per bisnis (`business_id`) dan outlet (`outlet_id`).
+- **Sistem Langganan SaaS & Feature Gating:** Paket langganan fleksibel dengan proteksi fitur berbayar (`v-feature` & `plan.feature`).
+- **Dual-Layer Access Control (RBAC & SoD):** Wewenang berbasis Spatie Permission, template peran POS, dan prinsip *Separation of Duties* (Maker-Checker).
+- **Pengadaan & Inventori Lanjutan (Purchasing V2):** Partial Goods Receipt, Retur Supplier, FIFO Costing, Stock Opname, Mutasi Outlet, dan Void PO.
+- **Audit Trail & Activity Log:** Pencatatan riwayat aktivitas aman berbasis PostgreSQL Table Partitioning (`activity_logs_pYYYY_MM`).
+- **Optimasi Gambar WebP Otomatis:** Pemrosesan gambar adaptif dan hemat penyimpanan dengan `ImageOptimizerService`.
+- **Integrasi Payment Gateway:** Pembayaran langganan via Midtrans dan verifikasi bukti transfer manual.
+- **Real-Time & Observabilitas:** Notifikasi instan via Laravel Reverb/WebSocket serta monitoring sistem via Laravel Horizon & Laravel Pulse.
+- **Ekspor Dokumen & Async Jobs:** Laporan Excel dan PDF terisolasi diproses di background queue.
 
 ## 🛠️ Teknologi yang Digunakan
 
 **Backend:**
-- [Laravel 11](https://laravel.com/) (PHP ^8.3)
-- [Spatie Permission](https://spatie.be/docs/laravel-permission/v6/introduction) (Manajemen role & permission)
+- [Laravel 11](https://laravel.com/) (PHP ^8.3 strict types)
+- [PostgreSQL 16+](https://www.postgresql.org/) (Logical multi-tenancy & table partitioning)
+- [Spatie Permission](https://spatie.be/docs/laravel-permission/v6/introduction) (Manajemen role & permission multi-tenant)
+- [Laravel Horizon](https://laravel.com/docs/11.x/horizon) & [Laravel Pulse](https://laravel.com/docs/11.x/pulse) (Queue monitoring & application observability)
+- [Laravel Reverb](https://reverb.laravel.com/) (Real-time WebSocket server)
 - [Midtrans PHP](https://midtrans.com/) (Payment gateway)
-- [DomPDF](https://github.com/barryvdh/laravel-dompdf) (Pembuatan dokumen PDF)
-- Redis / Predis (Caching & Queue)
+- [DomPDF](https://github.com/barryvdh/laravel-dompdf) & [PhpSpreadsheet](https://phpspreadsheet.readthedocs.io/) (Laporan PDF & Excel)
+- Redis (Caching & asynchronous job queues)
 
 **Frontend:**
-- [Vue 3](https://vuejs.org/) (Composition API)
-- [Inertia.js](https://inertiajs.com/) (Penghubung backend dan frontend)
-- [Tailwind CSS v4](https://tailwindcss.com/) (Styling framework)
+- [Vue 3](https://vuejs.org/) (Composition API `<script setup>`)
+- [Inertia.js 1.2](https://inertiajs.com/) (Modern SPA Monolith Bridge)
+- [Tailwind CSS v4](https://tailwindcss.com/) (Zero-shadow minimalist styling)
 - [Pinia](https://pinia.vuejs.org/) (State management)
-- [Ziggy](https://github.com/tighten/ziggy) (Penggunaan route Laravel di Vue)
+- [Ziggy](https://github.com/tighten/ziggy) (Laravel Named Routes di Vue)
 - **Modul Tambahan:** FontAwesome, Chart.js, Swiper, Quill Editor, Vue Draggable.
 
 ## 🏗️ High-Level Architecture

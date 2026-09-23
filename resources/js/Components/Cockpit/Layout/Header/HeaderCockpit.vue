@@ -73,9 +73,6 @@
                 <span>Telescope</span>
             </a>
 
-            <!-- Cockpit specific notifications (placeholder) -->
-            <TopBarNotification />
-
             <div class="w-px h-6 bg-gray-200" />
 
             <TopBarAccountCockpit />
@@ -86,7 +83,6 @@
 <script setup>
 import Breadcrumbs from '@/Components/Layout/Header/Breadcrumbs.vue'
 import TopBarAccountCockpit from './TopBarAccountCockpit.vue'
-import TopBarNotification from '@/Components/Layout/Header/TopBarNotification.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faBars,

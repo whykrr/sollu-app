@@ -141,12 +141,13 @@ class StockAdjustment extends Model
 ## 3. Core Entities & Bounded Context Schemas
 
 ### 3.1. Tenant & Core Identity (`App\Models`)
-- `Business`: Entitas induk penyewa/merchant SaaS. Menyimpan tipe bisnis, paket langganan aktif, dan status bisnis.
+- `Business`: Entitas induk penyewa/merchant SaaS. Menyimpan tipe bisnis, paket langganan aktif, dan status bisnis (memiliki accessor `logo_url` berbasis disk public storage).
 - `BusinessType`: Klasifikasi jenis industri bisnis dinamis (tabel `business_types` dengan kolom `category`: `retail`, `fnb`, `service`, `category_label`, `sort_order`, `is_visible`, `features`). Tidak menggunakan enum.
 - `Outlet`: Unit gerai/cabang fisik di bawah satu bisnis.
 - `OutletSetting`: Konfigurasi operasional per gerai (pajak, service charge, printer, footer struk).
-- `User`: Pengguna sistem (pemilik, manajer, kasir) yang terikat ke `business_id`.
+- `User`: Pengguna sistem (pemilik, manajer, kasir) yang terikat ke `business_id` (memiliki accessor `photo_url` untuk avatar).
 - `Role` & `Permission`: Implementasi Spatie Permission dengan multi-tenant team scope (`business_id`).
+- `Device`: Entitas perangkat kasir / terminal POS yang terhubung ke outlet (`business_id`, `outlet_id`, `device_name`, `device_token`, `ip_address`, `last_active_at`, `status`).
 
 ### 3.2. Master Data Domain (`App\Models\Master`)
 - `Product`: Entitas produk jual.
@@ -190,6 +191,11 @@ class StockAdjustment extends Model
 - `Invoice` & `InvoiceItem`: Tagihan pembayaran langganan SaaS.
 - `Payment`: Pembayaran faktur langganan.
 - `CockpitUser`: Pengguna tim internal admin platform Sollu.
+
+### 3.6. Audit Log & Activity Trail Domain (`App\Models\Audit`)
+- `ActivityLog`: Rekaman jejak audit sistem berbasis PostgreSQL table partitioning bulanan (`activity_logs_pYYYY_MM`).
+  - Kolom: `id` (UUID), `business_id`, `user_id`, `module` (`AuditModuleEnum`), `action`, `description`, `properties` (JSONB: snapshot old vs new data, metadata konteks), `ip_address`, `user_agent`, `created_at`.
+  - Terisolasi multi-tenant dengan partisi terkelola otomatis via scheduler.
 
 ---
 

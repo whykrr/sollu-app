@@ -8,6 +8,31 @@ Format ini mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/)
 ## [Unreleased]
 
 ### Added
+- **Core Image Optimization Service (`ImageOptimizerService`):**
+  - Layanan optimasi gambar terpusat dengan konversi otomatis ke format WebP, auto-resize dimensi maksimum (Avatar: 400x400, Logo: 600x600, Produk: 1200x1200, Bukti Bayar: 1600x1600), kompresi kualitas adaptif (82%), dan pelestarian aspect ratio (`62d743d`).
+  - Terintegrasi pada upload foto profil akun user (`AccountController`), logo bisnis (`BusinessInfoController`), gambar katalog produk (`ProductService`), upload bukti transfer pembayaran invoice langganan (`UploadPaymentProofService`), dan pemrosesan header PDF laporan transaksi.
+- **Activity & Audit Logging Subsystem:**
+  - Implementasi sistem pencatatan aktivitas terstruktur berbasis kontrak `ActivityLoggerInterface` dan queue job `RecordActivityLogJob` (`07ad9c3`).
+  - Skema database terpartisi bulanan PostgreSQL (`activity_logs_pYYYY_MM`) dengan partition manager dan scheduler otomatis (`07ad9c3`).
+  - Halaman antarmuka penelusuran audit log di pengaturan tenant (`ActivityLog/Index.vue`, `ActivityLogDetailPopUp.vue`, `ActivityLogWidgets.vue`) (`07ad9c3`, `500a3ef`).
+- **Segregation of Duties (SoD) & Inventory Integrity:**
+  - Penegakan prinsip *Separation of Duties* (maker-checker) pada mutasi inventori: pembuat pengajuan dilarang menyetujui Stock Adjustment, Stock Opname, dan Stock Transfer miliknya sendiri (`cdf1208`).
+  - Layanan deduksi stok terisolasi `InventoryDeductionService` yang memisahkan checkout transaksi kasir dari mutasi fisik stok secara asinkron/event-driven (`6ca3093`).
+  - Peningkatan alur penerimaan transfer stok (`TransferReceiveForm`) dengan verifikasi rincian barang per baris dan pencatatan catatan diskrepansi (`c302f05`).
+- **Device Management & POS Pairing:**
+  - Manajemen perangkat kasir/terminal POS dengan token pairing aman, status koneksi aktif, dan mekanisme pencabutan akses token (`35b268e`, `500a3ef`).
+- **Observability & Infrastructure Monitoring:**
+  - Integrasi Laravel Pulse untuk pemantauan performa server, slow queries, slow requests, dan eksekusi background jobs (`aab05b0`, `8dc58c3`).
+  - Program `pulse-check` terintegrasi pada konfigurasi Docker `supervisord.conf` dan panduan deployment produksi (`8dc58c3`).
+- **Employee Import/Export Enhancement:**
+  - Fitur ekspor-impor data karyawan via Excel dengan pembuatan default password otomatis dan penetapan outlet multi-cabang secara kondisional (`df75ba2`).
+- **Profile & Branding Enhancements:**
+  - Standardisasi nama resmi aplikasi menjadi `"Sollu Indonesia"` di seluruh berkas lingkungan, template notifikasi email, PDF faktur, dan dokumentasi (`bad3ec8`).
+  - Penambahan atribut dinamis `photo_url` pada model `User` dan `logo_url` pada model `Business` beserta manajemen invalidasi cache profil (`500a3ef`).
+  - Penambahan nomor invoice langganan pada subjek email notifikasi tagihan (`f03c8e1`).
+- **Developer Tools & Agent Capabilities:**
+  - MCP tools khusus proyek (`sollu-project`): `check_enum_integrity`, `inspect_inventory_state`, `audit_tenant_isolation`, `lint_agent_rules`, dan `trace_feature_stack` (`05abc1d`).
+  - Dokumentasi spesialisasi domain agent: `domain-audit-log`, `domain-inventory`, `domain-notifications` (`1cc26d8`).
 - **Purchasing V2 & Goods Receipt:**
   - Fungsionalitas **Void Purchase** untuk membatalkan seluruh pesanan pembelian beserta penguncian status (`febd151`).
   - Alur penerimaan barang parsial dan multi-GR via `GoodsReceiptService` (`febd151`, `9661b6c`).
@@ -40,12 +65,19 @@ Format ini mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/)
   - Route manajemen promosi, middleware feature flag, serta on-demand data loading untuk promosi dan modifier (`83b15d6`, `c24a792`).
 - **Shared Enums:** `FrontendEnumProvider` untuk mendistribusikan PHP Enums ke frontend via Inertia Shared Props (`2f24688`).
 - **Testing:**
+  - Unit tests untuk `ImageOptimizerServiceTest` dan `UploadPaymentProofServiceTest` (`62d743d`).
+  - Feature tests untuk upload/hapus foto profil (`AccountPhotoTest`) dan logo bisnis (`BusinessLogoTest`) (`500a3ef`).
+  - Unit tests untuk `PruneExpiredExportsCommandTest` dan `ExportSalesReportPdfJobTest` (`62d743d`).
   - Unit tests untuk `GoodsReceiptService`, `PurchaseReturnService`, dan `InventoryCostingService` (`9661b6c`, `ae5a8b4`).
   - Feature test untuk `ShiftFeatureTest`, `StockPurchasesControllerTest`, dan `ExceptionHandlingTest` (`c86d4e8`, `febd151`).
   - Unit tests untuk `BreadcrumbManagerTest` dan `RoleTemplateIntegrityTest` (`c86d4e8`, `1aa1908`).
-  - Unit & feature tests untuk `SubscriptionController`, `RoleController`, `RememberMe`, serta coverage service layer Business & User (`fa4c17a`, `ea8c04f`).
+  - Unit & feature tests untuk `SubscriptionController`, `RoleController`, `RememberMe`, serta isolasi pengujian pada `CustomerServiceTest`, `PromoServiceTest`, dan `ReportsControllerTest` (`fa4c17a`, `ea8c04f`, `fb65ee1`, `6658208`).
 
 ### Changed
+- **Form Navigation Guard:** Penerapan composable `useFormDirtyGuard` pada seluruh modal dan form drawer untuk mencegah hilangnya input yang belum disimpan saat user menutup jendela secara tidak sengaja (`f6171c0`).
+- **Vite File Watcher:** Penyesuaian `vite.config.js` untuk mengabaikan folder `storage/` saat watch HMR aktif guna mencegah reload liar saat ekspor file background berlangsung (`7b03a55`).
+- **Report Route Architecture:** Penyesuaian rute ekspor laporan agar mendukung metode `GET` dan `POST` (`6658208`).
+- **Outlet Settings Refactoring:** Simplifikasi pengaturan outlet dengan menghapus tab usang dan memusatkan pengaturan ke konfigurasi gerai terpadu (`2008cf4`).
 - **UI & Toolbar Architecture:**
   - Standardisasi seluruh toolbar halaman modul menggunakan komponen `@/Components/UI/ActionBar/ActionBar.vue` (`e3bab20`, `2033b34`).
   - Pemindahan tombol aksi utama (+ Tambah Data) ke posisi paling kanan `ActionBar` (`#create` / `#primary`).
