@@ -6,6 +6,7 @@ use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Contracts\Audit\ActivityLoggerInterface;
 use App\Enums\AuditModuleEnum;
+use App\Helpers\SummaryUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\User\AccountChangePasswordRequest;
 use App\Http\Requests\App\User\AccountUpdateRequest;
@@ -50,6 +51,7 @@ class AccountController extends Controller
         $user->save();
 
         Cache::delete("auth:user:{$user->id}:info");
+        SummaryUser::cacheDelete($user->id);
 
         $this->auditLogger->log(
             module: AuditModuleEnum::AUTH->value,
@@ -117,6 +119,9 @@ class AccountController extends Controller
         $user->photo = $path;
         $user->save();
 
+        Cache::delete("auth:user:{$user->id}:info");
+        SummaryUser::cacheDelete($user->id);
+
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
             ResourceMessage::UPDATE_SUCCESS
@@ -133,6 +138,9 @@ class AccountController extends Controller
 
         $user->photo = null;
         $user->save();
+
+        Cache::delete("auth:user:{$user->id}:info");
+        SummaryUser::cacheDelete($user->id);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

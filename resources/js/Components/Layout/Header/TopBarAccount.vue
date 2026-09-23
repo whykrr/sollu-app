@@ -8,8 +8,8 @@
                 @click.prevent="toggle"
             >
                 <img
-                    v-if="auth.profile_photo_url"
-                    :src="auth.profile_photo_url"
+                    v-if="auth.photo_url || auth.profile_photo_url"
+                    :src="auth.photo_url || auth.profile_photo_url"
                     alt="Profile"
                     class="rounded-full w-9 h-9 sm:w-10 sm:h-10 object-cover border border-neutral-200"
                 />
@@ -24,7 +24,14 @@
 
         <template #default="{ close }">
             <div class="flex flex-col items-center mt-2 mb-2">
+                <img
+                    v-if="auth.photo_url || auth.profile_photo_url"
+                    :src="auth.photo_url || auth.profile_photo_url"
+                    alt="Profile"
+                    class="rounded-full w-20 h-20 object-cover border border-neutral-100 mb-3 shadow-inner"
+                />
                 <div
+                    v-else
                     class="rounded-full w-20 h-20 text-2xl bg-neutral-50 flex items-center justify-center border border-neutral-100 text-neutral-600 mb-3 shadow-inner"
                 >
                     {{ initials }}

@@ -10,7 +10,8 @@
                 <span>Batas Kuota Perangkat Tercapai</span>
             </div>
             <p>
-                Outlet yang dipilih sudah memiliki 1 perangkat kasir terdaftar. Paket tokomu saat ini membatasi 1 perangkat per outlet.
+                Outlet yang dipilih sudah memiliki 1 perangkat kasir terdaftar. Paket tokomu saat
+                ini membatasi 1 perangkat per outlet.
             </p>
             <div>
                 <a
@@ -157,7 +158,11 @@ const outletOptions = computed(() =>
     props.outlets.map(store => {
         const count = props.outletDeviceCounts?.[store.id] ?? 0
         let label = store.name
-        if (!props.hasMultiDevice && count >= 1 && (!props.device || props.device.outlet_id !== store.id)) {
+        if (
+            !props.hasMultiDevice &&
+            count >= 1 &&
+            (!props.device || props.device.outlet_id !== store.id)
+        ) {
             label += ' (Penuh - Maks 1)'
         }
         return {

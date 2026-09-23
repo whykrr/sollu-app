@@ -190,11 +190,10 @@
             >
                 <FontAwesomeIcon :icon="faStore" />
             </div>
-            <h3 class="text-base font-semibold text-slate-800 mb-1">
-                Belum Ada Outlet Terdaftar
-            </h3>
+            <h3 class="text-base font-semibold text-slate-800 mb-1">Belum Ada Outlet Terdaftar</h3>
             <p class="text-xs text-slate-500 max-w-sm mb-6">
-                Daftarkan cabang atau outlet baru untuk mengelola operasional dan transaksi bisnismu.
+                Daftarkan cabang atau outlet baru untuk mengelola operasional dan transaksi
+                bisnismu.
             </p>
             <button
                 type="button"
@@ -335,7 +334,8 @@ const confirmSetMainOutlet = outlet => {
 const disabledOutlet = id => {
     modalStore.confirm({
         title: 'Nonaktifkan Outlet?',
-        message: 'Outlet ini akan dinonaktifkan dan staf tidak dapat mengakses transaksi pada outlet ini sampai diaktifkan kembali.',
+        message:
+            'Outlet ini akan dinonaktifkan dan staf tidak dapat mengakses transaksi pada outlet ini sampai diaktifkan kembali.',
         confirmText: 'Ya, Nonaktifkan',
         cancelText: 'Batal',
         type: 'danger',

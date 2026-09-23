@@ -36,14 +36,14 @@
                             class="w-16 h-16 aspect-square bg-white border border-neutral-200 rounded-lg overflow-hidden p-1"
                         >
                             <div
-                                v-if="!auth.business.logo"
+                                v-if="!auth.business?.logo_url && !auth.business?.logo"
                                 class="flex w-full h-full items-center justify-center bg-secondary/5 rounded"
                             >
                                 <FontAwesomeIcon :icon="faShop" class="text-secondary text-xl" />
                             </div>
                             <img
                                 v-else
-                                :src="auth.business.logo_url"
+                                :src="auth.business?.logo_url"
                                 alt="Logo"
                                 class="w-full h-full object-contain rounded"
                             />

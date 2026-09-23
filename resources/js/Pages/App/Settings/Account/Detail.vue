@@ -138,7 +138,7 @@
                     </h3>
 
                     <div class="flex justify-center p-0 relative">
-                        <PhotoCropper :url="profile.photo" @action="savePhoto" />
+                        <PhotoCropper :url="profile.photo_url" @action="savePhoto" />
                     </div>
 
                     <div

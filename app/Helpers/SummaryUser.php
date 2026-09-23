@@ -17,21 +17,25 @@ class SummaryUser
 
     private $cache_key;
 
-    public function __construct()
+    public function __construct(?\App\Models\User $user = null)
     {
-        $this->user = request()->user();
+        $this->user = $user ?? request()->user();
         $this->cache_key = "auth:user:{$this->user?->id}:summary";
     }
 
     // static factory
-    public static function make(): self
+    public static function make(?\App\Models\User $user = null): self
     {
-        return new self;
+        return new self($user);
     }
 
     public function cached()
     {
         $user = $this->user;
+
+        if (! $user) {
+            return [];
+        }
 
         return Cache::remember(
             $this->cache_key,
@@ -44,7 +48,7 @@ class SummaryUser
                     ])->toArray(),
                     'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
                     'business' => $user->business ? array_merge(
-                        $user->business->only('id', 'name', 'type', 'trial_end_at'),
+                        $user->business->only('id', 'name', 'type', 'trial_end_at', 'logo', 'logo_url'),
                         [
                             'inventory_costing_method' => $user->business->getCostingMethod()->value,
                             'is_costing_configured' => $user->business->isCostingMethodConfigured(),

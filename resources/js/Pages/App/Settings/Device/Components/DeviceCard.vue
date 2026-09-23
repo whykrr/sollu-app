@@ -46,7 +46,9 @@
             </div>
 
             <!-- Metadata Info -->
-            <div class="space-y-1.5 text-xs text-slate-600 py-2 border-t border-b border-slate-100 my-2.5">
+            <div
+                class="space-y-1.5 text-xs text-slate-600 py-2 border-t border-b border-slate-100 my-2.5"
+            >
                 <div class="flex justify-between items-center">
                     <span class="text-slate-400">Nomor Seri / ID:</span>
                     <span class="font-mono text-slate-700 truncate max-w-[55%] text-right">
@@ -58,7 +60,9 @@
                     <span class="text-slate-400">Versi & Platform:</span>
                     <span class="text-slate-700 truncate max-w-[55%] text-right">
                         <template v-if="device.platform_type || device.app_version">
-                            <span v-if="device.platform_type" class="capitalize">{{ device.platform_type }}</span>
+                            <span v-if="device.platform_type" class="capitalize">{{
+                                device.platform_type
+                            }}</span>
                             <span v-if="device.platform_type && device.app_version"> • </span>
                             <span v-if="device.app_version">v{{ device.app_version }}</span>
                         </template>

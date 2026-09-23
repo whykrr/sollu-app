@@ -119,14 +119,19 @@
                 <h4 class="font-bold text-slate-800 mb-3 text-sm">Estimasi Tagihan Prorasi</h4>
                 <div class="flex justify-between items-center py-2 border-b border-slate-100">
                     <span class="text-xs text-slate-600">Penambahan 1 Outlet Baru</span>
-                    <span class="font-semibold text-slate-800">{{ formatIDR(proratedAmount) }}</span>
+                    <span class="font-semibold text-slate-800">{{
+                        formatIDR(proratedAmount)
+                    }}</span>
                 </div>
                 <div class="flex justify-between items-center py-3 mt-1">
                     <span class="font-bold text-slate-800 text-sm">Total Pembayaran</span>
-                    <span class="font-bold text-base text-main">{{ formatIDR(proratedAmount) }}</span>
+                    <span class="font-bold text-base text-main">{{
+                        formatIDR(proratedAmount)
+                    }}</span>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
-                    * Tagihan prorasi dihitung berdasarkan sisa hari aktif dari paket langganan tokomu saat ini. Outlet akan aktif setelah pembayaran diselesaikan.
+                    * Tagihan prorasi dihitung berdasarkan sisa hari aktif dari paket langganan
+                    tokomu saat ini. Outlet akan aktif setelah pembayaran diselesaikan.
                 </p>
             </div>
 
@@ -136,7 +141,8 @@
             >
                 <FontAwesomeIcon :icon="faInfoCircle" class="mt-0.5 text-blue-500 shrink-0" />
                 <p>
-                    Setelah outlet dibuat, kamu dapat mengelola pengaturan tambahan seperti perangkat kasir, meja, dan jam operasional.
+                    Setelah outlet dibuat, kamu dapat mengelola pengaturan tambahan seperti
+                    perangkat kasir, meja, dan jam operasional.
                 </p>
             </div>
         </div>
@@ -170,7 +176,9 @@
                             <span class="block text-sm font-semibold text-slate-900">
                                 Pembayaran Online Otomatis
                             </span>
-                            <span class="mt-1 flex items-center text-xs text-slate-500 leading-relaxed">
+                            <span
+                                class="mt-1 flex items-center text-xs text-slate-500 leading-relaxed"
+                            >
                                 QRIS, Virtual Account, Kartu Kredit, Gopay. Verifikasi instan.
                             </span>
                         </span>
@@ -202,7 +210,9 @@
                             <span class="block text-sm font-semibold text-slate-900">
                                 Transfer Bank Manual
                             </span>
-                            <span class="mt-1 flex items-center text-xs text-slate-500 leading-relaxed">
+                            <span
+                                class="mt-1 flex items-center text-xs text-slate-500 leading-relaxed"
+                            >
                                 Transfer langsung ke rekening resmi. Butuh unggah bukti bayar.
                             </span>
                         </span>

@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -76,6 +77,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $appends = [
         'has_pin',
+        'photo_url',
     ];
 
     protected $sortable = [
@@ -106,6 +108,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getHasPinAttribute(): bool
     {
         return ! empty($this->pin);
+    }
+
+    /**
+     * Get the photo URL for the user.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo
+            ? Storage::url($this->photo)
+            : null;
     }
 
     /**

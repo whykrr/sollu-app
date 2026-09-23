@@ -72,12 +72,7 @@ import { reactive, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import {
-    faGrip,
-    faPlus,
-    faTableList,
-    faToggleOn,
-} from '@fortawesome/free-solid-svg-icons'
+import { faGrip, faPlus, faTableList, faToggleOn } from '@fortawesome/free-solid-svg-icons'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'

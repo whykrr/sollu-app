@@ -28,7 +28,29 @@ class BusinessInfoApiTest extends TestCase
     public function test_authenticated_user_can_retrieve_business_info(): void
     {
         $appDomain = config('domain.app', 'app.sollu.test');
-        $user = User::first();
+        $type = \App\Models\BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true, 'features' => []]
+        );
+
+        $business = \App\Models\Business::create([
+            'name' => 'API Business',
+            'owner_name' => 'API Owner',
+            'email' => 'api_'.uniqid().'@test.test',
+            'phone' => '081234567890',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+            'settings' => [],
+        ]);
+
+        $user = User::create([
+            'business_id' => $business->id,
+            'name' => 'API User',
+            'email' => 'api_user_'.uniqid().'@test.test',
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+        ]);
 
         $response = $this->actingAs($user, 'business')
             ->get("http://{$appDomain}/api/internal/business-info");

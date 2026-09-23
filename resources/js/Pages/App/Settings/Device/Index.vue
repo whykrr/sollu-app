@@ -26,7 +26,8 @@
             <div class="flex items-center gap-2">
                 <FontAwesomeIcon :icon="faInfoCircle" class="text-amber-600 shrink-0" />
                 <span>
-                    Paket tokomu saat ini mendukung <strong>1 perangkat per outlet</strong>. Ingin menghubungkan banyak kasir bersamaan?
+                    Paket tokomu saat ini mendukung <strong>1 perangkat per outlet</strong>. Ingin
+                    menghubungkan banyak kasir bersamaan?
                 </span>
             </div>
             <a
@@ -83,8 +84,13 @@
                 </template>
 
                 <template #app_info="{ row }">
-                    <span v-if="row.platform_type || row.app_version" class="text-xs text-slate-600">
-                        <span v-if="row.platform_type" class="capitalize">{{ row.platform_type }}</span>
+                    <span
+                        v-if="row.platform_type || row.app_version"
+                        class="text-xs text-slate-600"
+                    >
+                        <span v-if="row.platform_type" class="capitalize">{{
+                            row.platform_type
+                        }}</span>
                         <span v-if="row.platform_type && row.app_version"> • </span>
                         <span v-if="row.app_version">v{{ row.app_version }}</span>
                     </span>
@@ -99,13 +105,14 @@
                         <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         Terhubung
                     </span>
-                    <span v-else class="text-xs text-slate-400">
-                        Belum Terhubung
-                    </span>
+                    <span v-else class="text-xs text-slate-400"> Belum Terhubung </span>
                 </template>
 
                 <template #is_active="{ row }">
-                    <span v-if="row.is_active" class="badge badge-success text-[11px] font-semibold">
+                    <span
+                        v-if="row.is_active"
+                        class="badge badge-success text-[11px] font-semibold"
+                    >
                         Aktif
                     </span>
                     <span v-else class="badge badge-danger text-[11px] font-semibold">
@@ -191,7 +198,8 @@
                 Belum Ada Perangkat Terdaftar
             </h3>
             <p class="text-xs text-slate-500 max-w-sm mb-6">
-                Daftarkan aplikasi kasir desktop atau POS mobile tokomu untuk mulai sinkronisasi data transaksi dan shift.
+                Daftarkan aplikasi kasir desktop atau POS mobile tokomu untuk mulai sinkronisasi
+                data transaksi dan shift.
             </p>
             <button
                 type="button"

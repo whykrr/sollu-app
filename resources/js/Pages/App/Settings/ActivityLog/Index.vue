@@ -12,11 +12,7 @@
         </template>
 
         <template #filter>
-            <ActivityLogFilter
-                :filters="filters"
-                :modules="modules"
-                :outlets="outlets"
-            />
+            <ActivityLogFilter :filters="filters" :modules="modules" :outlets="outlets" />
         </template>
 
         <FeatureLock
@@ -48,7 +44,9 @@
                     <!-- Kolom Pelaku -->
                     <template #causer="{ row }">
                         <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 bg-main/10 text-main rounded-full flex items-center justify-center text-[11px] font-bold shrink-0">
+                            <div
+                                class="w-7 h-7 bg-main/10 text-main rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                            >
                                 {{ getInitials(row.causer?.name || 'S') }}
                             </div>
                             <div class="flex flex-col min-w-0">

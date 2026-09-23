@@ -110,7 +110,10 @@
                     </h3>
 
                     <div class="flex justify-center p-0 relative">
-                        <LogoCropper :url="auth.business?.logo_url" @action="saveLogo" />
+                        <LogoCropper
+                            :url="props.business?.logo_url || auth.business?.logo_url"
+                            @action="saveLogo"
+                        />
                     </div>
 
                     <div

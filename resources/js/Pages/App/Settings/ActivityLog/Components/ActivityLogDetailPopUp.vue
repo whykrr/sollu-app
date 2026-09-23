@@ -1,15 +1,22 @@
 <template>
     <div class="space-y-3 flex-1 overflow-y-auto">
         <!-- Loading State -->
-        <div v-if="loading" class="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+        <div
+            v-if="loading"
+            class="py-12 flex flex-col items-center justify-center gap-2 text-slate-400"
+        >
             <FontAwesomeIcon :icon="faSpinner" class="animate-spin text-2xl text-main" />
             <span class="text-xs">Memuat detail log audit...</span>
         </div>
 
         <template v-else-if="detail">
             <!-- Header / Profil Pelaku Section -->
-            <div class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                <div class="w-10 h-10 bg-main/10 text-main rounded-full flex items-center justify-center text-base font-bold shrink-0">
+            <div
+                class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row gap-3 items-start sm:items-center"
+            >
+                <div
+                    class="w-10 h-10 bg-main/10 text-main rounded-full flex items-center justify-center text-base font-bold shrink-0"
+                >
                     {{ getInitials(detail.causer?.name || 'Sistem') }}
                 </div>
                 <div class="flex-1 min-w-0">
@@ -39,30 +46,40 @@
 
             <!-- Ringkasan Aktivitas -->
             <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1.5">
-                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                <span
+                    class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block"
+                >
                     Keterangan Aktivitas
                 </span>
                 <p class="text-sm font-medium text-slate-800 leading-relaxed">
                     {{ detail.description }}
                 </p>
                 <div class="flex items-center gap-2 pt-1">
-                    <span class="text-xs text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                    <span
+                        class="text-xs text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200"
+                    >
                         {{ detail.action }}
                     </span>
                     <span v-if="detail.subject_type" class="text-xs text-slate-400">
-                        Subjek: {{ formatSubjectType(detail.subject_type) }} #{{ detail.subject_id }}
+                        Subjek: {{ formatSubjectType(detail.subject_type) }} #{{
+                            detail.subject_id
+                        }}
                     </span>
                 </div>
             </div>
 
             <!-- Rincian Perubahan Data (Diff Viewer) -->
             <div v-if="hasDiff" class="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
-                <span class="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block">
+                <span
+                    class="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block"
+                >
                     Perubahan Data
                 </span>
                 <div class="border border-slate-200 rounded-lg overflow-hidden">
                     <table class="w-full text-xs text-left">
-                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                        <thead
+                            class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold"
+                        >
                             <tr>
                                 <th class="py-2 px-3">Field / Kolom</th>
                                 <th class="py-2 px-3">Nilai Sebelum</th>
@@ -70,7 +87,11 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <tr v-for="item in diffItems" :key="item.key" class="hover:bg-slate-50/50">
+                            <tr
+                                v-for="item in diffItems"
+                                :key="item.key"
+                                class="hover:bg-slate-50/50"
+                            >
                                 <td class="py-2 px-3 font-mono font-medium text-slate-700">
                                     {{ item.key }}
                                 </td>
@@ -88,7 +109,9 @@
 
             <!-- Metadata Perangkat & Jaringan -->
             <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
-                <span class="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block">
+                <span
+                    class="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block"
+                >
                     Informasi Jaringan & Perangkat
                 </span>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -108,17 +131,25 @@
             </div>
 
             <!-- Raw Payload Data (Collapsible) -->
-            <div v-if="detail.properties" class="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
+            <div
+                v-if="detail.properties"
+                class="bg-white p-3 rounded-xl border border-slate-200 space-y-2"
+            >
                 <button
                     type="button"
                     class="flex items-center justify-between w-full text-[11px] font-semibold text-slate-500 hover:text-slate-800 transition cursor-pointer"
                     @click="showRawJson = !showRawJson"
                 >
                     <span>PAYLOAD DATA LENGKAP (RAW JSON)</span>
-                    <FontAwesomeIcon :icon="showRawJson ? faChevronUp : faChevronDown" class="text-xs" />
+                    <FontAwesomeIcon
+                        :icon="showRawJson ? faChevronUp : faChevronDown"
+                        class="text-xs"
+                    />
                 </button>
                 <div v-if="showRawJson" class="mt-2">
-                    <pre class="bg-slate-900 text-slate-100 p-3 rounded-lg text-[11px] font-mono overflow-x-auto max-h-60 leading-relaxed">{{ JSON.stringify(detail.properties, null, 2) }}</pre>
+                    <pre
+                        class="bg-slate-900 text-slate-100 p-3 rounded-lg text-[11px] font-mono overflow-x-auto max-h-60 leading-relaxed"
+                        >{{ JSON.stringify(detail.properties, null, 2) }}</pre>
                 </div>
             </div>
         </template>

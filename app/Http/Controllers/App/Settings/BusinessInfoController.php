@@ -7,6 +7,7 @@ use App\Constants\ResourceMessage;
 use App\Contracts\Audit\ActivityLoggerInterface;
 use App\Enums\AuditModuleEnum;
 use App\Enums\PermissionEnum;
+use App\Helpers\SummaryUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Business\SaveBusinessLogoRequest;
 use App\Http\Requests\App\BusinessUpdateRequest;
@@ -59,6 +60,8 @@ class BusinessInfoController extends Controller
         $business->address = $req->validated('address');
         $business->save();
 
+        SummaryUser::cacheDelete(Auth::id());
+
         $this->auditLogger->log(
             module: AuditModuleEnum::SETTINGS->value,
             action: 'business.updated',
@@ -96,6 +99,8 @@ class BusinessInfoController extends Controller
             $business->logo = null;
             $business->save();
 
+            SummaryUser::cacheDelete(Auth::id());
+
             $this->auditLogger->log(
                 module: AuditModuleEnum::SETTINGS->value,
                 action: 'business.logo_removed',
@@ -119,6 +124,8 @@ class BusinessInfoController extends Controller
 
         $business->logo = $path;
         $business->save();
+
+        SummaryUser::cacheDelete(Auth::id());
 
         $this->auditLogger->log(
             module: AuditModuleEnum::SETTINGS->value,

@@ -62,7 +62,7 @@ class HandleAppInertiaRequests extends Middleware
 
             'auth' => fn () => $request->user()
                 ? array_merge(
-                    $request->user()->only(['id', 'name', 'email', 'email_verified_at', 'photo']),
+                    $request->user()->only(['id', 'name', 'email', 'email_verified_at', 'photo', 'photo_url']),
                     (array) SummaryUser::make()->cached(),
                     ['selected_outlet' => SelectedOutlet::make($request->user())->cached()]
                 ) : null,
