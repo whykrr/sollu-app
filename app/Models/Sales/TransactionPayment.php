@@ -3,6 +3,7 @@
 namespace App\Models\Sales;
 
 use App\Models\Master\PaymentMethod;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +22,9 @@ class TransactionPayment extends Model
         'amount',
         'change_amount',
         'payment_reference',
+        'payment_date',
+        'notes',
+        'created_by',
     ];
 
     protected function casts(): array
@@ -28,6 +32,7 @@ class TransactionPayment extends Model
         return [
             'amount' => 'float',
             'change_amount' => 'float',
+            'payment_date' => 'datetime',
         ];
     }
 
@@ -39,5 +44,10 @@ class TransactionPayment extends Model
     public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

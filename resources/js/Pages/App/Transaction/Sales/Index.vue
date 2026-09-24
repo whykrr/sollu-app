@@ -40,7 +40,7 @@
             :sort-direction="filters.direction"
         >
             <template #created_at="{ item }">
-                <span>{{ formatDateTimeSimple(item.created_at) }}</span>
+                <span>{{ formatDateTimeSimple(item.transaction_date || item.created_at) }}</span>
             </template>
             <template #numbers="{ item }">
                 <div class="flex flex-col">
@@ -67,6 +67,12 @@
             </template>
             <template #total="{ item }">
                 <span class="font-semibold">{{ formatCurrency(item.total) }}</span>
+            </template>
+            <template #balance_due="{ item }">
+                <span v-if="Number(item.balance_due) > 0" class="font-semibold text-danger">
+                    {{ formatCurrency(item.balance_due) }}
+                </span>
+                <span v-else class="font-semibold text-success"> Lunas </span>
             </template>
             <template #status="{ item }">
                 <span
@@ -169,7 +175,7 @@ const changeStatus = status => {
 const headers = [
     {
         label: 'Tanggal',
-        field: 'created_at',
+        field: 'transaction_date',
         slot: 'created_at',
         sortable: true,
     },
@@ -177,6 +183,7 @@ const headers = [
     { label: 'Pelanggan', slot: 'customer', sortable: false },
     { label: 'Kasir / Channel', slot: 'shift', sortable: false },
     { label: 'Total', field: 'total', slot: 'total', sortable: true },
+    { label: 'Sisa Tagihan', slot: 'balance_due', sortable: false },
     {
         label: 'Status',
         field: 'status',

@@ -191,6 +191,7 @@
                             v-model="item.price"
                             label="Harga"
                             prefix="Rp"
+                            :disabled="!can('transaction.override_price')"
                             @update:model-value="calculateTotals"
                         />
                         <NumberField
@@ -361,9 +362,7 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex items-center justify-between w-full">
-                <button type="button" class="btn btn-flat" @click="popUpStore.close()">
-                    Batal
-                </button>
+                <button type="button" class="btn btn-flat" @click="handleCancel()">Batal</button>
                 <div class="flex gap-2">
                     <button
                         v-if="can('transaction.create')"
@@ -392,14 +391,12 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import { usePopUpStore } from '@/store/popup'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import { useModalStore } from '@/store/notification.js'
-import axios from 'axios'
-import { debounce } from 'lodash'
 import { useAuth } from '@/Composable/useAuth'
 import { formatIDR as formatCurrency } from '@/Composable/currency-format'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faTrash, faPlus, faTimes, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faTimes, faUser } from '@fortawesome/free-solid-svg-icons'
 
 import TextField from '@/Components/Form/TextField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
@@ -409,7 +406,6 @@ import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
 
 const { can } = useAuth()
-const popUpStore = usePopUpStore()
 const modalStore = useModalStore()
 const isMounted = ref(false)
 const selectedPromo = ref(null)
@@ -461,6 +457,8 @@ const form = useForm({
     discount_amount: 0,
     total: 0,
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 watch(
     () => form.outlet_id,
@@ -675,7 +673,7 @@ const submit = actionType => {
     form.post(route('transactions.sales.store'), {
         preserveScroll: true,
         onSuccess: () => {
-            popUpStore.close()
+            forceClose()
         },
     })
 }

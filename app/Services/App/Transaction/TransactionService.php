@@ -9,9 +9,24 @@ use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
 use App\Events\Transaction\TransactionCompleted;
 use App\Events\Transaction\TransactionReversed;
+use App\Models\Inventory\InventoryBalance;
+use App\Models\Inventory\InventoryItem;
+use App\Models\Master\Customer;
+use App\Models\Master\ModifierOption;
+use App\Models\Master\PaymentMethod;
+use App\Models\Master\Product;
+use App\Models\Master\VariantGroupOption;
+use App\Models\OutletDevice;
+use App\Models\OutletSetting;
+use App\Models\Promo;
+use App\Models\Sales\Shift;
 use App\Models\Sales\Transaction;
+use App\Models\Sales\TransactionInvoice;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class TransactionService
 {
@@ -29,7 +44,7 @@ class TransactionService
         return DB::transaction(function () use ($data, $user) {
             $promoName = null;
             if (! empty($data['promo_id'])) {
-                $promo = \App\Models\Promo::find($data['promo_id']);
+                $promo = Promo::find($data['promo_id']);
                 $promoName = $promo?->name;
             }
 
@@ -44,7 +59,7 @@ class TransactionService
                     // Clamp discount if promo exists for this inventory item
                     $inventoryItemId = $item['inventory_item_id'] ?? null;
                     if ($inventoryItemId && ! empty($data['outlet_id'])) {
-                        $activePromo = \App\Models\Promo::active()
+                        $activePromo = Promo::active()
                             ->whereHas('inventoryItems', fn ($q) => $q->where('inventory_items.id', $inventoryItemId))
                             ->where(function ($q) use ($data) {
                                 $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $data['outlet_id']))
@@ -131,7 +146,7 @@ class TransactionService
             ]);
 
             if (! empty($data['promo_id'])) {
-                $promo = \App\Models\Promo::find($data['promo_id']);
+                $promo = Promo::find($data['promo_id']);
                 if ($promo) {
                     $transaction->promos()->create([
                         'promo_id' => $promo->id,
@@ -150,8 +165,8 @@ class TransactionService
                     $productId = $item['product_id'] ?? null;
                     $variantGroupOptionId = $item['variant_group_option_id'] ?? null;
 
-                    $inventoryItem = $inventoryItemId ? \App\Models\Inventory\InventoryItem::find($inventoryItemId) : null;
-                    $product = $productId ? \App\Models\Master\Product::find($productId) : null;
+                    $inventoryItem = $inventoryItemId ? InventoryItem::find($inventoryItemId) : null;
+                    $product = $productId ? Product::find($productId) : null;
 
                     if (! $product && $inventoryItem) {
                         $product = $inventoryItem->product;
@@ -193,12 +208,25 @@ class TransactionService
             return;
         }
 
+        $allowNegative = OutletSetting::where('outlet_id', $outletId)
+            ->where('key', 'allow_negative_stock')
+            ->value('value');
+
+        // Assuming value is cast to array, e.g. [true] or scalar. We will check if it evaluates to true.
+        if (is_array($allowNegative)) {
+            $allowNegative = $allowNegative[0] ?? false;
+        }
+
+        if ($allowNegative) {
+            return;
+        }
+
         foreach ($items as $item) {
             $inventoryItemId = $item['inventory_item_id'] ?? null;
             $productId = $item['product_id'] ?? null;
 
             if (! $inventoryItemId && $productId) {
-                $product = \App\Models\Master\Product::with('inventoryItems')->find($productId);
+                $product = Product::with('inventoryItems')->find($productId);
                 $inventoryItemId = $product?->inventoryItems?->first()?->id;
             }
 
@@ -206,12 +234,12 @@ class TransactionService
                 continue;
             }
 
-            $inventoryItem = \App\Models\Inventory\InventoryItem::find($inventoryItemId);
+            $inventoryItem = InventoryItem::find($inventoryItemId);
             if (! $inventoryItem || ! $inventoryItem->track_inventory) {
                 continue;
             }
 
-            $balance = \App\Models\Inventory\InventoryBalance::where('outlet_id', $outletId)
+            $balance = InventoryBalance::where('outlet_id', $outletId)
                 ->where('inventory_item_id', $inventoryItemId)
                 ->first();
 
@@ -221,7 +249,7 @@ class TransactionService
             if ($requestedQty > $currentStock) {
                 $itemName = $inventoryItem->name ?: ($item['product_name'] ?? 'Item');
 
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'items' => "Stok produk '{$itemName}' tidak mencukupi di outlet ini. Stok tersedia: {$currentStock}, dibutuhkan: {$requestedQty}.",
                 ]);
             }
@@ -288,7 +316,7 @@ class TransactionService
                 'payment_method_id' => $data['payment_method_id'],
                 'amount' => $data['amount'],
                 'notes' => $data['notes'] ?? null,
-                'created_at' => $data['payment_date'] ? \Carbon\Carbon::parse($data['payment_date']) : now(),
+                'created_at' => $data['payment_date'] ? Carbon::parse($data['payment_date']) : now(),
             ]);
 
             $paidAmount = $transaction->payments()->sum('amount');
@@ -407,7 +435,7 @@ class TransactionService
     protected function generateInvoiceNumber(): string
     {
         $prefix = 'INV/'.date('Y/m/');
-        $last = \App\Models\Sales\TransactionInvoice::where('invoice_number', 'like', $prefix.'%')
+        $last = TransactionInvoice::where('invoice_number', 'like', $prefix.'%')
             ->orderBy('id', 'desc')
             ->first();
 
@@ -420,7 +448,7 @@ class TransactionService
         return $prefix.str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
     }
 
-    public function syncOfflineTransaction(array $data, ?\App\Models\OutletDevice $device = null): Transaction
+    public function syncOfflineTransaction(array $data, ?OutletDevice $device = null): Transaction
     {
         return DB::transaction(function () use ($data, $device) {
             $transactionNumber = $data['transaction_number'] ?? $data['receipt_number'] ?? $data['offline_id'] ?? $this->generateTransactionNumber();
@@ -431,10 +459,10 @@ class TransactionService
                 return $existing;
             }
 
-            $isValidUuid = fn ($id) => ! empty($id) && \Illuminate\Support\Str::isUuid($id);
+            $isValidUuid = fn ($id) => ! empty($id) && Str::isUuid($id);
 
-            $shiftId = ($isValidUuid($data['shift_id'] ?? null) && \App\Models\Sales\Shift::where('id', $data['shift_id'])->exists()) ? $data['shift_id'] : null;
-            $customerId = ($isValidUuid($data['customer_id'] ?? null) && \App\Models\Master\Customer::where('id', $data['customer_id'])->exists()) ? $data['customer_id'] : null;
+            $shiftId = ($isValidUuid($data['shift_id'] ?? null) && Shift::where('id', $data['shift_id'])->exists()) ? $data['shift_id'] : null;
+            $customerId = ($isValidUuid($data['customer_id'] ?? null) && Customer::where('id', $data['customer_id'])->exists()) ? $data['customer_id'] : null;
 
             // Create transaction from offline data
             $transaction = Transaction::create([
@@ -457,9 +485,9 @@ class TransactionService
             ]);
 
             foreach ($data['items'] as $item) {
-                $productId = ($isValidUuid($item['product_id'] ?? null) && \App\Models\Master\Product::where('id', $item['product_id'])->exists()) ? $item['product_id'] : null;
+                $productId = ($isValidUuid($item['product_id'] ?? null) && Product::where('id', $item['product_id'])->exists()) ? $item['product_id'] : null;
                 $inventoryItemId = ($isValidUuid($item['inventory_item_id'] ?? null) && \App\Models\Master\InventoryItem::where('id', $item['inventory_item_id'])->exists()) ? $item['inventory_item_id'] : null;
-                $variantOptionId = ($isValidUuid($item['variant_group_option_id'] ?? null) && \App\Models\Master\VariantGroupOption::where('id', $item['variant_group_option_id'])->exists()) ? $item['variant_group_option_id'] : null;
+                $variantOptionId = ($isValidUuid($item['variant_group_option_id'] ?? null) && VariantGroupOption::where('id', $item['variant_group_option_id'])->exists()) ? $item['variant_group_option_id'] : null;
 
                 $txItem = $transaction->items()->create([
                     'product_id' => $productId,
@@ -478,7 +506,7 @@ class TransactionService
 
                 if (! empty($item['modifiers'])) {
                     foreach ($item['modifiers'] as $mod) {
-                        $modOptionId = ($isValidUuid($mod['modifier_option_id'] ?? null) && \App\Models\Master\ModifierOption::where('id', $mod['modifier_option_id'])->exists()) ? $mod['modifier_option_id'] : null;
+                        $modOptionId = ($isValidUuid($mod['modifier_option_id'] ?? null) && ModifierOption::where('id', $mod['modifier_option_id'])->exists()) ? $mod['modifier_option_id'] : null;
 
                         $txItem->modifiers()->create([
                             'modifier_option_id' => $modOptionId,
@@ -492,7 +520,7 @@ class TransactionService
 
             if (! empty($data['payments'])) {
                 foreach ($data['payments'] as $payment) {
-                    $paymentMethodId = ($isValidUuid($payment['payment_method_id'] ?? null) && \App\Models\Master\PaymentMethod::where('id', $payment['payment_method_id'])->exists()) ? $payment['payment_method_id'] : null;
+                    $paymentMethodId = ($isValidUuid($payment['payment_method_id'] ?? null) && PaymentMethod::where('id', $payment['payment_method_id'])->exists()) ? $payment['payment_method_id'] : null;
 
                     $transaction->payments()->create([
                         'payment_method_id' => $paymentMethodId,
@@ -505,7 +533,7 @@ class TransactionService
 
             if (! empty($data['promos'])) {
                 foreach ($data['promos'] as $p) {
-                    $promoId = ($isValidUuid($p['promo_id'] ?? null) && \App\Models\Promo::where('id', $p['promo_id'])->exists()) ? $p['promo_id'] : null;
+                    $promoId = ($isValidUuid($p['promo_id'] ?? null) && Promo::where('id', $p['promo_id'])->exists()) ? $p['promo_id'] : null;
 
                     $transaction->promos()->create([
                         'promo_id' => $promoId,

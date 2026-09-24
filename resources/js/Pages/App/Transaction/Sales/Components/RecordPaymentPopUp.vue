@@ -10,9 +10,12 @@
                 <span class="text-slate-500">Total Tagihan</span>
                 <span class="font-semibold">{{ formatCurrency(transaction.total) }}</span>
             </div>
-            <div v-if="transaction.paid_amount > 0" class="flex justify-between text-success">
+            <div
+                v-if="Number(transaction.total_paid) > 0"
+                class="flex justify-between text-success"
+            >
                 <span class="font-medium">Sudah Dibayar</span>
-                <span class="font-semibold">{{ formatCurrency(transaction.paid_amount) }}</span>
+                <span class="font-semibold">{{ formatCurrency(transaction.total_paid) }}</span>
             </div>
             <div
                 class="flex justify-between text-danger text-lg pt-2 border-t border-slate-200 mt-2"
@@ -57,9 +60,7 @@
 
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex items-center justify-between w-full">
-                <button type="button" class="btn btn-flat" @click="popUpStore.close()">
-                    Batal
-                </button>
+                <button type="button" class="btn btn-flat" @click="handleCancel()">Batal</button>
                 <button
                     type="button"
                     class="btn btn-main"
@@ -76,8 +77,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import axios from 'axios'
-import { usePopUpStore } from '@/store/popup'
 import { formatIDR as formatCurrency } from '@/Composable/currency-format'
 
 import DropdownField from '@/Components/Form/DropdownField.vue'
@@ -92,12 +93,11 @@ const props = defineProps({
     },
 })
 
-const popUpStore = usePopUpStore()
 const isMounted = ref(false)
 const paymentMethodOptions = ref([])
 
 const balanceDue = computed(() => {
-    return props.transaction.total - (props.transaction.paid_amount || 0)
+    return Number(props.transaction.balance_due) || 0
 })
 
 const form = useForm({
@@ -106,6 +106,8 @@ const form = useForm({
     payment_date: new Date().toISOString().split('T')[0],
     notes: '',
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 const fetchPaymentMethods = async () => {
     try {
@@ -130,10 +132,7 @@ const submit = () => {
     form.post(route('transactions.sales.record-payment', props.transaction.id), {
         preserveScroll: true,
         onSuccess: () => {
-            popUpStore.close()
-            // In a real app we might want to also re-fetch the detail page if it's open,
-            // but closing this popup usually reveals the detail popup which might need a reload.
-            // A simple page reload is fine, or Inertia does it.
+            forceClose()
         },
     })
 }

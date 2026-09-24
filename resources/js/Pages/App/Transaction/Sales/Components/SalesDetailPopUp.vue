@@ -189,6 +189,17 @@
 
                     <button
                         v-if="
+                            can('transaction.record_payment') &&
+                            (transaction.status === 'unpaid' || transaction.status === 'partial')
+                        "
+                        class="btn btn-main"
+                        @click="openPayment"
+                    >
+                        Catat Pembayaran
+                    </button>
+
+                    <button
+                        v-if="
                             can('transaction.cancel') &&
                             (transaction.status === 'draft' ||
                                 transaction.status === 'unpaid' ||

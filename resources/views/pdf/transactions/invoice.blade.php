@@ -253,10 +253,61 @@
                         <td style="padding: 8px 0;">TOTAL KESELURUHAN</td>
                         <td class="text-right" style="padding: 8px 0;">Rp {{ number_format($transaction->total, 0, ',', '.') }}</td>
                     </tr>
+                    @if($transaction->total_paid > 0)
+                    <tr>
+                        <td style="padding-top: 4px; color: #16a34a;">Telah Dibayar</td>
+                        <td class="text-right" style="padding-top: 4px; color: #16a34a;">Rp {{ number_format($transaction->total_paid, 0, ',', '.') }}</td>
+                    </tr>
+                    @endif
+                    @if($transaction->balance_due > 0)
+                    <tr>
+                        <td style="padding-top: 4px; color: #dc2626; font-weight: bold;">Sisa Tagihan</td>
+                        <td class="text-right" style="padding-top: 4px; color: #dc2626; font-weight: bold;">Rp {{ number_format($transaction->balance_due, 0, ',', '.') }}</td>
+                    </tr>
+                    @elseif($transaction->status === 'paid' && $transaction->balance_due <= 0)
+                    <tr>
+                        <td style="padding-top: 4px; color: #16a34a; font-weight: bold;">Sisa Tagihan</td>
+                        <td class="text-right" style="padding-top: 4px; color: #16a34a; font-weight: bold;">LUNAS</td>
+                    </tr>
+                    @endif
                 </table>
             </td>
         </tr>
     </table>
+
+    @if($transaction->payments && $transaction->payments->count() > 0)
+    <div style="margin-top: 25px; page-break-inside: avoid;">
+        <div style="font-weight: bold; font-size: 12px; color: #1e293b; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">Riwayat Pembayaran</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding: 4px 0; color: #64748b; font-weight: normal; border-bottom: 1px solid #f1f5f9;">Tanggal</th>
+                    <th style="text-align: left; padding: 4px 0; color: #64748b; font-weight: normal; border-bottom: 1px solid #f1f5f9;">Metode</th>
+                    <th style="text-align: left; padding: 4px 0; color: #64748b; font-weight: normal; border-bottom: 1px solid #f1f5f9;">Catatan / Referensi</th>
+                    <th style="text-align: right; padding: 4px 0; color: #64748b; font-weight: normal; border-bottom: 1px solid #f1f5f9;">Nominal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($transaction->payments as $payment)
+                <tr>
+                    <td style="padding: 4px 0; border-bottom: 1px solid #f8fafc;">
+                        {{ \Carbon\Carbon::parse($payment->payment_date ?? $payment->created_at)->format('d M Y') }}
+                    </td>
+                    <td style="padding: 4px 0; border-bottom: 1px solid #f8fafc;">
+                        {{ $payment->paymentMethod?->name ?? 'Tunai' }}
+                    </td>
+                    <td style="padding: 4px 0; border-bottom: 1px solid #f8fafc; color: #64748b;">
+                        {{ $payment->notes }} {{ $payment->payment_reference ? '('.$payment->payment_reference.')' : '' }}
+                    </td>
+                    <td style="padding: 4px 0; border-bottom: 1px solid #f8fafc; text-align: right; font-weight: 500; color: #16a34a;">
+                        Rp {{ number_format($payment->amount, 0, ',', '.') }}
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
 
 </body>
 </html>

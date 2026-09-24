@@ -4,7 +4,10 @@ namespace App\Models\Sales;
 
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
+use App\Helpers\SelectedOutlet;
 use App\Models\Master\Customer;
+use App\Models\Outlet;
+use App\Models\User;
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -37,9 +41,14 @@ class Transaction extends Model
         'shipping_fee',
         'service_charge_amount',
         'total',
+        'total_paid',
+        'balance_due',
+        'transaction_date',
         'payment_status',
         'status',
         'notes',
+        'created_by',
+        'updated_by',
     ];
 
     protected array $sortable = [
@@ -64,6 +73,9 @@ class Transaction extends Model
             'shipping_fee' => 'float',
             'service_charge_amount' => 'float',
             'total' => 'float',
+            'total_paid' => 'float',
+            'balance_due' => 'float',
+            'transaction_date' => 'datetime',
             'status' => TransactionStatus::class,
             'payment_status' => TransactionPaymentStatus::class,
         ];
@@ -71,7 +83,7 @@ class Transaction extends Model
 
     public function outlet(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Outlet::class);
+        return $this->belongsTo(Outlet::class);
     }
 
     public function shift(): BelongsTo
@@ -89,7 +101,7 @@ class Transaction extends Model
         return $this->hasManyThrough(TransactionItemModifier::class, TransactionItem::class);
     }
 
-    public function invoice(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function invoice(): HasOne
     {
         return $this->hasOne(TransactionInvoice::class);
     }
@@ -107,6 +119,16 @@ class Transaction extends Model
     public function promos(): HasMany
     {
         return $this->hasMany(TransactionPromo::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function scopeCurrentBusiness(Builder $query, ?string $businessId = null): Builder
@@ -145,7 +167,7 @@ class Transaction extends Model
                         $query->where('name', 'like', '%'.$search.'%');
                     });
             });
-        })->when($filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(), function ($query, $outletId) {
+        })->when($filters['outlet_id'] ?? SelectedOutlet::make()->currentId(), function ($query, $outletId) {
             $query->where('outlet_id', $outletId);
         })->when($filters['channel'] ?? null, function ($query, $channel) {
             $query->where('channel', $channel);
