@@ -3,12 +3,12 @@
 namespace Tests\Unit\Services\App\Transaction;
 
 use App\Contracts\Audit\ActivityLoggerInterface;
-use App\Enums\TransactionStatus;
 use App\Enums\TransactionPaymentStatus;
-use App\Models\BusinessType;
+use App\Enums\TransactionStatus;
 use App\Models\Business;
-use App\Models\Outlet;
+use App\Models\BusinessType;
 use App\Models\Master\Customer;
+use App\Models\Outlet;
 use App\Models\Sales\Transaction;
 use App\Models\User;
 use App\Services\App\Transaction\B2bTransactionService;
@@ -23,12 +23,19 @@ class B2bTransactionServiceTest extends TestCase
     use RefreshDatabase;
 
     protected $priceCalculationServiceMock;
+
     protected $baseTransactionServiceMock;
+
     protected $auditLoggerMock;
+
     protected $service;
+
     protected $user;
+
     protected $business;
+
     protected $outlet;
+
     protected $customer;
 
     protected function setUp(): void
@@ -145,18 +152,22 @@ class B2bTransactionServiceTest extends TestCase
         ]);
 
         $this->baseTransactionServiceMock
-            ->shouldReceive('checkStockAvailability')
-            ->once();
+            ->shouldReceive('issueInvoice')
+            ->with($transaction, $this->user, [])
+            ->once()
+            ->andReturnUsing(function ($tx) {
+                $tx->status = TransactionStatus::Unpaid;
+                $tx->payment_status = TransactionPaymentStatus::Unpaid;
+                $tx->invoice->status = TransactionStatus::Unpaid;
 
-        $this->auditLoggerMock
-            ->shouldReceive('log')
-            ->once();
+                return $tx;
+            });
 
         $issuedTransaction = $this->service->issueInvoice($transaction, $this->user);
 
         $this->assertEquals(TransactionStatus::Unpaid, $issuedTransaction->status);
         $this->assertEquals(TransactionPaymentStatus::Unpaid, $issuedTransaction->payment_status);
-        $this->assertEquals(TransactionStatus::Unpaid->value, $issuedTransaction->invoice->status);
+        $this->assertEquals(TransactionStatus::Unpaid, $issuedTransaction->invoice->status);
     }
 
     public function test_it_throws_error_when_issuing_non_draft_invoice(): void
@@ -171,6 +182,12 @@ class B2bTransactionServiceTest extends TestCase
             'created_by' => $this->user->id,
             'updated_by' => $this->user->id,
         ]);
+
+        $this->baseTransactionServiceMock
+            ->shouldReceive('issueInvoice')
+            ->with($transaction, $this->user, [])
+            ->once()
+            ->andThrow(new \Exception('Hanya transaksi draf yang dapat diterbitkan.'));
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Hanya transaksi draf yang dapat diterbitkan.');

@@ -1,56 +1,25 @@
 <template>
     <div v-if="!shouldHide" class="relative">
-        <div class="space-y-2">
-            <label v-if="label" :for="$attrs.id" class="label">
-                {{ label }}
-            </label>
-            <div class="bg-slate-50/60 border border-slate-200 p-3 rounded-xl relative">
-                <SelectionGroupField
-                    :id="$attrs.id"
-                    v-model="internalValue"
-                    :options="formattedOutlets"
-                    :name="$attrs.id || 'outlet_id'"
-                    class="sm btn-sm"
-                    :disabled="disabled || isLoading"
-                />
-
-                <div
-                    v-if="isLoading"
-                    class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
-                >
-                    <svg
-                        class="animate-spin h-4 w-4 text-gray-500"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                        ></circle>
-                        <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                    </svg>
-                </div>
-            </div>
-            <span v-if="feedbackMessage" class="text-danger text-xs mt-1 block">
-                {{ feedbackMessage }}
-            </span>
-        </div>
+        <SearchableDropdownField
+            :id="$attrs.id || 'outlet_id'"
+            v-model="internalValue"
+            :label="label"
+            :placeholder="placeholder"
+            search-placeholder="Cari nama outlet..."
+            :options="formattedOutlets"
+            :error="error"
+            :feedback="feedback"
+            :disabled="disabled || isLoading"
+            :searchable="true"
+            :size="size"
+        />
     </div>
 </template>
 
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue'
 import { useAuth } from '@/Composable/useAuth.js'
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
+import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 
 const props = defineProps({
     modelValue: {
@@ -85,9 +54,12 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    size: {
+        type: String,
+        default: 'base',
+        validator: v => ['sm', 'base', 'adaptive', 'lg'].includes(v),
+    },
 })
-
-const feedbackMessage = computed(() => props.feedback || props.error || '')
 
 const emit = defineEmits(['update:modelValue', 'change', 'loaded'])
 
@@ -107,6 +79,7 @@ const formattedOutlets = computed(() => {
     return outlets.value.map(o => ({
         value: o.id,
         label: o.name,
+        description: o.address || (o.code ? `Kode: ${o.code}` : null),
     }))
 })
 

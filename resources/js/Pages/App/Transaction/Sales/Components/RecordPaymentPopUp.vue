@@ -50,6 +50,13 @@
                 required
             />
 
+            <TextField
+                v-model="form.payment_reference"
+                label="No. Referensi / Bukti Transfer (Opsional)"
+                placeholder="Contoh: REF-BCA-12345"
+                :error="form.errors.payment_reference"
+            />
+
             <TextareaField
                 v-model="form.notes"
                 label="Catatan Pembayaran"
@@ -104,6 +111,7 @@ const form = useForm({
     payment_method_id: '',
     amount: balanceDue.value,
     payment_date: new Date().toISOString().split('T')[0],
+    payment_reference: '',
     notes: '',
 })
 

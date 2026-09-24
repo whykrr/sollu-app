@@ -6,8 +6,10 @@ use App\Contracts\Audit\ActivityLoggerInterface;
 use App\Enums\AuditModuleEnum;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
+use App\Models\Outlet;
 use App\Models\Sales\Transaction;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class B2bTransactionService
@@ -85,11 +87,26 @@ class B2bTransactionService
                 ? $data['payment_term']
                 : (($data['payment_term'] ?? '') === 'termin' ? 'credit' : 'cash');
 
+            $defaultDueDays = 14;
+            if (! empty($data['outlet_id'])) {
+                $outlet = Outlet::find($data['outlet_id']);
+                if ($outlet) {
+                    $setting = $outlet->settings()->where('category', 'sales')->where('key', 'default_due_days_b2b')->first();
+                    if ($setting) {
+                        $defaultDueDays = (int) $setting->value;
+                    }
+                }
+            }
+
+            $dueDate = $paymentTerm === 'credit'
+                ? (! empty($data['due_date']) ? $data['due_date'] : Carbon::parse($transactionDate)->addDays($defaultDueDays)->toDateString())
+                : null;
+
             $transaction->invoice()->create([
                 'invoice_number' => $invoiceNumber,
                 'invoice_date' => $transactionDate,
                 'payment_term' => $paymentTerm,
-                'due_date' => $paymentTerm === 'credit' ? ($data['due_date'] ?? null) : null,
+                'due_date' => $dueDate,
                 'status' => TransactionStatus::Draft,
             ]);
 
@@ -126,45 +143,8 @@ class B2bTransactionService
         });
     }
 
-    public function issueInvoice(Transaction $transaction, User $user): Transaction
+    public function issueInvoice(Transaction $transaction, User $user, array $paymentData = []): Transaction
     {
-        if ($transaction->status !== TransactionStatus::Draft) {
-            throw new \Exception('Hanya transaksi draf yang dapat diterbitkan.');
-        }
-
-        $transaction->load(['items', 'outlet']);
-        $this->baseTransactionService->checkStockAvailability($transaction->items->toArray(), $transaction->outlet_id);
-
-        return DB::transaction(function () use ($transaction, $user) {
-            $paymentTerm = $transaction->invoice?->payment_term ?? 'cash';
-            $targetStatus = $paymentTerm === 'cash' ? 'paid' : 'unpaid';
-
-            $transaction->update([
-                'status' => $targetStatus,
-                'payment_status' => $targetStatus,
-                'updated_by' => $user->id,
-            ]);
-
-            if ($transaction->invoice) {
-                $transaction->invoice->update([
-                    'status' => $targetStatus,
-                ]);
-            }
-
-            // Deduct stock if unpaid/paid (issued)
-            // (Assumes deduction happens on issue, or we could call InventoryDeductionService here)
-
-            $this->auditLogger->log(
-                module: AuditModuleEnum::POS->value,
-                action: 'b2b.issued',
-                description: "Issued B2B Invoice {$transaction->transaction_number}",
-                subject: $transaction,
-                causer: $user,
-                businessId: $user->business_id,
-                outletId: $transaction->outlet_id
-            );
-
-            return $transaction;
-        });
+        return $this->baseTransactionService->issueInvoice($transaction, $user, $paymentData);
     }
 }

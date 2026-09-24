@@ -15,6 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class SalesController extends Controller
@@ -74,7 +75,7 @@ class SalesController extends Controller
 
             if ($validated['action'] === 'issue') {
                 $this->authorize('transaction.issue_invoice');
-                $service->issueInvoice($transaction, Auth::user());
+                $service->issueInvoice($transaction, Auth::user(), $validated);
             }
 
             DB::commit();
@@ -84,7 +85,7 @@ class SalesController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            if ($e instanceof \Illuminate\Validation\ValidationException) {
+            if ($e instanceof ValidationException) {
                 throw $e;
             }
 
@@ -92,13 +93,20 @@ class SalesController extends Controller
         }
     }
 
-    public function issue(Transaction $transaction, TransactionService $service)
+    public function issue(Request $request, Transaction $transaction, TransactionService $service)
     {
         $this->authorize('transaction.issue_invoice');
 
+        $validated = $request->validate([
+            'payment_method_id' => ['nullable', 'uuid', 'exists:payment_methods,id'],
+            'paid_amount' => ['nullable', 'numeric', 'min:0'],
+            'payment_reference' => ['nullable', 'string', 'max:255'],
+            'payment_notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
         try {
             DB::beginTransaction();
-            $service->issueInvoice($transaction, Auth::user());
+            $service->issueInvoice($transaction, Auth::user(), $validated);
             DB::commit();
 
             return redirect()->back()->with(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);

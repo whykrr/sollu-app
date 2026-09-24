@@ -237,7 +237,7 @@ return [
         ],
         'views' => [
             'timeline' => false,    // Add the views to the timeline (Experimental)
-            'data' => false,        //true for all data, 'keys' for only names, false for no parameters.
+            'data' => false,        // true for all data, 'keys' for only names, false for no parameters.
             'group' => 50,          // Group duplicate views. Pass value to auto-group, or true/false to force
             'exclude_paths' => [    // Add the paths which you don't want to appear in the views
                 'vendor/filament',   // Exclude Filament components by default
@@ -259,7 +259,7 @@ return [
             'file' => null,
         ],
         'cache' => [
-            'values' => true, // collect cache values
+            'values' => false, // collect cache values
         ],
         'position' => 'top-right',
     ],

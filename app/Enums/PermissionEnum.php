@@ -211,6 +211,7 @@ enum PermissionEnum: string
     */
 
     case SETTING_ALL = 'setting.*';
+    case SETTING_SALES = 'setting.sales';
     case SETTING_TAX = 'setting.tax';
     case SETTING_RECEIPT = 'setting.receipt';
     case SETTING_PAYMENT = 'setting.payment';
@@ -365,6 +366,7 @@ enum PermissionEnum: string
 
             // Setting
             self::SETTING_ALL => 'Semua Akses Pengaturan',
+            self::SETTING_SALES => 'Akses Pengaturan Penjualan',
             self::SETTING_TAX => 'Akses Pengaturan Pajak',
             self::SETTING_RECEIPT => 'Akses Pengaturan Struk',
             self::SETTING_PAYMENT => 'Akses Pengaturan Pembayaran',
@@ -487,6 +489,7 @@ enum PermissionEnum: string
             self::OUTLET_DELETE,
             self::OUTLET_SWITCH,
             self::SETTING_ALL,
+            self::SETTING_SALES,
             self::SETTING_TAX,
             self::SETTING_RECEIPT,
             self::SETTING_PAYMENT,

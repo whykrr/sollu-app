@@ -14,24 +14,6 @@
             />
         </template>
 
-        <div class="mb-4">
-            <div class="flex gap-2 border-b border-gray-200">
-                <button
-                    v-for="tab in statusTabs"
-                    :key="tab.value"
-                    class="px-4 py-2 text-sm font-medium border-b-2 transition-colors"
-                    :class="[
-                        filters.status === tab.value
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                    ]"
-                    @click="changeStatus(tab.value)"
-                >
-                    {{ tab.label }}
-                </button>
-            </div>
-        </div>
-
         <Table
             :headers="headers"
             :data="transactions.data"
@@ -126,7 +108,7 @@
 <script setup>
 import { faEye } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { router, usePage } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
@@ -138,12 +120,9 @@ import { formatDateTimeSimple } from '@/Composable/date.js'
 import { formatIDR as formatCurrency } from '@/Composable/currency-format.js'
 import { useAuth } from '@/Composable/useAuth.js'
 import { usePopUpStore } from '@/store/popup'
-import { useModalStore } from '@/store/notification.js'
 
-const page = usePage()
 const { can } = useAuth()
 const popUpStore = usePopUpStore()
-const modalStore = useModalStore()
 
 const props = defineProps({
     transactions: {
@@ -155,22 +134,6 @@ const props = defineProps({
         default: () => ({}),
     },
 })
-
-const statusTabs = [
-    { value: '', label: 'Semua' },
-    { value: 'draft', label: 'Draf' },
-    { value: 'unpaid', label: 'Belum Lunas' },
-    { value: 'paid', label: 'Lunas' },
-    { value: 'cancel', label: 'Dibatalkan' },
-]
-
-const changeStatus = status => {
-    router.get(
-        route('transactions.sales.index'),
-        { ...props.filters, status },
-        { preserveState: true, preserveScroll: true }
-    )
-}
 
 const headers = [
     {
@@ -228,9 +191,9 @@ const openDetail = item => {
 
 const openCreate = () => {
     popUpStore.open({
-        title: 'Tambah Penjualan',
+        title: 'Faktur Baru',
         component: SalesFormPopUp,
-        size: 'lg',
+        size: 'xl',
         props: {},
     })
 }

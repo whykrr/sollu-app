@@ -1,57 +1,59 @@
 <template>
-    <ActionBar>
-        <template #filters>
-            <!-- Date Preset & Range -->
-            <FilterPresetDate
-                v-model="filterForm.preset"
-                v-model:start-date="filterForm.start_date"
-                v-model:end-date="filterForm.end_date"
-                @change="updateQuery"
-            />
+    <div class="space-y-3">
+        <ActionBar>
+            <template #filters>
+                <!-- Date Preset & Range -->
+                <FilterPresetDate
+                    v-model="filterForm.preset"
+                    v-model:start-date="filterForm.start_date"
+                    v-model:end-date="filterForm.end_date"
+                    @change="updateQuery"
+                />
 
-            <!-- Status Filter -->
-            <FilterDropdown
-                v-model="filterForm.status"
-                label="Status"
+                <!-- Channel Filter -->
+                <FilterDropdown
+                    v-model="filterForm.channel"
+                    label="Channel"
+                    :options="channelOptions"
+                    all-option-label="Semua Channel"
+                    @change="updateQuery"
+                />
+            </template>
+
+            <template #search>
+                <FilterSearch
+                    v-model="filterForm.search"
+                    placeholder="Cari no. struk atau pelanggan..."
+                    @clear="updateQuery"
+                />
+            </template>
+
+            <template #tools>
+                <ActionsDropdown v-if="canExport" label="Opsi" :items="actionItems" />
+            </template>
+
+            <template #create>
+                <button
+                    v-if="canCreate"
+                    type="button"
+                    class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                    @click="$emit('create')"
+                >
+                    <FontAwesomeIcon :icon="faPlus" />
+                    <span>Faktur Baru</span>
+                </button>
+            </template>
+        </ActionBar>
+
+        <!-- Status Filter Segmented (Positioned below the filter bar) -->
+        <div class="flex items-center">
+            <FilterSegmented
+                :model-value="filterForm.status"
                 :options="statusOptions"
-                all-option-label="Semua Status"
-                @change="updateQuery"
+                @update:model-value="onStatusChanged"
             />
-
-            <!-- Channel Filter -->
-            <FilterDropdown
-                v-model="filterForm.channel"
-                label="Channel"
-                :options="channelOptions"
-                all-option-label="Semua Channel"
-                @change="updateQuery"
-            />
-        </template>
-
-        <template #search>
-            <FilterSearch
-                v-model="filterForm.search"
-                placeholder="Cari no. struk atau pelanggan..."
-                @clear="updateQuery"
-            />
-        </template>
-
-        <template #tools>
-            <ActionsDropdown v-if="canExport" label="Opsi Data" :items="actionItems" />
-        </template>
-
-        <template #create>
-            <button
-                v-if="canCreate"
-                type="button"
-                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
-                @click="$emit('create')"
-            >
-                <FontAwesomeIcon :icon="faPlus" />
-                <span>Tambah Penjualan</span>
-            </button>
-        </template>
-    </ActionBar>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -65,6 +67,7 @@ import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
+import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 
 const emit = defineEmits(['create', 'export-csv'])
 
@@ -92,6 +95,7 @@ const actionItems = computed(() => [
 ])
 
 const statusOptions = [
+    { value: '', label: 'Semua Status' },
     { value: 'draft', label: 'Draf' },
     { value: 'unpaid', label: 'Belum Lunas' },
     { value: 'paid', label: 'Lunas' },
@@ -106,6 +110,7 @@ const channelOptions = [
     { value: 'custom', label: 'Custom' },
     { value: 'dine_in', label: 'POS - Dine In' },
     { value: 'take_away', label: 'POS - Take Away' },
+    { value: 'walk_in', label: 'POS - Walk In' },
     { value: 'online_delivery', label: 'POS - Online Delivery' },
 ]
 
@@ -119,6 +124,11 @@ const filterForm = reactive({
     sort: props.filters.sort || '',
     direction: props.filters.direction || '',
 })
+
+const onStatusChanged = val => {
+    filterForm.status = val
+    updateQuery()
+}
 
 // Watch search with debounce
 watch(

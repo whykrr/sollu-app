@@ -12,6 +12,7 @@ import {
     faUserCircle,
     faUserShield,
     faSliders,
+    faFileInvoiceDollar,
 } from '@fortawesome/free-solid-svg-icons'
 
 export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
@@ -107,12 +108,22 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
         type: 'section',
         label: 'Transaksi & Keamanan',
         permissions: [
+            'setting.sales',
             'transaction.view',
             'setting.payment',
             'setting.receipt',
             'role.view',
             'setting.audit',
         ],
+    },
+    {
+        type: 'item',
+        url: route('settings.sales.index'),
+        icon: faFileInvoiceDollar,
+        label: 'Pengaturan Penjualan',
+        feature: enums.FeatureEnum.INVOICE_DEBT,
+        permissions: ['setting.sales', 'setting.*', 'transaction.view'],
+        activeRoute: 'settings.sales',
     },
     {
         type: 'item',

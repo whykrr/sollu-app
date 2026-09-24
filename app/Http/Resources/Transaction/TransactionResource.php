@@ -33,7 +33,10 @@ class TransactionResource extends JsonResource
             'discount_amount' => (float) $this->discount_amount,
             'promo_code' => $this->promo_code,
             'total' => (float) $this->total,
-            'paid_amount' => (float) $this->paid_amount,
+            'total_paid' => (float) ($this->total_paid ?? $this->paid_amount ?? 0),
+            'paid_amount' => (float) ($this->total_paid ?? $this->paid_amount ?? 0),
+            'balance_due' => (float) ($this->balance_due ?? max(0, (float) $this->total - (float) ($this->total_paid ?? $this->paid_amount ?? 0))),
+            'payment_status' => is_object($this->payment_status) ? $this->payment_status->value : $this->payment_status,
             'notes' => $this->invoice ? $this->invoice->notes : $this->notes,
             'terms_and_conditions' => $this->invoice ? $this->invoice->terms_and_conditions : null,
             'created_at' => $this->created_at,
@@ -74,12 +77,16 @@ class TransactionResource extends JsonResource
                         'id' => $payment->id,
                         'payment_method_id' => $payment->payment_method_id,
                         'amount' => (float) $payment->amount,
+                        'change_amount' => (float) ($payment->change_amount ?? 0),
+                        'payment_reference' => $payment->payment_reference,
+                        'payment_date' => $payment->payment_date ?? $payment->created_at,
                         'notes' => $payment->notes,
                         'created_at' => $payment->created_at,
                         'payment_method' => $payment->whenLoaded('paymentMethod', function () use ($payment) {
                             return [
                                 'id' => $payment->paymentMethod->id,
                                 'name' => $payment->paymentMethod->name,
+                                'type' => $payment->paymentMethod->type,
                             ];
                         }),
                     ];

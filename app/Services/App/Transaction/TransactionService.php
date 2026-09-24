@@ -134,11 +134,27 @@ class TransactionService
                 ? $data['payment_term']
                 : (($data['payment_term'] ?? '') === 'termin' ? 'credit' : 'cash');
 
+            $defaultDueDays = 14;
+            if (! empty($data['outlet_id'])) {
+                $outlet = Outlet::find($data['outlet_id']);
+                if ($outlet) {
+                    $setting = $outlet->settings()->where('category', 'sales')->where('key', 'default_due_days_b2b')->first();
+                    if ($setting) {
+                        $defaultDueDays = (int) $setting->value;
+                    }
+                }
+            }
+
+            $transactionDate = $data['transaction_date'] ?? now()->toDateString();
+            $dueDate = $paymentTerm === 'credit'
+                ? (! empty($data['due_date']) ? $data['due_date'] : Carbon::parse($transactionDate)->addDays($defaultDueDays)->toDateString())
+                : null;
+
             $transaction->invoice()->create([
                 'invoice_number' => $invoiceNumber,
-                'invoice_date' => $data['transaction_date'] ?? now()->toDateString(),
+                'invoice_date' => $transactionDate,
                 'payment_term' => $paymentTerm,
-                'due_date' => $paymentTerm === 'credit' ? ($data['due_date'] ?? null) : null,
+                'due_date' => $dueDate,
                 'status' => TransactionStatus::Draft,
                 'terms_and_conditions' => $data['terms_and_conditions'] ?? null,
                 'notes' => $data['notes'] ?? null,
@@ -209,15 +225,19 @@ class TransactionService
         }
 
         $allowNegative = OutletSetting::where('outlet_id', $outletId)
-            ->where('key', 'allow_negative_stock')
-            ->value('value');
+            ->whereIn('key', ['allow_negative_stock_b2b', 'allow_negative_stock'])
+            ->pluck('value', 'key');
 
-        // Assuming value is cast to array, e.g. [true] or scalar. We will check if it evaluates to true.
-        if (is_array($allowNegative)) {
-            $allowNegative = $allowNegative[0] ?? false;
+        $isNegativeAllowed = false;
+        if (isset($allowNegative['allow_negative_stock_b2b'])) {
+            $val = $allowNegative['allow_negative_stock_b2b'];
+            $isNegativeAllowed = is_array($val) ? ($val[0] ?? false) : (bool) $val;
+        } elseif (isset($allowNegative['allow_negative_stock'])) {
+            $val = $allowNegative['allow_negative_stock'];
+            $isNegativeAllowed = is_array($val) ? ($val[0] ?? false) : (bool) $val;
         }
 
-        if ($allowNegative) {
+        if ($isNegativeAllowed) {
             return;
         }
 
@@ -256,35 +276,101 @@ class TransactionService
         }
     }
 
-    public function issueInvoice(Transaction $transaction, User $user): Transaction
+    public function issueInvoice(Transaction $transaction, User $user, array $paymentData = []): Transaction
     {
         if ($transaction->status !== TransactionStatus::Draft) {
             throw new \Exception('Hanya transaksi draf yang dapat diterbitkan.');
         }
 
-        $transaction->load(['items', 'outlet']);
+        $transaction->load(['items', 'outlet', 'invoice']);
         $this->checkStockAvailability($transaction->items->toArray(), $transaction->outlet_id);
 
-        return DB::transaction(function () use ($transaction) {
+        return DB::transaction(function () use ($transaction, $user, $paymentData) {
             $paymentTerm = $transaction->invoice?->payment_term ?? 'cash';
-            $targetStatus = $paymentTerm === 'cash' ? 'paid' : 'unpaid';
+            $paymentMethodId = $paymentData['payment_method_id'] ?? null;
+            $grandTotal = floatval($transaction->total);
 
-            $transaction->update([
-                'status' => $targetStatus,
-                'payment_status' => $targetStatus,
-            ]);
+            if ($paymentTerm === 'cash') {
+                if ($paymentMethodId) {
+                    $paidAmount = isset($paymentData['paid_amount']) && floatval($paymentData['paid_amount']) > 0
+                        ? floatval($paymentData['paid_amount'])
+                        : $grandTotal;
+                    $changeAmount = max(0, $paidAmount - $grandTotal);
+                    $actualPaid = min($paidAmount, $grandTotal);
+
+                    $transaction->payments()->create([
+                        'payment_method_id' => $paymentMethodId,
+                        'amount' => $paidAmount,
+                        'change_amount' => $changeAmount,
+                        'payment_reference' => $paymentData['payment_reference'] ?? null,
+                        'notes' => $paymentData['payment_notes'] ?? 'Pembayaran Tunai',
+                        'created_by' => $user->id,
+                        'created_at' => ! empty($paymentData['payment_date']) ? Carbon::parse($paymentData['payment_date']) : now(),
+                    ]);
+
+                    $transaction->update([
+                        'total_paid' => $actualPaid,
+                        'paid_amount' => $actualPaid,
+                        'balance_due' => 0,
+                        'status' => TransactionStatus::Paid,
+                        'payment_status' => TransactionPaymentStatus::Paid,
+                        'updated_by' => $user->id,
+                    ]);
+                } else {
+                    $transaction->update([
+                        'total_paid' => 0,
+                        'paid_amount' => 0,
+                        'balance_due' => $grandTotal,
+                        'status' => TransactionStatus::Unpaid,
+                        'payment_status' => TransactionPaymentStatus::Unpaid,
+                        'updated_by' => $user->id,
+                    ]);
+                }
+            } else {
+                // Credit / Termin
+                $dpAmount = floatval($paymentData['paid_amount'] ?? 0);
+                $actualPaid = 0;
+
+                if ($dpAmount > 0 && $paymentMethodId) {
+                    $changeAmount = max(0, $dpAmount - $grandTotal);
+                    $actualPaid = min($dpAmount, $grandTotal);
+
+                    $transaction->payments()->create([
+                        'payment_method_id' => $paymentMethodId,
+                        'amount' => $dpAmount,
+                        'change_amount' => $changeAmount,
+                        'payment_reference' => $paymentData['payment_reference'] ?? null,
+                        'notes' => $paymentData['payment_notes'] ?? 'Uang Muka (DP)',
+                        'created_by' => $user->id,
+                        'created_at' => ! empty($paymentData['payment_date']) ? Carbon::parse($paymentData['payment_date']) : now(),
+                    ]);
+                }
+
+                $balanceDue = max(0, $grandTotal - $actualPaid);
+                $targetStatus = $balanceDue <= 0 ? TransactionStatus::Paid : TransactionStatus::Unpaid;
+                $targetPaymentStatus = $balanceDue <= 0
+                    ? TransactionPaymentStatus::Paid
+                    : ($actualPaid > 0 ? TransactionPaymentStatus::Partial : TransactionPaymentStatus::Unpaid);
+
+                $transaction->update([
+                    'total_paid' => $actualPaid,
+                    'paid_amount' => $actualPaid,
+                    'balance_due' => $balanceDue,
+                    'status' => $targetStatus,
+                    'payment_status' => $targetPaymentStatus,
+                    'updated_by' => $user->id,
+                ]);
+            }
 
             if ($transaction->invoice) {
                 $transaction->invoice->update([
-                    'status' => $targetStatus,
-                    'invoice_date' => now()->toDateString(),
+                    'status' => $transaction->status,
+                    'invoice_date' => $transaction->invoice->invoice_date ?? now()->toDateString(),
                     'sent_at' => now(),
                 ]);
             }
 
-            // Integrate with stock deduction service.
-            // Requirement: "pengurangan stok berlaku jika tracking inventori di nyalakan pada inventory item"
-            // We will let the deduction service or here handle the track_stock check.
+            // Deduct stock
             TransactionCompleted::dispatch($transaction);
 
             $this->auditLogger->log(
@@ -298,6 +384,8 @@ class TransactionService
                 properties: [
                     'transaction_number' => $transaction->transaction_number,
                     'total' => (float) $transaction->total,
+                    'total_paid' => (float) $transaction->total_paid,
+                    'balance_due' => (float) $transaction->balance_due,
                 ]
             );
 
@@ -312,25 +400,55 @@ class TransactionService
         }
 
         return DB::transaction(function () use ($transaction, $data, $user) {
-            $payment = $transaction->payments()->create([
-                'payment_method_id' => $data['payment_method_id'],
-                'amount' => $data['amount'],
-                'notes' => $data['notes'] ?? null,
-                'created_at' => $data['payment_date'] ? Carbon::parse($data['payment_date']) : now(),
-            ]);
-
-            $paidAmount = $transaction->payments()->sum('amount');
-            $transaction->paid_amount = $paidAmount;
-
-            if ($paidAmount >= $transaction->total) {
-                $transaction->status = TransactionStatus::Paid;
-                $transaction->payment_status = TransactionPaymentStatus::Paid;
-            } else {
-                $transaction->status = TransactionStatus::Partial;
-                $transaction->payment_status = TransactionPaymentStatus::Partial;
+            $amount = floatval($data['amount'] ?? 0);
+            if ($amount <= 0) {
+                throw ValidationException::withMessages(['amount' => 'Nominal pembayaran harus lebih dari 0.']);
             }
 
-            $transaction->save();
+            $paymentMethod = PaymentMethod::find($data['payment_method_id'] ?? null);
+            if (! $paymentMethod) {
+                throw ValidationException::withMessages(['payment_method_id' => 'Metode pembayaran tidak valid.']);
+            }
+
+            $currentBalance = floatval($transaction->balance_due);
+            if ($amount > $currentBalance) {
+                $changeAmount = $amount - $currentBalance;
+                $paymentAmount = $currentBalance;
+            } else {
+                $changeAmount = 0;
+                $paymentAmount = $amount;
+            }
+
+            $payment = $transaction->payments()->create([
+                'payment_method_id' => $paymentMethod->id,
+                'amount' => $amount,
+                'change_amount' => $changeAmount,
+                'payment_reference' => $data['payment_reference'] ?? null,
+                'notes' => $data['notes'] ?? null,
+                'created_by' => $user->id,
+                'created_at' => ! empty($data['payment_date']) ? Carbon::parse($data['payment_date']) : now(),
+            ]);
+
+            $newTotalPaid = floatval($transaction->total_paid ?? $transaction->paid_amount ?? 0) + $paymentAmount;
+            $newBalanceDue = max(0, $currentBalance - $paymentAmount);
+
+            $targetStatus = $newBalanceDue <= 0 ? TransactionStatus::Paid : $transaction->status;
+            $targetPaymentStatus = $newBalanceDue <= 0 ? TransactionPaymentStatus::Paid : TransactionPaymentStatus::Unpaid;
+
+            $transaction->update([
+                'total_paid' => $newTotalPaid,
+                'paid_amount' => $newTotalPaid,
+                'balance_due' => $newBalanceDue,
+                'status' => $targetStatus,
+                'payment_status' => $targetPaymentStatus,
+                'updated_by' => $user->id,
+            ]);
+
+            if ($transaction->invoice) {
+                $transaction->invoice->update([
+                    'status' => $targetStatus,
+                ]);
+            }
 
             $this->auditLogger->log(
                 module: AuditModuleEnum::POS->value,
@@ -343,7 +461,8 @@ class TransactionService
                 properties: [
                     'payment_id' => $payment->id,
                     'amount' => (float) $data['amount'],
-                    'paid_total' => (float) $paidAmount,
+                    'paid_total' => (float) $newTotalPaid,
+                    'balance_due' => (float) $newBalanceDue,
                 ]
             );
 

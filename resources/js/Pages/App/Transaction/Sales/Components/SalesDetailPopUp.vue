@@ -130,18 +130,31 @@
                 }}</span>
             </div>
 
-            <div v-if="transaction.paid_amount > 0" class="flex justify-between text-success pt-1">
+            <div
+                v-if="Number(transaction.total_paid || transaction.paid_amount) > 0"
+                class="flex justify-between text-success pt-1"
+            >
                 <span class="font-medium">Sudah Dibayar</span>
-                <span class="font-bold">{{ formatCurrency(transaction.paid_amount) }}</span>
+                <span class="font-bold">{{
+                    formatCurrency(transaction.total_paid || transaction.paid_amount)
+                }}</span>
             </div>
 
             <div
-                v-if="transaction.status === 'unpaid' || transaction.status === 'partial'"
+                v-if="
+                    Number(transaction.balance_due) > 0 ||
+                    transaction.status === 'unpaid' ||
+                    transaction.status === 'partial'
+                "
                 class="flex justify-between text-danger pt-1"
             >
                 <span class="font-medium">Sisa Tagihan</span>
                 <span class="font-bold">{{
-                    formatCurrency(transaction.total - transaction.paid_amount)
+                    formatCurrency(
+                        transaction.balance_due !== undefined
+                            ? transaction.balance_due
+                            : transaction.total - (transaction.total_paid || 0)
+                    )
                 }}</span>
             </div>
         </div>
@@ -163,11 +176,21 @@
                     <div class="font-medium">
                         {{ payment.payment_method?.name || 'Metode Pembayaran' }}
                     </div>
-                    <div class="text-xs text-slate-500">
+                    <div v-if="payment.payment_reference" class="text-xs text-slate-500">
+                        Ref: {{ payment.payment_reference }}
+                    </div>
+                    <div class="text-xs text-slate-400">
                         {{ formatDateTimeSimple(payment.created_at) }}
                     </div>
                 </div>
-                <div class="font-semibold text-success">+{{ formatCurrency(payment.amount) }}</div>
+                <div class="text-right">
+                    <div class="font-semibold text-success">
+                        +{{ formatCurrency(payment.amount) }}
+                    </div>
+                    <div v-if="Number(payment.change_amount) > 0" class="text-xs text-slate-500">
+                        Kembalian: {{ formatCurrency(payment.change_amount) }}
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -195,7 +218,7 @@
                         class="btn btn-main"
                         @click="openPayment"
                     >
-                        Catat Pembayaran
+                        Catat Pelunasan
                     </button>
 
                     <button
@@ -225,17 +248,6 @@
                         @click="issueInvoice"
                     >
                         Terbitkan Invoice
-                    </button>
-
-                    <button
-                        v-if="
-                            can('transaction.record_payment') &&
-                            (transaction.status === 'unpaid' || transaction.status === 'partial')
-                        "
-                        class="btn btn-main"
-                        @click="openPayment"
-                    >
-                        Catat Pelunasan
                     </button>
                 </div>
             </div>
@@ -279,7 +291,7 @@ const fetchDetail = async () => {
     try {
         const response = await axios.get(route('transactions.sales.show', props.transactionId))
         transaction.value = response.data.data
-    } catch (error) {
+    } catch (_error) {
         modalStore.open({
             type: 'error',
             title: 'Gagal Memuat',

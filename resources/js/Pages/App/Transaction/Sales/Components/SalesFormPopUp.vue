@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-4 pb-24">
+    <div class="space-y-4">
         <!-- Stock Validation Error Alert -->
 
         <!-- Document Information -->
@@ -15,7 +15,7 @@
                 />
 
                 <div>
-                    <label class="block text-sm font-medium mb-1">Pelanggan</label>
+                    <label class="label">Pelanggan</label>
                     <div
                         v-if="selectedCustomer"
                         class="flex items-center justify-between p-1 bg-slate-50 border border-slate-200 rounded-xl"
@@ -76,13 +76,14 @@
             <div class="grid grid-cols-2 gap-2">
                 <DropdownField
                     v-model="form.payment_term"
-                    label="Metode Pembayaran"
+                    label="Skema Pembayaran"
                     :options="[
-                        { value: 'cash', label: 'Tunai' },
-                        { value: 'credit', label: 'Kredit / Termin' },
+                        { value: 'cash', label: 'Tunai / Lunas Langsung' },
+                        { value: 'credit', label: 'Kredit / Termin (Invoice)' },
                     ]"
                     :error="form.errors.payment_term"
                     required
+                    @update:model-value="onPaymentTermChanged"
                 />
 
                 <TextField
@@ -203,7 +204,7 @@
                             v-model="item.discount_amount"
                             label="Diskon (Rp)"
                             prefix="Rp"
-                            :disabled="!can('transaction.discount_manual')"
+                            :disabled="!can('transaction.discount')"
                             @update:model-value="calculateTotals"
                         />
                         <NumberField
@@ -284,7 +285,7 @@
                         v-model="form.manual_discount_amount"
                         label="Diskon Manual Dokumen (Rp)"
                         prefix="Rp"
-                        :disabled="!can('transaction.discount_manual')"
+                        :disabled="!can('transaction.discount')"
                         @update:model-value="calculateTotals"
                     />
                 </div>
@@ -343,6 +344,132 @@
 
         <hr class="border-slate-200" />
 
+        <!-- Payment Card (Positioned below Total / Order Summary Section) -->
+        <div class="space-y-3">
+            <h3 class="text-sm font-semibold text-slate-700 uppercase">
+                {{
+                    form.payment_term === 'cash' ? 'Pembayaran Tunai' : 'Pengaturan Uang Muka (DP)'
+                }}
+            </h3>
+
+            <!-- Cash Payment Setup (Integrated with Outlet Payment Methods) -->
+            <div
+                v-if="form.payment_term === 'cash'"
+                class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3"
+            >
+                <div v-if="isLoadingPaymentMethods" class="flex items-center justify-between">
+                    <span class="text-xs text-slate-400"> Memuat metode pembayaran... </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <DropdownField
+                        v-model="form.payment_method_id"
+                        label="Metode Pembayaran"
+                        :options="paymentMethodOptions"
+                        :error="form.errors.payment_method_id"
+                        :placeholder="
+                            paymentMethodOptions.length
+                                ? 'Pilih Metode'
+                                : 'Belum ada metode pembayaran outlet'
+                        "
+                        required
+                    />
+
+                    <NumberField
+                        v-model="form.paid_amount"
+                        label="Nominal Uang Diterima"
+                        prefix="Rp"
+                        :error="form.errors.paid_amount"
+                        required
+                        @update:model-value="calculateTotals"
+                    />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <TextField
+                        v-model="form.payment_reference"
+                        label="No. Referensi / Transaksi (Opsional)"
+                        placeholder="Contoh: REF-BCA-8892 / QRIS ID"
+                        :error="form.errors.payment_reference"
+                    />
+                    <div
+                        class="flex flex-col justify-center bg-white p-2 rounded-lg border border-slate-200"
+                    >
+                        <span class="text-xs text-slate-500">Kembalian</span>
+                        <span
+                            class="text-sm font-bold"
+                            :class="changeAmount >= 0 ? 'text-emerald-600' : 'text-rose-600'"
+                        >
+                            {{ formatCurrency(changeAmount) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Credit with DP Option -->
+            <div
+                v-if="form.payment_term === 'credit'"
+                class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3"
+            >
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input
+                            v-model="hasDp"
+                            type="checkbox"
+                            class="rounded border-slate-300 text-primary focus:ring-primary"
+                            @change="onDpToggled"
+                        />
+                        <span class="text-xs font-bold text-slate-700 uppercase"
+                            >Bayar Uang Muka (Down Payment / DP)</span
+                        >
+                    </label>
+                </div>
+
+                <div v-if="hasDp" class="grid grid-cols-2 gap-3 pt-2">
+                    <DropdownField
+                        v-model="form.payment_method_id"
+                        label="Metode Pembayaran DP"
+                        :options="paymentMethodOptions"
+                        :error="form.errors.payment_method_id"
+                        :placeholder="
+                            paymentMethodOptions.length
+                                ? 'Pilih Metode'
+                                : 'Belum ada metode pembayaran outlet'
+                        "
+                        required
+                    />
+
+                    <NumberField
+                        v-model="form.paid_amount"
+                        label="Nominal Uang Muka (DP)"
+                        prefix="Rp"
+                        :error="form.errors.paid_amount"
+                        required
+                        @update:model-value="calculateTotals"
+                    />
+                </div>
+
+                <div v-if="hasDp" class="grid grid-cols-2 gap-3">
+                    <TextField
+                        v-model="form.payment_reference"
+                        label="No. Referensi DP (Opsional)"
+                        placeholder="No. Bukti Transfer DP..."
+                        :error="form.errors.payment_reference"
+                    />
+                    <div
+                        class="flex flex-col justify-center bg-white p-2 rounded-lg border border-slate-200"
+                    >
+                        <span class="text-xs text-slate-500">Sisa Tagihan (Piutang)</span>
+                        <span class="text-sm font-bold text-rose-600">
+                            {{ formatCurrency(creditBalanceDue) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-slate-200" />
+
         <!-- Additional Information -->
         <div class="space-y-4">
             <h3 class="text-sm font-semibold text-slate-700 uppercase">Informasi Tambahan</h3>
@@ -356,6 +483,7 @@
                 v-model="form.terms_and_conditions"
                 label="Syarat & Ketentuan"
                 placeholder="Syarat dan ketentuan invoice..."
+                rows="6"
                 :error="form.errors.terms_and_conditions"
             />
         </div>
@@ -389,8 +517,9 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
+import axios from 'axios'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import { useModalStore } from '@/store/notification.js'
 import { useAuth } from '@/Composable/useAuth'
@@ -409,6 +538,56 @@ const { can } = useAuth()
 const modalStore = useModalStore()
 const isMounted = ref(false)
 const selectedPromo = ref(null)
+const paymentMethodOptions = ref([])
+const isLoadingPaymentMethods = ref(false)
+const hasDp = ref(false)
+const outletSalesSettings = ref({
+    default_due_days_b2b: 14,
+    default_terms_and_conditions_b2b: '',
+})
+
+const computeDueDate = (baseDateStr, days) => {
+    if (!baseDateStr) return ''
+    try {
+        const d = new Date(baseDateStr)
+        if (isNaN(d.getTime())) return ''
+        d.setDate(d.getDate() + Number(days || 14))
+        return d.toISOString().split('T')[0]
+    } catch {
+        return ''
+    }
+}
+
+const fetchOutletSalesSettings = async outletId => {
+    if (!outletId) return
+    try {
+        const res = await axios.get(route('api.internal.outlets.sales-settings'), {
+            params: { outlet_id: outletId },
+        })
+        if (res.data?.data) {
+            outletSalesSettings.value = res.data.data
+
+            // Pre-fill terms & conditions if empty and not editing
+            if (
+                !props.transaction &&
+                !form.terms_and_conditions &&
+                res.data.data.default_terms_and_conditions_b2b
+            ) {
+                form.terms_and_conditions = res.data.data.default_terms_and_conditions_b2b
+            }
+
+            // Auto-calculate due date for credit
+            if (form.payment_term === 'credit' && (!form.due_date || !props.transaction)) {
+                form.due_date = computeDueDate(
+                    form.transaction_date,
+                    res.data.data.default_due_days_b2b
+                )
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load outlet sales settings', e)
+    }
+}
 
 const props = defineProps({
     transaction: {
@@ -430,10 +609,11 @@ const clearCustomer = () => {
 }
 
 const channelOptions = [
-    { value: 'direct', label: 'Direct / B2B' },
-    { value: 'e_commerce', label: 'E-Commerce' },
-    { value: 'wholesale', label: 'Wholesale' },
-    { value: 'custom', label: 'Custom' },
+    { value: 'direct', label: 'Penjualan Langsung' },
+    { value: 'wholesale', label: 'Grosir / Wholesale' },
+    { value: 'e_commerce', label: 'E-Commerce / Marketplace' },
+    { value: 'social_media', label: 'Media Sosial & WhatsApp' },
+    { value: 'custom', label: 'Pesanan Khusus' },
 ]
 
 const form = useForm({
@@ -443,6 +623,10 @@ const form = useForm({
     transaction_date: new Date().toISOString().split('T')[0],
     payment_term: 'cash',
     due_date: '',
+    payment_method_id: '',
+    paid_amount: 0,
+    payment_reference: '',
+    payment_notes: '',
     items: [],
     manual_discount_amount: 0,
     promo_id: '',
@@ -460,12 +644,98 @@ const form = useForm({
 
 const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
+const changeAmount = computed(() => {
+    if (form.payment_term !== 'cash') return 0
+    return Math.max(0, Number(form.paid_amount || 0) - Number(form.total || 0))
+})
+
+const creditBalanceDue = computed(() => {
+    if (form.payment_term !== 'credit') return 0
+    const dp = hasDp.value ? Number(form.paid_amount || 0) : 0
+    return Math.max(0, Number(form.total || 0) - dp)
+})
+
+const fetchPaymentMethods = async outletId => {
+    if (!outletId) {
+        paymentMethodOptions.value = []
+        return
+    }
+
+    isLoadingPaymentMethods.value = true
+    try {
+        const response = await axios.get(route('api.internal.payment-methods.index'), {
+            params: { outlet_id: outletId },
+        })
+        paymentMethodOptions.value = (response.data.data || [])
+            .filter(pm => pm.is_enabled !== false)
+            .map(pm => ({
+                value: pm.id,
+                label: pm.name,
+            }))
+
+        if (paymentMethodOptions.value.length > 0 && !form.payment_method_id) {
+            form.payment_method_id = paymentMethodOptions.value[0].value
+        }
+    } catch (error) {
+        console.error('Failed to load payment methods', error)
+        paymentMethodOptions.value = []
+    } finally {
+        isLoadingPaymentMethods.value = false
+    }
+}
+
+const onPaymentTermChanged = term => {
+    if (term === 'cash') {
+        form.due_date = ''
+        form.paid_amount = form.total
+        if (paymentMethodOptions.value.length > 0 && !form.payment_method_id) {
+            form.payment_method_id = paymentMethodOptions.value[0].value
+        }
+    } else {
+        hasDp.value = false
+        form.paid_amount = 0
+        form.payment_method_id = ''
+        form.payment_reference = ''
+        form.due_date = computeDueDate(
+            form.transaction_date,
+            outletSalesSettings.value.default_due_days_b2b
+        )
+    }
+}
+
+const onDpToggled = () => {
+    if (!hasDp.value) {
+        form.paid_amount = 0
+        form.payment_method_id = ''
+        form.payment_reference = ''
+    } else {
+        if (paymentMethodOptions.value.length > 0 && !form.payment_method_id) {
+            form.payment_method_id = paymentMethodOptions.value[0].value
+        }
+    }
+}
+
+watch(
+    () => form.transaction_date,
+    newDate => {
+        if (form.payment_term === 'credit' && !props.transaction) {
+            form.due_date = computeDueDate(newDate, outletSalesSettings.value.default_due_days_b2b)
+        }
+    }
+)
+
 watch(
     () => form.outlet_id,
     val => {
-        if (val && !props.transaction) {
-            form.items = []
-            clearPromo()
+        if (val) {
+            fetchPaymentMethods(val)
+            fetchOutletSalesSettings(val)
+            if (!props.transaction) {
+                form.items = []
+                clearPromo()
+            }
+        } else {
+            paymentMethodOptions.value = []
         }
     }
 )
@@ -535,6 +805,11 @@ const calculateTotals = () => {
         Number(form.service_charge_amount || 0)
 
     form.total = total > 0 ? total : 0
+
+    // If cash payment and paid amount was 0 or matched total, auto-sync paid_amount
+    if (form.payment_term === 'cash' && (!form.paid_amount || form.paid_amount === 0)) {
+        form.paid_amount = form.total
+    }
 }
 
 const selectProduct = product => {
@@ -638,7 +913,7 @@ watch(
             form.channel = data.channel || 'direct'
             form.transaction_date = data.transaction_date || new Date().toISOString().split('T')[0]
             form.due_date = data.due_date || ''
-            form.payment_term = data.payment_term || 'tunai'
+            form.payment_term = data.payment_term || 'cash'
             form.manual_discount_amount = Number(data.discount_amount) || 0
             form.shipping_fee = Number(data.shipping_fee) || 0
             form.tax_amount = Number(data.tax_amount) || 0
