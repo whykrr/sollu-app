@@ -54,7 +54,7 @@ Sollu App adalah asisten digital operasional bisnis harian yang andal, gesit, da
 - **Pola Wording:**
   1. *Headline:* Menyatakan kondisi saat ini secara lugas (Contoh: `"Belum Ada Bahan Baku"`).
   2. *Body:* Menjelaskan apa fungsinya atau kenapa kosong (Contoh: `"Catat bahan baku untuk memantau sisa stok dan hitung HPP otomatis."`).
-  3. *Tombol CTA:* Ajakan aktif (Contoh: `"+ Tambah Bahan Baku"`).
+  3. *Tombol CTA:* Ajakan aktif (Contoh: `"Tambah Bahan Baku"`).
 
 ### 3.3. Formulir & Input Fields
 - **Label:** Singkat dan langsung (Contoh: `"Nama Barang"`, `"Harga Jual"`, `"Kategori"`). Hindari awalan bertele-tele seperti `"Silakan Masukkan Nama Barang"`.
@@ -72,7 +72,7 @@ Sollu App adalah asisten digital operasional bisnis harian yang andal, gesit, da
   - Simpan form baru: `"Simpan"` / `"Simpan Data"`
   - Simpan perubahan: `"Simpan Perubahan"`
   - Batal/Tutup: `"Batal"`
-  - Tambah entitas: `"+ Tambah Produk"`, `"+ Buat Pesanan"`
+  - Tambah entitas: `"Produk Baru"`, `"Pesanan Baru\"`
   - Ekspor/Impor: `"Ekspor Excel"`, `"Unduh PDF"`, `"Impor Data"`
   - Filter: `"Terapkan"`, `"Reset Filter"`
 

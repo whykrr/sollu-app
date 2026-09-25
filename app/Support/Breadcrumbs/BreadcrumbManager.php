@@ -141,17 +141,31 @@ class BreadcrumbManager
             ],
             'master.products.index' => [
                 ['label' => 'Master Produk', 'url' => null],
-                ['label' => 'Produk', 'url' => self::safeRoute('master.products.index')],
+                ['label' => 'Produk Barang', 'url' => self::safeRoute('master.products.index')],
             ],
             'master.products.create' => [
                 ['label' => 'Master Produk', 'url' => null],
-                ['label' => 'Produk', 'url' => self::safeRoute('master.products.index')],
-                ['label' => 'Tambah Produk', 'url' => null],
+                ['label' => 'Produk Barang', 'url' => self::safeRoute('master.products.index')],
+                ['label' => 'Tambah Barang', 'url' => null],
             ],
             'master.products.edit' => [
                 ['label' => 'Master Produk', 'url' => null],
-                ['label' => 'Produk', 'url' => self::safeRoute('master.products.index')],
-                ['label' => 'Edit Produk', 'url' => null],
+                ['label' => 'Produk Barang', 'url' => self::safeRoute('master.products.index')],
+                ['label' => 'Edit Barang', 'url' => null],
+            ],
+            'master.services.index' => [
+                ['label' => 'Master Produk', 'url' => null],
+                ['label' => 'Produk Layanan', 'url' => self::safeRoute('master.services.index')],
+            ],
+            'master.services.create' => [
+                ['label' => 'Master Produk', 'url' => null],
+                ['label' => 'Produk Layanan', 'url' => self::safeRoute('master.services.index')],
+                ['label' => 'Tambah Layanan', 'url' => null],
+            ],
+            'master.services.edit' => [
+                ['label' => 'Master Produk', 'url' => null],
+                ['label' => 'Produk Layanan', 'url' => self::safeRoute('master.services.index')],
+                ['label' => 'Edit Layanan', 'url' => null],
             ],
 
             // Inventories Module
@@ -505,6 +519,7 @@ class BreadcrumbManager
         $translations = [
             'master' => 'Master Data',
             'products' => 'Produk',
+            'services' => 'Layanan',
             'categories' => 'Kategori',
             'modifiers' => 'Opsi Tambahan',
             'inventories' => 'Inventori',

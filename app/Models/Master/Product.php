@@ -2,6 +2,7 @@
 
 namespace App\Models\Master;
 
+use App\Enums\ProductTypeEnum;
 use App\Helpers\SelectedOutlet;
 use App\Models\Outlet;
 use App\Trait\HasBusiness;
@@ -64,6 +65,7 @@ class Product extends Model
     protected function casts(): array
     {
         return [
+            'product_type' => ProductTypeEnum::class,
             'has_variant' => 'boolean',
             'has_modifier' => 'boolean',
             'has_recipe' => 'boolean',
@@ -72,6 +74,21 @@ class Product extends Model
             'sellable' => 'boolean',
             'purchasable' => 'boolean',
         ];
+    }
+
+    public function isBasic(): bool
+    {
+        return $this->product_type === ProductTypeEnum::BASIC || $this->product_type === 'basic';
+    }
+
+    public function isService(): bool
+    {
+        return $this->product_type === ProductTypeEnum::SERVICE || $this->product_type === 'service';
+    }
+
+    public function isBundle(): bool
+    {
+        return $this->product_type === ProductTypeEnum::BUNDLE || $this->product_type === 'bundle';
     }
 
     public function getCoverImageUrlAttribute(): ?string
@@ -133,6 +150,16 @@ class Product extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    public function scopeGoods(Builder $builder): Builder
+    {
+        return $builder->where('product_type', ProductTypeEnum::BASIC);
+    }
+
+    public function scopeServices(Builder $builder): Builder
+    {
+        return $builder->where('product_type', ProductTypeEnum::SERVICE);
     }
 
     public function scopeFilters(Builder $builder, array $filters): Builder

@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Models\Master;
 
+use App\Enums\ProductTypeEnum;
 use App\Models\Master\Product;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -18,6 +19,7 @@ class ProductModelTest extends TestCase
         $product = new Product;
         $casts = $product->getCasts();
 
+        $this->assertEquals(ProductTypeEnum::class, $casts['product_type'] ?? null);
         $this->assertEquals('boolean', $casts['has_variant'] ?? null);
         $this->assertEquals('boolean', $casts['has_modifier'] ?? null);
         $this->assertEquals('boolean', $casts['has_recipe'] ?? null);

@@ -41,12 +41,28 @@ class BreadcrumbManagerTest extends TestCase
         $this->assertCount(2, $crumbs);
         $this->assertEquals('Master Produk', $crumbs[0]['label']);
         $this->assertNull($crumbs[0]['url']); // Parent section is non-clickable
-        $this->assertEquals('Produk', $crumbs[1]['label']);
+        $this->assertEquals('Produk Barang', $crumbs[1]['label']);
         $this->assertNotNull($crumbs[1]['url']);
 
         $crumbsCreate = $this->manager->generate('master.products.create', 'app');
         $this->assertCount(3, $crumbsCreate);
-        $this->assertEquals('Tambah Produk', $crumbsCreate[2]['label']);
+        $this->assertEquals('Tambah Barang', $crumbsCreate[2]['label']);
+        $this->assertNull($crumbsCreate[2]['url']);
+    }
+
+    public function test_it_resolves_master_services_hierarchy(): void
+    {
+        $crumbs = $this->manager->generate('master.services.index', 'app');
+
+        $this->assertCount(2, $crumbs);
+        $this->assertEquals('Master Produk', $crumbs[0]['label']);
+        $this->assertNull($crumbs[0]['url']); // Parent section is non-clickable
+        $this->assertEquals('Produk Layanan', $crumbs[1]['label']);
+        $this->assertNotNull($crumbs[1]['url']);
+
+        $crumbsCreate = $this->manager->generate('master.services.create', 'app');
+        $this->assertCount(3, $crumbsCreate);
+        $this->assertEquals('Tambah Layanan', $crumbsCreate[2]['label']);
         $this->assertNull($crumbsCreate[2]['url']);
     }
 

@@ -2,13 +2,13 @@
     <MainPage>
         <template #header>
             <MainPageHeader
-                title="Produk Barang"
-                description="Kelola data produk barang fisik, stok, varian, dan harga jual"
+                title="Produk Layanan"
+                description="Kelola data produk jasa & layanan, tarif, dan ketersediaan di outlet"
             />
         </template>
 
         <template #filter>
-            <ProductFilter
+            <ServiceFilter
                 :filters="activeFilters"
                 :categories="categories"
                 :view-mode="viewMode"
@@ -22,7 +22,7 @@
         <Table
             v-if="viewMode === 'table'"
             :headers="headers"
-            :data="products.data"
+            :data="services.data"
             :sort="typeof activeFilters.sort === 'string' ? activeFilters.sort : 'created_at'"
             :sort-direction="
                 typeof activeFilters.direction === 'string' ? activeFilters.direction : 'desc'
@@ -34,25 +34,18 @@
                 <img
                     v-if="row.cover_image_url"
                     :src="row.cover_image_url"
+                    :alt="row.name"
                     class="w-10 h-10 object-cover rounded-lg border border-slate-200"
-                    alt="Product thumbnail"
                 />
                 <div
                     v-else
                     class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 border border-slate-200"
                 >
-                    <FontAwesomeIcon :icon="faImage" class="text-sm" />
+                    <FontAwesomeIcon :icon="faBellConcierge" class="text-sm" />
                 </div>
             </template>
             <template #code="{ row }">
                 {{ row.code || '-' }}
-            </template>
-            <template #type="{ row }">
-                <span v-if="row.product_type === 'service'" class="badge badge-info">Layanan</span>
-                <span v-else-if="row.product_type === 'bundle'" class="badge badge-warning"
-                    >Bundle</span
-                >
-                <span v-else class="badge badge-neutral-400">Barang</span>
             </template>
             <template #category="{ row }">
                 {{ row.category?.name || '-' }}
@@ -68,15 +61,15 @@
                 <div class="flex items-center gap-1 justify-end">
                     <button
                         class="btn btn-flat btn-sm"
-                        title="Ubah Produk"
+                        title="Ubah Layanan"
                         @click.stop="openEdit(row)"
                     >
                         <FontAwesomeIcon :icon="faPencil" />
                     </button>
                     <button
                         class="btn btn-flat btn-sm text-danger"
-                        title="Hapus"
-                        @click.stop="archiveProduct(row.id)"
+                        title="Hapus Layanan"
+                        @click.stop="archiveService(row.id)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>
@@ -85,27 +78,27 @@
         </Table>
 
         <!-- Grid View (Cards) -->
-        <DataGrid v-else :data="products.data" @row-click="openEdit">
+        <DataGrid v-else :data="services.data" @row-click="openEdit">
             <template #default="{ row }">
-                <ProductCard
-                    :product="row"
+                <ServiceCard
+                    :service="row"
                     :active-outlet-id="activeOutletId"
                     @click="openEdit(row)"
                     @edit="openEdit(row)"
-                    @archive="archiveProduct"
+                    @archive="archiveService"
                 />
             </template>
         </DataGrid>
 
         <template #footer>
-            <Pagination :meta="products.meta || products" />
+            <Pagination :meta="services.meta || services" />
         </template>
 
         <ImportCsvModal
             :show="showImportModal"
-            module-name="Produk"
-            :template-url="route('master.products.importTemplate')"
-            :import-url="route('master.products.import')"
+            module-name="Produk Layanan"
+            :template-url="route('master.services.importTemplate')"
+            :import-url="route('master.services.import')"
             @close="showImportModal = false"
         />
     </MainPage>
@@ -119,9 +112,9 @@ import Table from '@/Components/Tables/Table.vue'
 import DataGrid from '@/Components/DataGrid/DataGrid.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPencil, faTrash, faImage } from '@fortawesome/free-solid-svg-icons'
-import ProductFilter from './Components/ProductFilter.vue'
-import ProductCard from './Components/ProductCard.vue'
+import { faPencil, faTrash, faBellConcierge } from '@fortawesome/free-solid-svg-icons'
+import ServiceFilter from './Components/ServiceFilter.vue'
+import ServiceCard from './Components/ServiceCard.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import { usePopUpStore } from '@/store/popup'
 import CreateEditWrapper from './CreateEditWrapper.vue'
@@ -129,7 +122,7 @@ import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue'
 import { useModalStore } from '@/store/notification.js'
 import { useAuth } from '@/Composable/useAuth'
 
-const VIEW_MODE_KEY = 'sollu_product_view_mode'
+const VIEW_MODE_KEY = 'sollu_service_view_mode'
 
 const getInitialViewMode = () => {
     if (typeof window === 'undefined') return 'table'
@@ -166,7 +159,7 @@ const modalStore = useModalStore()
 const { selectedOutlet } = useAuth()
 
 const props = defineProps({
-    products: {
+    services: {
         type: Object,
         default: () => ({}),
     },
@@ -197,10 +190,10 @@ const activeFilters = computed(() => {
 const headers = [
     { label: 'Foto', field: 'image', slot: 'image', sortable: false },
     { label: 'Kode', field: 'code', slot: 'code', sortable: true },
-    { label: 'Nama Produk', field: 'name', sortable: true },
+    { label: 'Nama Layanan', field: 'name', sortable: true },
     { label: 'Kategori', field: 'category', slot: 'category', sortable: false },
     {
-        label: 'Harga Dasar',
+        label: 'Tarif Dasar',
         field: 'base_price',
         slot: 'base_price',
         sortable: false,
@@ -214,67 +207,62 @@ const activeOutletId = computed(() => {
     return props.params?.outlet || selectedOutlet.value?.id || null
 })
 
-const getBasePrice = product => {
-    if (!product.prices || product.prices.length === 0) return '-'
+const getBasePrice = service => {
+    if (!service.prices || service.prices.length === 0) return '-'
 
     let price = null
     if (activeOutletId.value) {
-        price = product.prices.find(p => p.outlet_id === activeOutletId.value)
+        price = service.prices.find(p => p.outlet_id === activeOutletId.value)
     }
     if (!price) {
-        price = product.prices.find(p => !p.outlet_id)
+        price = service.prices.find(p => !p.outlet_id)
     }
     if (!price) {
-        price = product.prices[0]
+        price = service.prices[0]
     }
 
     return price
         ? new Intl.NumberFormat('id-ID', {
               style: 'currency',
               currency: 'IDR',
+              maximumFractionDigits: 0,
           }).format(price.amount)
         : '-'
 }
 
-const archiveProduct = id => {
+const archiveService = id => {
     modalStore.confirm({
-        title: 'Hapus Produk Barang Ini?',
+        title: 'Hapus Layanan Ini?',
         type: 'danger',
-        message: 'Data produk barang akan dipindahkan ke sampah dan dapat dipulihkan kapan saja.',
+        message: 'Data layanan akan dipindahkan ke sampah dan dapat dipulihkan kapan saja.',
         confirmText: 'Ya, Pindahkan ke Sampah',
         cancelText: 'Batal',
         onConfirm: () => {
-            router.delete(route('master.products.destroy', id))
+            router.delete(route('master.services.destroy', id))
         },
     })
 }
 
-// Wizard configurations for Popup
 const openCreate = () => {
     popUpStore.open({
-        title: 'Tambah Produk Barang',
-        size: 'xl',
+        title: 'Tambah Layanan',
+        size: 'lg',
         component: CreateEditWrapper,
         props: {
-            initialStep: 0,
             editMode: false,
-            targetStepId: 'basic',
         },
     })
 }
 
-const openEdit = (row, targetStepId = 'basic') => {
-    const stepIndexMap = { basic: 0, inventory: 1, pricing: 2 }
+const openEdit = row => {
     popUpStore.open({
         title: `${row.name}`,
         subTitle: row.code ? `#${row.code}` : undefined,
-        size: 'xl',
+        size: 'lg',
         component: CreateEditWrapper,
         props: {
-            initialStep: stepIndexMap[targetStepId] ?? 0,
             editMode: true,
-            targetStepId,
-            product: row,
+            service: row,
         },
     })
 }

@@ -10,19 +10,7 @@
             <ProductImagesUploader v-model="form.images" :error="form.errors.images" />
         </div>
 
-        <!-- 2. Tipe Produk -->
-        <div>
-            <SelectionGroupField
-                v-model="form.product_type"
-                label="Tipe Produk"
-                :options="productTypeOptions"
-                name="product_type"
-                class="btn-sm"
-                @update:model-value="handleProductTypeChange"
-            />
-        </div>
-
-        <!-- 3. Nama Produk & Kategori (Core Fields 80/20) -->
+        <!-- 2. Nama Produk & Kategori (Core Fields 80/20) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div class="col-span-1 sm:col-span-2">
                 <TextField
@@ -150,27 +138,6 @@ const form = inject('productForm')
 const categories = inject('categories', [])
 const outlets = inject('outlets', [])
 const outletStatusMap = inject('outletStatusMap', {})
-
-const productTypeOptions = [
-    { value: 'basic', label: 'Barang Fisik' },
-    { value: 'service', label: 'Layanan / Jasa' },
-    { value: 'bundle', label: 'Paket Bundle' },
-]
-
-const handleProductTypeChange = val => {
-    if (val === 'service') {
-        form.track_inventory = false
-        form.has_variant = false
-        form.has_recipe = false
-        form.uom_id = ''
-    } else if (val === 'bundle') {
-        form.track_inventory = false
-        form.has_variant = false
-        form.has_modifier = false
-        form.has_recipe = false
-        form.uom_id = ''
-    }
-}
 
 const formattedOutlets = computed(() => {
     const list = outlets && outlets.value !== undefined ? outlets.value : outlets

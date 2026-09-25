@@ -72,12 +72,21 @@ class FeatureSeeder extends Seeder
             // Produk & Menu
             [
                 'code' => 'product_catalog',
-                'name' => 'Katalog Produk',
-                'description' => 'Manajemen data katalog produk, foto, barcode/SKU, satuan unit (UOM), dan visibilitas penjualan.',
+                'name' => 'Katalog Produk Barang',
+                'description' => 'Manajemen data katalog produk barang fisik, foto, barcode/SKU, satuan unit (UOM), dan visibilitas penjualan.',
                 'module' => 'product',
                 'group' => 'products_and_menu',
                 'group_label' => 'Produk & Menu',
                 'sort_order' => 70,
+            ],
+            [
+                'code' => 'service_catalog',
+                'name' => 'Katalog Produk Layanan',
+                'description' => 'Manajemen data produk jasa dan layanan, tarif dasar, kustomisasi tarif per outlet, dan penugasan staf.',
+                'module' => 'product',
+                'group' => 'products_and_menu',
+                'group_label' => 'Produk & Menu',
+                'sort_order' => 75,
             ],
             [
                 'code' => 'product_categories',

@@ -64,7 +64,7 @@
                 </button>
             </template>
             <template v-else>
-                <button type="button" class="btn btn-flat btn-sm" @click="popUpStore.close()">
+                <button type="button" class="btn btn-flat btn-sm" @click="handleCancel">
                     Batal
                 </button>
                 <button
@@ -93,8 +93,8 @@ import {
     faBoxesStacked,
     faTag,
 } from '@fortawesome/free-solid-svg-icons'
-import { usePopUpStore } from '@/store/popup'
 import { useAuth } from '@/Composable/useAuth'
+import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import FormStepper from '@/Components/Form/FormStepper.vue'
 import FormTabs from '@/Components/Form/FormTabs.vue'
 
@@ -114,7 +114,6 @@ const props = defineProps({
     uoms: { type: Array, default: () => [] },
 })
 
-const popUpStore = usePopUpStore()
 const { selectedOutlet } = useAuth()
 
 const isEdit = computed(() => props.editMode)
@@ -163,6 +162,8 @@ const form = useForm({
     variant_combinations: [],
     images: props.product?.images || [],
 })
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 if (isEdit.value && props.product?.prices) {
     const bp = props.product.prices.find(p => !p.outlet_id)
@@ -530,12 +531,12 @@ const submit = () => {
         form.transform(data => ({ ...data, _method: 'PUT' })).post(
             route('master.products.update', props.product.id),
             {
-                onSuccess: () => popUpStore.close(),
+                onSuccess: () => forceClose(),
             }
         )
     } else {
         form.post(route('master.products.store'), {
-            onSuccess: () => popUpStore.close(),
+            onSuccess: () => forceClose(),
         })
     }
 }

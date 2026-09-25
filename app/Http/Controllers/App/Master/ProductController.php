@@ -45,6 +45,7 @@ class ProductController extends Controller
         $outletId = $params['outlet'] ?? SelectedOutlet::make()->currentId();
 
         $products = Product::currentBusiness()
+            ->goods()
             ->with([
                 'category:id,name',
                 'prices' => function ($q) use ($outletId) {
@@ -99,6 +100,10 @@ class ProductController extends Controller
 
         if ($product->business_id !== auth()->user()->business_id) {
             abort(403);
+        }
+
+        if (! $product->isBasic()) {
+            abort(404);
         }
 
         // Load all detailed relationships for the PopUp form
@@ -160,6 +165,10 @@ class ProductController extends Controller
             abort(403);
         }
 
+        if (! $product->isBasic()) {
+            abort(404);
+        }
+
         $product->load([
             'category',
             'variantGroups.options',
@@ -191,6 +200,10 @@ class ProductController extends Controller
             abort(403);
         }
 
+        if (! $product->isBasic()) {
+            abort(404);
+        }
+
         try {
             $data = $request->validated();
             $this->productService->updateProduct($product, $data);
@@ -215,6 +228,10 @@ class ProductController extends Controller
             abort(403);
         }
 
+        if (! $product->isBasic()) {
+            abort(404);
+        }
+
         $product->delete();
 
         return redirect()->back()->with(
@@ -227,7 +244,8 @@ class ProductController extends Controller
     {
         $this->authorize(PermissionEnum::PRODUCT_EXPORT->value);
 
-        ExportProductJob::dispatch(auth()->user(), auth()->user()->business_id, $request->all());
+        $filters = array_merge($request->all(), ['product_type' => 'basic']);
+        ExportProductJob::dispatch(auth()->user(), auth()->user()->business_id, $filters);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

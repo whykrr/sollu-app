@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services\App\Master;
 
+use App\Enums\ProductTypeEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryItem;
@@ -117,7 +118,7 @@ class ProductServiceTest extends TestCase
 
         $this->assertInstanceOf(Product::class, $product);
         $this->assertEquals('Jasa Servis Komputer', $product->name);
-        $this->assertEquals('service', $product->product_type);
+        $this->assertEquals(ProductTypeEnum::SERVICE, $product->product_type);
         $this->assertFalse($product->track_inventory);
         $this->assertFalse($product->has_variant);
         $this->assertCount(1, $product->prices);
@@ -203,7 +204,7 @@ class ProductServiceTest extends TestCase
 
         $product = $this->service->createProduct($data);
 
-        $this->assertEquals('bundle', $product->product_type);
+        $this->assertEquals(ProductTypeEnum::BUNDLE, $product->product_type);
         $this->assertFalse($product->track_inventory);
         $this->assertCount(2, $product->bundleItems);
         $this->assertEquals($comp1->id, $product->bundleItems[0]->component_product_id);

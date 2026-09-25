@@ -4,6 +4,7 @@ use App\Enums\FeatureEnum;
 use App\Http\Controllers\App\Master\ModifierGroupController;
 use App\Http\Controllers\App\Master\ProductCategoryController;
 use App\Http\Controllers\App\Master\ProductController;
+use App\Http\Controllers\App\Master\ServiceProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('master')
@@ -24,6 +25,17 @@ Route::prefix('master')
 
                 Route::resource('products', ProductController::class);
             });
+
+        Route::middleware('plan.feature:'.FeatureEnum::SERVICE_CATALOG->value)
+            ->group(function () {
+                Route::get('services/form-options', [ServiceProductController::class, 'formOptions'])->name('services.formOptions');
+                Route::get('services/export', [ServiceProductController::class, 'export'])->name('services.export');
+                Route::get('services/import-template', [ServiceProductController::class, 'importTemplate'])->name('services.importTemplate');
+                Route::post('services/import', [ServiceProductController::class, 'import'])->name('services.import');
+
+                Route::resource('services', ServiceProductController::class);
+            });
+
         Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_MODIFIERS->value)
             ->group(function () {
                 Route::resource('modifiers', ModifierGroupController::class)->except(['create', 'edit']);

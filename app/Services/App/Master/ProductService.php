@@ -2,6 +2,7 @@
 
 namespace App\Services\App\Master;
 
+use App\Enums\ProductTypeEnum;
 use App\Helpers\VariantStringGenerator;
 use App\Models\Master\Product;
 use App\Models\Master\ProductItem;
@@ -87,7 +88,7 @@ class ProductService
             }
 
             $singleInvItem = null;
-            if ($product->product_type === 'basic' && ! $product->has_variant && $product->track_inventory) {
+            if ($product->isBasic() && ! $product->has_variant && $product->track_inventory) {
                 // Single variant inventory item only when track_inventory is enabled
                 $singleInvItem = ProductItem::create([
                     'business_id' => $product->business_id,
@@ -126,7 +127,7 @@ class ProductService
             }
 
             // Variants
-            if ($product->product_type === 'basic' && $product->has_variant && ! empty($data['variants'])) {
+            if ($product->isBasic() && $product->has_variant && ! empty($data['variants'])) {
                 $optionMap = []; // original option name to ID
                 foreach ($data['variants'] as $idx => $vData) {
                     $vg = $product->variantGroups()->create([
@@ -211,12 +212,12 @@ class ProductService
             }
 
             // Recipe
-            if ($product->product_type === 'basic' && $product->has_recipe && ! empty($data['recipes'])) {
+            if ($product->isBasic() && $product->has_recipe && ! empty($data['recipes'])) {
                 $this->recipeService->syncRecipe($product, $data['recipes']);
             }
 
             // Bundle
-            if ($product->product_type === 'bundle' && ! empty($data['bundle_items'])) {
+            if ($product->isBundle() && ! empty($data['bundle_items'])) {
                 foreach ($data['bundle_items'] as $idx => $bi) {
                     $product->bundleItems()->create([
                         'component_product_id' => $bi['component_product_id'],
@@ -300,7 +301,7 @@ class ProductService
             }
 
             $singleInvItem = null;
-            if ($product->product_type === 'basic' && ! $product->has_variant) {
+            if ($product->isBasic() && ! $product->has_variant) {
                 // Fetch all variant inventory items
                 $invItems = ProductItem::where('product_id', $product->id)
                     ->where('item_type', 'variant_sku')
@@ -397,7 +398,7 @@ class ProductService
             }
 
             // Variant sync
-            if ($product->product_type === 'basic' && $product->has_variant && isset($data['variants'])) {
+            if ($product->isBasic() && $product->has_variant && isset($data['variants'])) {
                 $optionMap = [];
                 $currentGroupIds = [];
                 foreach ($data['variants'] as $idx => $vData) {
@@ -519,10 +520,10 @@ class ProductService
                         }
                     }
                 }
-            } elseif ($product->product_type === 'basic' && ! $product->has_variant) {
+            } elseif ($product->isBasic() && ! $product->has_variant) {
                 $product->variantGroups()->delete();
 
-            } elseif ($product->product_type !== 'basic') {
+            } elseif (! $product->isBasic()) {
                 $product->variantGroups()->delete();
             }
 
@@ -535,12 +536,12 @@ class ProductService
             }
 
             // Recipe sync
-            if ($product->product_type === 'basic' && $product->has_recipe && isset($data['recipes'])) {
+            if ($product->isBasic() && $product->has_recipe && isset($data['recipes'])) {
                 $this->recipeService->syncRecipe($product, $data['recipes']);
             }
 
             // Bundle sync
-            if ($product->product_type === 'bundle' && isset($data['bundle_items'])) {
+            if ($product->isBundle() && isset($data['bundle_items'])) {
                 $product->bundleItems()->delete();
                 foreach ($data['bundle_items'] as $idx => $bi) {
                     $product->bundleItems()->create([
@@ -550,9 +551,159 @@ class ProductService
                         'sort_order' => $idx,
                     ]);
                 }
-            } elseif ($product->product_type !== 'bundle') {
+            } elseif (! $product->isBundle()) {
                 $product->bundleItems()->delete();
             }
+
+            // Multiple Images Update
+            if (isset($data['images'])) {
+                $this->processProductImages($product, $data['images']);
+            }
+
+            $this->auditLogService->log($product->business_id, 'product', $product->id, 'updated', $before, $product->fresh()->toArray());
+
+            return $product;
+        });
+    }
+
+    public function createService(array $data): Product
+    {
+        return DB::transaction(function () use ($data) {
+            $product = Product::create([
+                'business_id' => $data['business_id'],
+                'product_category_id' => $data['product_category_id'] ?? null,
+                'product_type' => ProductTypeEnum::SERVICE,
+                'has_variant' => false,
+                'has_modifier' => false,
+                'has_recipe' => false,
+                'track_inventory' => false,
+                'code' => $data['code'] ?? null,
+                'name' => $data['name'],
+                'description' => $data['description'] ?? null,
+                'image_url' => $data['image_url'] ?? null,
+                'is_show' => $data['is_show'] ?? true,
+                'sellable' => $data['sellable'] ?? true,
+                'purchasable' => false,
+            ]);
+
+            // Outlets Assignment
+            if (! empty($data['outlets'])) {
+                $syncData = [];
+                foreach ($data['outlets'] as $out) {
+                    $syncData[$out['outlet_id']] = [
+                        'is_enabled' => $out['is_enabled'] ?? true,
+                        'is_available' => $out['is_available'] ?? true,
+                    ];
+                }
+                $product->outlets()->sync($syncData);
+            } else {
+                $businessOutlets = Outlet::where('business_id', $product->business_id)
+                    ->where('is_active', true)
+                    ->pluck('id');
+
+                if ($businessOutlets->isNotEmpty()) {
+                    $syncData = [];
+                    foreach ($businessOutlets as $outletId) {
+                        $syncData[$outletId] = [
+                            'is_enabled' => true,
+                            'is_available' => true,
+                        ];
+                    }
+                    $product->outlets()->sync($syncData);
+                }
+            }
+
+            // Base Price
+            $product->prices()->create([
+                'outlet_id' => null,
+                'product_item_id' => null,
+                'amount' => $data['base_price'],
+            ]);
+
+            // Outlet Prices
+            if (! empty($data['outlet_prices'])) {
+                foreach ($data['outlet_prices'] as $op) {
+                    $product->prices()->create([
+                        'outlet_id' => $op['outlet_id'],
+                        'product_item_id' => null,
+                        'amount' => $op['amount'],
+                    ]);
+                }
+            }
+
+            // Multiple Images
+            if (isset($data['images'])) {
+                $this->processProductImages($product, $data['images']);
+            }
+
+            $this->auditLogService->log($product->business_id, 'product', $product->id, 'created', null, $product->toArray());
+
+            return $product;
+        });
+    }
+
+    public function updateService(Product $product, array $data): Product
+    {
+        return DB::transaction(function () use ($product, $data) {
+            $before = $product->toArray();
+
+            $product->update([
+                'product_category_id' => $data['product_category_id'] ?? $product->product_category_id,
+                'product_type' => ProductTypeEnum::SERVICE,
+                'has_variant' => false,
+                'has_modifier' => false,
+                'has_recipe' => false,
+                'track_inventory' => false,
+                'code' => array_key_exists('code', $data) ? $data['code'] : $product->code,
+                'name' => $data['name'] ?? $product->name,
+                'description' => $data['description'] ?? $product->description,
+                'image_url' => $data['image_url'] ?? $product->image_url,
+                'is_show' => $data['is_show'] ?? ($product->is_show ?? true),
+                'sellable' => $data['sellable'] ?? ($product->sellable ?? true),
+                'purchasable' => false,
+            ]);
+
+            // Outlet sync
+            if (isset($data['outlets'])) {
+                $syncData = [];
+                foreach ($data['outlets'] as $out) {
+                    $syncData[$out['outlet_id']] = [
+                        'is_enabled' => $out['is_enabled'] ?? true,
+                        'is_available' => $out['is_available'] ?? true,
+                    ];
+                }
+                $product->outlets()->sync($syncData);
+            }
+
+            // Update Prices
+            if (isset($data['base_price'])) {
+                $basePrice = $product->prices()->whereNull('outlet_id')->first();
+                if ($basePrice) {
+                    $basePrice->update(['amount' => $data['base_price']]);
+                } else {
+                    $product->prices()->create([
+                        'outlet_id' => null,
+                        'product_item_id' => null,
+                        'amount' => $data['base_price'],
+                    ]);
+                }
+            }
+
+            if (isset($data['outlet_prices'])) {
+                $product->prices()->whereNotNull('outlet_id')->delete();
+                foreach ($data['outlet_prices'] as $op) {
+                    $product->prices()->create([
+                        'outlet_id' => $op['outlet_id'],
+                        'product_item_id' => null,
+                        'amount' => $op['amount'],
+                    ]);
+                }
+            }
+
+            // Clean up any variant groups / bundle items / recipes / items if any existed
+            $product->variantGroups()->delete();
+            $product->bundleItems()->delete();
+            $product->modifierGroups()->sync([]);
 
             // Multiple Images Update
             if (isset($data['images'])) {

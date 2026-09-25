@@ -21,6 +21,7 @@ use App\Enums\PaymentManualValidationStatus;
 use App\Enums\PaymentMethodType;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
+use App\Enums\ProductTypeEnum;
 use App\Enums\PromoStatus;
 use App\Enums\PromoTarget;
 use App\Enums\PromoType;
@@ -69,6 +70,7 @@ class FrontendEnumProvider
         PaymentMethodType::class,
         PermissionEnum::class,
         PlanEnum::class,
+        ProductTypeEnum::class,
         PromoStatus::class,
         PromoTarget::class,
         PromoType::class,

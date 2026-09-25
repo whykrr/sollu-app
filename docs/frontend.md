@@ -17,7 +17,7 @@ Standar pengembangan frontend **Sollu App** berbasis **Vue 3 (Composition API `<
 6. **Jelas:** Gunakan bahasa familiar pedagang/kasir (*"Sampah"*, *"Pulihkan"*, *"Draf"*), bukan istilah teknis/sistem.
 7. **Konsisten:** Pola layout `<MainPage>`, hierarki tombol (`.btn-xs`, `.btn-sm`, `.btn`), drawer `<PopUpPage>`, tabel `<Table>`, form `@/Components/Form/`.
 8. **Smart Default:** Otomatisasi pre-fill (outlet aktif, preset tanggal `'this_month'`, auto-generate SKU/kode, autofocus).
-9. **Minim Langkah:** Single action row click `@row-click`, shortcut POS, debounced inline search, dropdown `Opsi Data`.
+9. **Minim Langkah:** Single action row click `@row-click`, shortcut POS, debounced inline search, dropdown `Opsi`.
 10. **Progressive Disclosure:** 3-Tier Form Architecture (Simple $\le 5$ fields $\rightarrow$ Progressive Disclosure $6-12$ fields via `<DisclosureSection>` $\rightarrow$ Wizard/Tabs $> 12$ fields).
 11. **Mencegah Kesalahan:** Real-time validation, proteksi form belum disimpan `useFormDirtyGuard`, modal konfirmasi sebelum aksi destruktif.
 12. **Mudah Diperbaiki:** Soft delete & pulihkan data dari sampah (`FilterTrashData`), tombol Batal aman.

@@ -91,6 +91,20 @@ enum PermissionEnum: string
 
     /*
     |--------------------------------------------------------------------------
+    | Service (Produk Layanan / Jasa)
+    |--------------------------------------------------------------------------
+    */
+
+    case SERVICE_ALL = 'service.*';
+    case SERVICE_VIEW = 'service.view';
+    case SERVICE_CREATE = 'service.create';
+    case SERVICE_UPDATE = 'service.update';
+    case SERVICE_DELETE = 'service.delete';
+    case SERVICE_IMPORT = 'service.import';
+    case SERVICE_EXPORT = 'service.export';
+
+    /*
+    |--------------------------------------------------------------------------
     | Category
     |--------------------------------------------------------------------------
     */
@@ -284,6 +298,15 @@ enum PermissionEnum: string
             self::PRODUCT_MODIFIER => 'Akses Modifier Produk',
             self::PRODUCT_RECIPE => 'Akses Resep Produk',
 
+            // Service
+            self::SERVICE_ALL => 'Semua Akses Layanan',
+            self::SERVICE_VIEW => 'Akses Melihat Layanan',
+            self::SERVICE_CREATE => 'Akses Membuat Layanan',
+            self::SERVICE_UPDATE => 'Akses Memperbarui Layanan',
+            self::SERVICE_DELETE => 'Akses Menghapus Layanan',
+            self::SERVICE_IMPORT => 'Akses Import Layanan',
+            self::SERVICE_EXPORT => 'Akses Export Layanan',
+
             // Category
             self::CATEGORY_ALL => 'Semua Akses Kategori',
             self::CATEGORY_VIEW => 'Akses Melihat Kategori',
@@ -406,6 +429,13 @@ enum PermissionEnum: string
             self::PRODUCT_VARIANT,
             self::PRODUCT_MODIFIER,
             self::PRODUCT_RECIPE,
+            self::SERVICE_ALL,
+            self::SERVICE_VIEW,
+            self::SERVICE_CREATE,
+            self::SERVICE_UPDATE,
+            self::SERVICE_DELETE,
+            self::SERVICE_IMPORT,
+            self::SERVICE_EXPORT,
             self::CATEGORY_ALL,
             self::CATEGORY_VIEW,
             self::CATEGORY_CREATE,

@@ -7,7 +7,7 @@
                 v-model="filterForm.category"
                 label="Kategori"
                 :options="categoryOptions"
-                :icon="faBox"
+                :icon="faBellConcierge"
                 all-option-label="Semua Kategori"
                 @change="updateQuery"
             />
@@ -34,7 +34,7 @@
         <template #search>
             <FilterSearch
                 v-model="filterForm.search"
-                placeholder="Cari nama atau kode barang..."
+                placeholder="Cari nama atau kode layanan..."
                 @clear="updateQuery"
             />
         </template>
@@ -81,7 +81,7 @@
                 @click="$emit('create')"
             >
                 <FontAwesomeIcon :icon="faPlus" class="text-xs" />
-                <span>+ Tambah Barang</span>
+                <span>+ Tambah Layanan</span>
             </button>
         </template>
     </ActionBar>
@@ -93,13 +93,13 @@ import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
-    faBox,
     faStore,
     faDownload,
     faUpload,
     faTableList,
     faBorderAll,
     faPlus,
+    faBellConcierge,
 } from '@fortawesome/free-solid-svg-icons'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
@@ -141,7 +141,7 @@ const categoryOptions = computed(() => {
 })
 
 const statusSegmentOptions = [
-    { value: '', label: 'Semua Produk' },
+    { value: '', label: 'Semua Layanan' },
     { value: '1', label: 'Sampah' },
 ]
 
@@ -170,7 +170,7 @@ const updateQuery = () => {
         page: 1,
     }
 
-    router.get(route('master.products.index'), query, {
+    router.get(route('master.services.index'), query, {
         preserveState: true,
         preserveScroll: true,
     })
@@ -178,7 +178,7 @@ const updateQuery = () => {
 
 const exportCsv = () => {
     router.get(
-        route('master.products.export', filterForm),
+        route('master.services.export', filterForm),
         {},
         {
             preserveScroll: true,

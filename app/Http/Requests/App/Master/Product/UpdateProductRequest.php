@@ -15,7 +15,10 @@ class UpdateProductRequest extends BaseInertiaFormRequest
 
     protected function prepareForValidation(): void
     {
-        $productType = $this->input('product_type');
+        $productType = $this->input('product_type', 'basic');
+        $this->merge([
+            'product_type' => $productType,
+        ]);
 
         if ($productType === 'service') {
             $this->merge([
@@ -47,7 +50,7 @@ class UpdateProductRequest extends BaseInertiaFormRequest
             'barcode' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'product_category_id' => 'nullable|uuid|exists:product_categories,id',
-            'product_type' => 'required|in:basic,service,bundle',
+            'product_type' => 'nullable|in:basic,service,bundle',
             'is_show' => 'boolean',
             'sellable' => 'boolean',
             'purchasable' => 'boolean',

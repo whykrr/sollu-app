@@ -2,8 +2,10 @@
 
 namespace App\Jobs\Master;
 
+use App\Enums\ProductTypeEnum;
 use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\Master\Product;
+use App\Models\Outlet;
 use App\Models\User;
 use App\Notifications\ExcelExportCompleted;
 use Illuminate\Database\Eloquent\Builder;
@@ -55,7 +57,7 @@ class ExportProductJob extends AbstractExcelExportJob
             'Status Tampil',
         ];
 
-        $outlets = \App\Models\Outlet::where('business_id', $this->businessId)->active()->get();
+        $outlets = Outlet::where('business_id', $this->businessId)->active()->get();
         foreach ($outlets as $outlet) {
             $headers[] = 'Outlet: '.$outlet->name;
         }
@@ -87,7 +89,7 @@ class ExportProductJob extends AbstractExcelExportJob
         }
         $filePath = 'exports/'.$fileName;
 
-        $outlets = \App\Models\Outlet::where('business_id', $this->businessId)->active()->get();
+        $outlets = Outlet::where('business_id', $this->businessId)->active()->get();
         $headers = $this->getHeaders();
 
         $rows = [$headers];
@@ -103,7 +105,7 @@ class ExportProductJob extends AbstractExcelExportJob
                     $product->name,
                     $product->category ? $product->category->name : '',
                     $product->description,
-                    $product->product_type,
+                    $product->product_type instanceof ProductTypeEnum ? $product->product_type->value : (string) $product->product_type,
                     '', // Varian 1 Nama
                     '', // Varian 1 Opsi
                     '', // Varian 2 Nama
@@ -120,7 +122,7 @@ class ExportProductJob extends AbstractExcelExportJob
                     $parentRow[] = $hasOutlet ? 'Ya' : 'Tidak';
                 }
 
-                if ($product->product_type === 'basic' && $product->has_variant && $product->inventoryItems->where('item_type', 'variant_sku')->count() > 0) {
+                if ($product->isBasic() && $product->has_variant && $product->inventoryItems->where('item_type', 'variant_sku')->count() > 0) {
                     $variants = $product->inventoryItems->where('item_type', 'variant_sku');
                     $variantGroups = $product->variantGroups;
 

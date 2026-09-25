@@ -5,10 +5,11 @@ namespace App\Notifications;
 use App\Enums\NotificationCategoryEnum;
 use App\Enums\NotificationScopeEnum;
 use App\Enums\NotificationTypeEnum;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\HtmlString;
 
-class WelcomeUser extends BaseNotification
+class WelcomeUser extends BaseNotification implements ShouldQueue
 {
     /**
      * Create a new notification instance.

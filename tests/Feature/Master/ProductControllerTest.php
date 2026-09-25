@@ -130,14 +130,13 @@ class ProductControllerTest extends TestCase
         );
     }
 
-    public function test_user_can_create_service_product_without_inventory(): void
+    public function test_user_can_create_basic_product_without_inventory(): void
     {
         $response = $this->actingAs($this->user, 'business')
             ->post("http://{$this->appDomain}/master/products", [
-                'name' => 'Jasa Potong Rambut',
-                'code' => 'SRV-001',
-                'product_type' => 'service',
-                'base_price' => 45000,
+                'name' => 'Stiker Toko',
+                'code' => 'STK-001',
+                'base_price' => 5000,
                 'track_inventory' => false,
                 'has_variant' => false,
                 'has_recipe' => false,
@@ -150,13 +149,13 @@ class ProductControllerTest extends TestCase
 
         $this->assertDatabaseHas('products', [
             'business_id' => $this->business->id,
-            'name' => 'Jasa Potong Rambut',
-            'product_type' => 'service',
+            'name' => 'Stiker Toko',
+            'product_type' => 'basic',
             'track_inventory' => false,
         ]);
 
         $this->assertDatabaseHas('product_prices', [
-            'amount' => 45000,
+            'amount' => 5000,
         ]);
     }
 
@@ -232,30 +231,30 @@ class ProductControllerTest extends TestCase
         ]);
     }
 
-    public function test_products_index_supports_sorting_and_filtering_by_type(): void
+    public function test_products_index_only_returns_goods_and_ignores_services(): void
     {
-        Product::create([
+        $good = Product::create([
             'business_id' => $this->business->id,
-            'name' => 'Produk A',
+            'name' => 'Produk Barang A',
             'code' => 'A01',
             'product_type' => 'basic',
         ]);
 
         Product::create([
             'business_id' => $this->business->id,
-            'name' => 'Layanan B',
+            'name' => 'Produk Layanan B',
             'code' => 'B01',
             'product_type' => 'service',
         ]);
 
         $response = $this->actingAs($this->user, 'business')
-            ->get("http://{$this->appDomain}/master/products?product_type=service");
+            ->get("http://{$this->appDomain}/master/products");
 
         $response->assertStatus(200);
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Master/Product/Index')
             ->has('products.data', 1)
-            ->where('products.data.0.name', 'Layanan B')
+            ->where('products.data.0.name', 'Produk Barang A')
         );
     }
 
