@@ -58,12 +58,21 @@
 
         <div class="grid grid-cols-2 gap-4 text-sm mt-2">
             <div>
+                <h3 class="font-semibold text-slate-700 mb-1">Petugas / Kasir</h3>
+                <p class="text-slate-600">
+                    {{ transaction.cashier_name || transaction.creator?.name || transaction.shift?.user?.name || '-' }}
+                </p>
+            </div>
+            <div>
                 <h3 class="font-semibold text-slate-700 mb-1">Termin Pembayaran</h3>
                 <p class="text-slate-600 capitalize">
                     {{ transaction.payment_term || 'Tunai' }}
                 </p>
             </div>
-            <div v-if="transaction.due_date">
+        </div>
+
+        <div v-if="transaction.due_date" class="grid grid-cols-2 gap-4 text-sm mt-2">
+            <div>
                 <h3 class="font-semibold text-slate-700 mb-1">Jatuh Tempo</h3>
                 <p class="text-slate-600 text-danger font-medium">
                     {{ formatDateID(transaction.due_date) }}

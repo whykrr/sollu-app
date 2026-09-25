@@ -10,7 +10,7 @@ use App\Http\Requests\App\Transaction\Sales\StoreSalesTransactionRequest;
 use App\Http\Resources\Transaction\TransactionResource;
 use App\Jobs\Transaction\ExportTransactionJob;
 use App\Models\Sales\Transaction;
-use App\Services\App\Transaction\TransactionService;
+use App\Services\App\Transaction\InvoiceTransactionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +31,7 @@ class SalesController extends Controller
 
         $transactions = Transaction::with([
             'customer:id,name',
+            'createdBy:id,name',
             'shift:id,user_id',
             'shift.user:id,name',
             'invoice:id,transaction_id,invoice_number',
@@ -54,6 +55,7 @@ class SalesController extends Controller
             'invoice',
             'customer',
             'outlet',
+            'createdBy:id,name',
             'shift.user',
             'items.modifiers',
             'payments.paymentMethod',
@@ -62,15 +64,13 @@ class SalesController extends Controller
         return new TransactionResource($transaction);
     }
 
-    public function store(StoreSalesTransactionRequest $request, TransactionService $service)
+    public function store(StoreSalesTransactionRequest $request, InvoiceTransactionService $service)
     {
         $validated = $request->validated();
 
         try {
             DB::beginTransaction();
 
-            // Simulate creation logic. Since we don't know the exact internals of TransactionService yet,
-            // we will pass the data array to it.
             $transaction = $service->createTransaction($validated, Auth::user());
 
             if ($validated['action'] === 'issue') {
@@ -93,7 +93,7 @@ class SalesController extends Controller
         }
     }
 
-    public function issue(Request $request, Transaction $transaction, TransactionService $service)
+    public function issue(Request $request, Transaction $transaction, InvoiceTransactionService $service)
     {
         $this->authorize('transaction.issue_invoice');
 
@@ -102,6 +102,7 @@ class SalesController extends Controller
             'paid_amount' => ['nullable', 'numeric', 'min:0'],
             'payment_reference' => ['nullable', 'string', 'max:255'],
             'payment_notes' => ['nullable', 'string', 'max:1000'],
+            'payment_date' => ['nullable', 'date'],
         ]);
 
         try {
@@ -113,11 +114,15 @@ class SalesController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
+            if ($e instanceof ValidationException) {
+                throw $e;
+            }
+
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
 
-    public function recordPayment(RecordPaymentTransactionRequest $request, Transaction $transaction, TransactionService $service)
+    public function recordPayment(RecordPaymentTransactionRequest $request, Transaction $transaction, InvoiceTransactionService $service)
     {
         $validated = $request->validated();
 
@@ -130,17 +135,21 @@ class SalesController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
+            if ($e instanceof ValidationException) {
+                throw $e;
+            }
+
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
 
-    public function cancel(Transaction $transaction, TransactionService $service)
+    public function cancel(Transaction $transaction, InvoiceTransactionService $service)
     {
         $this->authorize('transaction.cancel');
 
         try {
             DB::beginTransaction();
-            $service->cancelTransaction($transaction, Auth::user());
+            $service->cancelInvoice($transaction, Auth::user());
             DB::commit();
 
             return redirect()->back()->with(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);
@@ -151,13 +160,13 @@ class SalesController extends Controller
         }
     }
 
-    public function void(Transaction $transaction, TransactionService $service)
+    public function void(Transaction $transaction, InvoiceTransactionService $service)
     {
         $this->authorize('transaction.void');
 
         try {
             DB::beginTransaction();
-            $service->voidTransaction($transaction, Auth::user());
+            $service->voidInvoice($transaction, Auth::user());
             DB::commit();
 
             return redirect()->back()->with(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);

@@ -39,8 +39,8 @@
             </template>
             <template #shift="{ item }">
                 <div class="flex flex-col">
-                    <span v-if="item.shift?.user?.name" class="font-medium">
-                        {{ item.shift.user.name }}
+                    <span class="font-medium">
+                        {{ item.shift?.user?.name || item.created_by?.name || item.creator?.name || '-' }}
                     </span>
                     <span class="text-xs text-slate-500 font-medium">
                         {{ formatChannel(item.channel) }}

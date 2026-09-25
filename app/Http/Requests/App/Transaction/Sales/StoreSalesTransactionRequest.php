@@ -29,6 +29,8 @@ class StoreSalesTransactionRequest extends BaseInertiaFormRequest
         $this->merge([
             'customer_id' => $this->customer_id ?: null,
             'promo_id' => $this->promo_id ?: null,
+            'payment_method_id' => $this->payment_method_id ?: null,
+            'due_date' => $this->due_date ?: null,
         ]);
     }
 

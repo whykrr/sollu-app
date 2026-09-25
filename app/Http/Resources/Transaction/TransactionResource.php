@@ -43,6 +43,23 @@ class TransactionResource extends JsonResource
             'updated_at' => $this->updated_at,
 
             // Relationships
+            'cashier_name' => $this->shift?->user?->name ?? $this->createdBy?->name ?? '-',
+            'created_by_name' => $this->createdBy?->name ?? null,
+            'creator' => $this->whenLoaded('createdBy', function () {
+                return $this->createdBy ? [
+                    'id' => $this->createdBy->id,
+                    'name' => $this->createdBy->name,
+                ] : null;
+            }),
+            'shift' => $this->whenLoaded('shift', function () {
+                return $this->shift ? [
+                    'id' => $this->shift->id,
+                    'user' => $this->shift->user ? [
+                        'id' => $this->shift->user->id,
+                        'name' => $this->shift->user->name,
+                    ] : null,
+                ] : null;
+            }),
             'outlet' => $this->whenLoaded('outlet', function () {
                 return [
                     'id' => $this->outlet->id,
@@ -82,13 +99,11 @@ class TransactionResource extends JsonResource
                         'payment_date' => $payment->payment_date ?? $payment->created_at,
                         'notes' => $payment->notes,
                         'created_at' => $payment->created_at,
-                        'payment_method' => $payment->whenLoaded('paymentMethod', function () use ($payment) {
-                            return [
-                                'id' => $payment->paymentMethod->id,
-                                'name' => $payment->paymentMethod->name,
-                                'type' => $payment->paymentMethod->type,
-                            ];
-                        }),
+                        'payment_method' => ($payment->relationLoaded('paymentMethod') && $payment->paymentMethod) ? [
+                            'id' => $payment->paymentMethod->id,
+                            'name' => $payment->paymentMethod->name,
+                            'type' => $payment->paymentMethod->type,
+                        ] : null,
                     ];
                 });
             }),

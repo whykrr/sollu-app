@@ -38,26 +38,32 @@ class OutletController extends Controller
             $settings = $outlet->settings()
                 ->where('category', 'sales')
                 ->whereIn('key', [
+                    'default_due_days_invoice',
                     'default_due_days_b2b',
+                    'default_terms_and_conditions_invoice',
                     'default_terms_and_conditions_b2b',
+                    'transaction_invoice_prefix',
                     'b2b_invoice_prefix',
+                    'allow_negative_stock',
                     'allow_negative_stock_b2b',
+                    'allow_custom_price',
                     'allow_custom_price_b2b',
+                    'sales_channels',
                     'sales_channels_b2b',
                 ])
                 ->get();
 
-            $dueDaysSetting = $settings->firstWhere('key', 'default_due_days_b2b');
+            $dueDaysSetting = $settings->firstWhere('key', 'default_due_days_invoice') ?? $settings->firstWhere('key', 'default_due_days_b2b');
             if ($dueDaysSetting) {
                 $defaultDueDays = (int) $dueDaysSetting->value;
             }
 
-            $tncSetting = $settings->firstWhere('key', 'default_terms_and_conditions_b2b');
+            $tncSetting = $settings->firstWhere('key', 'default_terms_and_conditions_invoice') ?? $settings->firstWhere('key', 'default_terms_and_conditions_b2b');
             if ($tncSetting) {
                 $defaultTnc = (string) $tncSetting->value;
             }
 
-            $prefixSetting = $settings->firstWhere('key', 'b2b_invoice_prefix');
+            $prefixSetting = $settings->firstWhere('key', 'transaction_invoice_prefix') ?? $settings->firstWhere('key', 'b2b_invoice_prefix');
             if ($prefixSetting) {
                 $invoicePrefix = (string) $prefixSetting->value;
             }
@@ -65,6 +71,10 @@ class OutletController extends Controller
 
         return response()->json([
             'data' => [
+                'default_due_days_invoice' => $defaultDueDays,
+                'default_terms_and_conditions_invoice' => $defaultTnc,
+                'transaction_invoice_prefix' => $invoicePrefix,
+                // Backward compatibility keys
                 'default_due_days_b2b' => $defaultDueDays,
                 'default_terms_and_conditions_b2b' => $defaultTnc,
                 'b2b_invoice_prefix' => $invoicePrefix,

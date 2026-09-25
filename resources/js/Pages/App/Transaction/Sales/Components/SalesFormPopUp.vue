@@ -542,7 +542,9 @@ const paymentMethodOptions = ref([])
 const isLoadingPaymentMethods = ref(false)
 const hasDp = ref(false)
 const outletSalesSettings = ref({
+    default_due_days_invoice: 14,
     default_due_days_b2b: 14,
+    default_terms_and_conditions_invoice: '',
     default_terms_and_conditions_b2b: '',
 })
 
@@ -567,21 +569,21 @@ const fetchOutletSalesSettings = async outletId => {
         if (res.data?.data) {
             outletSalesSettings.value = res.data.data
 
+            const tnc =
+                res.data.data.default_terms_and_conditions_invoice ||
+                res.data.data.default_terms_and_conditions_b2b ||
+                ''
+            const dueDays =
+                res.data.data.default_due_days_invoice || res.data.data.default_due_days_b2b || 14
+
             // Pre-fill terms & conditions if empty and not editing
-            if (
-                !props.transaction &&
-                !form.terms_and_conditions &&
-                res.data.data.default_terms_and_conditions_b2b
-            ) {
-                form.terms_and_conditions = res.data.data.default_terms_and_conditions_b2b
+            if (!props.transaction && !form.terms_and_conditions && tnc) {
+                form.terms_and_conditions = tnc
             }
 
             // Auto-calculate due date for credit
             if (form.payment_term === 'credit' && (!form.due_date || !props.transaction)) {
-                form.due_date = computeDueDate(
-                    form.transaction_date,
-                    res.data.data.default_due_days_b2b
-                )
+                form.due_date = computeDueDate(form.transaction_date, dueDays)
             }
         }
     } catch (e) {
@@ -696,10 +698,11 @@ const onPaymentTermChanged = term => {
         form.paid_amount = 0
         form.payment_method_id = ''
         form.payment_reference = ''
-        form.due_date = computeDueDate(
-            form.transaction_date,
-            outletSalesSettings.value.default_due_days_b2b
-        )
+        const dueDays =
+            outletSalesSettings.value.default_due_days_invoice ||
+            outletSalesSettings.value.default_due_days_b2b ||
+            14
+        form.due_date = computeDueDate(form.transaction_date, dueDays)
     }
 }
 
@@ -719,7 +722,11 @@ watch(
     () => form.transaction_date,
     newDate => {
         if (form.payment_term === 'credit' && !props.transaction) {
-            form.due_date = computeDueDate(newDate, outletSalesSettings.value.default_due_days_b2b)
+            const dueDays =
+                outletSalesSettings.value.default_due_days_invoice ||
+                outletSalesSettings.value.default_due_days_b2b ||
+                14
+            form.due_date = computeDueDate(newDate, dueDays)
         }
     }
 )

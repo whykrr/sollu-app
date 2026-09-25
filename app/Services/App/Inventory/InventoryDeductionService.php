@@ -27,6 +27,7 @@ class InventoryDeductionService implements InventoryDeductionServiceInterface
 
             $outlet = $transaction->outlet;
             $business = $outlet?->business ?? Business::find($transaction->business_id ?? auth()->user()?->business_id);
+            $actor = auth()->user() ?? $transaction->createdBy;
 
             if (! $outlet || ! $business) {
                 return;
@@ -56,7 +57,7 @@ class InventoryDeductionService implements InventoryDeductionServiceInterface
                                     movementType: InventoryMovementType::RecipeDeduction,
                                     reference: $transaction,
                                     description: 'Bahan Resep: '.$item->product_name.' ('.($transaction->receipt_number ?? $transaction->id).')',
-                                    user: auth()->user()
+                                    user: $actor
                                 );
                                 $itemTotalCogs += $result['total_cogs'];
                             }
@@ -80,7 +81,7 @@ class InventoryDeductionService implements InventoryDeductionServiceInterface
                                                 movementType: InventoryMovementType::RecipeDeduction,
                                                 reference: $transaction,
                                                 description: 'Topping Resep: '.$itemModifier->modifierOption->name.' ('.($transaction->receipt_number ?? $transaction->id).')',
-                                                user: auth()->user()
+                                                user: $actor
                                             );
                                             $itemTotalCogs += $result['total_cogs'];
                                         }
@@ -136,7 +137,7 @@ class InventoryDeductionService implements InventoryDeductionServiceInterface
                                 movementType: InventoryMovementType::Sale,
                                 reference: $transaction,
                                 description: 'Penjualan: '.$item->product_name.' ('.($transaction->receipt_number ?? $transaction->id).')',
-                                user: auth()->user()
+                                user: $actor
                             );
                             $itemTotalCogs += $result['total_cogs'];
                         }
@@ -164,6 +165,7 @@ class InventoryDeductionService implements InventoryDeductionServiceInterface
 
             $outlet = $transaction->outlet;
             $business = $outlet?->business ?? Business::find($transaction->business_id ?? auth()->user()?->business_id);
+            $actor = auth()->user() ?? $transaction->createdBy;
 
             if (! $outlet || ! $business) {
                 return;
@@ -194,7 +196,7 @@ class InventoryDeductionService implements InventoryDeductionServiceInterface
                                     movementType: InventoryMovementType::RecipeReturn,
                                     reference: $transaction,
                                     description: 'Pembatalan Resep: '.$item->product_name.' ('.($transaction->receipt_number ?? $transaction->id).')',
-                                    user: auth()->user()
+                                    user: $actor
                                 );
                             }
                         }
@@ -219,7 +221,7 @@ class InventoryDeductionService implements InventoryDeductionServiceInterface
                                                 movementType: InventoryMovementType::RecipeReturn,
                                                 reference: $transaction,
                                                 description: 'Pembatalan Topping Resep: '.$itemModifier->modifierOption->name.' ('.($transaction->receipt_number ?? $transaction->id).')',
-                                                user: auth()->user()
+                                                user: $actor
                                             );
                                         }
                                     }
@@ -278,7 +280,7 @@ class InventoryDeductionService implements InventoryDeductionServiceInterface
                             movementType: InventoryMovementType::SaleReturn,
                             reference: $transaction,
                             description: 'Retur/Pembatalan Penjualan: '.$item->product_name.' ('.($transaction->receipt_number ?? $transaction->id).')',
-                            user: auth()->user()
+                            user: $actor
                         );
                     }
                 }

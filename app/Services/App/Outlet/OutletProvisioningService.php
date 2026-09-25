@@ -196,11 +196,17 @@ class OutletProvisioningService
         $defaultTnc = "1. Pembayaran dilakukan sesuai tanggal jatuh tempo yang tertera pada faktur.\n2. Pembayaran via transfer ditujukan ke rekening resmi yang tertera.\n3. Barang yang sudah diterima dalam kondisi baik tidak dapat dikembalikan tanpa persetujuan tertulis.";
 
         $salesDefaults = [
+            'allow_negative_stock' => false,
             'allow_negative_stock_b2b' => false,
+            'allow_custom_price' => true,
             'allow_custom_price_b2b' => true,
+            'sales_channels' => ['direct', 'wholesale', 'e_commerce', 'social_media'],
             'sales_channels_b2b' => ['direct', 'wholesale', 'e_commerce', 'social_media'],
+            'default_due_days_invoice' => 14,
             'default_due_days_b2b' => 14,
+            'default_terms_and_conditions_invoice' => $defaultTnc,
             'default_terms_and_conditions_b2b' => $defaultTnc,
+            'transaction_invoice_prefix' => 'INV',
             'b2b_invoice_prefix' => 'INV',
         ];
 
