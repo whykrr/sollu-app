@@ -4,7 +4,7 @@ description: >-
     Comprehensive standards and guidelines for Sollu App (Laravel 12, PHP 8.3, Vue 3, Inertia.js 1.2, Tailwind CSS v4).
     Covers Core Architecture, Modular Monolith, Backend (Controllers, Services, Models, FormRequests, Constants),
     Frontend (Vue 3, PopUpPage, Form Fields, Table Filters), PHP Enums as Single Source of Truth, RBAC (Spatie Permissions),
-    SaaS Feature Plan Gating, Code Quality (Pint, ESLint, DoD), Unit Testing (100% Mocking), Web Integration & E2E Testing,
+    SaaS Feature Plan Gating, Code Quality (Pint, ESLint, DoD), Pragmatic 5-Layer Testing (Zero-Error Data & Logic), Web Integration & E2E Testing,
     Async Excel (Export/Import), Blade DomPDF, and API Documentation. MUST trigger whenever working on any Sollu App features.
 ---
 
@@ -25,7 +25,7 @@ Pedoman dan standar baku rekayasa perangkat lunak untuk seluruh modul dan kompon
 6. [Role-Based Access Control (RBAC & Spatie Permissions)](#6-role-based-access-control-rbac--spatie-permissions)
 7. [SaaS Feature Plan Gating (Subscription Entitlements)](#7-saas-feature-plan-gating-subscription-entitlements)
 8. [Code Quality, Linters & Definition of Done (DoD)](#8-code-quality-linters--definition-of-done-dod)
-9. [Service Layer Unit Testing (100% Mocking & In-Memory SQLite)](#9-service-layer-unit-testing-100-mocking--in-memory-sqlite)
+9. [Pragmatic 5-Layer Testing Architecture & Zero-Error Strategy](#9-pragmatic-5-layer-testing-architecture--zero-error-strategy)
 10. [Web Integration & E2E Testing](#10-web-integration--e2e-testing)
 11. [Asynchronous Excel Export & Import](#11-asynchronous-excel-export--import)
 12. [PDF Document Generation (laravel-dompdf)](#12-pdf-document-generation-laravel-dompdf)
@@ -816,39 +816,64 @@ if (can('settings.outlets.create')) {
 ---
 
 
-## 9. Service Layer Unit Testing (100% Mocking & In-Memory SQLite)
+## 9. Pragmatic 5-Layer Testing Architecture & Zero-Error Strategy
 
-### 9.1. Mandatory Unit Test for Service Layer
+Setiap pembuatan fitur baru (*build*), pengembangan (*enhancement*), atau perbaikan bug (*bugfix*) WAJIB menerapkan pembagian 5 layer pengujian terstandar untuk mencapai **0% error pada logika, integrasi, dan data**:
 
-Setiap pembuatan, perbaikan bug, atau enhancement pada **Service class** WAJIB disertai pembuatan/pembaruan **Unit Test** di `tests/Unit/Services/...`.
+1. **Unit Test (`tests/Unit/` - Pure Computational Logic):**
+   - **Cakupan:** Logika murni bebas state (*stateless*), helper fungsi, kalkulasi matematis (HPP FIFO/Moving Average murni, diskon bertingkat, split pajak), DTO/Value Object, dan integritas PHP Backed Enum.
+   - **Standar:** Menggunakan `PHPUnit\Framework\TestCase`. Dilarang menyentuh database (`RefreshDatabase`) dan dilarang membuat mock Eloquent yang rumit. Eksekusi ultra-cepat ($< 1\text{ms}$).
+2. **Feature Test (`tests/Feature/` - HTTP Endpoint, Boundary & Auth):**
+   - **Cakupan:** 1 HTTP Endpoint tunggal dari FormRequest, Controller, Middleware, Otorisasi (Spatie `v-can` & `v-feature`), Isolasi Tenant (`business_id`/`outlet_id`), hingga Payload Response (Inertia Props / JSON Resource).
+   - **Standar:** Menggunakan In-Memory SQLite (`RefreshDatabase`). Wajib menguji otorisasi (403 Forbidden saat tanpa izin / paket terkunci) dan validasi request gagal (422 Unprocessable Content).
+3. **Integration & Service Test (`tests/Integration/` / `tests/Feature/Services/` - Real State Business Logic):**
+   - **Cakupan:** Service Layer, Jobs, dan orkestrasi lintas bounded context (misal: POS Checkout $\rightarrow$ Mutasi Stok FIFO $\rightarrow$ Shift Cash Drawer $\rightarrow$ Dispatch Notification).
+   - **Standar:** **WAJIB menggunakan data nyata di In-Memory SQLite (`RefreshDatabase`).** Dilarang me-mocking query/model Eloquent. Gunakan **Laravel Fakes resmi** (`Event::fake()`, `Queue::fake()`, `Notification::fake()`, `Storage::fake()`) untuk side-effects eksternal.
+4. **Browser/E2E Test (`tests/Browser/` - Real User Journey):**
+   - **Cakupan:** Alur interaksi user nyata menggunakan Laravel Dusk pada browser riil (Vue 3 / Inertia DOM, drawer `<PopUpPage>`, submit sticky footer, toast notification).
+   - **Standar:** Dilarang ada error JavaScript yang tidak tertangkap di console browser.
+5. **Regression Test (`tests/Regression/` - Bug Prevention):**
+   - **Cakupan:** Reproduksi bug spesifik dari production issue sebelum bugfix dilakukan untuk mencegah *bug recurrence*.
 
-### 9.2. Pure In-Memory Testing & Mocking
+### 9.1. Prinsip Penegakan Uji 0% Error (Data, Logika & Integrasi)
 
-- Test Service Layer **DILARANG KERAS** menyentuh database fisik.
-- **WAJIB** menggunakan `sqlite:memory` dan trait `RefreshDatabase`.
-- Dependensi eksternal di-mock menggunakan **Mockery**.
+1. **Anti-Brittle Mocking:** Jangan pernah me-mock model Eloquent atau query builder (`where`, `join`, `get`). Selalu gunakan data model nyata dari Factory di test database in-memory agar perubahan schema atau query langsung terverifikasi.
+2. **Multi-Tenant Isolation Verification:**
+   ```php
+   // Wajib pastikan Tenant B tidak bisa melihat atau memutasikan data Tenant A
+   $otherBusiness = Business::factory()->create();
+   $this->assertDatabaseMissing('products', [
+       'id' => $product->id,
+       'business_id' => $otherBusiness->id,
+   ]);
+   ```
+3. **Database Transaction & Atomicity Guard:**
+   - Setiap operasi yang membungkus mutasi data dalam `DB::transaction` wajib diuji skenario kegagalan: saat langkah pertengahan melempar exception, pastikan seluruh baris data sebelumnya di-rollback 100%.
+4. **Side-Effect Verification via Laravel Fakes:**
+   ```php
+   Notification::fake();
+   Event::fake();
 
-### 9.3. 100% Code Coverage & Scenario Testing
+   $service->execute($payload);
 
-- Uji seluruh skenario (_Happy Path_, _Edge Cases_, dan _Error/Exception/Failure Paths_).
-- Pastikan semua percabangan (`if/else`, `switch`, `try/catch`) tereksekusi 100%.
-- Gunakan `$this->expectException(...)` untuk memvalidasi exception.
+   Notification::assertSentTo($user, TransactionCompletedNotification::class);
+   ```
+5. **Boundary & Precision Testing:**
+   - Selalu uji angka nol (0), angka negatif, desimal presisi tinggi pada nominal uang dan kuantitas stok, serta kondisi stok kosong/kurang.
 
-### 9.4. Struktur Direktori & Mocking Contoh
+### 9.2. Mandatory Open Question: Test Case Alignment
 
-- Lokasi test menduplikasi namespace asli: `App\Services\App\Inventory\StockAdjustmentService` -> `tests/Unit/Services/App/Inventory/StockAdjustmentServiceTest.php`.
-- Contoh mocking dependency:
-    ```php
-    $this->dependencyMock = Mockery::mock(DependencyClass::class);
-    $this->dependencyMock->shouldReceive('methodName')
-        ->once()
-        ->with('args')
-        ->andReturn($expectedValue);
-    ```
+Saat merancang implementasi fitur baru atau enhancement:
+- **WAJIB** mengajukan pertanyaan terbuka (*open question*) atau menyajikan matriks skenario test yang direncanakan kepada user/stakeholder:
+  - *Happy Path* (alur sukses standar & variasi input).
+  - *Edge Cases* (nilai batas, 0, desimal ekstrem, stok habis).
+  - *Validation & Exception Path* (validasi gagal, saldo tidak cukup, status invalid).
+  - *Tenant Isolation & Security* (cek isolasi `business_id` / `outlet_id`, role permission).
+  - *Cross-Domain Side Effects* (ledger mutasi stok, audit log, notifikasi).
 
 ---
 
-## 10. Web Integration & E2E Testing
+## 10. Web Integration & E2E Testing (Laravel Dusk)
 
 ### 10.1. Prerequisites & Dev Environment
 

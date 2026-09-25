@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\SettingsType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SettingsType>
+ * @extends Factory<SettingsType>
  */
 class MerchantTypeFactory extends Factory
 {

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read PurchaseReturn $purchaseReturn
  * @property-read InventoryItem $inventoryItem
  * @property-read Uom|null $uom
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperPurchaseReturnItem
  */

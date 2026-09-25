@@ -21,8 +21,9 @@ Before designing or modifying code, ensure compliance with the standing rules:
 - `03-auth-and-enums.md`: PHP Enums SSOT (`$enums`), Dual-Layer Auth (`v-can` vs `v-feature`).
 - `04-frontend-standards.md`: `MainPage` 5-slot layout, `ActionBar`, form `sm` (30px), 3-Tier Forms, `useFormDirtyGuard`.
 - `05-backend-standards.md`: PHP 8.3 multiline chaining, thin controllers, `ResourceMessage`.
-- `06-tooling-and-testing.md`: Git MCP, 100% Mocking Service Unit Tests, Definition of Done.
+- `06-tooling-and-testing.md`: Git MCP, Pragmatic 5-Layer Testing Architecture, Zero-Error Data & Logic Integrity, Definition of Done.
 - `07-git-and-changelog.md`: SemVer, Conventional Commits, Keep a Changelog.
+- `08-database-and-migrations.md`: Bidirectional migrations, absolute rollback symmetry, phased ETL, rollback verification.
 
 ---
 
@@ -43,6 +44,7 @@ Activate the relevant specialized skill when working in specific domains:
 - **PHP Formatter:** `vendor/bin/pint --dirty` (Run before committing PHP code).
 - **Frontend Lint:** `npm run lint` & `npm run format`.
 - **Run Tests:** `php artisan test --compact --filter=TestName`.
+- **Rollback Verification:** `php artisan migrate:rollback --step=1 && php artisan migrate` (Wajib saat membuat/mengubah migration).
 - **Database Inspection:** Use `sollu-db` (SELECT only) or `laravel-boost` `database-schema`.
 - **Project Inspection:** Gunakan MCP `sollu-project` untuk inspeksi project (enum, tenant, fitur, inventory, rule lints).
 

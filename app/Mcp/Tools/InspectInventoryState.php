@@ -9,6 +9,7 @@ use App\Models\Inventory\InventoryCostLayer;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -55,7 +56,7 @@ class InspectInventoryState extends Tool
             ]);
         }
 
-        if (! \Illuminate\Support\Facades\Schema::hasTable('inventory_items')) {
+        if (! Schema::hasTable('inventory_items')) {
             return Response::json([
                 'error' => 'inventory_items table does not exist in the current database.',
             ]);

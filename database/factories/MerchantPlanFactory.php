@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\SettingsOutletSubscription;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SettingsOutletSubscription>
+ * @extends Factory<SettingsOutletSubscription>
  */
 class MerchantPlanFactory extends Factory
 {

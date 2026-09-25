@@ -6,6 +6,7 @@ use App\Enums\PermissionEnum;
 use App\Enums\PromoTarget;
 use App\Enums\PromoType;
 use App\Http\Requests\BaseInertiaFormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
 class UpdatePromoRequest extends BaseInertiaFormRequest
@@ -21,7 +22,7 @@ class UpdatePromoRequest extends BaseInertiaFormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -58,7 +59,7 @@ class UpdatePromoRequest extends BaseInertiaFormRequest
                 Rule::requiredIf(fn () => $this->target_type === PromoTarget::Product->value),
             ],
             'inventory_item_ids.*' => [
-                Rule::exists('inventory_items', 'id')->where(function ($query) use ($businessId) {
+                Rule::exists('product_items', 'id')->where(function ($query) use ($businessId) {
                     return $query->where('business_id', $businessId);
                 }),
             ],

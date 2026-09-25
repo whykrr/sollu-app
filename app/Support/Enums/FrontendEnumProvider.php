@@ -35,6 +35,7 @@ use App\Enums\StockTransferStatus;
 use App\Enums\SubscriptionStatus;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
+use App\Models\Feature;
 
 class FrontendEnumProvider
 {
@@ -124,8 +125,8 @@ class FrontendEnumProvider
         $options = [];
 
         // Special handling for FeatureEnum: metadata & grouping come from database
-        if ($enumClass === FeatureEnum::class && class_exists(\App\Models\Feature::class)) {
-            $features = \App\Models\Feature::getAllCached()->keyBy('code');
+        if ($enumClass === FeatureEnum::class && class_exists(Feature::class)) {
+            $features = Feature::getAllCached()->keyBy('code');
             $grouped = [];
 
             foreach ($enumClass::cases() as $case) {

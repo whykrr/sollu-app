@@ -15,7 +15,7 @@ class ProductImage extends Model
 
     protected $fillable = [
         'product_id',
-        'inventory_item_id',
+        'product_item_id',
         'image_url',
         'sort_order',
     ];
@@ -34,8 +34,8 @@ class ProductImage extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function inventoryItem()
+    public function productItem()
     {
-        return $this->belongsTo(InventoryItem::class);
+        return $this->belongsTo(ProductItem::class);
     }
 }

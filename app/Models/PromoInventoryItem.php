@@ -16,6 +16,6 @@ class PromoInventoryItem extends Pivot
 
     protected $fillable = [
         'promo_id',
-        'inventory_item_id',
+        'product_item_id',
     ];
 }

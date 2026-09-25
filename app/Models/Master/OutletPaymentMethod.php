@@ -3,6 +3,7 @@
 namespace App\Models\Master;
 
 use App\Models\Outlet;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
@@ -12,10 +13,11 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  * @property string $outlet_id
  * @property string $payment_method_id
  * @property bool $is_enabled
- * @property \Carbon\Carbon|null $created_at
- * @property \Carbon\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Outlet $outlet
  * @property-read PaymentMethod $paymentMethod
+ *
  * @mixin IdeHelperOutletPaymentMethod
  */
 class OutletPaymentMethod extends Pivot

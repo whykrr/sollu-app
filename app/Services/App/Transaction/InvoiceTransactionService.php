@@ -57,7 +57,7 @@ class InvoiceTransactionService
                     $inventoryItemId = $item['inventory_item_id'] ?? null;
                     if ($inventoryItemId && ! empty($data['outlet_id'])) {
                         $activePromo = Promo::active()
-                            ->whereHas('inventoryItems', fn ($q) => $q->where('inventory_items.id', $inventoryItemId))
+                            ->whereHas('inventoryItems', fn ($q) => $q->where('product_items.id', $inventoryItemId))
                             ->where(function ($q) use ($data) {
                                 $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $data['outlet_id']))
                                     ->orWhere('applies_to_all_outlets', true);
@@ -262,13 +262,15 @@ class InvoiceTransactionService
                 continue;
             }
 
-            $inventoryItem = InventoryItem::find($inventoryItemId);
+            $inventoryItem = InventoryItem::where('id', $inventoryItemId)
+                ->orWhere('product_item_id', $inventoryItemId)
+                ->first();
             if (! $inventoryItem || ! $inventoryItem->track_inventory) {
                 continue;
             }
 
             $balance = InventoryBalance::where('outlet_id', $outletId)
-                ->where('inventory_item_id', $inventoryItemId)
+                ->where('inventory_item_id', $inventoryItem->id)
                 ->first();
 
             $currentStock = floatval($balance?->current_stock ?? 0);

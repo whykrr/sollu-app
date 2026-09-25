@@ -32,7 +32,7 @@ class StorePosTransactionRequest extends FormRequest
             'notes' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['nullable', 'string', 'uuid'],
-            'items.*.inventory_item_id' => ['nullable', 'string', 'uuid'],
+            'items.*.product_item_id' => ['nullable', 'string', 'uuid'],
             'items.*.variant_group_option_id' => ['nullable', 'string', 'uuid'],
             'items.*.product_name' => ['required', 'string'],
             'items.*.price' => ['required', 'numeric', 'min:0'],

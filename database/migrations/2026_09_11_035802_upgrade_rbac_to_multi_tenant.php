@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -17,7 +18,7 @@ return new class extends Migration
         $pivotPermission = $columnNames['permission_pivot_key'] ?? 'permission_id';
 
         if (empty($tableNames)) {
-            throw new \Exception('Error: config/permission.php not found. Run [php artisan config:clear] and try again.');
+            throw new Exception('Error: config/permission.php not found. Run [php artisan config:clear] and try again.');
         }
 
         // Roles table modifications
@@ -40,7 +41,7 @@ return new class extends Migration
                 Schema::table($tableNames['roles'], function (Blueprint $table) {
                     $table->dropUnique(['name', 'guard_name']);
                 });
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // Ignore if unique does not exist
             }
 
@@ -59,15 +60,15 @@ return new class extends Migration
             });
 
             // Backfill data
-            if (\Illuminate\Support\Facades\DB::getDriverName() === 'pgsql') {
-                \Illuminate\Support\Facades\DB::statement("UPDATE {$tableNames['model_has_roles']} SET {$columnNames['team_foreign_key']} = users.business_id FROM users WHERE {$tableNames['model_has_roles']}.model_id::uuid = users.id AND {$tableNames['model_has_roles']}.model_type = 'App\\\\Models\\\\User'");
+            if (DB::getDriverName() === 'pgsql') {
+                DB::statement("UPDATE {$tableNames['model_has_roles']} SET {$columnNames['team_foreign_key']} = users.business_id FROM users WHERE {$tableNames['model_has_roles']}.model_id::uuid = users.id AND {$tableNames['model_has_roles']}.model_type = 'App\\\\Models\\\\User'");
 
-                \Illuminate\Support\Facades\DB::statement("UPDATE {$tableNames['model_has_permissions']} SET {$columnNames['team_foreign_key']} = users.business_id FROM users WHERE {$tableNames['model_has_permissions']}.model_id::uuid = users.id AND {$tableNames['model_has_permissions']}.model_type = 'App\\\\Models\\\\User'");
+                DB::statement("UPDATE {$tableNames['model_has_permissions']} SET {$columnNames['team_foreign_key']} = users.business_id FROM users WHERE {$tableNames['model_has_permissions']}.model_id::uuid = users.id AND {$tableNames['model_has_permissions']}.model_type = 'App\\\\Models\\\\User'");
             }
 
             // Delete orphans to prevent null constraint violations on primary key
-            \Illuminate\Support\Facades\DB::table($tableNames['model_has_roles'])->whereNull($columnNames['team_foreign_key'])->delete();
-            \Illuminate\Support\Facades\DB::table($tableNames['model_has_permissions'])->whereNull($columnNames['team_foreign_key'])->delete();
+            DB::table($tableNames['model_has_roles'])->whereNull($columnNames['team_foreign_key'])->delete();
+            DB::table($tableNames['model_has_permissions'])->whereNull($columnNames['team_foreign_key'])->delete();
 
             // Model Has Permissions modifications
             Schema::table($tableNames['model_has_permissions'], function (Blueprint $table) use ($columnNames, $pivotPermission) {

@@ -2,8 +2,12 @@
 
 namespace App\Services\App\Master;
 
+use App\Helpers\VariantStringGenerator;
 use App\Models\Master\Product;
+use App\Models\Master\ProductItem;
+use App\Models\Outlet;
 use App\Services\Core\ImageOptimizerService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 class ProductService
@@ -65,7 +69,7 @@ class ProductService
                 }
                 $product->outlets()->sync($syncData);
             } else {
-                $businessOutlets = \App\Models\Outlet::where('business_id', $product->business_id)
+                $businessOutlets = Outlet::where('business_id', $product->business_id)
                     ->where('is_active', true)
                     ->pluck('id');
 
@@ -85,14 +89,20 @@ class ProductService
             $singleInvItem = null;
             if ($product->product_type === 'basic' && ! $product->has_variant && $product->track_inventory) {
                 // Single variant inventory item only when track_inventory is enabled
-                $singleInvItem = $this->inventoryService->createVariantInventory([
+                $singleInvItem = ProductItem::create([
                     'business_id' => $product->business_id,
                     'product_id' => $product->id,
+                    'uom_id' => $data['uom_id'] ?? null,
+                    'item_type' => 'variant_sku',
                     'name' => $product->name,
+                    'variant_combination' => VariantStringGenerator::generate([$product->name]),
                     'sku' => $data['code'] ?? null,
                     'barcode' => $data['barcode'] ?? null,
                     'track_inventory' => true,
-                    'min_stock' => $data['min_stock'] ?? 0,
+                    'is_show' => $product->is_show,
+                    'sellable' => $product->sellable,
+                ]);
+                $this->inventoryService->linkInventoryItem($singleInvItem, [
                     'uom_id' => $data['uom_id'] ?? null,
                 ], $activeOutletIds);
             }
@@ -100,7 +110,7 @@ class ProductService
             // Base Price
             $product->prices()->create([
                 'outlet_id' => null,
-                'inventory_item_id' => $singleInvItem ? $singleInvItem->id : null,
+                'product_item_id' => $singleInvItem ? $singleInvItem->id : null,
                 'amount' => $data['base_price'],
             ]);
 
@@ -109,7 +119,7 @@ class ProductService
                 foreach ($data['outlet_prices'] as $op) {
                     $product->prices()->create([
                         'outlet_id' => $op['outlet_id'],
-                        'inventory_item_id' => $singleInvItem ? $singleInvItem->id : null,
+                        'product_item_id' => $singleInvItem ? $singleInvItem->id : null,
                         'amount' => $op['amount'],
                     ]);
                 }
@@ -142,22 +152,47 @@ class ProductService
                             }
                         }
 
-                        $invItem = $this->inventoryService->createVariantInventory([
+                        $isTrackInventory = array_key_exists('track_inventory', $combo)
+                            ? (bool) $combo['track_inventory']
+                            : (bool) $product->track_inventory;
+
+                        $isSellable = array_key_exists('sellable', $combo)
+                            ? (bool) $combo['sellable']
+                            : (bool) $product->sellable;
+
+                        $isActive = array_key_exists('is_active', $combo)
+                            ? (bool) $combo['is_active']
+                            : true;
+
+                        $isShow = array_key_exists('is_show', $combo)
+                            ? (bool) $combo['is_show']
+                            : (bool) $product->is_show;
+
+                        $invItem = ProductItem::create([
                             'business_id' => $product->business_id,
                             'product_id' => $product->id,
+                            'uom_id' => $isTrackInventory ? ($data['uom_id'] ?? null) : null,
+                            'item_type' => 'variant_sku',
                             'name' => $product->name.' - '.implode(' - ', $combo['options']),
+                            'variant_combination' => VariantStringGenerator::generate(array_merge([$product->name], array_values($combo['options']))),
                             'sku' => $combo['sku'] ?? null,
                             'barcode' => $combo['barcode'] ?? null,
-                            'track_inventory' => $product->track_inventory,
-                            'min_stock' => $combo['min_stock'] ?? 0,
-                            'options' => $optIds,
-                            'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
-                        ], $activeOutletIds);
+                            'track_inventory' => $isTrackInventory,
+                            'is_show' => $isShow,
+                            'sellable' => $isSellable,
+                            'is_active' => $isActive,
+                        ]);
+
+                        if ($isTrackInventory && $isActive) {
+                            $this->inventoryService->linkInventoryItem($invItem, [
+                                'uom_id' => $data['uom_id'] ?? null,
+                            ], $activeOutletIds);
+                        }
 
                         if (isset($combo['price'])) {
                             $product->prices()->create([
                                 'outlet_id' => null,
-                                'inventory_item_id' => $invItem->id,
+                                'product_item_id' => $invItem->id,
                                 'amount' => $combo['price'],
                             ]);
                         }
@@ -166,7 +201,7 @@ class ProductService
                             foreach ($combo['outlet_prices'] as $op) {
                                 $product->prices()->create([
                                     'outlet_id' => $op['outlet_id'],
-                                    'inventory_item_id' => $invItem->id,
+                                    'product_item_id' => $invItem->id,
                                     'amount' => $op['amount'],
                                 ]);
                             }
@@ -185,7 +220,7 @@ class ProductService
                 foreach ($data['bundle_items'] as $idx => $bi) {
                     $product->bundleItems()->create([
                         'component_product_id' => $bi['component_product_id'],
-                        'component_inventory_item_id' => $bi['component_inventory_item_id'] ?? null,
+                        'component_product_item_id' => $bi['component_product_item_id'] ?? null,
                         'qty' => $bi['qty'],
                         'sort_order' => $idx,
                     ]);
@@ -229,17 +264,17 @@ class ProductService
             $product->update([
                 'product_category_id' => $data['product_category_id'] ?? $product->product_category_id,
                 'product_type' => $productType,
-                'has_variant' => $data['has_variant'] ?? $product->has_variant,
-                'has_modifier' => $data['has_modifier'] ?? $product->has_modifier,
-                'has_recipe' => $data['has_recipe'] ?? $product->has_recipe,
-                'track_inventory' => $data['track_inventory'] ?? $product->track_inventory,
+                'has_variant' => $data['has_variant'] ?? ($product->has_variant ?? false),
+                'has_modifier' => $data['has_modifier'] ?? ($product->has_modifier ?? false),
+                'has_recipe' => $data['has_recipe'] ?? ($product->has_recipe ?? false),
+                'track_inventory' => $data['track_inventory'] ?? ($product->track_inventory ?? false),
                 'code' => array_key_exists('code', $data) ? $data['code'] : $product->code,
                 'name' => $data['name'] ?? $product->name,
                 'description' => $data['description'] ?? $product->description,
                 'image_url' => $data['image_url'] ?? $product->image_url,
-                'is_show' => $data['is_show'] ?? $product->is_show,
-                'sellable' => $data['sellable'] ?? $product->sellable,
-                'purchasable' => $data['purchasable'] ?? $product->purchasable,
+                'is_show' => $data['is_show'] ?? ($product->is_show ?? true),
+                'sellable' => $data['sellable'] ?? ($product->sellable ?? true),
+                'purchasable' => $data['purchasable'] ?? ($product->purchasable ?? false),
             ]);
 
             // Outlet sync
@@ -267,7 +302,7 @@ class ProductService
             $singleInvItem = null;
             if ($product->product_type === 'basic' && ! $product->has_variant) {
                 // Fetch all variant inventory items
-                $invItems = \App\Models\Master\InventoryItem::where('product_id', $product->id)
+                $invItems = ProductItem::where('product_id', $product->id)
                     ->where('item_type', 'variant_sku')
                     ->get();
 
@@ -276,31 +311,43 @@ class ProductService
                         $singleInvItem = $invItems->first();
                         $singleInvItem->update([
                             'name' => $product->name,
+                            'variant_combination' => VariantStringGenerator::generate([$product->name]),
                             'sku' => $data['code'] ?? null,
                             'barcode' => $data['barcode'] ?? null,
                             'track_inventory' => true,
-                            'min_stock' => $data['min_stock'] ?? 0,
                             'uom_id' => $data['uom_id'] ?? null,
                             'is_active' => true,
                         ]);
 
-                        $this->inventoryService->syncInventoryBalances($singleInvItem, $activeOutletIds);
+                        $this->inventoryService->linkInventoryItem($singleInvItem, [
+                            'uom_id' => $data['uom_id'] ?? null,
+                        ], $activeOutletIds);
 
                         // Deactivate others
                         if ($invItems->count() > 1) {
                             $invItems->where('id', '!=', $singleInvItem->id)->each(function ($item) {
                                 $item->update(['is_active' => false]);
+                                if ($item->inventoryItem) {
+                                    $item->inventoryItem->update(['is_active' => false]);
+                                }
                             });
                         }
                     } else {
-                        $singleInvItem = $this->inventoryService->createVariantInventory([
+                        $singleInvItem = ProductItem::create([
                             'business_id' => $product->business_id,
                             'product_id' => $product->id,
+                            'uom_id' => $data['uom_id'] ?? null,
+                            'item_type' => 'variant_sku',
                             'name' => $product->name,
+                            'variant_combination' => VariantStringGenerator::generate([$product->name]),
                             'sku' => $data['code'] ?? null,
                             'barcode' => $data['barcode'] ?? null,
                             'track_inventory' => true,
-                            'min_stock' => $data['min_stock'] ?? 0,
+                            'is_show' => $product->is_show,
+                            'sellable' => $product->sellable,
+                        ]);
+
+                        $this->inventoryService->linkInventoryItem($singleInvItem, [
                             'uom_id' => $data['uom_id'] ?? null,
                         ], $activeOutletIds);
                     }
@@ -312,6 +359,11 @@ class ProductService
                                 'is_active' => false,
                                 'track_inventory' => false,
                             ]);
+                            if ($item->inventoryItem) {
+                                $item->inventoryItem->update([
+                                    'is_active' => false,
+                                ]);
+                            }
                         });
                     }
                 }
@@ -319,26 +371,26 @@ class ProductService
 
             // Price updates
             if (isset($data['base_price'])) {
-                $product->prices()->whereNull('outlet_id')->whereNull('inventory_item_id')->delete();
+                $product->prices()->whereNull('outlet_id')->whereNull('product_item_id')->delete();
                 if ($singleInvItem) {
-                    $product->prices()->whereNull('outlet_id')->where('inventory_item_id', $singleInvItem->id)->delete();
+                    $product->prices()->whereNull('outlet_id')->where('product_item_id', $singleInvItem->id)->delete();
                 }
                 $product->prices()->create([
                     'outlet_id' => null,
-                    'inventory_item_id' => $singleInvItem ? $singleInvItem->id : null,
+                    'product_item_id' => $singleInvItem ? $singleInvItem->id : null,
                     'amount' => $data['base_price'],
                 ]);
             }
 
             if (isset($data['outlet_prices'])) {
-                $product->prices()->whereNotNull('outlet_id')->whereNull('inventory_item_id')->delete();
+                $product->prices()->whereNotNull('outlet_id')->whereNull('product_item_id')->delete();
                 if ($singleInvItem) {
-                    $product->prices()->whereNotNull('outlet_id')->where('inventory_item_id', $singleInvItem->id)->delete();
+                    $product->prices()->whereNotNull('outlet_id')->where('product_item_id', $singleInvItem->id)->delete();
                 }
                 foreach ($data['outlet_prices'] as $op) {
                     $product->prices()->create([
                         'outlet_id' => $op['outlet_id'],
-                        'inventory_item_id' => $singleInvItem ? $singleInvItem->id : null,
+                        'product_item_id' => $singleInvItem ? $singleInvItem->id : null,
                         'amount' => $op['amount'],
                     ]);
                 }
@@ -381,44 +433,73 @@ class ProductService
 
                         $invItem = null;
                         if (! empty($combo['sku'])) {
-                            $invItem = \App\Models\Master\InventoryItem::where('product_id', $product->id)
+                            $invItem = ProductItem::where('product_id', $product->id)
                                 ->where('sku', $combo['sku'])
                                 ->first();
                         }
 
+                        $isTrackInventory = array_key_exists('track_inventory', $combo)
+                            ? (bool) $combo['track_inventory']
+                            : (bool) $product->track_inventory;
+
+                        $isSellable = array_key_exists('sellable', $combo)
+                            ? (bool) $combo['sellable']
+                            : (bool) $product->sellable;
+
+                        $isActive = array_key_exists('is_active', $combo)
+                            ? (bool) $combo['is_active']
+                            : true;
+
+                        $isShow = array_key_exists('is_show', $combo)
+                            ? (bool) $combo['is_show']
+                            : (bool) $product->is_show;
+
                         if (! $invItem) {
-                            $invItem = $this->inventoryService->createVariantInventory([
+                            $invItem = ProductItem::create([
                                 'business_id' => $product->business_id,
                                 'product_id' => $product->id,
+                                'uom_id' => $isTrackInventory ? ($data['uom_id'] ?? null) : null,
+                                'item_type' => 'variant_sku',
                                 'name' => $product->name.' - '.implode(' - ', $combo['options']),
+                                'variant_combination' => VariantStringGenerator::generate(array_merge([$product->name], array_values($combo['options']))),
                                 'sku' => $combo['sku'] ?? null,
                                 'barcode' => $combo['barcode'] ?? null,
-                                'track_inventory' => $product->track_inventory,
-                                'min_stock' => $combo['min_stock'] ?? 0,
-                                'options' => $optIds,
-                                'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
-                            ], $activeOutletIds);
+                                'track_inventory' => $isTrackInventory,
+                                'is_show' => $isShow,
+                                'sellable' => $isSellable,
+                                'is_active' => $isActive,
+                            ]);
                         } else {
                             $invItem->update([
                                 'name' => $product->name.' - '.implode(' - ', $combo['options']),
+                                'variant_combination' => VariantStringGenerator::generate(array_merge([$product->name], array_values($combo['options']))),
                                 'sku' => array_key_exists('sku', $combo) ? $combo['sku'] : $invItem->sku,
                                 'barcode' => array_key_exists('barcode', $combo) ? $combo['barcode'] : $invItem->barcode,
-                                'track_inventory' => $product->track_inventory,
-                                'min_stock' => $combo['min_stock'] ?? $invItem->min_stock,
-                                'uom_id' => $product->track_inventory ? ($data['uom_id'] ?? null) : null,
+                                'uom_id' => $isTrackInventory ? ($data['uom_id'] ?? null) : null,
+                                'track_inventory' => $isTrackInventory,
+                                'is_show' => $isShow,
+                                'sellable' => $isSellable,
+                                'is_active' => $isActive,
                             ]);
-                            $invItem->variantGroupOptions()->sync($optIds);
                         }
 
-                        if ($invItem->track_inventory) {
-                            $this->inventoryService->syncInventoryBalances($invItem, $activeOutletIds);
+                        if ($isTrackInventory && $isActive) {
+                            $this->inventoryService->linkInventoryItem($invItem, [
+                                'uom_id' => $data['uom_id'] ?? null,
+                            ], $activeOutletIds);
+                        } elseif ($invItem->inventoryItem) {
+                            $invItem->inventoryItem->update([
+                                'name' => $invItem->name,
+                                'uom_id' => $isTrackInventory ? ($data['uom_id'] ?? null) : null,
+                                'is_active' => false,
+                            ]);
                         }
 
                         if (isset($combo['price'])) {
                             $product->prices()->updateOrCreate(
                                 [
                                     'outlet_id' => null,
-                                    'inventory_item_id' => $invItem->id,
+                                    'product_item_id' => $invItem->id,
                                 ],
                                 [
                                     'amount' => $combo['price'],
@@ -426,12 +507,12 @@ class ProductService
                             );
                         }
 
-                        $product->prices()->where('inventory_item_id', $invItem->id)->whereNotNull('outlet_id')->delete();
+                        $product->prices()->where('product_item_id', $invItem->id)->whereNotNull('outlet_id')->delete();
                         if (! empty($combo['outlet_prices'])) {
                             foreach ($combo['outlet_prices'] as $op) {
                                 $product->prices()->create([
                                     'outlet_id' => $op['outlet_id'],
-                                    'inventory_item_id' => $invItem->id,
+                                    'product_item_id' => $invItem->id,
                                     'amount' => $op['amount'],
                                 ]);
                             }
@@ -464,7 +545,7 @@ class ProductService
                 foreach ($data['bundle_items'] as $idx => $bi) {
                     $product->bundleItems()->create([
                         'component_product_id' => $bi['component_product_id'],
-                        'component_inventory_item_id' => $bi['component_inventory_item_id'] ?? null,
+                        'component_product_item_id' => $bi['component_product_item_id'] ?? null,
                         'qty' => $bi['qty'],
                         'sort_order' => $idx,
                     ]);
@@ -497,7 +578,7 @@ class ProductService
             $imageUrl = $img['image_url'] ?? null;
 
             // Check if there is an uploaded file
-            if (isset($img['image_file']) && $img['image_file'] instanceof \Illuminate\Http\UploadedFile) {
+            if (isset($img['image_file']) && $img['image_file'] instanceof UploadedFile) {
                 $imageUrl = $this->imageOptimizerService->optimizeAndStore(
                     $img['image_file'],
                     'products',

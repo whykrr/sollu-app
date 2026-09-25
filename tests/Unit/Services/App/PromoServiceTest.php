@@ -6,7 +6,7 @@ use App\Enums\PromoStatus;
 use App\Enums\PromoTarget;
 use App\Models\Business;
 use App\Models\BusinessType;
-use App\Models\Master\InventoryItem;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\Promo;
 use App\Models\User;
@@ -76,13 +76,11 @@ class PromoServiceTest extends TestCase
             'name' => 'Outlet 1',
         ]);
 
-        $item = new InventoryItem([
+        $item = ProductItem::create([
             'business_id' => $this->business->id,
             'name' => 'Product 1',
             'item_type' => 'raw_material',
         ]);
-        $item->minimum_stock = 10;
-        $item->save();
 
         $data = [
             'business_id' => $this->business->id,

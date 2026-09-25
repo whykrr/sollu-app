@@ -3,11 +3,13 @@
 namespace App\Models\Inventory;
 
 use App\Enums\GoodsReceiptStatus;
+use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -22,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read PurchaseOrder|null $purchaseOrder
  * @property-read User|null $receiver
  * @property-read Collection|GoodsReceiptItem[] $items
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperGoodsReceipt
  */
@@ -70,7 +73,7 @@ class GoodsReceipt extends Model
     /**
      * Batas akhir pengajuan retur untuk surat jalan ini.
      */
-    public function getReturnDeadlineAttribute(): ?\Carbon\Carbon
+    public function getReturnDeadlineAttribute(): ?Carbon
     {
         if (! $this->received_at) {
             return null;
@@ -155,7 +158,7 @@ class GoodsReceipt extends Model
             $filters['purchase_order_id'] ?? false,
             fn (Builder $q, $value) => $q->where('purchase_order_id', $value)
         )->when(
-            $filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['start_date'] ?? false,

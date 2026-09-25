@@ -2,6 +2,7 @@
 
 namespace App\Models\Master;
 
+use App\Models\Outlet;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,7 +16,7 @@ class ProductPrice extends Model
     protected $fillable = [
         'product_id',
         'outlet_id',
-        'inventory_item_id',
+        'product_item_id',
         'amount',
     ];
 
@@ -30,11 +31,11 @@ class ProductPrice extends Model
 
     public function outlet()
     {
-        return $this->belongsTo(\App\Models\Outlet::class);
+        return $this->belongsTo(Outlet::class);
     }
 
-    public function inventoryItem()
+    public function productItem()
     {
-        return $this->belongsTo(InventoryItem::class);
+        return $this->belongsTo(ProductItem::class);
     }
 }

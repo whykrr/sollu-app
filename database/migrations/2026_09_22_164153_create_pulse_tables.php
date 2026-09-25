@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Pulse\Support\PulseMigration;
 
@@ -16,7 +17,7 @@ return new class extends PulseMigration
         }
 
         $connection = $this->getConnection();
-        $db = \Illuminate\Support\Facades\DB::connection($connection);
+        $db = DB::connection($connection);
 
         if ($db->getDriverName() === 'pgsql') {
             $schemaName = config("database.connections.{$connection}.search_path", 'sollu_pulse');

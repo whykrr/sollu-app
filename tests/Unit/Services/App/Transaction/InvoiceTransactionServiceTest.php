@@ -12,6 +12,7 @@ use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Master\PaymentMethod;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\OutletSetting;
 use App\Models\User;
@@ -85,13 +86,18 @@ class InvoiceTransactionServiceTest extends TestCase
             'type' => 'cash',
         ]);
 
-        $this->inventoryItem = InventoryItem::create([
+        $productItem = ProductItem::create([
             'business_id' => $this->business->id,
             'name' => 'Barang Uji 1',
             'sku' => 'SKU-001',
             'item_type' => 'variant_sku',
-            'current_stock' => 20,
             'track_inventory' => true,
+            'is_active' => true,
+        ]);
+
+        $this->inventoryItem = InventoryItem::create([
+            'business_id' => $this->business->id,
+            'product_item_id' => $productItem->id,
             'is_active' => true,
         ]);
 

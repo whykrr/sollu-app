@@ -1,182 +1,187 @@
 # Sollu App Testing & Quality Assurance Standards
 
-Standar pengujian otomatis (_Automated Testing_), pengujian integrasi web (_E2E Testing_), dan kriteria penyelesaian (_Definition of Done_) pada **Sollu App**.
+Standar pengujian otomatis (*Automated Testing*), arsitektur piramida 5-layer, protokol konfirmasi skenario (*Open Question Protocol*), dan kriteria penyelesaian (*Definition of Done*) pada **Sollu App**.
 
 ---
 
-## 1. Testing Pyramid & Strategy
+## 1. Testing Pyramid & 5-Layer Strategy
 
-Sollu App membagi strategi pengujian menjadi tiga tingkatan:
+Sollu App membagi strategi pengujian menjadi lima tingkatan terisolasi:
 
 ```
                     ▲
                    / \
-                  /   \
-                 / E2E \       Web Integration & E2E Testing (Laravel Dusk)
-                /───────\
-               / Feature \     HTTP Boundary, Multi-Tenant Isolation & Auth Tests
-              /───────────\
-             / Service Unit\   100% Mocking, In-Memory SQLite, Branch Coverage
-            /───────────────\
+                  / E2E \       Layer 4: Browser/E2E Testing (Laravel Dusk - Real User Journey)
+                 /───────\
+                / Regress \     Layer 5: Regression Testing (Bug Reproduction & Prevention)
+               /───────────\
+              / Integration \   Layer 3: Cross-Domain / Multi-Service Orchestration
+             /───────────────\
+            /  Feature Test   \ Layer 2: 1 Endpoint/Feature + DB + Tenant Isolation + RBAC
+           /───────────────────\
+          /      Unit Test      \ Layer 1: Pure Logic, Calculations, Enums (No DB)
+         /───────────────────────\
 ```
+
+| Layer | Fokus Pengujian | Dependensi DB | Contoh Kasus | Lokasi Direktori |
+| :--- | :--- | :---: | :--- | :--- |
+| **1. Unit Test** | Logika kecil, formula & murni terisolasi | ❌ No DB | Kalkulasi diskon, split tax, rumus HPP FIFO/Moving Average, Enums integrity | `tests/Unit/` |
+| **2. Feature Test** | 1 HTTP Endpoint / Feature | ✅ SQLite DB | FormRequest validation, Controller CRUD, Tenant Isolation (`business_id`), Spatie `v-can` & Feature Gating `v-feature` | `tests/Feature/` |
+| **3. Integration Test** | Service Layer, Jobs & Multi-Service | ✅ SQLite DB | Service mutasi stok, alur Checkout POS $\rightarrow$ Potong Stok FIFO $\rightarrow$ Cash Drawer Log $\rightarrow$ Dispatch Notification | `tests/Integration/` |
+| **4. Browser/E2E Test** | Alur interaksi user nyata | ✅ Browser Engine | Login $\rightarrow$ POS $\rightarrow$ Buka drawer `<PopUpPage>` $\rightarrow$ Submit footer $\rightarrow$ Toast feedback | `tests/Browser/` |
+| **5. Regression Test** | Pencegahan *bug recurrence* | ✅ Sesuai kasus | Bug reproduksi dari issue production (misal: desimal rounding return PO, concurrent locking) | `tests/Regression/` |
 
 ---
 
-## 2. Service Layer Unit Testing (100% Mocking & In-Memory SQLite)
+## 2. Detail Implementasi Setiap Layer
 
-Setiap pembuatan atau pembaruan **Service Class** **WAJIB** disertai Unit Test di `tests/Unit/Services/...`.
-
-### 2.1. Aturan Pengujian Unit Service
-
-1. **Pure In-Memory SQLite:** Dilarang menyentuh database fisik PostgreSQL. Selalu gunakan koneksi `sqlite:memory` dan trait `RefreshDatabase`.
-2. **100% Mocking:** Seluruh dependensi eksternal (Service lain, Notification, Event Dispatcher, Payment Gateway, External Client) wajib di-mock menggunakan **Mockery**.
-3. **100% Code Coverage:** Uji seluruh percabangan skenario:
-    - _Happy Path_ (Skenario sukses normal)
-    - _Validation / Business Exception Path_ (Skenario gagal, saldo tidak cukup, status tidak valid)
-    - _Edge Cases_ (Data kosong, nilai batas, desimal ekstrem)
-
-### 2.2. Struktur dan Pola Penulisan Test
-
-Struktur direktori test mencerminkan namespace class asli:
-
-- Target: `app/Services/App/Inventory/StockAdjustmentService.php`
-- Test: `tests/Unit/Services/App/Inventory/StockAdjustmentServiceTest.php`
+### 2.1. Layer 1: Unit Test (Pure Isolated Logic)
+- Khusus untuk logika komputasi murni tanpa state (*pure stateless logic*), DTO, helper, dan PHP Backed Enum.
+- Dilarang menyentuh database fisik maupun in-memory SQLite (tanpa `RefreshDatabase`).
+- Dilarang membuat mock Eloquent query builder yang rumit (*anti-brittle*).
+- Gunakan `PHPUnit\Framework\TestCase` standar untuk kecepatan eksekusi maksimum ($< 1\text{ms}$).
 
 ```php
-namespace Tests\Unit\Services\App\Inventory;
+namespace Tests\Unit\Calculations;
 
-use App\Contracts\Audit\ActivityLoggerInterface;
-use App\Enums\AdjustmentReason;
-use App\Enums\AdjustmentStatus;
-use App\Models\Business;
-use App\Models\Inventory\InventoryItem;
-use App\Models\Inventory\StockAdjustment;
-use App\Models\Outlet;
-use App\Models\User;
-use App\Services\App\Inventory\StockAdjustmentService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
+use PHPUnit\Framework\TestCase;
+use App\Support\TaxCalculator;
+
+class TaxCalculatorTest extends TestCase
+{
+    public function test_calculates_tax_and_subtotal_correctly(): void
+    {
+        $calculator = new TaxCalculator();
+        $result = $calculator->calculate(subtotal: 100_000, discountPercentage: 10, taxRate: 11);
+
+        $this->assertSame(90_000, $result->subtotalAfterDiscount);
+        $this->assertSame(9_900, $result->taxAmount);
+        $this->assertSame(99_900, $result->grandTotal);
+    }
+}
+```
+
+### 2.2. Layer 2: Feature Test (HTTP Boundary, Auth & Tenant Isolation)
+- Ditempatkan di `tests/Feature/`. Menguji rute HTTP, otorisasi RBAC, SaaS Feature Gating, CSRF, dan integritas multi-tenant.
+- Wajib memverifikasi bahwa tenant A tidak dapat mengakses/memanipulasi data tenant B (`HTTP 403 / 404`).
+
+```php
+namespace Tests\Feature\App\Product;
+
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\Product;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class StockAdjustmentServiceTest extends TestCase
+class ProductStoreTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected StockAdjustmentService $service;
-    protected $activityLoggerMock;
-
-    protected function setUp(): void
+    public function test_user_can_create_product_scoped_to_current_business(): void
     {
-        parent::setUp();
+        $user = User::factory()->create();
+        $this->actingAs($user);
 
-        $this->activityLoggerMock = Mockery::mock(ActivityLoggerInterface::class);
-        $this->app->instance(ActivityLoggerInterface::class, $this->activityLoggerMock);
+        $response = $this->post(route('app.products.store'), [
+            'name' => 'Kopi Arabika',
+            'base_price' => 25000,
+        ]);
 
-        $this->service = new StockAdjustmentService($this->activityLoggerMock);
-    }
-
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
-    }
-
-    public function test_can_create_stock_adjustment_successfully(): void
-    {
-        $business = Business::factory()->create();
-        $outlet = Outlet::factory()->create(['business_id' => $business->id]);
-        $user = User::factory()->create(['business_id' => $business->id]);
-        $item = InventoryItem::factory()->create(['business_id' => $business->id]);
-
-        $this->activityLoggerMock
-            ->shouldReceive('log')
-            ->once();
-
-        $data = [
-            'outlet_id' => $outlet->id,
-            'reason'    => AdjustmentReason::DAMAGED->value,
-            'items'     => [
-                ['inventory_item_id' => $item->id, 'qty' => 5],
-            ],
-        ];
-
-        $adjustment = $this->service->create($data, $user);
-
-        $this->assertInstanceOf(StockAdjustment::class, $adjustment);
-        $this->assertEquals(AdjustmentStatus::Draft, $adjustment->status);
-        $this->assertDatabaseHas('stock_adjustments', [
-            'id'          => $adjustment->id,
-            'business_id' => $business->id,
+        $response->assertRedirect();
+        $this->assertDatabaseHas('products', [
+            'name' => 'Kopi Arabika',
+            'business_id' => $user->business_id,
         ]);
     }
 }
 ```
 
-### 2.3. Katalog Unit Test Service Layer Inti
+### 2.3. Layer 3: Integration & Service Test (Real State Business Logic & Orchestration)
+- Ditempatkan di `tests/Integration/` atau `tests/Feature/Services/`.
+- Menguji Domain Service Layer, Jobs, dan orkestrasi mutasi multi-tabel **menggunakan database in-memory nyata (`RefreshDatabase`)**.
+- **Dilarang me-mocking query Eloquent/Model.**
+- Gunakan **Laravel Fakes resmi** (`Event::fake()`, `Queue::fake()`, `Notification::fake()`, `Storage::fake()`) untuk side-effects eksternal.
 
-| Target Service | Lokasi Unit Test | Cakupan Uji Kunci |
-| :--- | :--- | :--- |
-| `ImageOptimizerService` | `tests/Unit/Services/Core/ImageOptimizerServiceTest.php` | Konversi WebP otomatis, resize bounded dimensions, pelestarian aspect ratio, memory cleanup. |
-| `UploadPaymentProofService` | `tests/Unit/Services/App/Invoice/UploadPaymentProofServiceTest.php` | Validasi ekstensi/ukuran file bukti transfer, pemanggilan optimizer, update status invoice. |
-| `InventoryCostingService` | `tests/Unit/Services/App/Inventory/InventoryCostingServiceTest.php` | Mutasi stok masuk/keluar, Moving Average, konsumsi layer FIFO, penanganan desimal. |
-| `GoodsReceiptService` | `tests/Unit/Services/App/Inventory/GoodsReceiptServiceTest.php` | Penerimaan barang parsial/multi-GR, update status PO, validasi stok beku. |
-| `PurchaseReturnService` | `tests/Unit/Services/App/Inventory/PurchaseReturnServiceTest.php` | Retur barang terikat GR item, pemotongan stok, validasi hari retur supplier. |
-| `StockAdjustmentService` | `tests/Unit/Services/App/Inventory/StockAdjustmentServiceTest.php` | Penyesuaian stok draf/approval, pencatatan ledger mutasi, verifikasi SoD. |
-| `BreadcrumbManager` | `tests/Unit/Services/BreadcrumbManagerTest.php` | Resolusi rute, hierarki segmen navigasi, penanganan parameter dinamis. |
-| `RoleTemplateEnum` | `tests/Unit/Enums/RoleTemplateIntegrityTest.php` | Integritas zero-orphan permission dan sinkronisasi role template POS. |
+```php
+namespace Tests\Integration\Pos;
 
----
+use Tests\TestCase;
+use App\Services\App\Pos\PosCheckoutService;
+use App\Notifications\TransactionCompletedNotification;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-## 3. Feature & HTTP Boundary Testing
+class PosCheckoutIntegrationTest extends TestCase
+{
+    use RefreshDatabase;
 
-Ditempatkan di `tests/Feature/`. Menguji rute HTTP, otorisasi RBAC, SaaS Feature Gating, CSRF, upload berkas, dan integritas data on-demand.
+    public function test_checkout_deducts_inventory_and_logs_cash_drawer(): void
+    {
+        Notification::fake();
 
-### 3.1. Area Pengujian Feature Wajib
+        $service = app(PosCheckoutService::class);
+        $order = $service->processOrder($orderPayload, $cashierUser);
 
-- **Tenant Isolation:** Memastikan user dari Bisnis A tidak dapat mengakses atau memanipulasi data milik Bisnis B (`HTTP 403 / 404`).
-- **RBAC Permission Gate:** Memastikan user tanpa permission yang sesuai ditolak (`HTTP 403`).
-- **Feature Plan Gating:** Memastikan tenant dengan paket basic ditolak saat mengakses fitur pro (`is_feature_locked: true`).
-- **File Upload & Storage Isolation:** Memastikan unggah avatar akun (`AccountPhotoTest`) dan logo bisnis (`BusinessLogoTest`) menggunakan `Storage::fake('public')`, menghasilkan format WebP teroptimasi, dan membersihkan berkas lama saat diubah/dihapus.
-- **On-Demand Data Loading:** Memastikan response payload `index()` ringan dan tidak mengandung relasi berat (`OnDemandDataLoadingTest`).
-- **Shift & POS Feature Tests:** Memastikan lifecycle shift kasir, log kas masuk/keluar, dan kalkulasi saldo kas tervalidasi (`ShiftFeatureTest`).
-- **Purchasing & Exception Handling:** Memastikan alur void purchase, pencegahan retur ganda, dan penanganan error domain teruji (`StockPurchasesControllerTest`, `ExceptionHandlingTest`).
+        $this->assertDatabaseHas('orders', ['id' => $order->id, 'status' => 'completed']);
+        $this->assertDatabaseHas('inventory_movements', ['reference_id' => $order->id, 'qty' => -2]);
+        $this->assertDatabaseHas('shift_logs', ['amount' => $order->total_amount]);
 
----
+        Notification::assertSentTo($cashierUser, TransactionCompletedNotification::class);
+    }
+}
+```
 
-## 4. Web Integration & E2E Testing (Laravel Dusk)
+### 2.4. Layer 4: Browser / E2E Test (Laravel Dusk)
+- Ditempatkan di `tests/Browser/`.
+- Memvalidasi alur antarmuka frontend riil (Vue 3 / Inertia SPA DOM, drawer `<PopUpPage>`, Form fields, toast notifikasi, zero-shadow layout).
+- Dilarang ada uncaught JavaScript error di browser console.
 
-Digunakan untuk memvalidasi alur UI frontend (Vue 3 / Inertia) secara otomatis dan interaktif.
-
-### 4.1. Standard Workflow E2E Testing
-
-1. **Navigasi & Autentikasi:**
-    - Akses rute `/login`.
-    - Masukkan kredensial pengujian (`sollu.mart@email.com` / `password`).
-2. **Pengujian Alur Side Drawer & Form:**
-    - Verifikasi tabel utama pada `<MainPage>`.
-    - Buka drawer `<PopUpPage>` dengan klik tombol tambah/edit.
-    - Isi field form `@/Components/Form/`.
-    - Submit via tombol aksi sticky footer `#popUpFooter`.
-3. **Verifikasi DOM & Antarmuka:**
-    - Pastikan tidak ada layout patah/rusak dan toast notifikasi sukses muncul.
-4. **Inspeksi Error Logs Konsol:**
-    - **WAJIB** periksa logs browser/network. Tidak boleh ada JavaScript uncaught exception atau error 500/422 yang unhandled.
+### 2.5. Layer 5: Regression Test (Bug Prevention)
+- Ditempatkan di `tests/Regression/`.
+- Dibuat saat mereproduksi laporan bug (*bug report* / issue production) sebelum perbaikan kode dilakukan.
+- Format penamaan menyertakan nomor tiket / issue (misal `Issue402DecimalGoodsReceiptVoidTest.php`).
 
 ---
 
-## 5. Menjalankan Pengujian
+## 3. Prinsip Penegakan Uji Target 0% Error Production
+
+1. **Anti-Brittle Mocking:** Model dan Query Builder selalu diuji terhadap database SQLite In-Memory nyata, bukan mock tiruan.
+2. **Multi-Tenant Isolation Verification:** Setiap test mutasi wajib memverifikasi bahwa data scoped ke tenant terkait dan terisolasi dari tenant lain.
+3. **Database Transaction & Atomicity Guard:** Alur multi-tabel (`DB::transaction`) wajib diuji jalur gagalnya (*exception path*) untuk membuktikan rollback 100%.
+4. **Boundary & Precision Testing:** Menguji nilai ekstrem ($0$, minus, pembagian nol, desimal presisi tinggi pada nominal uang dan stok).
+5. **Accurate Side-Effect Assertions:** Memverifikasi payload dan penerima pada notifikasi, event, dan queued job.
+
+---
+
+## 4. Protokol Wajib: Open Question Skenario Pengujian (Test Case Alignment)
+
+Setiap agen atau pengembang yang melakukan perancangan implementasi fitur baru (*build*) maupun pengembangan (*enhancement*) **WAJIB** menyajikan dan mengonfirmasikan matriks skenario test yang direncanakan kepada user/stakeholder.
+
+### Format Matriks Konfirmasi Test Case:
+1. **Happy Path:** Alur normal dengan variasi input standar yang valid.
+2. **Edge Cases:** Nilai batas (nilai 0, stok habis, desimal presisi tinggi, multi-satuan konversi UOM).
+3. **Failure & Business Exception Path:** Saldo tidak mencukupi, status transaksi invalid/terkunci, otorisasi ditolak.
+4. **Tenant Isolation & Security:** Verifikasi pencegahan kebocoran data antar `business_id` / `outlet_id`.
+5. **Cross-Domain Side Effects:** Pengecekan ledger mutasi inventory, log audit trail, dan broadcast notifikasi.
+
+---
+
+## 5. Perintah Eksekusi Pengujian
 
 ```bash
 # Menjalankan seluruh test suite dengan output ringkas
 php artisan test --compact
 
-# Menjalankan test unit spesifik
-php artisan test tests/Unit/Services/App/Inventory/StockAdjustmentServiceTest.php
+# Menjalankan test suite per layer spesifik
+php artisan test --testsuite=Unit
+php artisan test --testsuite=Feature
+php artisan test --testsuite=Integration
+php artisan test --testsuite=Regression
 
-# Menjalankan PHPUnit langsung dengan filter
-vendor/bin/phpunit --filter=test_can_create_stock_adjustment_successfully
+# Menjalankan test spesifik berdasarkan filter
+php artisan test --compact --filter=TaxCalculatorTest
 
-# Menjalankan Laravel Dusk
+# Menjalankan Laravel Dusk E2E
 php artisan dusk
 ```
 
@@ -186,12 +191,11 @@ php artisan dusk
 
 Sebelum menyelesaikan tugas atau membuat commit:
 
-- [ ] **Unit Tests Passed:** Seluruh service layer unit test dibuat/diperbarui dan lulus (`100% Mocking`).
-- [ ] **Feature Tests Passed:** Rute HTTP, tenant isolation, dan proteksi permission teruji.
+- [ ] **Test Alignment Confirmed:** Skenario uji (Happy path, edge cases, exceptions, tenant isolation) telah diselaraskan.
+- [ ] **All Test Layers Passed:** Seluruh automated test (Unit, Feature, Integration, Regression) lulus (`100% passing`).
 - [ ] **No Hardcoded Strings:** Pesan controller merujuk ke `App\Constants\*` dan status merujuk ke Enum PHP.
-- [ ] **On-Demand Loading Followed:** Props `index()` ringan, detail dimuat async saat drawer dibuka.
-- [ ] **UI Verified:** Komponen Vue diverifikasi fungsional dan visual (bebas error Vite & console log bersih).
-- [ ] **No Dead Code:** Komentar kode lama, import tidak terpakai, dan method yatim telah dibersihkan.
-- [ ] **PHP Formatted:** `composer run format` (`vendor/bin/pint`) dijalankan dengan sukses (method chaining multiline terjaga).
-- [ ] **Frontend Formatted & Linted:** `npm run format`, `npm run lint`, dan `npm run build` sukses tanpa error.
-- [ ] **API Docs Updated:** Perubahan endpoint diperbarui di `docs/openapi.yaml` dan `docs/postman_collection.json`.
+- [ ] **Tenant Scoped:** Seluruh query dan mutasi data terisolasi oleh `business_id` / `outlet_id`.
+- [ ] **UI & Console Clean:** Komponen Vue diverifikasi fungsional dan visual (bebas error Vite & console log bersih).
+- [ ] **PHP Formatted:** `vendor/bin/pint --dirty` dijalankan dengan sukses.
+- [ ] **Frontend Formatted & Linted:** `npm run lint` dan `npm run format` sukses tanpa error.
+- [ ] **Database Rollback Symmetric:** Verifikasi `migrate -> rollback -> migrate` sukses jika ada migration baru (Rule 08).

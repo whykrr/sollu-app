@@ -14,8 +14,9 @@ use Tests\TestCase;
 
 class ExceptionHandlingTest extends TestCase
 {
-    public function test_web_page_not_found_redirects_back_with_flash_message(): void
+    public function test_production_web_page_not_found_redirects_back_with_flash_message(): void
     {
+        $this->app['env'] = 'production';
         $appHost = config('domain.app', 'app.sollu.test');
 
         $response = $this->withServerVariables(['HTTP_HOST' => $appHost])
@@ -26,8 +27,9 @@ class ExceptionHandlingTest extends TestCase
         $response->assertSessionHas(FlashDataVariable::FAILED->value, ErrorMessage::PAGE_NOT_FOUND);
     }
 
-    public function test_api_page_not_found_returns_json_error(): void
+    public function test_production_api_page_not_found_returns_json_error(): void
     {
+        $this->app['env'] = 'production';
         $apiHost = config('domain.api', 'api.sollu.test');
 
         $response = $this->withServerVariables(['HTTP_HOST' => $apiHost])
@@ -39,8 +41,9 @@ class ExceptionHandlingTest extends TestCase
         ]);
     }
 
-    public function test_web_access_denied_redirects_back_with_indonesian_message(): void
+    public function test_production_web_access_denied_redirects_back_with_indonesian_message(): void
     {
+        $this->app['env'] = 'production';
         $appHost = config('domain.app', 'app.sollu.test');
 
         Route::middleware('web')->get('/test-forbidden-web', function () {
@@ -55,8 +58,9 @@ class ExceptionHandlingTest extends TestCase
         $response->assertSessionHas(FlashDataVariable::FAILED->value, AuthorizationMessage::CANT_ACCESS_PAGE);
     }
 
-    public function test_api_access_denied_returns_json_with_indonesian_message(): void
+    public function test_production_api_access_denied_returns_json_with_indonesian_message(): void
     {
+        $this->app['env'] = 'production';
         $apiHost = config('domain.api', 'api.sollu.test');
 
         Route::middleware('api')->get('/test-forbidden-api', function () {
@@ -72,8 +76,9 @@ class ExceptionHandlingTest extends TestCase
         ]);
     }
 
-    public function test_web_database_error_redirects_back_with_flash_message(): void
+    public function test_production_web_database_error_redirects_back_with_flash_message(): void
     {
+        $this->app['env'] = 'production';
         $appHost = config('domain.app', 'app.sollu.test');
 
         Route::middleware('web')->get('/test-db-error-web', function () {
@@ -88,8 +93,9 @@ class ExceptionHandlingTest extends TestCase
         $response->assertSessionHas(FlashDataVariable::FAILED->value, ErrorMessage::DATABASE_ERROR);
     }
 
-    public function test_api_database_error_returns_json_server_error(): void
+    public function test_production_api_database_error_returns_json_server_error(): void
     {
+        $this->app['env'] = 'production';
         $apiHost = config('domain.api', 'api.sollu.test');
 
         Route::middleware('api')->get('/test-db-error-api', function () {
@@ -105,8 +111,9 @@ class ExceptionHandlingTest extends TestCase
         ]);
     }
 
-    public function test_web_model_not_found_redirects_back_with_flash_message(): void
+    public function test_production_web_model_not_found_redirects_back_with_flash_message(): void
     {
+        $this->app['env'] = 'production';
         $appHost = config('domain.app', 'app.sollu.test');
 
         Route::middleware('web')->get('/test-model-not-found-web', function () {
@@ -121,8 +128,9 @@ class ExceptionHandlingTest extends TestCase
         $response->assertSessionHas(FlashDataVariable::FAILED->value, ErrorMessage::DATA_NOT_FOUND);
     }
 
-    public function test_api_model_not_found_returns_json_not_found(): void
+    public function test_production_api_model_not_found_returns_json_not_found(): void
     {
+        $this->app['env'] = 'production';
         $apiHost = config('domain.api', 'api.sollu.test');
 
         Route::middleware('api')->get('/test-model-not-found-api', function () {
@@ -157,8 +165,9 @@ class ExceptionHandlingTest extends TestCase
         ]);
     }
 
-    public function test_api_throttle_returns_json_too_many_requests(): void
+    public function test_production_api_throttle_returns_json_too_many_requests(): void
     {
+        $this->app['env'] = 'production';
         $apiHost = config('domain.api', 'api.sollu.test');
 
         Route::middleware('api')->get('/test-throttle-api', function () {
@@ -174,8 +183,9 @@ class ExceptionHandlingTest extends TestCase
         ]);
     }
 
-    public function test_web_unprocessable_entity_redirects_back_with_flash_message(): void
+    public function test_production_web_unprocessable_entity_redirects_back_with_flash_message(): void
     {
+        $this->app['env'] = 'production';
         $appHost = config('domain.app', 'app.sollu.test');
 
         Route::middleware('web')->get('/test-unprocessable-web', function () {
@@ -190,8 +200,9 @@ class ExceptionHandlingTest extends TestCase
         $response->assertSessionHas(FlashDataVariable::FAILED->value, 'Penerimaan barang ini memiliki riwayat retur aktif.');
     }
 
-    public function test_api_unprocessable_entity_returns_json_error(): void
+    public function test_production_api_unprocessable_entity_returns_json_error(): void
     {
+        $this->app['env'] = 'production';
         $apiHost = config('domain.api', 'api.sollu.test');
 
         Route::middleware('api')->get('/test-unprocessable-api', function () {
@@ -205,5 +216,52 @@ class ExceptionHandlingTest extends TestCase
         $response->assertJson([
             'message' => 'Penerimaan barang ini memiliki riwayat retur aktif.',
         ]);
+    }
+
+    public function test_local_web_database_error_is_not_masked_into_redirect(): void
+    {
+        $this->app['env'] = 'local';
+        $appHost = config('domain.app', 'app.sollu.test');
+
+        Route::middleware('web')->get('/test-db-error-local-web', function () {
+            throw new QueryException('test_connection', 'SELECT * FROM non_existing_table', [], new \Exception('Table not found'));
+        });
+
+        $response = $this->withServerVariables(['HTTP_HOST' => $appHost])
+            ->from("http://{$appHost}/login")
+            ->get("http://{$appHost}/test-db-error-local-web");
+
+        $response->assertStatus(500);
+        $this->assertNull(session(FlashDataVariable::FAILED->value));
+    }
+
+    public function test_local_web_page_not_found_returns_404_not_redirect(): void
+    {
+        $this->app['env'] = 'local';
+        $appHost = config('domain.app', 'app.sollu.test');
+
+        $response = $this->withServerVariables(['HTTP_HOST' => $appHost])
+            ->from("http://{$appHost}/login")
+            ->get("http://{$appHost}/this-page-definitely-does-not-exist-12345");
+
+        $response->assertStatus(404);
+        $this->assertNull(session(FlashDataVariable::FAILED->value));
+    }
+
+    public function test_local_web_access_denied_returns_403_not_redirect(): void
+    {
+        $this->app['env'] = 'local';
+        $appHost = config('domain.app', 'app.sollu.test');
+
+        Route::middleware('web')->get('/test-forbidden-local-web', function () {
+            throw new AccessDeniedHttpException('This action is unauthorized.');
+        });
+
+        $response = $this->withServerVariables(['HTTP_HOST' => $appHost])
+            ->from("http://{$appHost}/login")
+            ->get("http://{$appHost}/test-forbidden-local-web");
+
+        $response->assertStatus(403);
+        $this->assertNull(session(FlashDataVariable::FAILED->value));
     }
 }

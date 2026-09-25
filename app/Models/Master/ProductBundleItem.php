@@ -19,7 +19,7 @@ class ProductBundleItem extends Model
     protected $fillable = [
         'bundle_product_id',
         'component_product_id',
-        'component_inventory_item_id',
+        'component_product_item_id',
         'qty',
         'sort_order',
     ];
@@ -38,9 +38,9 @@ class ProductBundleItem extends Model
         return $this->belongsTo(Product::class, 'component_product_id');
     }
 
-    public function componentInventoryItem()
+    public function componentProductItem()
     {
-        return $this->belongsTo(InventoryItem::class, 'component_inventory_item_id');
+        return $this->belongsTo(ProductItem::class, 'component_product_item_id');
     }
 
     protected function qtyFormatted(): Attribute

@@ -10,10 +10,12 @@ use App\Enums\PermissionEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
-use App\Models\Master\InventoryItem;
 use App\Models\Master\Product;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
+use App\Models\Uom;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,7 +36,7 @@ class ProductInventoryMultiOutletTest extends TestCase
 
     protected Outlet $outletC;
 
-    protected \App\Models\Uom $uom;
+    protected Uom $uom;
 
     protected string $appDomain;
 
@@ -50,7 +52,7 @@ class ProductInventoryMultiOutletTest extends TestCase
         $this->seed(DatabaseSeeder::class);
         $this->appDomain = config('domain.app', 'app.sollu.test');
 
-        $this->uom = \App\Models\Uom::first();
+        $this->uom = Uom::first();
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
@@ -155,9 +157,8 @@ class ProductInventoryMultiOutletTest extends TestCase
             ->where('code', 'KOP-AREN')
             ->firstOrFail();
 
-        $this->assertTrue($product->track_inventory);
-
-        $inventoryItem = InventoryItem::where('product_id', $product->id)->firstOrFail();
+        $productItem = ProductItem::where('product_id', $product->id)->firstOrFail();
+        $inventoryItem = InventoryItem::where('product_item_id', $productItem->id)->firstOrFail();
 
         // Saldo hanya boleh terbuat untuk Outlet A
         $this->assertDatabaseHas('inventory_balances', [
@@ -199,14 +200,19 @@ class ProductInventoryMultiOutletTest extends TestCase
             $this->outletB->id => ['is_enabled' => false, 'is_available' => false],
         ]);
 
-        $inventoryItem = InventoryItem::create([
+        $productItem = ProductItem::create([
             'business_id' => $this->business->id,
             'product_id' => $product->id,
             'name' => 'Teh Tarik',
             'sku' => 'TEH-TARIK',
             'item_type' => 'variant_sku',
             'track_inventory' => true,
-            'min_stock' => 5,
+        ]);
+
+        $inventoryItem = InventoryItem::create([
+            'business_id' => $this->business->id,
+            'product_item_id' => $productItem->id,
+            'minimum_stock' => 5,
         ]);
 
         InventoryBalance::create([
@@ -284,14 +290,19 @@ class ProductInventoryMultiOutletTest extends TestCase
             $this->outletB->id => ['is_enabled' => true, 'is_available' => true],
         ]);
 
-        $inventoryItem = InventoryItem::create([
+        $productItem = ProductItem::create([
             'business_id' => $this->business->id,
             'product_id' => $product->id,
             'name' => 'Matcha Latte',
             'sku' => 'MAT-001',
             'item_type' => 'variant_sku',
             'track_inventory' => true,
-            'min_stock' => 5,
+        ]);
+
+        $inventoryItem = InventoryItem::create([
+            'business_id' => $this->business->id,
+            'product_item_id' => $productItem->id,
+            'minimum_stock' => 5,
         ]);
 
         $balanceA = InventoryBalance::create([

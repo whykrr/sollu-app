@@ -49,20 +49,21 @@ class StockAssetReportService
 
         // 1. Ambil query master item persediaan terisolasi per business_id
         $query = DB::table('inventory_items')
+            ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
             ->where('inventory_items.business_id', $businessId)
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
-                    $sub->where('inventory_items.name', 'ilike', "%{$search}%")
-                        ->orWhere('inventory_items.sku', 'ilike', "%{$search}%");
+                    $sub->where('product_items.name', 'ilike', "%{$search}%")
+                        ->orWhere('product_items.sku', 'ilike', "%{$search}%");
                 });
             })
             ->select(
                 'inventory_items.id as item_id',
-                'inventory_items.name as item_name',
-                'inventory_items.sku',
-                'inventory_items.item_type'
+                'product_items.name as item_name',
+                'product_items.sku',
+                'product_items.item_type'
             )
-            ->orderBy('inventory_items.name');
+            ->orderBy('product_items.name');
 
         $paginator = $query->paginate($perPage);
         $itemIds = $paginator->getCollection()->pluck('item_id')->toArray();

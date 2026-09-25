@@ -34,6 +34,7 @@ class ExportStockReportJob extends AbstractExcelExportJob
 
         return DB::table('inventory_movements')
             ->join('inventory_items', 'inventory_movements.inventory_item_id', '=', 'inventory_items.id')
+            ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
             ->leftJoinSub($balanceSub, 'balances', function ($join) {
                 $join->on('inventory_movements.inventory_item_id', '=', 'balances.inventory_item_id');
             })
@@ -45,13 +46,13 @@ class ExportStockReportJob extends AbstractExcelExportJob
             ->whereBetween('inventory_movements.created_at', [$this->startDate, $this->endDate])
             ->select(
                 'inventory_items.id as item_id',
-                'inventory_items.name as item_name',
+                'product_items.name as item_name',
                 DB::raw('COALESCE(balances.current_stock, 0) as closing_stock'),
                 DB::raw('SUM(CASE WHEN inventory_movements.qty_change > 0 THEN inventory_movements.qty_change ELSE 0 END) as stock_in'),
                 DB::raw('SUM(CASE WHEN inventory_movements.qty_change < 0 THEN ABS(inventory_movements.qty_change) ELSE 0 END) as stock_out')
             )
-            ->groupBy('inventory_items.id', 'inventory_items.name', 'balances.current_stock')
-            ->orderBy('inventory_items.name', 'asc');
+            ->groupBy('inventory_items.id', 'product_items.name', 'balances.current_stock')
+            ->orderBy('product_items.name', 'asc');
     }
 
     public function getHeaders(): array

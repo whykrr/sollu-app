@@ -6,12 +6,15 @@ use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Services\App\Reports\StockAssetReportService;
 use Carbon\Carbon;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class StockAssetReportServiceTest extends TestCase
@@ -31,7 +34,7 @@ class StockAssetReportServiceTest extends TestCase
         parent::setUp();
         $this->service = new StockAssetReportService;
 
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
@@ -64,19 +67,24 @@ class StockAssetReportServiceTest extends TestCase
 
     public function test_it_gets_report()
     {
-        $invItem = InventoryItem::firstOrCreate([
+        $productItem = ProductItem::create([
             'business_id' => $this->business->id,
-        ], [
             'name' => 'Beras Organik',
             'sku' => 'BERAS-001',
             'item_type' => 'raw_material',
+            'track_inventory' => true,
+        ]);
+
+        $invItem = InventoryItem::create([
+            'business_id' => $this->business->id,
+            'product_item_id' => $productItem->id,
             'minimum_stock' => 10,
         ]);
 
         $now = Carbon::now();
 
         DB::table('inventory_balances')->insert([
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'id' => Str::uuid()->toString(),
             'business_id' => $this->business->id,
             'outlet_id' => $this->outlet->id,
             'inventory_item_id' => $invItem->id,
@@ -142,7 +150,7 @@ class StockAssetReportServiceTest extends TestCase
         ]);
 
         DB::table('inventory_balances')->insert([
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'id' => Str::uuid()->toString(),
             'business_id' => $otherBusiness->id,
             'outlet_id' => $otherOutlet->id,
             'inventory_item_id' => $otherInvItem->id,

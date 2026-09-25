@@ -2,14 +2,32 @@
 
 namespace App\Providers;
 
+use App\Auth\EloquentRedisUserProvider;
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Contracts\Inventory\InventoryDeductionServiceInterface;
+use App\Models\Business;
+use App\Models\Feature;
+use App\Models\Outlet;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
+use App\Models\User;
+use App\Observers\UserCacheObserver;
+use App\Services\App\Audit\ActivityLogService;
+use App\Services\App\Inventory\InventoryDeductionService;
+use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Cache;
+use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use RateLimiter;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,11 +37,11 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app['auth']->provider('eloquent_redis', function ($app, array $config) {
-            return new \App\Auth\EloquentRedisUserProvider($app['hash'], $config['model']);
+            return new EloquentRedisUserProvider($app['hash'], $config['model']);
         });
 
         if ($this->app->environment('local', 'development')) {
-            $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);
+            $this->app->register(IdeHelperServiceProvider::class);
         }
 
         // telescope config (strictly local/development only)
@@ -36,13 +54,13 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $this->app->bind(
-            \App\Contracts\Inventory\InventoryDeductionServiceInterface::class,
-            \App\Services\App\Inventory\InventoryDeductionService::class
+            InventoryDeductionServiceInterface::class,
+            InventoryDeductionService::class
         );
 
         $this->app->singleton(
-            \App\Contracts\Audit\ActivityLoggerInterface::class,
-            \App\Services\App\Audit\ActivityLogService::class
+            ActivityLoggerInterface::class,
+            ActivityLogService::class
         );
     }
 
@@ -52,7 +70,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->environment('production') || config('app.env') === 'production') {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+            URL::forceScheme('https');
         }
 
         RateLimiter::for('login', function (HttpRequest $request) {
@@ -60,10 +78,17 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Cache::macro('forgetPattern', function (string $pattern) {
-            $keys = Redis::connection('cache')->keys($pattern);
+            try {
+                if (config('cache.default') !== 'redis') {
+                    return;
+                }
+                $keys = Redis::connection('cache')->keys($pattern);
 
-            foreach ($keys as $key) {
-                Cache::delete($key);
+                foreach ($keys as $key) {
+                    Cache::delete($key);
+                }
+            } catch (\Throwable) {
+                // Ignore if redis is unavailable or during test environment
             }
         });
 
@@ -77,16 +102,16 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
-        \App\Models\User::observe(\App\Observers\UserCacheObserver::class);
-        \App\Models\Business::observe(\App\Observers\UserCacheObserver::class);
-        \App\Models\Outlet::observe(\App\Observers\UserCacheObserver::class);
-        \App\Models\Subscription::observe(\App\Observers\UserCacheObserver::class);
-        \App\Models\SubscriptionPlan::observe(\App\Observers\UserCacheObserver::class);
-        \App\Models\Feature::observe(\App\Observers\UserCacheObserver::class);
-        \Spatie\Permission\Models\Role::observe(\App\Observers\UserCacheObserver::class);
-        \Spatie\Permission\Models\Permission::observe(\App\Observers\UserCacheObserver::class);
+        User::observe(UserCacheObserver::class);
+        Business::observe(UserCacheObserver::class);
+        Outlet::observe(UserCacheObserver::class);
+        Subscription::observe(UserCacheObserver::class);
+        SubscriptionPlan::observe(UserCacheObserver::class);
+        Feature::observe(UserCacheObserver::class);
+        Role::observe(UserCacheObserver::class);
+        Permission::observe(UserCacheObserver::class);
 
-        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Authenticated::class, function ($event) {
+        Event::listen(Authenticated::class, function ($event) {
             if (isset($event->user->business_id)) {
                 setPermissionsTeamId($event->user->business_id);
             }

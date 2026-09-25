@@ -3,36 +3,37 @@
 namespace App\Services\App\Master;
 
 use App\Models\Inventory\InventoryBalance;
-use App\Models\Master\InventoryItem;
+use App\Models\Inventory\InventoryItem;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 
 class InventoryService
 {
     /**
-     * Create variant inventory item and initialize balances for active outlets.
+     * Link or create an InventoryItem for a ProductItem and initialize balances.
      *
      * @param  array<string, mixed>  $data
      * @param  array<string>|null  $activeOutletIds
      */
-    public function createVariantInventory(array $data, ?array $activeOutletIds = null): InventoryItem
+    public function linkInventoryItem(ProductItem $productItem, array $data = [], ?array $activeOutletIds = null): InventoryItem
     {
-        $item = InventoryItem::create([
-            'business_id' => $data['business_id'],
-            'name' => $data['name'] ?? null,
-            'item_type' => 'variant_sku',
-            'product_id' => $data['product_id'],
-            'sku' => $data['sku'] ?? null,
-            'barcode' => $data['barcode'] ?? null,
-            'track_inventory' => $data['track_inventory'],
-            'min_stock' => $data['min_stock'] ?? 0,
-            'uom_id' => $data['uom_id'] ?? null,
+        $existing = InventoryItem::where('business_id', $productItem->business_id)
+            ->where('product_item_id', $productItem->id)
+            ->first();
+
+        $item = InventoryItem::updateOrCreate([
+            'business_id' => $productItem->business_id,
+            'product_item_id' => $productItem->id,
+        ], [
+            'name' => $productItem->name,
+            'uom_id' => $productItem->uom_id ?? ($data['uom_id'] ?? null),
+            'minimum_stock' => array_key_exists('min_stock', $data)
+                ? ($data['min_stock'] ?? 0)
+                : ($existing?->minimum_stock ?? 0),
+            'is_active' => $productItem->is_active ?? true,
         ]);
 
-        if (isset($data['options'])) {
-            $item->variantGroupOptions()->sync($data['options']);
-        }
-
-        if ($item->track_inventory) {
+        if ($productItem->track_inventory) {
             $this->syncInventoryBalances($item, $activeOutletIds);
         }
 
@@ -55,7 +56,7 @@ class InventoryService
             $outletIds = array_values(array_filter($targetOutletIds));
         } elseif ($item->product_id) {
             // Load outlets enabled for this product
-            $outletIds = $item->product()
+            $outletIds = $item->productItem?->product()
                 ->first()
                 ?->outlets()
                 ->wherePivot('is_enabled', true)

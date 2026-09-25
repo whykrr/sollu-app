@@ -3,15 +3,18 @@
 namespace App\Models\Inventory;
 
 use App\Models\Traits\HasQuantityFormatter;
+use App\Models\Uom;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property-read PurchaseOrder $purchaseOrder
  * @property-read InventoryItem $inventoryItem
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperPurchaseOrderItem
  */
@@ -73,10 +76,10 @@ class PurchaseOrderItem extends Model
 
     public function uom(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Uom::class);
+        return $this->belongsTo(Uom::class);
     }
 
-    public function goodsReceiptItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function goodsReceiptItems(): HasMany
     {
         return $this->hasMany(GoodsReceiptItem::class);
     }

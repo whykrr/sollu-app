@@ -24,16 +24,17 @@ class ExportStockJob extends AbstractExcelExportJob
         $stockQuery = InventoryBalance::query()
             ->where('inventory_balances.business_id', $this->businessId)
             ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
+            ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
             ->leftJoin('uoms', 'inventory_items.uom_id', '=', 'uoms.id')
-            ->leftJoin('products', 'inventory_items.product_id', '=', 'products.id')
+            ->leftJoin('products', 'product_items.product_id', '=', 'products.id')
             ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
             ->join('outlets', 'inventory_balances.outlet_id', '=', 'outlets.id')
             ->select([
                 'inventory_balances.current_stock',
-                'inventory_items.name as item_name',
-                'inventory_items.item_type',
-                'inventory_items.sku',
-                'inventory_items.barcode',
+                'product_items.name as item_name',
+                'product_items.item_type',
+                'product_items.sku',
+                'product_items.barcode',
                 'inventory_items.minimum_stock',
                 'inventory_items.is_active',
                 'uoms.name as uom_name',
@@ -49,14 +50,14 @@ class ExportStockJob extends AbstractExcelExportJob
         if (! empty($this->filters['search'])) {
             $search = $this->filters['search'];
             $stockQuery->where(function ($q) use ($search) {
-                $q->where('inventory_items.name', 'ilike', "%{$search}%")
-                    ->orWhere('inventory_items.sku', 'ilike', "%{$search}%")
-                    ->orWhere('inventory_items.barcode', 'ilike', "%{$search}%");
+                $q->where('product_items.name', 'ilike', "%{$search}%")
+                    ->orWhere('product_items.sku', 'ilike', "%{$search}%")
+                    ->orWhere('product_items.barcode', 'ilike', "%{$search}%");
             });
         }
 
         if (! empty($this->filters['item_type'])) {
-            $stockQuery->where('inventory_items.item_type', $this->filters['item_type']);
+            $stockQuery->where('product_items.item_type', $this->filters['item_type']);
         }
 
         if (! empty($this->filters['category_id'])) {
@@ -83,7 +84,10 @@ class ExportStockJob extends AbstractExcelExportJob
             $stockQuery->where('inventory_balances.current_stock', '>', 0);
         }
 
-        $sort = $this->filters['sort'] ?? 'inventory_items.name';
+        $sort = $this->filters['sort'] ?? 'product_items.name';
+        if ($sort === 'inventory_items.name' || $sort === 'name') {
+            $sort = 'product_items.name';
+        }
         $direction = $this->filters['direction'] ?? 'asc';
 
         return $stockQuery->orderBy($sort, $direction);

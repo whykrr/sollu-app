@@ -4,10 +4,11 @@ namespace Tests\Unit\Services\App\Reports;
 
 use App\Models\Business;
 use App\Models\BusinessType;
-use App\Models\Master\InventoryItem;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Master\PaymentMethod;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\Sales\Transaction;
 use App\Models\Sales\TransactionItem;
@@ -17,6 +18,7 @@ use Carbon\Carbon;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class DashboardServiceTest extends TestCase
@@ -125,15 +127,21 @@ class DashboardServiceTest extends TestCase
         ]);
 
         // Inventory item below minimum stock for Business A
-        $invItem = InventoryItem::create([
+        $productItem = ProductItem::create([
             'business_id' => $businessId,
             'name' => 'Beras Premium',
             'item_type' => 'raw_material',
-            'min_stock' => 10,
+            'track_inventory' => true,
+        ]);
+
+        $invItem = InventoryItem::create([
+            'business_id' => $businessId,
+            'product_item_id' => $productItem->id,
+            'minimum_stock' => 10,
         ]);
 
         DB::table('inventory_balances')->insert([
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'id' => Str::uuid()->toString(),
             'business_id' => $businessId,
             'outlet_id' => $outletA->id,
             'inventory_item_id' => $invItem->id,

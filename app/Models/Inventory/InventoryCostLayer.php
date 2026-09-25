@@ -2,6 +2,7 @@
 
 namespace App\Models\Inventory;
 
+use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\Traits\HasQuantityFormatter;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property-read InventoryItem $inventoryItem
  * @property-read Outlet $outlet
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperInventoryCostLayer
  */
@@ -55,7 +57,7 @@ class InventoryCostLayer extends Model
 
     public function business(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Business::class);
+        return $this->belongsTo(Business::class);
     }
 
     public function inventoryItem(): BelongsTo

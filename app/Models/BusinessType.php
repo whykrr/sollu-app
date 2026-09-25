@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Cache;
  * @property int $sort_order
  * @property array<string>|null $features
  * @property-read Collection|Business[] $businesses
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperBusinessType
  */

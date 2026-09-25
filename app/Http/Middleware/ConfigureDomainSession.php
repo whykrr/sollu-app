@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Session\SessionManager;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Response;
 
 class ConfigureDomainSession
@@ -11,7 +13,7 @@ class ConfigureDomainSession
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -29,7 +31,7 @@ class ConfigureDomainSession
         }
 
         if (app()->resolved('session')) {
-            /** @var \Illuminate\Session\SessionManager $manager */
+            /** @var SessionManager $manager */
             $manager = app('session');
             try {
                 $driver = $manager->driver();
@@ -47,13 +49,13 @@ class ConfigureDomainSession
         if (count($hostParts) >= 3) {
             $rootDomain = '.'.implode('.', array_slice($hostParts, -2));
             if ($request->cookies->has('sollu_teknologi_indonesia_session')) {
-                $response->headers->setCookie(new \Symfony\Component\HttpFoundation\Cookie('sollu_teknologi_indonesia_session', '', 1, '/', $rootDomain));
+                $response->headers->setCookie(new Cookie('sollu_teknologi_indonesia_session', '', 1, '/', $rootDomain));
             }
             if ($request->cookies->has('laravel_session')) {
-                $response->headers->setCookie(new \Symfony\Component\HttpFoundation\Cookie('laravel_session', '', 1, '/', $rootDomain));
+                $response->headers->setCookie(new Cookie('laravel_session', '', 1, '/', $rootDomain));
             }
             if ($request->cookies->has('XSRF-TOKEN')) {
-                $response->headers->setCookie(new \Symfony\Component\HttpFoundation\Cookie('XSRF-TOKEN', '', 1, '/', $rootDomain, false, false));
+                $response->headers->setCookie(new Cookie('XSRF-TOKEN', '', 1, '/', $rootDomain, false, false));
             }
         }
 

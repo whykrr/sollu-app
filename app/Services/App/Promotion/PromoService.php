@@ -4,6 +4,8 @@ namespace App\Services\App\Promotion;
 
 use App\Enums\PromoStatus;
 use App\Enums\PromoTarget;
+use App\Models\Master\ProductItem;
+use App\Models\Outlet;
 use App\Models\Promo;
 use App\Services\App\Master\ActivityLogService;
 use Illuminate\Support\Facades\DB;
@@ -97,7 +99,7 @@ class PromoService
     {
         if (isset($data['applies_to_all_outlets']) && ! $data['applies_to_all_outlets']) {
             if (isset($data['outlet_ids']) && is_array($data['outlet_ids'])) {
-                $validOutletIds = \App\Models\Outlet::where('business_id', $promo->business_id)
+                $validOutletIds = Outlet::where('business_id', $promo->business_id)
                     ->whereIn('id', $data['outlet_ids'])
                     ->pluck('id')
                     ->all();
@@ -112,7 +114,7 @@ class PromoService
 
         if ($targetTypeValue === PromoTarget::Product->value) {
             if (isset($data['inventory_item_ids']) && is_array($data['inventory_item_ids'])) {
-                $validItemIds = \App\Models\Inventory\InventoryItem::where('business_id', $promo->business_id)
+                $validItemIds = ProductItem::where('business_id', $promo->business_id)
                     ->whereIn('id', $data['inventory_item_ids'])
                     ->pluck('id')
                     ->all();

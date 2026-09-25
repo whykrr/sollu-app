@@ -88,6 +88,10 @@ class ExceptionHandler
 
         // Authorization & Access Denied
         $exceptions->render(function (AccessDeniedHttpException|AuthorizationException $e, Request $request) {
+            if (! $this->isProduction()) {
+                return null;
+            }
+
             $message = $e->getMessage();
             if (empty($message) || $message === 'This action is unauthorized.') {
                 $message = AuthorizationMessage::CANT_ACCESS_PAGE;
@@ -102,8 +106,20 @@ class ExceptionHandler
 
         // Database Error
         $exceptions->render(function (QueryException $e, Request $request) {
+            if (! $this->isProduction()) {
+                return null;
+            }
+
             if ($this->shouldRenderJson($request)) {
                 return response()->json(['message' => ErrorMessage::DATABASE_ERROR], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            // Prevent infinite redirect loop if GET request fails on the current page
+            $previousUrl = url()->previous();
+            $currentUrl = $request->fullUrl();
+
+            if ($request->isMethod('GET') && ($previousUrl === $currentUrl || ! $request->hasHeader('referer'))) {
+                return null;
             }
 
             return redirect()->back()->with(FlashDataVariable::FAILED->value, ErrorMessage::DATABASE_ERROR);
@@ -111,6 +127,10 @@ class ExceptionHandler
 
         // Model / Data Not Found
         $exceptions->render(function (ModelNotFoundException $e, Request $request) {
+            if (! $this->isProduction()) {
+                return null;
+            }
+
             if ($this->shouldRenderJson($request)) {
                 return response()->json(['message' => ErrorMessage::DATA_NOT_FOUND], Response::HTTP_NOT_FOUND);
             }
@@ -120,6 +140,10 @@ class ExceptionHandler
 
         // Route / Page Not Found
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if (! $this->isProduction()) {
+                return null;
+            }
+
             $isModelNotFound = $e->getPrevious() instanceof ModelNotFoundException;
             $message = $isModelNotFound ? ErrorMessage::DATA_NOT_FOUND : ErrorMessage::PAGE_NOT_FOUND;
 
@@ -132,14 +156,18 @@ class ExceptionHandler
 
         // Throttle / Rate Limiting
         $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
-            if ($this->shouldRenderJson($request)) {
-                return response()->json(['message' => ErrorMessage::TOO_MANY_REQUESTS], Response::HTTP_TOO_MANY_REQUESTS);
-            }
-
             if ($request->is('login') || $request->is('register') || $request->is('forgot') || $request->is('reset-password')) {
                 throw ValidationException::withMessages([
                     'email' => ErrorMessage::TOO_MANY_REQUESTS,
                 ]);
+            }
+
+            if (! $this->isProduction()) {
+                return null;
+            }
+
+            if ($this->shouldRenderJson($request)) {
+                return response()->json(['message' => ErrorMessage::TOO_MANY_REQUESTS], Response::HTTP_TOO_MANY_REQUESTS);
             }
 
             return redirect()->back()->with(FlashDataVariable::FAILED->value, ErrorMessage::TOO_MANY_REQUESTS);
@@ -147,6 +175,10 @@ class ExceptionHandler
 
         // HTTP Client / Business Errors (400 Bad Request, 422 Unprocessable, etc.)
         $exceptions->render(function (HttpException $e, Request $request) {
+            if (! $this->isProduction()) {
+                return null;
+            }
+
             $statusCode = $e->getStatusCode();
             if (in_array($statusCode, [419, 403, 404], true)) {
                 return null;
@@ -168,5 +200,13 @@ class ExceptionHandler
     protected function shouldRenderJson(Request $request): bool
     {
         return $request->expectsJson() || $request->is('api/*') || $request->getHost() === config('domain.api');
+    }
+
+    /**
+     * Check whether the application is running in production.
+     */
+    protected function isProduction(): bool
+    {
+        return app()->isProduction();
     }
 }

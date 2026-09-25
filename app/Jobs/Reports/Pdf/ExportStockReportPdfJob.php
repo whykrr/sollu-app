@@ -44,6 +44,7 @@ class ExportStockReportPdfJob implements ShouldQueue
 
         $movements = DB::table('inventory_movements')
             ->join('inventory_items', 'inventory_movements.inventory_item_id', '=', 'inventory_items.id')
+            ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
             ->where('inventory_items.business_id', $this->user->business_id)
             ->where('inventory_movements.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
@@ -52,16 +53,17 @@ class ExportStockReportPdfJob implements ShouldQueue
             ->whereBetween('inventory_movements.created_at', [$this->startDate, $this->endDate])
             ->select(
                 'inventory_items.id as item_id',
-                'inventory_items.name as item_name',
+                'product_items.name as item_name',
                 DB::raw('SUM(CASE WHEN inventory_movements.qty_change > 0 THEN inventory_movements.qty_change ELSE 0 END) as total_in'),
                 DB::raw('SUM(CASE WHEN inventory_movements.qty_change < 0 THEN ABS(inventory_movements.qty_change) ELSE 0 END) as total_out')
             )
-            ->groupBy('inventory_items.id', 'inventory_items.name')
+            ->groupBy('inventory_items.id', 'product_items.name')
             ->limit(1000)
             ->get();
 
         $balances = DB::table('inventory_balances')
             ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
+            ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
             ->where('inventory_items.business_id', $this->user->business_id)
             ->where('inventory_balances.business_id', $this->user->business_id)
             ->when(! empty($this->outletIds), function ($query) {
@@ -69,10 +71,10 @@ class ExportStockReportPdfJob implements ShouldQueue
             })
             ->select(
                 'inventory_items.id as item_id',
-                'inventory_items.name as item_name',
+                'product_items.name as item_name',
                 DB::raw('SUM(inventory_balances.current_stock) as current_stock')
             )
-            ->groupBy('inventory_items.id', 'inventory_items.name')
+            ->groupBy('inventory_items.id', 'product_items.name')
             ->get()
             ->keyBy('item_id');
 

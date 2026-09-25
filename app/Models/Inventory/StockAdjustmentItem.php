@@ -14,14 +14,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $id
  * @property string $stock_adjustment_id
  * @property string $inventory_item_id
- * @property \App\Enums\InventoryMovementType $movement_type
+ * @property InventoryMovementType $movement_type
  * @property string $qty_change
  * @property string|null $unit_cost
  * @property string|null $stock_before
  * @property string|null $stock_after
  * @property string $description
- * @property-read \App\Models\Inventory\StockAdjustment $adjustment
- * @property-read \App\Models\Inventory\InventoryItem $inventoryItem
+ * @property-read StockAdjustment $adjustment
+ * @property-read InventoryItem $inventoryItem
+ *
  * @mixin IdeHelperStockAdjustmentItem
  */
 class StockAdjustmentItem extends Model

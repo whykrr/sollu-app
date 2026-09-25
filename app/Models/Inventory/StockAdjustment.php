@@ -4,38 +4,42 @@ namespace App\Models\Inventory;
 
 use App\Enums\AdjustmentReason;
 use App\Enums\AdjustmentStatus;
+use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $id
  * @property string $business_id
  * @property string $outlet_id
  * @property string $adjustment_number
- * @property \App\Enums\AdjustmentStatus $status
- * @property \App\Enums\AdjustmentReason $reason
+ * @property AdjustmentStatus $status
+ * @property AdjustmentReason $reason
  * @property string|null $notes
  * @property string $created_by
  * @property string|null $approved_by
- * @property \Illuminate\Support\Carbon|null $approved_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Business $business
- * @property-read \App\Models\Outlet $outlet
- * @property-read \App\Models\User $creator
- * @property-read \App\Models\User|null $approver
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Inventory\StockAdjustmentItem[] $items
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Inventory\InventoryMovement[] $inventoryMovements
+ * @property Carbon|null $approved_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Business $business
+ * @property-read Outlet $outlet
+ * @property-read User $creator
+ * @property-read User|null $approver
+ * @property-read Collection|StockAdjustmentItem[] $items
+ * @property-read Collection|InventoryMovement[] $inventoryMovements
+ *
  * @mixin IdeHelperStockAdjustment
  */
 class StockAdjustment extends Model
@@ -122,7 +126,7 @@ class StockAdjustment extends Model
             $filters['reason'] ?? false,
             fn (Builder $q, $value) => $q->where('reason', $value)
         )->when(
-            $filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['date_from'] ?? false,

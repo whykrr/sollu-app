@@ -14,7 +14,7 @@ use App\Enums\PromoType;
 use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
-use App\Models\Master\InventoryItem;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\Promo;
 use App\Models\Subscription;
@@ -253,13 +253,11 @@ class PromotionControllerTest extends TestCase
 
     public function test_authorized_user_can_create_promo(): void
     {
-        $item = new InventoryItem([
+        $item = ProductItem::create([
             'business_id' => $this->business->id,
             'name' => 'Menu Spesial',
             'item_type' => 'raw_material',
         ]);
-        $item->minimum_stock = 5;
-        $item->save();
 
         $payload = [
             'name' => 'Promo Spesial Menu',

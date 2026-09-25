@@ -2,12 +2,26 @@
 
 namespace App\Services\App\Transaction;
 
+use App\Enums\PromoStatus;
+use App\Models\Inventory\InventoryBalance;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Customer;
+use App\Models\Master\ModifierGroup;
+use App\Models\Master\ModifierOption;
 use App\Models\Master\PaymentMethod;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
+use App\Models\Master\ProductImage;
+use App\Models\Master\ProductPrice;
+use App\Models\Master\VariantGroup;
+use App\Models\Master\VariantGroupOption;
 use App\Models\OutletDevice;
+use App\Models\OutletSetting;
+use App\Models\Promo;
+use App\Models\Sales\Transaction;
+use App\Services\App\Outlet\OutletProvisioningService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MasterDataSyncService
 {
@@ -33,29 +47,29 @@ class MasterDataSyncService
             ->get()
             ->makeHidden('business_id');
 
-        $productPrices = \App\Models\Master\ProductPrice::whereIn('product_id', $productIds)
+        $productPrices = ProductPrice::whereIn('product_id', $productIds)
             ->where(function ($q) use ($outletId) {
                 $q->where('outlet_id', $outletId)->orWhereNull('outlet_id');
             })
             ->get()
             ->makeHidden('outlet_id');
 
-        $productImages = \App\Models\Master\ProductImage::whereIn('product_id', $productIds)->get();
+        $productImages = ProductImage::whereIn('product_id', $productIds)->get();
 
-        $variantGroups = \App\Models\Master\VariantGroup::whereIn('product_id', $productIds)->get();
+        $variantGroups = VariantGroup::whereIn('product_id', $productIds)->get();
 
-        $variantGroupOptions = \App\Models\Master\VariantGroupOption::whereIn('variant_group_id', $variantGroups->pluck('id'))->get();
+        $variantGroupOptions = VariantGroupOption::whereIn('variant_group_id', $variantGroups->pluck('id'))->get();
 
         $productModifierGroups = DB::table('product_modifier_groups')
             ->whereIn('product_id', $productIds)
             ->get();
 
         // 3. Data modifier
-        $modifierGroups = \App\Models\Master\ModifierGroup::whereIn('id', $productModifierGroups->pluck('modifier_group_id'))
+        $modifierGroups = ModifierGroup::whereIn('id', $productModifierGroups->pluck('modifier_group_id'))
             ->get()
             ->makeHidden('business_id');
 
-        $modifierOptions = \App\Models\Master\ModifierOption::whereIn('modifier_group_id', $modifierGroups->pluck('id'))->get();
+        $modifierOptions = ModifierOption::whereIn('modifier_group_id', $modifierGroups->pluck('id'))->get();
 
         // 4. Pendukung lainnya
         $customers = Customer::where('business_id', $businessId)
@@ -67,20 +81,20 @@ class MasterDataSyncService
             ->get()
             ->makeHidden('business_id');
 
-        $outletSettings = \App\Models\OutletSetting::where('outlet_id', $outletId)
+        $outletSettings = OutletSetting::where('outlet_id', $outletId)
             ->get()
             ->makeHidden('outlet_id');
 
         // Auto-provision if either payment methods or outlet settings are completely missing
         if ($paymentMethods->isEmpty() || $outletSettings->isEmpty()) {
-            app(\App\Services\App\Outlet\OutletProvisioningService::class)->provisionAll($device->outlet);
+            app(OutletProvisioningService::class)->provisionAll($device->outlet);
 
             $paymentMethods = PaymentMethod::where('business_id', $businessId)
                 ->activeForOutlet($outletId)
                 ->get()
                 ->makeHidden('business_id');
 
-            $outletSettings = \App\Models\OutletSetting::where('outlet_id', $outletId)
+            $outletSettings = OutletSetting::where('outlet_id', $outletId)
                 ->get()
                 ->makeHidden('outlet_id');
         }
@@ -123,7 +137,7 @@ class MasterDataSyncService
         if ($outlet->logo_url) {
             $logoUrl = str_starts_with($outlet->logo_url, 'http') ? $outlet->logo_url : url($outlet->logo_url);
         } elseif ($business?->logo) {
-            $logoUrl = url(\Illuminate\Support\Facades\Storage::url($business->logo));
+            $logoUrl = url(Storage::url($business->logo));
         }
 
         $receiptSetting['logo_url'] = $logoUrl;
@@ -148,22 +162,20 @@ class MasterDataSyncService
             });
 
         // 5. Inventori Stok
-        $inventoryItems = \App\Models\Inventory\InventoryItem::whereIn('product_id', $productIds)
+        $inventoryItems = InventoryItem::whereHas('productItem', fn ($q) => $q->whereIn('product_id', $productIds))
             ->get()
             ->makeHidden('business_id');
 
-        $inventoryBalances = \App\Models\Inventory\InventoryBalance::whereIn('inventory_item_id', $inventoryItems->pluck('id'))
+        $inventoryBalances = InventoryBalance::whereIn('inventory_item_id', $inventoryItems->pluck('id'))
             ->where('outlet_id', $outletId)
             ->get()
             ->makeHidden(['business_id', 'outlet_id']);
 
-        $inventoryItemVariantGroupOptions = DB::table('inventory_item_variant_group_option')
-            ->whereIn('inventory_item_id', $inventoryItems->pluck('id'))
-            ->get();
+        $inventoryItemVariantGroupOptions = collect();
 
         // 6. Promos Aktif untuk Outlet ini
-        $promos = \App\Models\Promo::where('business_id', $businessId)
-            ->where('status', \App\Enums\PromoStatus::Active->value)
+        $promos = Promo::where('business_id', $businessId)
+            ->where('status', PromoStatus::Active->value)
             ->where(function ($q) use ($outletId) {
                 $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $outletId))
                     ->orWhere('applies_to_all_outlets', true);
@@ -172,7 +184,7 @@ class MasterDataSyncService
             ->makeHidden('business_id');
 
         // 7. Transaksi 1 bulan terakhir
-        $transactions = \App\Models\Sales\Transaction::with([
+        $transactions = Transaction::with([
             'items',
             'items.modifiers',
             'payments',

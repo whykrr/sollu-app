@@ -416,6 +416,7 @@ class DashboardService
     {
         $query = DB::table('inventory_balances')
             ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
+            ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
             ->where('inventory_items.business_id', $businessId);
 
         if (! empty($outletIds)) {
@@ -423,8 +424,8 @@ class DashboardService
         }
 
         $results = $query
-            ->selectRaw('inventory_items.name, SUM(inventory_balances.current_stock) as stock, inventory_items.minimum_stock')
-            ->groupBy('inventory_items.id', 'inventory_items.name', 'inventory_items.minimum_stock')
+            ->selectRaw('product_items.name, SUM(inventory_balances.current_stock) as stock, inventory_items.minimum_stock')
+            ->groupBy('inventory_items.id', 'product_items.name', 'inventory_items.minimum_stock')
             ->havingRaw('SUM(inventory_balances.current_stock) <= inventory_items.minimum_stock')
             ->orderBy('stock', 'asc')
             ->limit(5)

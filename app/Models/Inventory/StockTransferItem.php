@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property-read StockTransfer $stockTransfer
  * @property-read InventoryItem $inventoryItem
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperStockTransferItem
  */

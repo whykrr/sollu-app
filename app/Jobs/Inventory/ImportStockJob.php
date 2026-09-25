@@ -8,6 +8,7 @@ use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryCostLayer;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\User;
 use Exception;
@@ -53,19 +54,19 @@ class ImportStockJob extends AbstractExcelImportJob
         $item = null;
         if (! empty($sku)) {
             $item = InventoryItem::where('business_id', $this->businessId)
-                ->where('sku', $sku)
+                ->whereHas('productItem', fn ($q) => $q->where('sku', $sku))
                 ->first();
         }
 
         if (! $item && ! empty($barcode)) {
             $item = InventoryItem::where('business_id', $this->businessId)
-                ->where('barcode', $barcode)
+                ->whereHas('productItem', fn ($q) => $q->where('barcode', $barcode))
                 ->first();
         }
 
         if (! $item && ! empty($name)) {
             $item = InventoryItem::where('business_id', $this->businessId)
-                ->where('name', $name)
+                ->whereHas('productItem', fn ($q) => $q->where('name', $name))
                 ->first();
         }
 
@@ -75,31 +76,27 @@ class ImportStockJob extends AbstractExcelImportJob
 
         // Update SKU & Barcode
         if (! empty($sku) && $item->sku !== $sku) {
-            $skuExists = InventoryItem::where('business_id', $this->businessId)
+            $skuExists = ProductItem::where('business_id', $this->businessId)
                 ->where('sku', $sku)
-                ->where('id', '!=', $item->id)
+                ->where('id', '!=', $item->product_item_id)
                 ->exists();
 
             if ($skuExists) {
                 throw new Exception("SKU '{$sku}' sudah digunakan oleh produk/item lain.");
             }
-            $item->sku = $sku;
+            $item->productItem?->update(['sku' => $sku]);
         }
 
         if (! empty($barcode) && $item->barcode !== $barcode) {
-            $barcodeExists = InventoryItem::where('business_id', $this->businessId)
+            $barcodeExists = ProductItem::where('business_id', $this->businessId)
                 ->where('barcode', $barcode)
-                ->where('id', '!=', $item->id)
+                ->where('id', '!=', $item->product_item_id)
                 ->exists();
 
             if ($barcodeExists) {
                 throw new Exception("Barcode '{$barcode}' sudah digunakan oleh produk/item lain.");
             }
-            $item->barcode = $barcode;
-        }
-
-        if ($item->isDirty(['sku', 'barcode'])) {
-            $item->save();
+            $item->productItem?->update(['barcode' => $barcode]);
         }
 
         // Get or Create InventoryBalance

@@ -28,7 +28,7 @@ class RecipeService
 
         foreach ($items as $item) {
             $recipe->items()->create([
-                'inventory_item_id' => $item['inventory_item_id'],
+                'product_item_id' => $item['product_item_id'],
                 'qty' => $item['qty'],
                 'uom' => $item['uom'],
             ]);

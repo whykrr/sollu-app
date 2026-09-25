@@ -60,7 +60,12 @@
             <div>
                 <h3 class="font-semibold text-slate-700 mb-1">Petugas / Kasir</h3>
                 <p class="text-slate-600">
-                    {{ transaction.cashier_name || transaction.creator?.name || transaction.shift?.user?.name || '-' }}
+                    {{
+                        transaction.cashier_name ||
+                        transaction.creator?.name ||
+                        transaction.shift?.user?.name ||
+                        '-'
+                    }}
                 </p>
             </div>
             <div>

@@ -1,9 +1,15 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\EloquentRedisUserProvider;
+use App\Providers\HorizonServiceProvider;
+use App\Providers\PulseServiceProvider;
+use Barryvdh\Debugbar\ServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\EloquentRedisUserProvider::class,
-    App\Providers\HorizonServiceProvider::class,
-    App\Providers\PulseServiceProvider::class,
-    Barryvdh\Debugbar\ServiceProvider::class,
+    AppServiceProvider::class,
+    EloquentRedisUserProvider::class,
+    HorizonServiceProvider::class,
+    PulseServiceProvider::class,
+    ServiceProvider::class,
 ];

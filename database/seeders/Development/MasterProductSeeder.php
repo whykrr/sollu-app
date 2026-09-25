@@ -4,9 +4,11 @@ namespace Database\Seeders\Development;
 
 use App\Models\Business;
 use App\Models\Inventory\InventoryBalance;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
 use App\Models\Outlet;
+use App\Models\Uom;
 use Illuminate\Database\Seeder;
 
 class MasterProductSeeder extends Seeder
@@ -30,7 +32,7 @@ class MasterProductSeeder extends Seeder
         $catCare = ProductCategory::where('business_id', $business->id)->where('name', 'Perawatan Diri')->first();
 
         // Fetch default UOM
-        $defaultUom = \App\Models\Uom::where('code', 'PCS')->first();
+        $defaultUom = Uom::where('code', 'PCS')->first();
         $uomId = $defaultUom ? $defaultUom->id : null;
 
         $defaultCatId = $catSnack?->id;
@@ -136,7 +138,7 @@ class MasterProductSeeder extends Seeder
             if ($product->product_type === 'basic') {
                 $minStock = rand(3, 10);
                 // Base Inventory Item for non-variant products
-                $item = \App\Models\Inventory\InventoryItem::updateOrCreate(
+                $item = InventoryItem::updateOrCreate(
                     [
                         'business_id' => $business->id,
                         'product_id' => $product->id,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\App\Master;
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\PermissionEnum;
+use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Master\Product\GetProductRequest;
 use App\Http\Requests\App\Master\Product\StoreProductRequest;
@@ -12,7 +13,7 @@ use App\Http\Requests\App\Master\Product\UpdateProductRequest;
 use App\Http\Resources\Master\ProductResource;
 use App\Jobs\Master\ExportProductJob;
 use App\Jobs\Master\ImportProductJob;
-use App\Models\Master\InventoryItem;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Master\ModifierGroup;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
@@ -41,7 +42,7 @@ class ProductController extends Controller
         $this->authorize(PermissionEnum::PRODUCT_VIEW->value);
 
         $params = $request->validated();
-        $outletId = $params['outlet'] ?? \App\Helpers\SelectedOutlet::make()->currentId();
+        $outletId = $params['outlet'] ?? SelectedOutlet::make()->currentId();
 
         $products = Product::currentBusiness()
             ->with([
@@ -54,7 +55,7 @@ class ProductController extends Controller
                         });
                     }
                 },
-                'images:id,product_id,inventory_item_id,image_url,sort_order',
+                'images:id,product_id,product_item_id,image_url,sort_order',
             ])
             ->filters($params)
             ->sortable($request->validated('sort', 'created_at'), $request->validated('direction', 'desc'))
@@ -86,7 +87,7 @@ class ProductController extends Controller
                 ->with('options:id,modifier_group_id,name,additional_price,is_default')
                 ->select('id', 'name', 'selection_type', 'max_select', 'is_required')
                 ->get(),
-            'inventoryItems' => InventoryItem::currentBusiness()->select('id', 'name', 'uom_id')->get(),
+            'inventoryItems' => InventoryItem::currentBusiness()->get(),
             'baseProducts' => Product::currentBusiness()->where('product_type', '!=', 'bundle')->select('id', 'name', 'code')->get(),
             'uoms' => Uom::where('status', 'active')->orderBy('name')->select('id', 'name', 'code')->get(),
         ]);
@@ -105,7 +106,7 @@ class ProductController extends Controller
             'category',
             'prices',
             'outlets',
-            'inventoryItems.variantGroupOptions',
+            'productItems',
             'images',
             'variantGroups.options',
             'modifierGroups',
@@ -167,7 +168,7 @@ class ProductController extends Controller
             'bundleItems',
             'prices',
             'outlets',
-            'inventoryItems.variantGroupOptions',
+            'productItems',
             'images',
         ]);
 

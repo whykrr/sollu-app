@@ -2,11 +2,14 @@
 
 namespace Tests\Unit\Services\App\Inventory;
 
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Services\App\Inventory\RawMaterialService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,14 +27,14 @@ class RawMaterialServiceTest extends TestCase
 
     private function setupBaseData()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Test Business',
             'owner_name' => 'Owner',
             'email' => 'owner_'.uniqid().'@test.com',
@@ -80,10 +83,15 @@ class RawMaterialServiceTest extends TestCase
         $this->assertEquals('Flour', $item->name);
         $this->assertEquals('raw_material', $item->item_type);
 
-        $this->assertDatabaseHas('inventory_items', [
-            'id' => $item->id,
+        $this->assertDatabaseHas('product_items', [
+            'id' => $item->product_item_id,
             'name' => 'Flour',
             'item_type' => 'raw_material',
+        ]);
+
+        $this->assertDatabaseHas('inventory_items', [
+            'id' => $item->id,
+            'product_item_id' => $item->product_item_id,
         ]);
 
         // Check balances initialized for active outlets only
@@ -118,8 +126,8 @@ class RawMaterialServiceTest extends TestCase
         // Assert
         $this->assertEquals('Brown Sugar', $updatedItem->name);
         $this->assertEquals('BSG-001', $updatedItem->sku);
-        $this->assertDatabaseHas('inventory_items', [
-            'id' => $item->id,
+        $this->assertDatabaseHas('product_items', [
+            'id' => $item->product_item_id,
             'name' => 'Brown Sugar',
             'sku' => 'BSG-001',
         ]);

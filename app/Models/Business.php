@@ -3,7 +3,12 @@
 namespace App\Models;
 
 use App\Enums\BusinessStatus;
+use App\Enums\FeatureEnum;
+use App\Enums\InventoryCostingMethod;
+use App\Enums\PlanEnum;
 use App\Models\Master\Product;
+use App\Services\App\Inventory\InventorySodService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +25,7 @@ use Spatie\Sluggable\SlugOptions;
  * @property-read Collection|Outlet[] $outlets
  * @property-read Collection|User[] $users
  * @property-read Collection|Product[] $products
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperBusiness
  */
@@ -137,14 +143,14 @@ class Business extends Model
     /**
      * Memoized available plan features.
      *
-     * @var array<\App\Enums\FeatureEnum>|null
+     * @var array<FeatureEnum>|null
      */
     protected ?array $memoizedAvailablePlanFeatures = null;
 
     /**
      * Memoized active plan features.
      *
-     * @var array<\App\Enums\FeatureEnum>|null
+     * @var array<FeatureEnum>|null
      */
     protected ?array $memoizedActivePlanFeatures = null;
 
@@ -205,8 +211,8 @@ class Business extends Model
     /**
      * Get the active plan features for this business.
      *
-     * @param  array<\App\Enums\FeatureEnum>|null  $planFeatures
-     * @return array<\App\Enums\FeatureEnum>
+     * @param  array<FeatureEnum>|null  $planFeatures
+     * @return array<FeatureEnum>
      */
     public function activePlanFeatures(?array $planFeatures = null): array
     {
@@ -231,9 +237,9 @@ class Business extends Model
         // Map strings to FeatureEnum and intersect with plan features
         $activeFeatures = [];
         foreach ($userFeatures as $featureString) {
-            $featureEnum = $featureString instanceof \App\Enums\FeatureEnum
+            $featureEnum = $featureString instanceof FeatureEnum
                 ? $featureString
-                : \App\Enums\FeatureEnum::tryFrom((string) $featureString);
+                : FeatureEnum::tryFrom((string) $featureString);
 
             if ($featureEnum && in_array($featureEnum, $planFeatures, true)) {
                 $activeFeatures[] = $featureEnum;
@@ -246,7 +252,7 @@ class Business extends Model
     /**
      * Get all available features granted by the business plan.
      *
-     * @return array<\App\Enums\FeatureEnum>
+     * @return array<FeatureEnum>
      */
     public function getAvailablePlanFeatures(): array
     {
@@ -260,10 +266,10 @@ class Business extends Model
             return $this->memoizedAvailablePlanFeatures = $activeSubscription->plan->activeFeatureEnums();
         }
 
-        $isTrial = $this->trial_end_at ? \Carbon\Carbon::parse($this->trial_end_at)->isFuture() : false;
+        $isTrial = $this->trial_end_at ? Carbon::parse($this->trial_end_at)->isFuture() : false;
 
         if ($isTrial) {
-            $trialPlan = SubscriptionPlan::findByCodeCached(\App\Enums\PlanEnum::MICRO->value);
+            $trialPlan = SubscriptionPlan::findByCodeCached(PlanEnum::MICRO->value);
 
             return $this->memoizedAvailablePlanFeatures = ($trialPlan ? $trialPlan->activeFeatureEnums() : []);
         }
@@ -274,7 +280,7 @@ class Business extends Model
     /**
      * Check if the business has a specific feature.
      */
-    public function hasFeature(\App\Enums\FeatureEnum $feature): bool
+    public function hasFeature(FeatureEnum $feature): bool
     {
         return in_array($feature, $this->activePlanFeatures(), true);
     }
@@ -282,7 +288,7 @@ class Business extends Model
     /**
      * Alias for hasFeature to support plan feature checks.
      */
-    public function hasPlanFeature(\App\Enums\FeatureEnum $feature): bool
+    public function hasPlanFeature(FeatureEnum $feature): bool
     {
         return $this->hasFeature($feature);
     }
@@ -298,11 +304,11 @@ class Business extends Model
     /**
      * Get the active inventory costing method (FIFO or Moving Average).
      */
-    public function getCostingMethod(): \App\Enums\InventoryCostingMethod
+    public function getCostingMethod(): InventoryCostingMethod
     {
-        $raw = $this->settings['inventory_costing_method'] ?? \App\Enums\InventoryCostingMethod::FIFO->value;
+        $raw = $this->settings['inventory_costing_method'] ?? InventoryCostingMethod::FIFO->value;
 
-        return \App\Enums\InventoryCostingMethod::tryFrom($raw) ?? \App\Enums\InventoryCostingMethod::FIFO;
+        return InventoryCostingMethod::tryFrom($raw) ?? InventoryCostingMethod::FIFO;
     }
 
     /**
@@ -312,7 +318,7 @@ class Business extends Model
      */
     public function getInventorySodSettings(): array
     {
-        return app(\App\Services\App\Inventory\InventorySodService::class)->getSettings($this);
+        return app(InventorySodService::class)->getSettings($this);
     }
 
     /**
@@ -320,7 +326,7 @@ class Business extends Model
      */
     public function isInventorySodEnabled(): bool
     {
-        return app(\App\Services\App\Inventory\InventorySodService::class)->isSodEnabled($this);
+        return app(InventorySodService::class)->isSodEnabled($this);
     }
 
     /**
@@ -328,7 +334,7 @@ class Business extends Model
      */
     public function allowsOwnerSodBypass(): bool
     {
-        return app(\App\Services\App\Inventory\InventorySodService::class)->allowsOwnerBypass($this);
+        return app(InventorySodService::class)->allowsOwnerBypass($this);
     }
 
     /**

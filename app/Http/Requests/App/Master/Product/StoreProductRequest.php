@@ -71,9 +71,6 @@ class StoreProductRequest extends BaseInertiaFormRequest
             'outlets.*.is_enabled' => 'boolean',
             'outlets.*.is_available' => 'boolean',
 
-            // Minimum stock
-            'min_stock' => 'nullable|numeric|min:0',
-
             // Multiple images
             'images' => 'nullable|array',
             'images.*.image_url' => 'required_without:images.*.image_file|nullable|string',
@@ -93,7 +90,10 @@ class StoreProductRequest extends BaseInertiaFormRequest
                 $rules['variant_combinations.*.sku'] = 'nullable|string';
                 $rules['variant_combinations.*.barcode'] = 'nullable|string';
                 $rules['variant_combinations.*.price'] = 'nullable|numeric|min:0';
-                $rules['variant_combinations.*.min_stock'] = 'nullable|numeric|min:0';
+                $rules['variant_combinations.*.track_inventory'] = 'nullable|boolean';
+                $rules['variant_combinations.*.sellable'] = 'nullable|boolean';
+                $rules['variant_combinations.*.is_active'] = 'nullable|boolean';
+                $rules['variant_combinations.*.is_show'] = 'nullable|boolean';
                 $rules['variant_combinations.*.outlet_prices'] = 'nullable|array';
                 $rules['variant_combinations.*.outlet_prices.*.outlet_id'] = 'required|uuid|exists:outlets,id';
                 $rules['variant_combinations.*.outlet_prices.*.amount'] = 'required|numeric|min:0';
@@ -101,7 +101,7 @@ class StoreProductRequest extends BaseInertiaFormRequest
 
             if ($this->has_recipe) {
                 $rules['recipes'] = 'required|array|min:1';
-                $rules['recipes.*.inventory_item_id'] = 'required|uuid|exists:inventory_items,id';
+                $rules['recipes.*.product_item_id'] = 'required|uuid|exists:inventory_items,id';
                 $rules['recipes.*.qty'] = 'required|numeric|min:0';
                 $rules['recipes.*.uom'] = 'required|string';
             }
@@ -110,7 +110,7 @@ class StoreProductRequest extends BaseInertiaFormRequest
         if ($this->product_type === 'bundle') {
             $rules['bundle_items'] = 'required|array|min:1';
             $rules['bundle_items.*.component_product_id'] = 'required|uuid|exists:products,id';
-            $rules['bundle_items.*.component_inventory_item_id'] = 'nullable|uuid|exists:inventory_items,id';
+            $rules['bundle_items.*.component_product_item_id'] = 'nullable|uuid|exists:inventory_items,id';
             $rules['bundle_items.*.qty'] = 'required|numeric|min:0';
         }
 

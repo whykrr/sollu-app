@@ -3,6 +3,7 @@
 namespace App\Models\Inventory;
 
 use App\Enums\StockTransferStatus;
+use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $id
@@ -22,13 +24,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $from_outlet_id
  * @property string $to_outlet_id
  * @property string $transfer_number
- * @property \App\Enums\StockTransferStatus $status
+ * @property StockTransferStatus $status
  * @property string|null $notes
  * @property string|null $requested_by
  * @property string|null $approved_by
  * @property string|null $received_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Business $business
  * @property-read Outlet $fromOutlet
  * @property-read Outlet $toOutlet
@@ -36,6 +38,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read User|null $approver
  * @property-read User|null $receiver
  * @property-read Collection|StockTransferItem[] $items
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperStockTransfer
  */
@@ -134,7 +137,7 @@ class StockTransfer extends Model
             $filters['to_outlet_id'] ?? false,
             fn (Builder $q, $value) => $q->where('to_outlet_id', $value)
         )->when(
-            $filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
             fn (Builder $q, $value) => $q->where(function (Builder $sub) use ($value) {
                 $sub->where('from_outlet_id', $value)
                     ->orWhere('to_outlet_id', $value);

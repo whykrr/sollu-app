@@ -2,9 +2,12 @@
 
 namespace App\Models\Inventory;
 
+use App\Enums\GoodsReceiptStatus;
+use App\Enums\PurchaseReturnStatus;
 use App\Models\Traits\HasQuantityFormatter;
 use App\Models\Uom;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read PurchaseOrderItem|null $purchaseOrderItem
  * @property-read InventoryItem $inventoryItem
  * @property-read Uom|null $uom
- * @property-read \Illuminate\Database\Eloquent\Collection<int, PurchaseReturnItem> $purchaseReturnItems
+ * @property-read Collection<int, PurchaseReturnItem> $purchaseReturnItems
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperGoodsReceiptItem
  */
@@ -96,14 +100,14 @@ class GoodsReceiptItem extends Model
                 if ($this->relationLoaded('purchaseReturnItems')) {
                     return (float) $this->purchaseReturnItems
                         ->where(function ($item) {
-                            return ! $item->purchaseReturn || $item->purchaseReturn->status !== \App\Enums\PurchaseReturnStatus::Voided;
+                            return ! $item->purchaseReturn || $item->purchaseReturn->status !== PurchaseReturnStatus::Voided;
                         })
                         ->sum('return_purchase_qty');
                 }
 
                 return (float) $this->purchaseReturnItems()
                     ->whereHas('purchaseReturn', function ($query) {
-                        $query->where('status', '!=', \App\Enums\PurchaseReturnStatus::Voided->value);
+                        $query->where('status', '!=', PurchaseReturnStatus::Voided->value);
                     })
                     ->sum('return_purchase_qty');
             }
@@ -118,7 +122,7 @@ class GoodsReceiptItem extends Model
                     ? $this->goodsReceipt?->status
                     : $this->goodsReceipt()->value('status');
 
-                if ($status === \App\Enums\GoodsReceiptStatus::Voided || $status === 'voided') {
+                if ($status === GoodsReceiptStatus::Voided || $status === 'voided') {
                     return 0.0;
                 }
 

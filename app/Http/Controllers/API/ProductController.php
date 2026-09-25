@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Enums\PromoTarget;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Product;
+use App\Models\Promo;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -57,9 +60,9 @@ class ProductController extends Controller
 
         $productIds = $products->pluck('id')->toArray();
 
-        $activeProductPromos = \App\Models\Promo::currentBusiness()
+        $activeProductPromos = Promo::currentBusiness()
             ->active()
-            ->where('target_type', \App\Enums\PromoTarget::Product->value)
+            ->where('target_type', PromoTarget::Product->value)
             ->when($outletId, function ($q, $outletId) {
                 $q->where(function ($sub) use ($outletId) {
                     $sub->where('applies_to_all_outlets', true)
@@ -90,7 +93,7 @@ class ProductController extends Controller
         $outletId = $request->get('outlet_id');
         $limit = $request->get('limit', 50);
 
-        $items = \App\Models\Inventory\InventoryItem::currentBusiness()
+        $items = InventoryItem::currentBusiness()
             ->where('is_active', true)
             ->with([
                 'uom:id,name',
@@ -120,16 +123,16 @@ class ProductController extends Controller
 
         $inventoryItemIds = $items->pluck('id')->filter()->unique()->values()->toArray();
 
-        $activeProductPromos = \App\Models\Promo::currentBusiness()
+        $activeProductPromos = Promo::currentBusiness()
             ->active()
-            ->where('target_type', \App\Enums\PromoTarget::Product->value)
+            ->where('target_type', PromoTarget::Product->value)
             ->when($outletId, function ($q, $outletId) {
                 $q->where(function ($sub) use ($outletId) {
                     $sub->where('applies_to_all_outlets', true)
                         ->orWhereHas('outlets', fn ($o) => $o->where('outlets.id', $outletId));
                 });
             })
-            ->whereHas('inventoryItems', fn ($i) => $i->whereIn('inventory_items.id', $inventoryItemIds))
+            ->whereHas('inventoryItems', fn ($i) => $i->whereIn('product_items.id', $inventoryItemIds))
             ->with('inventoryItems:id')
             ->get();
 

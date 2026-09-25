@@ -2,6 +2,7 @@
 
 namespace App\Models\Master;
 
+use App\Helpers\SelectedOutlet;
 use App\Models\Outlet;
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
@@ -124,9 +125,9 @@ class Product extends Model
             ->withPivot('is_enabled', 'is_available');
     }
 
-    public function inventoryItems(): HasMany
+    public function productItems(): HasMany
     {
-        return $this->hasMany(InventoryItem::class);
+        return $this->hasMany(ProductItem::class);
     }
 
     public function images(): HasMany
@@ -136,7 +137,7 @@ class Product extends Model
 
     public function scopeFilters(Builder $builder, array $filters): Builder
     {
-        $outletFilter = $filters['outlet'] ?? \App\Helpers\SelectedOutlet::make()->currentId();
+        $outletFilter = $filters['outlet'] ?? SelectedOutlet::make()->currentId();
 
         return $builder
             ->when(

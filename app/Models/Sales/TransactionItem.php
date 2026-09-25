@@ -2,6 +2,7 @@
 
 namespace App\Models\Sales;
 
+use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Product;
 use App\Models\Master\VariantGroupOption;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -20,7 +21,7 @@ class TransactionItem extends Model
     protected $fillable = [
         'transaction_id',
         'product_id',
-        'inventory_item_id',
+        'product_item_id',
         'variant_group_option_id',
         'product_name',
         'price',
@@ -57,7 +58,7 @@ class TransactionItem extends Model
 
     public function inventoryItem(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Inventory\InventoryItem::class);
+        return $this->belongsTo(InventoryItem::class);
     }
 
     public function variantGroupOption(): BelongsTo

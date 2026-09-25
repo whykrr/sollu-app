@@ -125,26 +125,18 @@ onMounted(() => {
 })
 
 const getInitialUomId = () => {
-    if (props.product?.inventory_items?.length > 0) {
-        const item = props.product.inventory_items.find(item => item.uom_id)
+    const items = props.product?.product_items || props.product?.inventory_items || []
+    if (items.length > 0) {
+        const item = items.find(item => item.uom_id)
         return item ? item.uom_id : ''
     }
     return ''
 }
 
-const getInitialMinStock = () => {
-    if (props.product?.inventory_items?.length > 0) {
-        const item = props.product.inventory_items.find(
-            item => item.min_stock !== null && item.min_stock !== undefined
-        )
-        return item ? String(item.min_stock) : '0'
-    }
-    return '0'
-}
-
 const getInitialBarcode = () => {
-    if (props.product?.inventory_items?.length > 0) {
-        const item = props.product.inventory_items.find(item => item.barcode)
+    const items = props.product?.product_items || props.product?.inventory_items || []
+    if (items.length > 0) {
+        const item = items.find(item => item.barcode)
         return item ? item.barcode : ''
     }
     return ''
@@ -169,7 +161,6 @@ const form = useForm({
     outlets: [],
     variants: [],
     variant_combinations: [],
-    min_stock: getInitialMinStock(),
     images: props.product?.images || [],
 })
 
@@ -241,7 +232,10 @@ const updateCombinations = () => {
             sku: existing ? existing.sku : generateSku(options),
             barcode: existing ? existing.barcode : '',
             price: existing ? String(existing.price) : String(form.base_price),
-            min_stock: existing ? String(existing.min_stock) : '0',
+            track_inventory: existing ? existing.track_inventory : Boolean(form.track_inventory),
+            sellable: existing ? existing.sellable : Boolean(form.sellable),
+            is_active: existing ? existing.is_active : true,
+            is_show: existing ? existing.is_show : Boolean(form.is_show),
             image_url: existing ? existing.image_url : null,
         }
     })
@@ -271,55 +265,81 @@ if (isEdit.value && props.product) {
             name: vg.name,
             options: vg.options.map(opt => ({ name: opt.name })),
         }))
-        if (props.product.inventory_items) {
-            const variantItems = props.product.inventory_items.filter(
-                item => item.item_type === 'variant_sku'
-            )
-            if (variantItems.length > 0) {
-                let hasCustomPrices = false
-                form.variant_combinations = variantItems.map(invItem => {
-                    const combinationOptions = {}
-                    invItem.variant_group_options.forEach(opt => {
-                        const vg = props.product.variant_groups.find(
-                            g => g.id === opt.variant_group_id
-                        )
-                        const gName = vg ? vg.name : ''
-                        if (gName) combinationOptions[gName] = opt.name
-                    })
-                    const priceObj = props.product.prices.find(
-                        p => p.inventory_item_id === invItem.id && !p.outlet_id
-                    )
-                    const price = priceObj ? priceObj.amount : form.base_price
-                    if (priceObj && Number(priceObj.amount) !== Number(form.base_price))
+        const items = props.product.product_items || props.product.inventory_items || []
+        const variantItems = items.filter(item => item.item_type === 'variant_sku')
+
+        const generatedCombos = generateCombinations(form.variants)
+        let hasCustomPrices = false
+
+        form.variant_combinations = generatedCombos.map(comboOptions => {
+            const comboKey = getComboKey(comboOptions)
+            const optionValues = Object.values(comboOptions)
+            const comboSuffix = optionValues.join(' - ')
+            const expectedFullName = `${props.product.name} - ${comboSuffix}`
+
+            const matchingItem =
+                variantItems.find(item => item.name === expectedFullName) ||
+                variantItems.find(item => item.name && item.name.endsWith(comboSuffix)) ||
+                variantItems.find(item => item.sku === generateSku(comboOptions))
+
+            let price = form.base_price
+            let imageUrl = null
+
+            variantOutletPriceMap.value[comboKey] = {}
+
+            if (matchingItem) {
+                const priceObj = props.product.prices?.find(
+                    p =>
+                        (p.product_item_id === matchingItem.id ||
+                            p.inventory_item_id === matchingItem.id) &&
+                        !p.outlet_id
+                )
+                if (priceObj) {
+                    price = priceObj.amount
+                    if (Number(priceObj.amount) !== Number(form.base_price)) {
                         hasCustomPrices = true
-                    const comboKey = getComboKey(combinationOptions)
-                    variantOutletPriceMap.value[comboKey] = {}
+                    }
+                }
 
-                    const itemImage = props.product.images?.find(
-                        img => img.inventory_item_id === invItem.id
+                const itemImage = props.product.images?.find(
+                    img =>
+                        img.product_item_id === matchingItem.id ||
+                        img.inventory_item_id === matchingItem.id
+                )
+                if (itemImage) {
+                    imageUrl = itemImage.image_url
+                }
+
+                props.outlets.forEach(outlet => {
+                    const op = props.product.prices?.find(
+                        p =>
+                            (p.product_item_id === matchingItem.id ||
+                                p.inventory_item_id === matchingItem.id) &&
+                            p.outlet_id === outlet.id
                     )
-
-                    props.outlets.forEach(outlet => {
-                        const op = props.product.prices.find(
-                            p => p.inventory_item_id === invItem.id && p.outlet_id === outlet.id
-                        )
-                        if (op) {
-                            variantOutletPriceMap.value[comboKey][outlet.id] = op.amount
-                            hasCustomPrices = true
-                        }
-                    })
-                    return {
-                        options: combinationOptions,
-                        sku: invItem.sku || '',
-                        barcode: invItem.barcode || '',
-                        price: String(price),
-                        min_stock: String(invItem.min_stock ?? 0),
-                        image_url: itemImage ? itemImage.image_url : null,
+                    if (op) {
+                        variantOutletPriceMap.value[comboKey][outlet.id] = op.amount
+                        hasCustomPrices = true
                     }
                 })
-                if (hasCustomPrices) customizeVariantPrices.value = true
             }
-        }
+
+            return {
+                options: comboOptions,
+                sku: matchingItem ? matchingItem.sku || '' : generateSku(comboOptions),
+                barcode: matchingItem ? matchingItem.barcode || '' : '',
+                price: String(price),
+                track_inventory: matchingItem
+                    ? Boolean(matchingItem.track_inventory)
+                    : Boolean(form.track_inventory),
+                sellable: matchingItem ? Boolean(matchingItem.sellable) : Boolean(form.sellable),
+                is_active: matchingItem ? Boolean(matchingItem.is_active) : true,
+                is_show: matchingItem ? Boolean(matchingItem.is_show) : Boolean(form.is_show),
+                image_url: imageUrl,
+            }
+        })
+
+        if (hasCustomPrices) customizeVariantPrices.value = true
     } else {
         form.variants = [{ name: '', options: [{ name: '' }] }]
     }
@@ -410,7 +430,6 @@ const steps = computed(() => {
             icon: faBoxesStacked,
             fields: [
                 'uom_id',
-                'min_stock',
                 'barcode',
                 'variants',
                 'variant_combinations',

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\App\Inventory;
 
 use App\Constants\FlashDataVariable;
 use App\Enums\InventoryMovementType;
+use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Jobs\Inventory\ExportStockJob;
 use App\Jobs\Inventory\ImportStockJob;
@@ -17,6 +18,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StockController extends Controller
 {
@@ -27,11 +31,14 @@ class StockController extends Controller
     public function index(Request $request)
     {
         $businessId = Auth::user()->business_id;
-        $outletId = $request->get('outlet_id') ?: \App\Helpers\SelectedOutlet::make()->currentId();
+        $outletId = $request->get('outlet_id') ?: SelectedOutlet::make()->currentId();
 
         // Summary Card
         $summary = [
-            'total_item' => InventoryItem::where('business_id', $businessId)->where('is_active', true)->where('track_inventory', true)->count(),
+            'total_item' => InventoryItem::where('business_id', $businessId)
+                ->where('is_active', true)
+                ->whereHas('productItem', fn ($q) => $q->where('track_inventory', true))
+                ->count(),
             'total_nilai_stok' => (int) InventoryCostLayer::whereHas('outlet', function ($q) use ($businessId) {
                 $q->where('business_id', $businessId);
             })->when($outletId, function ($q) use ($outletId) {
@@ -40,14 +47,16 @@ class StockController extends Controller
             'stok_menipis' => InventoryBalance::where('inventory_balances.business_id', $businessId)
                 ->when($outletId, fn ($q) => $q->where('inventory_balances.outlet_id', $outletId))
                 ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
-                ->where('inventory_items.track_inventory', true)
+                ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
+                ->where('product_items.track_inventory', true)
                 ->whereRaw('inventory_balances.current_stock > 0')
                 ->whereRaw('inventory_balances.current_stock <= inventory_items.minimum_stock')
                 ->count(),
             'stok_habis' => InventoryBalance::where('inventory_balances.business_id', $businessId)
                 ->when($outletId, fn ($q) => $q->where('inventory_balances.outlet_id', $outletId))
                 ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
-                ->where('inventory_items.track_inventory', true)
+                ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
+                ->where('product_items.track_inventory', true)
                 ->where('inventory_balances.current_stock', '<=', 0)
                 ->count(),
         ];
@@ -55,8 +64,9 @@ class StockController extends Controller
         $stockQuery = InventoryBalance::query()
             ->where('inventory_balances.business_id', $businessId)
             ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
+            ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
             ->leftJoin('uoms', 'inventory_items.uom_id', '=', 'uoms.id')
-            ->leftJoin('products', 'inventory_items.product_id', '=', 'products.id')
+            ->leftJoin('products', 'product_items.product_id', '=', 'products.id')
             ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
             ->join('outlets', 'inventory_balances.outlet_id', '=', 'outlets.id')
             ->select([
@@ -64,9 +74,9 @@ class StockController extends Controller
                 'inventory_balances.outlet_id',
                 'inventory_balances.inventory_item_id',
                 'inventory_balances.current_stock',
-                'inventory_items.name as item_name',
-                'inventory_items.item_type',
-                'inventory_items.sku',
+                'product_items.name as item_name',
+                'product_items.item_type',
+                'product_items.sku',
                 'inventory_items.minimum_stock',
                 'inventory_items.is_active',
                 'uoms.code as uom',
@@ -82,14 +92,14 @@ class StockController extends Controller
         if ($request->get('search')) {
             $search = $request->get('search');
             $stockQuery->where(function ($q) use ($search) {
-                $q->where('inventory_items.name', 'ilike', "%{$search}%")
-                    ->orWhere('inventory_items.sku', 'ilike', "%{$search}%")
-                    ->orWhere('inventory_items.barcode', 'ilike', "%{$search}%");
+                $q->where('product_items.name', 'ilike', "%{$search}%")
+                    ->orWhere('product_items.sku', 'ilike', "%{$search}%")
+                    ->orWhere('product_items.barcode', 'ilike', "%{$search}%");
             });
         }
 
         if ($request->get('item_type')) {
-            $stockQuery->where('inventory_items.item_type', $request->get('item_type'));
+            $stockQuery->where('product_items.item_type', $request->get('item_type'));
         }
 
         if ($request->get('category_id')) {
@@ -116,7 +126,10 @@ class StockController extends Controller
             $stockQuery->where('inventory_balances.current_stock', '>', 0);
         }
 
-        $sort = $request->get('sort', 'inventory_items.name');
+        $sort = $request->get('sort', 'product_items.name');
+        if ($sort === 'inventory_items.name' || $sort === 'name') {
+            $sort = 'product_items.name';
+        }
         $direction = $request->get('direction', 'asc');
 
         $stocks = $stockQuery
@@ -286,7 +299,7 @@ class StockController extends Controller
             'Aman',
         ];
 
-        $export = new class($headers, $dummyData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings
+        $export = new class($headers, $dummyData) implements FromArray, WithHeadings
         {
             private $headers;
 
@@ -311,7 +324,7 @@ class StockController extends Controller
 
         $filename = 'template_'.strtolower(class_basename($this)).'.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+        return Excel::download($export, $filename);
     }
 
     public function import(Request $request)
@@ -439,16 +452,17 @@ class StockController extends Controller
         $stockQuery = InventoryBalance::query()
             ->where('inventory_balances.business_id', $businessId)
             ->join('inventory_items', 'inventory_balances.inventory_item_id', '=', 'inventory_items.id')
+            ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
             ->leftJoin('uoms', 'inventory_items.uom_id', '=', 'uoms.id')
-            ->leftJoin('products', 'inventory_items.product_id', '=', 'products.id')
+            ->leftJoin('products', 'product_items.product_id', '=', 'products.id')
             ->leftJoin('product_categories', 'products.product_category_id', '=', 'product_categories.id')
             ->join('outlets', 'inventory_balances.outlet_id', '=', 'outlets.id')
             ->select([
                 'inventory_balances.id',
                 'inventory_balances.current_stock',
-                'inventory_items.name as item_name',
-                'inventory_items.item_type',
-                'inventory_items.sku',
+                'product_items.name as item_name',
+                'product_items.item_type',
+                'product_items.sku',
                 'inventory_items.minimum_stock',
                 'uoms.code as uom',
                 'outlets.name as outlet_name',
@@ -462,14 +476,14 @@ class StockController extends Controller
         if ($request->get('search')) {
             $search = $request->get('search');
             $stockQuery->where(function ($q) use ($search) {
-                $q->where('inventory_items.name', 'ilike', "%{$search}%")
-                    ->orWhere('inventory_items.sku', 'ilike', "%{$search}%")
-                    ->orWhere('inventory_items.barcode', 'ilike', "%{$search}%");
+                $q->where('product_items.name', 'ilike', "%{$search}%")
+                    ->orWhere('product_items.sku', 'ilike', "%{$search}%")
+                    ->orWhere('product_items.barcode', 'ilike', "%{$search}%");
             });
         }
 
         if ($request->get('item_type')) {
-            $stockQuery->where('inventory_items.item_type', $request->get('item_type'));
+            $stockQuery->where('product_items.item_type', $request->get('item_type'));
         }
 
         if ($request->get('category_id')) {
@@ -496,7 +510,10 @@ class StockController extends Controller
             $stockQuery->where('inventory_balances.current_stock', '>', 0);
         }
 
-        $sort = $request->get('sort', 'inventory_items.name');
+        $sort = $request->get('sort', 'product_items.name');
+        if ($sort === 'inventory_items.name' || $sort === 'name') {
+            $sort = 'product_items.name';
+        }
         $direction = $request->get('direction', 'asc');
 
         $stocks = $stockQuery->orderBy($sort, $direction)->limit(1000)->get();

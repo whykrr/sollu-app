@@ -29,6 +29,7 @@ class AuditTenantIsolation extends Tool
      * @var array<int, string>
      */
     protected array $globalSystemModels = [
+        'Uom',
         'User',
         'BusinessType',
         'BusinessCategory',

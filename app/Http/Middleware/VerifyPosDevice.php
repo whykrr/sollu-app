@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\OutletDevice;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -12,13 +13,13 @@ class VerifyPosDevice
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $device = $request->user();
 
-        if (! $device || get_class($device) !== \App\Models\OutletDevice::class) {
+        if (! $device || get_class($device) !== OutletDevice::class) {
             return response()->json(['message' => 'Unauthorized device token.'], 401);
         }
 

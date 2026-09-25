@@ -3,9 +3,14 @@
 namespace Tests\Unit\Services\App\Master;
 
 use App\Models\Business;
+use App\Models\BusinessType;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Product;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
+use App\Models\Uom;
 use App\Services\App\Master\InventoryService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,7 +28,7 @@ class InventoryServiceTest extends TestCase
 
     protected function createTenant(): Business
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
@@ -41,7 +46,7 @@ class InventoryServiceTest extends TestCase
 
     public function test_it_creates_variant_inventory_and_syncs_balances()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $business = $this->createTenant();
 
         $outlet = Outlet::create([
@@ -57,44 +62,35 @@ class InventoryServiceTest extends TestCase
         ]);
         $product->outlets()->attach($outlet->id, ['is_enabled' => true, 'is_available' => true]);
 
-        $variantGroup = \App\Models\Master\VariantGroup::create([
-            'product_id' => $product->id,
-            'name' => 'Size',
-        ]);
-
-        $option = \App\Models\Master\VariantGroupOption::create([
-            'variant_group_id' => $variantGroup->id,
-            'name' => 'Large',
-        ]);
-
-        $data = [
+        $productItem = ProductItem::create([
             'business_id' => $business->id,
-            'name' => 'Product Large',
             'product_id' => $product->id,
+            'name' => 'Product Large',
             'sku' => 'PRD-L',
             'barcode' => '123456',
             'track_inventory' => true,
-            'min_stock' => 5,
-            'options' => [$option->id],
-        ];
-
-        $item = $this->service->createVariantInventory($data);
-
-        $this->assertInstanceOf(\App\Models\Master\InventoryItem::class, $item);
-        $this->assertEquals('Product Large', $item->name);
-        $this->assertEquals('variant_sku', $item->item_type);
-        $this->assertTrue($item->track_inventory);
-        $this->assertEquals(5, $item->min_stock);
-
-        $this->assertDatabaseHas('inventory_items', [
-            'id' => $item->id,
-            'sku' => 'PRD-L',
+            'item_type' => 'variant_sku',
         ]);
 
-        $this->assertTrue($item->variantGroupOptions->contains($option->id));
+        $data = [
+            'min_stock' => 5,
+        ];
+
+        $invItem = $this->service->linkInventoryItem($productItem, $data);
+
+        $this->assertInstanceOf(InventoryItem::class, $invItem);
+        $this->assertEquals('Product Large', $invItem->name);
+        $this->assertEquals('variant_sku', $invItem->item_type);
+        $this->assertTrue($invItem->track_inventory);
+        $this->assertEquals(5, $invItem->minimum_stock);
+
+        $this->assertDatabaseHas('inventory_items', [
+            'id' => $invItem->id,
+            'product_item_id' => $productItem->id,
+        ]);
 
         $this->assertDatabaseHas('inventory_balances', [
-            'inventory_item_id' => $item->id,
+            'inventory_item_id' => $invItem->id,
             'outlet_id' => $outlet->id,
             'current_stock' => 0,
         ]);
@@ -102,7 +98,7 @@ class InventoryServiceTest extends TestCase
 
     public function test_it_creates_variant_inventory_and_syncs_balances_for_specific_active_outlets()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $business = $this->createTenant();
 
         $outletA = Outlet::create([
@@ -123,55 +119,59 @@ class InventoryServiceTest extends TestCase
             'product_type' => 'basic',
         ]);
 
-        $data = [
+        $productItem = ProductItem::create([
             'business_id' => $business->id,
-            'name' => 'Product Scoped Item',
             'product_id' => $product->id,
+            'name' => 'Product Scoped Item',
             'sku' => 'PRD-SCOPED',
             'track_inventory' => true,
+            'item_type' => 'variant_sku',
+        ]);
+
+        $data = [
             'min_stock' => 5,
         ];
 
         // Only Outlet A is active for this item
-        $item = $this->service->createVariantInventory($data, [$outletA->id]);
+        $invItem = $this->service->linkInventoryItem($productItem, $data, [$outletA->id]);
 
         $this->assertDatabaseHas('inventory_balances', [
-            'inventory_item_id' => $item->id,
+            'inventory_item_id' => $invItem->id,
             'outlet_id' => $outletA->id,
             'current_stock' => 0,
         ]);
 
         $this->assertDatabaseMissing('inventory_balances', [
-            'inventory_item_id' => $item->id,
+            'inventory_item_id' => $invItem->id,
             'outlet_id' => $outletB->id,
         ]);
 
         // When Outlet B is activated later, sync balances creates balance for Outlet B without deleting Outlet A
-        $this->service->syncInventoryBalances($item, [$outletA->id, $outletB->id]);
+        $this->service->syncInventoryBalances($invItem, [$outletA->id, $outletB->id]);
 
         $this->assertDatabaseHas('inventory_balances', [
-            'inventory_item_id' => $item->id,
+            'inventory_item_id' => $invItem->id,
             'outlet_id' => $outletA->id,
         ]);
 
         $this->assertDatabaseHas('inventory_balances', [
-            'inventory_item_id' => $item->id,
+            'inventory_item_id' => $invItem->id,
             'outlet_id' => $outletB->id,
             'current_stock' => 0,
         ]);
 
         // When Outlet A is disabled (target is only Outlet B), Outlet A's balance is PRESERVED (not deleted)
-        $this->service->syncInventoryBalances($item, [$outletB->id]);
+        $this->service->syncInventoryBalances($invItem, [$outletB->id]);
 
         $this->assertDatabaseHas('inventory_balances', [
-            'inventory_item_id' => $item->id,
+            'inventory_item_id' => $invItem->id,
             'outlet_id' => $outletA->id,
         ]);
     }
 
     public function test_it_syncs_balances_only_if_tracking_inventory()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $business = $this->createTenant();
 
         $outlet = Outlet::create([
@@ -186,17 +186,114 @@ class InventoryServiceTest extends TestCase
             'product_type' => 'basic',
         ]);
 
-        $data = [
+        $productItem = ProductItem::create([
             'business_id' => $business->id,
-            'name' => 'Product Untracked',
             'product_id' => $product->id,
+            'name' => 'Product Untracked',
             'track_inventory' => false,
-        ];
+            'item_type' => 'variant_sku',
+        ]);
 
-        $item = $this->service->createVariantInventory($data);
+        $invItem = $this->service->linkInventoryItem($productItem, []);
 
         $this->assertDatabaseMissing('inventory_balances', [
-            'inventory_item_id' => $item->id,
+            'inventory_item_id' => $invItem->id,
+        ]);
+    }
+
+    public function test_it_stores_and_updates_snapshot_name_and_uom_on_inventory_item()
+    {
+        $this->seed(DatabaseSeeder::class);
+        $business = $this->createTenant();
+
+        $uom1 = Uom::first();
+        $uom2 = Uom::skip(1)->first();
+
+        $product = Product::create([
+            'business_id' => $business->id,
+            'name' => 'Product Snapshot Test',
+            'product_type' => 'basic',
+        ]);
+
+        $productItem = ProductItem::create([
+            'business_id' => $business->id,
+            'product_id' => $product->id,
+            'uom_id' => $uom1->id,
+            'name' => 'Product Snapshot Initial Name',
+            'track_inventory' => true,
+            'item_type' => 'variant_sku',
+        ]);
+
+        // Link initially
+        $invItem = $this->service->linkInventoryItem($productItem, [
+            'min_stock' => 10,
+        ]);
+
+        $this->assertEquals('Product Snapshot Initial Name', $invItem->name);
+        $this->assertEquals($uom1->id, $invItem->uom_id);
+        $this->assertEquals(10, $invItem->minimum_stock);
+
+        // Update ProductItem and re-link
+        $productItem->update([
+            'name' => 'Product Snapshot Updated Name',
+            'uom_id' => $uom2->id,
+        ]);
+
+        $updatedInvItem = $this->service->linkInventoryItem($productItem, [
+            'min_stock' => 20,
+        ]);
+
+        $this->assertEquals($invItem->id, $updatedInvItem->id);
+        $this->assertEquals('Product Snapshot Updated Name', $updatedInvItem->name);
+        $this->assertEquals($uom2->id, $updatedInvItem->uom_id);
+        $this->assertEquals(20, $updatedInvItem->minimum_stock);
+
+        $this->assertDatabaseHas('inventory_items', [
+            'id' => $invItem->id,
+            'name' => 'Product Snapshot Updated Name',
+            'uom_id' => $uom2->id,
+            'minimum_stock' => 20,
+        ]);
+    }
+
+    public function test_it_preserves_existing_minimum_stock_when_omitted_by_product_update()
+    {
+        $this->seed(DatabaseSeeder::class);
+        $business = $this->createTenant();
+
+        $product = Product::create([
+            'business_id' => $business->id,
+            'name' => 'Product Minimum Stock Preservation Test',
+            'product_type' => 'basic',
+        ]);
+
+        $productItem = ProductItem::create([
+            'business_id' => $business->id,
+            'product_id' => $product->id,
+            'name' => 'Product Item',
+            'track_inventory' => true,
+            'item_type' => 'variant_sku',
+        ]);
+
+        // Existing inventory item created/configured with minimum_stock = 15 by inventory team
+        $invItem = InventoryItem::create([
+            'business_id' => $business->id,
+            'product_item_id' => $productItem->id,
+            'name' => 'Product Item',
+            'minimum_stock' => 15,
+            'is_active' => true,
+        ]);
+
+        // Product module updates name/uom without passing min_stock
+        $productItem->update(['name' => 'Product Item Renamed']);
+        $result = $this->service->linkInventoryItem($productItem, []);
+
+        $this->assertEquals(15, $result->minimum_stock);
+        $this->assertEquals('Product Item Renamed', $result->name);
+        $this->assertDatabaseHas('inventory_items', [
+            'id' => $invItem->id,
+            'name' => 'Product Item Renamed',
+            'minimum_stock' => 15,
         ]);
     }
 }

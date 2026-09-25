@@ -14,12 +14,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * @property-read Business $business
  * @property-read Outlet $outlet
  * @property-read InventoryItem $inventoryItem
  * @property-read User|null $creator
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperInventoryMovement
  */
@@ -118,7 +120,7 @@ class InventoryMovement extends Model
     /**
      * Get the referenced model (PO, Transfer, Opname, etc.).
      */
-    public function reference(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    public function reference(): MorphTo
     {
         return $this->morphTo('reference', 'reference_type', 'reference_id');
     }

@@ -162,7 +162,7 @@ class NormalizeInventoryCostingDataCommand extends Command
                     } elseif ($trxItem->product_id) {
                         // Cek apakah produk memiliki inventory item terhubung
                         $invItem = InventoryItem::where('business_id', $business->id)
-                            ->where('product_id', $trxItem->product_id)
+                            ->whereHas('productItem', fn ($q) => $q->where('product_id', $trxItem->product_id))
                             ->first();
 
                         if ($invItem) {

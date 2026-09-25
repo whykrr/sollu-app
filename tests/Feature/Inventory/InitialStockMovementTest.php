@@ -4,13 +4,17 @@ namespace Tests\Feature\Inventory;
 
 use App\Enums\FeatureEnum;
 use App\Enums\InventoryMovementType;
+use App\Enums\SubscriptionStatus;
 use App\Jobs\Inventory\ImportStockJob;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Uom;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -87,13 +91,19 @@ class InitialStockMovementTest extends TestCase
         $uom = Uom::where('code', 'PCS')->orWhere('code', 'Pcs')->orWhere('code', 'pcs')->first()
             ?? Uom::create(['code' => 'PCS', 'name' => 'Pieces']);
 
-        $this->item = InventoryItem::create([
+        $productItem = ProductItem::create([
             'business_id' => $this->business->id,
             'name' => 'Bahan Baku Uji',
             'sku' => 'SKU-TEST-001',
-            'uom_id' => $uom->id,
             'item_type' => 'raw_material',
             'track_inventory' => true,
+            'is_active' => true,
+        ]);
+
+        $this->item = InventoryItem::create([
+            'business_id' => $this->business->id,
+            'product_item_id' => $productItem->id,
+            'uom_id' => $uom->id,
             'is_active' => true,
         ]);
 
@@ -110,15 +120,15 @@ class InitialStockMovementTest extends TestCase
     protected function subscribeBusinessToPlan(User $user): void
     {
         setPermissionsTeamId($user->business_id);
-        $plan = \App\Models\SubscriptionPlan::firstOrCreate(
+        $plan = SubscriptionPlan::firstOrCreate(
             ['code' => 'pro'],
             ['name' => 'Pro Plan', 'is_active' => true]
         );
 
-        \App\Models\Subscription::create([
+        Subscription::create([
             'business_id' => $user->business_id,
             'plan_id' => $plan->id,
-            'status' => \App\Enums\SubscriptionStatus::Active,
+            'status' => SubscriptionStatus::Active,
             'billing_cycle' => 'monthly',
             'started_at' => now()->subDays(1),
             'expired_at' => now()->addDays(29),

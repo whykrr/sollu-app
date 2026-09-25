@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\Sales\TransactionPayment;
 use App\Trait\HasBusiness;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -21,12 +22,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $type
  * @property bool $is_active
- * @property \Carbon\Carbon|null $created_at
- * @property \Carbon\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Business $business
  * @property-read Collection|Outlet[] $outlets
  * @property-read Collection|OutletPaymentMethod[] $outletPaymentMethods
  * @property-read Collection|TransactionPayment[] $transactionPayments
+ *
  * @mixin IdeHelperPaymentMethod
  */
 class PaymentMethod extends Model

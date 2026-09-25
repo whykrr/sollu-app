@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Helpers\SelectedOutlet;
 use App\Helpers\SummaryUser;
 use App\Models\SystemSetting;
+use App\Support\Breadcrumbs\BreadcrumbManager;
 use App\Support\Enums\FrontendEnumProvider;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -46,7 +47,7 @@ class HandleAppInertiaRequests extends Middleware
             'app' => [
                 'name' => config('app.name'),
                 'home_route' => 'overview',
-                'breadcrumbs' => \App\Support\Breadcrumbs\BreadcrumbManager::forApp($request),
+                'breadcrumbs' => BreadcrumbManager::forApp($request),
                 'help_center_url' => fn () => SystemSetting::get('help_center_url', '#'),
                 'whatsapp_support_number' => fn () => SystemSetting::get('whatsapp_support_number', ''),
                 'flash' => [

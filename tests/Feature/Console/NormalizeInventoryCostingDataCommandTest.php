@@ -7,6 +7,7 @@ use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Product;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\Sales\Transaction;
 use App\Models\Sales\TransactionItem;
@@ -43,12 +44,18 @@ class NormalizeInventoryCostingDataCommandTest extends TestCase
             'code' => 'PRD-A',
         ]);
 
-        $invItem = InventoryItem::create([
+        $productItem = ProductItem::create([
             'business_id' => $business->id,
             'product_id' => $product->id,
-            'item_type' => 'raw_material',
-            'name' => 'Produk A Raw',
+            'item_type' => 'variant_sku',
+            'name' => 'Produk A',
             'sku' => 'SKU-A',
+            'track_inventory' => true,
+        ]);
+
+        $invItem = InventoryItem::create([
+            'business_id' => $business->id,
+            'product_item_id' => $productItem->id,
         ]);
 
         InventoryBalance::create([

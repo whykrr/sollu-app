@@ -44,7 +44,7 @@ class SupplierController extends Controller
         }
 
         return response()->json(
-            $supplier->load('inventoryItems:id,name')
+            $supplier->load('inventoryItems')
         );
     }
 
@@ -56,10 +56,10 @@ class SupplierController extends Controller
         $search = $request->get('search');
 
         $items = InventoryItem::currentBusiness()
+            ->with('productItem')
             ->when($search, function ($query, $search) {
-                $query->whereLike('name', "%{$search}%");
+                $query->whereHas('productItem', fn ($q) => $q->whereLike('name', "%{$search}%"));
             })
-            ->select('id', 'name')
             ->limit(50)
             ->get();
 

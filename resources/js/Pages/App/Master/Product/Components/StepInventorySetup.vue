@@ -15,31 +15,18 @@
                     <Switch v-model="form.track_inventory" size="sm" />
                 </div>
 
-                <!-- Dependent UOM & Min Stock Fields -->
-                <div
-                    v-if="form.track_inventory"
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-100"
-                >
-                    <div>
-                        <SearchableDropdownField
-                            v-model="form.uom_id"
-                            :options="uomOptions"
-                            label="Satuan (UOM)"
-                            placeholder="Pilih Satuan"
-                            search-placeholder="Cari satuan (UOM)..."
-                            :error="form.errors.uom_id"
-                            required
-                            clearable
-                        />
-                    </div>
-                    <div v-if="!form.has_variant">
-                        <NumberField
-                            v-model="form.min_stock"
-                            label="Batas Minimum Stok"
-                            placeholder="0"
-                            :error="form.errors.min_stock"
-                        />
-                    </div>
+                <!-- Dependent UOM Field -->
+                <div v-if="form.track_inventory" class="pt-2 border-t border-slate-100">
+                    <SearchableDropdownField
+                        v-model="form.uom_id"
+                        :options="uomOptions"
+                        label="Satuan (UOM)"
+                        placeholder="Pilih Satuan"
+                        search-placeholder="Cari satuan (UOM)..."
+                        :error="form.errors.uom_id"
+                        required
+                        clearable
+                    />
                 </div>
             </div>
         </FeatureLock>
@@ -191,14 +178,18 @@
                                     >
                                         <th class="p-2 font-semibold w-12 text-center">Foto</th>
                                         <th class="p-2 font-semibold">Kombinasi</th>
-                                        <th class="p-2 font-semibold w-36">SKU</th>
-                                        <th class="p-2 font-semibold w-36">Barcode</th>
+                                        <th class="p-2 font-semibold w-32">SKU</th>
+                                        <th class="p-2 font-semibold w-28">Barcode</th>
                                         <th
                                             v-if="form.track_inventory"
-                                            class="p-2 font-semibold w-24"
+                                            class="p-2 font-semibold w-24 text-center"
                                         >
-                                            Min Stok
+                                            Lacak Stok
                                         </th>
+                                        <th class="p-2 font-semibold w-24 text-center">
+                                            Dapat Dijual
+                                        </th>
+                                        <th class="p-2 font-semibold w-20 text-center">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
@@ -206,6 +197,7 @@
                                         v-for="(combo, cIdx) in form.variant_combinations"
                                         :key="cIdx"
                                         class="hover:bg-slate-50/50 transition-colors"
+                                        :class="{ 'opacity-60 bg-slate-50/60': !combo.is_active }"
                                     >
                                         <td class="p-1.5 text-center">
                                             <div
@@ -232,6 +224,7 @@
                                                 v-model="combo.sku"
                                                 size="sm"
                                                 placeholder="SKU"
+                                                :disabled="!combo.is_active"
                                             />
                                         </td>
                                         <td class="p-1.5">
@@ -239,14 +232,25 @@
                                                 v-model="combo.barcode"
                                                 size="sm"
                                                 placeholder="Barcode"
+                                                :disabled="!combo.is_active"
                                             />
                                         </td>
-                                        <td v-if="form.track_inventory" class="p-1.5">
-                                            <NumberField
-                                                v-model="combo.min_stock"
+                                        <td v-if="form.track_inventory" class="p-1.5 text-center">
+                                            <Switch
+                                                v-model="combo.track_inventory"
                                                 size="sm"
-                                                placeholder="0"
+                                                :disabled="!combo.is_active"
                                             />
+                                        </td>
+                                        <td class="p-1.5 text-center">
+                                            <Switch
+                                                v-model="combo.sellable"
+                                                size="sm"
+                                                :disabled="!combo.is_active"
+                                            />
+                                        </td>
+                                        <td class="p-1.5 text-center">
+                                            <Switch v-model="combo.is_active" size="sm" />
                                         </td>
                                     </tr>
                                 </tbody>
@@ -264,7 +268,6 @@ import { inject, ref, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash, faPlus, faImage, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons'
 import TextField from '@/Components/Form/TextField.vue'
-import NumberField from '@/Components/Form/NumberField.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import Switch from '@/Components/Form/Switch.vue'
 import FeatureLock from '@/Components/UI/FeatureLock.vue'

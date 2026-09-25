@@ -15,6 +15,7 @@ use App\Models\Master\Customer;
 use App\Models\Master\ModifierOption;
 use App\Models\Master\PaymentMethod;
 use App\Models\Master\Product;
+use App\Models\Master\ProductItem;
 use App\Models\Master\VariantGroupOption;
 use App\Models\OutletDevice;
 use App\Models\OutletSetting;
@@ -57,10 +58,10 @@ class TransactionService
                     $itemDisc = floatval($item['discount_amount'] ?? 0);
 
                     // Clamp discount if promo exists for this inventory item
-                    $inventoryItemId = $item['inventory_item_id'] ?? null;
-                    if ($inventoryItemId && ! empty($data['outlet_id'])) {
+                    $productItemId = $item['product_item_id'] ?? null;
+                    if ($productItemId && ! empty($data['outlet_id'])) {
                         $activePromo = Promo::active()
-                            ->whereHas('inventoryItems', fn ($q) => $q->where('inventory_items.id', $inventoryItemId))
+                            ->whereHas('inventoryItems', fn ($q) => $q->where('product_items.id', $productItemId))
                             ->where(function ($q) use ($data) {
                                 $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $data['outlet_id']))
                                     ->orWhere('applies_to_all_outlets', true);
@@ -177,11 +178,11 @@ class TransactionService
 
             if (! empty($data['items'])) {
                 foreach ($data['items'] as $item) {
-                    $inventoryItemId = $item['inventory_item_id'] ?? null;
+                    $productItemId = $item['product_item_id'] ?? null;
                     $productId = $item['product_id'] ?? null;
                     $variantGroupOptionId = $item['variant_group_option_id'] ?? null;
 
-                    $inventoryItem = $inventoryItemId ? InventoryItem::find($inventoryItemId) : null;
+                    $inventoryItem = $productItemId ? InventoryItem::find($productItemId) : null;
                     $product = $productId ? Product::find($productId) : null;
 
                     if (! $product && $inventoryItem) {
@@ -197,7 +198,7 @@ class TransactionService
 
                     $transaction->items()->create([
                         'product_id' => $productId,
-                        'inventory_item_id' => $inventoryItemId,
+                        'product_item_id' => $productItemId,
                         'variant_group_option_id' => $variantGroupOptionId,
                         'product_name' => $productName,
                         'price' => $itemPrice,
@@ -242,25 +243,28 @@ class TransactionService
         }
 
         foreach ($items as $item) {
-            $inventoryItemId = $item['inventory_item_id'] ?? null;
+            $productItemId = $item['product_item_id'] ?? $item['inventory_item_id'] ?? null;
             $productId = $item['product_id'] ?? null;
 
-            if (! $inventoryItemId && $productId) {
+            if (! $productItemId && $productId) {
                 $product = Product::with('inventoryItems')->find($productId);
-                $inventoryItemId = $product?->inventoryItems?->first()?->id;
+                $productItemId = $product?->inventoryItems?->first()?->id;
             }
 
-            if (! $inventoryItemId) {
+            if (! $productItemId) {
                 continue;
             }
 
-            $inventoryItem = InventoryItem::find($inventoryItemId);
+            $inventoryItem = InventoryItem::where('id', $productItemId)
+                ->orWhere('product_item_id', $productItemId)
+                ->first();
+
             if (! $inventoryItem || ! $inventoryItem->track_inventory) {
                 continue;
             }
 
             $balance = InventoryBalance::where('outlet_id', $outletId)
-                ->where('inventory_item_id', $inventoryItemId)
+                ->where('inventory_item_id', $inventoryItem->id)
                 ->first();
 
             $currentStock = floatval($balance?->current_stock ?? 0);
@@ -605,12 +609,12 @@ class TransactionService
 
             foreach ($data['items'] as $item) {
                 $productId = ($isValidUuid($item['product_id'] ?? null) && Product::where('id', $item['product_id'])->exists()) ? $item['product_id'] : null;
-                $inventoryItemId = ($isValidUuid($item['inventory_item_id'] ?? null) && \App\Models\Master\InventoryItem::where('id', $item['inventory_item_id'])->exists()) ? $item['inventory_item_id'] : null;
+                $productItemId = ($isValidUuid($item['product_item_id'] ?? null) && ProductItem::where('id', $item['product_item_id'])->exists()) ? $item['product_item_id'] : null;
                 $variantOptionId = ($isValidUuid($item['variant_group_option_id'] ?? null) && VariantGroupOption::where('id', $item['variant_group_option_id'])->exists()) ? $item['variant_group_option_id'] : null;
 
                 $txItem = $transaction->items()->create([
                     'product_id' => $productId,
-                    'inventory_item_id' => $inventoryItemId,
+                    'product_item_id' => $productItemId,
                     'variant_group_option_id' => $variantOptionId,
                     'product_name' => $item['product_name'],
                     'price' => $item['price'],

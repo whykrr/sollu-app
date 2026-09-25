@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Master\OutletPaymentMethod;
+use App\Models\Master\PaymentMethod;
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,6 +20,7 @@ use Spatie\Sluggable\SlugOptions;
 /**
  * @property-read Collection|Business $business
  * @property-read Collection|User[] $users
+ *
  * @mixin IdeHelperOutlet
  */
 class Outlet extends Model
@@ -106,15 +109,15 @@ class Outlet extends Model
 
     public function paymentMethods(): BelongsToMany
     {
-        return $this->belongsToMany(\App\Models\Master\PaymentMethod::class, 'outlet_payment_method')
-            ->using(\App\Models\Master\OutletPaymentMethod::class)
+        return $this->belongsToMany(PaymentMethod::class, 'outlet_payment_method')
+            ->using(OutletPaymentMethod::class)
             ->withPivot('is_enabled')
             ->withTimestamps();
     }
 
     public function outletPaymentMethods(): HasMany
     {
-        return $this->hasMany(\App\Models\Master\OutletPaymentMethod::class);
+        return $this->hasMany(OutletPaymentMethod::class);
     }
 
     public function auditLogs(): HasMany

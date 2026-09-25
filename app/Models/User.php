@@ -25,6 +25,7 @@ use Spatie\Permission\Traits\HasRoles;
 /**
  * @property-read Collection|Business $business
  * @property-read Collection|Outlet[] $outlets
+ *
  * @mixin HasRoles
  * @mixin IdeHelperUser
  */
@@ -137,7 +138,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the business that owns the User
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo|Business
+     * @return BelongsTo|Business
      */
     public function business(): BelongsTo
     {

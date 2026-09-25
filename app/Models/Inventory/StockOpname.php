@@ -3,10 +3,12 @@
 namespace App\Models\Inventory;
 
 use App\Enums\StockOpnameStatus;
+use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Trait\HasBusiness;
+use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -21,15 +23,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read User|null $creator
  * @property-read User|null $approver
  * @property-read Collection|StockOpnameItem[] $items
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperStockOpname
  */
 class StockOpname extends Model
 {
-    use \App\Trait\SortableModel;
     use HasBusiness;
     use HasFactory;
     use HasUuids;
+    use SortableModel;
 
     protected $fillable = [
         'business_id',
@@ -100,7 +103,7 @@ class StockOpname extends Model
             $filters['status'] ?? false,
             fn (Builder $q, $value) => $q->where('status', $value)
         )->when(
-            $filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['date_from'] ?? false,

@@ -17,7 +17,7 @@ class ProductRecipeItem extends Model
 
     protected $fillable = [
         'recipe_version_id',
-        'inventory_item_id',
+        'product_item_id',
         'qty',
         'uom',
     ];
@@ -31,9 +31,9 @@ class ProductRecipeItem extends Model
         return $this->belongsTo(RecipeVersion::class);
     }
 
-    public function inventoryItem()
+    public function productItem()
     {
-        return $this->belongsTo(InventoryItem::class);
+        return $this->belongsTo(ProductItem::class);
     }
 
     protected function qtyFormatted(): Attribute

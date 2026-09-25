@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Breadcrumbs\BreadcrumbManager;
 use App\Support\Enums\FrontendEnumProvider;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -43,7 +44,7 @@ class HandleCockpitInertiaRequests extends Middleware
             'app' => [
                 'name' => config('app.name'),
                 'home_route' => 'cockpit.dashboard',
-                'breadcrumbs' => \App\Support\Breadcrumbs\BreadcrumbManager::forCockpit($request),
+                'breadcrumbs' => BreadcrumbManager::forCockpit($request),
                 'flash' => [
                     'success' => $request->session()->get('success'),
                     'failed' => $request->session()->get('failed'),

@@ -2,6 +2,7 @@
 
 namespace App\Models\Master;
 
+use App\Enums\CustomerGender;
 use App\Models\Business;
 use App\Models\Sales\Transaction;
 use App\Trait\HasBusiness;
@@ -64,7 +65,7 @@ class Customer extends Model
     {
         return [
             'birthdate' => 'date',
-            'gender' => \App\Enums\CustomerGender::class,
+            'gender' => CustomerGender::class,
             'is_active' => 'boolean',
             'created_by' => 'string',
         ];

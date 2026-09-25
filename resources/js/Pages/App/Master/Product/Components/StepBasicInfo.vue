@@ -163,14 +163,12 @@ const handleProductTypeChange = val => {
         form.has_variant = false
         form.has_recipe = false
         form.uom_id = ''
-        form.min_stock = '0'
     } else if (val === 'bundle') {
         form.track_inventory = false
         form.has_variant = false
         form.has_modifier = false
         form.has_recipe = false
         form.uom_id = ''
-        form.min_stock = '0'
     }
 }
 

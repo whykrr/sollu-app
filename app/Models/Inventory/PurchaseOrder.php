@@ -3,6 +3,7 @@
 namespace App\Models\Inventory;
 
 use App\Enums\PurchaseOrderStatus;
+use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read User|null $creator
  * @property-read User|null $approver
  * @property-read Collection|PurchaseOrderItem[] $items
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperPurchaseOrder
  */
@@ -127,7 +129,7 @@ class PurchaseOrder extends Model
             $filters['supplier_id'] ?? false,
             fn (Builder $q, $value) => $q->where('supplier_id', $value)
         )->when(
-            $filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['start_date'] ?? false,

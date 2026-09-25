@@ -3,6 +3,7 @@
 namespace App\Models\Inventory;
 
 use App\Enums\PurchaseReturnStatus;
+use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Supplier|null $supplier
  * @property-read User|null $creator
  * @property-read Collection|PurchaseReturnItem[] $items
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperPurchaseReturn
  */
@@ -113,7 +115,7 @@ class PurchaseReturn extends Model
             $filters['purchase_order_id'] ?? false,
             fn (Builder $q, $value) => $q->where('purchase_order_id', $value)
         )->when(
-            $filters['outlet_id'] ?? \App\Helpers\SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['start_date'] ?? false,
