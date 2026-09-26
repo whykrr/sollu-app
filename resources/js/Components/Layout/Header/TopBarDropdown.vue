@@ -4,49 +4,75 @@
             <slot name="trigger" :is-open="isOpen" :toggle="toggle" :close="close" :open="open" />
         </div>
 
-        <transition name="fade-down" mode="in-out">
-            <div
-                v-if="isOpen"
-                class="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:top-[48px] z-100 bg-white border border-neutral-100 rounded-xl shadow-2xl ring-1 ring-black/5 p-4 max-h-[calc(100vh-5rem)] overflow-y-auto floating-scroll"
-                :class="[
-                    align === 'left' ? 'sm:left-0 origin-top-left' : 'sm:right-0 origin-top-right',
-                    widthClass,
-                    panelClass,
-                ]"
+        <!-- Mobile Teleport Wrapper for Backdrop and Dropdown Panel (< sm) -->
+        <Teleport to="body" :disabled="!isMobile">
+            <!-- Mobile Backdrop Overlay (< sm) -->
+            <Transition
+                enter-active-class="transition-opacity duration-200 ease-out"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition-opacity duration-150 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
             >
-                <div class="flex flex-col gap-2">
-                    <!-- Close Button -->
-                    <div v-if="showCloseButton" class="absolute right-4 top-4">
-                        <a
-                            href="#"
-                            class="text-neutral-400 hover:text-neutral-600 transition-colors"
-                            aria-label="Tutup"
-                            @click.prevent="close"
+                <div
+                    v-if="isOpen && isMobile"
+                    class="fixed inset-0 bg-black/30 backdrop-blur-xs z-[99]"
+                    aria-hidden="true"
+                    @click="close"
+                />
+            </Transition>
+
+            <Transition name="fade-down">
+                <div
+                    v-if="isOpen"
+                    class="fixed inset-x-3 max-w-[calc(100vw-1.5rem)] mx-auto top-16 sm:absolute sm:inset-auto sm:top-[48px] sm:max-w-none z-[100] bg-white border border-neutral-100 rounded-xl shadow-2xl ring-1 ring-black/5 p-4 max-h-[calc(100vh-5rem)] overflow-y-auto floating-scroll"
+                    :class="[
+                        align === 'left' ? 'sm:left-0 origin-top-left' : 'sm:right-0 origin-top-right',
+                        widthClass,
+                        panelClass,
+                    ]"
+                >
+                    <div class="flex flex-col gap-2">
+                        <!-- Close Button -->
+                        <div
+                            v-if="showCloseButton"
+                            class="absolute right-2.5 top-2.5 sm:right-3 sm:top-3"
                         >
-                            <FontAwesomeIcon :icon="faClose" />
-                        </a>
-                    </div>
-
-                    <!-- Header Slot or Default Title -->
-                    <slot name="header" :close="close">
-                        <div v-if="title" class="text-center text-lg font-medium text-neutral-800">
-                            {{ title }}
+                            <button
+                                type="button"
+                                class="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200 transition-colors touch-manipulation cursor-pointer"
+                                aria-label="Tutup"
+                                @click.prevent="close"
+                            >
+                                <FontAwesomeIcon :icon="faClose" class="text-sm" />
+                            </button>
                         </div>
-                    </slot>
 
-                    <!-- Main Dropdown Content -->
-                    <slot :close="close" :is-open="isOpen" />
+                        <!-- Header Slot or Default Title -->
+                        <slot name="header" :close="close">
+                            <div
+                                v-if="title"
+                                class="text-center text-lg font-medium text-neutral-800 pr-8 pl-8 sm:pr-6 sm:pl-6"
+                            >
+                                {{ title }}
+                            </div>
+                        </slot>
 
-                    <!-- Footer Slot -->
-                    <slot name="footer" :close="close" />
+                        <!-- Main Dropdown Content -->
+                        <slot :close="close" :is-open="isOpen" />
+
+                        <!-- Footer Slot -->
+                        <slot name="footer" :close="close" />
+                    </div>
                 </div>
-            </div>
-        </transition>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faClose } from '@fortawesome/free-solid-svg-icons'
 import { useDropdown } from '@/Composable/useDropdown'
@@ -80,6 +106,22 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'open', 'close', 'toggle'])
+
+const isMobile = ref(false)
+const checkMobile = () => {
+    if (typeof window !== 'undefined') {
+        isMobile.value = window.innerWidth < 640
+    }
+}
+
+onMounted(() => {
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('resize', checkMobile)
+})
 
 const {
     isOpen: internalIsOpen,

@@ -59,9 +59,10 @@ class ImportRawMaterialJob extends AbstractExcelImportJob
 
         // Check uniqueness of SKU and Barcode manually to throw descriptive error
         if (! empty($sku)) {
-            $exists = InventoryItem::where('business_id', $this->businessId)
-                ->where('sku', $sku)
-                ->where('name', '!=', $name)
+            $exists = InventoryItem::where('inventory_items.business_id', $this->businessId)
+                ->joinProductItem()
+                ->where('product_items.sku', $sku)
+                ->where('inventory_items.name', '!=', $name)
                 ->exists();
             if ($exists) {
                 throw new Exception("SKU '{$sku}' sudah digunakan.");
@@ -69,18 +70,24 @@ class ImportRawMaterialJob extends AbstractExcelImportJob
         }
 
         if (! empty($barcode)) {
-            $exists = InventoryItem::where('business_id', $this->businessId)
-                ->where('barcode', $barcode)
-                ->where('name', '!=', $name)
+            $exists = InventoryItem::where('inventory_items.business_id', $this->businessId)
+                ->joinProductItem()
+                ->where('product_items.barcode', $barcode)
+                ->where('inventory_items.name', '!=', $name)
                 ->exists();
             if ($exists) {
                 throw new Exception("Barcode '{$barcode}' sudah digunakan.");
             }
         }
 
-        $item = InventoryItem::where('business_id', $this->businessId)
-            ->where('item_type', 'raw_material')
-            ->where('name', $name)
+        $item = InventoryItem::where('inventory_items.business_id', $this->businessId)
+            ->joinProductItem()
+            ->where('product_items.item_type', 'raw_material')
+            ->where(function ($q) use ($name) {
+                $q->where('inventory_items.name', $name)
+                    ->orWhere('product_items.name', $name);
+            })
+            ->select('inventory_items.*')
             ->first();
 
         $data = [

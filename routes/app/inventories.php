@@ -2,6 +2,7 @@
 
 use App\Enums\FeatureEnum;
 use App\Http\Controllers\App\Inventory\InventoryMovementController;
+use App\Http\Controllers\App\Inventory\OutletFreezeController;
 use App\Http\Controllers\App\Inventory\RawMaterialController;
 use App\Http\Controllers\App\Inventory\StockAdjustmentController;
 use App\Http\Controllers\App\Inventory\StockController;
@@ -22,8 +23,7 @@ Route::prefix('inventories')->group(function () {
             Route::get('stocks/import/template', [StockController::class, 'importTemplate'])->name('stocks.import-template');
             Route::post('stocks/import', [StockController::class, 'import'])->name('stocks.import');
             Route::get('stocks/{id}', [StockController::class, 'show'])->name('stocks.show');
-            Route::patch('stocks/{id}/barcode', [StockController::class, 'updateBarcode'])->name('stocks.barcode.update');
-            Route::patch('stocks/{id}/sku', [StockController::class, 'updateSku'])->name('stocks.sku.update');
+            Route::patch('stocks/{id}/minimum-stock', [StockController::class, 'updateMinimumStock'])->name('stocks.minimum-stock.update');
             Route::post('stocks/{id}/initial-stock', [StockController::class, 'storeInitialStock'])->name('stocks.initial-stock.store');
             Route::get('stocks/{id}/export-pdf', [StockController::class, 'exportPdf'])->name('stocks.export.pdf');
 
@@ -108,8 +108,8 @@ Route::prefix('inventories')->group(function () {
 
             // Outlets (Generic Inventory Outlet Actions)
             Route::middleware('plan.feature:'.FeatureEnum::STOCK_FREEZE->value)->group(function () {
-                Route::post('outlets/freeze', [\App\Http\Controllers\App\Inventory\OutletFreezeController::class, 'freeze'])->name('outlets.freeze');
-                Route::post('outlets/unfreeze', [\App\Http\Controllers\App\Inventory\OutletFreezeController::class, 'unfreeze'])->name('outlets.unfreeze');
+                Route::post('outlets/freeze', [OutletFreezeController::class, 'freeze'])->name('outlets.freeze');
+                Route::post('outlets/unfreeze', [OutletFreezeController::class, 'unfreeze'])->name('outlets.unfreeze');
             });
 
             // Transfers

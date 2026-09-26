@@ -51,43 +51,25 @@
                     <div>
                         <h3 class="text-sm font-bold text-slate-800">Daftar Barang Mutasi</h3>
                         <p class="text-xs text-slate-500">
-                            Cari dan tambahkan barang yang ingin dipindahkan ke outlet tujuan.
+                            Pilih dan tentukan kuantitas barang yang ingin dipindahkan ke outlet
+                            tujuan.
                         </p>
                     </div>
-                    <div class="w-full sm:w-80">
-                        <AsyncSelectField
-                            id="search_item"
-                            label="Cari Barang"
-                            placeholder="Cari nama, SKU, atau barcode..."
-                            class="sm"
-                            :api-url="route('api.internal.inventory-items.search')"
-                            :api-params="{
-                                outlet_id: form.from_outlet_id,
-                            }"
-                            :min-chars="2"
+                    <div>
+                        <button
+                            type="button"
+                            class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
                             :disabled="!form.from_outlet_id"
-                            @select="addItemFromSearch"
+                            :title="
+                                !form.from_outlet_id
+                                    ? 'Pilih outlet asal terlebih dahulu'
+                                    : 'Buka daftar barang untuk mutasi'
+                            "
+                            @click="showItemPicker = true"
                         >
-                            <template #option="{ item }">
-                                <div class="flex items-center justify-between w-full">
-                                    <div>
-                                        <div class="font-semibold text-xs text-slate-800">
-                                            {{ item.name }}
-                                        </div>
-                                        <div class="text-[11px] text-slate-400">
-                                            SKU: {{ item.sku || '-' }}
-                                        </div>
-                                    </div>
-                                    <div class="text-right text-[11px] text-slate-500">
-                                        Stok:
-                                        <span class="font-medium text-slate-700">
-                                            {{ Number(item.current_stock ?? 0) }}
-                                        </span>
-                                        {{ item.uom?.name || '' }}
-                                    </div>
-                                </div>
-                            </template>
-                        </AsyncSelectField>
+                            <FontAwesomeIcon :icon="faPlus" />
+                            <span>Item</span>
+                        </button>
                     </div>
                 </div>
 
@@ -106,10 +88,18 @@
                 <!-- Empty State Jika Belum Ada Item -->
                 <div
                     v-else-if="form.items.length === 0"
-                    class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
+                    class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50 space-y-2"
                 >
-                    Belum ada barang ditambahkan. Silakan cari dan pilih barang pada kolom pencarian
-                    di atas.
+                    <p>Belum ada barang ditambahkan untuk mutasi stok.</p>
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                        :disabled="!form.from_outlet_id"
+                        @click="showItemPicker = true"
+                    >
+                        <FontAwesomeIcon :icon="faPlus" />
+                        <span>Tambah Barang</span>
+                    </button>
                 </div>
 
                 <!-- Daftar Item Mutasi -->
@@ -234,6 +224,16 @@
             </div>
         </form>
 
+        <!-- Reusable Multi-Select Item Picker Modal -->
+        <ItemPickerModal
+            :show="showItemPicker"
+            :outlet-id="form.from_outlet_id"
+            :already-selected-ids="form.items.map(i => i.inventory_item_id)"
+            title="Pilih Barang Mutasi / Transfer"
+            @close="showItemPicker = false"
+            @selected="onItemsSelected"
+        />
+
         <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
@@ -264,13 +264,13 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import { useAuth } from '@/Composable/useAuth'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
-import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
+import ItemPickerModal from '@/Components/Inventory/ItemPickerModal.vue'
 
 const props = defineProps({
     transferData: {
@@ -282,6 +282,7 @@ const props = defineProps({
 const emit = defineEmits(['refresh'])
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 const isMounted = ref(false)
+const showItemPicker = ref(false)
 
 const form = useForm({
     from_outlet_id:
@@ -352,18 +353,20 @@ onMounted(() => {
     }
 })
 
-const addItemFromSearch = item => {
-    const exists = form.items.find(i => i.inventory_item_id === item.id)
-    if (!exists) {
-        form.items.unshift({
-            inventory_item_id: item.id,
-            name: item.name,
-            sku: item.sku || '-',
-            uom: item.uom?.name || '-',
-            system_qty: Number(item.current_stock ?? 0),
-            qty: 1,
-        })
-    }
+const onItemsSelected = newItems => {
+    newItems.forEach(item => {
+        const exists = form.items.find(i => String(i.inventory_item_id) === String(item.id))
+        if (!exists) {
+            form.items.unshift({
+                inventory_item_id: item.id,
+                name: item.name,
+                sku: item.sku || '-',
+                uom: item.uom?.name || item.uom_name || '-',
+                system_qty: Number(item.current_stock ?? 0),
+                qty: 1,
+            })
+        }
+    })
 }
 
 const removeItem = index => {

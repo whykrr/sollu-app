@@ -1,21 +1,24 @@
 <template>
-    <TopBarDropdown title="Pusat Bantuan & Panduan" width-class="w-80 sm:w-88" align="right">
-        <template #trigger="{ toggle }">
-            <a
-                href="#"
-                class="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-slate-700 hover:bg-neutral-100 transition-all duration-200 active:scale-95 cursor-pointer"
+    <TopBarDropdown title="Pusat Bantuan & Panduan" width-class="w-full sm:w-88" align="right">
+        <template #trigger="{ toggle, isOpen }">
+            <button
+                type="button"
+                class="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-full text-slate-700 hover:bg-neutral-100 active:bg-neutral-200 transition-all duration-200 active:scale-95 cursor-pointer touch-manipulation"
                 title="Pusat Bantuan"
+                aria-label="Pusat Bantuan & Panduan"
+                aria-haspopup="dialog"
+                :aria-expanded="isOpen"
                 @click.prevent="toggle"
             >
                 <FontAwesomeIcon :icon="faCircleQuestion" class="text-[1.1rem] sm:text-[1.15rem]" />
-            </a>
+            </button>
         </template>
 
         <template #default="{ close }">
-            <div class="space-y-2">
+            <div class="space-y-2.5">
                 <!-- Info Banner -->
                 <div
-                    class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-start gap-3"
+                    class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 sm:p-3.5 flex items-start gap-3"
                 >
                     <div
                         class="w-8 h-8 rounded-lg bg-main/10 text-main flex items-center justify-center shrink-0 mt-0.5"
@@ -40,7 +43,7 @@
                                 :href="helpCenterUrl"
                                 :target="isExternalLink ? '_blank' : undefined"
                                 :rel="isExternalLink ? 'noopener noreferrer' : undefined"
-                                class="flex items-center gap-3 px-3.5 py-2.5 hover:bg-white text-sm text-neutral-700 font-medium transition-all duration-150 ease-in-out group"
+                                class="flex items-center gap-3 px-3.5 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 hover:bg-white active:bg-neutral-100 text-sm text-neutral-700 font-medium transition-all duration-150 ease-in-out group touch-manipulation"
                                 @click="close"
                             >
                                 <div
@@ -59,7 +62,7 @@
                                 <FontAwesomeIcon
                                     v-if="isExternalLink"
                                     :icon="faArrowUpRightFromSquare"
-                                    class="text-[11px] text-neutral-400 group-hover:text-neutral-600 transition-colors"
+                                    class="text-[11px] text-neutral-400 group-hover:text-neutral-600 transition-colors shrink-0"
                                 />
                             </a>
                         </li>
@@ -69,7 +72,7 @@
                                 :href="supportWaUrl"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="flex items-center gap-3 px-3.5 py-2.5 hover:bg-white text-sm text-neutral-700 font-medium transition-all duration-150 ease-in-out group"
+                                class="flex items-center gap-3 px-3.5 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 hover:bg-white active:bg-neutral-100 text-sm text-neutral-700 font-medium transition-all duration-150 ease-in-out group touch-manipulation"
                                 @click="close"
                             >
                                 <div
@@ -87,7 +90,7 @@
                                 </div>
                                 <FontAwesomeIcon
                                     :icon="faArrowUpRightFromSquare"
-                                    class="text-[11px] text-neutral-400 group-hover:text-neutral-600 transition-colors"
+                                    class="text-[11px] text-neutral-400 group-hover:text-neutral-600 transition-colors shrink-0"
                                 />
                             </a>
                         </li>
@@ -95,9 +98,11 @@
                 </div>
 
                 <!-- Footer System Info -->
-                <div class="pt-1 px-1 flex items-center justify-between text-[10px] text-slate-400">
+                <div
+                    class="pt-1 px-1 flex items-center justify-between text-[11px] text-slate-400 select-none"
+                >
                     <span>Sollu App v1.0</span>
-                    <span class="inline-flex items-center gap-1 text-emerald-600 font-medium">
+                    <span class="inline-flex items-center gap-1.5 text-emerald-600 font-medium">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         Sistem Normal
                     </span>

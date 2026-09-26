@@ -80,8 +80,15 @@ const save = async () => {
         errors.qty = 'Kuantitas stok awal harus lebih besar dari 0.'
         hasErr = true
     }
-    if (purchasePrice.value === '' || parseFloat(purchasePrice.value) < 0) {
-        errors.purchase_price = 'Harga beli tidak boleh kosong atau negatif.'
+    if (
+        purchasePrice.value === '' ||
+        purchasePrice.value === null ||
+        isNaN(parseFloat(purchasePrice.value))
+    ) {
+        errors.purchase_price = 'Harga beli wajib diisi.'
+        hasErr = true
+    } else if (parseFloat(purchasePrice.value) < 0) {
+        errors.purchase_price = 'Harga beli tidak boleh bernilai negatif.'
         hasErr = true
     }
 
@@ -96,6 +103,14 @@ const save = async () => {
         forceClose()
         emit('success')
     } catch (err) {
+        if (err.response?.data?.errors) {
+            if (err.response.data.errors.qty) {
+                errors.qty = err.response.data.errors.qty[0]
+            }
+            if (err.response.data.errors.purchase_price) {
+                errors.purchase_price = err.response.data.errors.purchase_price[0]
+            }
+        }
         generalError.value = err.response?.data?.message || 'Gagal menyimpan stok awal.'
     } finally {
         saving.value = false

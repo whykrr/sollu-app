@@ -23,7 +23,7 @@
                 @click="$emit('create')"
             >
                 <FontAwesomeIcon :icon="faPlus" />
-                <span>Tambah Baru</span>
+                <span>Supplier Baru</span>
             </button>
         </template>
     </ActionBar>

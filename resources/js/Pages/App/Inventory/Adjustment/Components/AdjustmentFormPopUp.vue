@@ -44,45 +44,26 @@
             <div class="border-t border-slate-200 pt-3 space-y-2">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-800">Daftar Barang</h3>
+                        <h3 class="text-sm font-bold text-slate-800">Daftar Barang Penyesuaian</h3>
                         <p class="text-xs text-slate-500">
-                            Cari dan tambahkan barang yang ingin disesuaikan stok fisiknya.
+                            Pilih dan sesuaikan kuantitas stok fisik barang di outlet terpilih.
                         </p>
                     </div>
-                    <div class="w-full sm:w-80">
-                        <AsyncSelectField
-                            id="search_item"
-                            label="Cari Barang"
-                            placeholder="Cari nama, SKU, atau barcode..."
-                            class="sm"
-                            :api-url="route('api.internal.inventory-items.search')"
-                            :api-params="{
-                                outlet_id: form.outlet_id,
-                            }"
-                            :min-chars="2"
+                    <div>
+                        <button
+                            type="button"
+                            class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
                             :disabled="!form.outlet_id"
-                            @select="addItemFromSearch"
+                            :title="
+                                !form.outlet_id
+                                    ? 'Pilih outlet terlebih dahulu'
+                                    : 'Buka daftar barang untuk disesuaikan'
+                            "
+                            @click="showItemPicker = true"
                         >
-                            <template #option="{ item }">
-                                <div class="flex items-center justify-between w-full">
-                                    <div>
-                                        <div class="font-semibold text-xs text-slate-800">
-                                            {{ item.name }}
-                                        </div>
-                                        <div class="text-[11px] text-slate-400">
-                                            SKU: {{ item.sku || '-' }}
-                                        </div>
-                                    </div>
-                                    <div class="text-right text-[11px] text-slate-500">
-                                        Stok:
-                                        <span class="font-medium text-slate-700">
-                                            {{ Number(item.current_stock ?? 0) }}
-                                        </span>
-                                        {{ item.uom?.name || '' }}
-                                    </div>
-                                </div>
-                            </template>
-                        </AsyncSelectField>
+                            <FontAwesomeIcon :icon="faPlus" />
+                            <span>Item</span>
+                        </button>
                     </div>
                 </div>
 
@@ -101,10 +82,18 @@
                 <!-- Empty State Jika Belum Ada Item -->
                 <div
                     v-else-if="form.items.length === 0"
-                    class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
+                    class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50 space-y-2"
                 >
-                    Belum ada barang ditambahkan. Silakan cari dan pilih barang pada kolom pencarian
-                    di atas.
+                    <p>Belum ada barang ditambahkan untuk disesuaikan.</p>
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                        :disabled="!form.outlet_id"
+                        @click="showItemPicker = true"
+                    >
+                        <FontAwesomeIcon :icon="faPlus" />
+                        <span>Tambah Barang</span>
+                    </button>
                 </div>
 
                 <!-- Daftar Item Penyesuaian -->
@@ -252,6 +241,16 @@
             </div>
         </form>
 
+        <!-- Reusable Multi-Select Item Picker Modal -->
+        <ItemPickerModal
+            :show="showItemPicker"
+            :outlet-id="form.outlet_id"
+            :already-selected-ids="form.items.map(i => i.inventory_item_id)"
+            title="Pilih Barang Penyesuaian Stok"
+            @close="showItemPicker = false"
+            @selected="onItemsSelected"
+        />
+
         <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
@@ -277,21 +276,23 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
-import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
+import ItemPickerModal from '@/Components/Inventory/ItemPickerModal.vue'
 
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 const { getOptions } = useEnum()
 
 const isMounted = ref(false)
+const showItemPicker = ref(false)
+
 onMounted(() => {
     isMounted.value = true
 })
@@ -334,20 +335,22 @@ const netQtyChange = computed(() => {
     return form.items.reduce((sum, item) => sum + Number(item.qty_change || 0), 0)
 })
 
-const addItemFromSearch = item => {
-    const exists = form.items.find(i => i.inventory_item_id === item.id)
-    if (!exists) {
-        form.items.unshift({
-            inventory_item_id: item.id,
-            name: item.name,
-            sku: item.sku || '-',
-            uom: item.uom?.name || '-',
-            current_stock: Number(item.current_stock ?? 0),
-            qty_change: '',
-            unit_cost: '',
-            description: '',
-        })
-    }
+const onItemsSelected = newItems => {
+    newItems.forEach(item => {
+        const exists = form.items.find(i => String(i.inventory_item_id) === String(item.id))
+        if (!exists) {
+            form.items.unshift({
+                inventory_item_id: item.id,
+                name: item.name,
+                sku: item.sku || '-',
+                uom: item.uom?.name || item.uom_name || '-',
+                current_stock: Number(item.current_stock ?? 0),
+                qty_change: '',
+                unit_cost: '',
+                description: '',
+            })
+        }
+    })
 }
 
 const removeItem = index => {

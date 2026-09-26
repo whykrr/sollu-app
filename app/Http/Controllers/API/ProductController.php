@@ -89,15 +89,17 @@ class ProductController extends Controller
     public function searchByInventoryItem(Request $request)
     {
         $search = $request->get('search') ?: $request->get('query');
-        $search = $request->get('check_promo', true) ?: $request->get('check_promo');
+        $checkPromo = $request->boolean('check_promo', true);
         $outletId = $request->get('outlet_id');
         $limit = $request->get('limit', 50);
 
-        $items = InventoryItem::currentBusiness()
-            ->where('is_active', true)
+        $items = InventoryItem::query()
+            ->where('inventory_items.business_id', $request->user()->business_id)
+            ->where('inventory_items.is_active', true)
+            ->joinProductItem()
             ->with([
                 'uom:id,name',
-                'product:id,name,code,track_inventory',
+                'product:products.id,products.name,products.code,products.track_inventory',
                 'product.prices' => function ($q) use ($outletId) {
                     if ($outletId) {
                         $q->where(function ($sub) use ($outletId) {
@@ -113,9 +115,9 @@ class ProductController extends Controller
             ])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->whereLike('name', "%{$search}%")
-                        ->orWhereLike('sku', "%{$search}%")
-                        ->orWhereLike('barcode', "%{$search}%");
+                    $q->whereLike('inventory_items.name', "%{$search}%")
+                        ->orWhereLike('product_items.sku', "%{$search}%")
+                        ->orWhereLike('product_items.barcode', "%{$search}%");
                 });
             })
             ->limit($limit)

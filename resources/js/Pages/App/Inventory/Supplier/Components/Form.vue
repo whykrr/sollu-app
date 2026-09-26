@@ -66,67 +66,43 @@
                     rows="2"
                 />
 
-                <div class="flex flex-col gap-1">
-                    <label class="label">Bahan Baku & Barang yang Disuplai</label>
-                    <div class="form-group sm">
-                        <span class="form-group-text">
-                            <FontAwesomeIcon :icon="faSearch" class="text-slate-400" />
-                        </span>
-                        <input
-                            v-model="searchQuery"
-                            type="text"
-                            class="form sm"
-                            placeholder="Cari bahan baku atau barang..."
-                            @input="onSearchInput"
-                        />
+                <div class="flex flex-col gap-1.5 border-t border-slate-200/80 pt-2.5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="label mb-0">Bahan Baku & Barang yang Disuplai</label>
+                            <p class="text-[11px] text-slate-500">
+                                Tentukan produk apa saja yang disuplai oleh pemasok ini.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer shrink-0"
+                            title="Pilih bahan baku & barang"
+                            @click="showItemPicker = true"
+                        >
+                            <FontAwesomeIcon :icon="faPlus" />
+                            <span>Pilih Barang</span>
+                        </button>
                     </div>
 
-                    <!-- Loading state -->
-                    <div v-if="isSearching" class="text-xs text-slate-500 py-1">
-                        Mencari item...
-                    </div>
-
-                    <!-- Checkbox List -->
+                    <!-- Empty State -->
                     <div
-                        v-if="searchQuery || searchResults.length > 0"
-                        class="border border-slate-200 rounded-lg p-2 max-h-40 overflow-y-auto space-y-1 mt-1 bg-slate-50/50"
+                        v-if="selectedItems.length === 0"
+                        class="text-center py-4 text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50/50"
                     >
-                        <div
-                            v-for="item in displayItems"
-                            :key="item.id"
-                            class="form-check sm hover:bg-white p-1.5 rounded-lg transition-colors cursor-pointer"
-                        >
-                            <input
-                                :id="'supplier-item-' + item.id"
-                                v-model="form.inventory_items"
-                                type="checkbox"
-                                :value="item.id"
-                            />
-                            <label
-                                :for="'supplier-item-' + item.id"
-                                class="text-slate-700 font-medium flex-1"
-                            >
-                                {{ item.name }}
-                            </label>
-                        </div>
-                        <div
-                            v-if="displayItems.length === 0 && !isSearching"
-                            class="text-xs text-slate-500 text-center py-3"
-                        >
-                            Item tidak ditemukan.
-                        </div>
+                        Belum ada barang yang diasosiasikan dengan supplier ini.
                     </div>
 
                     <!-- Selected Items Badges -->
                     <div
-                        v-if="selectedItems.length > 0"
-                        class="flex flex-wrap items-center gap-1.5 mt-1"
+                        v-else
+                        class="flex flex-wrap items-center gap-1.5 p-2 border border-slate-200 rounded-lg bg-slate-50/40 max-h-36 overflow-y-auto"
                     >
                         <div v-for="item in selectedItems" :key="item.id" class="filter-badge">
-                            <span>{{ item.name }}</span>
+                            <span class="truncate max-w-[200px]">{{ item.name }}</span>
                             <button
                                 type="button"
-                                class="filter-badge-remove"
+                                class="filter-badge-remove cursor-pointer"
                                 title="Hapus item"
                                 @click="removeSelectedItem(item.id)"
                             >
@@ -135,11 +111,9 @@
                         </div>
                     </div>
 
-                    <span
-                        v-if="form.errors.inventory_items"
-                        class="form-feedback text-danger mt-1"
-                        >{{ form.errors.inventory_items }}</span
-                    >
+                    <span v-if="form.errors.inventory_items" class="form-feedback text-danger mt-1">
+                        {{ form.errors.inventory_items }}
+                    </span>
                 </div>
             </DisclosureSection>
 
@@ -164,6 +138,17 @@
             </div>
         </form>
 
+        <!-- Reusable Multi-Select Item Picker Modal -->
+        <ItemPickerModal
+            :show="showItemPicker"
+            :api-url="route('inventory.suppliers.search-items')"
+            :already-selected-ids="form.inventory_items"
+            :hide-stock="true"
+            title="Pilih Bahan Baku & Barang Suplai"
+            @close="showItemPicker = false"
+            @selected="onItemsSelected"
+        />
+
         <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
@@ -183,10 +168,9 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import { debounce } from 'lodash'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faSearch } from '@fortawesome/free-solid-svg-icons'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import TextField from '@/Components/Form/TextField.vue'
 import EmailField from '@/Components/Form/EmailField.vue'
@@ -194,6 +178,7 @@ import NumberField from '@/Components/Form/NumberField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import Switch from '@/Components/Form/Switch.vue'
 import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
+import ItemPickerModal from '@/Components/Inventory/ItemPickerModal.vue'
 
 const props = defineProps({
     supplier: {
@@ -203,6 +188,9 @@ const props = defineProps({
 })
 
 const isMounted = ref(false)
+const showItemPicker = ref(false)
+const knownItemsMap = ref(new Map()) // To store items that came from supplier edit or picker
+
 onMounted(() => {
     isMounted.value = true
 })
@@ -220,16 +208,6 @@ const form = useForm({
 
 const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
-// For search
-const searchQuery = ref('')
-const searchResults = ref([])
-const isSearching = ref(false)
-const knownItemsMap = ref(new Map()) // To store items that came from supplier edit or search
-
-const displayItems = computed(() => {
-    return searchResults.value
-})
-
 const selectedItems = computed(() => {
     return form.inventory_items.map(id => knownItemsMap.value.get(id)).filter(Boolean)
 })
@@ -238,36 +216,20 @@ const removeSelectedItem = id => {
     form.inventory_items = form.inventory_items.filter(itemId => itemId !== id)
 }
 
-const onSearchInput = debounce(async () => {
-    if (!searchQuery.value) {
-        searchResults.value = []
-        return
-    }
-
-    isSearching.value = true
-    try {
-        const response = await axios.get(
-            route('inventory.suppliers.search-items', {
-                search: searchQuery.value,
-            })
-        )
-        searchResults.value = response.data
-        response.data.forEach(item => {
-            knownItemsMap.value.set(item.id, item)
-        })
-    } catch (e) {
-        console.error(e)
-    } finally {
-        isSearching.value = false
-    }
-}, 500)
+const onItemsSelected = newItems => {
+    newItems.forEach(item => {
+        const id = item.id
+        if (!form.inventory_items.includes(id)) {
+            form.inventory_items.push(id)
+            knownItemsMap.value.set(id, { id: item.id, name: item.name })
+        }
+    })
+}
 
 watch(
     () => props.supplier,
     data => {
         form.reset()
-        searchQuery.value = ''
-        searchResults.value = []
 
         if (data) {
             form.name = data.name || ''

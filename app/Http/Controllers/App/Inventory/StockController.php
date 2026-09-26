@@ -50,7 +50,7 @@ class StockController extends Controller
                 ->join('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
                 ->where('product_items.track_inventory', true)
                 ->whereRaw('inventory_balances.current_stock > 0')
-                ->whereRaw('inventory_balances.current_stock <= inventory_items.minimum_stock')
+                ->whereRaw('inventory_balances.current_stock <= inventory_balances.minimum_stock')
                 ->count(),
             'stok_habis' => InventoryBalance::where('inventory_balances.business_id', $businessId)
                 ->when($outletId, fn ($q) => $q->where('inventory_balances.outlet_id', $outletId))
@@ -74,10 +74,10 @@ class StockController extends Controller
                 'inventory_balances.outlet_id',
                 'inventory_balances.inventory_item_id',
                 'inventory_balances.current_stock',
-                'product_items.name as item_name',
+                'inventory_balances.minimum_stock',
+                DB::raw('COALESCE(inventory_items.name, product_items.name) as item_name'),
                 'product_items.item_type',
                 'product_items.sku',
-                'inventory_items.minimum_stock',
                 'inventory_items.is_active',
                 'uoms.code as uom',
                 'outlets.name as outlet_name',
@@ -92,9 +92,9 @@ class StockController extends Controller
         if ($request->get('search')) {
             $search = $request->get('search');
             $stockQuery->where(function ($q) use ($search) {
-                $q->where('product_items.name', 'ilike', "%{$search}%")
-                    ->orWhere('product_items.sku', 'ilike', "%{$search}%")
-                    ->orWhere('product_items.barcode', 'ilike', "%{$search}%");
+                $q->whereLike('inventory_items.name', "%{$search}%")
+                    ->orWhereLike('product_items.sku', "%{$search}%")
+                    ->orWhereLike('product_items.barcode', "%{$search}%");
             });
         }
 
@@ -109,10 +109,10 @@ class StockController extends Controller
         if ($request->get('stock_status')) {
             $status = $request->get('stock_status');
             if ($status === 'aman') {
-                $stockQuery->whereRaw('inventory_balances.current_stock > inventory_items.minimum_stock');
+                $stockQuery->whereRaw('inventory_balances.current_stock > inventory_balances.minimum_stock');
             } elseif ($status === 'menipis') {
                 $stockQuery->whereRaw('inventory_balances.current_stock > 0')
-                    ->whereRaw('inventory_balances.current_stock <= inventory_items.minimum_stock');
+                    ->whereRaw('inventory_balances.current_stock <= inventory_balances.minimum_stock');
             } elseif ($status === 'habis') {
                 $stockQuery->where('inventory_balances.current_stock', '<=', 0);
             }
@@ -133,7 +133,7 @@ class StockController extends Controller
         $direction = $request->get('direction', 'asc');
 
         $stocks = $stockQuery
-            ->selectRaw('inventory_balances.current_stock < inventory_items.minimum_stock as is_low_stock')
+            ->selectRaw('inventory_balances.current_stock <= inventory_balances.minimum_stock as is_low_stock')
             ->orderBy($sort, $direction)
             ->paginate($request->get('per_page', 20))
             ->withQueryString()
@@ -217,54 +217,24 @@ class StockController extends Controller
         ]);
     }
 
-    public function updateBarcode(Request $request, $id)
+    public function updateMinimumStock(Request $request, $id)
     {
         $balance = InventoryBalance::where('business_id', Auth::user()->business_id)
             ->findOrFail($id);
 
-        $request->validate([
-            'barcode' => 'required|string|max:255',
+        $validated = $request->validate([
+            'minimum_stock' => 'required|numeric|min:0',
         ]);
 
-        $item = InventoryItem::findOrFail($balance->inventory_item_id);
-
-        $exists = InventoryItem::where('business_id', Auth::user()->business_id)
-            ->where('barcode', $request->barcode)
-            ->where('id', '!=', $item->id)
-            ->exists();
-
-        if ($exists) {
-            return response()->json(['message' => 'Barcode sudah digunakan oleh produk lain.'], 422);
-        }
-
-        $item->update(['barcode' => $request->barcode]);
-
-        return response()->json(['message' => 'Barcode berhasil diperbarui.', 'barcode' => $item->barcode]);
-    }
-
-    public function updateSku(Request $request, $id)
-    {
-        $balance = InventoryBalance::where('business_id', Auth::user()->business_id)
-            ->findOrFail($id);
-
-        $request->validate([
-            'sku' => 'required|string|max:100',
+        $balance->update([
+            'minimum_stock' => (float) $validated['minimum_stock'],
         ]);
 
-        $item = InventoryItem::findOrFail($balance->inventory_item_id);
-
-        $exists = InventoryItem::where('business_id', Auth::user()->business_id)
-            ->where('sku', $request->sku)
-            ->where('id', '!=', $item->id)
-            ->exists();
-
-        if ($exists) {
-            return response()->json(['message' => 'SKU sudah digunakan oleh produk lain.'], 422);
-        }
-
-        $item->update(['sku' => $request->sku]);
-
-        return response()->json(['message' => 'SKU berhasil diperbarui.', 'sku' => $item->sku]);
+        return response()->json([
+            'message' => 'Minimum stok berhasil diperbarui.',
+            'minimum_stock' => (float) $balance->minimum_stock,
+            'minimum_stock_formatted' => $balance->minimum_stock_formatted,
+        ]);
     }
 
     public function importTemplate()
@@ -460,10 +430,10 @@ class StockController extends Controller
             ->select([
                 'inventory_balances.id',
                 'inventory_balances.current_stock',
-                'product_items.name as item_name',
+                'inventory_balances.minimum_stock',
+                DB::raw('COALESCE(inventory_items.name, product_items.name) as item_name'),
                 'product_items.item_type',
                 'product_items.sku',
-                'inventory_items.minimum_stock',
                 'uoms.code as uom',
                 'outlets.name as outlet_name',
                 'product_categories.name as category_name',
@@ -476,9 +446,9 @@ class StockController extends Controller
         if ($request->get('search')) {
             $search = $request->get('search');
             $stockQuery->where(function ($q) use ($search) {
-                $q->where('product_items.name', 'ilike', "%{$search}%")
-                    ->orWhere('product_items.sku', 'ilike', "%{$search}%")
-                    ->orWhere('product_items.barcode', 'ilike', "%{$search}%");
+                $q->whereLike('inventory_items.name', "%{$search}%")
+                    ->orWhereLike('product_items.sku', "%{$search}%")
+                    ->orWhereLike('product_items.barcode', "%{$search}%");
             });
         }
 
@@ -493,10 +463,10 @@ class StockController extends Controller
         if ($request->get('stock_status')) {
             $status = $request->get('stock_status');
             if ($status === 'aman') {
-                $stockQuery->whereRaw('inventory_balances.current_stock > inventory_items.minimum_stock');
+                $stockQuery->whereRaw('inventory_balances.current_stock > inventory_balances.minimum_stock');
             } elseif ($status === 'menipis') {
                 $stockQuery->whereRaw('inventory_balances.current_stock > 0')
-                    ->whereRaw('inventory_balances.current_stock <= inventory_items.minimum_stock');
+                    ->whereRaw('inventory_balances.current_stock <= inventory_balances.minimum_stock');
             } elseif ($status === 'habis') {
                 $stockQuery->where('inventory_balances.current_stock', '<=', 0);
             }

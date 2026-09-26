@@ -766,7 +766,7 @@
        4.6 Badges, Alerts & Filter Tags
        -------------------------------------------------------------------------- */
     .badge {
-        @apply px-2 py-1 rounded-lg text-center;
+        @apply px-2 py-1 rounded-lg text-center text-nowrap;
 
         &.pill {
             @apply rounded-full!;

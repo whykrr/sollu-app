@@ -53,7 +53,7 @@
         <template #search>
             <FilterSearch
                 v-model="filterForm.search"
-                placeholder="Cari nama item, SKU, barcode..."
+                placeholder="Cari nama item..."
                 @clear="updateQuery"
             />
         </template>

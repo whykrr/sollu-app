@@ -32,6 +32,7 @@ class InventoryBalance extends Model
         'outlet_id',
         'inventory_item_id',
         'current_stock',
+        'minimum_stock',
         'average_cost',
         'last_cost',
         'total_value',
@@ -39,12 +40,14 @@ class InventoryBalance extends Model
 
     protected $appends = [
         'current_stock_formatted',
+        'minimum_stock_formatted',
     ];
 
     protected function casts(): array
     {
         return [
             'current_stock' => 'float',
+            'minimum_stock' => 'float',
             'average_cost' => 'float',
             'last_cost' => 'float',
             'total_value' => 'float',
@@ -72,6 +75,13 @@ class InventoryBalance extends Model
     {
         return Attribute::make(
             get: fn () => $this->formatQuantity($this->current_stock),
+        );
+    }
+
+    protected function minimumStockFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->minimum_stock),
         );
     }
 }

@@ -21,11 +21,13 @@ class ExportRawMaterialJob extends AbstractExcelExportJob
 
     public function getQuery()
     {
-        return InventoryItem::where('business_id', $this->businessId)
-            ->where('item_type', 'raw_material')
+        return InventoryItem::query()
+            ->where('inventory_items.business_id', $this->businessId)
+            ->joinProductItem()
+            ->where('product_items.item_type', 'raw_material')
             ->with('uom:id,name')
             ->filters($this->filters)
-            ->latest();
+            ->latest('inventory_items.created_at');
     }
 
     public function getHeaders(): array

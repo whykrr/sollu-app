@@ -53,12 +53,18 @@ class SupplierController extends Controller
      */
     public function searchItems(Request $request)
     {
-        $search = $request->get('search');
+        $search = $request->get('search') ?: $request->get('query');
 
-        $items = InventoryItem::currentBusiness()
-            ->with('productItem')
+        $items = InventoryItem::query()
+            ->where('inventory_items.business_id', Auth::user()->business_id)
+            ->where('inventory_items.is_active', true)
+            ->joinProductItem()
             ->when($search, function ($query, $search) {
-                $query->whereHas('productItem', fn ($q) => $q->whereLike('name', "%{$search}%"));
+                $query->where(function ($q) use ($search) {
+                    $q->whereLike('inventory_items.name', "%{$search}%")
+                        ->orWhereLike('product_items.sku', "%{$search}%")
+                        ->orWhereLike('product_items.barcode', "%{$search}%");
+                });
             })
             ->limit(50)
             ->get();

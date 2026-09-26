@@ -29,6 +29,7 @@ class RawMaterialService
             $item = InventoryItem::create([
                 'business_id' => $business->id,
                 'product_item_id' => $productItem->id,
+                'name' => $data['name'],
                 'uom_id' => $data['uom_id'] ?? null,
                 'minimum_stock' => $data['minimum_stock'] ?? 0,
                 'is_active' => $data['is_active'] ?? true,
@@ -66,6 +67,7 @@ class RawMaterialService
             }
 
             $item->update(array_filter([
+                'name' => $data['name'] ?? null,
                 'uom_id' => array_key_exists('uom_id', $data) ? $data['uom_id'] : null,
                 'minimum_stock' => $data['minimum_stock'] ?? null,
                 'is_active' => $data['is_active'] ?? null,

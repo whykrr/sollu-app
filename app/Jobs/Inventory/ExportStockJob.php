@@ -5,6 +5,7 @@ namespace App\Jobs\Inventory;
 use App\Jobs\ImportExport\AbstractExcelExportJob;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class ExportStockJob extends AbstractExcelExportJob
 {
@@ -31,11 +32,11 @@ class ExportStockJob extends AbstractExcelExportJob
             ->join('outlets', 'inventory_balances.outlet_id', '=', 'outlets.id')
             ->select([
                 'inventory_balances.current_stock',
-                'product_items.name as item_name',
+                'inventory_balances.minimum_stock',
+                DB::raw('COALESCE(inventory_items.name, product_items.name) as item_name'),
                 'product_items.item_type',
                 'product_items.sku',
                 'product_items.barcode',
-                'inventory_items.minimum_stock',
                 'inventory_items.is_active',
                 'uoms.name as uom_name',
                 'uoms.code as uom_code',
@@ -50,7 +51,7 @@ class ExportStockJob extends AbstractExcelExportJob
         if (! empty($this->filters['search'])) {
             $search = $this->filters['search'];
             $stockQuery->where(function ($q) use ($search) {
-                $q->where('product_items.name', 'ilike', "%{$search}%")
+                $q->where('inventory_items.name', 'ilike', "%{$search}%")
                     ->orWhere('product_items.sku', 'ilike', "%{$search}%")
                     ->orWhere('product_items.barcode', 'ilike', "%{$search}%");
             });
@@ -67,10 +68,10 @@ class ExportStockJob extends AbstractExcelExportJob
         if (! empty($this->filters['stock_status'])) {
             $status = $this->filters['stock_status'];
             if ($status === 'aman') {
-                $stockQuery->whereRaw('inventory_balances.current_stock > inventory_items.minimum_stock');
+                $stockQuery->whereRaw('inventory_balances.current_stock > inventory_balances.minimum_stock');
             } elseif ($status === 'menipis') {
                 $stockQuery->whereRaw('inventory_balances.current_stock > 0')
-                    ->whereRaw('inventory_balances.current_stock <= inventory_items.minimum_stock');
+                    ->whereRaw('inventory_balances.current_stock <= inventory_balances.minimum_stock');
             } elseif ($status === 'habis') {
                 $stockQuery->where('inventory_balances.current_stock', '<=', 0);
             }

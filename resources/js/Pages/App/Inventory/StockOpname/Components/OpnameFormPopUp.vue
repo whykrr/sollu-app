@@ -66,41 +66,20 @@
                         </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <div class="w-full sm:w-72">
-                            <AsyncSelectField
-                                id="search_item"
-                                label="Cari Barang"
-                                placeholder="Cari nama, SKU, barcode..."
-                                class="sm"
-                                :api-url="route('api.internal.inventory-items.search')"
-                                :api-params="{
-                                    outlet_id: opname ? opname.outlet_id : form.outlet_id,
-                                }"
-                                :min-chars="2"
-                                :disabled="!activeOutletId"
-                                @select="addItemFromSearch"
-                            >
-                                <template #option="{ item }">
-                                    <div class="flex items-center justify-between w-full">
-                                        <div>
-                                            <div class="font-semibold text-xs text-slate-800">
-                                                {{ item.name }}
-                                            </div>
-                                            <div class="text-[11px] text-slate-400">
-                                                SKU: {{ item.sku || '-' }}
-                                            </div>
-                                        </div>
-                                        <div class="text-right text-[11px] text-slate-500">
-                                            Sistem:
-                                            <span class="font-medium text-slate-700">
-                                                {{ Number(item.current_stock ?? 0) }}
-                                            </span>
-                                            {{ item.uom?.name || '' }}
-                                        </div>
-                                    </div>
-                                </template>
-                            </AsyncSelectField>
-                        </div>
+                        <button
+                            type="button"
+                            class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                            :disabled="!activeOutletId"
+                            :title="
+                                !activeOutletId
+                                    ? 'Pilih outlet terlebih dahulu'
+                                    : 'Buka daftar barang untuk stok opname'
+                            "
+                            @click="showItemPicker = true"
+                        >
+                            <FontAwesomeIcon :icon="faPlus" />
+                            <span>Item</span>
+                        </button>
                         <button
                             type="button"
                             class="btn btn-outline-secondary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
@@ -127,10 +106,31 @@
                 <!-- Empty State Jika Belum Ada Item -->
                 <div
                     v-else-if="form.items.length === 0"
-                    class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50"
+                    class="text-center py-6 text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg bg-slate-50/50 space-y-2"
                 >
-                    Belum ada barang ditambahkan. Silakan cari barang atau klik tombol
-                    <strong>Muat Semua Barang</strong> di atas.
+                    <p>
+                        Belum ada barang ditambahkan. Silakan pilih barang atau klik tombol
+                        <strong>Muat Semua Barang</strong>.
+                    </p>
+                    <div class="flex flex-wrap items-center justify-center gap-2">
+                        <button
+                            type="button"
+                            class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                            :disabled="!activeOutletId"
+                            @click="showItemPicker = true"
+                        >
+                            <FontAwesomeIcon :icon="faPlus" />
+                            <span>Pilih Barang</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
+                            :disabled="!activeOutletId || isLoadingItems"
+                            @click="loadAllItems(false)"
+                        >
+                            <span>{{ isLoadingItems ? 'Memuat...' : 'Muat Semua Barang' }}</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Daftar Item Opname -->
@@ -266,6 +266,16 @@
             </div>
         </form>
 
+        <!-- Reusable Multi-Select Item Picker Modal -->
+        <ItemPickerModal
+            :show="showItemPicker"
+            :outlet-id="activeOutletId"
+            :already-selected-ids="form.items.map(i => i.inventory_item_id)"
+            title="Pilih Barang Stok Opname"
+            @close="showItemPicker = false"
+            @selected="onItemsSelected"
+        />
+
         <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
@@ -302,15 +312,15 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import { useModalStore } from '@/store/notification'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
-import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
+import ItemPickerModal from '@/Components/Inventory/ItemPickerModal.vue'
 
 const props = defineProps({
     opname: {
@@ -324,6 +334,7 @@ const { outlets: userOutlets, selectedOutlet } = useAuth()
 const { getLabel, getColor } = useEnum()
 
 const isMounted = ref(false)
+const showItemPicker = ref(false)
 const currentPage = ref(1)
 const hasMoreItems = ref(false)
 const isLoadingItems = ref(false)
@@ -403,18 +414,20 @@ const summary = computed(() => {
     }
 })
 
-const addItemFromSearch = item => {
-    const exists = form.items.find(i => i.inventory_item_id === item.id)
-    if (!exists) {
-        form.items.unshift({
-            inventory_item_id: item.id,
-            name: item.name,
-            sku: item.sku || '-',
-            uom: item.uom?.name || '-',
-            system_qty: Number(item.current_stock ?? 0),
-            actual_qty: Number(item.current_stock ?? 0),
-        })
-    }
+const onItemsSelected = newItems => {
+    newItems.forEach(item => {
+        const exists = form.items.find(i => String(i.inventory_item_id) === String(item.id))
+        if (!exists) {
+            form.items.unshift({
+                inventory_item_id: item.id,
+                name: item.name,
+                sku: item.sku || '-',
+                uom: item.uom?.name || item.uom_name || '-',
+                system_qty: Number(item.current_stock ?? 0),
+                actual_qty: Number(item.current_stock ?? 0),
+            })
+        }
+    })
 }
 
 const loadAllItems = async (isLoadMore = false) => {

@@ -8,7 +8,6 @@ use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryCostLayer;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
-use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\User;
 use Exception;
@@ -74,31 +73,6 @@ class ImportStockJob extends AbstractExcelImportJob
             throw new Exception("Item '{$name}' (SKU: '{$sku}') tidak ditemukan.");
         }
 
-        // Update SKU & Barcode
-        if (! empty($sku) && $item->sku !== $sku) {
-            $skuExists = ProductItem::where('business_id', $this->businessId)
-                ->where('sku', $sku)
-                ->where('id', '!=', $item->product_item_id)
-                ->exists();
-
-            if ($skuExists) {
-                throw new Exception("SKU '{$sku}' sudah digunakan oleh produk/item lain.");
-            }
-            $item->productItem?->update(['sku' => $sku]);
-        }
-
-        if (! empty($barcode) && $item->barcode !== $barcode) {
-            $barcodeExists = ProductItem::where('business_id', $this->businessId)
-                ->where('barcode', $barcode)
-                ->where('id', '!=', $item->product_item_id)
-                ->exists();
-
-            if ($barcodeExists) {
-                throw new Exception("Barcode '{$barcode}' sudah digunakan oleh produk/item lain.");
-            }
-            $item->productItem?->update(['barcode' => $barcode]);
-        }
-
         // Get or Create InventoryBalance
         $balance = InventoryBalance::firstOrCreate(
             [
@@ -108,24 +82,47 @@ class ImportStockJob extends AbstractExcelImportJob
             ],
             [
                 'current_stock' => 0,
+                'minimum_stock' => $item->minimum_stock ?? 0,
             ]
         );
 
+        // Update Minimum Stock for this specific outlet balance
+        $minStockStr = trim((string) ($row['Minimum Stok'] ?? $row['Minimal Stok'] ?? $row['minimum_stock'] ?? ''));
+        if ($minStockStr !== '' && is_numeric($minStockStr)) {
+            $minStock = (float) $minStockStr;
+            if ($minStock >= 0 && (float) $balance->minimum_stock !== $minStock) {
+                $balance->update(['minimum_stock' => $minStock]);
+            }
+        }
+
         // Process Initial Stock & Price Validation (Requirement 7)
         if ($stokAwalStr !== '') {
-            $stokAwal = (float) $stokAwalStr;
-            $hargaBeli = $hargaBeliStr !== '' ? (float) $hargaBeliStr : 0;
-
-            $hasStock = $balance->current_stock > 0;
-            $hasMovements = InventoryMovement::where('inventory_item_id', $item->id)
-                ->where('outlet_id', $outlet->id)
-                ->exists();
-
-            if ($hasStock || $hasMovements) {
-                throw new Exception("Batal/Ditolak: Stok awal untuk '{$item->name}' di outlet '{$outlet->name}' tidak dapat diinput karena sudah memiliki stok ({$balance->current_stock}) atau riwayat mutasi.");
+            if (! is_numeric($stokAwalStr) || (float) $stokAwalStr < 0) {
+                throw new Exception("Stok Awal tidak valid atau bernilai negatif untuk item '{$item->name}'.");
             }
 
+            $stokAwal = (float) $stokAwalStr;
+
             if ($stokAwal > 0) {
+                if ($hargaBeliStr === '' || ! is_numeric($hargaBeliStr)) {
+                    throw new Exception("Harga Beli wajib diisi saat mengisi Stok Awal untuk item '{$item->name}'.");
+                }
+
+                $hargaBeli = (float) $hargaBeliStr;
+
+                if ($hargaBeli < 0) {
+                    throw new Exception("Harga Beli tidak boleh bernilai negatif untuk item '{$item->name}'.");
+                }
+
+                $hasStock = $balance->current_stock > 0;
+                $hasMovements = InventoryMovement::where('inventory_item_id', $item->id)
+                    ->where('outlet_id', $outlet->id)
+                    ->exists();
+
+                if ($hasStock || $hasMovements) {
+                    throw new Exception("Batal/Ditolak: Stok awal untuk '{$item->name}' di outlet '{$outlet->name}' tidak dapat diinput karena sudah memiliki stok ({$balance->current_stock}) atau riwayat mutasi.");
+                }
+
                 DB::beginTransaction();
                 try {
                     $balance->current_stock = $stokAwal;
@@ -158,7 +155,7 @@ class ImportStockJob extends AbstractExcelImportJob
                     throw $e;
                 }
             }
-        } elseif ($hargaBeliStr !== '' && (float) $hargaBeliStr >= 0) {
+        } elseif ($hargaBeliStr !== '' && is_numeric($hargaBeliStr) && (float) $hargaBeliStr >= 0) {
             $hargaBeli = (float) $hargaBeliStr;
             $latestLayer = InventoryCostLayer::where('inventory_item_id', $item->id)
                 ->where('outlet_id', $outlet->id)

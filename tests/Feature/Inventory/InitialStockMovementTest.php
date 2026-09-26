@@ -196,4 +196,149 @@ class InitialStockMovementTest extends TestCase
         $this->assertEquals(25, $movement->qty_change);
         $this->assertEquals('Input Stok Awal (Impor CSV)', $movement->description);
     }
+
+    public function test_user_can_update_minimum_stock(): void
+    {
+        $outlet2 = Outlet::create([
+            'business_id' => $this->business->id,
+            'name' => 'Second Outlet',
+            'code' => 'OUT-02',
+            'address' => 'Jl. Test No. 2',
+            'is_active' => true,
+        ]);
+
+        $balance2 = InventoryBalance::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $outlet2->id,
+            'inventory_item_id' => $this->item->id,
+            'current_stock' => 0,
+            'minimum_stock' => 5,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->patch("http://{$this->appDomain}/inventories/stocks/{$this->balance->id}/minimum-stock", [
+                'minimum_stock' => 15.5,
+            ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'message' => 'Minimum stok berhasil diperbarui.',
+            'minimum_stock' => 15.5,
+        ]);
+
+        $this->balance->refresh();
+        $this->assertEquals(15.5, $this->balance->minimum_stock);
+
+        $balance2->refresh();
+        $this->assertEquals(5, $balance2->minimum_stock);
+    }
+
+    public function test_update_minimum_stock_validates_required_and_numeric(): void
+    {
+        $responseNegative = $this->actingAs($this->user, 'business')
+            ->patch("http://{$this->appDomain}/inventories/stocks/{$this->balance->id}/minimum-stock", [
+                'minimum_stock' => -5,
+            ]);
+
+        $responseNegative->assertStatus(302);
+        $responseNegative->assertSessionHasErrors(['minimum_stock']);
+
+        $responseInvalid = $this->actingAs($this->user, 'business')
+            ->patch("http://{$this->appDomain}/inventories/stocks/{$this->balance->id}/minimum-stock", [
+                'minimum_stock' => 'abc',
+            ]);
+
+        $responseInvalid->assertStatus(302);
+        $responseInvalid->assertSessionHasErrors(['minimum_stock']);
+    }
+
+    public function test_import_stock_job_updates_minimum_stock_without_mutating_sku(): void
+    {
+        $outlet2 = Outlet::create([
+            'business_id' => $this->business->id,
+            'name' => 'Second Outlet',
+            'code' => 'OUT-02',
+            'address' => 'Jl. Test No. 2',
+            'is_active' => true,
+        ]);
+
+        $balance2 = InventoryBalance::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $outlet2->id,
+            'inventory_item_id' => $this->item->id,
+            'current_stock' => 0,
+            'minimum_stock' => 3,
+        ]);
+
+        $job = new ImportStockJob($this->user, 'dummy_path.csv', $this->business->id);
+
+        $job->processRow([
+            'SKU' => $this->item->sku,
+            'Nama' => $this->item->name,
+            'Outlet' => $this->outlet->name,
+            'Minimum Stok' => '12',
+        ]);
+
+        $this->balance->refresh();
+        $this->assertEquals(12, $this->balance->minimum_stock);
+
+        // Ensure second outlet balance is unaffected
+        $balance2->refresh();
+        $this->assertEquals(3, $balance2->minimum_stock);
+
+        // Ensure SKU was not mutated
+        $this->assertEquals('SKU-TEST-001', $this->item->sku);
+    }
+
+    public function test_store_initial_stock_validates_purchase_price_required_and_non_negative(): void
+    {
+        $responseMissing = $this->actingAs($this->user, 'business')
+            ->postJson("http://{$this->appDomain}/inventories/stocks/{$this->balance->id}/initial-stock", [
+                'qty' => 10,
+            ]);
+
+        $responseMissing->assertStatus(422);
+        $responseMissing->assertJsonValidationErrors(['purchase_price']);
+
+        $responseNegative = $this->actingAs($this->user, 'business')
+            ->postJson("http://{$this->appDomain}/inventories/stocks/{$this->balance->id}/initial-stock", [
+                'qty' => 10,
+                'purchase_price' => -100,
+            ]);
+
+        $responseNegative->assertStatus(422);
+        $responseNegative->assertJsonValidationErrors(['purchase_price']);
+    }
+
+    public function test_import_stock_job_throws_exception_when_initial_stock_has_no_purchase_price(): void
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("Harga Beli wajib diisi saat mengisi Stok Awal untuk item '{$this->item->name}'.");
+
+        $job = new ImportStockJob($this->user, 'dummy_path.csv', $this->business->id);
+
+        $job->processRow([
+            'SKU' => $this->item->sku,
+            'Nama' => $this->item->name,
+            'Outlet' => $this->outlet->name,
+            'Stok Awal' => '20',
+            'Harga Beli' => '',
+        ]);
+    }
+
+    public function test_import_stock_job_throws_exception_when_initial_stock_has_negative_purchase_price(): void
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage("Harga Beli tidak boleh bernilai negatif untuk item '{$this->item->name}'.");
+
+        $job = new ImportStockJob($this->user, 'dummy_path.csv', $this->business->id);
+
+        $job->processRow([
+            'SKU' => $this->item->sku,
+            'Nama' => $this->item->name,
+            'Outlet' => $this->outlet->name,
+            'Stok Awal' => '20',
+            'Harga Beli' => '-5000',
+        ]);
+    }
 }

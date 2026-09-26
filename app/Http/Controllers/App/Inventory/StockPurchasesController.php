@@ -84,17 +84,20 @@ class StockPurchasesController extends Controller
                 'outlet',
                 'creator:id,name',
                 'approver:id,name',
-                'items.inventoryItem:id,name,sku,barcode,uom_id',
+                'items.inventoryItem:id,product_item_id,name,uom_id',
+                'items.inventoryItem.productItem:id,sku,barcode',
                 'items.inventoryItem.uom:id,name,code',
                 'items.uom:id,name,code',
                 'goodsReceipts.items.uom:id,name,code',
-                'goodsReceipts.items.inventoryItem:id,name,sku,uom_id',
+                'goodsReceipts.items.inventoryItem:id,product_item_id,name,uom_id',
+                'goodsReceipts.items.inventoryItem.productItem:id,sku,barcode',
                 'goodsReceipts.items.inventoryItem.uom:id,name,code',
                 'goodsReceipts.items.purchaseOrderItem',
                 'goodsReceipts.items.purchaseReturnItems.purchaseReturn:id,status',
                 'goodsReceipts.receiver:id,name',
                 'purchaseReturns.items.uom:id,name,code',
-                'purchaseReturns.items.inventoryItem:id,name,sku',
+                'purchaseReturns.items.inventoryItem:id,product_item_id,name',
+                'purchaseReturns.items.inventoryItem.productItem:id,sku',
                 'purchaseReturns.creator:id,name',
             ])
             ->findOrFail($id);
@@ -111,8 +114,10 @@ class StockPurchasesController extends Controller
         $supplierId = $request->get('supplier_id');
         $outletId = $request->get('outlet_id');
 
-        $items = InventoryItem::currentBusiness()
-            ->where('is_active', true)
+        $items = InventoryItem::query()
+            ->where('inventory_items.business_id', Auth::user()->business_id)
+            ->where('inventory_items.is_active', true)
+            ->joinProductItem()
             ->with(['uom:id,name,code', 'balances' => function ($q) use ($outletId) {
                 if ($outletId) {
                     $q->where('outlet_id', $outletId);
@@ -120,9 +125,9 @@ class StockPurchasesController extends Controller
             }])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->whereLike('name', "%{$search}%")
-                        ->orWhereLike('sku', "%{$search}%")
-                        ->orWhereLike('barcode', "%{$search}%");
+                    $q->whereLike('inventory_items.name', "%{$search}%")
+                        ->orWhereLike('product_items.sku', "%{$search}%")
+                        ->orWhereLike('product_items.barcode', "%{$search}%");
                 });
             })
             ->when($supplierId, function ($query, $supplierId) {
@@ -131,7 +136,7 @@ class StockPurchasesController extends Controller
                 }]);
             })
             ->limit(30)
-            ->get(['id', 'name', 'uom_id', 'sku', 'barcode'])
+            ->get()
             ->map(function ($item) use ($outletId) {
                 $item->current_stock = $outletId ? ($item->balances->first()?->current_stock ?? 0) : 0;
 

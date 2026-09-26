@@ -22,7 +22,15 @@ class InventoryMovementController extends Controller
             ->where('inventory_movements.business_id', $businessId)
             ->with(['inventoryItem.uom', 'outlet', 'creator'])
             ->when($request->get('search'), function ($q, $search) {
-                $q->whereHas('inventoryItem', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
+                $q->whereHas('inventoryItem', function ($itemQ) use ($search) {
+                    $itemQ->where(function ($iq) use ($search) {
+                        $iq->whereLike('inventory_items.name', "%{$search}%")
+                            ->orWhereHas('productItem', function ($pi) use ($search) {
+                                $pi->whereLike('sku', "%{$search}%")
+                                    ->orWhereLike('barcode', "%{$search}%");
+                            });
+                    });
+                });
             })
             ->when($request->get('movement_type'), function ($q, $type) {
                 $q->where('movement_type', $type);

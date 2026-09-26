@@ -112,9 +112,15 @@ class StockAdjustment extends Model
             $filters['search'] ?? false,
             function (Builder $q, $value) {
                 $q->where(function ($sub) use ($value) {
-                    $sub->where('adjustment_number', 'ilike', '%'.$value.'%')
+                    $sub->whereLike('adjustment_number', '%'.$value.'%')
                         ->orWhereHas('items.inventoryItem', function ($itemQ) use ($value) {
-                            $itemQ->where('name', 'ilike', '%'.$value.'%');
+                            $itemQ->where(function ($iq) use ($value) {
+                                $iq->whereLike('inventory_items.name', '%'.$value.'%')
+                                    ->orWhereHas('productItem', function ($pi) use ($value) {
+                                        $pi->whereLike('sku', '%'.$value.'%')
+                                            ->orWhereLike('barcode', '%'.$value.'%');
+                                    });
+                            });
                         });
                 });
             }

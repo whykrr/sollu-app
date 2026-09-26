@@ -148,24 +148,40 @@ class InventoryItem extends Model
 
     // ── Scopes ───────────────────────────────────────────────────
 
+    public function scopeJoinProductItem(Builder $builder): Builder
+    {
+        $joins = $builder->getQuery()->joins ?? [];
+        $alreadyJoined = collect($joins)->pluck('table')->contains('product_items');
+
+        if (! $alreadyJoined) {
+            $builder->leftJoin('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
+                ->select('inventory_items.*');
+        }
+
+        return $builder;
+    }
+
     public function scopeFilters(Builder $builder, array $filters): Builder
     {
         return $builder->when(
             $filters['search'] ?? false,
-            fn (Builder $q, $value) => $q->whereHas('productItem', function ($q) use ($value) {
-                $q->whereLike('name', "%{$value}%")
-                    ->orWhereLike('sku', "%{$value}%")
-                    ->orWhereLike('barcode', "%{$value}%")
-                    ->orWhereLike('variant_combination', "%{$value}%");
-            })
+            function (Builder $q, $value) {
+                $q->where(function (Builder $sub) use ($value) {
+                    $sub->whereLike('inventory_items.name', "%{$value}%")
+                        ->orWhereHas('productItem', function (Builder $pi) use ($value) {
+                            $pi->whereLike('sku', "%{$value}%")
+                                ->orWhereLike('barcode', "%{$value}%");
+                        });
+                });
+            }
         )->when(
             $filters['item_type'] ?? false,
-            fn (Builder $q, $value) => $q->whereHas('productItem', function ($q) use ($value) {
+            fn (Builder $q, $value) => $q->whereHas('productItem', function (Builder $q) use ($value) {
                 $q->where('item_type', $value);
             })
         )->when(
             isset($filters['track_inventory']),
-            fn (Builder $q) => $q->whereHas('productItem', function ($q) use ($filters) {
+            fn (Builder $q) => $q->whereHas('productItem', function (Builder $q) use ($filters) {
                 $q->where('track_inventory', $filters['track_inventory']);
             })
         );

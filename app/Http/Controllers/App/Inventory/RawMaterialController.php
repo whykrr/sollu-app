@@ -15,6 +15,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Response;
 use Inertia\ResponseFactory;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 class RawMaterialController extends Controller
 {
@@ -27,14 +30,20 @@ class RawMaterialController extends Controller
 
         $validated = $request->validated();
 
-        $rawMaterials = InventoryItem::currentBusiness()
-            ->where('item_type', 'raw_material')
+        $rawMaterials = InventoryItem::query()
+            ->where('inventory_items.business_id', Auth::user()->business_id)
+            ->joinProductItem()
+            ->where('product_items.item_type', 'raw_material')
             ->with('uom:id,name')
             ->filters($validated)
             ->when($request->validated('sort'), function ($query, $sort) use ($request) {
-                $query->orderBy($sort, $request->validated('direction') ?? 'asc');
+                if ($sort === 'sku' || $sort === 'barcode') {
+                    $query->orderBy("product_items.{$sort}", $request->validated('direction') ?? 'asc');
+                } else {
+                    $query->orderBy("inventory_items.{$sort}", $request->validated('direction') ?? 'asc');
+                }
             }, function ($query) {
-                $query->latest();
+                $query->latest('inventory_items.created_at');
             })
             ->paginate($request->validated('per_page') ?? 20)
             ->withQueryString();
@@ -136,7 +145,7 @@ class RawMaterialController extends Controller
             fclose($file);
         };
 
-        $export = new class($headers, $dummyData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings
+        $export = new class($headers, $dummyData) implements FromArray, WithHeadings
         {
             private $headers;
 
@@ -161,7 +170,7 @@ class RawMaterialController extends Controller
 
         $filename = 'template_'.strtolower(class_basename($this)).'.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+        return Excel::download($export, $filename);
     }
 
     /**

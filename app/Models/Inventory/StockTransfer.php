@@ -119,10 +119,15 @@ class StockTransfer extends Model
             $filters['search'] ?? false,
             function (Builder $q, $value) {
                 $q->where(function ($sub) use ($value) {
-                    $sub->where('transfer_number', 'ilike', "%{$value}%")
+                    $sub->whereLike('transfer_number', "%{$value}%")
                         ->orWhereHas('items.inventoryItem', function ($itemQ) use ($value) {
-                            $itemQ->where('name', 'ilike', "%{$value}%")
-                                ->orWhere('sku', 'ilike', "%{$value}%");
+                            $itemQ->where(function ($iq) use ($value) {
+                                $iq->whereLike('inventory_items.name', "%{$value}%")
+                                    ->orWhereHas('productItem', function ($pi) use ($value) {
+                                        $pi->whereLike('sku', "%{$value}%")
+                                            ->orWhereLike('barcode', "%{$value}%");
+                                    });
+                            });
                         });
                 });
             }

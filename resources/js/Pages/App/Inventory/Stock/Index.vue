@@ -129,7 +129,6 @@ defineProps({
 const headers = [
     { label: 'Outlet', field: 'outlet_name', sortable: false },
     { label: 'Item', field: 'item_name', sortable: true },
-    { label: 'SKU', field: 'sku', sortable: true },
     {
         label: 'Kategori',
         field: 'category_name',
@@ -154,7 +153,7 @@ const headers = [
 const openDetail = item => {
     popUpStore.open({
         title: item.item_name,
-        subTitle: '#' + item.sku,
+        subTitle: item.category_name || item.outlet_name || '',
         size: 'xl',
         component: Detail,
         props: { item },
