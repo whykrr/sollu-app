@@ -4,6 +4,7 @@ import { useToastStore } from '@/store/toast'
 
 let lastVisit = null
 let isRetrying = false
+let isFetchingCsrf = false
 let lastActiveTime = Date.now()
 const INACTIVE_THRESHOLD_MS = 5 * 60 * 1000 // 5 minutes
 
@@ -190,10 +191,29 @@ export function initCsrfManager() {
         }
     })
 
-    // 3. Tab visibility / focus listener: refresh token when user returns after being away > 5 minutes
-    const handleVisibilityOrFocus = async () => {
+    // 3. Tab visibility listener: refresh token when user returns after being away > 5 minutes on GUEST pages only
+    const handleVisibilityChange = async () => {
+        if (typeof document === 'undefined' || document.visibilityState !== 'visible') {
+            return
+        }
+
+        const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+        const isGuest = isGuestAuthPath(currentPath) || isGuestAuthPath(router.page?.url)
+
+        // Only perform proactive background refresh on guest pages (login, register, forgot password, reset password)
+        if (!isGuest) {
+            return
+        }
+
         const now = Date.now()
         if (now - lastActiveTime > INACTIVE_THRESHOLD_MS) {
+            if (isFetchingCsrf) {
+                return
+            }
+
+            isFetchingCsrf = true
+            lastActiveTime = Date.now() // Immediately update timestamp to prevent race conditions
+
             try {
                 const res = await axios.get('/csrf-token')
                 if (res.data?.csrf_token) {
@@ -201,17 +221,13 @@ export function initCsrfManager() {
                 }
             } catch {
                 // Silently ignore ping errors
+            } finally {
+                isFetchingCsrf = false
             }
         }
-        lastActiveTime = Date.now()
     }
 
     if (typeof document !== 'undefined') {
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                handleVisibilityOrFocus()
-            }
-        })
-        window.addEventListener('focus', handleVisibilityOrFocus)
+        document.addEventListener('visibilitychange', handleVisibilityChange)
     }
 }
