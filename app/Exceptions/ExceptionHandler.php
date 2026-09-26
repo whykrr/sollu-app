@@ -88,7 +88,7 @@ class ExceptionHandler
 
         // Authorization & Access Denied
         $exceptions->render(function (AccessDeniedHttpException|AuthorizationException $e, Request $request) {
-            if (! $this->isProduction()) {
+            if (! $this->isProduction() && ! app()->environment('testing')) {
                 return null;
             }
 
@@ -175,7 +175,7 @@ class ExceptionHandler
 
         // HTTP Client / Business Errors (400 Bad Request, 422 Unprocessable, etc.)
         $exceptions->render(function (HttpException $e, Request $request) {
-            if (! $this->isProduction()) {
+            if (! $this->isProduction() && ! app()->environment('testing')) {
                 return null;
             }
 

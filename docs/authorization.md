@@ -237,3 +237,23 @@ Untuk transaksi bernilai tinggi atau memengaruhi nilai buku inventori fisik:
    ```
 3. **Pengecualian Khusus:** Role `owner` dapat memiliki wewenang override mutlak sesuai konfigurasi bisnis.
 
+---
+
+## 6. Tenant & Feature Caching Architecture (Zero-Redundant Query)
+
+Untuk menjamin performa tinggi dan mencegah pemanggilan query database berulang (`businesses` dan `subscriptions`) pada setiap HTTP request, sistem menerapkan multi-tier caching:
+
+### 6.1. Multi-Tier Resolution Flow
+1. **Tier 1 (Fast-Path via `SummaryUser`):**
+   - Middleware `CheckPlanFeature` mengevaluasi cache `SummaryUser::make($user)->cached()['features']`.
+   - Data ini sudah menghitung irisan (*intersection*) antara paket langganan aktif (`SubscriptionPlan`) dan personalisasi fitur merchant (`$business->settings['active_features']` atau `BusinessType`).
+   - Pada request normal yang melewati rute terproteksi, otorisasi fitur berjalan dengan **0 query SQL**.
+2. **Tier 2 (Fallback via `Business::findCached`):**
+   - Jika cache `SummaryUser` belum tersedia/dingin, sistem mengambil model bisnis via `Business::findCached($user->business_id)` (TTL 3600 detik).
+   - Fitur aktif dihitung dan disimpan di cache level bisnis: `business:{$id}:active_plan_features`.
+
+### 6.2. Aturan Baku Pengembangan
+1. **Wajib `Business::findCached($id)`:** Dilarang mengakses `$user->business` secara lazy load pada middleware atau helper berulang.
+2. **Invalidasi Otomatis:** `UserCacheObserver` mengamati model `Business`, `Subscription`, `SubscriptionPlan`, `Feature`, dan `BusinessType`. Seluruh perubahan data akan langsung membersihkan cache `Business::clearCache($businessId)` dan `SummaryUser::cacheDelete($userId)`.
+
+

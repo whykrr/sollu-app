@@ -3,7 +3,6 @@
 namespace App\Models\Sales;
 
 use App\Enums\ShiftStatus;
-use App\Helpers\SelectedOutlet;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Trait\HasBusiness;
@@ -105,7 +104,7 @@ class Shift extends Model
             $query->currentBusiness($user->business_id);
         }
 
-        $query->when($filters['outlet_id'] ?? SelectedOutlet::make()->currentId(), function (Builder $query, $outletId) {
+        $query->when($filters['outlet_id'] ?? null, function (Builder $query, $outletId) {
             $query->where('outlet_id', $outletId);
         })->when($filters['search'] ?? null, function (Builder $query, $search) {
             $query->where(function (Builder $query) use ($search) {

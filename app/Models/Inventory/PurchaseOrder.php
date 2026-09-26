@@ -3,7 +3,6 @@
 namespace App\Models\Inventory;
 
 use App\Enums\PurchaseOrderStatus;
-use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -129,7 +128,7 @@ class PurchaseOrder extends Model
             $filters['supplier_id'] ?? false,
             fn (Builder $q, $value) => $q->where('supplier_id', $value)
         )->when(
-            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? false,
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['start_date'] ?? false,

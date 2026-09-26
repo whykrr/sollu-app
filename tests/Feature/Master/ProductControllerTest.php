@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Master;
 
+use App\Constants\AuthorizationMessage;
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\FeatureEnum;
@@ -103,7 +104,8 @@ class ProductControllerTest extends TestCase
         $response = $this->actingAs($unauthorizedUser, 'business')
             ->get("http://{$this->appDomain}/master/products");
 
-        $response->assertStatus(403);
+        $response->assertStatus(302);
+        $response->assertSessionHas(FlashDataVariable::FAILED->value, AuthorizationMessage::CANT_ACCESS_PAGE);
     }
 
     public function test_authorized_user_can_view_products_page(): void

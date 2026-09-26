@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Master;
 
+use App\Constants\AuthorizationMessage;
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\FeatureEnum;
@@ -103,7 +104,8 @@ class ServiceProductControllerTest extends TestCase
         $response = $this->actingAs($unauthorizedUser, 'business')
             ->get("http://{$this->appDomain}/master/services");
 
-        $response->assertStatus(403);
+        $response->assertStatus(302);
+        $response->assertSessionHas(FlashDataVariable::FAILED->value, AuthorizationMessage::CANT_ACCESS_PAGE);
     }
 
     public function test_tenant_without_service_catalog_feature_cannot_access_services(): void

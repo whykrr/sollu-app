@@ -81,7 +81,7 @@
                 @click="$emit('create')"
             >
                 <FontAwesomeIcon :icon="faPlus" class="text-xs" />
-                <span>+ Tambah Layanan</span>
+                <span>Layanan Baru</span>
             </button>
         </template>
     </ActionBar>

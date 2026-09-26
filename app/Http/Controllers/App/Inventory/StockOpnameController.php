@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\App\Inventory;
 
 use App\Enums\StockOpnameStatus;
+use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Inventory\StockOpname\StoreStockOpnameRequest;
 use App\Http\Requests\App\Inventory\StockOpname\UpdateStockOpnameRequest;
@@ -25,12 +26,14 @@ class StockOpnameController extends Controller
         $direction = $request->query('direction', 'desc');
 
         $filterKeys = ['search', 'status', 'outlet_id', 'date_from', 'date_to'];
+        $filters = $request->only($filterKeys);
+        $filters['outlet_id'] = SelectedOutlet::resolveEffectiveOutletId($request->user(), $filters['outlet_id'] ?? null);
 
         $opnames = StockOpname::query()
             ->currentBusiness()
             ->with(['outlet'])
             ->withCount('items')
-            ->filters($request->only($filterKeys))
+            ->filters($filters)
             ->sortable($sort, $direction)
             ->paginate($request->query('per_page', 20))
             ->withQueryString();
@@ -41,7 +44,7 @@ class StockOpnameController extends Controller
         return inertia('Inventory/StockOpname/Index', [
             'opnames' => $opnames,
             'filters' => [
-                ...$request->only(['search', 'status', 'outlet_id', 'date_from', 'date_to']),
+                ...$filters,
                 'sort' => $sort,
                 'direction' => $direction,
             ],

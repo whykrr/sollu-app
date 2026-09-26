@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
@@ -136,6 +137,27 @@ class Business extends Model
     }
 
     /**
+     * Find a business model by ID from cache.
+     */
+    public static function findCached(string $id): ?self
+    {
+        return Cache::remember("business:{$id}:detail", 3600, function () use ($id) {
+            return static::query()->find($id);
+        });
+    }
+
+    /**
+     * Clear all cached business data and features for a given business ID.
+     */
+    public static function clearCache(string $businessId): void
+    {
+        Cache::forget("business:{$businessId}:detail");
+        Cache::forget("business:{$businessId}:active_subscription");
+        Cache::forget("business:{$businessId}:available_plan_features");
+        Cache::forget("business:{$businessId}:active_plan_features");
+    }
+
+    /**
      * Memoized active subscription instance with plan and system features loaded.
      */
     protected ?Subscription $memoizedActiveSubscription = null;
@@ -155,13 +177,17 @@ class Business extends Model
     protected ?array $memoizedActivePlanFeatures = null;
 
     /**
-     * Clear memoized subscription and feature caches on this model instance.
+     * Clear memoized subscription and feature caches on this model instance and cache store.
      */
     public function clearMemoizedFeatures(): void
     {
         $this->memoizedActiveSubscription = null;
         $this->memoizedAvailablePlanFeatures = null;
         $this->memoizedActivePlanFeatures = null;
+
+        if ($this->id) {
+            self::clearCache($this->id);
+        }
     }
 
     /**
@@ -192,9 +218,11 @@ class Business extends Model
             }
         }
 
-        $subscription = $this->subscriptions()
-            ->where('status', 'active')
-            ->first();
+        $subscription = Cache::remember("business:{$this->id}:active_subscription", 3600, function () {
+            return $this->subscriptions()
+                ->where('status', 'active')
+                ->first();
+        });
 
         if ($subscription) {
             $cachedPlan = $subscription->plan_id ? SubscriptionPlan::findCached($subscription->plan_id) : null;
@@ -218,6 +246,14 @@ class Business extends Model
     {
         if ($planFeatures === null && $this->memoizedActivePlanFeatures !== null) {
             return $this->memoizedActivePlanFeatures;
+        }
+
+        $cacheKey = "business:{$this->id}:active_plan_features";
+        if ($planFeatures === null) {
+            $cached = Cache::get($cacheKey);
+            if ($cached !== null) {
+                return $this->memoizedActivePlanFeatures = $cached;
+            }
         }
 
         $planFeatures = $planFeatures ?? $this->getAvailablePlanFeatures();
@@ -246,6 +282,10 @@ class Business extends Model
             }
         }
 
+        if ($planFeatures === null) {
+            Cache::put($cacheKey, $activeFeatures, 3600);
+        }
+
         return $this->memoizedActivePlanFeatures = $activeFeatures;
     }
 
@@ -260,21 +300,23 @@ class Business extends Model
             return $this->memoizedAvailablePlanFeatures;
         }
 
-        $activeSubscription = $this->getActiveSubscriptionWithPlan();
+        return $this->memoizedAvailablePlanFeatures = Cache::remember("business:{$this->id}:available_plan_features", 3600, function () {
+            $activeSubscription = $this->getActiveSubscriptionWithPlan();
 
-        if ($activeSubscription && $activeSubscription->plan) {
-            return $this->memoizedAvailablePlanFeatures = $activeSubscription->plan->activeFeatureEnums();
-        }
+            if ($activeSubscription && $activeSubscription->plan) {
+                return $activeSubscription->plan->activeFeatureEnums();
+            }
 
-        $isTrial = $this->trial_end_at ? Carbon::parse($this->trial_end_at)->isFuture() : false;
+            $isTrial = $this->trial_end_at ? Carbon::parse($this->trial_end_at)->isFuture() : false;
 
-        if ($isTrial) {
-            $trialPlan = SubscriptionPlan::findByCodeCached(PlanEnum::MICRO->value);
+            if ($isTrial) {
+                $trialPlan = SubscriptionPlan::findByCodeCached(PlanEnum::MICRO->value);
 
-            return $this->memoizedAvailablePlanFeatures = ($trialPlan ? $trialPlan->activeFeatureEnums() : []);
-        }
+                return $trialPlan ? $trialPlan->activeFeatureEnums() : [];
+            }
 
-        return $this->memoizedAvailablePlanFeatures = [];
+            return [];
+        });
     }
 
     /**

@@ -3,7 +3,6 @@
 namespace App\Models\Inventory;
 
 use App\Enums\GoodsReceiptStatus;
-use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -158,7 +157,7 @@ class GoodsReceipt extends Model
             $filters['purchase_order_id'] ?? false,
             fn (Builder $q, $value) => $q->where('purchase_order_id', $value)
         )->when(
-            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? false,
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['start_date'] ?? false,

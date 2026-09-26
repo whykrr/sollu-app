@@ -66,7 +66,7 @@
                             <Link
                                 method="post"
                                 :preserve-scroll="true"
-                                :preserve-state="true"
+                                :preserve-state="false"
                                 as="button"
                                 :href="route('switch.all')"
                                 class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150"
@@ -97,7 +97,7 @@
                             <Link
                                 method="post"
                                 :preserve-scroll="true"
-                                :preserve-state="true"
+                                :preserve-state="false"
                                 as="button"
                                 :href="route('switch.outlet', { id: o.id })"
                                 class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150"
@@ -124,12 +124,7 @@
 </template>
 <script setup>
 import { useAuth } from '@/Composable/useAuth'
-import {
-    faChevronDown,
-    faChevronUp,
-    faMapMarkedAlt,
-    faMapMarkerAlt,
-} from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Link, usePage } from '@inertiajs/vue3'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'

@@ -39,10 +39,9 @@ class ProductController extends Controller
 
     public function index(GetProductRequest $request): Response
     {
-        $this->authorize(PermissionEnum::PRODUCT_VIEW->value);
-
         $params = $request->validated();
-        $outletId = $params['outlet'] ?? SelectedOutlet::make()->currentId();
+        $outletId = SelectedOutlet::resolveEffectiveOutletId($request->user(), $params['outlet'] ?? $params['outlet_id'] ?? null);
+        $params['outlet'] = $outletId;
 
         $products = Product::currentBusiness()
             ->goods()
@@ -137,8 +136,6 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): RedirectResponse
     {
-        $this->authorize(PermissionEnum::PRODUCT_CREATE->value);
-
         try {
             $data = $request->validated();
             $data['business_id'] = auth()->user()->business_id;
@@ -194,8 +191,6 @@ class ProductController extends Controller
 
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
-        $this->authorize(PermissionEnum::PRODUCT_UPDATE->value);
-
         if ($product->business_id !== auth()->user()->business_id) {
             abort(403);
         }

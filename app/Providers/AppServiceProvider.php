@@ -5,7 +5,9 @@ namespace App\Providers;
 use App\Auth\EloquentRedisUserProvider;
 use App\Contracts\Audit\ActivityLoggerInterface;
 use App\Contracts\Inventory\InventoryDeductionServiceInterface;
+use App\Enums\PermissionEnum;
 use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Feature;
 use App\Models\Outlet;
 use App\Models\Subscription;
@@ -14,6 +16,7 @@ use App\Models\User;
 use App\Observers\UserCacheObserver;
 use App\Services\App\Audit\ActivityLogService;
 use App\Services\App\Inventory\InventoryDeductionService;
+use App\Services\Auth\UserPermissionCacheService;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Cache;
 use Illuminate\Auth\Events\Authenticated;
@@ -21,6 +24,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\URL;
@@ -82,10 +86,13 @@ class AppServiceProvider extends ServiceProvider
                 if (config('cache.default') !== 'redis') {
                     return;
                 }
-                $keys = Redis::connection('cache')->keys($pattern);
+                $redis = Redis::connection('cache');
+                $keys = $redis->keys('*'.$pattern);
 
-                foreach ($keys as $key) {
-                    Cache::delete($key);
+                if (! empty($keys)) {
+                    foreach ($keys as $key) {
+                        $redis->del($key);
+                    }
                 }
             } catch (\Throwable) {
                 // Ignore if redis is unavailable or during test environment
@@ -104,17 +111,36 @@ class AppServiceProvider extends ServiceProvider
 
         User::observe(UserCacheObserver::class);
         Business::observe(UserCacheObserver::class);
+        BusinessType::observe(UserCacheObserver::class);
         Outlet::observe(UserCacheObserver::class);
         Subscription::observe(UserCacheObserver::class);
         SubscriptionPlan::observe(UserCacheObserver::class);
         Feature::observe(UserCacheObserver::class);
+        \App\Models\Role::observe(UserCacheObserver::class);
         Role::observe(UserCacheObserver::class);
+        \App\Models\Permission::observe(UserCacheObserver::class);
         Permission::observe(UserCacheObserver::class);
 
         Event::listen(Authenticated::class, function ($event) {
             if (isset($event->user->business_id)) {
                 setPermissionsTeamId($event->user->business_id);
             }
+        });
+
+        Gate::before(function ($user, string $ability) {
+            if (! $user instanceof User) {
+                return null;
+            }
+
+            if ($user->is_root_user) {
+                return true;
+            }
+
+            if (PermissionEnum::tryFrom($ability) !== null || str_contains($ability, '.')) {
+                return app(UserPermissionCacheService::class)->hasPermission($user, $ability);
+            }
+
+            return null;
         });
     }
 }

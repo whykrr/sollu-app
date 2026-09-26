@@ -7,10 +7,18 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class SelectedOutlet
 {
     public const SESSION_KEY_PREFIX = 'selected_outlet_';
+
+    /**
+     * In-memory request memoization cache for resolved outlets.
+     *
+     * @var array<string, ?Outlet>
+     */
+    private static array $resolvedCache = [];
 
     private ?User $user;
 
@@ -25,6 +33,22 @@ class SelectedOutlet
     }
 
     /**
+     * Flush in-memory memoization cache (useful for testing or after switching outlets).
+     */
+    public static function flushMemoization(?string $userId = null): void
+    {
+        if ($userId) {
+            foreach (array_keys(self::$resolvedCache) as $key) {
+                if (str_starts_with($key, "{$userId}:")) {
+                    unset(self::$resolvedCache[$key]);
+                }
+            }
+        } else {
+            self::$resolvedCache = [];
+        }
+    }
+
+    /**
      * Get the active selected outlet object for the current session.
      * Auto-resolves if user only has access to 1 active outlet.
      */
@@ -34,9 +58,26 @@ class SelectedOutlet
             return null;
         }
 
+        $userId = $this->user->id ?? 'guest';
         $sessionKey = $this->getSessionKey();
         $storedValue = session()->get($sessionKey);
+        $memoKey = "{$userId}:".($storedValue ? (is_scalar($storedValue) ? (string) $storedValue : md5(serialize($storedValue))) : 'none');
 
+        if (array_key_exists($memoKey, self::$resolvedCache)) {
+            return self::$resolvedCache[$memoKey];
+        }
+
+        $resolved = $this->resolveOutlet($storedValue, $sessionKey);
+        self::$resolvedCache[$memoKey] = $resolved;
+
+        return $resolved;
+    }
+
+    /**
+     * Resolve the outlet from session or auto-select if only 1 accessible.
+     */
+    private function resolveOutlet(mixed $storedValue, string $sessionKey): ?Outlet
+    {
         if ($storedValue) {
             $outletId = null;
 
@@ -53,7 +94,7 @@ class SelectedOutlet
                 $outletId = (string) $storedValue->id;
             }
 
-            if ($outletId && is_string($outletId) && \Illuminate\Support\Str::isUuid($outletId)) {
+            if ($outletId && is_string($outletId) && Str::isUuid($outletId)) {
                 $outlet = $this->findAccessibleOutlet($outletId);
                 if ($outlet) {
                     if ($storedValue !== $outlet->id) {
@@ -69,9 +110,11 @@ class SelectedOutlet
         }
 
         // If user only has access to exactly 1 active outlet, auto-select it
-        $accessibleOutlets = $this->getAccessibleOutletsQuery()->get();
-        if ($accessibleOutlets->count() === 1) {
-            return $accessibleOutlets->first();
+        $accessibleOutlets = $this->getAccessibleOutletsList();
+        if (count($accessibleOutlets) === 1) {
+            $first = $accessibleOutlets[0];
+
+            return $this->hydrateOutletModel($first);
         }
 
         return null;
@@ -83,6 +126,29 @@ class SelectedOutlet
     public function currentId(): ?string
     {
         return $this->get()?->id;
+    }
+
+    /**
+     * Resolve effective outlet ID based on sidebar master scope and request query param (Zero DB Query).
+     */
+    public static function resolveEffectiveOutletId(?User $user = null, ?string $requestedOutletId = null): ?string
+    {
+        $instance = self::make($user);
+        $selectedOutlet = $instance->get();
+
+        // 1. Sidebar Master Scope: Always prioritize active sidebar outlet
+        if ($selectedOutlet) {
+            return $selectedOutlet->id;
+        }
+
+        // 2. "Semua Outlet" Mode: Validate requested outlet in-memory
+        if (! empty($requestedOutletId)) {
+            $accessible = $instance->findAccessibleOutlet($requestedOutletId);
+
+            return $accessible?->id;
+        }
+
+        return null;
     }
 
     /**
@@ -129,6 +195,7 @@ class SelectedOutlet
         }
 
         session()->put($this->getSessionKey(), $outlet->id);
+        self::flushMemoization($this->user?->id);
 
         return $outlet;
     }
@@ -139,6 +206,56 @@ class SelectedOutlet
     public function all(): void
     {
         session()->forget($this->getSessionKey());
+        self::flushMemoization($this->user?->id);
+    }
+
+    /**
+     * Retrieve list of accessible outlets from SummaryUser cache if available, or database.
+     *
+     * @return array<int, array<string, mixed>|Outlet>
+     */
+    public function getAccessibleOutletsList(): array
+    {
+        if (! $this->user) {
+            return [];
+        }
+
+        // 1. Try to read from SummaryUser cache first (0 DB query)
+        $summary = SummaryUser::make($this->user)->cached();
+        if (! empty($summary['outlets'])) {
+            return $summary['outlets'];
+        }
+
+        // 2. Fallback to database query if cache not yet populated
+        return $this->getAccessibleOutletsQuery()->get()->all();
+    }
+
+    /**
+     * Convert array data or model into an Outlet Eloquent instance.
+     */
+    private function hydrateOutletModel(mixed $item): ?Outlet
+    {
+        if ($item instanceof Outlet) {
+            return $item;
+        }
+
+        if (is_array($item) && isset($item['id'])) {
+            $outlet = new Outlet;
+            $outlet->forceFill([
+                'id' => $item['id'],
+                'name' => $item['name'] ?? '',
+                'slug' => $item['slug'] ?? null,
+                'timezone' => $item['timezone'] ?? config('app.timezone', 'Asia/Jakarta'),
+                'is_active' => (bool) ($item['is_active'] ?? true),
+                'is_stock_frozen' => (bool) ($item['is_stock_frozen'] ?? false),
+                'business_id' => $this->user?->business_id,
+            ]);
+            $outlet->exists = true;
+
+            return $outlet;
+        }
+
+        return null;
     }
 
     /**
@@ -160,12 +277,22 @@ class SelectedOutlet
     /**
      * Find an active accessible outlet by ID.
      */
-    private function findAccessibleOutlet(string $outletId): ?Outlet
+    public function findAccessibleOutlet(string $outletId): ?Outlet
     {
-        if (! \Illuminate\Support\Str::isUuid($outletId)) {
+        if (! Str::isUuid($outletId)) {
             return null;
         }
 
+        // 1. In-memory check against accessible outlet list
+        $accessibleList = $this->getAccessibleOutletsList();
+        foreach ($accessibleList as $item) {
+            $id = is_array($item) ? ($item['id'] ?? null) : $item->id;
+            if ($id === $outletId) {
+                return $this->hydrateOutletModel($item);
+            }
+        }
+
+        // 2. Direct database query fallback
         try {
             return $this->getAccessibleOutletsQuery()
                 ->where('outlets.id', $outletId)

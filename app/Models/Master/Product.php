@@ -3,7 +3,6 @@
 namespace App\Models\Master;
 
 use App\Enums\ProductTypeEnum;
-use App\Helpers\SelectedOutlet;
 use App\Models\Outlet;
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
@@ -164,7 +163,7 @@ class Product extends Model
 
     public function scopeFilters(Builder $builder, array $filters): Builder
     {
-        $outletFilter = $filters['outlet'] ?? SelectedOutlet::make()->currentId();
+        $outletFilter = $filters['outlet'] ?? $filters['outlet_id'] ?? null;
 
         return $builder
             ->when(

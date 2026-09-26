@@ -31,7 +31,7 @@ class StockController extends Controller
     public function index(Request $request)
     {
         $businessId = Auth::user()->business_id;
-        $outletId = $request->get('outlet_id') ?: SelectedOutlet::make()->currentId();
+        $outletId = SelectedOutlet::resolveEffectiveOutletId($request->user(), $request->get('outlet_id') ?: $request->get('outlet'));
 
         // Summary Card
         $summary = [

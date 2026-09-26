@@ -11,20 +11,28 @@ trait HasOutlet
     /**
      * Scope: selectedOutlet
      *
-     * @param  string|int  $filter
+     * @param  string|int|null  $filter
      * @return Builder
      */
     public function scopeSelectedOutlet(Builder $query, $filter = null)
     {
-        $selectedOutlet = SelectedOutlet::make()->get();
-        $userOutlets = Auth::user()->outlets()->pluck('id');
-
-        if ($selectedOutlet !== null) {
-            return $query->whereHas('outlets', fn (Builder $q) => $q->where('outlets.id', $selectedOutlet->id));
-        } elseif ($filter) {
-            return $query->whereHas('outlets', fn (Builder $q) => $q->where('outlets.id', $filter));
-        } else {
-            return $query->whereHas('outlets', fn (Builder $q) => $q->whereIn('outlets.id', $userOutlets));
+        $user = Auth::user();
+        if (! $user) {
+            return $query;
         }
+
+        $effectiveOutletId = SelectedOutlet::resolveEffectiveOutletId($user, $filter ? (string) $filter : null);
+
+        if ($effectiveOutletId !== null) {
+            return $query->whereHas('outlets', fn (Builder $q) => $q->where('outlets.id', $effectiveOutletId));
+        }
+
+        $accessibleList = SelectedOutlet::make($user)->getAccessibleOutletsList();
+        $userOutlets = array_map(function ($item) {
+            return is_array($item) ? ($item['id'] ?? null) : $item->id;
+        }, $accessibleList);
+        $userOutlets = array_values(array_filter($userOutlets));
+
+        return $query->whereHas('outlets', fn (Builder $q) => $q->whereIn('outlets.id', $userOutlets));
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\App\Promotion;
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\PermissionEnum;
+use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Promotion\GetPromotionRequest;
 use App\Http\Requests\App\StorePromoRequest;
@@ -23,6 +24,7 @@ class PromotionController extends Controller
     {
         $limit = $request->query('limit', 20);
         $filters = $request->only(['search', 'status', 'target', 'target_type', 'type', 'promo_type', 'outlet', 'sort', 'direction']);
+        $filters['outlet'] = SelectedOutlet::resolveEffectiveOutletId($request->user(), $filters['outlet'] ?? null);
 
         $promos = Promo::currentBusiness()
             ->filters($filters)

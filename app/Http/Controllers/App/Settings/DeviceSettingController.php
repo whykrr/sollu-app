@@ -39,7 +39,7 @@ class DeviceSettingController extends Controller
             ->get();
 
         $sidebarOutlet = SelectedOutlet::make($user)->get();
-        $filterOutletId = $sidebarOutlet ? $sidebarOutlet->id : ($request->get('outlet') ?: $request->get('outlet_id'));
+        $filterOutletId = SelectedOutlet::resolveEffectiveOutletId($user, $request->get('outlet') ?: $request->get('outlet_id'));
 
         $query = OutletDevice::query()
             ->with(['outlet:id,name,slug'])

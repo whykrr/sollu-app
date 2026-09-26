@@ -8,6 +8,7 @@ use App\Constants\ResourceMessage;
 use App\Enums\DatePresetEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\PurchaseOrderStatus;
+use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Inventory\Purchase\DirectPurchaseRequest;
 use App\Http\Requests\App\Inventory\Purchase\GetPurchaseOrderRequest;
@@ -22,12 +23,14 @@ use App\Models\Inventory\PurchaseOrder;
 use App\Models\Inventory\PurchaseReturn;
 use App\Models\Inventory\Supplier;
 use App\Models\Outlet;
+use App\Models\Uom;
 use App\Services\App\Inventory\GoodsReceiptService;
 use App\Services\App\Inventory\PurchaseOrderService;
 use App\Services\App\Inventory\PurchaseReturnService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class StockPurchasesController extends Controller
 {
@@ -37,6 +40,7 @@ class StockPurchasesController extends Controller
     public function index(GetPurchaseOrderRequest $request)
     {
         $filters = $request->validated();
+        $filters['outlet_id'] = SelectedOutlet::resolveEffectiveOutletId($request->user(), $request->validated('outlet_id') ?: $request->validated('outlet'));
 
         $dateRange = DatePresetEnum::resolveRange(
             $request->validated('preset', DatePresetEnum::THIS_MONTH->value),
@@ -56,7 +60,7 @@ class StockPurchasesController extends Controller
 
         $suppliers = Supplier::currentBusiness()->active()->select('id', 'name')->get();
         $outlets = Outlet::currentBusiness()->where('is_active', true)->select('id', 'name')->get();
-        $uoms = \App\Models\Uom::select('id', 'name', 'code')->orderBy('name')->get();
+        $uoms = Uom::select('id', 'name', 'code')->orderBy('name')->get();
 
         return inertia('Inventory/Purchase/Index', [
             'purchases' => $purchases,
@@ -271,7 +275,12 @@ class StockPurchasesController extends Controller
         abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_VOID->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $receipt = GoodsReceipt::currentBusiness()->findOrFail($receiptId);
-        $service->voidReceipt($receipt, Auth::user(), $request->input('reason'));
+
+        try {
+            $service->voidReceipt($receipt, Auth::user(), $request->input('reason'));
+        } catch (HttpException $e) {
+            return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
+        }
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
@@ -300,7 +309,12 @@ class StockPurchasesController extends Controller
         abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_VOID->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $return = PurchaseReturn::currentBusiness()->findOrFail($returnId);
-        $service->voidReturn($return, Auth::user(), $request->input('reason'));
+
+        try {
+            $service->voidReturn($return, Auth::user(), $request->input('reason'));
+        } catch (HttpException $e) {
+            return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
+        }
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

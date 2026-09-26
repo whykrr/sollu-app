@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\App\Inventory;
 
+use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Inventory\IndexStockAdjustmentRequest;
 use App\Http\Requests\App\Inventory\RejectStockAdjustmentRequest;
@@ -25,6 +26,7 @@ class StockAdjustmentController extends Controller
         $direction = $request->input('direction', 'desc');
 
         $filterData = $request->only(['search', 'status', 'reason', 'outlet_id', 'date_from', 'date_to', 'preset']);
+        $filterData['outlet_id'] = SelectedOutlet::resolveEffectiveOutletId($request->user(), $filterData['outlet_id'] ?? null);
 
         $adjustments = StockAdjustment::query()
             ->where('business_id', $businessId)

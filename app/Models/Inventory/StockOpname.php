@@ -3,7 +3,6 @@
 namespace App\Models\Inventory;
 
 use App\Enums\StockOpnameStatus;
-use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -103,7 +102,7 @@ class StockOpname extends Model
             $filters['status'] ?? false,
             fn (Builder $q, $value) => $q->where('status', $value)
         )->when(
-            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? false,
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['date_from'] ?? false,

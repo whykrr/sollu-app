@@ -3,7 +3,6 @@
 namespace App\Models\Inventory;
 
 use App\Enums\StockTransferStatus;
-use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -137,7 +136,7 @@ class StockTransfer extends Model
             $filters['to_outlet_id'] ?? false,
             fn (Builder $q, $value) => $q->where('to_outlet_id', $value)
         )->when(
-            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? false,
             fn (Builder $q, $value) => $q->where(function (Builder $sub) use ($value) {
                 $sub->where('from_outlet_id', $value)
                     ->orWhere('to_outlet_id', $value);

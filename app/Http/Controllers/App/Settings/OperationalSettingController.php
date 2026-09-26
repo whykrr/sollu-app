@@ -32,8 +32,7 @@ class OperationalSettingController extends Controller
             ->orderBy('name')
             ->get();
 
-        $selectedOutletId = $request->get('outlet_id')
-            ?? SelectedOutlet::make()->get()?->id
+        $selectedOutletId = SelectedOutlet::resolveEffectiveOutletId($request->user(), $request->get('outlet_id'))
             ?? $outlets->first()?->id;
 
         $targetOutlet = $outlets->firstWhere('id', $selectedOutletId) ?? $outlets->first();

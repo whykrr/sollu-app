@@ -16,7 +16,7 @@ class SwitchOutletController extends Controller
     {
         SelectedOutlet::make($request->user())->change($id);
 
-        return redirect()->back();
+        return $this->cleanRedirectBack($request);
     }
 
     /**
@@ -26,6 +26,37 @@ class SwitchOutletController extends Controller
     {
         SelectedOutlet::make($request->user())->all();
 
-        return redirect()->back();
+        return $this->cleanRedirectBack($request);
+    }
+
+    /**
+     * Redirect back while clearing stale outlet and pagination query parameters.
+     */
+    private function cleanRedirectBack(Request $request): RedirectResponse
+    {
+        $referer = $request->header('referer');
+        if (! $referer) {
+            return redirect()->back();
+        }
+
+        $parsedUrl = parse_url($referer);
+        if (! isset($parsedUrl['query'])) {
+            return redirect()->back();
+        }
+
+        parse_str($parsedUrl['query'], $queryParams);
+        unset($queryParams['outlet'], $queryParams['outlet_id'], $queryParams['page']);
+
+        $cleanUrl = ($parsedUrl['scheme'] ?? 'http').'://'.($parsedUrl['host'] ?? '');
+        if (isset($parsedUrl['port'])) {
+            $cleanUrl .= ':'.$parsedUrl['port'];
+        }
+        $cleanUrl .= ($parsedUrl['path'] ?? '');
+
+        if (! empty($queryParams)) {
+            $cleanUrl .= '?'.http_build_query($queryParams);
+        }
+
+        return redirect()->to($cleanUrl);
     }
 }

@@ -109,13 +109,19 @@ resources/
 
 ### 1.5. Security & Isolation Baseline
 
-- **Tenant Isolation:** Enforce `business_id` or `outlet_id` checks on every query mutation.
+- **Tenant Isolation:** Enforce `business_id` and `outlet_id` checks on every query mutation and retrieval.
+- **SSOT Outlet Resolution:** Dilarang membaca mentah `$request->get('outlet_id')` atau `$request->outlet`. Wajib gunakan `SelectedOutlet::resolveEffectiveOutletId($request->user(), $request->input('outlet_id') ?: $request->input('outlet'))` di seluruh controller/service.
+  - **Prioritas 1 (Sidebar Master Scope):** Outlet aktif dari session/sidebar selalu memenangkan filter.
+  - **Prioritas 2 (Semua Outlet Scope):** Parameter URL divalidasi ke daftar accessible outlets user. Parameter tidak sah / luar tenant otomatis di-sanitize ke `null`.
+- **Query Scoping Mode:** Model dengan relasi outlet wajib menggunakan trait `HasOutlet` (`scopeSelectedOutlet`). Mode "Semua Outlet" wajib dibatasi ke `whereIn('outlet_id', $userAccessibleOutletIds)`.
 - **ORM Enforcements:** Use Eloquent or Query Builder bindings exclusively. Never construct raw SQL strings with inline variable interpolations.
 - **Environment Secrets:** Store secret keys, webhooks, and API credentials exclusively in `.env`. Never commit secrets directly in code.
 
 ### 1.6. State Management & Caching Boundary
 
 - **UI State (Session Boundary):** Segala bentuk pilihan antarmuka yang mengikat pada pengguna di suatu perangkat (contoh: _Selected Outlet_, _Active Tab_, pilihan _Filter_) **WAJIB** disimpan menggunakan `session()` Laravel. Pendekatan ini mencegah kebocoran state (_state bleed_) antar perangkat/browser ketika pengguna login di berbagai device secara bersamaan.
+- **Request Memoization:** `SelectedOutlet` menggunakan in-memory static cache `$resolvedCache` untuk mencegah redundant database queries selama satu request lifecycle.
+- **Clean Redirect on Switch:** Saat switch outlet, bersihkan stale query params (`outlet`, `outlet_id`, `page`) dari URL referer. Frontend wajib set `:preserve-state="false"`.
 - **Query Performance (Cache Boundary):** Penggunaan Redis atau global `Cache::` HANYA diizinkan untuk optimasi performa _query_ database (contoh: caching `SummaryUser`). Data yang disimpan di Cache wajib berupa tipe data primitif atau _Pure Array_, **DILARANG** menyimpan _Eloquent Model_ untuk menghindari masalah _serialization_.
 - **Cache Invalidation:** Jika menggunakan Redis cache untuk performa, invalidasi data cache (seperti menghapus `SummaryUser` saat _Role_ berubah) wajib dilakukan secara otomatis melalui _Eloquent Observers_ atau _Model Events_ (contoh: `UserCacheObserver`), BUKAN dengan cara manual memanggil `cacheDelete()` dari dalam controller atau layer service.
 

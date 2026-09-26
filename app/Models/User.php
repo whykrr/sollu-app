@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Notifications\ResetPassword;
 use App\Notifications\VerifyEmailBusiness;
+use App\Services\Auth\UserPermissionCacheService;
 use App\Trait\HasBusiness;
 use App\Trait\HasOutlet;
 use App\Trait\SortableModel;
@@ -176,5 +177,34 @@ class User extends Authenticatable implements MustVerifyEmail
             $filters['is_deleted'] ?? false,
             fn (Builder $builder, $value) => $builder->onlyTrashed()
         );
+    }
+
+    /**
+     * Get all permissions for this user from cache.
+     *
+     * @return array<int, string>
+     */
+    public function getCachedPermissions(?string $businessId = null): array
+    {
+        return app(UserPermissionCacheService::class)
+            ->getPermissions($this, $businessId);
+    }
+
+    /**
+     * Determine if the user has the given permission using cache.
+     */
+    public function hasCachedPermission(string $permission, ?string $businessId = null): bool
+    {
+        return app(UserPermissionCacheService::class)
+            ->hasPermission($this, $permission, $businessId);
+    }
+
+    /**
+     * Invalidate cached permissions for this user.
+     */
+    public function clearCachedPermissions(?string $businessId = null): void
+    {
+        app(UserPermissionCacheService::class)
+            ->clearUserPermissions($this, $businessId);
     }
 }

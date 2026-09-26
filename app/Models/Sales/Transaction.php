@@ -4,7 +4,6 @@ namespace App\Models\Sales;
 
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
-use App\Helpers\SelectedOutlet;
 use App\Models\Master\Customer;
 use App\Models\Outlet;
 use App\Models\User;
@@ -167,7 +166,7 @@ class Transaction extends Model
                         $query->where('name', 'like', '%'.$search.'%');
                     });
             });
-        })->when($filters['outlet_id'] ?? SelectedOutlet::make()->currentId(), function ($query, $outletId) {
+        })->when($filters['outlet_id'] ?? null, function ($query, $outletId) {
             $query->where('outlet_id', $outletId);
         })->when($filters['channel'] ?? null, function ($query, $channel) {
             $query->where('channel', $channel);

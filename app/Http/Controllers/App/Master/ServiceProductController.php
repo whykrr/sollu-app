@@ -36,10 +36,9 @@ class ServiceProductController extends Controller
 
     public function index(GetServiceProductRequest $request): Response
     {
-        $this->authorize(PermissionEnum::SERVICE_VIEW->value);
-
         $params = $request->validated();
-        $outletId = $params['outlet'] ?? SelectedOutlet::make()->currentId();
+        $outletId = SelectedOutlet::resolveEffectiveOutletId($request->user(), $params['outlet'] ?? $params['outlet_id'] ?? null);
+        $params['outlet'] = $outletId;
 
         $services = Product::currentBusiness()
             ->services()
@@ -108,8 +107,6 @@ class ServiceProductController extends Controller
 
     public function store(StoreServiceProductRequest $request): RedirectResponse
     {
-        $this->authorize(PermissionEnum::SERVICE_CREATE->value);
-
         try {
             $data = $request->validated();
             $data['business_id'] = auth()->user()->business_id;
@@ -130,8 +127,6 @@ class ServiceProductController extends Controller
 
     public function update(UpdateServiceProductRequest $request, Product $service): RedirectResponse
     {
-        $this->authorize(PermissionEnum::SERVICE_UPDATE->value);
-
         if ($service->business_id !== auth()->user()->business_id) {
             abort(403);
         }

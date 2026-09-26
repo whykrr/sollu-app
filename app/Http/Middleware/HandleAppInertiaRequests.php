@@ -62,12 +62,19 @@ class HandleAppInertiaRequests extends Middleware
 
             'enums' => fn () => FrontendEnumProvider::all(),
 
-            'auth' => fn () => $request->user()
-                ? array_merge(
+            'auth' => function () use ($request) {
+                if (! $request->user()) {
+                    return null;
+                }
+
+                $selectedOutlet = SelectedOutlet::make($request->user())->cached();
+
+                return array_merge(
                     $request->user()->only(['id', 'name', 'email', 'email_verified_at', 'photo', 'photo_url']),
-                    (array) SummaryUser::make()->cached(),
-                    ['selected_outlet' => SelectedOutlet::make($request->user())->cached()]
-                ) : null,
+                    (array) SummaryUser::make($request->user())->cached(),
+                    ['selected_outlet' => $selectedOutlet]
+                );
+            },
 
             'selectedOutlet' => fn () => $request->user() ? SelectedOutlet::make($request->user())->cached() : null,
         ]);

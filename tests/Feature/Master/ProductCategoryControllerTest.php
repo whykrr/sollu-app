@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Master;
 
+use App\Constants\AuthorizationMessage;
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\FeatureEnum;
@@ -97,7 +98,8 @@ class ProductCategoryControllerTest extends TestCase
         $response = $this->actingAs($unauthorizedUser, 'business')
             ->get("http://{$this->appDomain}/master/categories");
 
-        $response->assertStatus(403);
+        $response->assertStatus(302);
+        $response->assertSessionHas(FlashDataVariable::FAILED->value, AuthorizationMessage::CANT_ACCESS_PAGE);
     }
 
     public function test_user_without_permission_cannot_view_categories_json(): void

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\App\Inventory;
 use App\Constants\FlashDataVariable;
 use App\Enums\DatePresetEnum;
 use App\Enums\PermissionEnum;
+use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Inventory\Transfer\GetStockTransferRequest;
 use App\Http\Requests\App\Inventory\Transfer\ProcessStockTransferRequest;
@@ -44,6 +45,7 @@ class StockTransferController extends Controller
                 'date_to' => $dateRange['end_date'],
             ]
         );
+        $filterData['outlet_id'] = SelectedOutlet::resolveEffectiveOutletId($request->user(), $filterData['outlet_id'] ?? null);
 
         $transfers = StockTransfer::query()
             ->where('business_id', $businessId)

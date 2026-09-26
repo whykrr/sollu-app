@@ -162,4 +162,57 @@ class SwitchOutletTest extends TestCase
         // Should not crash, and should return null (or auto-resolve if only 1 outlet)
         $this->assertNull($selected);
     }
+
+    public function test_resolve_effective_outlet_id_enforces_sidebar_master_scope(): void
+    {
+        $sessionKey = SelectedOutlet::make($this->user)->getSessionKey();
+        session([$sessionKey => $this->outletA->id]);
+
+        // Even if user requests outlet B in URL, sidebar outlet A must take precedence
+        $resolved = SelectedOutlet::resolveEffectiveOutletId($this->user, $this->outletB->id);
+        $this->assertEquals($this->outletA->id, $resolved);
+    }
+
+    public function test_resolve_effective_outlet_id_accepts_valid_url_param_in_all_outlets_mode(): void
+    {
+        $sessionKey = SelectedOutlet::make($this->user)->getSessionKey();
+        session()->forget($sessionKey);
+
+        $resolved = SelectedOutlet::resolveEffectiveOutletId($this->user, $this->outletB->id);
+        $this->assertEquals($this->outletB->id, $resolved);
+    }
+
+    public function test_resolve_effective_outlet_id_sanitizes_unauthorized_outlet_to_null(): void
+    {
+        $sessionKey = SelectedOutlet::make($this->user)->getSessionKey();
+        session()->forget($sessionKey);
+
+        $otherBusiness = Business::create([
+            'name' => 'Foreign Business',
+            'owner_name' => 'Foreign Owner',
+            'email' => 'foreign_'.uniqid().'@test.test',
+            'phone' => '088888888',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $this->business->business_type_id,
+        ]);
+
+        $foreignOutlet = Outlet::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Foreign Outlet',
+            'is_active' => true,
+        ]);
+
+        $resolved = SelectedOutlet::resolveEffectiveOutletId($this->user, $foreignOutlet->id);
+        $this->assertNull($resolved, 'Unauthorized outlet must be sanitized to null.');
+    }
+
+    public function test_switch_clears_stale_query_params_from_referer_url(): void
+    {
+        $response = $this->actingAs($this->user, 'business')
+            ->from("http://{$this->appDomain}/inventory/stock?outlet_id={$this->outletA->id}&page=3&search=beras")
+            ->post("http://{$this->appDomain}/switch-outlet/{$this->outletB->id}");
+
+        $response->assertRedirect("http://{$this->appDomain}/inventory/stock?search=beras");
+    }
 }

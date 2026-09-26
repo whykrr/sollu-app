@@ -4,7 +4,6 @@ namespace App\Models\Inventory;
 
 use App\Enums\AdjustmentReason;
 use App\Enums\AdjustmentStatus;
-use App\Helpers\SelectedOutlet;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -126,7 +125,7 @@ class StockAdjustment extends Model
             $filters['reason'] ?? false,
             fn (Builder $q, $value) => $q->where('reason', $value)
         )->when(
-            $filters['outlet_id'] ?? SelectedOutlet::make()->currentId(),
+            $filters['outlet_id'] ?? false,
             fn (Builder $q, $value) => $q->where('outlet_id', $value)
         )->when(
             $filters['date_from'] ?? false,

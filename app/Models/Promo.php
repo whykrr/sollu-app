@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\PromoStatus;
 use App\Enums\PromoTarget;
 use App\Enums\PromoType;
-use App\Helpers\SelectedOutlet;
 use App\Models\Master\ProductItem;
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
@@ -119,7 +118,7 @@ class Promo extends Model
             $type,
             fn ($q, $value) => $q->where('promo_type', $value)
         )->when(
-            $filters['outlet'] ?? SelectedOutlet::make()->currentId(),
+            $filters['outlet'] ?? $filters['outlet_id'] ?? false,
             fn ($q, $value) => $q->where(function ($q) use ($value) {
                 $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $value))
                     ->orWhere('applies_to_all_outlets', true);
