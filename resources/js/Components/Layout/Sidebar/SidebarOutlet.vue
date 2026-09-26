@@ -3,7 +3,7 @@
         <div class="w-full">
             <button
                 type="button"
-                class="flex w-full items-center justify-between px-3 py-2.5 bg-white border border-slate-200 rounded-xl hover:border-main/50 hover:bg-slate-50 transition-all duration-200 ease-in-out group focus:outline-none focus:ring-2 focus:ring-main/20"
+                class="flex w-full items-center justify-between px-3 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[40px] bg-white border border-slate-200 rounded-xl hover:border-main/50 hover:bg-slate-50 transition-all duration-200 ease-in-out group focus:outline-none focus:ring-2 focus:ring-main/20 touch-manipulation"
                 :class="{
                     'ring-2 ring-main/20 border-main/50': isOpen,
                     'cursor-pointer': outlets.length > 1,
@@ -12,25 +12,27 @@
                 :aria-expanded="isOpen"
                 @click.prevent="selectOutlet"
             >
-                <div class="flex items-center gap-3 overflow-hidden">
+                <div class="flex items-center gap-2.5 overflow-hidden">
                     <div
-                        class="flex-shrink-0 flex items-center justify-center rounded-lg bg-main/10 text-main h-8 w-8 group-hover:scale-105 transition-transform duration-200"
+                        class="flex-shrink-0 flex items-center justify-center rounded-lg bg-main/10 text-main h-7.5 w-7.5 sm:h-8 sm:w-8 group-hover:scale-105 transition-transform duration-200"
                     >
-                        <FontAwesomeIcon :icon="faMapMarkerAlt" class="text-sm" />
+                        <FontAwesomeIcon :icon="faMapMarkerAlt" class="text-xs sm:text-sm" />
                     </div>
                     <div class="flex flex-col text-left truncate">
                         <span
                             class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-0.5"
                             >Outlet</span
                         >
-                        <span class="font-medium text-sm text-slate-800 truncate leading-none">
+                        <span
+                            class="font-medium text-xs sm:text-sm text-slate-800 truncate leading-tight"
+                        >
                             {{ selectedOutlet ? selectedOutlet.name : 'Semua Outlet' }}
                         </span>
                     </div>
                 </div>
                 <div
                     v-if="outlets.length > 1"
-                    class="flex flex-col text-slate-400 group-hover:text-main transition-colors duration-200"
+                    class="flex flex-col text-slate-400 group-hover:text-main transition-colors duration-200 pl-1"
                 >
                     <FontAwesomeIcon
                         :icon="faChevronDown"
@@ -51,9 +53,9 @@
             >
                 <div
                     v-if="isOpen"
-                    class="absolute z-50 left-3 right-3 mt-2 bg-white rounded-xl shadow-xl ring-1 ring-black/5 overflow-hidden origin-top"
+                    class="absolute z-50 left-2 right-2 mt-1.5 bg-white border border-slate-200/80 rounded-xl shadow-xl ring-1 ring-black/5 overflow-hidden origin-top"
                 >
-                    <div class="p-1.5 max-h-60 overflow-y-auto floating-scroll">
+                    <div class="p-1 max-h-60 overflow-y-auto floating-scroll space-y-0.5">
                         <!-- Semua Outlet Option -->
                         <div
                             :ref="
@@ -61,7 +63,6 @@
                                     if (!selectedOutlet) activeItemRef = el
                                 }
                             "
-                            class="mb-1"
                         >
                             <Link
                                 method="post"
@@ -69,17 +70,18 @@
                                 :preserve-state="false"
                                 as="button"
                                 :href="route('switch.all')"
-                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150"
+                                class="w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] sm:min-h-[38px] rounded-lg text-sm transition-colors duration-150 touch-manipulation cursor-pointer text-left"
                                 :class="{
                                     'bg-main/10 text-main font-semibold': !selectedOutlet,
-                                    'text-slate-600 hover:bg-slate-100': selectedOutlet,
+                                    'text-slate-600 hover:bg-slate-100 active:bg-slate-200':
+                                        selectedOutlet,
                                 }"
                                 @click="isOpen = false"
                             >
-                                <span>Semua Outlet</span>
+                                <span class="truncate">Semua Outlet</span>
                                 <div
                                     v-if="!selectedOutlet"
-                                    class="w-2 h-2 rounded-full bg-main"
+                                    class="w-2 h-2 rounded-full bg-main shrink-0"
                                 ></div>
                             </Link>
                         </div>
@@ -100,11 +102,11 @@
                                 :preserve-state="false"
                                 as="button"
                                 :href="route('switch.outlet', { id: o.id })"
-                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150"
+                                class="w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] sm:min-h-[38px] rounded-lg text-sm transition-colors duration-150 touch-manipulation cursor-pointer text-left"
                                 :class="{
                                     'bg-main/10 text-main font-semibold':
                                         o.id === selectedOutlet?.id,
-                                    'text-slate-600 hover:bg-slate-100':
+                                    'text-slate-600 hover:bg-slate-100 active:bg-slate-200':
                                         o.id !== selectedOutlet?.id,
                                 }"
                                 @click="isOpen = false"

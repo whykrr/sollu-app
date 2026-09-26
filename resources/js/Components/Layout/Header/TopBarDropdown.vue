@@ -28,7 +28,9 @@
                     v-if="isOpen"
                     class="fixed inset-x-3 max-w-[calc(100vw-1.5rem)] mx-auto top-16 sm:absolute sm:inset-auto sm:top-[48px] sm:max-w-none z-[100] bg-white border border-neutral-100 rounded-xl shadow-2xl ring-1 ring-black/5 p-4 max-h-[calc(100vh-5rem)] overflow-y-auto floating-scroll"
                     :class="[
-                        align === 'left' ? 'sm:left-0 origin-top-left' : 'sm:right-0 origin-top-right',
+                        align === 'left'
+                            ? 'sm:left-0 origin-top-left'
+                            : 'sm:right-0 origin-top-right',
                         widthClass,
                         panelClass,
                     ]"

@@ -1,7 +1,7 @@
 <template>
     <aside
         ref="sidebarRef"
-        class="sidebar bg-white/80 backdrop-blur-md"
+        class="sidebar bg-white"
         :class="{
             minimize: appStore.sidebar.minimize,
             show: appStore.sidebar.show,
@@ -11,16 +11,16 @@
     >
         <Teleport to="body">
             <Transition
-                enter-active-class="transition-opacity duration-300 ease-linear"
+                enter-active-class="transition-opacity duration-300 ease-out"
                 enter-from-class="opacity-0"
                 enter-to-class="opacity-100"
-                leave-active-class="transition-opacity duration-300 ease-linear"
+                leave-active-class="transition-opacity duration-200 ease-in"
                 leave-from-class="opacity-100"
                 leave-to-class="opacity-0"
             >
                 <div
                     v-if="appStore.sidebar.show && (appStore.sidebar.minimize || isMobile)"
-                    class="fixed inset-0 bg-black/20 backdrop-blur-sm z-20"
+                    class="fixed inset-0 bg-black/40 backdrop-blur-xs z-[90]"
                     aria-hidden="true"
                     @click="appStore.hide()"
                 />
@@ -53,13 +53,21 @@ const checkMobile = () => {
     isMobile.value = window.innerWidth < 640 // sm breakpoint
 }
 
+const handleKeyDown = e => {
+    if (e.key === 'Escape' && appStore.sidebar.show) {
+        appStore.hide()
+    }
+}
+
 onMounted(() => {
     checkMobile()
     window.addEventListener('resize', checkMobile)
+    window.addEventListener('keydown', handleKeyDown)
 })
 
 onUnmounted(() => {
     window.removeEventListener('resize', checkMobile)
+    window.removeEventListener('keydown', handleKeyDown)
 })
 
 router.on('finish', () => appStore.hide())

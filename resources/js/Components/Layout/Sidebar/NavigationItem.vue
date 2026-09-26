@@ -6,9 +6,10 @@
         :class="{
             active: active,
         }"
+        :aria-current="active ? 'page' : undefined"
     >
-        <FontAwesomeIcon v-if="icon" :icon="icon" class="w-5" />
-        <div class="nav-item-label">
+        <FontAwesomeIcon v-if="icon" :icon="icon" class="w-5 shrink-0" />
+        <div class="nav-item-label truncate">
             {{ label }}
         </div>
     </a>
@@ -19,9 +20,10 @@
         :class="{
             active: active,
         }"
+        :aria-current="active ? 'page' : undefined"
     >
-        <FontAwesomeIcon v-if="icon" :icon="icon" class="w-5" />
-        <div class="nav-item-label">
+        <FontAwesomeIcon v-if="icon" :icon="icon" class="w-5 shrink-0" />
+        <div class="nav-item-label truncate">
             {{ label }}
         </div>
     </Link>

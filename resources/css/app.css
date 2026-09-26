@@ -450,7 +450,7 @@
        -------------------------------------------------------------------------- */
     @media (width < 40rem /* 640px 'sm' */) {
         .sidebar {
-            @apply fixed inset-y-0 left-0 top-0 z-30 transform transition-all duration-300 -translate-x-full w-full !max-h-full border overflow-hidden bg-white;
+            @apply fixed inset-y-0 left-0 top-0 z-[100] transform transition-transform duration-300 -translate-x-full w-[85vw] max-w-xs h-full border-r border-slate-200 overflow-hidden bg-white shadow-2xl;
 
             & .sidebar-container {
                 @apply flex flex-col w-full h-full;
@@ -470,11 +470,11 @@
                 xl:w-72;
 
             & .sidebar-container {
-                @apply flex flex-col w-full;
+                @apply flex flex-col w-full h-screen sticky top-0;
             }
 
             &.minimize {
-                @apply !fixed !inset-y-0 left-0 !top-14 z-30 -translate-x-full !max-h-[80%] border !rounded-r-lg overflow-hidden shadow backdrop-blur-sm bg-white/50;
+                @apply !fixed !inset-y-0 left-0 !top-0 z-[100] -translate-x-full !h-full w-64 lg:w-72 border-r border-slate-200 overflow-hidden shadow-2xl bg-white;
 
                 &.show {
                     @apply translate-x-0;
@@ -493,11 +493,11 @@
 
     .navigation-list {
         & .nav-section {
-            @apply text-sm select-none text-neutral-400 font-medium;
+            @apply text-xs select-none text-neutral-400 font-semibold uppercase tracking-wider;
         }
 
         & .nav-item {
-            @apply flex flex-row gap-2 items-center py-2.5 px-3 hover:bg-main/5 hover:text-main cursor-pointer rounded-lg text-neutral-600 font-medium transition-all duration-200 ease-in-out;
+            @apply flex flex-row gap-2.5 items-center py-2.5 sm:py-2 px-3 min-h-[44px] sm:min-h-[38px] hover:bg-main/5 hover:text-main cursor-pointer rounded-xl text-neutral-600 font-medium transition-all duration-200 ease-in-out touch-manipulation;
 
             &.active {
                 @apply bg-main/10 !text-main font-semibold pointer-events-none;
@@ -513,10 +513,10 @@
         }
 
         & .nav-dropdown {
-            @apply rounded-lg overflow-hidden transition-all duration-200;
+            @apply rounded-xl overflow-hidden transition-all duration-200;
 
             & .nav-dropdown-list {
-                @apply flex flex-col transition-all duration-300 max-h-0 opacity-0 invisible ease-in-out bg-neutral-100;
+                @apply flex flex-col transition-all duration-300 max-h-0 opacity-0 invisible ease-in-out bg-neutral-100/70 rounded-lg my-0.5;
             }
 
             & .nav-item-dropdown .nav-item-label {
@@ -527,7 +527,7 @@
                 @apply bg-neutral-50;
 
                 & .nav-item-dropdown {
-                    @apply text-main font-medium;
+                    @apply text-main font-semibold;
                 }
 
                 & .nav-item-dropdown .nav-item-caret {
@@ -535,15 +535,15 @@
                 }
 
                 & .nav-dropdown-list {
-                    @apply max-h-96 opacity-100 visible;
+                    @apply max-h-96 opacity-100 visible py-1;
                 }
             }
 
             & .nav-dropdown-item {
-                @apply pl-10 pr-3 py-2 transition-all duration-200 ease-in-out text-sm text-neutral-500 hover:text-main hover:bg-main/5;
+                @apply pl-10 pr-3 py-2.5 sm:py-1.5 min-h-[42px] sm:min-h-[34px] flex items-center transition-all duration-200 ease-in-out text-sm text-neutral-500 hover:text-main hover:bg-main/5 rounded-lg touch-manipulation;
 
                 &.active {
-                    @apply text-main font-medium bg-main/5 pointer-events-none;
+                    @apply text-main font-semibold bg-main/10 pointer-events-none;
                 }
             }
         }

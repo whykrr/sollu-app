@@ -20,7 +20,7 @@
         <Link
             v-if="!subscription"
             :href="route('settings.billing.plans')"
-            class="btn btn-outline-main btn-sm justify-center w-full mt-1"
+            class="btn btn-outline-main btn-sm justify-center w-full mt-1 min-h-[36px] touch-manipulation"
         >
             Langganan Sekarang
         </Link>
@@ -32,7 +32,7 @@
                     is_renewal: 1,
                 })
             "
-            class="btn btn-outline-info btn-sm justify-center w-full mt-1"
+            class="btn btn-outline-info btn-sm justify-center w-full mt-1 min-h-[36px] touch-manipulation"
         >
             Perpanjang Langganan
         </Link>

@@ -1,13 +1,18 @@
 <template>
-    <div ref="dropdownRef" class="nav-dropdown" :class="{ active: active || isSubMenuOpen }">
-        <a href="#" class="nav-item nav-item-dropdown" @click.prevent="toggleSubMenu">
-            <FontAwesomeIcon :icon="icon" class="w-[20px]" />
-            <div class="nav-item-label">{{ label }}</div>
-            <FontAwesomeIcon :icon="faChevronDown" class="nav-item-caret" />
-        </a>
+    <div ref="dropdownRef" class="nav-dropdown" :class="{ active: isSubMenuOpen }">
+        <button
+            type="button"
+            class="nav-item nav-item-dropdown w-full text-left cursor-pointer"
+            :class="{ 'font-semibold': active }"
+            :aria-expanded="isSubMenuOpen"
+            @click="toggleSubMenu"
+        >
+            <FontAwesomeIcon :icon="icon" class="w-5 shrink-0" />
+            <div class="nav-item-label truncate">{{ label }}</div>
+            <FontAwesomeIcon :icon="faChevronDown" class="nav-item-caret ml-auto" />
+        </button>
 
-        <!-- Animated Submenu -->
-
+        <!-- Submenu List -->
         <div class="nav-dropdown-list">
             <slot />
         </div>
@@ -17,7 +22,7 @@
 <script setup>
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { onBeforeMount, onMounted, ref } from 'vue'
+import { onBeforeMount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
     to: String,
@@ -27,16 +32,24 @@ const props = defineProps({
 })
 
 const dropdownRef = ref(null)
-const isSubMenuOpen = ref(false)
+const isSubMenuOpen = ref(Boolean(props.active))
+
+watch(
+    () => props.active,
+    val => {
+        if (val) {
+            isSubMenuOpen.value = true
+        }
+    }
+)
 
 const toggleSubMenu = () => {
-    if (!props.active) {
-        isSubMenuOpen.value = !isSubMenuOpen.value
-    }
+    isSubMenuOpen.value = !isSubMenuOpen.value
 }
 
 const handleClickOutside = event => {
-    if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+    // Only close on desktop or click outside if not currently active
+    if (!props.active && dropdownRef.value && !dropdownRef.value.contains(event.target)) {
         isSubMenuOpen.value = false
     }
 }

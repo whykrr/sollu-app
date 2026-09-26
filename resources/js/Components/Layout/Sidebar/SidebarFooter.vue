@@ -4,7 +4,7 @@
         <div v-if="isSetting" class="mb-2">
             <Link
                 :href="route('overview')"
-                class="flex items-center justify-center gap-2 w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200/80 rounded-xl transition-all duration-200 active:scale-[0.98] group"
+                class="flex items-center justify-center gap-2 w-full py-2.5 px-3 min-h-[40px] sm:min-h-[36px] text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 border border-slate-200/80 rounded-xl transition-all duration-200 active:scale-[0.98] group touch-manipulation"
             >
                 <FontAwesomeIcon
                     :icon="faArrowLeft"
