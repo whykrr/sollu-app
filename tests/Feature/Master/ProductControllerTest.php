@@ -1062,4 +1062,39 @@ class ProductControllerTest extends TestCase
             'is_active' => true,
         ]);
     }
+
+    public function test_internal_api_product_search_loads_without_undefined_relation(): void
+    {
+        $product = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Americano Coffee',
+            'code' => 'COF-AME',
+            'product_type' => 'basic',
+        ]);
+
+        $item = ProductItem::create([
+            'business_id' => $this->business->id,
+            'product_id' => $product->id,
+            'name' => 'Americano Coffee Hot',
+            'sku' => 'COF-AME-HOT',
+            'item_type' => 'variant_sku',
+        ]);
+
+        InventoryItem::create([
+            'business_id' => $this->business->id,
+            'product_item_id' => $item->id,
+            'name' => 'Americano Coffee Hot',
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->get("http://{$this->appDomain}/api/internal/products/search?query=Amer");
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'data' => [
+                '*' => ['id', 'name', 'code', 'price', 'current_stock'],
+            ],
+        ]);
+        $this->assertEquals('Americano Coffee', $response->json('data.0.name'));
+    }
 }

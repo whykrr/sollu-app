@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
+use Laravel\Telescope\Telescope;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -15,7 +16,7 @@ Schedule::command('horizon:snapshot')->everyFiveMinutes();
 Schedule::command('pulse:clear --days='.(int) env('PULSE_PRUNE_DAYS', 14))->daily();
 
 // Telescope pruning (strictly non-production / development)
-if (! app()->isProduction() && class_exists(\Laravel\Telescope\Telescope::class)) {
+if (! app()->isProduction() && class_exists(Telescope::class)) {
     Schedule::command('telescope:prune --hours='.(int) env('TELESCOPE_PRUNE_HOURS', 24))->daily();
 }
 
@@ -29,3 +30,4 @@ Schedule::command('exports:prune --hours=24')
 Schedule::command('subscription:renewal-notification')->dailyAt('08:00');
 Schedule::command('audit:manage-partitions --prune-days=365')->dailyAt('02:00');
 Schedule::command('notifications:prune --days=365')->dailyAt('02:30');
+Schedule::command('promotions:expire')->dailyAt('00:05')->withoutOverlapping()->onOneServer()->runInBackground();

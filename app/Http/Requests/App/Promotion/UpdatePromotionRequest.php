@@ -22,6 +22,60 @@ class UpdatePromotionRequest extends BaseInertiaFormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $applicationMode = $this->input('application_mode');
+        $targetScope = $this->input('target_scope');
+        $discountType = $this->input('discount_type');
+        $appliesToAllOutlets = $this->boolean('applies_to_all_outlets');
+
+        $updates = [];
+
+        // 1. Promo Code: Uppercase & trimmed if manual, null if automatic
+        if ($applicationMode === PromotionApplicationMode::Automatic->value) {
+            $updates['promo_code'] = null;
+        } elseif ($this->has('promo_code') && is_string($this->input('promo_code'))) {
+            $trimmed = trim($this->input('promo_code'));
+            $updates['promo_code'] = $trimmed !== '' ? strtoupper($trimmed) : null;
+        }
+
+        // 2. Max Discount Amount: Null if fixed discount
+        if ($discountType === PromotionDiscountType::Fixed->value) {
+            $updates['max_discount_amount'] = null;
+        }
+
+        // 3. Outlets: Null if applies to all outlets
+        if ($appliesToAllOutlets) {
+            $updates['outlet_ids'] = null;
+        }
+
+        // 4. Target Scopes: Nullify unselected scopes
+        if ($targetScope !== PromotionTargetScope::Category->value) {
+            $updates['category_ids'] = null;
+        }
+        if ($targetScope !== PromotionTargetScope::Product->value) {
+            $updates['product_ids'] = null;
+        }
+        if ($targetScope !== PromotionTargetScope::Variant->value) {
+            $updates['product_item_ids'] = null;
+        }
+
+        // 5. Times: Convert empty string to null
+        if ($this->has('start_time') && trim((string) $this->input('start_time')) === '') {
+            $updates['start_time'] = null;
+        }
+        if ($this->has('end_time') && trim((string) $this->input('end_time')) === '') {
+            $updates['end_time'] = null;
+        }
+
+        if (! empty($updates)) {
+            $this->merge($updates);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -68,7 +122,7 @@ class UpdatePromotionRequest extends BaseInertiaFormRequest
                 Rule::requiredIf(fn () => ! $this->boolean('applies_to_all_outlets')),
                 'nullable',
                 'array',
-                'min:1',
+                Rule::when(! $this->boolean('applies_to_all_outlets'), ['min:1']),
             ],
             'outlet_ids.*' => [
                 Rule::exists('outlets', 'id')->where(function ($query) use ($businessId) {
@@ -79,7 +133,7 @@ class UpdatePromotionRequest extends BaseInertiaFormRequest
                 Rule::requiredIf(fn () => $this->input('target_scope') === PromotionTargetScope::Category->value),
                 'nullable',
                 'array',
-                'min:1',
+                Rule::when($this->input('target_scope') === PromotionTargetScope::Category->value, ['min:1']),
             ],
             'category_ids.*' => [
                 Rule::exists('product_categories', 'id')->where(function ($query) use ($businessId) {
@@ -90,7 +144,7 @@ class UpdatePromotionRequest extends BaseInertiaFormRequest
                 Rule::requiredIf(fn () => $this->input('target_scope') === PromotionTargetScope::Product->value),
                 'nullable',
                 'array',
-                'min:1',
+                Rule::when($this->input('target_scope') === PromotionTargetScope::Product->value, ['min:1']),
             ],
             'product_ids.*' => [
                 Rule::exists('products', 'id')->where(function ($query) use ($businessId) {
@@ -101,7 +155,7 @@ class UpdatePromotionRequest extends BaseInertiaFormRequest
                 Rule::requiredIf(fn () => $this->input('target_scope') === PromotionTargetScope::Variant->value),
                 'nullable',
                 'array',
-                'min:1',
+                Rule::when($this->input('target_scope') === PromotionTargetScope::Variant->value, ['min:1']),
             ],
             'product_item_ids.*' => [
                 Rule::exists('product_items', 'id')->where(function ($query) use ($businessId) {
@@ -110,8 +164,8 @@ class UpdatePromotionRequest extends BaseInertiaFormRequest
             ],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
-            'start_time' => ['nullable', 'date_format:H:i', 'required_with:end_time'],
-            'end_time' => ['nullable', 'date_format:H:i', 'required_with:start_time', 'after:start_time'],
+            'start_time' => ['nullable', 'date_format:H:i,H:i:s', 'required_with:end_time'],
+            'end_time' => ['nullable', 'date_format:H:i,H:i:s', 'required_with:start_time', 'after:start_time'],
             'days_of_week' => ['nullable', 'array'],
             'days_of_week.*' => ['integer', 'between:1,7'],
         ];
@@ -141,8 +195,11 @@ class UpdatePromotionRequest extends BaseInertiaFormRequest
             'applies_to_all_outlets.required' => 'Cakupan outlet wajib ditentukan.',
             'outlet_ids.required_if' => 'Pilih minimal satu outlet jika promo tidak berlaku di semua outlet.',
             'category_ids.required_if' => 'Pilih minimal satu kategori produk untuk target kategori.',
+            'category_ids.*.exists' => 'Kategori produk yang dipilih tidak valid atau tidak ditemukan.',
             'product_ids.required_if' => 'Pilih minimal satu produk untuk target produk spesifik.',
+            'product_ids.*.exists' => 'Produk yang dipilih tidak valid atau tidak ditemukan.',
             'product_item_ids.required_if' => 'Pilih minimal satu varian produk untuk target varian.',
+            'product_item_ids.*.exists' => 'Varian produk yang dipilih tidak valid atau tidak ditemukan.',
             'start_date.required' => 'Tanggal mulai wajib diisi.',
             'end_date.required' => 'Tanggal berakhir wajib diisi.',
             'end_date.after_or_equal' => 'Tanggal berakhir tidak boleh mendahului tanggal mulai.',
@@ -150,6 +207,7 @@ class UpdatePromotionRequest extends BaseInertiaFormRequest
             'end_time.required_with' => 'Jam selesai wajib diisi jika jam mulai ditentukan.',
             'end_time.after' => 'Jam selesai harus setelah jam mulai.',
             'days_of_week.*.between' => 'Pilihan hari tidak valid.',
+            'outlet_ids.*.exists' => 'Outlet yang dipilih tidak valid atau tidak ditemukan.',
         ];
     }
 }

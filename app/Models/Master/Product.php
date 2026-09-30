@@ -3,6 +3,7 @@
 namespace App\Models\Master;
 
 use App\Enums\ProductTypeEnum;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Outlet;
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -144,6 +146,18 @@ class Product extends Model
     public function productItems(): HasMany
     {
         return $this->hasMany(ProductItem::class);
+    }
+
+    public function inventoryItems(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            InventoryItem::class,
+            ProductItem::class,
+            'product_id',
+            'product_item_id',
+            'id',
+            'id'
+        );
     }
 
     public function images(): HasMany

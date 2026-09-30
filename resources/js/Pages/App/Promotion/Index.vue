@@ -26,16 +26,11 @@
                     <div class="flex items-center gap-1.5 flex-wrap">
                         <span
                             v-if="row.application_mode === 'manual' && row.promo_code"
-                            class="inline-flex items-center px-1.5 py-0.5 rounded font-mono text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
+                            class="badge badge-info text-xs"
                         >
                             KODE: {{ row.promo_code }}
                         </span>
-                        <span
-                            v-else
-                            class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600"
-                        >
-                            Otomatis
-                        </span>
+                        <span v-else class="badge badge-success text-xs"> Otomatis </span>
                     </div>
                 </div>
             </template>
@@ -43,7 +38,7 @@
             <!-- Target & Syarat -->
             <template #target_scope="{ row }">
                 <div class="space-y-0.5">
-                    <span class="badge badge-neutral text-xs">
+                    <span class="badge badge-main text-xs">
                         {{ getTargetScopeLabel(row.target_scope || row.target_type) }}
                     </span>
                     <div class="text-[11px] text-slate-500 space-y-0.5">

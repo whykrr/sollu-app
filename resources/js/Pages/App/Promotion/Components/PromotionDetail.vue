@@ -5,16 +5,16 @@
             <div class="space-y-1">
                 <div class="flex items-center gap-2">
                     <h3 class="font-bold text-lg leading-tight">{{ activePromo.name }}</h3>
-                    <span
-                        v-if="activePromo.application_mode === 'manual' && activePromo.promo_code"
-                        class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-white/80 border border-slate-300 shadow-none text-slate-800"
-                    >
-                        KODE: {{ activePromo.promo_code }}
-                    </span>
                 </div>
                 <p class="text-xs font-medium opacity-90">
                     Status: <span class="font-semibold">{{ getStatusLabel(computedStatus) }}</span>
                 </p>
+                <div
+                    v-if="activePromo.application_mode === 'manual' && activePromo.promo_code"
+                    class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-white/80 border border-slate-300 shadow-none text-slate-800"
+                >
+                    KODE: {{ activePromo.promo_code }}
+                </div>
             </div>
             <div class="text-right">
                 <div class="font-bold text-xl">

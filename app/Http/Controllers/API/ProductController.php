@@ -18,8 +18,8 @@ class ProductController extends Controller
     public function search(Request $request)
     {
         $request->validate([
-            'query' => 'nullable|string|min:3',
-            'search' => 'nullable|string|min:3',
+            'query' => 'nullable|string',
+            'search' => 'nullable|string',
             'outlet_id' => 'nullable|uuid',
             'limit' => 'nullable|integer|min:1|max:100',
         ]);

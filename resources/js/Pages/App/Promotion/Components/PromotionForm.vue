@@ -170,7 +170,7 @@
                     label="Cari Produk"
                     :api-url="route('api.internal.products.search')"
                     placeholder="Ketik nama produk..."
-                    :min-chars="2"
+                    :min-chars="1"
                     :error="form.errors.product_ids"
                     @select="addProduct"
                 />
@@ -217,7 +217,7 @@
                     label="Cari Varian Item"
                     :api-url="route('api.internal.inventory-items.search')"
                     placeholder="Ketik nama atau SKU varian..."
-                    :min-chars="2"
+                    :min-chars="1"
                     :error="form.errors.product_item_ids"
                     @select="addProductItem"
                 />
@@ -336,11 +336,22 @@
                     </p>
                 </div>
 
-                <Switch
-                    v-model="form.applies_to_all_outlets"
-                    label="Berlaku di Semua Outlet"
-                    description="Promo dapat dinikmati oleh pelanggan di seluruh cabang tokomu"
-                />
+                <div
+                    class="rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors p-3.5 flex items-start justify-between gap-4"
+                >
+                    <div class="flex-1">
+                        <h4 class="text-xs font-semibold text-slate-800">
+                            Berlaku di Semua Outlet
+                        </h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Promo dapat dinikmati oleh pelanggan di seluruh cabang tokomu
+                        </p>
+                    </div>
+
+                    <div class="mt-0.5 shrink-0">
+                        <Switch id="applies_to_all_outlets" v-model="form.applies_to_all_outlets" />
+                    </div>
+                </div>
 
                 <div v-if="!form.applies_to_all_outlets" class="space-y-2 pt-1">
                     <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">
@@ -608,6 +619,25 @@ watch(
     }
 )
 
+// Clear unselected target scope items when target_scope changes
+watch(
+    () => form.target_scope,
+    newScope => {
+        if (newScope !== 'category') {
+            selectedCategories.value = []
+            form.category_ids = []
+        }
+        if (newScope !== 'product') {
+            selectedProducts.value = []
+            form.product_ids = []
+        }
+        if (newScope !== 'variant') {
+            selectedProductItems.value = []
+            form.product_item_ids = []
+        }
+    }
+)
+
 // Clear max_discount_amount when discount_type is fixed
 watch(
     () => form.discount_type,
@@ -658,8 +688,13 @@ const removeProduct = id => {
 }
 
 const addProductItem = item => {
-    if (!selectedProductItems.value.find(i => i.id === item.id)) {
-        selectedProductItems.value.push(item)
+    const targetId = item.product_item_id || item.id
+    if (!selectedProductItems.value.find(i => i.id === targetId)) {
+        selectedProductItems.value.push({
+            id: targetId,
+            name: item.name,
+            sku: item.sku,
+        })
     }
 }
 
