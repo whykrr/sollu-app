@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Enums\PromoTarget;
+use App\Enums\PromotionTargetScope;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Product;
-use App\Models\Promo;
+use App\Models\Promotion\Promotion;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -60,16 +60,16 @@ class ProductController extends Controller
 
         $productIds = $products->pluck('id')->toArray();
 
-        $activeProductPromos = Promo::currentBusiness()
+        $activeProductPromos = Promotion::currentBusiness()
             ->active()
-            ->where('target_type', PromoTarget::Product->value)
+            ->where('target_scope', PromotionTargetScope::Product->value)
             ->when($outletId, function ($q, $outletId) {
                 $q->where(function ($sub) use ($outletId) {
                     $sub->where('applies_to_all_outlets', true)
-                        ->orWhereHas('outlets', fn ($o) => $o->where('outlet_id', $outletId));
+                        ->orWhereHas('outlets', fn ($o) => $o->where('outlets.id', $outletId));
                 });
             })
-            ->whereHas('products', fn ($p) => $p->whereIn('product_id', $productIds))
+            ->whereHas('products', fn ($p) => $p->whereIn('products.id', $productIds))
             ->with('products:id')
             ->get();
 
@@ -125,17 +125,17 @@ class ProductController extends Controller
 
         $inventoryItemIds = $items->pluck('id')->filter()->unique()->values()->toArray();
 
-        $activeProductPromos = Promo::currentBusiness()
+        $activeProductPromos = Promotion::currentBusiness()
             ->active()
-            ->where('target_type', PromoTarget::Product->value)
+            ->where('target_scope', PromotionTargetScope::Variant->value)
             ->when($outletId, function ($q, $outletId) {
                 $q->where(function ($sub) use ($outletId) {
                     $sub->where('applies_to_all_outlets', true)
                         ->orWhereHas('outlets', fn ($o) => $o->where('outlets.id', $outletId));
                 });
             })
-            ->whereHas('inventoryItems', fn ($i) => $i->whereIn('product_items.id', $inventoryItemIds))
-            ->with('inventoryItems:id')
+            ->whereHas('productItems', fn ($i) => $i->whereIn('product_items.id', $inventoryItemIds))
+            ->with('productItems:id')
             ->get();
 
         $result = $items->map(function ($item) use ($outletId, $activeProductPromos) {
@@ -161,14 +161,14 @@ class ProductController extends Controller
             }
 
             $matchingPromos = $activeProductPromos->filter(function ($promo) use ($item) {
-                return $promo->inventoryItems->contains('id', $item->id);
+                return $promo->productItems->contains('id', $item->id);
             })->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
-                'promo_type' => is_object($p->promo_type) ? $p->promo_type->value : $p->promo_type,
-                'target_type' => is_object($p->target_type) ? $p->target_type->value : $p->target_type,
+                'promo_type' => is_object($p->discount_type) ? $p->discount_type->value : $p->discount_type,
+                'target_type' => is_object($p->target_scope) ? $p->target_scope->value : $p->target_scope,
                 'discount_value' => floatval($p->discount_value),
-                'max_discount' => $p->max_discount ? floatval($p->max_discount) : null,
+                'max_discount' => $p->max_discount_amount ? floatval($p->max_discount_amount) : null,
             ])->values()->toArray();
 
             return [

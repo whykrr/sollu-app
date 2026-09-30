@@ -47,9 +47,9 @@ class PromotionReportService
         $result = DB::table('transaction_promos')
             ->join('transactions', 'transaction_promos.transaction_id', '=', 'transactions.id')
             ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
-            ->join('promos', 'transaction_promos.promo_id', '=', 'promos.id')
+            ->join('promotions', 'transaction_promos.promo_id', '=', 'promotions.id')
             ->where('outlets.business_id', $businessId)
-            ->where('promos.business_id', $businessId)
+            ->where('promotions.business_id', $businessId)
             ->where('transactions.status', 'completed')
             ->whereBetween('transactions.created_at', [$startDate, $endDate])
             ->when(! empty($outletIds), function ($query) use ($outletIds) {
@@ -58,7 +58,7 @@ class PromotionReportService
             ->selectRaw('
                 COUNT(transaction_promos.id) as total_usage,
                 COALESCE(SUM(transaction_promos.discount_amount), 0) as total_discount_given,
-                COUNT(DISTINCT promos.id) as total_active_promos
+                COUNT(DISTINCT promotions.id) as total_active_promos
             ')
             ->first();
 
@@ -89,25 +89,25 @@ class PromotionReportService
         $paginator = DB::table('transaction_promos')
             ->join('transactions', 'transaction_promos.transaction_id', '=', 'transactions.id')
             ->join('outlets', 'transactions.outlet_id', '=', 'outlets.id')
-            ->join('promos', 'transaction_promos.promo_id', '=', 'promos.id')
+            ->join('promotions', 'transaction_promos.promo_id', '=', 'promotions.id')
             ->where('outlets.business_id', $businessId)
-            ->where('promos.business_id', $businessId)
+            ->where('promotions.business_id', $businessId)
             ->where('transactions.status', 'completed')
             ->whereBetween('transactions.created_at', [$startDate, $endDate])
             ->when(! empty($outletIds), function ($query) use ($outletIds) {
                 $query->whereIn('transactions.outlet_id', $outletIds);
             })
             ->when($search, function ($query) use ($search) {
-                $query->where('promos.name', 'ilike', "%{$search}%");
+                $query->where('promotions.name', 'ilike', "%{$search}%");
             })
             ->select(
-                'promos.id as promo_id',
-                'promos.name as promo_name',
-                'promos.promo_type',
+                'promotions.id as promo_id',
+                'promotions.name as promo_name',
+                'promotions.discount_type as promo_type',
                 DB::raw('COUNT(transaction_promos.id) as total_usage'),
                 DB::raw('COALESCE(SUM(transaction_promos.discount_amount), 0) as total_discount_given')
             )
-            ->groupBy('promos.id', 'promos.name', 'promos.promo_type')
+            ->groupBy('promotions.id', 'promotions.name', 'promotions.discount_type')
             ->orderBy('total_usage', 'desc')
             ->paginate($perPage);
 

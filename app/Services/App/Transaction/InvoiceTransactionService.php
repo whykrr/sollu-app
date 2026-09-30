@@ -14,7 +14,7 @@ use App\Models\Master\PaymentMethod;
 use App\Models\Master\Product;
 use App\Models\Outlet;
 use App\Models\OutletSetting;
-use App\Models\Promo;
+use App\Models\Promotion\Promotion;
 use App\Models\Sales\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
@@ -41,7 +41,7 @@ class InvoiceTransactionService
         return DB::transaction(function () use ($data, $user) {
             $promoName = null;
             if (! empty($data['promo_id'])) {
-                $promo = Promo::find($data['promo_id']);
+                $promo = Promotion::find($data['promo_id']);
                 $promoName = $promo?->name;
             }
 
@@ -56,8 +56,8 @@ class InvoiceTransactionService
                     // Clamp promo discount jika ada promo terikat pada item
                     $inventoryItemId = $item['inventory_item_id'] ?? null;
                     if ($inventoryItemId && ! empty($data['outlet_id'])) {
-                        $activePromo = Promo::active()
-                            ->whereHas('inventoryItems', fn ($q) => $q->where('product_items.id', $inventoryItemId))
+                        $activePromo = Promotion::active()
+                            ->whereHas('productItems', fn ($q) => $q->where('product_items.id', $inventoryItemId))
                             ->where(function ($q) use ($data) {
                                 $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $data['outlet_id']))
                                     ->orWhere('applies_to_all_outlets', true);
@@ -66,12 +66,12 @@ class InvoiceTransactionService
 
                         if ($activePromo) {
                             $maxAllowedDiscount = 0;
-                            $promoType = is_object($activePromo->promo_type) ? $activePromo->promo_type->value : $activePromo->promo_type;
+                            $promoType = is_object($activePromo->discount_type) ? $activePromo->discount_type->value : $activePromo->discount_type;
 
                             if ($promoType === 'percentage') {
                                 $maxAllowedDiscount = ($itemPrice * floatval($activePromo->discount_value)) / 100;
-                                if ($activePromo->max_discount && $maxAllowedDiscount > floatval($activePromo->max_discount)) {
-                                    $maxAllowedDiscount = floatval($activePromo->max_discount);
+                                if ($activePromo->max_discount_amount && $maxAllowedDiscount > floatval($activePromo->max_discount_amount)) {
+                                    $maxAllowedDiscount = floatval($activePromo->max_discount_amount);
                                 }
                                 $maxAllowedDiscount *= $itemQty;
                             } elseif ($promoType === 'fixed') {
@@ -166,13 +166,13 @@ class InvoiceTransactionService
             ]);
 
             if (! empty($data['promo_id'])) {
-                $promo = Promo::find($data['promo_id']);
+                $promo = Promotion::find($data['promo_id']);
                 if ($promo) {
                     $transaction->promos()->create([
                         'promo_id' => $promo->id,
                         'promo_name' => $promo->name,
-                        'promo_code' => $promo->code ?? null,
-                        'discount_type' => is_object($promo->promo_type) ? $promo->promo_type->value : $promo->promo_type,
+                        'promo_code' => $promo->promo_code ?? null,
+                        'discount_type' => is_object($promo->discount_type) ? $promo->discount_type->value : $promo->discount_type,
                         'discount_value' => floatval($promo->discount_value),
                         'discount_amount' => $promoDiscount,
                     ]);

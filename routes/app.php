@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\BusinessInfoController;
+use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\CustomerController;
 use App\Http\Controllers\API\HealthCheckController;
 use App\Http\Controllers\API\InventoryItemController;
@@ -84,6 +85,7 @@ Route::middleware('auth:business')->group(function () {
         // For reusable components that need to search for products or inventory items
         Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
         Route::get('/products/search-by-inventory', [ProductController::class, 'searchByInventoryItem'])->name('products.search-by-inventory');
+        Route::get('/categories/search', [CategoryController::class, 'search'])->name('categories.search');
         Route::get('/inventory-items/search', [InventoryItemController::class, 'search'])->name('inventory-items.search');
         Route::get('/inventory-items/partial', [InventoryItemController::class, 'getPartialItems'])->name('inventory-items.partial');
         Route::get('/outlets', [OutletController::class, 'index'])->name('outlets.index');

@@ -8,15 +8,17 @@ use App\Constants\ResourceMessage;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
-use App\Enums\PromoStatus;
-use App\Enums\PromoTarget;
-use App\Enums\PromoType;
+use App\Enums\PromotionApplicationMode;
+use App\Enums\PromotionDiscountType;
+use App\Enums\PromotionStatus;
+use App\Enums\PromotionTargetScope;
 use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
+use App\Models\Master\Product;
 use App\Models\Master\ProductItem;
 use App\Models\Outlet;
-use App\Models\Promo;
+use App\Models\Promotion\Promotion;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
@@ -139,15 +141,16 @@ class PromotionControllerTest extends TestCase
 
     public function test_authorized_user_can_view_promotions_page(): void
     {
-        Promo::create([
+        Promotion::create([
             'business_id' => $this->business->id,
             'name' => 'Promo Merdeka',
-            'promo_type' => PromoType::Percentage->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Percentage->value,
             'discount_value' => 17,
             'start_date' => Carbon::now()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
@@ -158,22 +161,23 @@ class PromotionControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Promotion/Index')
-            ->has('promos.data', 1)
-            ->where('promos.data.0.name', 'Promo Merdeka')
+            ->has('promotions.data', 1)
+            ->where('promotions.data.0.name', 'Promo Merdeka')
         );
     }
 
     public function test_promotions_list_is_isolated_to_business(): void
     {
-        Promo::create([
+        Promotion::create([
             'business_id' => $this->business->id,
             'name' => 'Promo Tenant A',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 5000,
             'start_date' => Carbon::now()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
@@ -188,15 +192,16 @@ class PromotionControllerTest extends TestCase
             'business_type_id' => $this->business->business_type_id,
         ]);
 
-        Promo::create([
+        Promotion::create([
             'business_id' => $otherBusiness->id,
             'name' => 'Promo Tenant B',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 10000,
             'start_date' => Carbon::now()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
@@ -207,68 +212,79 @@ class PromotionControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Promotion/Index')
-            ->has('promos.data', 1)
-            ->where('promos.data.0.name', 'Promo Tenant A')
+            ->has('promotions.data', 1)
+            ->where('promotions.data.0.name', 'Promo Tenant A')
         );
     }
 
     public function test_user_can_filter_and_sort_promotions(): void
     {
-        Promo::create([
+        Promotion::create([
             'business_id' => $this->business->id,
             'name' => 'Diskon Awal Bulan',
-            'promo_type' => PromoType::Percentage->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Percentage->value,
             'discount_value' => 10,
             'start_date' => Carbon::now()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
 
-        Promo::create([
+        Promotion::create([
             'business_id' => $this->business->id,
             'name' => 'Diskon Akhir Pekan',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Product->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Product->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 5000,
             'start_date' => Carbon::now()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Active->value,
+            'status' => PromotionStatus::Active->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
 
         $response = $this->actingAs($this->user, 'business')
-            ->get("http://{$this->appDomain}/promotions?search=Awal&status=draft&promo_type=percentage&sort=name&direction=asc");
+            ->get("http://{$this->appDomain}/promotions?search=Awal&status=draft&discount_type=percentage&sort=name&direction=asc");
 
         $response->assertStatus(200);
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Promotion/Index')
-            ->has('promos.data', 1)
-            ->where('promos.data.0.name', 'Diskon Awal Bulan')
+            ->has('promotions.data', 1)
+            ->where('promotions.data.0.name', 'Diskon Awal Bulan')
         );
     }
 
-    public function test_authorized_user_can_create_promo(): void
+    public function test_authorized_user_can_create_draft_promotion(): void
     {
+        $product = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Master Product',
+            'product_type' => 'basic',
+        ]);
+
         $item = ProductItem::create([
             'business_id' => $this->business->id,
-            'name' => 'Menu Spesial',
-            'item_type' => 'raw_material',
+            'product_id' => $product->id,
+            'name' => 'Menu Spesial Varian',
+            'item_type' => 'variant_sku',
         ]);
 
         $payload = [
             'name' => 'Promo Spesial Menu',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Product->value,
+            'application_mode' => PromotionApplicationMode::Manual->value,
+            'promo_code' => 'SPESIAL50',
+            'target_scope' => PromotionTargetScope::Variant->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 7500,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(5)->toDateString(),
             'applies_to_all_outlets' => false,
             'outlet_ids' => [$this->outlet->id],
-            'inventory_item_ids' => [$item->id],
+            'product_item_ids' => [$item->id],
         ];
 
         $response = $this->actingAs($this->user, 'business')
@@ -277,31 +293,77 @@ class PromotionControllerTest extends TestCase
         $response->assertStatus(302);
         $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::CREATE_SUCCESS);
 
-        $this->assertDatabaseHas('promos', [
+        $this->assertDatabaseHas('promotions', [
             'business_id' => $this->business->id,
             'name' => 'Promo Spesial Menu',
+            'promo_code' => 'SPESIAL50',
+            'status' => PromotionStatus::Draft->value,
+        ]);
+
+        $promo = Promotion::where('name', 'Promo Spesial Menu')->first();
+        $this->assertCount(1, $promo->outlets);
+        $this->assertCount(1, $promo->productItems);
+    }
+
+    public function test_create_promotion_validation_fails_with_indonesian_messages(): void
+    {
+        // 1. Empty name
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/promotions", []);
+
+        $response->assertSessionHasErrors([
+            'name' => 'Nama promo wajib diisi.',
+            'application_mode' => 'Mode aplikasi promo tidak valid.',
+            'target_scope' => 'Cakupan target promo tidak valid.',
+            'discount_type' => 'Tipe diskon tidak valid.',
+            'discount_value' => 'Nilai diskon wajib diisi.',
+            'applies_to_all_outlets' => 'Cakupan outlet wajib ditentukan.',
+            'start_date' => 'Tanggal mulai wajib diisi.',
+            'end_date' => 'Tanggal berakhir wajib diisi.',
+        ]);
+
+        // 2. Manual mode without promo code
+        $responseManual = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/promotions", [
+                'name' => 'Test Promo',
+                'application_mode' => PromotionApplicationMode::Manual->value,
+                'target_scope' => PromotionTargetScope::Transaction->value,
+                'discount_type' => PromotionDiscountType::Percentage->value,
+                'discount_value' => 150, // Invalid percentage
+                'start_date' => Carbon::now()->addDays(5)->toDateString(),
+                'end_date' => Carbon::now()->toDateString(), // before start_date
+                'applies_to_all_outlets' => true,
+            ]);
+
+        $responseManual->assertSessionHasErrors([
+            'promo_code' => 'Kode promo wajib diisi jika mode manual dan hanya boleh huruf, angka, strip, dan underscore.',
+            'discount_value' => 'Nilai diskon persentase harus antara 0.01% hingga 100%.',
+            'end_date' => 'Tanggal berakhir tidak boleh mendahului tanggal mulai.',
         ]);
     }
 
-    public function test_authorized_user_can_update_draft_promo(): void
+    public function test_authorized_user_can_update_draft_promotion(): void
     {
-        $promo = Promo::create([
+        $promo = Promotion::create([
             'business_id' => $this->business->id,
             'name' => 'Old Draft Promo',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 5000,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
 
         $payload = [
             'name' => 'Updated Draft Promo',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Manual->value,
+            'promo_code' => 'UPDATED8K',
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 8000,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
@@ -314,13 +376,48 @@ class PromotionControllerTest extends TestCase
         $response->assertStatus(302);
         $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);
 
-        $this->assertDatabaseHas('promos', [
+        $this->assertDatabaseHas('promotions', [
             'id' => $promo->id,
             'name' => 'Updated Draft Promo',
+            'promo_code' => 'UPDATED8K',
         ]);
     }
 
-    public function test_authorized_user_cannot_update_promo_from_another_business(): void
+    public function test_cannot_update_active_promotion_directly(): void
+    {
+        $promo = Promotion::create([
+            'business_id' => $this->business->id,
+            'name' => 'Active Promo',
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
+            'discount_value' => 5000,
+            'start_date' => Carbon::now()->subDay()->toDateString(),
+            'end_date' => Carbon::now()->addDays(7)->toDateString(),
+            'status' => PromotionStatus::Active->value,
+            'created_by' => $this->user->id,
+            'applies_to_all_outlets' => true,
+        ]);
+
+        $payload = [
+            'name' => 'Attempt Edit Active',
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
+            'discount_value' => 10000,
+            'start_date' => Carbon::now()->subDay()->toDateString(),
+            'end_date' => Carbon::now()->addDays(7)->toDateString(),
+            'applies_to_all_outlets' => true,
+        ];
+
+        $response = $this->actingAs($this->user, 'business')
+            ->put("http://{$this->appDomain}/promotions/{$promo->id}", $payload);
+
+        $response->assertStatus(302);
+        $response->assertSessionHas(FlashDataVariable::FAILED->value, 'Promo yang sedang aktif tidak dapat diubah langsung. Nonaktifkan promo terlebih dahulu.');
+    }
+
+    public function test_authorized_user_cannot_update_promotion_from_another_business(): void
     {
         $otherBusiness = Business::create([
             'name' => 'Other Merchant',
@@ -332,23 +429,25 @@ class PromotionControllerTest extends TestCase
             'business_type_id' => $this->business->business_type_id,
         ]);
 
-        $promo = Promo::create([
+        $promo = Promotion::create([
             'business_id' => $otherBusiness->id,
             'name' => 'Other Promo',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 5000,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
 
         $payload = [
             'name' => 'Hacked Promo',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 99999,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
@@ -361,17 +460,18 @@ class PromotionControllerTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_authorized_user_can_delete_draft_promo(): void
+    public function test_authorized_user_can_delete_draft_promotion(): void
     {
-        $promo = Promo::create([
+        $promo = Promotion::create([
             'business_id' => $this->business->id,
             'name' => 'Draft To Delete',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 5000,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
@@ -382,12 +482,39 @@ class PromotionControllerTest extends TestCase
         $response->assertStatus(302);
         $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::DELETE_SUCCESS);
 
-        $this->assertDatabaseMissing('promos', [
+        $this->assertDatabaseMissing('promotions', [
             'id' => $promo->id,
         ]);
     }
 
-    public function test_authorized_user_cannot_delete_promo_from_another_business(): void
+    public function test_cannot_delete_active_promotion(): void
+    {
+        $promo = Promotion::create([
+            'business_id' => $this->business->id,
+            'name' => 'Active To Delete',
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
+            'discount_value' => 5000,
+            'start_date' => Carbon::now()->subDay()->toDateString(),
+            'end_date' => Carbon::now()->addDays(7)->toDateString(),
+            'status' => PromotionStatus::Active->value,
+            'created_by' => $this->user->id,
+            'applies_to_all_outlets' => true,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->delete("http://{$this->appDomain}/promotions/{$promo->id}");
+
+        $response->assertStatus(302);
+        $response->assertSessionHas(FlashDataVariable::FAILED->value, 'Hanya promo berstatus Draf yang dapat dihapus.');
+
+        $this->assertDatabaseHas('promotions', [
+            'id' => $promo->id,
+        ]);
+    }
+
+    public function test_authorized_user_cannot_delete_promotion_from_another_business(): void
     {
         $otherBusiness = Business::create([
             'name' => 'Other Merchant',
@@ -399,15 +526,16 @@ class PromotionControllerTest extends TestCase
             'business_type_id' => $this->business->business_type_id,
         ]);
 
-        $promo = Promo::create([
+        $promo = Promotion::create([
             'business_id' => $otherBusiness->id,
             'name' => 'Other Promo',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 5000,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
@@ -418,17 +546,18 @@ class PromotionControllerTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_authorized_user_can_publish_and_unpublish_promo(): void
+    public function test_authorized_user_can_publish_and_unpublish_promotion(): void
     {
-        $promo = Promo::create([
+        $promo = Promotion::create([
             'business_id' => $this->business->id,
             'name' => 'Draft To Publish',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 5000,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
@@ -439,7 +568,9 @@ class PromotionControllerTest extends TestCase
 
         $response->assertStatus(302);
         $promo->refresh();
-        $this->assertEquals(PromoStatus::Active, $promo->status);
+        $this->assertEquals(PromotionStatus::Active, $promo->status);
+        $this->assertNotNull($promo->published_at);
+        $this->assertEquals($this->user->id, $promo->published_by);
 
         // Unpublish
         $response = $this->actingAs($this->user, 'business')
@@ -447,10 +578,36 @@ class PromotionControllerTest extends TestCase
 
         $response->assertStatus(302);
         $promo->refresh();
-        $this->assertEquals(PromoStatus::Inactive, $promo->status);
+        $this->assertEquals(PromotionStatus::Inactive, $promo->status);
     }
 
-    public function test_authorized_user_cannot_publish_promo_from_another_business(): void
+    public function test_user_cannot_publish_promotion_with_past_end_date(): void
+    {
+        $promo = Promotion::create([
+            'business_id' => $this->business->id,
+            'name' => 'Past Promo',
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
+            'discount_value' => 5000,
+            'start_date' => Carbon::now()->subDays(10)->toDateString(),
+            'end_date' => Carbon::now()->subDay()->toDateString(),
+            'status' => PromotionStatus::Draft->value,
+            'created_by' => $this->user->id,
+            'applies_to_all_outlets' => true,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/promotions/{$promo->id}/publish");
+
+        $response->assertStatus(302);
+        $response->assertSessionHas(FlashDataVariable::FAILED->value, 'Tanggal berakhir promo sudah terlewat.');
+
+        $promo->refresh();
+        $this->assertEquals(PromotionStatus::Draft, $promo->status);
+    }
+
+    public function test_authorized_user_cannot_publish_promotion_from_another_business(): void
     {
         $otherBusiness = Business::create([
             'name' => 'Other Merchant',
@@ -462,15 +619,16 @@ class PromotionControllerTest extends TestCase
             'business_type_id' => $this->business->business_type_id,
         ]);
 
-        $promo = Promo::create([
+        $promo = Promotion::create([
             'business_id' => $otherBusiness->id,
             'name' => 'Other Promo',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 5000,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
@@ -481,17 +639,18 @@ class PromotionControllerTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_authorized_user_can_view_promo_show(): void
+    public function test_authorized_user_can_view_promotion_show(): void
     {
-        $promo = Promo::create([
+        $promo = Promotion::create([
             'business_id' => $this->business->id,
             'name' => 'Promo Show Test',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 5000,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);
@@ -501,11 +660,11 @@ class PromotionControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'id', 'name', 'promo_type', 'target_type', 'outlets', 'inventory_items',
+            'id', 'name', 'discount_type', 'target_scope', 'outlets', 'categories', 'products', 'product_items',
         ]);
     }
 
-    public function test_authorized_user_cannot_view_promo_show_from_another_business(): void
+    public function test_authorized_user_cannot_view_promotion_show_from_another_business(): void
     {
         $otherBusiness = Business::create([
             'name' => 'Other Merchant',
@@ -517,15 +676,16 @@ class PromotionControllerTest extends TestCase
             'business_type_id' => $this->business->business_type_id,
         ]);
 
-        $promo = Promo::create([
+        $promo = Promotion::create([
             'business_id' => $otherBusiness->id,
             'name' => 'Other Promo',
-            'promo_type' => PromoType::Fixed->value,
-            'target_type' => PromoTarget::Bill->value,
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 5000,
             'start_date' => Carbon::now()->addDay()->toDateString(),
             'end_date' => Carbon::now()->addDays(7)->toDateString(),
-            'status' => PromoStatus::Draft->value,
+            'status' => PromotionStatus::Draft->value,
             'created_by' => $this->user->id,
             'applies_to_all_outlets' => true,
         ]);

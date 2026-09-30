@@ -19,7 +19,7 @@ use App\Models\Master\ProductItem;
 use App\Models\Master\VariantGroupOption;
 use App\Models\OutletDevice;
 use App\Models\OutletSetting;
-use App\Models\Promo;
+use App\Models\Promotion\Promotion;
 use App\Models\Sales\Shift;
 use App\Models\Sales\Transaction;
 use App\Models\Sales\TransactionInvoice;
@@ -45,7 +45,7 @@ class TransactionService
         return DB::transaction(function () use ($data, $user) {
             $promoName = null;
             if (! empty($data['promo_id'])) {
-                $promo = Promo::find($data['promo_id']);
+                $promo = Promotion::find($data['promo_id']);
                 $promoName = $promo?->name;
             }
 
@@ -60,8 +60,8 @@ class TransactionService
                     // Clamp discount if promo exists for this inventory item
                     $productItemId = $item['product_item_id'] ?? null;
                     if ($productItemId && ! empty($data['outlet_id'])) {
-                        $activePromo = Promo::active()
-                            ->whereHas('inventoryItems', fn ($q) => $q->where('product_items.id', $productItemId))
+                        $activePromo = Promotion::active()
+                            ->whereHas('productItems', fn ($q) => $q->where('product_items.id', $productItemId))
                             ->where(function ($q) use ($data) {
                                 $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $data['outlet_id']))
                                     ->orWhere('applies_to_all_outlets', true);
@@ -70,12 +70,12 @@ class TransactionService
 
                         if ($activePromo) {
                             $maxAllowedDiscount = 0;
-                            $promoType = is_object($activePromo->promo_type) ? $activePromo->promo_type->value : $activePromo->promo_type;
+                            $promoType = is_object($activePromo->discount_type) ? $activePromo->discount_type->value : $activePromo->discount_type;
 
                             if ($promoType === 'percentage') {
                                 $maxAllowedDiscount = ($itemPrice * floatval($activePromo->discount_value)) / 100;
-                                if ($activePromo->max_discount && $maxAllowedDiscount > floatval($activePromo->max_discount)) {
-                                    $maxAllowedDiscount = floatval($activePromo->max_discount);
+                                if ($activePromo->max_discount_amount && $maxAllowedDiscount > floatval($activePromo->max_discount_amount)) {
+                                    $maxAllowedDiscount = floatval($activePromo->max_discount_amount);
                                 }
                                 $maxAllowedDiscount *= $itemQty;
                             } elseif ($promoType === 'fixed') {
@@ -163,13 +163,13 @@ class TransactionService
             ]);
 
             if (! empty($data['promo_id'])) {
-                $promo = Promo::find($data['promo_id']);
+                $promo = Promotion::find($data['promo_id']);
                 if ($promo) {
                     $transaction->promos()->create([
                         'promo_id' => $promo->id,
                         'promo_name' => $promo->name,
-                        'promo_code' => $promo->code ?? null,
-                        'discount_type' => is_object($promo->promo_type) ? $promo->promo_type->value : $promo->promo_type,
+                        'promo_code' => $promo->promo_code ?? null,
+                        'discount_type' => is_object($promo->discount_type) ? $promo->discount_type->value : $promo->discount_type,
                         'discount_value' => floatval($promo->discount_value),
                         'discount_amount' => $promoDiscount,
                     ]);
@@ -656,7 +656,7 @@ class TransactionService
 
             if (! empty($data['promos'])) {
                 foreach ($data['promos'] as $p) {
-                    $promoId = ($isValidUuid($p['promo_id'] ?? null) && Promo::where('id', $p['promo_id'])->exists()) ? $p['promo_id'] : null;
+                    $promoId = ($isValidUuid($p['promo_id'] ?? null) && Promotion::where('id', $p['promo_id'])->exists()) ? $p['promo_id'] : null;
 
                     $transaction->promos()->create([
                         'promo_id' => $promoId,

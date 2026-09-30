@@ -2,7 +2,7 @@
 
 namespace App\Services\App\Transaction;
 
-use App\Enums\PromoStatus;
+use App\Enums\PromotionStatus;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Customer;
@@ -17,7 +17,7 @@ use App\Models\Master\VariantGroup;
 use App\Models\Master\VariantGroupOption;
 use App\Models\OutletDevice;
 use App\Models\OutletSetting;
-use App\Models\Promo;
+use App\Models\Promotion\Promotion;
 use App\Models\Sales\Transaction;
 use App\Services\App\Outlet\OutletProvisioningService;
 use Illuminate\Support\Facades\DB;
@@ -174,8 +174,8 @@ class MasterDataSyncService
         $inventoryItemVariantGroupOptions = collect();
 
         // 6. Promos Aktif untuk Outlet ini
-        $promos = Promo::where('business_id', $businessId)
-            ->where('status', PromoStatus::Active->value)
+        $promos = Promotion::where('business_id', $businessId)
+            ->where('status', PromotionStatus::Active->value)
             ->where(function ($q) use ($outletId) {
                 $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $outletId))
                     ->orWhere('applies_to_all_outlets', true);

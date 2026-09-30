@@ -3,12 +3,12 @@
 namespace App\Http\Requests\App\Promotion;
 
 use App\Enums\PermissionEnum;
-use App\Enums\PromoStatus;
-use App\Enums\PromoTarget;
-use App\Enums\PromoType;
+use App\Enums\PromotionApplicationMode;
+use App\Enums\PromotionDiscountType;
+use App\Enums\PromotionStatus;
+use App\Enums\PromotionTargetScope;
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class GetPromotionRequest extends BaseInertiaFormRequest
@@ -18,7 +18,7 @@ class GetPromotionRequest extends BaseInertiaFormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::PROMO_VIEW->value) ?? false;
+        return $this->user()?->can(PermissionEnum::PROMO_VIEW->value) ?? false;
     }
 
     /**
@@ -30,12 +30,17 @@ class GetPromotionRequest extends BaseInertiaFormRequest
     {
         return [
             'search' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', Rule::enum(PromoStatus::class)],
-            'promo_type' => ['nullable', Rule::enum(PromoType::class)],
-            'type' => ['nullable', Rule::enum(PromoType::class)],
-            'target_type' => ['nullable', Rule::enum(PromoTarget::class)],
-            'target' => ['nullable', Rule::enum(PromoTarget::class)],
+            'status' => ['nullable', Rule::enum(PromotionStatus::class)],
+            'target_scope' => ['nullable', Rule::enum(PromotionTargetScope::class)],
+            'target' => ['nullable', Rule::enum(PromotionTargetScope::class)],
+            'target_type' => ['nullable', Rule::enum(PromotionTargetScope::class)],
+            'discount_type' => ['nullable', Rule::enum(PromotionDiscountType::class)],
+            'promo_type' => ['nullable', Rule::enum(PromotionDiscountType::class)],
+            'type' => ['nullable', Rule::enum(PromotionDiscountType::class)],
+            'application_mode' => ['nullable', Rule::enum(PromotionApplicationMode::class)],
+            'mode' => ['nullable', Rule::enum(PromotionApplicationMode::class)],
             'outlet' => ['nullable', 'string'],
+            'outlet_id' => ['nullable', 'string'],
             'sort' => ['nullable', 'string'],
             'direction' => ['nullable', 'in:asc,desc'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100'],

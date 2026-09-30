@@ -10,21 +10,30 @@
                 @change="updateQuery"
             />
 
-            <!-- Promo Type Filter -->
+            <!-- Target Scope Filter -->
             <FilterDropdown
-                v-model="filterForm.promo_type"
+                v-model="filterForm.target_scope"
+                label="Target"
+                :options="targetScopeOptions"
+                all-option-label="Semua Target"
+                @change="updateQuery"
+            />
+
+            <!-- Discount Type Filter -->
+            <FilterDropdown
+                v-model="filterForm.discount_type"
                 label="Tipe Diskon"
-                :options="promoTypeOptions"
+                :options="discountTypeOptions"
                 all-option-label="Semua Tipe"
                 @change="updateQuery"
             />
 
-            <!-- Target Type Filter -->
+            <!-- Application Mode Filter -->
             <FilterDropdown
-                v-model="filterForm.target_type"
-                label="Target"
-                :options="targetTypeOptions"
-                all-option-label="Semua Target"
+                v-model="filterForm.application_mode"
+                label="Mode"
+                :options="applicationModeOptions"
+                all-option-label="Semua Mode"
                 @change="updateQuery"
             />
 
@@ -43,13 +52,14 @@
         <template #search>
             <FilterSearch
                 v-model="filterForm.search"
-                placeholder="Cari promo..."
+                placeholder="Cari nama atau kode promo..."
                 @clear="updateQuery"
             />
         </template>
 
         <template #create>
             <button
+                v-can="'promo.create'"
                 type="button"
                 class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
                 @click="$emit('create')"
@@ -92,15 +102,17 @@ const outletOptions = computed(() =>
     }))
 )
 
-const statusOptions = computed(() => getOptions('PromoStatus'))
-const promoTypeOptions = computed(() => getOptions('PromoType'))
-const targetTypeOptions = computed(() => getOptions('PromoTarget'))
+const statusOptions = computed(() => getOptions('PromotionStatus'))
+const targetScopeOptions = computed(() => getOptions('PromotionTargetScope'))
+const discountTypeOptions = computed(() => getOptions('PromotionDiscountType'))
+const applicationModeOptions = computed(() => getOptions('PromotionApplicationMode'))
 
 const filterForm = reactive({
     search: props.filters?.search ?? '',
     status: props.filters?.status ?? '',
-    promo_type: props.filters?.promo_type ?? props.filters?.type ?? '',
-    target_type: props.filters?.target_type ?? props.filters?.target ?? '',
+    target_scope: props.filters?.target_scope ?? props.filters?.target ?? '',
+    discount_type: props.filters?.discount_type ?? props.filters?.promo_type ?? '',
+    application_mode: props.filters?.application_mode ?? props.filters?.mode ?? '',
     outlet: props.filters?.outlet ? String(props.filters.outlet) : '',
 })
 
@@ -117,10 +129,9 @@ const updateQuery = () => {
         ...route().params,
         search: filterForm.search || undefined,
         status: filterForm.status || undefined,
-        promo_type: filterForm.promo_type || undefined,
-        type: filterForm.promo_type || undefined,
-        target_type: filterForm.target_type || undefined,
-        target: filterForm.target_type || undefined,
+        target_scope: filterForm.target_scope || undefined,
+        discount_type: filterForm.discount_type || undefined,
+        application_mode: filterForm.application_mode || undefined,
         outlet: filterForm.outlet || undefined,
         page: 1,
     }

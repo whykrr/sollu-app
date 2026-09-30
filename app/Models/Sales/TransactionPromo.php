@@ -2,7 +2,7 @@
 
 namespace App\Models\Sales;
 
-use App\Models\Promo;
+use App\Models\Promotion\Promotion;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -40,6 +40,6 @@ class TransactionPromo extends Model
 
     public function promo(): BelongsTo
     {
-        return $this->belongsTo(Promo::class);
+        return $this->belongsTo(Promotion::class, 'promo_id');
     }
 }

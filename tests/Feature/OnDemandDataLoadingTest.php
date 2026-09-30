@@ -4,9 +4,15 @@ namespace Tests\Feature;
 
 use App\Enums\FeatureEnum;
 use App\Enums\PlanEnum;
+use App\Enums\PromotionApplicationMode;
+use App\Enums\PromotionDiscountType;
+use App\Enums\PromotionTargetScope;
+use App\Enums\SubscriptionStatus;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Inventory\Supplier;
 use App\Models\Master\ModifierGroup;
-use App\Models\Promo;
+use App\Models\Promotion\Promotion;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
@@ -14,6 +20,7 @@ use Carbon\Carbon;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class OnDemandDataLoadingTest extends TestCase
@@ -32,12 +39,12 @@ class OnDemandDataLoadingTest extends TestCase
         $this->seed(DatabaseSeeder::class);
         $this->appDomain = config('domain.app', 'app.sollu.test');
 
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Test Business',
             'owner_name' => 'Owner',
             'email' => 'owner_'.uniqid().'@test.com',
@@ -62,7 +69,7 @@ class OnDemandDataLoadingTest extends TestCase
         Subscription::create([
             'business_id' => $user->business_id,
             'plan_id' => $plan->id,
-            'status' => \App\Enums\SubscriptionStatus::Active,
+            'status' => SubscriptionStatus::Active,
             'billing_cycle' => 'monthly',
             'started_at' => Carbon::now()->subDays(1),
             'expired_at' => Carbon::now()->addDays(29),
@@ -74,7 +81,7 @@ class OnDemandDataLoadingTest extends TestCase
         $business->settings = $settings;
         $business->save();
 
-        $permissions = \Spatie\Permission\Models\Permission::where('guard_name', 'business')->get();
+        $permissions = Permission::where('guard_name', 'business')->get();
         $user->givePermissionTo($permissions);
 
         $user->refresh();
@@ -178,12 +185,13 @@ class OnDemandDataLoadingTest extends TestCase
         $user = User::first();
         $this->subscribeBusinessToPlan($user);
 
-        $promo = Promo::create([
+        $promo = Promotion::create([
             'business_id' => $user->business_id,
             'created_by' => $user->id,
             'name' => 'Promo Merdeka',
-            'target_type' => 'bill',
-            'promo_type' => 'percentage',
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Percentage->value,
             'discount_value' => 10,
             'start_date' => now()->toDateString(),
             'end_date' => now()->addDays(7)->toDateString(),
@@ -197,7 +205,9 @@ class OnDemandDataLoadingTest extends TestCase
             'id',
             'name',
             'outlets',
-            'inventory_items',
+            'categories',
+            'products',
+            'product_items',
         ]);
     }
 

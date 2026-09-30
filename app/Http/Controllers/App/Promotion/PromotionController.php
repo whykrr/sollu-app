@@ -8,37 +8,69 @@ use App\Enums\PermissionEnum;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Promotion\GetPromotionRequest;
-use App\Http\Requests\App\StorePromoRequest;
-use App\Http\Requests\App\UpdatePromoRequest;
-use App\Models\Promo;
-use App\Services\App\Promotion\PromoService;
+use App\Http\Requests\App\Promotion\StorePromotionRequest;
+use App\Http\Requests\App\Promotion\UpdatePromotionRequest;
+use App\Models\Outlet;
+use App\Models\Promotion\Promotion;
+use App\Services\App\Promotion\PromotionService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response;
 
 class PromotionController extends Controller
 {
     public function __construct(
-        protected PromoService $promoService
+        protected PromotionService $promotionService
     ) {}
 
-    public function index(GetPromotionRequest $request)
+    /**
+     * Display a listing of promotions with server-side filters.
+     */
+    public function index(GetPromotionRequest $request): Response
     {
-        $limit = $request->query('limit', 20);
-        $filters = $request->only(['search', 'status', 'target', 'target_type', 'type', 'promo_type', 'outlet', 'sort', 'direction']);
-        $filters['outlet'] = SelectedOutlet::resolveEffectiveOutletId($request->user(), $filters['outlet'] ?? null);
+        $limit = $request->integer('limit', $request->integer('perpage', 20));
+        $filters = $request->only([
+            'search',
+            'status',
+            'target_scope',
+            'target',
+            'target_type',
+            'discount_type',
+            'promo_type',
+            'type',
+            'application_mode',
+            'mode',
+            'outlet',
+            'outlet_id',
+            'sort',
+            'direction',
+        ]);
 
-        $promos = Promo::currentBusiness()
+        $filters['outlet'] = SelectedOutlet::resolveEffectiveOutletId($request->user(), $filters['outlet'] ?? $filters['outlet_id'] ?? null);
+
+        $promotions = Promotion::currentBusiness()
             ->filters($filters)
             ->sortable($request->get('sort', 'updated_at'), $request->get('direction', 'desc'))
             ->paginate($limit)
             ->withQueryString();
 
+        $outlets = Outlet::where('business_id', $request->user()->business_id)
+            ->where('is_active', true)
+            ->get(['id', 'name']);
+
         return inertia('Promotion/Index', [
-            'promos' => $promos,
+            'promotions' => $promotions,
+            'promos' => $promotions, // Backwards compatibility for UI
             'filters' => $filters,
+            'outlets' => $outlets,
         ]);
     }
 
-    public function show(Request $request, Promo $promotion)
+    /**
+     * Display the specified promotion details on-demand via JSON.
+     */
+    public function show(Request $request, Promotion $promotion): JsonResponse
     {
         $this->authorize(PermissionEnum::PROMO_VIEW->value);
 
@@ -47,13 +79,23 @@ class PromotionController extends Controller
         }
 
         return response()->json(
-            $promotion->load(['outlets:id,name', 'inventoryItems:id,name'])
+            $promotion->load([
+                'outlets:id,name',
+                'categories:id,name',
+                'products:id,name',
+                'productItems:id,name,sku',
+                'creator:id,name',
+                'publisher:id,name',
+            ])
         );
     }
 
-    public function store(StorePromoRequest $request)
+    /**
+     * Store a newly created promotion in storage.
+     */
+    public function store(StorePromotionRequest $request): RedirectResponse
     {
-        $this->promoService->create(
+        $this->promotionService->create(
             array_merge($request->validated(), [
                 'business_id' => $request->user()->business_id,
             ]),
@@ -66,14 +108,17 @@ class PromotionController extends Controller
         );
     }
 
-    public function update(UpdatePromoRequest $request, Promo $promotion)
+    /**
+     * Update the specified promotion in storage.
+     */
+    public function update(UpdatePromotionRequest $request, Promotion $promotion): RedirectResponse
     {
         if ($promotion->business_id !== $request->user()?->business_id) {
             abort(403);
         }
 
         try {
-            $this->promoService->update($promotion, $request->validated(), $request->user());
+            $this->promotionService->update($promotion, $request->validated(), $request->user());
 
             return redirect()->back()->with(
                 FlashDataVariable::SUCCESS->value,
@@ -87,7 +132,10 @@ class PromotionController extends Controller
         }
     }
 
-    public function destroy(Promo $promotion, Request $request)
+    /**
+     * Remove the specified promotion from storage.
+     */
+    public function destroy(Promotion $promotion, Request $request): RedirectResponse
     {
         $this->authorize(PermissionEnum::PROMO_DELETE->value);
 
@@ -96,7 +144,7 @@ class PromotionController extends Controller
         }
 
         try {
-            $this->promoService->delete($promotion, $request->user());
+            $this->promotionService->delete($promotion, $request->user());
 
             return redirect()->back()->with(
                 FlashDataVariable::SUCCESS->value,
@@ -110,7 +158,10 @@ class PromotionController extends Controller
         }
     }
 
-    public function publish(Promo $promotion, Request $request)
+    /**
+     * Publish a draft or inactive promotion.
+     */
+    public function publish(Promotion $promotion, Request $request): RedirectResponse
     {
         $this->authorize(PermissionEnum::PROMO_PUBLISH->value);
 
@@ -119,7 +170,7 @@ class PromotionController extends Controller
         }
 
         try {
-            $this->promoService->publish($promotion, $request->user());
+            $this->promotionService->publish($promotion, $request->user());
 
             return redirect()->back()->with(
                 FlashDataVariable::SUCCESS->value,
@@ -133,7 +184,10 @@ class PromotionController extends Controller
         }
     }
 
-    public function unpublish(Promo $promotion, Request $request)
+    /**
+     * Unpublish an active promotion.
+     */
+    public function unpublish(Promotion $promotion, Request $request): RedirectResponse
     {
         $this->authorize(PermissionEnum::PROMO_PUBLISH->value);
 
@@ -142,7 +196,7 @@ class PromotionController extends Controller
         }
 
         try {
-            $this->promoService->unpublish($promotion, $request->user());
+            $this->promotionService->unpublish($promotion, $request->user());
 
             return redirect()->back()->with(
                 FlashDataVariable::SUCCESS->value,

@@ -22,9 +22,10 @@ use App\Enums\PaymentMethodType;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
 use App\Enums\ProductTypeEnum;
-use App\Enums\PromoStatus;
-use App\Enums\PromoTarget;
-use App\Enums\PromoType;
+use App\Enums\PromotionApplicationMode;
+use App\Enums\PromotionDiscountType;
+use App\Enums\PromotionStatus;
+use App\Enums\PromotionTargetScope;
 use App\Enums\PurchaseOrderStatus;
 use App\Enums\PurchaseReturnStatus;
 use App\Enums\RoleEnum;
@@ -71,9 +72,10 @@ class FrontendEnumProvider
         PermissionEnum::class,
         PlanEnum::class,
         ProductTypeEnum::class,
-        PromoStatus::class,
-        PromoTarget::class,
-        PromoType::class,
+        PromotionApplicationMode::class,
+        PromotionDiscountType::class,
+        PromotionStatus::class,
+        PromotionTargetScope::class,
         PurchaseOrderStatus::class,
         PurchaseReturnStatus::class,
         RoleEnum::class,

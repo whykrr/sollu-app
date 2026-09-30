@@ -2,7 +2,7 @@
 
 namespace App\Services\Api;
 
-use App\Models\Promo;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class PosPromoService
@@ -11,7 +11,7 @@ class PosPromoService
      * Get applicable promos for a given outlet and datetime.
      * This will be called by CartService.
      */
-    public function getApplicablePromos(string $outletId, \Carbon\Carbon $datetime): Collection
+    public function getApplicablePromos(string $outletId, Carbon $datetime): Collection
     {
         // TODO: Phase 2 - Evaluasi diskon berdasarkan outlet dan waktu.
         // Return daftar promo yang aktif dan berlaku.

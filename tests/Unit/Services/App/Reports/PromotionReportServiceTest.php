@@ -2,13 +2,20 @@
 
 namespace Tests\Unit\Services\App\Reports;
 
+use App\Enums\PromotionApplicationMode;
+use App\Enums\PromotionDiscountType;
+use App\Enums\PromotionStatus;
+use App\Enums\PromotionTargetScope;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Outlet;
-use App\Models\Promo;
+use App\Models\Promotion\Promotion;
 use App\Models\Sales\Transaction;
 use App\Models\Sales\TransactionPromo;
 use App\Models\User;
 use App\Services\App\Reports\PromotionReportService;
 use Carbon\Carbon;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,16 +31,16 @@ class PromotionReportServiceTest extends TestCase
         $this->service = new PromotionReportService;
     }
 
-    public function test_it_gets_report()
+    public function test_it_gets_report(): void
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Report Merchant',
             'owner_name' => 'Report Owner',
             'email' => 'report_'.uniqid().'@test.test',
@@ -56,14 +63,17 @@ class PromotionReportServiceTest extends TestCase
             'is_active' => true,
         ]);
 
-        $promo = Promo::create([
+        $promo = Promotion::create([
             'business_id' => $user->business_id,
             'name' => 'Diskon Merdeka',
-            'promo_type' => 'fixed',
-            'target_type' => 'bill',
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 10000,
-            'start_date' => Carbon::now()->subDays(10),
-            'end_date' => Carbon::now()->addDays(10),
+            'start_date' => Carbon::now()->subDays(10)->toDateString(),
+            'end_date' => Carbon::now()->addDays(10)->toDateString(),
+            'status' => PromotionStatus::Active->value,
+            'applies_to_all_outlets' => true,
             'created_by' => $user->id,
         ]);
 
@@ -88,7 +98,7 @@ class PromotionReportServiceTest extends TestCase
         ]);
 
         // Other business promo & transaction to assert isolation
-        $otherBusiness = \App\Models\Business::create([
+        $otherBusiness = Business::create([
             'name' => 'Other Merchant',
             'owner_name' => 'Other Owner',
             'email' => 'other_'.uniqid().'@test.test',
@@ -104,14 +114,17 @@ class PromotionReportServiceTest extends TestCase
             'is_active' => true,
         ]);
 
-        $otherPromo = Promo::create([
+        $otherPromo = Promotion::create([
             'business_id' => $otherBusiness->id,
             'name' => 'Diskon Lain',
-            'promo_type' => 'fixed',
-            'target_type' => 'bill',
+            'application_mode' => PromotionApplicationMode::Automatic->value,
+            'target_scope' => PromotionTargetScope::Transaction->value,
+            'discount_type' => PromotionDiscountType::Fixed->value,
             'discount_value' => 50000,
-            'start_date' => Carbon::now()->subDays(10),
-            'end_date' => Carbon::now()->addDays(10),
+            'start_date' => Carbon::now()->subDays(10)->toDateString(),
+            'end_date' => Carbon::now()->addDays(10)->toDateString(),
+            'status' => PromotionStatus::Active->value,
+            'applies_to_all_outlets' => true,
             'created_by' => $user->id,
         ]);
 

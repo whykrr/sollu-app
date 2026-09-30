@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum PromoType: string
+enum PromotionDiscountType: string
 {
     case Percentage = 'percentage';
     case Fixed = 'fixed';
@@ -10,8 +10,8 @@ enum PromoType: string
     public function label(): string
     {
         return match ($this) {
-            self::Percentage => 'Persentase',
-            self::Fixed => 'Nominal Tetap',
+            self::Percentage => 'Persentase (%)',
+            self::Fixed => 'Nominal Tetap (Rp)',
         };
     }
 }
