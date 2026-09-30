@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use App\Constants\AuthorizationMessage;
 use App\Constants\ErrorMessage;
 use App\Constants\FlashDataVariable;
+use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
@@ -15,6 +16,7 @@ use Illuminate\Http\Response;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -171,6 +173,17 @@ class ExceptionHandler
             }
 
             return redirect()->back()->with(FlashDataVariable::FAILED->value, ErrorMessage::TOO_MANY_REQUESTS);
+        });
+
+        // Business Logic & Domain / Argument Exceptions
+        $exceptions->render(function (InvalidArgumentException|DomainException $e, Request $request) {
+            $message = $e->getMessage();
+
+            if ($this->shouldRenderJson($request)) {
+                return response()->json(['message' => $message], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            return redirect()->back()->withInput($request->input())->with(FlashDataVariable::FAILED->value, $message);
         });
 
         // HTTP Client / Business Errors (400 Bad Request, 422 Unprocessable, etc.)

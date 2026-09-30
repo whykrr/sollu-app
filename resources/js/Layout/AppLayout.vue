@@ -60,6 +60,7 @@ import { watch } from 'vue'
 import FeatureLockedModal from '@/Components/Modals/FeatureLockedModal.vue'
 
 const flashFeatureLocked = computed(() => page.props.app?.flash?.feature_locked)
+const flashFailed = computed(() => page.props.app?.flash?.failed || page.props.app?.flash?.error)
 
 watch(
     flashFeatureLocked,
@@ -77,6 +78,21 @@ watch(
         }
     },
     { immediate: true, deep: true }
+)
+
+watch(
+    flashFailed,
+    errorMessage => {
+        if (errorMessage) {
+            modalStore.alert({
+                type: 'warning',
+                title: 'Peringatan Transaksi',
+                message: errorMessage,
+                confirmText: 'Mengerti',
+            })
+        }
+    },
+    { immediate: true }
 )
 
 i18n.global.locale.value = usePage().props.locale

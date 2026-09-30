@@ -89,7 +89,8 @@ export const getMainSidebars = (enums = { FeatureEnum: {} }) => [
             {
                 type: 'item',
                 url: route('transactions.sales.index'),
-                label: 'Penjualan',
+                label: 'Faktur Penjualan',
+                feature: enums.FeatureEnum.INVOICE_DEBT,
                 permissions: ['transaction.view'],
                 activeRoute: 'transactions.sales.',
             },

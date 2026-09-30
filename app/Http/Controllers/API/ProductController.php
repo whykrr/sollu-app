@@ -96,6 +96,17 @@ class ProductController extends Controller
         $businessId = $request->user()->business_id;
 
         $products = Product::currentBusiness($businessId)
+            ->select([
+                'id',
+                'business_id',
+                'product_category_id',
+                'name',
+                'code',
+                'product_type',
+                'has_variant',
+                'is_show',
+                'sellable',
+            ])
             ->where('is_show', true)
             ->where('sellable', true)
             ->when($outletId, function ($query, $outletId) {
@@ -122,6 +133,7 @@ class ProductController extends Controller
             ->with([
                 'category:id,name',
                 'prices' => function ($q) use ($outletId) {
+                    $q->select(['id', 'product_id', 'product_item_id', 'outlet_id', 'amount']);
                     if ($outletId) {
                         $q->where(function ($sub) use ($outletId) {
                             $sub->where('outlet_id', $outletId)->orWhereNull('outlet_id');
@@ -129,11 +141,24 @@ class ProductController extends Controller
                     }
                 },
                 'productItems' => function ($q) use ($outletId) {
-                    $q->where('is_active', true)
+                    $q->select([
+                        'id',
+                        'product_id',
+                        'business_id',
+                        'uom_id',
+                        'name',
+                        'sku',
+                        'barcode',
+                        'variant_combination',
+                        'is_active',
+                        'sellable',
+                    ])
+                        ->where('is_active', true)
                         ->where('sellable', true)
                         ->with([
                             'uom:id,name',
                             'prices' => function ($pq) use ($outletId) {
+                                $pq->select(['id', 'product_id', 'product_item_id', 'outlet_id', 'amount']);
                                 if ($outletId) {
                                     $pq->where(function ($sub) use ($outletId) {
                                         $sub->where('outlet_id', $outletId)->orWhereNull('outlet_id');
@@ -146,9 +171,6 @@ class ProductController extends Controller
             ->take($limit)
             ->get();
 
-        $productIds = $products->pluck('id')->toArray();
-        $productItemIds = $products->flatMap->productItems->pluck('id')->toArray();
-
         $activePromos = collect();
         if ($checkPromo) {
             $activePromos = Promotion::currentBusiness($businessId)
@@ -159,9 +181,9 @@ class ProductController extends Controller
                             ->orWhereHas('outlets', fn ($o) => $o->where('outlets.id', $outletId));
                     });
                 })
-                ->where(function ($q) use ($productIds, $productItemIds) {
-                    $q->whereHas('products', fn ($p) => $p->whereIn('products.id', $productIds))
-                        ->orWhereHas('productItems', fn ($pi) => $pi->whereIn('product_items.id', $productItemIds));
+                ->where(function ($q) {
+                    $q->where('target_scope', PromotionTargetScope::Product->value)
+                        ->orWhere('target_scope', PromotionTargetScope::Variant->value);
                 })
                 ->with(['products:id', 'productItems:id'])
                 ->get();

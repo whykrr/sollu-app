@@ -97,14 +97,18 @@ class PromotionEvaluatorService implements PromotionEvaluatorInterface
             // Pastikan diskon tidak melebihi sisa subtotal
             $discountAmount = min($discountAmount, $remainingSubtotal, $matchingSubtotal);
 
-            // Alokasikan diskon per baris item
+            // Alokasikan diskon per baris item (Hanya untuk promosi ber-scope item/varian/kategori)
             $affectedItemIds = [];
-            foreach ($matchingItems as $item) {
-                $affectedItemIds[] = $item->id;
-                $itemProportion = $matchingSubtotal > 0 ? ($item->subtotal / $matchingSubtotal) : 0;
-                $lineDiscount = round($discountAmount * $itemProportion, 4);
+            if ($promotion->target_scope !== PromotionTargetScope::Transaction) {
+                foreach ($matchingItems as $item) {
+                    $affectedItemIds[] = $item->id;
+                    $itemProportion = $matchingSubtotal > 0 ? ($item->subtotal / $matchingSubtotal) : 0;
+                    $lineDiscount = round($discountAmount * $itemProportion, 4);
 
-                $itemDiscounts[$item->id] = ($itemDiscounts[$item->id] ?? 0.0) + $lineDiscount;
+                    $itemDiscounts[$item->id] = ($itemDiscounts[$item->id] ?? 0.0) + $lineDiscount;
+                }
+            } else {
+                $affectedItemIds = array_map(fn (CartItemDTO $item) => $item->id, $matchingItems);
             }
 
             $appliedPromotions[] = new AppliedPromotionDTO(

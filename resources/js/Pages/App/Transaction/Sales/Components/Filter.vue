@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import debounce from 'lodash/debounce'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -63,6 +63,7 @@ import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
+import { useEnum } from '@/Composable/useEnum.js'
 
 defineEmits(['create'])
 
@@ -77,6 +78,8 @@ const props = defineProps({
     },
 })
 
+const { getOptions } = useEnum()
+
 const statusOptions = [
     { value: '', label: 'Semua Status' },
     { value: 'draft', label: 'Draf' },
@@ -86,10 +89,17 @@ const statusOptions = [
     { value: 'cancel', label: 'Batal' },
 ]
 
-const channelOptions = [
-    { value: 'wholesale', label: 'Grosir (Wholesale)' },
-    { value: 'direct', label: 'Penjualan Langsung (Direct Sales)' },
-]
+const channelOptions = computed(() => {
+    const opts = getOptions('SalesChannelEnum')
+    if (opts && opts.length > 0) return opts
+    return [
+        { value: 'wholesale', label: 'Grosir (Wholesale)' },
+        { value: 'direct', label: 'Penjualan Langsung (Direct)' },
+        { value: 'e_commerce', label: 'E-Commerce / Marketplace' },
+        { value: 'social_media', label: 'Media Sosial & WhatsApp' },
+        { value: 'custom', label: 'Pesanan Khusus' },
+    ]
+})
 
 const filterForm = reactive({
     search: props.filters.search || '',

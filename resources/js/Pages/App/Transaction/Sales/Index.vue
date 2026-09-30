@@ -2,7 +2,7 @@
     <MainPage>
         <template #header>
             <MainPageHeader
-                title="Penjualan B2B"
+                title="Faktur Penjualan"
                 description="Kelola faktur komersial, pesanan grosir, dan penjualan langsung korporat."
             />
         </template>
@@ -21,7 +21,7 @@
             :action="false"
             :sort="filters.sort || params?.sort"
             :sort-direction="filters.direction || params?.direction"
-            @row-click="openDetail"
+            @row-click="handleRowClick"
         >
             <template #transaction_date="{ item }">
                 <span class="text-xs text-slate-700 font-medium">
@@ -53,14 +53,20 @@
 
             <template #channel="{ item }">
                 <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                    :class="
-                        item.channel === 'wholesale'
-                            ? 'bg-purple-100 text-purple-700 border border-purple-200'
-                            : 'bg-blue-100 text-blue-700 border border-blue-200'
-                    "
+                    class="inline-flex text-[10px] font-semibold badge"
+                    :class="{
+                        'badge-purple-700': item.channel === 'wholesale',
+                        'badge-blue-700': item.channel === 'direct',
+                        'badge-emerald-700': item.channel === 'e_commerce',
+                        'badge-amber-700': item.channel === 'social_media',
+                        'badge-cyan-700': item.channel === 'custom',
+                    }"
                 >
-                    {{ $enums.SalesChannelEnum?.[item.channel]?.label || item.channel }}
+                    {{
+                        $enums.SalesChannelEnum?._meta?.[item.channel]?.label ||
+                        $enums.SalesChannelEnum?.[item.channel]?.label ||
+                        item.channel
+                    }}
                 </span>
             </template>
 
@@ -71,8 +77,9 @@
             </template>
 
             <template #balance_due="{ item }">
+                <span v-if="item.status === 'draft'" class="font-bold font-mono text-xs"> - </span>
                 <span
-                    v-if="Number(item.balance_due) > 0"
+                    v-else-if="Number(item.balance_due) > 0"
                     class="font-bold text-danger font-mono text-xs"
                 >
                     {{ formatCurrency(item.balance_due) }}
@@ -160,6 +167,25 @@ const headers = [
         sortable: true,
     },
 ]
+
+const handleRowClick = row => {
+    if (row.status === 'draft') {
+        openEditDraft(row)
+    } else {
+        openDetail(row)
+    }
+}
+
+const openEditDraft = row => {
+    popUpStore.open({
+        title: 'Edit Draf Faktur Penjualan',
+        component: SalesFormPopUp,
+        size: 'xl',
+        props: {
+            transactionId: row.id,
+        },
+    })
+}
 
 const openDetail = row => {
     popUpStore.open({

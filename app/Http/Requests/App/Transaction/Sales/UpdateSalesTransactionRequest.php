@@ -16,11 +16,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
-class StoreSalesTransactionRequest extends BaseInertiaFormRequest
+class UpdateSalesTransactionRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::TRANSACTION_CREATE->value) ?? false;
+        $user = Auth::user();
+
+        return ($user?->can(PermissionEnum::TRANSACTION_UPDATE->value) || $user?->can(PermissionEnum::TRANSACTION_CREATE->value)) ?? false;
     }
 
     /**

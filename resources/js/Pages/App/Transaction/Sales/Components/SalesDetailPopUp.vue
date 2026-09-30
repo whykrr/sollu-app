@@ -38,14 +38,23 @@
                 </span>
                 <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                    :class="
-                        transaction.channel === 'wholesale'
-                            ? 'bg-purple-100 text-purple-700 border border-purple-200'
-                            : 'bg-blue-100 text-blue-700 border border-blue-200'
-                    "
+                    :class="{
+                        'bg-purple-100 text-purple-700 border border-purple-200':
+                            transaction.channel === 'wholesale',
+                        'bg-blue-100 text-blue-700 border border-blue-200':
+                            transaction.channel === 'direct',
+                        'bg-emerald-100 text-emerald-700 border border-emerald-200':
+                            transaction.channel === 'e_commerce',
+                        'bg-amber-100 text-amber-700 border border-amber-200':
+                            transaction.channel === 'social_media',
+                        'bg-cyan-100 text-cyan-700 border border-cyan-200':
+                            transaction.channel === 'custom',
+                    }"
                 >
                     {{
-                        $enums.SalesChannelEnum?.[transaction.channel]?.label || transaction.channel
+                        $enums.SalesChannelEnum?._meta?.[transaction.channel]?.label ||
+                        $enums.SalesChannelEnum?.[transaction.channel]?.label ||
+                        transaction.channel
                     }}
                 </span>
             </div>
@@ -307,16 +316,38 @@
 
                     <button
                         v-if="
+                            (can('transaction.delete') || can('transaction.cancel')) &&
+                            transaction.status === 'draft'
+                        "
+                        type="button"
+                        class="btn btn-outline-danger btn-sm h-[30px]"
+                        @click="deleteTransaction"
+                    >
+                        Hapus Draf
+                    </button>
+
+                    <button
+                        v-if="
                             can('transaction.cancel') &&
-                            (transaction.status === 'draft' ||
-                                transaction.status === 'unpaid' ||
-                                transaction.status === 'partial')
+                            (transaction.status === 'unpaid' || transaction.status === 'partial')
                         "
                         type="button"
                         class="btn btn-outline-danger btn-sm h-[30px]"
                         @click="cancelTransaction"
                     >
                         Batalkan Faktur
+                    </button>
+
+                    <button
+                        v-if="
+                            (can('transaction.update') || can('transaction.create')) &&
+                            transaction.status === 'draft'
+                        "
+                        type="button"
+                        class="btn btn-outline-main btn-sm h-[30px]"
+                        @click="openEditDraft"
+                    >
+                        Edit Draf
                     </button>
 
                     <button
@@ -351,6 +382,7 @@ import { formatDateID, formatDateTimeSimple } from '@/Composable/date'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import RecordPaymentPopUp from './RecordPaymentPopUp.vue'
+import SalesFormPopUp from './SalesFormPopUp.vue'
 
 const props = defineProps({
     transactionId: {
@@ -370,10 +402,11 @@ const fetchDetail = async () => {
         const response = await axios.get(route('transactions.sales.show', props.transactionId))
         transaction.value = response.data.data
     } catch {
-        modalStore.open({
-            type: 'error',
-            title: 'Gagal Memuat',
-            message: 'Terjadi kesalahan saat memuat detail transaksi.',
+        modalStore.alert({
+            type: 'danger',
+            title: 'Gagal Memuat Transaksi',
+            message: 'Terjadi kesalahan saat memuat detail transaksi penjualan.',
+            confirmText: 'Tutup',
         })
         popUpStore.close()
     }
@@ -395,11 +428,13 @@ const exportPdf = () => {
 }
 
 const issueInvoice = () => {
-    modalStore.open({
+    modalStore.confirm({
         title: 'Konfirmasi Terbitkan Faktur',
         message:
             'Apakah Anda yakin ingin menerbitkan faktur resmi untuk transaksi ini? Stok inventori akan langsung dipotong.',
-        confirmButtonText: 'Ya, Terbitkan',
+        type: 'warning',
+        confirmText: 'Ya, Terbitkan',
+        cancelText: 'Batal',
         onConfirm: () => {
             router.post(
                 route('transactions.sales.issue', props.transactionId),
@@ -415,13 +450,44 @@ const issueInvoice = () => {
     })
 }
 
+const openEditDraft = () => {
+    popUpStore.open({
+        title: 'Edit Draf Faktur Penjualan',
+        component: SalesFormPopUp,
+        size: 'xl',
+        props: {
+            transactionId: props.transactionId,
+        },
+    })
+}
+
+const deleteTransaction = () => {
+    modalStore.confirm({
+        title: 'Konfirmasi Hapus Draf',
+        message:
+            'Apakah Anda yakin ingin menghapus draf faktur ini? Tindakan ini tidak dapat dikembalikan.',
+        type: 'danger',
+        confirmText: 'Ya, Hapus',
+        cancelText: 'Batal',
+        onConfirm: () => {
+            router.delete(route('transactions.sales.destroy', props.transactionId), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    popUpStore.close()
+                },
+            })
+        },
+    })
+}
+
 const cancelTransaction = () => {
-    modalStore.open({
+    modalStore.confirm({
         title: 'Konfirmasi Batalkan Faktur',
-        type: 'warning',
         message:
             'Apakah Anda yakin ingin membatalkan faktur ini? Saldo dan layer FIFO inventori akan dipulihkan secara otomatis.',
-        confirmButtonText: 'Ya, Batalkan',
+        type: 'warning',
+        confirmText: 'Ya, Batalkan',
+        cancelText: 'Batal',
         onConfirm: () => {
             router.post(
                 route('transactions.sales.cancel', props.transactionId),

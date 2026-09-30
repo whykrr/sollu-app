@@ -77,6 +77,7 @@ class PromotionEvaluatorServiceTest extends TestCase
         $result1 = $this->evaluator->evaluate($cart1);
         $this->assertEquals(10000.0, $result1->totalDiscount);
         $this->assertEquals(90000.0, $result1->finalSubtotal);
+        $this->assertEmpty($result1->itemDiscounts);
 
         // Cart 2: Rp 300.000 -> 10% is Rp 30.000, but capped at Rp 20.000
         $cart2 = CartEvaluationDTO::fromArray([
@@ -88,6 +89,7 @@ class PromotionEvaluatorServiceTest extends TestCase
         $result2 = $this->evaluator->evaluate($cart2);
         $this->assertEquals(20000.0, $result2->totalDiscount);
         $this->assertEquals(280000.0, $result2->finalSubtotal);
+        $this->assertEmpty($result2->itemDiscounts);
     }
 
     public function test_scenario_2_fixed_discount_with_min_subtotal(): void

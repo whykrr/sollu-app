@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Requests\App\Transaction\Sales;
 
 use App\Enums\PermissionEnum;
+use App\Enums\SalesChannelEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class GetSalesTransactionRequest extends BaseInertiaFormRequest
 {
@@ -23,7 +25,7 @@ class GetSalesTransactionRequest extends BaseInertiaFormRequest
     {
         return [
             'search' => ['nullable', 'string', 'max:255'],
-            'channel' => ['nullable', 'string', 'in:wholesale,direct'],
+            'channel' => ['nullable', 'string', Rule::enum(SalesChannelEnum::class)],
             'status' => ['nullable', 'string'],
             'payment_status' => ['nullable', 'string'],
             'outlet' => ['nullable', 'string'],

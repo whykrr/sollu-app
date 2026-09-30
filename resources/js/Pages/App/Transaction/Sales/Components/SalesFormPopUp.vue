@@ -1,5 +1,16 @@
 <template>
-    <form class="space-y-5 pb-20 text-left" @submit.prevent="submit">
+    <div v-if="isLoadingDraft" class="flex flex-col items-center justify-center py-24 space-y-3">
+        <div
+            class="h-8 w-8 animate-spin rounded-full border-3 border-main border-t-transparent"
+        ></div>
+        <div class="text-xs text-slate-500 font-medium">Memuat data draf transaksi...</div>
+    </div>
+    <form
+        v-else
+        id="sales_transaction_form"
+        class="space-y-5 pb-20 text-left"
+        @submit.prevent="submitDraft"
+    >
         <!-- Tier 1: Pelanggan & Info Faktur -->
         <div class="border border-slate-200 rounded-xl bg-white p-4 space-y-3.5 shadow-2xs">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -26,6 +37,7 @@
                     api-url="/api/internal/customers/search"
                     :error="form.errors.customer_id"
                     size="sm"
+                    @select="onCustomerSelected"
                 />
 
                 <DropdownField
@@ -96,8 +108,8 @@
                     :disabled="!form.outlet_id"
                     @click="openItemPicker"
                 >
-                    <FontAwesomeIcon :icon="faSearch" />
-                    <span>Pilih Produk / Tambah Item</span>
+                    <FontAwesomeIcon :icon="faPlus" />
+                    <span>Item</span>
                 </button>
             </div>
 
@@ -177,13 +189,10 @@
                                     </span>
                                 </div>
                             </td>
-                            <td class="px-2 py-1.5">
-                                <NumberField
-                                    v-model="item.price"
-                                    size="sm"
-                                    class="w-full"
-                                    @update:model-value="onItemFinancialChange"
-                                />
+                            <td class="px-3 py-2 text-right whitespace-nowrap">
+                                <span class="font-semibold text-slate-800 text-xs">
+                                    {{ formatCurrency(item.price) }}
+                                </span>
                             </td>
                             <td class="px-2 py-1.5">
                                 <NumberField
@@ -198,11 +207,17 @@
                                     type="button"
                                     class="w-full py-1 px-2 rounded-lg text-xs font-medium transition cursor-pointer flex items-center justify-between border"
                                     :class="
-                                        Number(item.discount_amount) > 0
-                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold'
-                                            : 'bg-slate-50 text-slate-500 hover:bg-slate-100 border-slate-200'
+                                        item.auto_promo_name
+                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold ring-1 ring-emerald-200'
+                                            : Number(item.discount_amount) > 0
+                                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold'
+                                              : 'bg-slate-50 text-slate-500 hover:bg-slate-100 border-slate-200'
                                     "
-                                    title="Klik untuk mengatur diskon baris item"
+                                    :title="
+                                        item.auto_promo_name
+                                            ? 'Promo otomatis aktif (Terkunci)'
+                                            : 'Klik untuk mengatur diskon baris item'
+                                    "
                                     @click="openItemDiscountModal(item, index)"
                                 >
                                     <span v-if="Number(item.discount_amount) > 0" class="truncate">
@@ -210,7 +225,7 @@
                                     </span>
                                     <span v-else class="text-slate-400"> + Diskon </span>
                                     <FontAwesomeIcon
-                                        :icon="faPencil"
+                                        :icon="item.auto_promo_name ? faLock : faPencil"
                                         class="text-[10px] opacity-70 ml-1"
                                     />
                                 </button>
@@ -246,64 +261,64 @@
         </div>
 
         <!-- Tier 3: Finansial & Opsi Penerbitan -->
-        <div class="border border-slate-200 rounded-xl bg-white p-4 space-y-3.5 shadow-2xs">
+        <div class="border border-slate-200 rounded-xl bg-white p-4 space-y-4 shadow-2xs">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                 <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">
                     3. Rincian Finansial & Pembayaran
                 </span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Catatan Dokumen PO -->
-                <div class="space-y-3">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                <!-- Catatan Dokumen PO (Left Column) -->
+                <div class="lg:col-span-5 space-y-2">
                     <TextareaField
                         v-model="form.notes"
                         label="Catatan Dokumen / PO"
                         placeholder="Syarat & Ketentuan pembayaran, instruksi pengiriman khusus, dsb."
-                        rows="5"
+                        rows="6"
                         :error="form.errors.notes"
                         size="sm"
                     />
-                    <div class="text-[11px] text-slate-400">
+                    <span class="text-[11px] text-slate-400 block leading-tight">
                         Otomatis memuat format standar syarat & ketentuan dari pengaturan outlet.
-                    </div>
+                    </span>
                 </div>
 
-                <!-- Financial Calculation Breakdown -->
+                <!-- Financial Calculation Breakdown (Right Column) -->
                 <div
-                    class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 text-xs"
+                    class="lg:col-span-7 bg-slate-50/80 border border-slate-200 rounded-xl p-4 space-y-3 text-xs"
                 >
-                    <!-- Subtotal -->
-                    <div class="flex justify-between items-center text-slate-600">
-                        <span>Subtotal Item:</span>
-                        <span class="font-semibold text-slate-800">{{
-                            formatCurrency(financials.subtotal)
-                        }}</span>
+                    <!-- Subtotal Item -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-600 font-medium">Subtotal Item:</span>
+                        <span class="font-bold text-slate-800 text-sm">
+                            {{ formatCurrency(financials.subtotal) }}
+                        </span>
                     </div>
 
-                    <!-- Diskon / Promo Transaksi Terpadu -->
+                    <!-- Diskon / Promo Transaksi -->
                     <div
-                        class="flex justify-between items-start text-slate-600 py-1 border-t border-slate-100"
+                        class="flex items-center justify-between pt-2.5 border-t border-slate-200/60"
                     >
                         <div class="space-y-0.5">
-                            <span class="font-medium">Diskon & Promo Transaksi:</span>
+                            <div class="font-medium text-slate-700">Diskon Transaksi:</div>
                             <div
                                 v-if="transactionDiscount.amount > 0"
                                 class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1"
                             >
                                 <FontAwesomeIcon :icon="faTag" class="text-[10px]" />
-                                <span>{{
-                                    transactionDiscount.promo_name || 'Diskon Manual Transaksi'
-                                }}</span>
+                                <span>{{ transactionDiscount.promo_name || 'Diskon Manual' }}</span>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex items-center gap-2">
                             <div v-if="transactionDiscount.amount > 0" class="text-right">
-                                <div class="font-bold text-emerald-600">
+                                <span class="font-bold text-emerald-600 text-xs">
                                     - {{ formatCurrency(transactionDiscount.amount) }}
-                                </div>
-                                <div class="flex items-center gap-2 mt-0.5 justify-end text-[10px]">
+                                </span>
+                                <div
+                                    class="flex items-center gap-1.5 justify-end text-[10px] mt-0.5"
+                                >
                                     <button
                                         type="button"
                                         class="text-slate-500 hover:text-slate-800 underline cursor-pointer"
@@ -328,78 +343,100 @@
                                 @click="showTransactionDiscountModal = true"
                             >
                                 <FontAwesomeIcon :icon="faTags" class="text-[10px] text-main" />
-                                <span>+ Tambah Diskon / Promo</span>
+                                <span>+ Diskon / Promo</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- Biaya Pengiriman -->
                     <div
-                        class="flex justify-between items-center text-slate-600 pt-1 border-t border-slate-100"
+                        class="flex items-center justify-between pt-2.5 border-t border-slate-200/60"
                     >
-                        <span>Biaya Pengiriman (Ekspedisi):</span>
-                        <div class="w-36">
+                        <span class="text-slate-600 font-medium">Biaya Pengiriman:</span>
+                        <div class="w-40">
                             <NumberField
                                 v-model="form.shipping_fee"
                                 size="sm"
                                 prefix="Rp"
+                                class="text-right"
                                 @update:model-value="calculateFinancials"
                             />
                         </div>
                     </div>
 
-                    <!-- Pajak (PPN) dengan Input Persentase -->
+                    <!-- Pajak (PPN) -->
                     <div
-                        class="flex justify-between items-center text-slate-600 pt-1 border-t border-slate-100"
+                        class="flex items-start justify-between pt-2.5 border-t border-slate-200/60"
                     >
                         <div class="space-y-0.5">
-                            <span>Pajak (PPN):</span>
-                            <div class="text-[10px] text-slate-400">
-                                Terhitung otomatis dari DPP
-                            </div>
+                            <div class="text-slate-600 font-medium">Pajak (PPN):</div>
+                            <div class="text-[10px] text-slate-400">% Dari DPP Netto</div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-20">
+                        <div class="flex flex-col items-end gap-2">
+                            <div>
                                 <NumberField
                                     v-model="taxRate"
                                     size="sm"
                                     suffix="%"
+                                    class="w-12"
                                     :min="0"
                                     :max="100"
                                     @update:model-value="calculateFinancials"
                                 />
                             </div>
-                            <div class="w-28 text-right font-semibold text-slate-800">
+                            <div class="text-right font-bold text-slate-800">
                                 {{ formatCurrency(form.tax_amount) }}
                             </div>
                         </div>
                     </div>
 
-                    <!-- Grand Total -->
+                    <!-- Grand Total Highlight Card -->
                     <div
-                        class="pt-2 border-t border-slate-200 flex justify-between items-center text-sm font-bold text-slate-900"
+                        class="p-3 bg-main/5 border border-main/20 rounded-lg flex items-center justify-between"
                     >
-                        <span>Grand Total:</span>
-                        <span class="text-base text-main">{{
-                            formatCurrency(financials.grandTotal)
-                        }}</span>
+                        <span class="font-bold text-slate-800 text-sm">Grand Total:</span>
+                        <span class="text-lg font-bold text-main">
+                            {{ formatCurrency(financials.grandTotal) }}
+                        </span>
                     </div>
 
-                    <!-- Input Pembayaran Awal jika Terbitkan Faktur -->
-                    <div v-if="form.issue_now" class="pt-2 border-t border-slate-200 space-y-2">
-                        <div class="flex justify-between items-center">
-                            <span class="font-semibold text-slate-700">Pembayaran Awal / DP:</span>
-                            <div class="w-36">
+                    <!-- Pembayaran Awal / Sisa Tagihan -->
+                    <div class="pt-3 border-t border-slate-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="font-semibold text-slate-700 block text-xs">
+                                    {{
+                                        form.payment_term === 'cash'
+                                            ? 'Pembayaran Tunai (Lunas)'
+                                            : 'Pembayaran Awal / Uang Muka (DP)'
+                                    }}:
+                                </span>
+                                <span
+                                    v-if="form.payment_term === 'cash'"
+                                    class="text-[10px] text-emerald-600 font-medium"
+                                >
+                                    Otomatis lunas penuh saat faktur diterbitkan.
+                                </span>
+                                <span v-else class="text-[10px] text-slate-500 font-medium">
+                                    Opsional, isi jika pelanggan membayar DP di awal.
+                                </span>
+                            </div>
+                            <div class="w-40">
                                 <NumberField
                                     v-model="form.payment.amount"
                                     size="sm"
                                     prefix="Rp"
+                                    :disabled="form.payment_term === 'cash'"
+                                    :error="form.errors['payment.amount']"
                                     @update:model-value="calculateFinancials"
                                 />
                             </div>
                         </div>
 
-                        <div v-if="form.payment.amount > 0" class="pt-1">
+                        <div
+                            v-if="form.payment.amount > 0 || form.payment_term === 'cash'"
+                            class="pt-1"
+                        >
                             <DropdownField
                                 v-model="form.payment.payment_method_id"
                                 label="Metode Pembayaran (Kas / Bank Outlet)"
@@ -407,20 +444,27 @@
                                 :options="paymentMethodOptions"
                                 :error="form.errors['payment.payment_method_id']"
                                 size="sm"
-                                required
+                                :required="form.payment_term === 'cash' || form.payment.amount > 0"
                             />
                         </div>
 
-                        <div class="flex justify-between items-center pt-1 font-semibold">
-                            <span class="text-slate-600">Sisa Tagihan (Piutang):</span>
+                        <div
+                            class="flex items-center justify-between pt-2 border-t border-slate-200/80"
+                        >
+                            <span class="font-semibold text-slate-700 text-xs"
+                                >Sisa Tagihan (Piutang):</span
+                            >
                             <span
+                                class="text-sm font-bold"
                                 :class="
-                                    financials.balanceDue > 0
-                                        ? 'text-danger font-bold'
-                                        : 'text-success font-bold'
+                                    financials.balanceDue > 0 ? 'text-rose-600' : 'text-emerald-600'
                                 "
                             >
-                                {{ formatCurrency(financials.balanceDue) }}
+                                {{
+                                    financials.balanceDue > 0
+                                        ? formatCurrency(financials.balanceDue)
+                                        : 'Lunas (Rp 0)'
+                                }}
                             </span>
                         </div>
                     </div>
@@ -431,17 +475,6 @@
         <!-- Teleport Action Footer -->
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex items-center justify-between w-full">
-                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                        v-model="form.issue_now"
-                        type="checkbox"
-                        class="form-check-input h-4 w-4 rounded border-slate-300 text-main focus:ring-main cursor-pointer"
-                    />
-                    <span class="text-xs font-semibold text-slate-700">
-                        Langsung Terbitkan Faktur (Issue Invoice)
-                    </span>
-                </label>
-
                 <div class="flex items-center gap-2">
                     <button
                         type="button"
@@ -453,12 +486,36 @@
                     </button>
 
                     <button
-                        type="submit"
-                        class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5"
+                        v-if="isEditMode"
+                        type="button"
+                        class="btn btn-outline-danger btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer text-xs"
+                        :disabled="form.processing"
+                        @click="handleDeleteDraft"
+                    >
+                        <FontAwesomeIcon :icon="faTrash" />
+                        <span>Hapus Draf</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer text-xs"
                         :disabled="form.processing || form.items.length === 0"
+                        @click="submitDraft"
                     >
                         <FontAwesomeIcon :icon="faSave" />
-                        <span>{{ form.issue_now ? 'Terbitkan Faktur' : 'Simpan Draf' }}</span>
+                        <span>Simpan Draf</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer text-xs"
+                        :disabled="form.processing || form.items.length === 0"
+                        @click="handleIssueInvoiceClick"
+                    >
+                        <FontAwesomeIcon :icon="faFileInvoice" />
+                        <span>Terbitkan Faktur</span>
                     </button>
                 </div>
             </div>
@@ -496,19 +553,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useForm } from '@inertiajs/vue3'
+import { ref, reactive, computed, onMounted, watch, markRaw } from 'vue'
+import { useForm, usePage, router } from '@inertiajs/vue3'
 import axios from 'axios'
 import { debounce } from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
-    faSearch,
+    faPlus,
     faTrash,
     faSave,
     faBoxesStacked,
     faPencil,
     faTag,
     faTags,
+    faLock,
+    faFileInvoice,
 } from '@fortawesome/free-solid-svg-icons'
 import AsyncOutletDropdown from '@/Components/Form/AsyncOutletDropdown.vue'
 import AsyncSelectField from '@/Components/Form/AsyncSelectField.vue'
@@ -519,28 +578,53 @@ import TextareaField from '@/Components/Form/TextareaField.vue'
 import ProductPickerModal from './ProductPickerModal.vue'
 import ItemDiscountModal from './ItemDiscountModal.vue'
 import TransactionDiscountModal from './TransactionDiscountModal.vue'
+import SalesIssueReviewContent from './SalesIssueReviewContent.vue'
 import { formatIDR as formatCurrency } from '@/Composable/currency-format.js'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard.js'
-import { useToastStore } from '@/store/toast'
+import { useToastStore, useModalStore } from '@/store/notification'
 import { addDays, formatISODate } from '@/Composable/date.js'
+
+const props = defineProps({
+    transactionId: {
+        type: String,
+        default: null,
+    },
+})
 
 const emit = defineEmits(['close', 'success'])
 
+const page = usePage()
 const toastStore = useToastStore()
+const modalStore = useModalStore()
 const isMounted = ref(false)
+const isLoadingDraft = ref(false)
 const showItemPicker = ref(false)
 const showItemDiscountModal = ref(false)
 const showTransactionDiscountModal = ref(false)
+const selectedCustomerName = ref('')
 const activeItemIndex = ref(null)
+const isManualOverride = ref(false)
+const isEditMode = computed(() => !!props.transactionId)
 
 const outletDueDays = ref(14)
 const taxRate = ref(0)
 const paymentMethodOptions = ref([])
 
-const channelOptions = [
+const defaultChannelLabels = {
+    wholesale: 'Grosir (Wholesale)',
+    direct: 'Penjualan Langsung (Direct)',
+    e_commerce: 'E-Commerce / Marketplace',
+    social_media: 'Media Sosial & WhatsApp',
+    custom: 'Pesanan Khusus',
+}
+
+const channelOptions = ref([
     { label: 'Grosir (Wholesale)', value: 'wholesale' },
-    { label: 'Penjualan Langsung (Direct Sales)', value: 'direct' },
-]
+    { label: 'Penjualan Langsung (Direct)', value: 'direct' },
+    { label: 'E-Commerce / Marketplace', value: 'e_commerce' },
+    { label: 'Media Sosial & WhatsApp', value: 'social_media' },
+    { label: 'Pesanan Khusus', value: 'custom' },
+])
 
 const paymentTermOptions = [
     { label: 'Tunai (Langsung Lunas / COD)', value: 'cash' },
@@ -600,6 +684,14 @@ const activeItemForDiscount = computed(() => {
     if (activeItemIndex.value === null || !form.items[activeItemIndex.value]) return null
     return form.items[activeItemIndex.value]
 })
+
+const onCustomerSelected = customer => {
+    if (customer) {
+        selectedCustomerName.value = customer.name || customer.label || ''
+    } else {
+        selectedCustomerName.value = ''
+    }
+}
 
 const openItemPicker = () => {
     if (!form.outlet_id) return
@@ -663,6 +755,12 @@ const onTransactionDiscountApplied = discountData => {
     transactionDiscount.promo_code = discountData.promo_code || null
     transactionDiscount.manual_rate = discountData.manual_rate || null
 
+    if (discountData.type === 'manual' || discountData.type === null) {
+        isManualOverride.value = true
+    } else if (discountData.type === 'promo') {
+        isManualOverride.value = false
+    }
+
     form.discount_type = discountData.type || 'manual'
     form.discount_value = transactionDiscount.amount
     form.promo_code = discountData.promo_code || null
@@ -671,6 +769,7 @@ const onTransactionDiscountApplied = discountData => {
 }
 
 const resetTransactionDiscount = () => {
+    isManualOverride.value = true
     onTransactionDiscountApplied({
         type: null,
         value: 0,
@@ -715,8 +814,13 @@ const calculateFinancials = () => {
             Number(form.service_charge_amount || 0)
     )
 
-    const paid = Number(form.payment.amount || 0)
-    financials.balanceDue = Math.max(0, financials.grandTotal - paid)
+    if (form.payment_term === 'cash') {
+        form.payment.amount = financials.grandTotal
+        financials.balanceDue = 0
+    } else {
+        const paid = Number(form.payment.amount || 0)
+        financials.balanceDue = Math.max(0, financials.grandTotal - paid)
+    }
 }
 
 const evaluatePromotionsAndRecalculate = debounce(async () => {
@@ -749,25 +853,45 @@ const evaluatePromotionsAndRecalculate = debounce(async () => {
         const evalData = res.data?.data
 
         if (evalData) {
+            // Filter only item-level promotions
+            const itemLevelPromos = (evalData.applied_promotions || []).filter(
+                p => p.target_scope !== 'transaction' && p.allocation_level === 'item'
+            )
+
             // Apply auto item discounts if available
-            if (evalData.item_discounts && typeof evalData.item_discounts === 'object') {
+            if (itemLevelPromos.length > 0 && evalData.item_discounts && typeof evalData.item_discounts === 'object') {
                 form.items.forEach((item, idx) => {
                     const key = 'item_' + idx
                     const autoDisc = Number(evalData.item_discounts[key] || 0)
                     if (autoDisc > 0 && (!item.discount_amount || item.auto_promo_name)) {
-                        item.discount_amount = autoDisc
-                        const matchedPromo = evalData.applied_promotions?.find(
-                            p => p.target_scope !== 'transaction'
-                        )
-                        item.auto_promo_name = matchedPromo
-                            ? matchedPromo.promotion_name
-                            : 'Promo Otomatis'
+                        const matchedPromo = itemLevelPromos.find(
+                            p => p.affected_item_ids?.includes(key) || !p.affected_item_ids || p.affected_item_ids.length === 0
+                        ) || itemLevelPromos[0]
+                        if (matchedPromo) {
+                            item.discount_amount = autoDisc
+                            item.auto_promo_name = matchedPromo.promotion_name
+                        }
+                    } else if (autoDisc === 0 && item.auto_promo_name) {
+                        item.discount_amount = 0
+                        item.auto_promo_name = null
+                    }
+                })
+            } else {
+                // Clear any lingering auto promo discounts on items
+                form.items.forEach(item => {
+                    if (item.auto_promo_name) {
+                        item.discount_amount = 0
+                        item.auto_promo_name = null
                     }
                 })
             }
 
-            // If auto transaction promo was detected and no manual discount set
-            if (!transactionDiscount.type && evalData.applied_promotions?.length > 0) {
+            // If auto transaction promo was detected and no manual discount / override was set
+            if (
+                !transactionDiscount.type &&
+                !isManualOverride.value &&
+                evalData.applied_promotions?.length > 0
+            ) {
                 const transPromo = evalData.applied_promotions.find(
                     p => p.target_scope === 'transaction'
                 )
@@ -818,6 +942,22 @@ const fetchOutletSettings = async outletId => {
             }
             if (taxRate.value === 0 && data.default_tax_rate) {
                 taxRate.value = Number(data.default_tax_rate)
+            }
+
+            if (
+                data.sales_channels_b2b &&
+                Array.isArray(data.sales_channels_b2b) &&
+                data.sales_channels_b2b.length > 0
+            ) {
+                const enumChannels = page.props.enums?.SalesChannelEnum?._meta || {}
+                channelOptions.value = data.sales_channels_b2b.map(ch => ({
+                    value: ch,
+                    label: enumChannels[ch]?.label || defaultChannelLabels[ch] || ch,
+                }))
+
+                if (!data.sales_channels_b2b.includes(form.channel)) {
+                    form.channel = data.sales_channels_b2b[0]
+                }
             }
         }
     } catch (e) {
@@ -872,46 +1012,256 @@ watch(
     val => {
         if (val === 'cash') {
             form.due_date = null
-            if (form.issue_now && form.payment.amount === 0) {
-                form.payment.amount = financials.grandTotal
-            }
+            form.payment.amount = financials.grandTotal
         } else {
             calculateDueDate()
-        }
-    }
-)
-
-watch(
-    () => form.issue_now,
-    val => {
-        if (val && form.payment_term === 'cash' && form.payment.amount === 0) {
-            form.payment.amount = financials.grandTotal
         }
         calculateFinancials()
     }
 )
 
-const submit = () => {
-    form.post(route('transactions.sales.store'), {
+const fetchDraftDetail = async () => {
+    if (!props.transactionId) return
+    isLoadingDraft.value = true
+    try {
+        const response = await axios.get(route('transactions.sales.show', props.transactionId))
+        const draft = response.data?.data
+        if (!draft) return
+
+        if (draft.status !== 'draft') {
+            toastStore.error('Hanya transaksi berstatus draf yang dapat diedit.')
+            forceClose()
+            return
+        }
+
+        form.outlet_id = draft.outlet_id
+        form.customer_id = draft.customer_id
+        selectedCustomerName.value = draft.customer?.name || ''
+        form.channel = draft.channel || 'wholesale'
+        form.transaction_date = draft.transaction_date
+            ? formatISODate(new Date(draft.transaction_date))
+            : formatISODate(new Date())
+        form.payment_term = draft.payment_term || 'cash'
+        form.payment_term_code = draft.payment_term_code || 'custom'
+        form.due_date = draft.due_date ? formatISODate(new Date(draft.due_date)) : null
+        form.notes = draft.notes || ''
+        form.discount_type = draft.discount_type || 'manual'
+        form.discount_value = Number(draft.discount_amount || draft.discount_value || 0)
+        form.promo_code = draft.promo_code || null
+        form.tax_amount = Number(draft.tax_amount || 0)
+        form.shipping_fee = Number(draft.shipping_fee || 0)
+        form.service_charge_amount = Number(draft.service_charge_amount || 0)
+
+        // Populate items
+        form.items = (draft.items || []).map(item => ({
+            selected_id: item.product_item_id || item.product_id,
+            product_id: item.product_id,
+            product_item_id: item.product_item_id || null,
+            inventory_item_id: item.inventory_item_id || null,
+            product_name: item.product_name,
+            product_type: item.product_type || 'basic',
+            sku: item.sku || '',
+            uom_name: item.uom_name || 'Pcs',
+            qty: Number(item.qty || 1),
+            price: Number(item.price || 0),
+            discount_amount: Number(item.discount_amount || 0),
+            discount_type: item.discount_type || 'fixed',
+            discount_rate: Number(item.discount_rate || 0),
+            auto_promo_name: null,
+            notes: item.notes || '',
+        }))
+
+        // Populate transactionDiscount
+        if (Number(draft.discount_amount || draft.discount_value || 0) > 0) {
+            transactionDiscount.type = draft.promo_code ? 'promo' : 'manual'
+            transactionDiscount.value = Number(draft.discount_amount || draft.discount_value || 0)
+            transactionDiscount.amount = Number(draft.discount_amount || draft.discount_value || 0)
+            transactionDiscount.promo_code = draft.promo_code || null
+            isManualOverride.value = true
+        }
+
+        // Fetch outlet settings & payment methods
+        await fetchOutletSettings(draft.outlet_id)
+        await fetchPaymentMethods(draft.outlet_id)
+
+        form.defaults()
+    } catch (e) {
+        console.error('Failed to load draft detail:', e)
+        toastStore.error('Gagal memuat data draf transaksi.')
+        forceClose()
+    } finally {
+        isLoadingDraft.value = false
+        calculateFinancials()
+    }
+}
+
+const validateFormBasic = () => {
+    if (!form.outlet_id) {
+        modalStore.alert({
+            type: 'warning',
+            title: 'Outlet Belum Dipilih',
+            message: 'Harap pilih outlet terlebih dahulu sebelum menyimpan transaksi.',
+            confirmText: 'Mengerti',
+        })
+        return false
+    }
+
+    if (form.items.length === 0) {
+        modalStore.alert({
+            type: 'warning',
+            title: 'Item Kosong',
+            message: 'Harap tambahkan minimal 1 item produk ke dalam transaksi.',
+            confirmText: 'Mengerti',
+        })
+        return false
+    }
+
+    const hasInvalidQty = form.items.some(i => !i.qty || Number(i.qty) <= 0)
+    if (hasInvalidQty) {
+        modalStore.alert({
+            type: 'warning',
+            title: 'Kuantitas Tidak Valid',
+            message: 'Semua item produk harus memiliki kuantitas lebih dari 0.',
+            confirmText: 'Mengerti',
+        })
+        return false
+    }
+
+    return true
+}
+
+const submitDraft = () => {
+    if (!validateFormBasic()) return
+    form.issue_now = false
+    executeSubmit()
+}
+
+const handleIssueInvoiceClick = () => {
+    if (!validateFormBasic()) return
+
+    if (form.payment_term === 'cash') {
+        form.payment.amount = financials.grandTotal
+        if (!form.payment.payment_method_id) {
+            modalStore.alert({
+                type: 'warning',
+                title: 'Metode Pembayaran Diperlukan',
+                message: 'Silakan pilih metode pembayaran (Kas/Bank) untuk transaksi tunai.',
+                confirmText: 'Pilih Metode',
+            })
+            return
+        }
+    } else if (Number(form.payment.amount || 0) > 0 && !form.payment.payment_method_id) {
+        modalStore.alert({
+            type: 'warning',
+            title: 'Metode Pembayaran Diperlukan',
+            message: 'Silakan pilih metode pembayaran (Kas/Bank) untuk pembayaran DP.',
+            confirmText: 'Pilih Metode',
+        })
+        return
+    }
+
+    modalStore.open({
+        title: 'Konfirmasi Penerbitan Faktur',
+        size: 'max-w-lg',
+        type: 'info',
+        component: markRaw(SalesIssueReviewContent),
+        props: {
+            customerName: selectedCustomerName.value,
+            transactionDate: form.transaction_date,
+            paymentTerm: form.payment_term,
+            dueDate: form.due_date,
+            itemCount: form.items.length,
+            grandTotal: financials.grandTotal,
+            paymentAmount: form.payment.amount,
+            balanceDue: financials.balanceDue,
+        },
+        confirmText: 'Ya, Terbitkan Faktur',
+        cancelText: 'Periksa Kembali',
+        confirmClass: 'btn-main',
+        showCancel: true,
+        showFooter: true,
+        onConfirm: executeIssueSubmit,
+    })
+}
+
+const executeIssueSubmit = () => {
+    form.issue_now = true
+    executeSubmit()
+}
+
+const executeSubmit = () => {
+    if (form.issue_now && form.payment_term === 'cash') {
+        form.payment.amount = financials.grandTotal
+    }
+
+    const submitRoute = isEditMode.value
+        ? route('transactions.sales.update', props.transactionId)
+        : route('transactions.sales.store')
+
+    const submitMethod = isEditMode.value ? 'put' : 'post'
+
+    form[submitMethod](submitRoute, {
         preserveScroll: true,
         onSuccess: () => {
-            toastStore.success(
-                form.issue_now
-                    ? 'Faktur penjualan berhasil diterbitkan'
-                    : 'Draf penjualan berhasil disimpan'
-            )
             emit('success')
             forceClose()
+        },
+        onError: errors => {
+            const errorKeys = Object.keys(errors)
+            if (errorKeys.length > 0) {
+                const mainError =
+                    errors.error ||
+                    errors.failed ||
+                    errors.message ||
+                    errors['payment.amount'] ||
+                    errors['payment.payment_method_id'] ||
+                    errors.items
+                if (mainError) {
+                    modalStore.alert({
+                        type: 'warning',
+                        title: 'Peringatan Transaksi',
+                        message: mainError,
+                        confirmText: 'Mengerti',
+                    })
+                }
+            }
         },
     })
 }
 
-onMounted(() => {
+const handleDeleteDraft = () => {
+    if (!props.transactionId) return
+
+    modalStore.confirm({
+        title: 'Konfirmasi Hapus Draf',
+        message:
+            'Apakah Anda yakin ingin menghapus draf faktur ini? Tindakan ini tidak dapat dikembalikan.',
+        type: 'danger',
+        confirmText: 'Ya, Hapus',
+        cancelText: 'Batal',
+        onConfirm: () => {
+            router.delete(route('transactions.sales.destroy', props.transactionId), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toastStore.success('Draf faktur berhasil dihapus')
+                    emit('success')
+                    forceClose()
+                },
+            })
+        },
+    })
+}
+
+onMounted(async () => {
     isMounted.value = true
-    if (form.outlet_id) {
-        fetchOutletSettings(form.outlet_id)
-        fetchPaymentMethods(form.outlet_id)
+    if (isEditMode.value) {
+        await fetchDraftDetail()
+    } else {
+        if (form.outlet_id) {
+            await fetchOutletSettings(form.outlet_id)
+            await fetchPaymentMethods(form.outlet_id)
+        }
+        calculateFinancials()
     }
-    calculateFinancials()
 })
 </script>

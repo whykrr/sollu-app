@@ -7,13 +7,16 @@ namespace App\Http\Controllers\App\Transaction;
 use App\Constants\AuthorizationMessage;
 use App\Constants\FlashDataVariable;
 use App\Enums\DatePresetEnum;
+use App\Enums\TransactionTypeEnum;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Transaction\Sales\CancelSalesTransactionRequest;
+use App\Http\Requests\App\Transaction\Sales\DeleteSalesTransactionRequest;
 use App\Http\Requests\App\Transaction\Sales\GetSalesTransactionRequest;
 use App\Http\Requests\App\Transaction\Sales\RecordPaymentTransactionRequest;
 use App\Http\Requests\App\Transaction\Sales\StoreSalesTransactionRequest;
 use App\Http\Requests\App\Transaction\Sales\UpdateDueDateRequest;
+use App\Http\Requests\App\Transaction\Sales\UpdateSalesTransactionRequest;
 use App\Models\Sales\Transaction;
 use App\Services\App\Transaction\Contracts\B2bTransactionServiceInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -74,6 +77,7 @@ class SalesTransactionController extends Controller
                 'outlet_id',
                 'customer_id',
                 'channel',
+                'type',
                 'transaction_number',
                 'transaction_date',
                 'total',
@@ -82,6 +86,7 @@ class SalesTransactionController extends Controller
                 'payment_status',
                 'created_at',
             ])
+            ->where('type', TransactionTypeEnum::Invoice->value)
             ->when(
                 $effectiveOutletId !== null,
                 fn (Builder $q) => $q->where('outlet_id', $effectiveOutletId),
@@ -162,6 +167,64 @@ class SalesTransactionController extends Controller
                 'message' => $message,
                 'data' => $transaction,
             ], 201);
+        }
+
+        return redirect()
+            ->back()
+            ->with(FlashDataVariable::SUCCESS->value, $message);
+    }
+
+    /**
+     * Update an existing draft sales transaction.
+     */
+    public function update(UpdateSalesTransactionRequest $request, Transaction $transaction): JsonResponse|RedirectResponse
+    {
+        $user = $request->user();
+        if ($transaction->outlet?->business_id !== $user?->business_id) {
+            abort(403, AuthorizationMessage::CANT_ACCESS_DATA);
+        }
+
+        $dto = $request->toDTO();
+        $transaction = $this->b2bTransactionService->updateDraftTransaction($transaction, $dto, $user);
+
+        // Jika user memilih untuk langsung menerbitkan faktur
+        if ($request->boolean('issue_now')) {
+            $paymentData = $request->input('payment', []);
+            $transaction = $this->b2bTransactionService->issueInvoice($transaction, $user, $paymentData);
+            $message = 'Faktur penjualan berhasil diterbitkan.';
+        } else {
+            $message = 'Draf penjualan berhasil diperbarui.';
+        }
+
+        if ($request->wantsJson()) {
+            return Response::json([
+                'message' => $message,
+                'data' => $transaction,
+            ]);
+        }
+
+        return redirect()
+            ->back()
+            ->with(FlashDataVariable::SUCCESS->value, $message);
+    }
+
+    /**
+     * Delete an existing draft sales transaction.
+     */
+    public function destroy(DeleteSalesTransactionRequest $request, Transaction $transaction): JsonResponse|RedirectResponse
+    {
+        $user = $request->user();
+        if ($transaction->outlet?->business_id !== $user?->business_id) {
+            abort(403, AuthorizationMessage::CANT_ACCESS_DATA);
+        }
+
+        $this->b2bTransactionService->deleteDraftTransaction($transaction, $user);
+        $message = 'Draf penjualan berhasil dihapus.';
+
+        if ($request->wantsJson()) {
+            return Response::json([
+                'message' => $message,
+            ]);
         }
 
         return redirect()

@@ -54,3 +54,68 @@ Semua modul operasional **WAJIB** menggunakan layout `<MainPage>` dengan 5 slot 
 - Anti-Zoom iOS Safari: Input mobile wajib berukuran font $\ge 16\text{px}$ (`.form.adaptive` / `text-base sm:text-xs`).
 - Thumb Zone: Aksi submit utama di mobile wajib berada di sticky footer (`#popUpFooter`).
 - Responsive Columns: Kolom tabel sekunder wajib disembunyikan di smartphone menggunakan prop `show: 'md'` atau `show: 'lg'`.
+
+---
+
+## 8. Standarisasi Modal Dialog & Konfirmasi (`useModalStore`) vs Drawer (`usePopUpStore`)
+Aplikasi Sollu memisahkan dengan tegas antara **Drawer / Side-Panel** (alur kerja data/formulir) dan **Center Modal Dialog** (dialog konfirmasi/alert):
+
+1. **Drawer / Side-Panel (`usePopUpStore` dari `@/store/popup`):**
+   - **WAJIB** digunakan untuk formulir entitas Create/Edit (1-3 Tier), detail entitas read-only, dan form transaksi/pembayaran.
+   - Meluncur dari kanan layar via `<PopUpPage>` dengan layout sticky `#popUpFooter` dan proteksi `useFormDirtyGuard`.
+
+2. **Modal Dialog Konfirmasi & Alert (`useModalStore` dari `@/store/notification`):**
+   - **WAJIB** menggunakan `useModalStore` yang dirender terpusat di level layout oleh `ModalContainer.vue`.
+   - **DILARANG** meng-instansiasi tag `<Modal :show="...">` langsung di dalam template halaman/komponen untuk dialog konfirmasi atau alert sederhana (mencegah nested overlay dan boilerplate ganda).
+   - **Konfirmasi Aksi Destruktif (Hapus Data / Hapus Draf):**
+     ```javascript
+     modalStore.confirm({
+         title: 'Konfirmasi Hapus Draf',
+         message: 'Apakah Anda yakin ingin menghapus draf faktur ini? Tindakan ini tidak dapat dikembalikan.',
+         type: 'danger',
+         confirmText: 'Ya, Hapus',
+         cancelText: 'Batal',
+         onConfirm: () => { router.delete(...) },
+     })
+     ```
+   - **Konfirmasi Aksi Operasional Kritis (Terbitkan Faktur, Batalkan Faktur):**
+     ```javascript
+     modalStore.confirm({
+         title: 'Konfirmasi Terbitkan Faktur',
+         message: 'Apakah Anda yakin ingin menerbitkan faktur resmi untuk transaksi ini? Stok inventori akan langsung dipotong.',
+         type: 'warning',
+         confirmText: 'Ya, Terbitkan',
+         cancelText: 'Batal',
+         onConfirm: () => { router.post(...) },
+     })
+     ```
+   - **Pemberitahuan / Peringatan Validasi (Alert):**
+     ```javascript
+     modalStore.alert({
+         title: 'Metode Pembayaran Diperlukan',
+         message: 'Silakan pilih metode pembayaran (Kas/Bank) untuk transaksi tunai.',
+         type: 'warning',
+         confirmText: 'Mengerti',
+     })
+     ```
+   - **Dialog Konfirmasi Reviu / Konten Kustom (`component`):**
+     Jika dialog membutuhkan tampilan tabel/ringkasan data sebelum konfirmasi (misal reviu faktur sebelum terbit), ekstrak isi dialog ke komponen mandiri (tanpa tag `<Modal>` pembungkus) dan buka melalui:
+     ```javascript
+     modalStore.open({
+         title: 'Konfirmasi Penerbitan Faktur',
+         size: 'max-w-lg',
+         type: 'info',
+         component: markRaw(CustomReviewComponent),
+         props: { ... },
+         confirmText: 'Ya, Terbitkan Faktur',
+         cancelText: 'Periksa Kembali',
+         confirmClass: 'btn-main',
+         showCancel: true,
+         showFooter: true,
+         onConfirm: () => { ... },
+     })
+     ```
+   - **Invarian Penamaan & Semantik:**
+     - Properti tombol: Wajib gunakan `confirmText` dan `cancelText` (DILARANG `confirmButtonText`).
+     - Tipe semantik: `'danger'` (merah), `'warning'` (amber), `'info'`/`'confirm'` (biru), `'success'` (hijau) (DILARANG `type: 'error'`).
+

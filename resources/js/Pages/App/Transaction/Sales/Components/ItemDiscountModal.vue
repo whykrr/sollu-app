@@ -24,6 +24,21 @@
                 </div>
             </div>
 
+            <!-- Auto Promo Lock Info Banner -->
+            <div
+                v-if="isAutoPromo"
+                class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2.5"
+            >
+                <FontAwesomeIcon :icon="faLock" class="text-amber-600 mt-0.5 shrink-0" />
+                <div class="space-y-0.5">
+                    <span class="font-bold">Promo Otomatis Aktif ({{ item.auto_promo_name }})</span>
+                    <p class="text-[11px] text-amber-700">
+                        Diskon baris ini diterapkan secara otomatis oleh sistem promo outlet dan
+                        tidak dapat diubah atau dihapus secara manual.
+                    </p>
+                </div>
+            </div>
+
             <!-- Discount Type Segmented Selector -->
             <div>
                 <label class="block text-xs font-semibold text-slate-700 mb-1.5">
@@ -31,6 +46,7 @@
                 </label>
                 <div
                     class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200"
+                    :class="{ 'opacity-60 pointer-events-none': isAutoPromo }"
                 >
                     <button
                         type="button"
@@ -40,6 +56,7 @@
                                 ? 'bg-white text-slate-900 font-bold border border-slate-200 shadow-2xs'
                                 : 'text-slate-600 hover:text-slate-900'
                         "
+                        :disabled="isAutoPromo"
                         @click="discountType = 'percentage'"
                     >
                         Persentase (%)
@@ -52,6 +69,7 @@
                                 ? 'bg-white text-slate-900 font-bold border border-slate-200 shadow-2xs'
                                 : 'text-slate-600 hover:text-slate-900'
                         "
+                        :disabled="isAutoPromo"
                         @click="discountType = 'fixed'"
                     >
                         Nominal Tetap (Rp)
@@ -70,6 +88,7 @@
                     size="sm"
                     :min="0"
                     :max="100"
+                    :disabled="isAutoPromo"
                 />
                 <NumberField
                     v-else
@@ -80,6 +99,7 @@
                     size="sm"
                     :min="0"
                     :max="grossSubtotal"
+                    :disabled="isAutoPromo"
                 />
             </div>
 
@@ -108,7 +128,7 @@
         <template #footer>
             <div class="flex items-center justify-between w-full">
                 <button
-                    v-if="currentDiscountAmount > 0"
+                    v-if="!isAutoPromo && currentDiscountAmount > 0"
                     type="button"
                     class="btn btn-outline-danger btn-sm h-[30px] text-xs inline-flex items-center gap-1 cursor-pointer"
                     @click="removeDiscount"
@@ -124,9 +144,10 @@
                         class="btn btn-outline-secondary btn-sm h-[30px]"
                         @click="handleClose"
                     >
-                        Batal
+                        {{ isAutoPromo ? 'Tutup' : 'Batal' }}
                     </button>
                     <button
+                        v-if="!isAutoPromo"
                         type="button"
                         class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5"
                         @click="applyDiscount"
@@ -143,7 +164,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCheck, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faTrash, faLock } from '@fortawesome/free-solid-svg-icons'
 import Modal from '@/Components/Notifications/Modal.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
 import { formatIDR as formatCurrency } from '@/Composable/currency-format.js'
@@ -164,6 +185,10 @@ const emit = defineEmits(['close', 'apply'])
 const discountType = ref('fixed') // 'fixed' | 'percentage'
 const discountFixed = ref(0)
 const discountRate = ref(0)
+
+const isAutoPromo = computed(() => {
+    return !!props.item?.auto_promo_name
+})
 
 const grossSubtotal = computed(() => {
     if (!props.item) return 0

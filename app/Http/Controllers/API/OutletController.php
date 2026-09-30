@@ -74,7 +74,14 @@ class OutletController extends Controller
             if ($taxSetting) {
                 $defaultTaxRate = (float) $taxSetting->value;
             }
+
+            $channelsSetting = $settings->firstWhere('key', 'sales_channels_b2b') ?? $settings->firstWhere('key', 'sales_channels');
+            if ($channelsSetting && is_array($channelsSetting->value)) {
+                $salesChannels = $channelsSetting->value;
+            }
         }
+
+        $salesChannels = $salesChannels ?? ['direct', 'wholesale', 'e_commerce', 'social_media', 'custom'];
 
         return response()->json([
             'data' => [
@@ -82,6 +89,8 @@ class OutletController extends Controller
                 'default_terms_and_conditions_invoice' => $defaultTnc,
                 'transaction_invoice_prefix' => $invoicePrefix,
                 'default_tax_rate' => $defaultTaxRate ?? 0.0,
+                'sales_channels_b2b' => $salesChannels,
+                'sales_channels' => $salesChannels,
                 // Backward compatibility keys
                 'default_due_days_b2b' => $defaultDueDays,
                 'default_terms_and_conditions_b2b' => $defaultTnc,

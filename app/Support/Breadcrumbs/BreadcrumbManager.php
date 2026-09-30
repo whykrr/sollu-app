@@ -235,12 +235,12 @@ class BreadcrumbManager
             // Transactions Module
             'transactions.sales.index' => [
                 ['label' => 'Transaksi', 'url' => null],
-                ['label' => 'Riwayat Penjualan', 'url' => self::safeRoute('transactions.sales.index')],
+                ['label' => 'Faktur Penjualan', 'url' => self::safeRoute('transactions.sales.index')],
             ],
             'transactions.sales.show' => [
                 ['label' => 'Transaksi', 'url' => null],
-                ['label' => 'Riwayat Penjualan', 'url' => self::safeRoute('transactions.sales.index')],
-                ['label' => 'Detail Penjualan', 'url' => null],
+                ['label' => 'Faktur Penjualan', 'url' => self::safeRoute('transactions.sales.index')],
+                ['label' => 'Detail Faktur Penjualan', 'url' => null],
             ],
             'transactions.sales.invoices.index' => [
                 ['label' => 'Transaksi', 'url' => null],
@@ -533,7 +533,7 @@ class BreadcrumbManager
             'adjustments' => 'Penyesuaian Stok',
             'transfers' => 'Mutasi Stok',
             'transactions' => 'Transaksi',
-            'sales' => 'Penjualan',
+            'sales' => 'Faktur Penjualan',
             'invoices' => 'Invoice Piutang',
             'shifts' => 'Shift Kasir',
             'customers' => 'Pelanggan',

@@ -7,6 +7,7 @@ namespace App\Models\Sales;
 use App\Enums\SalesChannelEnum;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
+use App\Enums\TransactionTypeEnum;
 use App\Models\Master\Customer;
 use App\Models\Outlet;
 use App\Models\Shift;
@@ -38,6 +39,7 @@ class Transaction extends Model
         'discount_amount',
         'tax_amount',
         'shipping_fee',
+        'type',
         'total',
         'total_paid',
         'balance_due',
@@ -66,6 +68,7 @@ class Transaction extends Model
             'total_paid' => 'decimal:4',
             'balance_due' => 'decimal:4',
             'channel' => SalesChannelEnum::class,
+            'type' => TransactionTypeEnum::class,
             'payment_status' => TransactionPaymentStatus::class,
             'status' => TransactionStatus::class,
         ];
@@ -136,6 +139,22 @@ class Transaction extends Model
     }
 
     /**
+     * @return HasMany<TransactionPromo, $this>
+     */
+    public function transactionPromos(): HasMany
+    {
+        return $this->hasMany(TransactionPromo::class)->whereNull('transaction_item_id');
+    }
+
+    /**
+     * @return HasMany<TransactionPromo, $this>
+     */
+    public function itemPromos(): HasMany
+    {
+        return $this->hasMany(TransactionPromo::class)->whereNotNull('transaction_item_id');
+    }
+
+    /**
      * @return HasOne<TransactionInvoice, $this>
      */
     public function invoice(): HasOne
@@ -169,6 +188,22 @@ class Transaction extends Model
     }
 
     /**
+     * Scope query for invoice transactions.
+     */
+    public function scopeInvoice(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('type'), TransactionTypeEnum::Invoice->value);
+    }
+
+    /**
+     * Scope query for POS transactions.
+     */
+    public function scopePos(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('type'), TransactionTypeEnum::Pos->value);
+    }
+
+    /**
      * Scope query with sales transaction filters.
      *
      * @param  array<string, mixed>  $filters
@@ -176,6 +211,13 @@ class Transaction extends Model
     public function scopeFilters(Builder $query, array $filters): Builder
     {
         return $query
+            ->when(
+                $filters['type'] ?? null,
+                fn (Builder $q, $type) => $q->where(
+                    'type',
+                    $type instanceof TransactionTypeEnum ? $type->value : $type
+                )
+            )
             ->when(
                 $filters['channel'] ?? null,
                 fn (Builder $q, $channel) => $q->where(

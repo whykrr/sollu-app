@@ -32,6 +32,16 @@ interface B2bTransactionServiceInterface
     public function updateDueDate(Transaction $transaction, string $newDueDate, User $user, ?string $reason = null): Transaction;
 
     /**
+     * Memperbarui draf transaksi penjualan secara atomik sebelum diterbitkan.
+     */
+    public function updateDraftTransaction(Transaction $transaction, CreateB2bTransactionDTO $dto, User $user): Transaction;
+
+    /**
+     * Menghapus draf transaksi penjualan secara permanen.
+     */
+    public function deleteDraftTransaction(Transaction $transaction, User $user): void;
+
+    /**
      * Membatalkan transaksi penjualan dan memicu pemulihan saldo serta layer FIFO inventori.
      */
     public function cancelTransaction(Transaction $transaction, User $user, ?string $reason = null): Transaction;

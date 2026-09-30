@@ -12,6 +12,7 @@ use App\Enums\ProductTypeEnum;
 use App\Enums\SalesChannelEnum;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
+use App\Enums\TransactionTypeEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
@@ -163,6 +164,7 @@ class B2bTransactionServiceTest extends TestCase
         $transaction = $this->b2bService->createTransaction($dto, $this->user);
 
         $this->assertInstanceOf(Transaction::class, $transaction);
+        $this->assertEquals(TransactionTypeEnum::Invoice, $transaction->type);
         $this->assertEquals(SalesChannelEnum::Wholesale, $transaction->channel);
         $this->assertEquals(TransactionStatus::Draft, $transaction->status);
         $this->assertEquals(TransactionPaymentStatus::Draft, $transaction->payment_status);
@@ -516,5 +518,188 @@ class B2bTransactionServiceTest extends TestCase
         $issued = $this->b2bService->issueInvoice($draft, $this->user);
 
         $this->assertEquals(TransactionStatus::Unpaid, $issued->status);
+    }
+
+    public function test_it_evaluates_and_applies_item_level_promotion_with_item_snapshot(): void
+    {
+        $promo = Promotion::create([
+            'business_id' => $this->business->id,
+            'name' => 'Promo Diskon Produk Kopi 5rb',
+            'status' => 'active',
+            'target_scope' => 'product',
+            'discount_type' => 'fixed',
+            'discount_value' => 5000.0,
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date' => now()->addDays(10)->toDateString(),
+            'applies_to_all_outlets' => true,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+        $promo->products()->attach($this->product->id);
+
+        $itemDto = new CreateTransactionItemDTO(
+            productId: $this->product->id,
+            qty: 2.0,
+            price: 50000.0,
+            productItemId: $this->productItem->id,
+            inventoryItemId: $this->inventoryItem->id
+        );
+
+        $dto = new CreateB2bTransactionDTO(
+            outletId: $this->outlet->id,
+            channel: SalesChannelEnum::Wholesale,
+            transactionDate: new DateTimeImmutable(now()->toDateTimeString()),
+            paymentTerm: PaymentTermEnum::Cash,
+            items: [$itemDto]
+        );
+
+        $transaction = $this->b2bService->createTransaction($dto, $this->user);
+
+        // Subtotal kotor: 2 * 50.000 = 100.000
+        // Item promo: 2 * 5.000 = 10.000
+        // Item subtotal = 90.000
+        // Header subtotal = 90.000, Header discount = 0, Total = 90.000
+        $this->assertEquals(90000.0, (float) $transaction->subtotal);
+        $this->assertEquals(0.0, (float) $transaction->discount_amount);
+        $this->assertEquals(90000.0, (float) $transaction->total);
+
+        $item = $transaction->items->first();
+        $this->assertEquals(10000.0, (float) $item->discount_amount);
+        $this->assertEquals('Promo Diskon Produk Kopi 5rb', $item->promo_name);
+        $this->assertEquals(90000.0, (float) $item->subtotal);
+
+        $this->assertDatabaseHas('transaction_promos', [
+            'transaction_id' => $transaction->id,
+            'transaction_item_id' => $item->id,
+            'promo_name' => 'Promo Diskon Produk Kopi 5rb',
+            'target_scope' => 'product',
+            'discount_amount' => 10000.0,
+        ]);
+
+        $this->assertCount(1, $transaction->itemPromos);
+        $this->assertCount(0, $transaction->transactionPromos);
+        $this->assertEquals('Promo Diskon Produk Kopi 5rb', $item->appliedPromo->promo_name);
+    }
+
+    public function test_it_evaluates_mixed_item_and_transaction_promotions_without_double_deduction(): void
+    {
+        // 1. Promo Item: Fixed Rp 5.000 per product item
+        $itemPromo = Promotion::create([
+            'business_id' => $this->business->id,
+            'name' => 'Promo Item Rp 5.000',
+            'status' => 'active',
+            'target_scope' => 'product',
+            'discount_type' => 'fixed',
+            'discount_value' => 5000.0,
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date' => now()->addDays(10)->toDateString(),
+            'applies_to_all_outlets' => true,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+        $itemPromo->products()->attach($this->product->id);
+
+        // 2. Promo Header: Percentage 10% on transaction
+        Promotion::create([
+            'business_id' => $this->business->id,
+            'name' => 'Promo Header 10%',
+            'status' => 'active',
+            'target_scope' => 'transaction',
+            'discount_type' => 'percentage',
+            'discount_value' => 10.0,
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date' => now()->addDays(10)->toDateString(),
+            'applies_to_all_outlets' => true,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+
+        $itemDto = new CreateTransactionItemDTO(
+            productId: $this->product->id,
+            qty: 2.0,
+            price: 50000.0,
+            productItemId: $this->productItem->id,
+            inventoryItemId: $this->inventoryItem->id
+        );
+
+        $dto = new CreateB2bTransactionDTO(
+            outletId: $this->outlet->id,
+            channel: SalesChannelEnum::Wholesale,
+            transactionDate: new DateTimeImmutable(now()->toDateTimeString()),
+            paymentTerm: PaymentTermEnum::Cash,
+            items: [$itemDto]
+        );
+
+        $transaction = $this->b2bService->createTransaction($dto, $this->user);
+
+        // Item Gross: 2 * 50.000 = 100.000
+        // Item Promo: 2 * 5.000 = 10.000
+        // Net Item Subtotal: 90.000 -> Header Subtotal = 90.000
+        // Transaction Promo: 10% of matchingSubtotal (100.000) = 10.000
+        // Grand Total: 90.000 - 10.000 = 80.000 (No double counting on item discount!)
+        $this->assertEquals(90000.0, (float) $transaction->subtotal);
+        $this->assertEquals(10000.0, (float) $transaction->discount_amount);
+        $this->assertEquals('promo', $transaction->discount_type);
+        $this->assertEquals(80000.0, (float) $transaction->total);
+
+        // Item snapshot verification
+        $item = $transaction->items->first();
+        $this->assertEquals(10000.0, (float) $item->discount_amount);
+        $this->assertEquals('Promo Item Rp 5.000', $item->promo_name);
+        $this->assertEquals(90000.0, (float) $item->subtotal);
+
+        // Verify Snapshots in DB
+        $this->assertCount(1, $transaction->itemPromos);
+        $this->assertCount(1, $transaction->transactionPromos);
+
+        $this->assertDatabaseHas('transaction_promos', [
+            'transaction_id' => $transaction->id,
+            'transaction_item_id' => $item->id,
+            'promo_name' => 'Promo Item Rp 5.000',
+            'discount_amount' => 10000.0,
+        ]);
+
+        $this->assertDatabaseHas('transaction_promos', [
+            'transaction_id' => $transaction->id,
+            'transaction_item_id' => null,
+            'promo_name' => 'Promo Header 10%',
+            'discount_amount' => 10000.0,
+        ]);
+    }
+
+    public function test_create_transaction_enforces_official_catalog_price(): void
+    {
+        // Setup official catalog price: 75.000
+        $this->productItem->prices()->create([
+            'product_id' => $this->product->id,
+            'outlet_id' => $this->outlet->id,
+            'amount' => 75000,
+        ]);
+
+        // Client attempts to submit a manipulated price: 10.000
+        $itemDto = new CreateTransactionItemDTO(
+            productId: $this->product->id,
+            qty: 2.0,
+            price: 10000.0, // Tampered price
+            productItemId: $this->productItem->id,
+            inventoryItemId: $this->inventoryItem->id
+        );
+
+        $dto = new CreateB2bTransactionDTO(
+            outletId: $this->outlet->id,
+            channel: SalesChannelEnum::Wholesale,
+            transactionDate: new DateTimeImmutable(now()->toDateTimeString()),
+            paymentTerm: PaymentTermEnum::Cash,
+            items: [$itemDto]
+        );
+
+        $transaction = $this->b2bService->createTransaction($dto, $this->user);
+
+        // Price should be anchored to official 75.000, Subtotal = 2 * 75.000 = 150.000
+        $item = $transaction->items->first();
+        $this->assertEquals(75000.0, (float) $item->price);
+        $this->assertEquals(150000.0, (float) $item->subtotal);
+        $this->assertEquals(150000.0, (float) $transaction->subtotal);
+        $this->assertEquals(150000.0, (float) $transaction->total);
     }
 }

@@ -39,6 +39,7 @@ use App\Enums\StockTransferStatus;
 use App\Enums\SubscriptionStatus;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
+use App\Enums\TransactionTypeEnum;
 use App\Models\Feature;
 
 class FrontendEnumProvider
@@ -90,6 +91,7 @@ class FrontendEnumProvider
         StockTransferStatus::class,
         TransactionStatus::class,
         TransactionPaymentStatus::class,
+        TransactionTypeEnum::class,
         InvoiceStatus::class,
         PaymentManualValidationStatus::class,
         SubscriptionStatus::class,

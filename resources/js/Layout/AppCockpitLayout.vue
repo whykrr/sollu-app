@@ -38,8 +38,9 @@ import ToastContainer from '@/Components/Notifications/ToastContainer.vue'
 import PopUpContainer from '@/Components/UI/PopUpContainer.vue'
 
 import i18n from '@/i18n'
+import { useModalStore } from '@/store/notification'
 import { router, usePage } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAppStore } from '@/store/app'
 
 // Event listener for Inertia start/finish
@@ -50,6 +51,25 @@ router.on('finish', () => (loading.value = false))
 
 const loading = ref(false)
 const appStore = useAppStore()
+const modalStore = useModalStore()
+const page = usePage()
+
+const flashFailed = computed(() => page.props.app?.flash?.failed || page.props.app?.flash?.error)
+
+watch(
+    flashFailed,
+    errorMessage => {
+        if (errorMessage) {
+            modalStore.alert({
+                type: 'warning',
+                title: 'Peringatan Operasi',
+                message: errorMessage,
+                confirmText: 'Mengerti',
+            })
+        }
+    },
+    { immediate: true }
+)
 
 // Check if locale exists before setting
 if (usePage().props.locale) {

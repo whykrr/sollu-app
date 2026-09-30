@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TransactionItem extends Model
 {
@@ -66,5 +68,21 @@ class TransactionItem extends Model
     public function inventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class);
+    }
+
+    /**
+     * @return HasMany<TransactionPromo, $this>
+     */
+    public function promos(): HasMany
+    {
+        return $this->hasMany(TransactionPromo::class, 'transaction_item_id');
+    }
+
+    /**
+     * @return HasOne<TransactionPromo, $this>
+     */
+    public function appliedPromo(): HasOne
+    {
+        return $this->hasOne(TransactionPromo::class, 'transaction_item_id')->latestOfMany();
     }
 }

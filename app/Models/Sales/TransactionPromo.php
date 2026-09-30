@@ -39,6 +39,14 @@ class TransactionPromo extends Model
     }
 
     /**
+     * @return BelongsTo<TransactionItem, $this>
+     */
+    public function transactionItem(): BelongsTo
+    {
+        return $this->belongsTo(TransactionItem::class);
+    }
+
+    /**
      * @return BelongsTo<Promotion, $this>
      */
     public function promo(): BelongsTo

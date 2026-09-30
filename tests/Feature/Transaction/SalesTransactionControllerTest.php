@@ -13,6 +13,7 @@ use App\Enums\SalesChannelEnum;
 use App\Enums\SubscriptionStatus;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
+use App\Enums\TransactionTypeEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryItem;
@@ -26,6 +27,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\App\Inventory\InventoryCostingService;
+use App\Services\App\Transaction\Contracts\B2bTransactionServiceInterface;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -125,6 +127,8 @@ class SalesTransactionControllerTest extends TestCase
         $permissions = [
             'transaction.view',
             'transaction.create',
+            'transaction.update',
+            'transaction.delete',
             'transaction.issue_invoice',
             'transaction.record_payment',
             'transaction.edit_due_date',
@@ -650,9 +654,30 @@ class SalesTransactionControllerTest extends TestCase
         $response->assertJsonPath('data.id', $transaction->id);
     }
 
-    public function test_channel_validation_strictly_allows_only_wholesale_and_direct(): void
+    public function test_channel_validation_strictly_allows_only_valid_sales_channels(): void
     {
-        $payload = [
+        // 1. Valid channel (e_commerce) succeeds
+        $validPayload = [
+            'outlet_id' => $this->outlet->id,
+            'channel' => SalesChannelEnum::ECommerce->value,
+            'transaction_date' => now()->toDateTimeString(),
+            'payment_term' => PaymentTermEnum::Cash->value,
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'qty' => 1,
+                    'price' => 50000,
+                ],
+            ],
+            'issue_now' => false,
+        ];
+
+        $resValid = $this->actingAs($this->user, 'business')
+            ->postJson("http://{$this->appDomain}/transactions/sales", $validPayload);
+        $resValid->assertStatus(201);
+
+        // 2. Invalid channel returns 422
+        $invalidPayload = [
             'outlet_id' => $this->outlet->id,
             'channel' => 'dine_in', // Invalid channel for B2B V1
             'transaction_date' => now()->toDateTimeString(),
@@ -667,10 +692,110 @@ class SalesTransactionControllerTest extends TestCase
         ];
 
         $response = $this->actingAs($this->user, 'business')
-            ->postJson("http://{$this->appDomain}/transactions/sales", $payload);
+            ->postJson("http://{$this->appDomain}/transactions/sales", $invalidPayload);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['channel']);
+    }
+
+    public function test_it_filters_sales_transactions_by_invoice_type_only_and_excludes_pos_transactions(): void
+    {
+        // 1. Transaction Invoice
+        Transaction::create([
+            'outlet_id' => $this->outlet->id,
+            'type' => TransactionTypeEnum::Invoice->value,
+            'channel' => SalesChannelEnum::Wholesale->value,
+            'transaction_number' => 'TRX/INV/001',
+            'transaction_date' => now(),
+            'total' => 100000,
+            'balance_due' => 100000,
+            'status' => TransactionStatus::Unpaid->value,
+            'payment_status' => TransactionPaymentStatus::Unpaid->value,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+
+        // 2. Transaction POS
+        Transaction::create([
+            'outlet_id' => $this->outlet->id,
+            'type' => TransactionTypeEnum::Pos->value,
+            'channel' => SalesChannelEnum::Direct->value,
+            'transaction_number' => 'TRX/POS/001',
+            'transaction_date' => now(),
+            'total' => 50000,
+            'balance_due' => 0,
+            'status' => TransactionStatus::Paid->value,
+            'payment_status' => TransactionPaymentStatus::Paid->value,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->getJson("http://{$this->appDomain}/transactions/sales");
+
+        $response->assertOk();
+        $response->assertJsonPath('total', 1);
+        $response->assertJsonPath('data.0.transaction_number', 'TRX/INV/001');
+    }
+
+    public function test_it_validates_cash_transaction_payment_amount_must_equal_grand_total_when_issued(): void
+    {
+        // 1. Cash transaction issued without payment amount => 422
+        $invalidPayload = [
+            'outlet_id' => $this->outlet->id,
+            'channel' => SalesChannelEnum::Direct->value,
+            'transaction_date' => now()->toDateTimeString(),
+            'payment_term' => PaymentTermEnum::Cash->value,
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'qty' => 1,
+                    'price' => 50000,
+                ],
+            ],
+            'issue_now' => true,
+            'payment' => [
+                'amount' => 0,
+                'payment_method_id' => $this->paymentMethod->id,
+            ],
+        ];
+
+        $resInvalid = $this->actingAs($this->user, 'business')
+            ->postJson("http://{$this->appDomain}/transactions/sales", $invalidPayload);
+
+        $resInvalid->assertStatus(422);
+        $resInvalid->assertJsonValidationErrors(['payment.amount']);
+
+        // 2. Cash transaction issued with full payment amount => 201
+        $validPayload = [
+            'outlet_id' => $this->outlet->id,
+            'channel' => SalesChannelEnum::Direct->value,
+            'transaction_date' => now()->toDateTimeString(),
+            'payment_term' => PaymentTermEnum::Cash->value,
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'qty' => 1,
+                    'price' => 50000,
+                ],
+            ],
+            'issue_now' => true,
+            'payment' => [
+                'amount' => 50000,
+                'payment_method_id' => $this->paymentMethod->id,
+            ],
+        ];
+
+        $resValid = $this->actingAs($this->user, 'business')
+            ->postJson("http://{$this->appDomain}/transactions/sales", $validPayload);
+
+        $resValid->assertStatus(201);
+        $this->assertDatabaseHas('transactions', [
+            'outlet_id' => $this->outlet->id,
+            'type' => TransactionTypeEnum::Invoice->value,
+            'status' => TransactionStatus::Paid->value,
+            'balance_due' => 0,
+        ]);
     }
 
     public function test_it_creates_transaction_with_service_item_without_stock_movement(): void
@@ -690,6 +815,10 @@ class SalesTransactionControllerTest extends TestCase
                 ],
             ],
             'issue_now' => true,
+            'payment' => [
+                'payment_method_id' => $this->paymentMethod->id,
+                'amount' => 150000,
+            ],
         ];
 
         $response = $this->actingAs($this->user, 'business')
@@ -698,7 +827,7 @@ class SalesTransactionControllerTest extends TestCase
         $response->assertStatus(201);
         $this->assertDatabaseHas('transactions', [
             'outlet_id' => $this->outlet->id,
-            'status' => TransactionStatus::Unpaid->value,
+            'status' => TransactionStatus::Paid->value,
         ]);
     }
 
@@ -824,5 +953,209 @@ class SalesTransactionControllerTest extends TestCase
         $response->assertOk();
         $response->assertJsonPath('data.default_due_days_invoice', 14);
         $this->assertNotEmpty($response->json('data.default_terms_and_conditions_invoice'));
+    }
+
+    public function test_it_updates_draft_sales_transaction(): void
+    {
+        $transaction = Transaction::create([
+            'outlet_id' => $this->outlet->id,
+            'channel' => SalesChannelEnum::Wholesale->value,
+            'type' => TransactionTypeEnum::Invoice->value,
+            'transaction_number' => 'TRX/202610/0001',
+            'transaction_date' => now(),
+            'total' => 100000,
+            'balance_due' => 100000,
+            'status' => TransactionStatus::Draft->value,
+            'payment_status' => TransactionPaymentStatus::Draft->value,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+
+        $transaction->items()->create([
+            'product_id' => $this->product->id,
+            'product_name' => 'Kopi Robusta Super',
+            'inventory_item_id' => $this->inventoryItem->id,
+            'qty' => 1,
+            'price' => 100000,
+            'subtotal' => 100000,
+        ]);
+
+        $transaction->invoice()->create([
+            'invoice_number' => 'INV/202610/0001',
+            'invoice_date' => now(),
+            'payment_term' => PaymentTermEnum::Credit->value,
+            'status' => TransactionStatus::Draft->value,
+            'created_by' => $this->user->id,
+        ]);
+
+        $updatePayload = [
+            'outlet_id' => $this->outlet->id,
+            'channel' => SalesChannelEnum::Wholesale->value,
+            'transaction_date' => now()->toDateTimeString(),
+            'payment_term' => PaymentTermEnum::Credit->value,
+            'customer_id' => $this->customer->id,
+            'due_date' => now()->addDays(20)->toDateString(),
+            'notes' => 'Catatan Draf Diperbarui',
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'product_item_id' => $this->productItem->id,
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'qty' => 3,
+                    'price' => 90000,
+                    'discount_amount' => 10000,
+                ],
+            ],
+            'discount_type' => 'manual',
+            'discount_value' => 10000,
+            'shipping_fee' => 10000,
+            'service_charge_amount' => 0,
+            'issue_now' => false,
+        ];
+
+        $response = $this->actingAs($this->user, 'business')
+            ->putJson("http://{$this->appDomain}/transactions/sales/{$transaction->id}", $updatePayload);
+
+        $response->assertOk();
+        $response->assertJsonPath('message', 'Draf penjualan berhasil diperbarui.');
+
+        $transaction->refresh();
+        $this->assertEquals('Catatan Draf Diperbarui', $transaction->notes);
+        $this->assertEquals(TransactionStatus::Draft, $transaction->status);
+        $this->assertCount(1, $transaction->items);
+        $this->assertEquals(3.0, (float) $transaction->items->first()->qty);
+        // (3 * 90,000 - 10,000) - 10,000 + 10,000 = 260,000
+        $this->assertEquals(260000.0, (float) $transaction->total);
+    }
+
+    public function test_it_updates_and_immediately_issues_draft_sales_transaction(): void
+    {
+        $transaction = Transaction::create([
+            'outlet_id' => $this->outlet->id,
+            'channel' => SalesChannelEnum::Wholesale->value,
+            'type' => TransactionTypeEnum::Invoice->value,
+            'transaction_number' => 'TRX/202610/0002',
+            'transaction_date' => now(),
+            'total' => 100000,
+            'balance_due' => 100000,
+            'status' => TransactionStatus::Draft->value,
+            'payment_status' => TransactionPaymentStatus::Draft->value,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+
+        $transaction->items()->create([
+            'product_id' => $this->product->id,
+            'product_name' => 'Kopi Robusta Super',
+            'inventory_item_id' => $this->inventoryItem->id,
+            'qty' => 1,
+            'price' => 100000,
+            'subtotal' => 100000,
+        ]);
+
+        $transaction->invoice()->create([
+            'invoice_number' => 'INV/202610/0002',
+            'invoice_date' => now(),
+            'payment_term' => PaymentTermEnum::Credit->value,
+            'status' => TransactionStatus::Draft->value,
+            'created_by' => $this->user->id,
+        ]);
+
+        $updatePayload = [
+            'outlet_id' => $this->outlet->id,
+            'channel' => SalesChannelEnum::Wholesale->value,
+            'transaction_date' => now()->toDateTimeString(),
+            'payment_term' => PaymentTermEnum::Credit->value,
+            'customer_id' => $this->customer->id,
+            'due_date' => now()->addDays(14)->toDateString(),
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'product_item_id' => $this->productItem->id,
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'qty' => 2,
+                    'price' => 80000,
+                    'discount_amount' => 0,
+                ],
+            ],
+            'issue_now' => true,
+        ];
+
+        $response = $this->actingAs($this->user, 'business')
+            ->putJson("http://{$this->appDomain}/transactions/sales/{$transaction->id}", $updatePayload);
+
+        $response->assertOk();
+        $response->assertJsonPath('message', 'Faktur penjualan berhasil diterbitkan.');
+
+        $transaction->refresh();
+        $this->assertEquals(TransactionStatus::Unpaid, $transaction->status);
+        $this->assertEquals(160000.0, (float) $transaction->total);
+    }
+
+    public function test_it_deletes_draft_sales_transaction(): void
+    {
+        $transaction = Transaction::create([
+            'outlet_id' => $this->outlet->id,
+            'channel' => SalesChannelEnum::Wholesale->value,
+            'type' => TransactionTypeEnum::Invoice->value,
+            'transaction_number' => 'TRX/202610/0003',
+            'transaction_date' => now(),
+            'total' => 100000,
+            'balance_due' => 100000,
+            'status' => TransactionStatus::Draft->value,
+            'payment_status' => TransactionPaymentStatus::Draft->value,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+
+        $transaction->items()->create([
+            'product_id' => $this->product->id,
+            'product_name' => 'Kopi Robusta Super',
+            'inventory_item_id' => $this->inventoryItem->id,
+            'qty' => 1,
+            'price' => 100000,
+            'subtotal' => 100000,
+        ]);
+
+        $transaction->invoice()->create([
+            'invoice_number' => 'INV/202610/0003',
+            'invoice_date' => now(),
+            'payment_term' => PaymentTermEnum::Credit->value,
+            'status' => TransactionStatus::Draft->value,
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->deleteJson("http://{$this->appDomain}/transactions/sales/{$transaction->id}");
+
+        $response->assertOk();
+        $response->assertJsonPath('message', 'Draf penjualan berhasil dihapus.');
+
+        $this->assertDatabaseMissing('transactions', ['id' => $transaction->id]);
+        $this->assertDatabaseMissing('transaction_items', ['transaction_id' => $transaction->id]);
+        $this->assertDatabaseMissing('transaction_invoices', ['transaction_id' => $transaction->id]);
+    }
+
+    public function test_it_forbids_deleting_non_draft_transaction(): void
+    {
+        $transaction = Transaction::create([
+            'outlet_id' => $this->outlet->id,
+            'channel' => SalesChannelEnum::Wholesale->value,
+            'type' => TransactionTypeEnum::Invoice->value,
+            'transaction_number' => 'TRX/202610/0004',
+            'transaction_date' => now(),
+            'total' => 100000,
+            'balance_due' => 100000,
+            'status' => TransactionStatus::Unpaid->value,
+            'payment_status' => TransactionPaymentStatus::Unpaid->value,
+            'created_by' => $this->user->id,
+            'updated_by' => $this->user->id,
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Hanya faktur berstatus draf yang dapat dihapus.');
+
+        app(B2bTransactionServiceInterface::class)
+            ->deleteDraftTransaction($transaction, $this->user);
     }
 }

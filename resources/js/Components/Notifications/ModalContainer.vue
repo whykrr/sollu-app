@@ -32,10 +32,7 @@
                 </div>
             </div>
 
-            <template
-                v-if="modalStore.activeModal.showFooter && !modalStore.activeModal.component"
-                #footer
-            >
+            <template v-if="modalStore.activeModal.showFooter" #footer>
                 <button
                     v-if="modalStore.activeModal.showCancel"
                     type="button"

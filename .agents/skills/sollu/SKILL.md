@@ -505,10 +505,13 @@ Seluruh halaman utama modul menerapkan arsitektur layout terstandarisasi berikut
 
 ### 4.4. Side Drawer (`PopUpPage`) vs Center Dialog (`Modal`)
 
-- **`<PopUpPage>` / `usePopUpStore()` (Side Drawer Kanan):** WAJIB untuk formulir input, tampilan detail, sub-halaman, dan alur langkah berikutnya.
-    - **Zero Outer Child Padding:** Body `.modal-body` di `PopUpPage.vue` sudah menerapkan padding komponen. Child form yang dirender di dalam drawer DILARANG menambahkan wrapper padding/margin luar lagi.
-    - **Teleport Footer Pattern:** Komponen di dalam `PopUpPage` menggunakan `<Teleport v-if="isMounted" to="#popUpFooter">` untuk mengirim tombol aksi ke footer sticky drawer.
-- **`<Modal>` / `useModalStore()` (Center Dialog):** STRICTLY khusus untuk konfirmasi singkat (Hapus Data, Archive, Alert Peringatan).
+- **`<PopUpPage>` / `usePopUpStore()` (Side Drawer Kanan):** WAJIB untuk formulir input (Create/Edit), tampilan detail, dan alur pembayaran. Dilengkapi `useFormDirtyGuard` dan sticky `#popUpFooter`. Dilarang menambah wrapper margin/padding luar di dalam child form.
+- **`<Modal>` / `useModalStore()` (Center Dialog):** WAJIB via `useModalStore` terpusat (`ModalContainer.vue`). DILARANG membuat tag `<Modal>` lokal untuk konfirmasi/alert.
+    - Konfirmasi hapus/arsip: `modalStore.confirm({ type: 'danger', confirmText: 'Ya, Hapus', ... })`.
+    - Konfirmasi aksi operasional: `modalStore.confirm({ type: 'warning', confirmText: 'Ya, Terbitkan', ... })`.
+    - Peringatan: `modalStore.alert({ type: 'warning', confirmText: 'Mengerti', ... })`.
+    - Reviu kustom: `modalStore.open({ component: markRaw(Component), props, confirmText, ... })`.
+    - Dilarang `confirmButtonText` (gunakan `confirmText`), dilarang `type: 'error'` (gunakan `danger`).
 
 ### 4.5. Table Filter Pattern & Inline Toolbar Standard
 

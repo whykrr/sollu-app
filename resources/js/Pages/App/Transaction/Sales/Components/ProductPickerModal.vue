@@ -574,7 +574,14 @@ const toggleGroupExpand = productId => {
     expandedGroups.value = nextSet
 }
 
+let abortController = null
+
 const fetchItems = async () => {
+    if (abortController) {
+        abortController.abort()
+    }
+    abortController = new AbortController()
+
     isLoading.value = true
     try {
         const params = {
@@ -590,7 +597,10 @@ const fetchItems = async () => {
             params.outlet_id = props.outletId
         }
 
-        const response = await axios.get(props.apiUrl, { params })
+        const response = await axios.get(props.apiUrl, {
+            params,
+            signal: abortController.signal,
+        })
         const rawData = response.data
 
         if (Array.isArray(rawData)) {
@@ -604,10 +614,15 @@ const fetchItems = async () => {
         // Auto-expand all groups on initial fetch or search
         expandedGroups.value = new Set(flatItems.value.map(i => String(i.product_id || i.id)))
     } catch (error) {
+        if (axios.isCancel(error) || error?.name === 'CanceledError' || error?.name === 'AbortError') {
+            return
+        }
         console.error('Error fetching products for picker:', error)
         flatItems.value = []
     } finally {
-        isLoading.value = false
+        if (!abortController?.signal?.aborted) {
+            isLoading.value = false
+        }
     }
 }
 
