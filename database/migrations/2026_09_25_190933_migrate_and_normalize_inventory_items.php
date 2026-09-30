@@ -143,7 +143,7 @@ return new class extends Migration
             $table->renameColumn('component_inventory_item_id', 'component_product_item_id');
         });
 
-        if (Schema::hasTable('transaction_items')) {
+        if (Schema::hasTable('transaction_items') && ! Schema::hasColumn('transaction_items', 'product_item_id')) {
             Schema::table('transaction_items', function (Blueprint $table) {
                 $table->renameColumn('inventory_item_id', 'product_item_id');
                 $table->foreign('product_item_id')->references('id')->on('product_items')->nullOnDelete();
@@ -278,7 +278,7 @@ return new class extends Migration
             $table->renameColumn('component_product_item_id', 'component_inventory_item_id');
         });
 
-        if (Schema::hasTable('transaction_items')) {
+        if (Schema::hasTable('transaction_items') && Schema::hasColumn('transaction_items', 'product_item_id') && ! Schema::hasColumn('transaction_items', 'inventory_item_id')) {
             Schema::table('transaction_items', function (Blueprint $table) {
                 $table->renameColumn('product_item_id', 'inventory_item_id');
                 $table->foreign('inventory_item_id')->references('id')->on('inventory_items')->nullOnDelete();

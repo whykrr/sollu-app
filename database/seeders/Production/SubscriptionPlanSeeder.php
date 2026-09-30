@@ -30,6 +30,7 @@ class SubscriptionPlanSeeder extends Seeder
                 ],
                 'system_features' => [
                     'pos_cashier',
+                    'transaction',
                     'shift_management',
                     'cash_drawer',
                     'product_catalog',
@@ -57,6 +58,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'system_features' => [
                     // Micro features
                     'pos_cashier',
+                    'transaction',
                     'shift_management',
                     'cash_drawer',
                     'product_catalog',
@@ -102,6 +104,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'system_features' => [
                     // Basic features
                     'pos_cashier',
+                    'transaction',
                     'shift_management',
                     'cash_drawer',
                     'product_catalog',

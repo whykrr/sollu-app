@@ -10,12 +10,12 @@
                     @change="updateQuery"
                 />
 
-                <!-- Channel Filter -->
+                <!-- B2B Channel Filter (Strictly Wholesale & Direct Sales) -->
                 <FilterDropdown
                     v-model="filterForm.channel"
-                    label="Channel"
+                    label="Saluran"
                     :options="channelOptions"
-                    all-option-label="Semua Channel"
+                    all-option-label="Semua Saluran"
                     @change="updateQuery"
                 />
             </template>
@@ -23,13 +23,9 @@
             <template #search>
                 <FilterSearch
                     v-model="filterForm.search"
-                    placeholder="Cari no. struk atau pelanggan..."
+                    placeholder="Cari no. faktur / transaksi atau pelanggan..."
                     @clear="updateQuery"
                 />
-            </template>
-
-            <template #tools>
-                <ActionsDropdown v-if="canExport" label="Opsi" :items="actionItems" />
             </template>
 
             <template #create>
@@ -45,7 +41,7 @@
             </template>
         </ActionBar>
 
-        <!-- Status Filter Segmented (Positioned below the filter bar) -->
+        <!-- Status Filter Segmented -->
         <div class="flex items-center">
             <FilterSegmented
                 :model-value="filterForm.status"
@@ -57,19 +53,18 @@
 </template>
 
 <script setup>
-import { computed, reactive, watch } from 'vue'
+import { reactive, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import debounce from 'lodash/debounce'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faFileCsv, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
-import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 
-const emit = defineEmits(['create', 'export-csv'])
+defineEmits(['create'])
 
 const props = defineProps({
     filters: {
@@ -80,38 +75,20 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
-    canExport: {
-        type: Boolean,
-        default: true,
-    },
 })
-
-const actionItems = computed(() => [
-    {
-        label: 'Ekspor CSV',
-        icon: faFileCsv,
-        handler: () => emit('export-csv'),
-    },
-])
 
 const statusOptions = [
     { value: '', label: 'Semua Status' },
     { value: 'draft', label: 'Draf' },
-    { value: 'unpaid', label: 'Belum Lunas' },
+    { value: 'unpaid', label: 'Belum Dibayar' },
+    { value: 'partial', label: 'Dibayar Sebagian' },
     { value: 'paid', label: 'Lunas' },
-    { value: 'cancel', label: 'Dibatalkan' },
+    { value: 'cancel', label: 'Batal' },
 ]
 
 const channelOptions = [
-    { value: 'e_commerce', label: 'E-Commerce' },
-    { value: 'social_media', label: 'Social Media' },
-    { value: 'direct', label: 'Direct / B2B' },
-    { value: 'wholesale', label: 'Wholesale' },
-    { value: 'custom', label: 'Custom' },
-    { value: 'dine_in', label: 'POS - Dine In' },
-    { value: 'take_away', label: 'POS - Take Away' },
-    { value: 'walk_in', label: 'POS - Walk In' },
-    { value: 'online_delivery', label: 'POS - Online Delivery' },
+    { value: 'wholesale', label: 'Grosir (Wholesale)' },
+    { value: 'direct', label: 'Penjualan Langsung (Direct Sales)' },
 ]
 
 const filterForm = reactive({
@@ -130,26 +107,24 @@ const onStatusChanged = val => {
     updateQuery()
 }
 
-// Watch search with debounce
 watch(
     () => filterForm.search,
     debounce(() => {
         updateQuery()
-    }, 500)
+    }, 400)
 )
 
 const updateQuery = () => {
     const query = {
         ...route().params,
         ...filterForm,
-        page: 1, // Reset to page 1 on filter
+        page: 1,
     }
 
     if (query.preset === 'this_month') {
         delete query.preset
     }
 
-    // Clean up empty params
     Object.keys(query).forEach(key => {
         if (query[key] === '' || query[key] === null || query[key] === undefined) {
             delete query[key]

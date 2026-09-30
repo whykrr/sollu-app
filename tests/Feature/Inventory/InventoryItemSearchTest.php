@@ -13,6 +13,7 @@ use App\Enums\StockTransferStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
+use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
 use App\Models\Inventory\PurchaseOrder;
@@ -428,5 +429,129 @@ class InventoryItemSearchTest extends TestCase
         $response->assertOk();
         $this->assertNotEmpty($response->json());
         $this->assertEquals($this->invCoffee->id, $response->json('0.id'));
+    }
+
+    public function test_product_picker_api_returns_both_variant_and_non_variant_items_in_variant_mode(): void
+    {
+        // Variant product with 2 variants
+        $shirtProduct = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Kaos Polos Premium',
+            'code' => 'PRD-SHIRT-01',
+            'product_type' => 'basic',
+            'has_variant' => true,
+            'track_inventory' => true,
+            'is_show' => true,
+            'sellable' => true,
+        ]);
+
+        $itemRed = ProductItem::create([
+            'product_id' => $shirtProduct->id,
+            'business_id' => $this->business->id,
+            'uom_id' => $this->uom->id,
+            'item_type' => 'variant_sku',
+            'name' => 'Kaos Polos Premium - Merah',
+            'sku' => 'SHIRT-RED-01',
+            'track_inventory' => true,
+            'is_show' => true,
+            'sellable' => true,
+            'is_active' => true,
+        ]);
+
+        $invRed = InventoryItem::create([
+            'business_id' => $this->business->id,
+            'product_item_id' => $itemRed->id,
+            'name' => 'Kaos Polos Premium - Merah',
+            'uom_id' => $this->uom->id,
+            'is_active' => true,
+        ]);
+
+        $itemBlue = ProductItem::create([
+            'product_id' => $shirtProduct->id,
+            'business_id' => $this->business->id,
+            'uom_id' => $this->uom->id,
+            'item_type' => 'variant_sku',
+            'name' => 'Kaos Polos Premium - Biru',
+            'sku' => 'SHIRT-BLUE-01',
+            'track_inventory' => true,
+            'is_show' => true,
+            'sellable' => true,
+            'is_active' => true,
+        ]);
+
+        $invBlue = InventoryItem::create([
+            'business_id' => $this->business->id,
+            'product_item_id' => $itemBlue->id,
+            'name' => 'Kaos Polos Premium - Biru',
+            'uom_id' => $this->uom->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->getJson("http://{$this->appDomain}/api/internal/products/search-by-inventory?search=Kaos+Polos");
+
+        $response->assertOk();
+        $data = $response->json();
+        $this->assertCount(2, $data);
+
+        $skus = collect($data)->pluck('sku')->toArray();
+        $this->assertContains('SHIRT-RED-01', $skus);
+        $this->assertContains('SHIRT-BLUE-01', $skus);
+
+        $productIds = collect($data)->pluck('product_id')->unique()->values()->toArray();
+        $this->assertEquals([$shirtProduct->id], $productIds);
+    }
+
+    public function test_product_picker_api_returns_service_items_with_null_inventory_item_id(): void
+    {
+        $service = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Jasa Sablon Custom',
+            'code' => 'SRV-SABLON',
+            'product_type' => 'service',
+            'has_variant' => false,
+            'track_inventory' => false,
+            'is_show' => true,
+            'sellable' => true,
+        ]);
+
+        $service->prices()->create([
+            'outlet_id' => null,
+            'amount' => 15000,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->getJson("http://{$this->appDomain}/api/internal/products/search-by-inventory?search=Jasa+Sablon");
+
+        $response->assertOk();
+        $data = $response->json();
+        $this->assertNotEmpty($data);
+
+        $item = collect($data)->firstWhere('name', 'Jasa Sablon Custom');
+        $this->assertNotNull($item);
+        $this->assertEquals($service->id, $item['product_id']);
+        $this->assertNull($item['inventory_item_id']);
+        $this->assertNull($item['product_item_id']);
+        $this->assertFalse($item['track_inventory']);
+        $this->assertEquals(15000, $item['price']);
+    }
+
+    public function test_product_picker_filters_items_by_active_outlet_stock(): void
+    {
+        InventoryBalance::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'inventory_item_id' => $this->invCoffee->id,
+            'current_stock' => 42,
+            'average_cost' => 25000,
+            'total_value' => 1050000,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->getJson("http://{$this->appDomain}/api/internal/products/search-by-inventory?query=SKU-COFFEE-01&outlet_id={$this->outlet->id}");
+
+        $response->assertOk();
+        $this->assertNotEmpty($response->json());
+        $this->assertEquals(42, $response->json('0.current_stock'));
     }
 }

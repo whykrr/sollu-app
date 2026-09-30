@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models\Sales;
 
+use App\Enums\SalesChannelEnum;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
 use App\Models\Master\Customer;
 use App\Models\Outlet;
+use App\Models\Shift;
 use App\Models\User;
-use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -16,170 +19,202 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Auth;
 
-/**
- * @mixin IdeHelperTransaction
- */
 class Transaction extends Model
 {
-    use HasBusiness, HasFactory, HasUuids, SortableModel;
+    use HasFactory;
+    use HasUuids;
+    use SortableModel;
 
-    protected $fillable = [
-        'outlet_id',
-        'shift_id',
-        'customer_id',
-        'channel',
+    protected $guarded = ['id'];
+
+    /**
+     * Whitelist column names for sorting.
+     */
+    protected array $sortable = [
         'transaction_number',
+        'transaction_date',
         'subtotal',
         'discount_amount',
-        'discount_type',
-        'discount_value',
-        'promo_name',
         'tax_amount',
         'shipping_fee',
-        'service_charge_amount',
         'total',
         'total_paid',
         'balance_due',
-        'transaction_date',
         'payment_status',
         'status',
-        'notes',
-        'created_by',
-        'updated_by',
-    ];
-
-    protected array $sortable = [
-        'transaction_number',
-        'subtotal',
-        'discount_amount',
-        'tax_amount',
-        'total',
-        'status',
-        'payment_status',
         'created_at',
         'updated_at',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
-            'subtotal' => 'float',
-            'discount_amount' => 'float',
-            'discount_value' => 'float',
-            'tax_amount' => 'float',
-            'shipping_fee' => 'float',
-            'service_charge_amount' => 'float',
-            'total' => 'float',
-            'total_paid' => 'float',
-            'balance_due' => 'float',
             'transaction_date' => 'datetime',
-            'status' => TransactionStatus::class,
+            'subtotal' => 'decimal:4',
+            'discount_amount' => 'decimal:4',
+            'discount_value' => 'decimal:4',
+            'tax_amount' => 'decimal:4',
+            'shipping_fee' => 'decimal:4',
+            'service_charge_amount' => 'decimal:4',
+            'total' => 'decimal:4',
+            'total_paid' => 'decimal:4',
+            'balance_due' => 'decimal:4',
+            'channel' => SalesChannelEnum::class,
             'payment_status' => TransactionPaymentStatus::class,
+            'status' => TransactionStatus::class,
         ];
     }
 
+    /**
+     * @return BelongsTo<Outlet, $this>
+     */
     public function outlet(): BelongsTo
     {
         return $this->belongsTo(Outlet::class);
     }
 
-    public function shift(): BelongsTo
-    {
-        return $this->belongsTo(Shift::class);
-    }
-
+    /**
+     * @return BelongsTo<Customer, $this>
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
-    public function modifiers(): HasManyThrough
+    /**
+     * @return BelongsTo<Shift, $this>
+     */
+    public function shift(): BelongsTo
     {
-        return $this->hasManyThrough(TransactionItemModifier::class, TransactionItem::class);
+        return $this->belongsTo(Shift::class);
     }
 
-    public function invoice(): HasOne
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function creator(): BelongsTo
     {
-        return $this->hasOne(TransactionInvoice::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * @return HasMany<TransactionItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(TransactionItem::class);
     }
 
+    /**
+     * @return HasMany<TransactionPayment, $this>
+     */
     public function payments(): HasMany
     {
         return $this->hasMany(TransactionPayment::class);
     }
 
+    /**
+     * @return HasMany<TransactionPromo, $this>
+     */
     public function promos(): HasMany
     {
         return $this->hasMany(TransactionPromo::class);
     }
 
-    public function createdBy(): BelongsTo
+    /**
+     * @return HasOne<TransactionInvoice, $this>
+     */
+    public function invoice(): HasOne
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->hasOne(TransactionInvoice::class);
     }
 
-    public function updatedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
+    /**
+     * Scope query to the current user's business through outlet.
+     */
     public function scopeCurrentBusiness(Builder $query, ?string $businessId = null): Builder
     {
-        $businessId = $businessId ?? Auth::user()?->business_id;
+        $businessId = $businessId ?? auth()->user()?->business_id;
 
-        return $query->whereHas('outlet', function (Builder $q) use ($businessId) {
-            $q->where('business_id', $businessId);
-        });
+        return $query->whereHas('outlet', fn (Builder $q) => $q->where('business_id', $businessId));
     }
 
+    /**
+     * Scope query to specified outlet(s).
+     *
+     * @param  string|array<string>  $outletIds
+     */
     public function scopeForOutlet(Builder $query, string|array $outletIds): Builder
     {
-        $ids = array_filter((array) $outletIds);
+        $ids = array_values(array_filter((array) $outletIds));
         if (empty($ids)) {
-            return $query;
+            return $query->whereRaw('1 = 0');
         }
 
         return $query->whereIn($this->qualifyColumn('outlet_id'), $ids);
     }
 
-    public function scopeFilters($query, array $filters)
+    /**
+     * Scope query with sales transaction filters.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    public function scopeFilters(Builder $query, array $filters): Builder
     {
-        $user = Auth::user();
-        if ($user && $user->business_id) {
-            $query->currentBusiness($user->business_id);
-        }
-
-        return $query->when($filters['search'] ?? null, function ($query, $search) {
-            $query->where(function ($query) use ($search) {
-                $query->where('transaction_number', 'like', '%'.$search.'%')
-                    ->orWhereHas('invoice', function ($query) use ($search) {
-                        $query->where('invoice_number', 'like', '%'.$search.'%');
-                    })
-                    ->orWhereHas('customer', function ($query) use ($search) {
-                        $query->where('name', 'like', '%'.$search.'%');
+        return $query
+            ->when(
+                $filters['channel'] ?? null,
+                fn (Builder $q, $channel) => $q->where(
+                    'channel',
+                    $channel instanceof SalesChannelEnum ? $channel->value : $channel
+                )
+            )
+            ->when(
+                $filters['status'] ?? null,
+                fn (Builder $q, $status) => $q->where(
+                    'status',
+                    $status instanceof TransactionStatus ? $status->value : $status
+                )
+            )
+            ->when(
+                $filters['payment_status'] ?? null,
+                fn (Builder $q, $paymentStatus) => $q->where(
+                    'payment_status',
+                    $paymentStatus instanceof TransactionPaymentStatus ? $paymentStatus->value : $paymentStatus
+                )
+            )
+            ->when(
+                $filters['search'] ?? null,
+                function (Builder $q, $search) {
+                    $search = trim((string) $search);
+                    $q->where(function (Builder $sub) use ($search) {
+                        $sub->whereLike('transaction_number', "%{$search}%")
+                            ->orWhereHas('invoice', fn (Builder $inv) => $inv->whereLike('invoice_number', "%{$search}%"))
+                            ->orWhereHas('customer', fn (Builder $cust) => $cust->whereLike('name', "%{$search}%"));
                     });
-            });
-        })->when($filters['outlet_id'] ?? null, function ($query, $outletId) {
-            $query->where('outlet_id', $outletId);
-        })->when($filters['channel'] ?? null, function ($query, $channel) {
-            $query->where('channel', $channel);
-        })->when($filters['status'] ?? null, function ($query, $status) {
-            if ($status !== 'all') {
-                $query->where('status', $status);
-            }
-        })->when($filters['payment_status'] ?? null, function ($query, $paymentStatus) {
-            $query->where('payment_status', $paymentStatus);
-        })->when($filters['start_date'] ?? null, function ($query, $startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
-        })->when($filters['end_date'] ?? null, function ($query, $endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
-        });
+                }
+            )
+            ->when(
+                $filters['start_date'] ?? null,
+                fn (Builder $q, $startDate) => $q->whereDate('transaction_date', '>=', $startDate)
+            )
+            ->when(
+                $filters['end_date'] ?? null,
+                fn (Builder $q, $endDate) => $q->whereDate('transaction_date', '<=', $endDate)
+            );
     }
 }

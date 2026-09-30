@@ -84,6 +84,7 @@ Route::middleware('auth:business')->group(function () {
 
         // For reusable components that need to search for products or inventory items
         Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
+        Route::get('/products/items', [ProductController::class, 'searchItems'])->name('products.items');
         Route::get('/products/search-by-inventory', [ProductController::class, 'searchByInventoryItem'])->name('products.search-by-inventory');
         Route::get('/categories/search', [CategoryController::class, 'search'])->name('categories.search');
         Route::get('/inventory-items/search', [InventoryItemController::class, 'search'])->name('inventory-items.search');
@@ -92,6 +93,8 @@ Route::middleware('auth:business')->group(function () {
         Route::get('/outlets/sales-settings', [OutletController::class, 'salesSettings'])->name('outlets.sales-settings');
         Route::get('/customers/search', [CustomerController::class, 'search'])->name('customers.search');
         Route::get('/promos/search', [PromoController::class, 'search'])->name('promos.search');
+        Route::get('/promos/available', [PromoController::class, 'available'])->name('promos.available');
+        Route::post('/promos/evaluate', [PromoController::class, 'evaluate'])->name('promos.evaluate');
         Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods.index');
         Route::get('/business-info', [BusinessInfoController::class, 'index'])->name('business-info');
     });

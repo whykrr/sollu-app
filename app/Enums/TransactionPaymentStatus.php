@@ -1,31 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enums;
 
 enum TransactionPaymentStatus: string
 {
-    case Paid = 'paid';
     case Draft = 'draft';
     case Unpaid = 'unpaid';
     case Partial = 'partial';
+    case Paid = 'paid';
 
     public function label(): string
     {
         return match ($this) {
-            self::Paid => 'Lunas',
             self::Draft => 'Draf',
             self::Unpaid => 'Belum Dibayar',
             self::Partial => 'Dibayar Sebagian',
+            self::Paid => 'Lunas',
         };
     }
 
     public function color(): string
     {
         return match ($this) {
-            self::Paid => 'badge-success',
-            self::Draft => 'badge-gray',
-            self::Unpaid => 'badge-danger',
-            self::Partial => 'badge-warning',
+            self::Draft => 'neutral',
+            self::Unpaid => 'danger',
+            self::Partial => 'warning',
+            self::Paid => 'success',
         };
     }
 }

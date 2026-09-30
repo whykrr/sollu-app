@@ -325,6 +325,31 @@ class InventoryCostingService
     }
 
     /**
+     * Mengembalikan layer FIFO dengan nilai unit_cogs awal saat pembatalan/retur faktur.
+     */
+    public function restoreFifoCostLayer(
+        Business $business,
+        Outlet $outlet,
+        InventoryItem $item,
+        float $qty,
+        float $unitCogs,
+        ?Model $reference = null,
+        ?User $user = null
+    ): InventoryMovement {
+        return $this->recordIncomingStock(
+            $business,
+            $outlet,
+            $item,
+            $qty,
+            $unitCogs,
+            InventoryMovementType::SaleReturn,
+            $reference,
+            'Restorasi Layer Cost FIFO - Pembatalan Transaksi',
+            $user
+        );
+    }
+
+    /**
      * Alihkan metode costing bisnis secara aman tanpa merusak riwayat masa lalu.
      */
     public function switchCostingMethod(Business $business, InventoryCostingMethod $newMethod): void

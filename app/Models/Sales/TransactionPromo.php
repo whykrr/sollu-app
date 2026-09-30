@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models\Sales;
 
 use App\Models\Promotion\Promotion;
@@ -8,36 +10,37 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @mixin IdeHelperTransactionPromo
- */
 class TransactionPromo extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
-    protected $fillable = [
-        'transaction_id',
-        'promo_id',
-        'promo_name',
-        'promo_code',
-        'discount_type',
-        'discount_value',
-        'discount_amount',
-    ];
+    protected $guarded = ['id'];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
-            'discount_value' => 'float',
-            'discount_amount' => 'float',
+            'discount_value' => 'decimal:4',
+            'discount_amount' => 'decimal:4',
         ];
     }
 
+    /**
+     * @return BelongsTo<Transaction, $this>
+     */
     public function transaction(): BelongsTo
     {
         return $this->belongsTo(Transaction::class);
     }
 
+    /**
+     * @return BelongsTo<Promotion, $this>
+     */
     public function promo(): BelongsTo
     {
         return $this->belongsTo(Promotion::class, 'promo_id');

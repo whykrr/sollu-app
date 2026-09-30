@@ -1,79 +1,86 @@
 <template>
     <MainPage>
         <template #header>
-            <MainPageHeader title="Daftar Transaksi Penjualan" />
+            <MainPageHeader
+                title="Penjualan B2B"
+                description="Kelola faktur komersial, pesanan grosir, dan penjualan langsung korporat."
+            />
         </template>
 
         <template #filter>
             <Filter
                 :filters="filters"
                 :can-create="can('transaction.create')"
-                :can-export="can('transaction.view')"
                 @create="openCreate"
-                @export-csv="exportCsv"
             />
         </template>
 
         <Table
             :headers="headers"
             :data="transactions.data"
-            :action="true"
-            :sort="filters.sort"
-            :sort-direction="filters.direction"
+            :action="false"
+            :sort="filters.sort || params?.sort"
+            :sort-direction="filters.direction || params?.direction"
+            @row-click="openDetail"
         >
-            <template #created_at="{ item }">
-                <span>{{ formatDateTimeSimple(item.transaction_date || item.created_at) }}</span>
+            <template #transaction_date="{ item }">
+                <span class="text-xs text-slate-700 font-medium">
+                    {{ formatDateTimeSimple(item.transaction_date || item.created_at) }}
+                </span>
             </template>
+
             <template #numbers="{ item }">
                 <div class="flex flex-col">
-                    <span class="font-medium text-gray-900">{{
-                        item.transaction_number || item.receipt_number || '-'
-                    }}</span>
-                    <span v-if="item.invoice?.invoice_number" class="text-xs text-gray-500">
-                        Inv: {{ item.invoice.invoice_number }}
+                    <span class="font-bold text-slate-900 text-xs">
+                        {{ item.invoice?.invoice_number || item.transaction_number }}
+                    </span>
+                    <span v-if="item.invoice?.invoice_number" class="text-[10px] text-slate-500">
+                        Ref: {{ item.transaction_number }}
                     </span>
                 </div>
             </template>
+
             <template #customer="{ item }">
-                {{ item.customer?.name || '-' }}
-            </template>
-            <template #shift="{ item }">
                 <div class="flex flex-col">
-                    <span class="font-medium">
-                        {{
-                            item.shift?.user?.name ||
-                            item.created_by?.name ||
-                            item.creator?.name ||
-                            '-'
-                        }}
+                    <span class="font-semibold text-slate-800 text-xs">
+                        {{ item.customer?.name || 'Pelanggan Umum' }}
                     </span>
-                    <span class="text-xs text-slate-500 font-medium">
-                        {{ formatChannel(item.channel) }}
+                    <span v-if="item.customer?.phone" class="text-[10px] text-slate-500">
+                        {{ item.customer.phone }}
                     </span>
                 </div>
             </template>
-            <template #total="{ item }">
-                <span class="font-semibold">{{ formatCurrency(item.total) }}</span>
+
+            <template #channel="{ item }">
+                <span
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                    :class="
+                        item.channel === 'wholesale'
+                            ? 'bg-purple-100 text-purple-700 border border-purple-200'
+                            : 'bg-blue-100 text-blue-700 border border-blue-200'
+                    "
+                >
+                    {{ $enums.SalesChannelEnum?.[item.channel]?.label || item.channel }}
+                </span>
             </template>
+
+            <template #total="{ item }">
+                <span class="font-bold text-slate-900 font-mono text-xs">
+                    {{ formatCurrency(item.total) }}
+                </span>
+            </template>
+
             <template #balance_due="{ item }">
-                <span v-if="Number(item.balance_due) > 0" class="font-semibold text-danger">
+                <span
+                    v-if="Number(item.balance_due) > 0"
+                    class="font-bold text-danger font-mono text-xs"
+                >
                     {{ formatCurrency(item.balance_due) }}
                 </span>
-                <span v-else class="font-semibold text-success"> Lunas </span>
+                <span v-else class="font-semibold text-emerald-600 text-xs"> Lunas </span>
             </template>
+
             <template #status="{ item }">
-                <span
-                    class="badge"
-                    :class="{
-                        'badge-success': item.status === 'completed',
-                        'badge-warning': item.status === 'hold',
-                        'badge-danger': item.status === 'void',
-                    }"
-                >
-                    {{ formatStatus(item.status) }}
-                </span>
-            </template>
-            <template #payment_status="{ item }">
                 <span
                     class="badge"
                     :class="{
@@ -83,19 +90,8 @@
                         'badge-secondary': item.status === 'cancel' || item.status === 'void',
                     }"
                 >
-                    {{ formatStatus(item.status) }}
+                    {{ $enums.TransactionStatus?.[item.status]?.label || item.status }}
                 </span>
-            </template>
-
-            <template #actions="{ item }">
-                <button
-                    v-if="can('transaction.view')"
-                    class="btn btn-flat btn-sm"
-                    title="Lihat Detail Transaksi"
-                    @click="openDetail(item)"
-                >
-                    <FontAwesomeIcon :icon="faEye" />
-                </button>
             </template>
         </Table>
 
@@ -111,9 +107,6 @@
 </template>
 
 <script setup>
-import { faEye } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { router } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
@@ -129,7 +122,7 @@ import { usePopUpStore } from '@/store/popup'
 const { can } = useAuth()
 const popUpStore = usePopUpStore()
 
-const props = defineProps({
+defineProps({
     transactions: {
         type: Object,
         default: () => ({ data: [], links: [] }),
@@ -138,75 +131,53 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    params: {
+        type: Object,
+        default: () => ({}),
+    },
+    outlets: {
+        type: Array,
+        default: () => [],
+    },
 })
 
 const headers = [
     {
         label: 'Tanggal',
         field: 'transaction_date',
-        slot: 'created_at',
+        slot: 'transaction_date',
         sortable: true,
     },
-    { label: 'No. Transaksi / Invoice', slot: 'numbers', sortable: false },
+    { label: 'No. Faktur / Referensi', slot: 'numbers', sortable: false },
     { label: 'Pelanggan', slot: 'customer', sortable: false },
-    { label: 'Kasir / Channel', slot: 'shift', sortable: false },
-    { label: 'Total', field: 'total', slot: 'total', sortable: true },
-    { label: 'Sisa Tagihan', slot: 'balance_due', sortable: false },
+    { label: 'Saluran', slot: 'channel', sortable: false },
+    { label: 'Total Tagihan', field: 'total', slot: 'total', sortable: true },
+    { label: 'Sisa Piutang', slot: 'balance_due', sortable: false },
     {
         label: 'Status',
         field: 'status',
-        slot: 'payment_status',
+        slot: 'status',
         sortable: true,
     },
 ]
 
-const formatStatus = status => {
-    const map = {
-        draft: 'Draf',
-        unpaid: 'Belum Lunas',
-        paid: 'Lunas',
-        cancel: 'Dibatalkan',
-        void: 'Void',
-    }
-    return map[status] || status
-}
-
-const formatChannel = channel => {
-    const map = {
-        direct: 'Direct / B2B',
-        pos: 'POS Kasir',
-        invoice: 'B2B Invoice',
-        e_commerce: 'E-Commerce',
-        wholesale: 'Wholesale',
-        custom: 'Custom',
-    }
-    return map[channel] || channel || '-'
-}
-
-const openDetail = item => {
+const openDetail = row => {
     popUpStore.open({
-        title: 'Detail Transaksi',
+        title: 'Detail Faktur Penjualan',
         component: SalesDetailPopUp,
         size: 'lg',
         props: {
-            transactionId: item.id,
+            transactionId: row.id,
         },
     })
 }
 
 const openCreate = () => {
     popUpStore.open({
-        title: 'Faktur Baru',
+        title: 'Faktur Penjualan Baru',
         component: SalesFormPopUp,
         size: 'xl',
         props: {},
-    })
-}
-
-const exportCsv = () => {
-    router.post(route('transactions.sales.export'), props.filters, {
-        preserveScroll: true,
-        preserveState: true,
     })
 }
 </script>

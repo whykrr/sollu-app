@@ -24,6 +24,15 @@ class FeatureSeeder extends Seeder
                 'sort_order' => 10,
             ],
             [
+                'code' => 'transaction',
+                'name' => 'Transaksi & Penjualan B2B',
+                'description' => 'Akses ke manajemen transaksi penjualan grosir dan penjualan langsung berbasis faktur.',
+                'module' => 'pos',
+                'group' => 'pos_and_transactions',
+                'group_label' => 'Penjualan & Kasir',
+                'sort_order' => 15,
+            ],
+            [
                 'code' => 'shift_management',
                 'name' => 'Manajemen Shift Kasir',
                 'description' => 'Buka dan tutup shift kasir, tracking selisih kas, dan pergantian jam kerja staf kasir.',

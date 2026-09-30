@@ -1,99 +1,87 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\App\Transaction;
 
-use App\Contracts\Audit\ActivityLoggerInterface;
-use App\Enums\AuditModuleEnum;
+use App\DTOs\Transaction\RecordPaymentDTO;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
-use App\Models\Master\PaymentMethod;
 use App\Models\Sales\Transaction;
+use App\Models\Sales\TransactionPayment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 class TransactionPaymentService
 {
-    protected ActivityLoggerInterface $auditLogger;
-
-    public function __construct(
-        ?ActivityLoggerInterface $auditLogger = null
-    ) {
-        $this->auditLogger = $auditLogger ?? app(ActivityLoggerInterface::class);
-    }
-
-    public function recordPayment(Transaction $transaction, array $data, User $user): Transaction
+    /**
+     * Catat pembayaran, hitung ulang total paid & balance due, lalu sesuaikan status.
+     */
+    public function recordPayment(Transaction $transaction, RecordPaymentDTO $dto, User $user): Transaction
     {
-        if ($transaction->status === TransactionStatus::Paid) {
-            throw new \Exception('Transaksi sudah lunas.');
+        if ($transaction->status === TransactionStatus::Draft) {
+            throw new InvalidArgumentException('Tidak dapat mencatat pembayaran pada draf.');
         }
 
-        if ($transaction->status === TransactionStatus::Draft || $transaction->status === TransactionStatus::Cancel) {
-            throw new \Exception('Pembayaran hanya bisa dilakukan untuk transaksi berstatus Unpaid atau Partial.');
+        if (in_array($transaction->status, [TransactionStatus::Cancel, TransactionStatus::Void], true)) {
+            throw new InvalidArgumentException('Transaksi sudah dibatalkan.');
         }
 
-        return DB::transaction(function () use ($transaction, $data, $user) {
-            $amount = floatval($data['amount'] ?? 0);
+        if ($transaction->payment_status === TransactionPaymentStatus::Paid) {
+            throw new InvalidArgumentException('Transaksi sudah lunas.');
+        }
 
-            if ($amount <= 0) {
-                throw ValidationException::withMessages(['amount' => 'Nominal pembayaran harus lebih dari 0.']);
+        if ($dto->amount <= 0) {
+            throw new InvalidArgumentException('Nominal pembayaran harus lebih dari 0.');
+        }
+
+        DB::transaction(function () use ($transaction, $dto, $user) {
+            $payment = new TransactionPayment;
+            $payment->transaction_id = $transaction->id;
+            $payment->payment_method_id = $dto->paymentMethodId;
+            $payment->amount = $dto->amount;
+            $payment->change_amount = $dto->changeAmount;
+            $payment->payment_reference = $dto->paymentReference;
+            $payment->payment_date = $dto->paymentDate;
+            $payment->notes = $dto->notes;
+            $payment->created_by = $user->id;
+            $payment->save();
+
+            // Recalculate
+            $totalPaid = (float) $transaction->payments()->sum('amount');
+            $changeAmountTotal = (float) $transaction->payments()->sum('change_amount');
+
+            $netPaid = $totalPaid - $changeAmountTotal;
+            $balanceDue = max(0.0, (float) $transaction->total - $netPaid);
+
+            $paymentStatus = TransactionPaymentStatus::Partial;
+            if ($balanceDue <= 0.0) {
+                $paymentStatus = TransactionPaymentStatus::Paid;
+            } elseif ($netPaid <= 0.0) {
+                $paymentStatus = TransactionPaymentStatus::Unpaid;
             }
 
-            // Verify if payment method belongs to the business/outlet
-            $paymentMethod = PaymentMethod::find($data['payment_method_id'] ?? null);
-            if (! $paymentMethod) {
-                throw ValidationException::withMessages(['payment_method_id' => 'Metode pembayaran tidak valid.']);
-            }
+            $transaction->total_paid = $netPaid;
+            $transaction->balance_due = $balanceDue;
+            $transaction->payment_status = $paymentStatus;
 
-            $currentBalance = floatval($transaction->balance_due);
-            if ($amount > $currentBalance) {
-                $changeAmount = $amount - $currentBalance;
-                $paymentAmount = $currentBalance;
+            // Sync status
+            if ($paymentStatus === TransactionPaymentStatus::Paid) {
+                $transaction->status = TransactionStatus::Paid;
             } else {
-                $changeAmount = 0;
-                $paymentAmount = $amount;
+                $transaction->status = TransactionStatus::from($paymentStatus->value);
             }
 
-            $transaction->payments()->create([
-                'payment_method_id' => $paymentMethod->id,
-                'amount' => $amount,
-                'change_amount' => $changeAmount,
-                'payment_reference' => $data['payment_reference'] ?? null,
-                'payment_date' => $data['payment_date'] ?? now(),
-                'notes' => $data['notes'] ?? null,
-                'created_by' => $user->id,
-            ]);
-
-            $newTotalPaid = floatval($transaction->total_paid) + $paymentAmount;
-            $newBalanceDue = max(0, $currentBalance - $paymentAmount);
-
-            $targetStatus = $newBalanceDue <= 0 ? TransactionStatus::Paid : $transaction->status;
-
-            $transaction->update([
-                'total_paid' => $newTotalPaid,
-                'balance_due' => $newBalanceDue,
-                'status' => $targetStatus,
-                'payment_status' => $newBalanceDue <= 0 ? TransactionPaymentStatus::Paid : TransactionPaymentStatus::Unpaid,
-                'updated_by' => $user->id,
-            ]);
+            $transaction->updated_by = $user->id;
+            $transaction->save();
 
             if ($transaction->invoice) {
-                $transaction->invoice->update([
-                    'status' => $targetStatus,
-                ]);
+                $transaction->invoice->status = $transaction->status;
+                $transaction->invoice->save();
             }
-
-            $this->auditLogger->log(
-                module: AuditModuleEnum::POS->value,
-                action: 'b2b.payment_recorded',
-                description: "Recorded payment of {$amount} for Transaction {$transaction->transaction_number}",
-                subject: $transaction,
-                causer: $user,
-                businessId: $user->business_id,
-                outletId: $transaction->outlet_id
-            );
-
-            return $transaction;
         });
+
+        return $transaction->refresh();
     }
 }

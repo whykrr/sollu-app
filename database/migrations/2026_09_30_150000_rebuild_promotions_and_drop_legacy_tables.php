@@ -78,14 +78,16 @@ return new class extends Migration
             $table->unique(['promotion_id', 'product_item_id']);
         });
 
-        // 6. Alihkan FK pada transaction_promos dari promos ke promotions
-        Schema::table('transaction_promos', function (Blueprint $table) {
-            $table->dropForeign(['promo_id']);
-        });
+        // 6. Alihkan FK pada transaction_promos dari promos ke promotions (jika tabel ada)
+        if (Schema::hasTable('transaction_promos')) {
+            Schema::table('transaction_promos', function (Blueprint $table) {
+                $table->dropForeign(['promo_id']);
+            });
 
-        Schema::table('transaction_promos', function (Blueprint $table) {
-            $table->foreign('promo_id')->references('id')->on('promotions')->nullOnDelete();
-        });
+            Schema::table('transaction_promos', function (Blueprint $table) {
+                $table->foreign('promo_id')->references('id')->on('promotions')->nullOnDelete();
+            });
+        }
 
         // 7. Drop Tabel Legacy Promo
         Schema::dropIfExists('promo_inventory_items');

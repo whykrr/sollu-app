@@ -2,29 +2,46 @@
 
 use App\Enums\FeatureEnum;
 use App\Http\Controllers\App\Transaction\InvoiceController;
-use App\Http\Controllers\App\Transaction\SalesController;
+use App\Http\Controllers\App\Transaction\SalesTransactionController;
 use App\Http\Controllers\App\Transaction\ShiftController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('transactions')->name('transactions.')->group(function () {
     Route::prefix('sales')
         ->name('sales.')
-        ->middleware('plan.feature:'.FeatureEnum::INVOICE_DEBT->value)
         ->group(function () {
-            Route::post('export', [SalesController::class, 'export'])->name('export');
-            Route::get('/', [SalesController::class, 'index'])->name('index');
+            Route::get('/', [SalesTransactionController::class, 'index'])
+                ->middleware('permission:transaction.view')
+                ->name('index');
 
-            Route::post('/', [SalesController::class, 'store'])->name('store');
-            Route::post('/{transaction}/issue', [SalesController::class, 'issue'])->name('issue');
-            Route::post('/{transaction}/payment', [SalesController::class, 'recordPayment'])->name('record-payment');
-            Route::middleware('plan.feature:'.FeatureEnum::VOID_REFUND->value)->group(function () {
-                Route::post('/{transaction}/cancel', [SalesController::class, 'cancel'])->name('cancel');
-                Route::post('/{transaction}/void', [SalesController::class, 'void'])->name('void');
-            });
-            Route::get('/{transaction}/pdf', [SalesController::class, 'pdf'])->name('pdf');
+            Route::post('/', [SalesTransactionController::class, 'store'])
+                ->middleware(['permission:transaction.create', 'plan.feature:'.FeatureEnum::INVOICE_DEBT->value])
+                ->name('store');
 
-            Route::resource('invoices', InvoiceController::class)->except(['edit', 'update', 'destroy']);
-            Route::get('/{transaction}', [SalesController::class, 'show'])->name('show');
+            Route::get('/{transaction}', [SalesTransactionController::class, 'show'])
+                ->middleware('permission:transaction.view')
+                ->name('show');
+
+            Route::post('/{transaction}/issue', [SalesTransactionController::class, 'issue'])
+                ->middleware(['permission:transaction.issue_invoice', 'plan.feature:'.FeatureEnum::INVOICE_DEBT->value])
+                ->name('issue');
+
+            Route::post('/{transaction}/payment', [SalesTransactionController::class, 'recordPayment'])
+                ->middleware(['permission:transaction.record_payment', 'plan.feature:'.FeatureEnum::INVOICE_DEBT->value])
+                ->name('record-payment');
+
+            Route::put('/{transaction}/due-date', [SalesTransactionController::class, 'updateDueDate'])
+                ->middleware(['permission:transaction.edit_due_date', 'plan.feature:'.FeatureEnum::INVOICE_DEBT->value])
+                ->name('update-due-date');
+
+            Route::post('/{transaction}/cancel', [SalesTransactionController::class, 'cancel'])
+                ->middleware('permission:transaction.cancel')
+                ->name('cancel');
+
+            // Download PDF
+            Route::get('/{transaction}/pdf', [InvoiceController::class, 'downloadPdf'])
+                ->middleware('permission:transaction.view')
+                ->name('pdf');
         });
 
     Route::middleware('plan.feature:'.FeatureEnum::SHIFT_MANAGEMENT->value)->group(function () {

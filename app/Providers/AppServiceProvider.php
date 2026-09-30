@@ -16,6 +16,10 @@ use App\Models\User;
 use App\Observers\UserCacheObserver;
 use App\Services\App\Audit\ActivityLogService;
 use App\Services\App\Inventory\InventoryDeductionService;
+use App\Services\App\Promotion\Contracts\PromotionEvaluatorInterface;
+use App\Services\App\Promotion\PromotionEvaluatorService;
+use App\Services\App\Transaction\B2bTransactionService;
+use App\Services\App\Transaction\Contracts\B2bTransactionServiceInterface;
 use App\Services\Auth\UserPermissionCacheService;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Cache;
@@ -60,6 +64,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             InventoryDeductionServiceInterface::class,
             InventoryDeductionService::class
+        );
+
+        $this->app->bind(
+            B2bTransactionServiceInterface::class,
+            B2bTransactionService::class
+        );
+
+        $this->app->bind(
+            PromotionEvaluatorInterface::class,
+            PromotionEvaluatorService::class
         );
 
         $this->app->singleton(

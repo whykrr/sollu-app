@@ -67,6 +67,13 @@ class OutletController extends Controller
             if ($prefixSetting) {
                 $invoicePrefix = (string) $prefixSetting->value;
             }
+
+            $taxSetting = $outlet->settings()
+                ->where('key', 'tax')
+                ->first();
+            if ($taxSetting) {
+                $defaultTaxRate = (float) $taxSetting->value;
+            }
         }
 
         return response()->json([
@@ -74,6 +81,7 @@ class OutletController extends Controller
                 'default_due_days_invoice' => $defaultDueDays,
                 'default_terms_and_conditions_invoice' => $defaultTnc,
                 'transaction_invoice_prefix' => $invoicePrefix,
+                'default_tax_rate' => $defaultTaxRate ?? 0.0,
                 // Backward compatibility keys
                 'default_due_days_b2b' => $defaultDueDays,
                 'default_terms_and_conditions_b2b' => $defaultTnc,

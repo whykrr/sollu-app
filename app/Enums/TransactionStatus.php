@@ -1,18 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enums;
 
 enum TransactionStatus: string
 {
-    case Hold = 'hold';
     case Draft = 'draft';
+    case Hold = 'hold';
     case Completed = 'completed';
     case Void = 'void';
     case Cancel = 'cancel';
-
-    // Some logic in TransactionService.php also checks for 'unpaid', 'partial', 'paid', but in some places it says:
-    // in_array($transaction->status, ['completed', 'paid']) -> Maybe 'paid' is sometimes used instead of 'completed'?
-    // Let's add them just to be safe and match the current codebase.
     case Paid = 'paid';
     case Unpaid = 'unpaid';
     case Partial = 'partial';
@@ -20,8 +18,8 @@ enum TransactionStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Hold => 'Ditahan',
             self::Draft => 'Draf',
+            self::Hold => 'Ditahan',
             self::Completed => 'Selesai',
             self::Void => 'Dibatalkan (Void)',
             self::Cancel => 'Batal',
@@ -34,12 +32,12 @@ enum TransactionStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::Hold => 'badge-warning',
-            self::Draft => 'badge-gray',
-            self::Completed, self::Paid => 'badge-success',
-            self::Void, self::Cancel => 'badge-danger',
-            self::Unpaid => 'badge-gray',
-            self::Partial => 'badge-info',
+            self::Draft => 'neutral',
+            self::Hold => 'warning',
+            self::Completed, self::Paid => 'success',
+            self::Void, self::Cancel => 'danger',
+            self::Unpaid => 'neutral',
+            self::Partial => 'info',
         };
     }
 }

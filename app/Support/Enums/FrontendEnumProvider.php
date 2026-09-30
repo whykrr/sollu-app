@@ -19,6 +19,7 @@ use App\Enums\NotificationScopeEnum;
 use App\Enums\NotificationTypeEnum;
 use App\Enums\PaymentManualValidationStatus;
 use App\Enums\PaymentMethodType;
+use App\Enums\PaymentTermEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
 use App\Enums\ProductTypeEnum;
@@ -30,6 +31,7 @@ use App\Enums\PurchaseOrderStatus;
 use App\Enums\PurchaseReturnStatus;
 use App\Enums\RoleEnum;
 use App\Enums\RoleTemplateEnum;
+use App\Enums\SalesChannelEnum;
 use App\Enums\ShiftCashLogType;
 use App\Enums\ShiftStatus;
 use App\Enums\StockOpnameStatus;
@@ -69,6 +71,7 @@ class FrontendEnumProvider
         NotificationScopeEnum::class,
         NotificationTypeEnum::class,
         PaymentMethodType::class,
+        PaymentTermEnum::class,
         PermissionEnum::class,
         PlanEnum::class,
         ProductTypeEnum::class,
@@ -80,6 +83,7 @@ class FrontendEnumProvider
         PurchaseReturnStatus::class,
         RoleEnum::class,
         RoleTemplateEnum::class,
+        SalesChannelEnum::class,
         ShiftStatus::class,
         ShiftCashLogType::class,
         StockOpnameStatus::class,
