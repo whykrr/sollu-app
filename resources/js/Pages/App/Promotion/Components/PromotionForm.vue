@@ -125,8 +125,9 @@
                     label="Cari Kategori"
                     :api-url="route('api.internal.categories.search')"
                     placeholder="Ketik nama kategori..."
-                    :min-chars="1"
                     :error="form.errors.category_ids"
+                    size="sm"
+                    reset-on-select
                     @select="addCategory"
                 />
 
@@ -170,8 +171,9 @@
                     label="Cari Produk"
                     :api-url="route('api.internal.products.search')"
                     placeholder="Ketik nama produk..."
-                    :min-chars="1"
                     :error="form.errors.product_ids"
+                    size="sm"
+                    reset-on-select
                     @select="addProduct"
                 />
 
@@ -217,8 +219,9 @@
                     label="Cari Varian Item"
                     :api-url="route('api.internal.inventory-items.search')"
                     placeholder="Ketik nama atau SKU varian..."
-                    :min-chars="1"
                     :error="form.errors.product_item_ids"
+                    size="sm"
+                    reset-on-select
                     @select="addProductItem"
                 />
 

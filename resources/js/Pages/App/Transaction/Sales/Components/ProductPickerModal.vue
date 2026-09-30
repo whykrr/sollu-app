@@ -614,7 +614,11 @@ const fetchItems = async () => {
         // Auto-expand all groups on initial fetch or search
         expandedGroups.value = new Set(flatItems.value.map(i => String(i.product_id || i.id)))
     } catch (error) {
-        if (axios.isCancel(error) || error?.name === 'CanceledError' || error?.name === 'AbortError') {
+        if (
+            axios.isCancel(error) ||
+            error?.name === 'CanceledError' ||
+            error?.name === 'AbortError'
+        ) {
             return
         }
         console.error('Error fetching products for picker:', error)

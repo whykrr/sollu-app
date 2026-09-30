@@ -12,25 +12,24 @@ Saat membuat atau mengedit formulir di seluruh aplikasi Sollu App, Anda **WAJIB*
 
 DILARANG KERAS menuliskan tag `<input>`, `<select>`, atau `<textarea>` mentah. Gunakan selalu komponen resmi di bawah ini:
 
-| Komponen                      | Kegunaan Utama                                                                                                                            | Contoh Penggunaan                                                                                                     |
-| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
-| **`TextField`**               | Input teks umum (`text`, `email`, `tel`, `url`)                                                                                           | `<TextField v-model="form.name" label="Nama Barang" :feedback="form.errors.name" />`                                  |
-| **`TextareaField`**           | Area teks multiline                                                                                                                       | `<TextareaField v-model="form.notes" label="Catatan" rows="3" />`                                                     |
-| **`NumberField`**             | Input numerik / mata uang dengan auto format                                                                                              | `<NumberField v-model="form.price" label="Harga Jual" prefix="Rp" />`                                                 |
-| **`PasswordField`**           | Kata sandi dengan toggle intip                                                                                                            | `<PasswordField v-model="form.password" label="Kata Sandi" />`                                                        |
-| **`PinField`**                | PIN angka terproteksi                                                                                                                     | `<PinField v-model="form.pin" label="PIN Otorisasi Kasir" />`                                                         |
-| **`DropdownField`**           | Dropdown pilihan statis/enum ringkas ($\le 5$ opsi)                                                                                       | `<DropdownField v-model="form.status" :options="getOptions('StatusEnum')" label="Status" />`                          |
-| **`SearchableDropdownField`** | **Standar Wajib** dropdown master data / banyak data ($> 5$ opsi) dengan search & floating popover (UOM, Supplier, Kategori, Outlet, dll) | `<SearchableDropdownField v-model="form.uom_id" :options="uomOptions" label="Satuan" :searchable="true" size="sm" />` |
-| **`AsyncSelectField`**        | Dropdown pencarian async server-side untuk data masif ribuan baris                                                                        | `<AsyncSelectField v-model="form.item_id" endpoint="/api/items/search" label="Pilih Bahan" />`                        |
-| **`AsyncOutletDropdown`**     | Dropdown khusus outlet tenant                                                                                                             | `<AsyncOutletDropdown v-model="form.outlet_id" label="Outlet" />`                                                     |
-| **`Switch`**                  | Toggle switch boolean aktif / non-aktif                                                                                                   | `<Switch v-model="form.is_active" label="Aktifkan Produk" />`                                                         |
-| **`CheckboxField`**           | Kotak centang tunggal                                                                                                                     | `<CheckboxField v-model="form.track_stock" label="Lacak Stok" />`                                                     |
-| **`RadioField`**              | Tombol radio tunggal                                                                                                                      | `<RadioField v-model="form.type" value="goods" label="Barang Jadi" />`                                                |
-| **`SelectionGroupField`**     | Grup pilihan (Single segmented / Multi-checkbox)                                                                                          | `<SelectionGroupField v-model="form.categories" :options="categoryOptions" multiple show-select-all />`               |
-| **`QuillEditor`**             | Editor Rich Text WYSIWYG                                                                                                                  | `<QuillEditor v-model="form.description" label="Deskripsi" />`                                                        |
-| **`DisclosureSection`**       | Collapsible section untuk opsi lanjutan (Progressive Disclosure)                                                                          | `<DisclosureSection title="Opsi Lanjutan" :badge="activeCount"><TextField ... /></DisclosureSection>`                 |
-| **`FormStepper`**             | Visual Stepper indikator untuk Create Wizard (Tier 3)                                                                                     | `<FormStepper :steps="steps" v-model:current-step-index="step" :errors="form.errors" />`                              |
-| **`FormTabs`**                | Tab navigation untuk Edit Form (Tier 3)                                                                                                   | `<FormTabs :tabs="tabs" v-model="activeTab" :errors="form.errors" />`                                                 |
+| Komponen                      | Kegunaan Utama                                                                                                                                           | Contoh Penggunaan                                                                                                                                     |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`TextField`**               | Input teks umum (`text`, `email`, `tel`, `url`)                                                                                                          | `<TextField v-model="form.name" label="Nama Barang" :feedback="form.errors.name" />`                                                                  |
+| **`TextareaField`**           | Area teks multiline                                                                                                                                      | `<TextareaField v-model="form.notes" label="Catatan" rows="3" />`                                                                                     |
+| **`NumberField`**             | Input numerik / mata uang dengan auto format                                                                                                             | `<NumberField v-model="form.price" label="Harga Jual" prefix="Rp" />`                                                                                 |
+| **`PasswordField`**           | Kata sandi dengan toggle intip                                                                                                                           | `<PasswordField v-model="form.password" label="Kata Sandi" />`                                                                                        |
+| **`PinField`**                | PIN angka terproteksi                                                                                                                                    | `<PinField v-model="form.pin" label="PIN Otorisasi Kasir" />`                                                                                         |
+| **`DropdownField`**           | Dropdown pilihan statis/enum ringkas ($\le 5$ opsi)                                                                                                      | `<DropdownField v-model="form.status" :options="getOptions('StatusEnum')" label="Status" />`                                                          |
+| **`SearchableDropdownField`** | **Standar Wajib** dropdown master data / banyak data ($> 5$ opsi) dengan search & floating popover (UOM, Supplier, Kategori, Outlet, dll)                | `<SearchableDropdownField v-model="form.uom_id" :options="uomOptions" label="Satuan" :searchable="true" size="sm" />`                                 |
+| **`AsyncSelectField`**        | Dropdown pencarian async server-side (Single / Multiple) dengan floating popover, default 10 data terbaru, dan pencarian debounce tanpa batasan karakter | `<AsyncSelectField v-model="form.customer_id" :selected-label="customerName" api-url="/api/internal/customers/search" label="Pelanggan" size="sm" />` |
+| **`AsyncOutletDropdown`**     | Dropdown khusus outlet tenant                                                                                                                            | `<AsyncOutletDropdown v-model="form.outlet_id" label="Outlet" />`                                                                                     |
+| **`CheckboxField`**           | Kotak centang tunggal                                                                                                                                    | `<CheckboxField v-model="form.track_stock" label="Lacak Stok" />`                                                                                     |
+| **`RadioField`**              | Tombol radio tunggal                                                                                                                                     | `<RadioField v-model="form.type" value="goods" label="Barang Jadi" />`                                                                                |
+| **`SelectionGroupField`**     | Grup pilihan (Single segmented / Multi-checkbox)                                                                                                         | `<SelectionGroupField v-model="form.categories" :options="categoryOptions" multiple show-select-all />`                                               |
+| **`QuillEditor`**             | Editor Rich Text WYSIWYG                                                                                                                                 | `<QuillEditor v-model="form.description" label="Deskripsi" />`                                                                                        |
+| **`DisclosureSection`**       | Collapsible section untuk opsi lanjutan (Progressive Disclosure)                                                                                         | `<DisclosureSection title="Opsi Lanjutan" :badge="activeCount"><TextField ... /></DisclosureSection>`                                                 |
+| **`FormStepper`**             | Visual Stepper indikator untuk Create Wizard (Tier 3)                                                                                                    | `<FormStepper :steps="steps" v-model:current-step-index="step" :errors="form.errors" />`                                                              |
+| **`FormTabs`**                | Tab navigation untuk Edit Form (Tier 3)                                                                                                                  | `<FormTabs :tabs="tabs" v-model="activeTab" :errors="form.errors" />`                                                                                 |
 
 ---
 
@@ -74,3 +73,44 @@ Untuk mencegah pengguna merasa _overwhelm_ saat mengisi formulir, terapkan klasi
 - **Spacing Antar-Input (Maksimal Skala 2):** Jarak antar bidang input formulir DILARANG melebihi skala 2 Tailwind (`space-y-2`, `gap-2`).
 - **Margin/Padding Komponen (Maksimal Skala 3):** Jangan menambahkan padding atau margin besar di dalam container form (`p-3` maksimum).
 - **Sticky Footer Actions (`#popUpFooter`):** Seluruh tombol aksi form (Batal, Simpan, Kembali, Lanjut) WAJIB di-teleport ke `#popUpFooter` agar berada di _Thumb Zone_ bawah yang ergonomis.
+
+---
+
+## 5. 🔍 Standar Penggunaan `AsyncSelectField` (Server-Side Dropdown)
+
+Gunakan `AsyncSelectField` untuk lookup data masif yang tidak mungkin dimuat seluruhnya ke client (contoh: pelanggan, katalog inventori, merchant).
+
+### Aturan & Perilaku:
+
+1. **Default 10 Data Terbaru:** Saat dropdown pertama kali dibuka atau teks pencarian dikosongkan, komponen otomatis mengambil dan menampilkan 10 data terbaru dari backend (`latest()`, `limit: 10`).
+2. **Pencarian Murni Berbasis Debounce:** Pencarian dilakukan otomatis dengan jeda debounce (default: `300ms`) tanpa membatasi minimal karakter (`minChars` diabaikan/opsional).
+3. **Kesesuaian Ukuran `sm` (30px):** Tombol trigger pada form transaksi wajib menggunakan `:size="'sm'"` (`h-[30px]`, `text-xs leading-4`).
+4. **Display Nilai Terpilih (`:selected-label`):** Untuk memastikan label pilihan (misal: nama pelanggan) langsung tampil saat mode edit atau memuat draft, teruskan prop `:selected-label="namaState"` dan tangani `@update:selected-label="namaState = $event"`.
+5. **Dukungan Multiple Select:** Untuk memilih banyak entitas sekaligus, gunakan prop `multiple` dengan `modelValue` berupa array. Dropdown tetap terbuka saat memilih opsi dan tombol trigger menampilkan tag/chip pilihan secara ringkas.
+
+```vue
+<!-- Contoh Single Select (Form Pelanggan Transaksi) -->
+<AsyncSelectField
+    id="customer_id"
+    v-model="form.customer_id"
+    :selected-label="selectedCustomerName"
+    label="Pelanggan"
+    placeholder="Cari Pelanggan..."
+    api-url="/api/internal/customers/search"
+    :error="form.errors.customer_id"
+    size="sm"
+    clearable
+    @update:selected-label="selectedCustomerName = $event"
+    @select="onCustomerSelected"
+    @clear="onCustomerClear"
+/>
+
+<!-- Contoh Multiple Select -->
+<AsyncSelectField
+    v-model="form.customer_ids"
+    label="Pilih Banyak Pelanggan"
+    api-url="/api/internal/customers/search"
+    multiple
+    size="sm"
+/>
+```

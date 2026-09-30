@@ -156,7 +156,7 @@
                     placeholder="Ketik nama bisnis, nama pemilik, atau email merchant..."
                     :api-url="route('cockpit.merchants.search')"
                     search-param-name="query"
-                    :min-chars="2"
+                    size="sm"
                     :feedback="form.errors.business_id"
                     @select="onSelectMerchant"
                 >

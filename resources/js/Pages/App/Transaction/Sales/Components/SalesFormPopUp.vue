@@ -32,12 +32,16 @@
                 <AsyncSelectField
                     id="sales_customer_id"
                     v-model="form.customer_id"
+                    :selected-label="selectedCustomerName"
                     label="Pelanggan (B2B / Reseller)"
                     placeholder="Cari Pelanggan..."
                     api-url="/api/internal/customers/search"
                     :error="form.errors.customer_id"
                     size="sm"
+                    clearable
+                    @update:selected-label="selectedCustomerName = $event"
                     @select="onCustomerSelected"
+                    @clear="onCustomerClear"
                 />
 
                 <DropdownField
@@ -693,6 +697,11 @@ const onCustomerSelected = customer => {
     }
 }
 
+const onCustomerClear = () => {
+    form.customer_id = null
+    selectedCustomerName.value = ''
+}
+
 const openItemPicker = () => {
     if (!form.outlet_id) return
     showItemPicker.value = true
@@ -859,14 +868,22 @@ const evaluatePromotionsAndRecalculate = debounce(async () => {
             )
 
             // Apply auto item discounts if available
-            if (itemLevelPromos.length > 0 && evalData.item_discounts && typeof evalData.item_discounts === 'object') {
+            if (
+                itemLevelPromos.length > 0 &&
+                evalData.item_discounts &&
+                typeof evalData.item_discounts === 'object'
+            ) {
                 form.items.forEach((item, idx) => {
                     const key = 'item_' + idx
                     const autoDisc = Number(evalData.item_discounts[key] || 0)
                     if (autoDisc > 0 && (!item.discount_amount || item.auto_promo_name)) {
-                        const matchedPromo = itemLevelPromos.find(
-                            p => p.affected_item_ids?.includes(key) || !p.affected_item_ids || p.affected_item_ids.length === 0
-                        ) || itemLevelPromos[0]
+                        const matchedPromo =
+                            itemLevelPromos.find(
+                                p =>
+                                    p.affected_item_ids?.includes(key) ||
+                                    !p.affected_item_ids ||
+                                    p.affected_item_ids.length === 0
+                            ) || itemLevelPromos[0]
                         if (matchedPromo) {
                             item.discount_amount = autoDisc
                             item.auto_promo_name = matchedPromo.promotion_name
