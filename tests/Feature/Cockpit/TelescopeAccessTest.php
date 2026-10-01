@@ -2,12 +2,18 @@
 
 namespace Tests\Feature\Cockpit;
 
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\CockpitUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Telescope\EntryType;
 use Laravel\Telescope\IncomingEntry;
 use Laravel\Telescope\Telescope;
+use Laravel\Telescope\TelescopeServiceProvider;
+use Laravel\Telescope\Watchers\ModelWatcher;
+use Laravel\Telescope\Watchers\RequestWatcher;
+use Laravel\Telescope\Watchers\ViewWatcher;
 use Tests\TestCase;
 
 class TelescopeAccessTest extends TestCase
@@ -28,12 +34,12 @@ class TelescopeAccessTest extends TestCase
         config(['telescope.domain' => 'cockpit.sollu.test']);
         config(['telescope.storage.database.connection' => 'sqlite']);
 
-        if (! $this->app->providerIsLoaded(\Laravel\Telescope\TelescopeServiceProvider::class)) {
-            $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
+        if (! $this->app->providerIsLoaded(TelescopeServiceProvider::class)) {
+            $this->app->register(TelescopeServiceProvider::class);
             $this->app->register(\App\Providers\TelescopeServiceProvider::class);
-            
+
             $this->artisan('migrate', [
-                '--path' => 'vendor/laravel/telescope/database/migrations'
+                '--path' => 'vendor/laravel/telescope/database/migrations',
             ]);
         }
 
@@ -88,18 +94,18 @@ class TelescopeAccessTest extends TestCase
         $response->assertStatus(200);
 
         // Active watchers should appear in the navigation
-        if (Telescope::hasWatcher(\Laravel\Telescope\Watchers\RequestWatcher::class)) {
+        if (Telescope::hasWatcher(RequestWatcher::class)) {
             $response->assertSee('to="/requests"', false);
             $response->assertSee('<span>Requests</span>', false);
         }
 
         // Inactive watchers should NOT appear in the navigation
-        if (! Telescope::hasWatcher(\Laravel\Telescope\Watchers\ModelWatcher::class)) {
+        if (! Telescope::hasWatcher(ModelWatcher::class)) {
             $response->assertDontSee('to="/models"', false);
             $response->assertDontSee('<span>Models</span>', false);
         }
 
-        if (! Telescope::hasWatcher(\Laravel\Telescope\Watchers\ViewWatcher::class)) {
+        if (! Telescope::hasWatcher(ViewWatcher::class)) {
             $response->assertDontSee('to="/views"', false);
             $response->assertDontSee('<span>Views</span>', false);
         }
@@ -115,8 +121,8 @@ class TelescopeAccessTest extends TestCase
 
     public function test_regular_business_user_cannot_access_telescope(): void
     {
-        $type = \App\Models\BusinessType::create(['name' => 'F&B', 'code' => 'fnb_iso']);
-        $business = \App\Models\Business::create([
+        $type = BusinessType::create(['name' => 'F&B', 'code' => 'fnb_iso']);
+        $business = Business::create([
             'name' => 'Merchant Test',
             'owner_name' => 'Test Owner',
             'email' => 'merchant@test.com',
@@ -198,5 +204,22 @@ class TelescopeAccessTest extends TestCase
         $this->assertFalse($filter($fastQueryEntry));
 
         $this->app['env'] = 'testing';
+    }
+
+    public function test_boost_requests_are_excluded_from_telescope_and_debugbar(): void
+    {
+        $this->assertContains('_boost*', config('telescope.ignore_paths'));
+        $this->assertContains('_boost*', config('debugbar.except'));
+
+        $filter = Telescope::$filterUsing[0] ?? null;
+        $this->assertNotNull($filter, 'Telescope filter should be registered');
+
+        $boostEntry = new IncomingEntry([
+            'response_status' => 200,
+            'uri' => '/_boost/browser-logs',
+        ]);
+        $boostEntry->type = EntryType::REQUEST;
+
+        $this->assertFalse($filter($boostEntry));
     }
 }

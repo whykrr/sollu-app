@@ -46,7 +46,7 @@ class B2bTransactionService implements B2bTransactionServiceInterface
     public function createTransaction(CreateB2bTransactionDTO $dto, User $user): Transaction
     {
         return DB::transaction(function () use ($dto, $user) {
-            $outlet = Outlet::findOrFail($dto->outletId);
+            $outlet = Outlet::with('business')->findOrFail($dto->outletId);
 
             $masterData = $this->prefetchMasterCatalogData($dto->items, $outlet);
             $productItemsMap = $masterData['productItemsMap'];
@@ -213,12 +213,14 @@ class B2bTransactionService implements B2bTransactionServiceInterface
             $invoice->save();
 
             // 7. Simpan Baris Item Penjualan & Snapshot Promo Per-Item
+            $createdItems = [];
             foreach ($itemsData as $itemData) {
                 $itemDto = $itemData['dto'];
                 $productName = 'Produk '.$itemDto->productId;
                 $sku = null;
                 $uomName = 'Pcs';
                 $inventoryItemId = $itemDto->inventoryItemId;
+                $resolvedInvModel = null;
 
                 if ($itemDto->productItemId && $productItemsMap->has($itemDto->productItemId)) {
                     $productItem = $productItemsMap->get($itemDto->productItemId);
@@ -226,6 +228,7 @@ class B2bTransactionService implements B2bTransactionServiceInterface
                     $sku = $productItem->sku ?: ($productItem->product?->code ?? null);
                     $uomName = $productItem->uom?->name ?? 'Pcs';
                     $inventoryItemId = $inventoryItemId ?? $productItem->inventoryItem?->id;
+                    $resolvedInvModel = $productItem->inventoryItem;
                 } elseif ($itemDto->productId && $productsMap->has($itemDto->productId)) {
                     $product = $productsMap->get($itemDto->productId);
                     $productName = $product->name;
@@ -234,6 +237,7 @@ class B2bTransactionService implements B2bTransactionServiceInterface
                     if ($firstItem) {
                         $uomName = $firstItem->uom?->name ?? 'Pcs';
                         $inventoryItemId = $inventoryItemId ?? $firstItem->inventoryItem?->id;
+                        $resolvedInvModel = $firstItem->inventoryItem;
                     }
                 }
 
@@ -242,6 +246,7 @@ class B2bTransactionService implements B2bTransactionServiceInterface
                     $productName = $invItem->name ?? $productName;
                     $sku = $invItem->sku ?? $invItem->productItem?->sku;
                     $uomName = $invItem->uom?->name ?? 'Pcs';
+                    $resolvedInvModel = $invItem;
                 }
 
                 $appliedPromo = $itemData['applied_promo'];
@@ -262,6 +267,11 @@ class B2bTransactionService implements B2bTransactionServiceInterface
                 $item->promo_name = $itemPromoName;
                 $item->notes = $itemDto->notes;
                 $item->save();
+
+                if ($resolvedInvModel) {
+                    $item->setRelation('inventoryItem', $resolvedInvModel);
+                }
+                $createdItems[] = $item;
 
                 // Snapshot Promo Per-Item (jika ada promo item terapply)
                 if ($appliedPromo) {
@@ -305,7 +315,12 @@ class B2bTransactionService implements B2bTransactionServiceInterface
                 outletId: $outlet->id,
             );
 
-            return $transaction->refresh();
+            $transaction->setRelation('outlet', $outlet);
+            $transaction->setRelation('invoice', $invoice);
+            $transaction->setRelation('items', collect($createdItems));
+            $transaction->syncOriginal();
+
+            return $transaction;
         });
     }
 
@@ -316,10 +331,10 @@ class B2bTransactionService implements B2bTransactionServiceInterface
         }
 
         return DB::transaction(function () use ($transaction, $user, $paymentData) {
-            $outlet = $transaction->outlet;
+            $outlet = $transaction->outlet ?? Outlet::with('business')->findOrFail($transaction->outlet_id);
 
             // 1. Validasi Stok (jika tidak diizinkan minus)
-            $transaction->loadMissing(['items.inventoryItem', 'outlet.business']);
+            $transaction->loadMissing(['items.inventoryItem', 'outlet.business', 'invoice']);
 
             $itemArray = $transaction->items->map(function ($item) {
                 return [
@@ -329,24 +344,30 @@ class B2bTransactionService implements B2bTransactionServiceInterface
                 ];
             })->toArray();
 
-            $this->transactionService->checkStockAvailability($itemArray, $outlet);
+            $balances = $this->transactionService->checkStockAvailability($itemArray, $outlet);
 
             // 2. Pemotongan Stok dan kalkulasi HPP FIFO
-            $this->transactionService->deductStockForTransaction($transaction, $user);
+            $this->transactionService->deductStockForTransaction($transaction, $user, $balances);
 
-            // 3. Update status menjadi unpaid
-            $transaction->status = TransactionStatus::Unpaid;
-            $transaction->payment_status = TransactionPaymentStatus::Unpaid;
-            $transaction->updated_by = $user->id;
-            $transaction->save();
+            $hasUpfrontPayment = ! empty($paymentData) && isset($paymentData['amount']) && (float) $paymentData['amount'] > 0;
 
-            if ($transaction->invoice) {
-                $transaction->invoice->status = TransactionStatus::Unpaid;
-                $transaction->invoice->save();
-            }
+            if (! $hasUpfrontPayment) {
+                // 3. Update status menjadi unpaid hanya jika belum ada pembayaran langsung
+                $transaction->status = TransactionStatus::Unpaid;
+                $transaction->payment_status = TransactionPaymentStatus::Unpaid;
+                $transaction->updated_by = $user->id;
+                $transaction->save();
 
-            // 4. Jika ada pembayaran awal (misal termin Cash atau ada DP di depan)
-            if (! empty($paymentData) && isset($paymentData['amount']) && $paymentData['amount'] > 0) {
+                if ($transaction->invoice) {
+                    $transaction->invoice->status = TransactionStatus::Unpaid;
+                    $transaction->invoice->save();
+                }
+            } else {
+                // Set status awal Unpaid di model agar paymentService bisa memproses pembayaran langsung ke target status
+                $transaction->status = TransactionStatus::Unpaid;
+                $transaction->payment_status = TransactionPaymentStatus::Unpaid;
+                $transaction->updated_by = $user->id;
+
                 $dto = new RecordPaymentDTO(
                     paymentMethodId: $paymentData['payment_method_id'],
                     amount: (float) $paymentData['amount'],
@@ -356,7 +377,7 @@ class B2bTransactionService implements B2bTransactionServiceInterface
                     notes: $paymentData['notes'] ?? null,
                 );
 
-                // Ini akan mengupdate status ke Partial atau Paid
+                // Ini akan mengupdate status ke Partial atau Paid dalam satu kali write
                 $this->paymentService->recordPayment($transaction, $dto, $user);
             }
 
@@ -371,7 +392,7 @@ class B2bTransactionService implements B2bTransactionServiceInterface
                 outletId: $outlet->id,
             );
 
-            return $transaction->refresh();
+            return $transaction;
         });
     }
 
@@ -741,19 +762,41 @@ class B2bTransactionService implements B2bTransactionServiceInterface
                 ->keyBy('id')
             : collect();
 
-        $productsMap = ! empty($productIds)
-            ? Product::whereIn('id', $productIds)
+        // Hanya load Product terpisah jika ada product_id yang belum termuat di ProductItem
+        $loadedProductIds = $productItemsMap->pluck('product_id')->filter()->all();
+        $missingProductIds = array_values(array_diff($productIds, $loadedProductIds));
+
+        $productsMap = ! empty($missingProductIds)
+            ? Product::whereIn('id', $missingProductIds)
                 ->with(['productItems.inventoryItem', 'productItems.uom'])
                 ->get()
                 ->keyBy('id')
             : collect();
 
-        $inventoryItemsMap = ! empty($invItemIds)
-            ? InventoryItem::whereIn('id', $invItemIds)
+        // Populate parent product dari ProductItem ke productsMap untuk akses cepat tanpa query tambahan
+        foreach ($productItemsMap as $pItem) {
+            if ($pItem->product && ! $productsMap->has($pItem->product_id)) {
+                $productsMap->put($pItem->product_id, $pItem->product);
+            }
+        }
+
+        // Hanya load InventoryItem terpisah jika ada item tanpa product_item_id
+        $loadedInvItemIds = $productItemsMap->pluck('inventoryItem.id')->filter()->all();
+        $missingInvItemIds = array_values(array_diff($invItemIds, $loadedInvItemIds));
+
+        $inventoryItemsMap = ! empty($missingInvItemIds)
+            ? InventoryItem::whereIn('id', $missingInvItemIds)
                 ->with(['product', 'productItem', 'uom'])
                 ->get()
                 ->keyBy('id')
             : collect();
+
+        // Populate inventoryItem dari productItemsMap ke inventoryItemsMap
+        foreach ($productItemsMap as $pItem) {
+            if ($pItem->inventoryItem && ! $inventoryItemsMap->has($pItem->inventoryItem->id)) {
+                $inventoryItemsMap->put($pItem->inventoryItem->id, $pItem->inventoryItem);
+            }
+        }
 
         $catalogPrices = DB::table('product_prices')
             ->where(function ($q) use ($productItemIds, $productIds) {

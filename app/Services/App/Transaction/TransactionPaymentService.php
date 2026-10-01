@@ -48,9 +48,13 @@ class TransactionPaymentService
             $payment->created_by = $user->id;
             $payment->save();
 
-            // Recalculate
-            $totalPaid = (float) $transaction->payments()->sum('amount');
-            $changeAmountTotal = (float) $transaction->payments()->sum('change_amount');
+            // Recalculate using a single aggregate query
+            $totals = $transaction->payments()
+                ->selectRaw('COALESCE(SUM(amount), 0) as total_paid, COALESCE(SUM(change_amount), 0) as total_change')
+                ->first();
+
+            $totalPaid = (float) ($totals->total_paid ?? 0.0);
+            $changeAmountTotal = (float) ($totals->total_change ?? 0.0);
 
             $netPaid = $totalPaid - $changeAmountTotal;
             $balanceDue = max(0.0, (float) $transaction->total - $netPaid);
@@ -82,6 +86,8 @@ class TransactionPaymentService
             }
         });
 
-        return $transaction->refresh();
+        $transaction->syncOriginal();
+
+        return $transaction;
     }
 }

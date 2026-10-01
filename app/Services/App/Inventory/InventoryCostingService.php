@@ -122,7 +122,8 @@ class InventoryCostingService
         ?Model $reference = null,
         ?string $description = null,
         ?User $user = null,
-        ?InventoryCostingMethod $costingMethodOverride = null
+        ?InventoryCostingMethod $costingMethodOverride = null,
+        ?InventoryBalance $preloadedBalance = null,
     ): array {
         if ($qty <= 0) {
             throw new \InvalidArgumentException('Kuantitas stok keluar harus lebih besar dari 0.');
@@ -137,9 +138,10 @@ class InventoryCostingService
             $reference,
             $description,
             $user,
-            $costingMethodOverride
+            $costingMethodOverride,
+            $preloadedBalance
         ) {
-            $balance = InventoryBalance::firstOrCreate([
+            $balance = $preloadedBalance ?? InventoryBalance::firstOrCreate([
                 'business_id' => $business->id,
                 'outlet_id' => $outlet->id,
                 'inventory_item_id' => $item->id,

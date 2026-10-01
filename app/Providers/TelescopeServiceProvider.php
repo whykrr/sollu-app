@@ -20,6 +20,10 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         $this->hideSensitiveRequestDetails();
 
         Telescope::filter(static function (IncomingEntry $entry): bool {
+            if ($entry->type === 'request' && isset($entry->content['uri']) && str_starts_with(ltrim((string) $entry->content['uri'], '/'), '_boost')) {
+                return false;
+            }
+
             if (! app()->isProduction()) {
                 return true;
             }

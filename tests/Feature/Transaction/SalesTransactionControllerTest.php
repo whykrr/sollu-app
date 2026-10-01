@@ -30,6 +30,7 @@ use App\Services\App\Inventory\InventoryCostingService;
 use App\Services\App\Transaction\Contracts\B2bTransactionServiceInterface;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -1157,5 +1158,81 @@ class SalesTransactionControllerTest extends TestCase
 
         app(B2bTransactionServiceInterface::class)
             ->deleteDraftTransaction($transaction, $this->user);
+    }
+
+    public function test_it_optimizes_query_count_when_storing_and_issuing_sales_transaction_with_payment(): void
+    {
+        $item2 = ProductItem::create([
+            'business_id' => $this->business->id,
+            'product_id' => $this->product->id,
+            'name' => 'Kopi Robusta Super 500g',
+            'sku' => 'KRS-500',
+            'item_type' => 'variant_sku',
+            'track_inventory' => true,
+            'is_active' => true,
+        ]);
+
+        $inv2 = InventoryItem::create([
+            'business_id' => $this->business->id,
+            'product_id' => $this->product->id,
+            'product_item_id' => $item2->id,
+            'is_active' => true,
+        ]);
+
+        app(InventoryCostingService::class)->recordIncomingStock(
+            $this->business,
+            $this->outlet,
+            $inv2,
+            50.0,
+            25000.0,
+            InventoryMovementType::InitialStock,
+            null,
+            'Stok Masuk Item 2',
+            $this->user
+        );
+
+        $payload = [
+            'outlet_id' => $this->outlet->id,
+            'channel' => SalesChannelEnum::Wholesale->value,
+            'transaction_date' => now()->toDateTimeString(),
+            'payment_term' => PaymentTermEnum::Cash->value,
+            'customer_id' => $this->customer->id,
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'product_item_id' => $this->productItem->id,
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'qty' => 1,
+                    'price' => 80000,
+                    'discount_amount' => 0,
+                ],
+                [
+                    'product_id' => $this->product->id,
+                    'product_item_id' => $item2->id,
+                    'inventory_item_id' => $inv2->id,
+                    'qty' => 2,
+                    'price' => 50000,
+                    'discount_amount' => 0,
+                ],
+            ],
+            'issue_now' => true,
+            'payment' => [
+                'amount' => 180000,
+                'payment_method_id' => $this->paymentMethod->id,
+            ],
+        ];
+
+        DB::enableQueryLog();
+
+        $response = $this->actingAs($this->user, 'business')
+            ->postJson("http://{$this->appDomain}/transactions/sales", $payload);
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $response->assertStatus(201);
+        $response->assertJsonPath('message', 'Faktur penjualan berhasil diterbitkan.');
+
+        $this->assertLessThanOrEqual(50, count($queries), 'Query count exceeds optimized threshold. Actual: '.count($queries));
     }
 }

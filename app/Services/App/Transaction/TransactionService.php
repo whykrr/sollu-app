@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Services\App\Transaction;
 
 use App\Enums\InventoryMovementType;
+use App\Models\Inventory\InventoryBalance;
 use App\Models\Outlet;
 use App\Models\OutletSetting;
 use App\Models\Sales\Transaction;
 use App\Models\User;
 use App\Services\App\Inventory\InventoryCostingService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -68,7 +70,12 @@ class TransactionService
     /**
      * Validasi Ketersediaan Stok Fisik vs Toleransi Stok Negatif.
      */
-    public function checkStockAvailability(array $items, Outlet $outlet): void
+    /**
+     * Validasi Ketersediaan Stok Fisik vs Toleransi Stok Negatif.
+     *
+     * @return Collection<string, InventoryBalance>
+     */
+    public function checkStockAvailability(array $items, Outlet $outlet): Collection
     {
         $allowNegativeSetting = OutletSetting::where('outlet_id', $outlet->id)
             ->where(function ($q) {
@@ -89,8 +96,20 @@ class TransactionService
             }
         }
 
+        $invItemIds = array_values(array_unique(array_filter(array_column($items, 'inventory_item_id'))));
+        if (empty($invItemIds)) {
+            return collect();
+        }
+
+        // Bulk lock and fetch balances in a single query
+        $balances = InventoryBalance::where('outlet_id', $outlet->id)
+            ->whereIn('inventory_item_id', $invItemIds)
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('inventory_item_id');
+
         if ($isNegativeAllowed) {
-            return; // Bebas terbitkan walau stok kurang
+            return $balances;
         }
 
         foreach ($items as $item) {
@@ -99,12 +118,7 @@ class TransactionService
                 continue;
             }
 
-            $balance = DB::table('inventory_balances')
-                ->where('outlet_id', $outlet->id)
-                ->where('inventory_item_id', $item['inventory_item_id'])
-                ->lockForUpdate()
-                ->first();
-
+            $balance = $balances->get($item['inventory_item_id']);
             $currentStock = $balance ? (float) $balance->current_stock : 0.0;
 
             if ($currentStock < (float) $item['qty']) {
@@ -112,12 +126,16 @@ class TransactionService
                 throw new InvalidArgumentException("Stok {$productName} tidak mencukupi. Sisa stok: {$currentStock}");
             }
         }
+
+        return $balances;
     }
 
     /**
      * Potong stok inventori dan alokasikan layer FIFO cost.
+     *
+     * @param  Collection<string, InventoryBalance>|null  $preloadedBalances
      */
-    public function deductStockForTransaction(Transaction $transaction, User $user): void
+    public function deductStockForTransaction(Transaction $transaction, User $user, ?Collection $preloadedBalances = null): void
     {
         $outlet = $transaction->outlet;
         $business = $outlet->business;
@@ -133,8 +151,9 @@ class TransactionService
             }
 
             $qty = (float) $item->qty;
+            $preloadedBalance = $preloadedBalances?->get($inventoryItem->id);
 
-            // Panggil recordOutgoingStock
+            // Panggil recordOutgoingStock dengan balance yang telah di-fetch
             $costResult = $this->costingService->recordOutgoingStock(
                 $business,
                 $outlet,
@@ -143,7 +162,8 @@ class TransactionService
                 InventoryMovementType::Sale,
                 $transaction,
                 "Penjualan {$transaction->transaction_number}",
-                $user
+                $user,
+                preloadedBalance: $preloadedBalance
             );
 
             // Simpan snapshot HPP ke baris item

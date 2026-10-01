@@ -13,6 +13,7 @@ use App\Http\Requests\BaseInertiaFormRequest;
 use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -52,9 +53,9 @@ class StoreSalesTransactionRequest extends BaseInertiaFormRequest
             'payment.notes' => ['nullable', 'string', 'max:1000'],
 
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'uuid', 'exists:products,id'],
-            'items.*.product_item_id' => ['nullable', 'uuid', 'exists:product_items,id'],
-            'items.*.inventory_item_id' => ['nullable', 'uuid', 'exists:inventory_items,id'],
+            'items.*.product_id' => ['required', 'uuid'],
+            'items.*.product_item_id' => ['nullable', 'uuid'],
+            'items.*.inventory_item_id' => ['nullable', 'uuid'],
             'items.*.qty' => ['required', 'numeric', 'min:0.01'],
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.discount_amount' => ['nullable', 'numeric', 'min:0'],
@@ -74,6 +75,60 @@ class StoreSalesTransactionRequest extends BaseInertiaFormRequest
                 }
                 if ($amount <= 0) {
                     $validator->errors()->add('payment.amount', 'Nominal pembayaran wajib diisi lunas untuk penerbitan faktur tunai agar tidak menghasilkan piutang.');
+                }
+            }
+
+            // Batch validate items existence to eliminate per-item N+1 queries
+            $items = $this->input('items', []);
+            if (is_array($items) && ! empty($items)) {
+                $productIds = array_values(array_unique(array_filter(array_column($items, 'product_id'))));
+                if (! empty($productIds)) {
+                    $existingProductIds = DB::table('products')
+                        ->whereIn('id', $productIds)
+                        ->whereNull('deleted_at')
+                        ->pluck('id')
+                        ->all();
+                    $missingProductIds = array_diff($productIds, $existingProductIds);
+                    if (! empty($missingProductIds)) {
+                        foreach ($items as $index => $item) {
+                            if (isset($item['product_id']) && in_array($item['product_id'], $missingProductIds, true)) {
+                                $validator->errors()->add("items.{$index}.product_id", 'Produk yang dipilih tidak valid.');
+                            }
+                        }
+                    }
+                }
+
+                $productItemIds = array_values(array_unique(array_filter(array_column($items, 'product_item_id'))));
+                if (! empty($productItemIds)) {
+                    $existingItemIds = DB::table('product_items')
+                        ->whereIn('id', $productItemIds)
+                        ->whereNull('deleted_at')
+                        ->pluck('id')
+                        ->all();
+                    $missingItemIds = array_diff($productItemIds, $existingItemIds);
+                    if (! empty($missingItemIds)) {
+                        foreach ($items as $index => $item) {
+                            if (isset($item['product_item_id']) && in_array($item['product_item_id'], $missingItemIds, true)) {
+                                $validator->errors()->add("items.{$index}.product_item_id", 'Varian produk yang dipilih tidak valid.');
+                            }
+                        }
+                    }
+                }
+
+                $inventoryItemIds = array_values(array_unique(array_filter(array_column($items, 'inventory_item_id'))));
+                if (! empty($inventoryItemIds)) {
+                    $existingInvIds = DB::table('inventory_items')
+                        ->whereIn('id', $inventoryItemIds)
+                        ->pluck('id')
+                        ->all();
+                    $missingInvIds = array_diff($inventoryItemIds, $existingInvIds);
+                    if (! empty($missingInvIds)) {
+                        foreach ($items as $index => $item) {
+                            if (isset($item['inventory_item_id']) && in_array($item['inventory_item_id'], $missingInvIds, true)) {
+                                $validator->errors()->add("items.{$index}.inventory_item_id", 'Item inventori yang dipilih tidak valid.');
+                            }
+                        }
+                    }
                 }
             }
         });
