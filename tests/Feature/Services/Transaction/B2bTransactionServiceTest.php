@@ -178,7 +178,7 @@ class B2bTransactionServiceTest extends TestCase
 
         // Verify Invoice Extension
         $this->assertNotNull($transaction->invoice);
-        $this->assertStringStartsWith('INV/202609/', $transaction->invoice->invoice_number);
+        $this->assertStringStartsWith('INV/MAIN-B2B-OUTLET/202609/', $transaction->invoice->invoice_number);
         $this->assertEquals(PaymentTermEnum::Credit, $transaction->invoice->payment_term);
         $this->assertEquals('2026-10-30', $transaction->invoice->due_date->format('Y-m-d'));
         $this->assertEquals(TransactionStatus::Draft, $transaction->invoice->status);
@@ -701,5 +701,62 @@ class B2bTransactionServiceTest extends TestCase
         $this->assertEquals(150000.0, (float) $item->subtotal);
         $this->assertEquals(150000.0, (float) $transaction->subtotal);
         $this->assertEquals(150000.0, (float) $transaction->total);
+    }
+
+    public function test_create_transaction_across_different_outlets_does_not_collide_and_scopes_sequences_correctly(): void
+    {
+        $secondOutlet = Outlet::create([
+            'business_id' => $this->business->id,
+            'name' => 'Secondary Branch',
+        ]);
+
+        $itemDto = new CreateTransactionItemDTO(
+            productId: $this->product->id,
+            qty: 1.0,
+            price: 100000.0,
+            productItemId: $this->productItem->id,
+            inventoryItemId: $this->inventoryItem->id
+        );
+
+        $date = new DateTimeImmutable('2026-10-01 10:00:00');
+
+        // Transaksi 1 di Outlet 1
+        $dto1 = new CreateB2bTransactionDTO(
+            outletId: $this->outlet->id,
+            channel: SalesChannelEnum::Wholesale,
+            transactionDate: $date,
+            paymentTerm: PaymentTermEnum::Cash,
+            items: [$itemDto]
+        );
+        $tx1 = $this->b2bService->createTransaction($dto1, $this->user);
+
+        // Transaksi 1 di Outlet 2 (periode sama, tidak boleh unique collision!)
+        $dto2 = new CreateB2bTransactionDTO(
+            outletId: $secondOutlet->id,
+            channel: SalesChannelEnum::Wholesale,
+            transactionDate: $date,
+            paymentTerm: PaymentTermEnum::Cash,
+            items: [$itemDto]
+        );
+        $tx2 = $this->b2bService->createTransaction($dto2, $this->user);
+
+        // Transaksi 2 di Outlet 1 (urutan berlanjut)
+        $dto3 = new CreateB2bTransactionDTO(
+            outletId: $this->outlet->id,
+            channel: SalesChannelEnum::Wholesale,
+            transactionDate: $date,
+            paymentTerm: PaymentTermEnum::Cash,
+            items: [$itemDto]
+        );
+        $tx3 = $this->b2bService->createTransaction($dto3, $this->user);
+
+        $this->assertEquals('TRX/MAIN-B2B-OUTLET/202610/0001', $tx1->transaction_number);
+        $this->assertEquals('INV/MAIN-B2B-OUTLET/202610/0001', $tx1->invoice->invoice_number);
+
+        $this->assertEquals('TRX/SECONDARY-BRANCH/202610/0001', $tx2->transaction_number);
+        $this->assertEquals('INV/SECONDARY-BRANCH/202610/0001', $tx2->invoice->invoice_number);
+
+        $this->assertEquals('TRX/MAIN-B2B-OUTLET/202610/0002', $tx3->transaction_number);
+        $this->assertEquals('INV/MAIN-B2B-OUTLET/202610/0002', $tx3->invoice->invoice_number);
     }
 }

@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\App\Inventory\InventoryCostingService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 class TransactionService
@@ -22,11 +23,23 @@ class TransactionService
     ) {}
 
     /**
-     * Generate Nomor Transaksi (TRX/YYYYMM/XXXX)
+     * Resolve short uppercase outlet code for document prefixes.
+     */
+    protected function resolveOutletCode(Outlet $outlet): string
+    {
+        $rawCode = $outlet->slug ?: $outlet->name;
+        $code = strtoupper(Str::slug(substr($rawCode ?: 'OUTLET', 0, 20)));
+
+        return ! empty($code) ? $code : 'OUTLET';
+    }
+
+    /**
+     * Generate Nomor Transaksi (TRX/{OUTLET}/{YYYYMM}/{XXXX})
      */
     public function generateTransactionNumber(Outlet $outlet, \DateTimeInterface $date): string
     {
-        $prefix = 'TRX/'.$date->format('Ym').'/';
+        $outletCode = $this->resolveOutletCode($outlet);
+        $prefix = 'TRX/'.$outletCode.'/'.$date->format('Ym').'/';
         $lastTx = Transaction::where('outlet_id', $outlet->id)
             ->where('transaction_number', 'like', $prefix.'%')
             ->orderBy('transaction_number', 'desc')
@@ -43,11 +56,12 @@ class TransactionService
     }
 
     /**
-     * Generate Nomor Faktur B2B (INV/YYYYMM/XXXX)
+     * Generate Nomor Faktur B2B (INV/{OUTLET}/{YYYYMM}/{XXXX})
      */
     public function generateInvoiceNumber(Outlet $outlet, \DateTimeInterface $date): string
     {
-        $prefix = 'INV/'.$date->format('Ym').'/';
+        $outletCode = $this->resolveOutletCode($outlet);
+        $prefix = 'INV/'.$outletCode.'/'.$date->format('Ym').'/';
 
         $lastInvoice = DB::table('transaction_invoices')
             ->join('transactions', 'transaction_invoices.transaction_id', '=', 'transactions.id')
