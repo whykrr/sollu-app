@@ -17,7 +17,7 @@ class BusinessFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_business_on_trial_uses_cached_micro_plan_features(): void
+    public function test_business_on_trial_uses_cached_basic_plan_features(): void
     {
         $feature = Feature::factory()->create([
             'code' => FeatureEnum::POS_CASHIER->value,
@@ -25,15 +25,15 @@ class BusinessFeatureTest extends TestCase
             'is_active' => true,
         ]);
 
-        $microPlan = SubscriptionPlan::factory()->create([
-            'code' => PlanEnum::MICRO->value,
-            'name' => 'Micro Plan',
+        $basicPlan = SubscriptionPlan::factory()->create([
+            'code' => PlanEnum::BASIC->value,
+            'name' => 'Basic Plan',
             'price_per_outlet' => 0,
             'is_active' => true,
             'is_public' => true,
         ]);
-        $microPlan->systemFeatures()->attach($feature->id);
-        $microPlan->clearFeatureCache();
+        $basicPlan->systemFeatures()->attach($feature->id);
+        $basicPlan->clearFeatureCache();
 
         $businessType = BusinessType::factory()->create([
             'code' => 'retail',

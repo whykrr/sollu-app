@@ -36,7 +36,7 @@ Route::prefix('inventories')->group(function () {
     Route::middleware('plan.feature:'.FeatureEnum::INVENTORY_MANAGEMENT->value)
         ->name('inventory.')->group(function () {
             // Raw Materials
-            Route::middleware('plan.feature:'.FeatureEnum::RAW_MATERIALS->value)->group(function () {
+            Route::middleware([])->group(function () {
                 Route::get('raw-materials/export', [RawMaterialController::class, 'export'])->name('raw-materials.export');
                 Route::get('raw-materials/import/template', [RawMaterialController::class, 'importTemplate'])->name('raw-materials.importTemplate');
                 Route::post('raw-materials/import', [RawMaterialController::class, 'import'])->name('raw-materials.import');
@@ -107,7 +107,7 @@ Route::prefix('inventories')->group(function () {
             });
 
             // Outlets (Generic Inventory Outlet Actions)
-            Route::middleware('plan.feature:'.FeatureEnum::STOCK_FREEZE->value)->group(function () {
+            Route::middleware([])->group(function () {
                 Route::post('outlets/freeze', [OutletFreezeController::class, 'freeze'])->name('outlets.freeze');
                 Route::post('outlets/unfreeze', [OutletFreezeController::class, 'unfreeze'])->name('outlets.unfreeze');
             });

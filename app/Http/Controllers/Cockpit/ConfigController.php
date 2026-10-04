@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cockpit;
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Http\Controllers\Controller;
+use App\Models\Feature;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,12 +17,20 @@ class ConfigController extends Controller
         $midtransEnabled = SystemSetting::isMidtransEnabled();
         $helpCenterUrl = SystemSetting::get('help_center_url', '');
         $whatsappSupportNumber = SystemSetting::get('whatsapp_support_number', '');
+        $trialDurationDays = SystemSetting::getTrialDurationDays();
+        $trialFeatures = SystemSetting::getTrialFeatureEnumsCached();
+        $totalFeaturesCount = Feature::getAllCached()->where('is_active', true)->count();
 
         return Inertia::render('Cockpit/Config/Index', [
             'midtransEnabled' => $midtransEnabled,
             'settings' => [
                 'help_center_url' => $helpCenterUrl,
                 'whatsapp_support_number' => $whatsappSupportNumber,
+            ],
+            'trialSettings' => [
+                'duration_days' => $trialDurationDays,
+                'features_count' => count($trialFeatures),
+                'total_features_count' => $totalFeaturesCount,
             ],
         ]);
     }

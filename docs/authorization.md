@@ -147,7 +147,7 @@ namespace App\Enums;
 enum FeatureEnum: string
 {
     case INVENTORY_MANAGEMENT = 'inventory_management';
-    case RECIPE_MANAGEMENT    = 'recipe_management';
+    case PRODUCT_CATALOG    = 'product_catalog';
     case PROMO_MANAGEMENT     = 'promo_management';
     case MULTI_OUTLET         = 'multi_outlet';
     case ADVANCED_REPORTS     = 'advanced_reports';
@@ -183,9 +183,9 @@ Jika tenant tidak memiliki akses ke fitur ini:
 Menampilkan preview fitur yang terkunci dengan tombol ajakan upgrade (*upsell*):
 ```vue
 <template>
-    <FeatureLock :feature="$enums.FeatureEnum.RECIPE_MANAGEMENT">
+    <FeatureLock :feature="$enums.FeatureEnum.PRODUCT_VARIANTS">
         <div class="card p-4">
-            <h3>Manajemen Resep (BOM)</h3>
+            <h3>Manajemen Varian (BOM)</h3>
             <p>Atur komposisi bahan baku untuk setiap menu produk.</p>
         </div>
     </FeatureLock>

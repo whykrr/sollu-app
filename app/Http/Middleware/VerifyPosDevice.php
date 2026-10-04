@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\FeatureEnum;
+use App\Models\Business;
 use App\Models\OutletDevice;
 use Closure;
 use Illuminate\Http\Request;
@@ -50,6 +52,17 @@ class VerifyPosDevice
         if ($cachedDevice['client_device_uuid'] !== $clientUuid ||
             $cachedDevice['hardware_fingerprint'] !== $hardwareFingerprint) {
             return response()->json(['message' => 'Device fingerprint mismatch.'], 401);
+        }
+
+        // Validate that the business has active subscription/trial granting POS_CASHIER feature
+        $outlet = $device->relationLoaded('outlet') ? $device->outlet : $device->outlet()->first();
+        $business = $outlet?->business_id ? Business::findCached($outlet->business_id) : null;
+
+        if (! $business || ! $business->hasFeature(FeatureEnum::POS_CASHIER)) {
+            return response()->json([
+                'message' => 'Masa berlaku langganan atau uji coba toko Anda telah berakhir. Silakan hubungi pemilik usaha untuk memperpanjang paket.',
+                'error_code' => 'SUBSCRIPTION_EXPIRED',
+            ], 402);
         }
 
         return $next($request);

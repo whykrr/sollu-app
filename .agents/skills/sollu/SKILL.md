@@ -561,7 +561,7 @@ DILARANG KERAS menuliskan string literal mentah untuk validasi kondisi, status, 
 | :---------------------- | :--------------------------------------------------------------------- | :------------------------------------------------------------------ |
 | **Vue Template `v-if`** | `v-if="item.status === 'draft'"`                                       | `v-if="item.status === $enums.AdjustmentStatus.Draft"`              |
 | **Vue Feature Gating**  | `v-feature="'promo_management'"`                                       | `v-feature="$enums.FeatureEnum.PROMO_MANAGEMENT"`                   |
-| **Vue Upsell Lock**     | `v-feature.lock="'recipe_management'"`                                 | `v-feature.lock="$enums.FeatureEnum.RECIPE_MANAGEMENT"`             |
+| **Vue Upsell Lock**     | `v-feature.lock="'promo_management'"`                                 | `v-feature.lock="$enums.FeatureEnum.PROMO_MANAGEMENT"`             |
 | **Vue Badge Class**     | `:class="item.status === 'approved' ? 'badge-success' : 'badge-gray'"` | `:class="$enums.AdjustmentStatus._meta[item.status]?.color"`        |
 | **Vue Badge Text**      | `{{ item.status === 'approved' ? 'Disetujui' : item.status }}`         | `{{ $enums.AdjustmentStatus._meta[item.status]?.label }}`           |
 | **Vue Script Setup**    | `if (item.status === 'draft')`                                         | `if (item.status === enums.AdjustmentStatus.Draft)` via `useEnum()` |
@@ -717,13 +717,13 @@ if (can('settings.outlets.create')) {
 
 ### 7.2. Backend Feature Registration Workflow
 
-1. **Daftarkan Key Fitur:** Tambahkan case di `app/Enums/FeatureEnum.php` (e.g. `case RECIPE_MANAGEMENT = 'recipe_management';`).
+1. **Daftarkan Key Fitur:** Tambahkan case di `app/Enums/FeatureEnum.php` (e.g. `case PRODUCT_CATALOG = 'product_catalog';`).
 2. **Daftarkan Metadata Fitur di Database:** Tambahkan metadata (code, name, description, module, group, group_label, sort_order) di `database/seeders/Production/FeatureSeeder.php` dan tabel database `features`.
 3. **Petakan ke Paket Langganan:** Tambahkan relasi fitur ke paket di `database/seeders/Production/SubscriptionPlanSeeder.php` atau atur langsung melalui antarmuka Cockpit Super Admin via tabel pivot `plan_features` (`SubscriptionPlan::systemFeatures(): BelongsToMany`). DILARANG meng-hardcode pemetaan paket di `PlanEnum.php`.
 4. **Pasang Middleware pada Route:**
     ```php
     Route::prefix('recipes')
-        ->middleware('plan.feature:' . FeatureEnum::RECIPE_MANAGEMENT->value)
+        ->middleware('plan.feature:' . FeatureEnum::PRODUCT_CATALOG->value)
         ->group(function () {
             Route::resource('recipes', RecipeController::class);
         });
@@ -736,14 +736,14 @@ if (can('settings.outlets.create')) {
     ```html
     <button v-feature="$enums.FeatureEnum.PROMO_MANAGEMENT" class="btn btn-main">Buat Promo</button>
     <div
-        v-feature.all="[$enums.FeatureEnum.INVENTORY_MANAGEMENT, $enums.FeatureEnum.RECIPE_MANAGEMENT]"
+        v-feature.all="[$enums.FeatureEnum.INVENTORY_MANAGEMENT, $enums.FeatureEnum.PRODUCT_CATALOG]"
     >
         ...
     </div>
     ```
 - **Komponen `<FeatureLock>` & `<FeatureLockOverlay>` (Direkomendasikan):**
     ```html
-    <FeatureLock :feature="$enums.FeatureEnum.RECIPE_MANAGEMENT">
+    <FeatureLock :feature="$enums.FeatureEnum.PRODUCT_CATALOG">
         <div class="card">...</div>
     </FeatureLock>
     ```

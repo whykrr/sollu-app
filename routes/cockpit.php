@@ -8,12 +8,15 @@ use App\Http\Controllers\Cockpit\BusinessTypeController;
 use App\Http\Controllers\Cockpit\ConfigController;
 use App\Http\Controllers\Cockpit\DashboardController;
 use App\Http\Controllers\Cockpit\InvoiceController;
+use App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController;
 use App\Http\Controllers\Cockpit\SubscriptionPlanController;
+use App\Http\Controllers\Cockpit\TrialConfigController;
 use App\Http\Controllers\Cockpit\UomController;
+use App\Http\Controllers\Support\CsrfTokenController;
 use Illuminate\Support\Facades\Route;
 
 Route::name('cockpit.')->group(function () {
-    Route::get('/csrf-token', [\App\Http\Controllers\Support\CsrfTokenController::class, 'show'])->name('csrf.token');
+    Route::get('/csrf-token', [CsrfTokenController::class, 'show'])->name('csrf.token');
 
     Route::middleware('guest:cockpit')->group(function () {
         Route::get('/login', [AuthenticationController::class, 'index'])->name('login');
@@ -56,17 +59,19 @@ Route::name('cockpit.')->group(function () {
         Route::post('/business-types/{id}/toggle-visibility', [BusinessTypeController::class, 'toggleVisibility'])->name('business-types.toggle-visibility');
         Route::put('/business-types/{id}/features', [BusinessTypeController::class, 'updateFeatures'])->name('business-types.update-features');
 
-        Route::get('/payment-methods', [\App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController::class, 'index'])->name('payment-methods.index');
-        Route::post('/payment-methods', [\App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController::class, 'store'])->name('payment-methods.store');
-        Route::put('/payment-methods/{id}', [\App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController::class, 'update'])->name('payment-methods.update');
-        Route::post('/payment-methods/{id}/toggle-status', [\App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController::class, 'toggleStatus'])->name('payment-methods.toggle-status');
-        Route::delete('/payment-methods/{id}', [\App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController::class, 'destroy'])->name('payment-methods.destroy');
+        Route::get('/payment-methods', [SubscriptionManualPaymentMethodController::class, 'index'])->name('payment-methods.index');
+        Route::post('/payment-methods', [SubscriptionManualPaymentMethodController::class, 'store'])->name('payment-methods.store');
+        Route::put('/payment-methods/{id}', [SubscriptionManualPaymentMethodController::class, 'update'])->name('payment-methods.update');
+        Route::post('/payment-methods/{id}/toggle-status', [SubscriptionManualPaymentMethodController::class, 'toggleStatus'])->name('payment-methods.toggle-status');
+        Route::delete('/payment-methods/{id}', [SubscriptionManualPaymentMethodController::class, 'destroy'])->name('payment-methods.destroy');
 
         Route::get('/uoms', [UomController::class, 'index'])->name('uoms.index');
 
         Route::get('/config', [ConfigController::class, 'index'])->name('config.index');
         Route::put('/config/settings', [ConfigController::class, 'updateSettings'])->name('config.settings.update');
         Route::patch('/config/feature-flag', [ConfigController::class, 'updateFlag'])->name('config.feature-flag.update');
+        Route::get('/config/trial', [TrialConfigController::class, 'show'])->name('config.trial.show');
+        Route::put('/config/trial', [TrialConfigController::class, 'update'])->name('config.trial.update');
 
         Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
     });

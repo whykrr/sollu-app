@@ -20,6 +20,11 @@ const isSubscribed = computed(() => {
     return Boolean(subscription && subscription.status === 'active')
 })
 
+const isTrialActive = computed(() => {
+    const trialEndAt = page.props.auth?.business?.trial_end_at
+    return trialEndAt ? new Date(trialEndAt) > new Date() : false
+})
+
 const featureLabel = computed(() => {
     const enums = page.props.enums
     const meta = enums?.FeatureEnum?._meta?.[props.feature]
@@ -40,7 +45,9 @@ const featureLabel = computed(() => {
             <FontAwesomeIcon :icon="faLock" size="2x" class="h-8 w-8 text-main" />
         </div>
 
-        <h3 class="text-lg font-semibold text-gray-900 mb-1">Fitur Terkunci</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">
+            {{ isSubscribed || isTrialActive ? 'Fitur Terkunci' : 'Masa Langganan Berakhir' }}
+        </h3>
 
         <div
             class="inline-block px-2.5 py-0.5 mb-3 text-xs font-medium text-main bg-sky-50 border border-sky-200 rounded-full"
@@ -53,9 +60,13 @@ const featureLabel = computed(() => {
                 Fitur ini tersedia pada tingkatan paket yang lebih tinggi. Tingkatkan paket
                 langganan Anda sekarang untuk menikmati akses penuh dan fitur premium lainnya.
             </template>
+            <template v-else-if="isTrialActive">
+                Fitur ini tidak tersedia pada masa uji coba tokomu. Berlangganan sekarang untuk
+                menikmati akses penuh ke fitur ini dan fitur eksklusif lainnya.
+            </template>
             <template v-else>
-                Fitur ini tidak tersedia pada masa uji coba atau paket gratis. Berlangganan sekarang
-                untuk menikmati akses penuh ke fitur ini dan fitur eksklusif lainnya.
+                Masa berlaku paket langganan atau uji coba tokomu telah berakhir. Berlangganan
+                sekarang untuk membuka kembali akses penuh ke seluruh fitur tokomu.
             </template>
         </p>
 

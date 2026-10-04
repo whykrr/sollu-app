@@ -57,7 +57,6 @@ class StockTransferFeatureTest extends TestCase
                 'features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
                     FeatureEnum::STOCK_TRANSFERS->value,
-                    FeatureEnum::STOCK_FREEZE->value,
                 ],
             ]
         );
@@ -74,7 +73,6 @@ class StockTransferFeatureTest extends TestCase
                 'active_features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
                     FeatureEnum::STOCK_TRANSFERS->value,
-                    FeatureEnum::STOCK_FREEZE->value,
                 ],
             ],
         ]);

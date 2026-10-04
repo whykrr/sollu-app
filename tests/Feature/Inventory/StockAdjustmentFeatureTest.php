@@ -61,7 +61,6 @@ class StockAdjustmentFeatureTest extends TestCase
                 'features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
                     FeatureEnum::STOCK_ADJUSTMENTS->value,
-                    FeatureEnum::STOCK_FREEZE->value,
                 ],
             ]
         );
@@ -78,7 +77,6 @@ class StockAdjustmentFeatureTest extends TestCase
                 'active_features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
                     FeatureEnum::STOCK_ADJUSTMENTS->value,
-                    FeatureEnum::STOCK_FREEZE->value,
                 ],
             ],
         ]);

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\FeatureEnum;
+use App\Enums\PlanEnum;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,10 +34,16 @@ class SystemSetting extends Model
     {
         static::saved(function ($setting) {
             Cache::forget("system_setting_{$setting->key}");
+            if ($setting->key === 'trial_features') {
+                Cache::forget('system:trial_features:enums');
+            }
         });
 
         static::deleted(function ($setting) {
             Cache::forget("system_setting_{$setting->key}");
+            if ($setting->key === 'trial_features') {
+                Cache::forget('system:trial_features:enums');
+            }
         });
     }
 
@@ -59,12 +67,15 @@ class SystemSetting extends Model
         $setting = self::updateOrCreate(
             ['key' => $key],
             [
-                'value' => $value,
+                'value' => is_array($value) ? json_encode($value) : $value,
                 'group' => $group,
             ]
         );
 
         Cache::forget("system_setting_{$key}");
+        if ($key === 'trial_features') {
+            Cache::forget('system:trial_features:enums');
+        }
 
         return $setting;
     }
@@ -77,5 +88,51 @@ class SystemSetting extends Model
         $value = self::get('midtrans_payment_enabled', false);
 
         return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * Get default trial duration in days.
+     */
+    public static function getTrialDurationDays(): int
+    {
+        $value = self::get('trial_default_duration_days', 14);
+
+        return max(1, (int) $value);
+    }
+
+    /**
+     * Get active trial FeatureEnum instances from cache or fallback to Basic plan.
+     *
+     * @return array<FeatureEnum>
+     */
+    public static function getTrialFeatureEnumsCached(): array
+    {
+        return Cache::rememberForever('system:trial_features:enums', function () {
+            $raw = self::get('trial_features', null);
+
+            if ($raw === null) {
+                $basicPlan = SubscriptionPlan::findByCodeCached(PlanEnum::BASIC->value);
+
+                return $basicPlan ? $basicPlan->activeFeatureEnums() : [];
+            }
+
+            $codes = is_array($raw) ? $raw : (json_decode((string) $raw, true) ?: []);
+
+            return collect($codes)
+                ->map(fn (string $code) => FeatureEnum::tryFrom($code))
+                ->filter()
+                ->values()
+                ->all();
+        });
+    }
+
+    /**
+     * Clear all trial configuration caches.
+     */
+    public static function clearTrialCache(): void
+    {
+        Cache::forget('system_setting_trial_features');
+        Cache::forget('system_setting_trial_default_duration_days');
+        Cache::forget('system:trial_features:enums');
     }
 }

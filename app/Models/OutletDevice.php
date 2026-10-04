@@ -6,14 +6,14 @@ use App\Enums\DeviceTypeEnum;
 use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @mixin IdeHelperOutletDevice
  */
-class OutletDevice extends Model
+class OutletDevice extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasUuids, SortableModel;
 

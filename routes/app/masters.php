@@ -36,8 +36,8 @@ Route::prefix('master')
                 Route::resource('services', ServiceProductController::class);
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_MODIFIERS->value)
-            ->group(function () {
-                Route::resource('modifiers', ModifierGroupController::class)->except(['create', 'edit']);
-            });
+        // Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_MODIFIERS->value)
+        //     ->group(function () {
+        //         Route::resource('modifiers', ModifierGroupController::class)->except(['create', 'edit']);
+        //     });
     });

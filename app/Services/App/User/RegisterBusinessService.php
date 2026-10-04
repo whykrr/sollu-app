@@ -6,8 +6,10 @@ use App\Enums\RoleEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Outlet;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\App\Outlet\OutletProvisioningService;
+use App\Services\App\Role\RoleProvisioningService;
 use Illuminate\Support\Facades\DB;
 
 class RegisterBusinessService
@@ -35,7 +37,7 @@ class RegisterBusinessService
                 'status' => 'active',
                 'business_type_id' => $data['business_type_id'],
                 'settings' => $type?->default_settings ?? null,
-                'trial_end_at' => now()->addDays(15),
+                'trial_end_at' => now()->addDays(SystemSetting::getTrialDurationDays()),
             ]);
 
             $outlet = $business->outlets()->create([
@@ -53,7 +55,7 @@ class RegisterBusinessService
             ]);
 
             // Provision roles for this business
-            app(\App\Services\App\Role\RoleProvisioningService::class)->provision($business);
+            app(RoleProvisioningService::class)->provision($business);
 
             // Assign owner role & attach to main outlet
             setPermissionsTeamId($business->id);

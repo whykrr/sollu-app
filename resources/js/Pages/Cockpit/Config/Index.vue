@@ -106,9 +106,61 @@
                 </div>
             </div>
 
-            <!-- Right Column: Feature Flags / Payment Integrations -->
+            <!-- Right Column: Feature Flags / Payment Integrations & Trial Settings -->
             <div class="lg:col-span-5 flex flex-col gap-4">
-                <!-- Card 2: Integrasi Pembayaran -->
+                <!-- Card 2: Pengaturan Masa Uji Coba (Trial) -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
+                    <h3
+                        class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
+                    >
+                        <FontAwesomeIcon :icon="faSliders" class="text-main" />
+                        <span>Masa Uji Coba (Trial)</span>
+                    </h3>
+
+                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-semibold text-sm text-slate-800">
+                                        Hak Akses & Durasi Trial
+                                    </h4>
+                                    <span
+                                        class="px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wider bg-amber-100 text-amber-800"
+                                    >
+                                        {{ trialSettings?.duration_days || 14 }} Hari
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                    Atur fitur sistem dan durasi default yang aktif saat merchant
+                                    baru pertama kali mendaftar.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs"
+                        >
+                            <span class="text-slate-600 font-medium">Fitur Trial Aktif:</span>
+                            <span
+                                class="px-2 py-0.5 bg-main/10 text-main font-bold rounded-full text-[11px]"
+                            >
+                                {{ trialSettings?.features_count ?? 0 }} /
+                                {{ trialSettings?.total_features_count ?? 0 }} Fitur
+                            </span>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-main btn-sm w-full justify-center flex items-center gap-1.5 cursor-pointer"
+                            @click="openTrialConfig"
+                        >
+                            <FontAwesomeIcon :icon="faSliders" class="text-xs" />
+                            <span>Kelola Fitur Trial</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 3: Integrasi Pembayaran -->
                 <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
@@ -174,13 +226,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, markRaw } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faSave,
     faLifeRing,
     faCreditCard,
+    faSliders,
     faArrowUpRightFromSquare,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -189,6 +242,8 @@ import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import Switch from '@/Components/Form/Switch.vue'
 import { useModalStore } from '@/store/notification'
+import { usePopUpStore } from '@/store/popup'
+import TrialFeaturesPopUp from './Components/TrialFeaturesPopUp.vue'
 
 const props = defineProps({
     midtransEnabled: {
@@ -199,9 +254,14 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    trialSettings: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
 const modalStore = useModalStore()
+const popUpStore = usePopUpStore()
 
 const form = useForm({
     help_center_url: props.settings?.help_center_url || '',
@@ -238,6 +298,14 @@ const previewWhatsappUrl = computed(() => {
 const submitSettings = () => {
     form.put(route('cockpit.config.settings.update'), {
         preserveScroll: true,
+    })
+}
+
+const openTrialConfig = () => {
+    popUpStore.open({
+        component: markRaw(TrialFeaturesPopUp),
+        title: 'Pengaturan Masa Uji Coba (Trial)',
+        size: 'max-w-2xl',
     })
 }
 

@@ -27,9 +27,9 @@ enum FeatureEnum: string
     case SERVICE_CATALOG = 'service_catalog';
     case PRODUCT_CATEGORIES = 'product_categories';
     case PRODUCT_VARIANTS = 'product_variants';
-    case PRODUCT_MODIFIERS = 'product_modifiers';
-    case PRODUCT_BUNDLES = 'product_bundles';
-    case RECIPE_MANAGEMENT = 'recipe_management';
+    // case PRODUCT_MODIFIERS = 'product_modifiers';
+    // case PRODUCT_BUNDLES = 'product_bundles';
+    // case RECIPE_MANAGEMENT = 'recipe_management';
 
     /*
     |--------------------------------------------------------------------------
@@ -38,10 +38,8 @@ enum FeatureEnum: string
     */
 
     case INVENTORY_MANAGEMENT = 'inventory_management';
-    case RAW_MATERIALS = 'raw_materials';
     case STOCK_MOVEMENTS = 'stock_movements';
     case STOCK_ADJUSTMENTS = 'stock_adjustments';
-    case STOCK_FREEZE = 'stock_freeze';
     case STOCK_OPNAME = 'stock_opname';
     case STOCK_TRANSFERS = 'stock_transfers';
     case SUPPLIER_MANAGEMENT = 'supplier_management';

@@ -4,12 +4,18 @@ namespace Tests\Feature\Settings;
 
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
+use App\Enums\RoleTemplateEnum;
+use App\Models\Business;
+use App\Models\BusinessType;
+use App\Models\Role;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Services\App\Role\RoleProvisioningService;
 use Carbon\Carbon;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -29,12 +35,12 @@ class RoleControllerTest extends TestCase
 
     protected function createMerchantUser(): User
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Merchant Test Business',
             'owner_name' => 'Merchant Owner',
             'email' => 'merchant_'.uniqid().'@test.test',
@@ -53,7 +59,7 @@ class RoleControllerTest extends TestCase
 
         setPermissionsTeamId($business->id);
 
-        \App\Models\Role::create([
+        Role::create([
             'business_id' => $business->id,
             'name' => 'cashier',
             'label' => 'Kasir',
@@ -61,7 +67,7 @@ class RoleControllerTest extends TestCase
             'is_default' => true,
         ]);
 
-        $ownerRole = \App\Models\Role::create([
+        $ownerRole = Role::create([
             'business_id' => $business->id,
             'name' => 'owner',
             'label' => 'Owner',
@@ -111,9 +117,9 @@ class RoleControllerTest extends TestCase
     public function test_user_without_plan_feature_is_redirected_with_feature_locked(): void
     {
         $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user, PlanEnum::MICRO);
         setPermissionsTeamId($user->business_id);
 
-        // User business is on trial (Micro) which does not have ROLE_PERMISSIONS
         $response = $this->actingAs($user, 'business')->get("http://{$this->appDomain}/settings/roles");
 
         $response->assertRedirect();
@@ -184,7 +190,7 @@ class RoleControllerTest extends TestCase
         $this->subscribeBusinessToPlan($user);
         setPermissionsTeamId($user->business_id);
 
-        $role = \App\Models\Role::where('business_id', $user->business_id)->first();
+        $role = Role::where('business_id', $user->business_id)->first();
 
         $response = $this->actingAs($user, 'business')->get("http://{$this->appDomain}/settings/roles/{$role->id}");
 
@@ -205,8 +211,8 @@ class RoleControllerTest extends TestCase
         $this->subscribeBusinessToPlan($user);
         setPermissionsTeamId($user->business_id);
 
-        $otherBusinessId = (string) \Illuminate\Support\Str::uuid();
-        $otherRole = \App\Models\Role::create([
+        $otherBusinessId = (string) Str::uuid();
+        $otherRole = Role::create([
             'business_id' => $otherBusinessId,
             'name' => 'other-role',
             'label' => 'Other Role',
@@ -221,12 +227,12 @@ class RoleControllerTest extends TestCase
 
     public function test_role_provisioning_service_only_provisions_owner(): void
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'fnb'],
             ['name' => 'Food & Beverage', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'New F&B Cafe',
             'owner_name' => 'Cafe Owner',
             'email' => 'cafe_'.uniqid().'@test.test',
@@ -236,10 +242,10 @@ class RoleControllerTest extends TestCase
             'business_type_id' => $type->id,
         ]);
 
-        $provisioningService = new \App\Services\App\Role\RoleProvisioningService;
+        $provisioningService = new RoleProvisioningService;
         $provisioningService->provision($business);
 
-        $roles = \App\Models\Role::where('business_id', $business->id)->get();
+        $roles = Role::where('business_id', $business->id)->get();
 
         $this->assertCount(1, $roles);
         $this->assertEquals('owner', $roles->first()->name);
@@ -254,18 +260,18 @@ class RoleControllerTest extends TestCase
         $user->givePermissionTo(PermissionEnum::ROLE_CREATE->value);
 
         $response = $this->actingAs($user, 'business')->post("http://{$this->appDomain}/settings/roles/template", [
-            'template_key' => \App\Enums\RoleTemplateEnum::CASHIER_FNB->value,
+            'template_key' => RoleTemplateEnum::CASHIER_FNB->value,
         ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('roles', [
             'business_id' => $user->business_id,
-            'label' => \App\Enums\RoleTemplateEnum::CASHIER_FNB->label(),
+            'label' => RoleTemplateEnum::CASHIER_FNB->label(),
             'is_default' => false,
         ]);
 
-        $createdRole = \App\Models\Role::where('business_id', $user->business_id)
-            ->where('label', \App\Enums\RoleTemplateEnum::CASHIER_FNB->label())
+        $createdRole = Role::where('business_id', $user->business_id)
+            ->where('label', RoleTemplateEnum::CASHIER_FNB->label())
             ->first();
 
         $this->assertNotNull($createdRole);

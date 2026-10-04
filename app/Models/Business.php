@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\BusinessStatus;
 use App\Enums\FeatureEnum;
 use App\Enums\InventoryCostingMethod;
-use App\Enums\PlanEnum;
 use App\Models\Master\Product;
 use App\Services\App\Inventory\InventorySodService;
 use Carbon\Carbon;
@@ -310,9 +309,7 @@ class Business extends Model
             $isTrial = $this->trial_end_at ? Carbon::parse($this->trial_end_at)->isFuture() : false;
 
             if ($isTrial) {
-                $trialPlan = SubscriptionPlan::findByCodeCached(PlanEnum::MICRO->value);
-
-                return $trialPlan ? $trialPlan->activeFeatureEnums() : [];
+                return SystemSetting::getTrialFeatureEnumsCached();
             }
 
             return [];
