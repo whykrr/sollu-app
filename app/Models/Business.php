@@ -247,8 +247,9 @@ class Business extends Model
             return $this->memoizedActivePlanFeatures;
         }
 
+        $shouldCache = $planFeatures === null;
         $cacheKey = "business:{$this->id}:active_plan_features";
-        if ($planFeatures === null) {
+        if ($shouldCache) {
             $cached = Cache::get($cacheKey);
             if ($cached !== null) {
                 return $this->memoizedActivePlanFeatures = $cached;
@@ -281,7 +282,7 @@ class Business extends Model
             }
         }
 
-        if ($planFeatures === null) {
+        if ($shouldCache) {
             Cache::put($cacheKey, $activeFeatures, 3600);
         }
 

@@ -48,9 +48,20 @@ return [
     | considered expired. This will override any values set in the token's
     | "expires_at" attribute, but first-party sessions are not affected.
     |
+    'expiration' => null,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Token Last Used At
+    |--------------------------------------------------------------------------
+    |
+    | When disabled, Sanctum will not synchronously update the `last_used_at`
+    | timestamp on personal_access_tokens on every API request. This eliminates
+    | database write transaction lock contention under high-frequency API calls.
+    |
     */
 
-    'expiration' => null,
+    'last_used_at' => env('SANCTUM_LAST_USED_AT', false),
 
     /*
     |--------------------------------------------------------------------------

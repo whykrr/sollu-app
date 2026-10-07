@@ -10,7 +10,9 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\Auth\UserPermissionCacheService;
+use App\Support\Enums\FrontendEnumProvider;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Role;
 
 class UserCacheObserver
@@ -21,6 +23,7 @@ class UserCacheObserver
 
         if ($model instanceof User) {
             SummaryUser::cacheDelete($model->id);
+            Cache::forgetPattern('pos:outlet:*:employees');
 
             // Only clear permission cache if auth-structural fields changed or record was deleted
             if ($isDelete || $model->wasChanged(['business_id', 'is_root_user', 'deleted_at'])) {
@@ -31,6 +34,8 @@ class UserCacheObserver
         }
 
         if ($model instanceof Role) {
+            Cache::forgetPattern('pos:outlet:*:employees');
+
             if ($model->business_id) {
                 $permissionCacheService->clearBusinessPermissions($model->business_id);
             } else {
@@ -85,6 +90,7 @@ class UserCacheObserver
         if ($model instanceof Feature) {
             Feature::clearCache();
             SubscriptionPlan::clearCache();
+            FrontendEnumProvider::clearCache();
 
             return;
         }
@@ -96,6 +102,8 @@ class UserCacheObserver
         }
 
         if ($model instanceof Outlet) {
+            Cache::forget("pos:outlet:{$model->id}:employees");
+
             if ($model->business_id) {
                 $userIds = User::where('business_id', $model->business_id)->pluck('id');
                 foreach ($userIds as $userId) {

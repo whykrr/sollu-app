@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers\API\POS;
 
+use App\Enums\PermissionEnum;
 use App\Events\Pos\PosDeviceUnpairedEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\POS\ConnectDeviceRequest;
 use App\Http\Requests\API\POS\UnpairPosDeviceRequest;
 use App\Models\OutletDevice;
+use App\Models\User;
+use App\Services\Auth\UserPermissionCacheService;
 use App\Services\Pos\PosDeviceAuthCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 class DeviceController extends Controller
 {
@@ -105,24 +109,63 @@ class DeviceController extends Controller
             return $this->errorResponse('Perangkat tidak valid.', [], 401);
         }
 
-        $device->load('outlet');
+        $device->loadMissing('outlet');
         $outlet = $device->outlet;
 
         if (! $outlet) {
             return $this->errorResponse('Outlet tidak ditemukan untuk perangkat ini.', [], 404);
         }
 
+        $authorizedUser = null;
+        $userId = $request->input('user_id');
+        $pin = $request->input('pin');
+
+        if ($userId) {
+            $authorizedUser = User::where('business_id', $outlet->business_id)
+                ->where('id', $userId)
+                ->first();
+
+            if (! $authorizedUser) {
+                return $this->errorResponse('Pengguna tidak ditemukan pada bisnis ini.', [], 404);
+            }
+
+            $permissionCacheService = app(UserPermissionCacheService::class);
+            if (! $permissionCacheService->hasPermission($authorizedUser, PermissionEnum::SETTING_DEVICE->value, $outlet->business_id)) {
+                return $this->errorResponse('Anda tidak memiliki hak akses untuk memutus perangkat ini.', [], 403);
+            }
+        } elseif ($pin) {
+            $users = User::where('business_id', $outlet->business_id)
+                ->whereNotNull('pin')
+                ->get();
+
+            foreach ($users as $user) {
+                if ($user->pin && Hash::check((string) $pin, $user->pin)) {
+                    $authorizedUser = $user;
+                    break;
+                }
+            }
+
+            if (! $authorizedUser) {
+                return $this->errorResponse('PIN yang dimasukkan tidak valid.', [], 401);
+            }
+
+            $permissionCacheService = app(UserPermissionCacheService::class);
+            if (! $permissionCacheService->hasPermission($authorizedUser, PermissionEnum::SETTING_DEVICE->value, $outlet->business_id)) {
+                return $this->errorResponse('Anda tidak memiliki hak akses untuk memutus perangkat ini.', [], 403);
+            }
+        }
+
         $device->update([
             'is_active' => false,
             'unpaired_at' => now(),
-            'unpaired_by' => null,
+            'unpaired_by' => $authorizedUser?->id,
         ]);
 
         // Hapus token Sanctum aktif
         $device->currentAccessToken()?->delete();
 
         // Trigger event untuk menghapus cache seketika
-        event(new PosDeviceUnpairedEvent($device, null));
+        event(new PosDeviceUnpairedEvent($device, $authorizedUser));
 
         return $this->successResponse(null, 'Perangkat berhasil diputus dari outlet.');
     }

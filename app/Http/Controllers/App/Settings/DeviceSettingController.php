@@ -7,6 +7,7 @@ use App\Constants\ResourceMessage;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Helpers\SelectedOutlet;
+use App\Helpers\SummaryUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Outlet\CreateOutletDeviceRequest;
 use App\Http\Requests\App\Outlet\UpdateOutletDeviceRequest;
@@ -37,19 +38,19 @@ class DeviceSettingController extends Controller
             ->select('id', 'name', 'slug')
             ->orderBy('name')
             ->get();
+        $outletIds = $outlets->pluck('id')->toArray();
 
         $sidebarOutlet = SelectedOutlet::make($user)->get();
         $filterOutletId = SelectedOutlet::resolveEffectiveOutletId($user, $request->get('outlet') ?: $request->get('outlet_id'));
 
         $query = OutletDevice::query()
             ->with(['outlet:id,name,slug'])
-            ->withCount('tokens')
-            ->whereHas('outlet', function ($q) use ($businessId) {
-                $q->where('business_id', $businessId);
-            });
+            ->withCount('tokens');
 
         if ($filterOutletId) {
             $query->where('outlet_id', $filterOutletId);
+        } else {
+            $query->whereIn('outlet_id', $outletIds);
         }
 
         if ($request->filled('search')) {
@@ -77,16 +78,17 @@ class DeviceSettingController extends Controller
 
         $devices = $query->paginate((int) $request->get('perpage', 12))->withQueryString();
 
-        $business = $user->business;
-        $hasMultiDevice = $business ? $business->hasPlanFeature(FeatureEnum::MULTI_DEVICE) : false;
+        $summary = SummaryUser::make($user)->cached();
+        $hasMultiDevice = in_array(FeatureEnum::MULTI_DEVICE, $summary['features'] ?? [], true)
+            || in_array(FeatureEnum::MULTI_DEVICE->value, $summary['features'] ?? [], true);
 
-        $outletDeviceCounts = OutletDevice::whereHas('outlet', function ($q) use ($businessId) {
-            $q->where('business_id', $businessId);
-        })
-            ->selectRaw('outlet_id, count(*) as count')
-            ->groupBy('outlet_id')
-            ->pluck('count', 'outlet_id')
-            ->toArray();
+        $outletDeviceCounts = ! empty($outletIds)
+            ? OutletDevice::whereIn('outlet_id', $outletIds)
+                ->selectRaw('outlet_id, count(*) as count')
+                ->groupBy('outlet_id')
+                ->pluck('count', 'outlet_id')
+                ->toArray()
+            : [];
 
         return Inertia::render('Settings/Device/Index', [
             'outlets' => $outlets,

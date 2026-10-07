@@ -34,6 +34,10 @@ class UserPermissionCacheService
      */
     public function getPermissions(User $user, ?string $businessId = null): array
     {
+        if ($user->is_root_user) {
+            return ['*'];
+        }
+
         $businessId = $businessId ?? $user->business_id;
         $cacheKey = self::getCacheKey($user->id, $businessId);
 
@@ -70,6 +74,10 @@ class UserPermissionCacheService
      */
     public function hasPermission(User $user, string $permission, ?string $businessId = null): bool
     {
+        if ($user->is_root_user) {
+            return true;
+        }
+
         $permissions = $this->getPermissions($user, $businessId);
 
         if (in_array('*', $permissions, true) || in_array($permission, $permissions, true)) {

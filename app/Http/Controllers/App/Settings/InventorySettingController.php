@@ -17,6 +17,7 @@ use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Services\App\Inventory\InventoryCostingService;
 use App\Services\App\Inventory\InventorySodService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,12 +39,17 @@ class InventorySettingController extends Controller
         /** @var Business */
         $business = Auth::user()->business;
 
-        $trackedItemsCount = InventoryItem::where('business_id', $business->id)
+        $trackedItemsCount = InventoryItem::query()
+            ->where('business_id', $business->id)
             ->where('is_active', true)
-            ->where('track_inventory', true)
+            ->whereHas('productItem', function (Builder $query) use ($business): void {
+                $query->where('business_id', $business->id)
+                    ->where('track_inventory', true);
+            })
             ->count();
 
-        $totalStockValue = (float) InventoryBalance::where('business_id', $business->id)
+        $totalStockValue = (float) InventoryBalance::query()
+            ->where('business_id', $business->id)
             ->sum('total_value');
 
         return Inertia::render('Settings/Inventory/Index', [

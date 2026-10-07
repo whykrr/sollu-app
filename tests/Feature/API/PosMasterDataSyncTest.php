@@ -5,23 +5,29 @@ namespace Tests\Feature\API;
 use App\Enums\DeviceTypeEnum;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
+use App\Enums\ProductTypeEnum;
 use App\Enums\SalesChannelEnum;
 use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionTypeEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Master\PaymentMethod;
 use App\Models\Master\Product;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\OutletDevice;
 use App\Models\Sales\Transaction;
 use App\Models\Sales\TransactionItem;
 use App\Models\Sales\TransactionPayment;
+use App\Models\Uom;
 use App\Models\User;
 use App\Services\Pos\PosDeviceAuthCacheService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -157,6 +163,20 @@ class PosMasterDataSyncTest extends TestCase
         $this->assertCount(1, $employees);
         $this->assertEquals($this->employeeA->id, $employees[0]['id']);
         $this->assertContains(PermissionEnum::TRANSACTION_CREATE->value, $employees[0]['permissions']);
+        $this->assertTrue(Cache::has("pos:outlet:{$this->outletA->id}:employees"));
+
+        $updatePinResponse = $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-001',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-001',
+        ])->putJson('http://api.sollu.test/pos/employees/pin', [
+            'user_id' => $this->employeeA->id,
+            'current_pin' => '123456',
+            'pin' => '654321',
+            'pin_confirmation' => '654321',
+        ]);
+
+        $updatePinResponse->assertStatus(200);
+        $this->assertFalse(Cache::has("pos:outlet:{$this->outletA->id}:employees"));
     }
 
     public function test_sync_master_data_succeeds_when_outlet_has_existing_transactions_and_items(): void
@@ -231,5 +251,109 @@ class PosMasterDataSyncTest extends TestCase
         $this->assertArrayHasKey('employees', $data);
         $this->assertCount(1, $data['products']);
         $this->assertEquals($product->id, $data['products'][0]['id']);
+    }
+
+    public function test_sync_master_data_includes_unit_and_service_products(): void
+    {
+        Sanctum::actingAs($this->deviceA, ['pos:access']);
+
+        $uom = Uom::firstOrCreate(
+            ['code' => 'Box'],
+            ['name' => 'Box', 'category' => 'package']
+        );
+
+        $physicalProduct = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Kopi Robusta',
+            'product_type' => ProductTypeEnum::BASIC,
+            'is_show' => true,
+            'sellable' => true,
+        ]);
+        $physicalProduct->outlets()->attach($this->outletA->id, ['is_enabled' => true, 'is_available' => true]);
+
+        $productItem = ProductItem::create([
+            'business_id' => $this->business->id,
+            'product_id' => $physicalProduct->id,
+            'name' => 'Kopi Robusta',
+            'item_type' => 'variant_sku',
+            'uom_id' => $uom->id,
+            'is_show' => true,
+            'sellable' => true,
+            'is_active' => true,
+        ]);
+
+        $inventoryItem = InventoryItem::create([
+            'business_id' => $this->business->id,
+            'product_item_id' => $productItem->id,
+            'name' => 'Kopi Robusta',
+            'uom_id' => $uom->id,
+            'is_active' => true,
+        ]);
+
+        $serviceProduct = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Jasa Cuci Kendaraan',
+            'product_type' => ProductTypeEnum::SERVICE,
+            'is_show' => true,
+            'sellable' => true,
+        ]);
+        $serviceProduct->outlets()->attach($this->outletA->id, ['is_enabled' => true, 'is_available' => true]);
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-001',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-001',
+        ])->getJson('http://api.sollu.test/pos/sync/master?force=1');
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+
+        $products = collect($data['products']);
+        $invItems = collect($data['inventory_items']);
+
+        // Pastikan produk layanan dan fisik keduanya ada di data products
+        $this->assertTrue($products->contains('id', $serviceProduct->id));
+        $this->assertTrue($products->contains('id', $physicalProduct->id));
+
+        $syncedPhysical = $products->firstWhere('id', $physicalProduct->id);
+        $syncedService = $products->firstWhere('id', $serviceProduct->id);
+        $syncedInv = $invItems->firstWhere('id', $inventoryItem->id);
+
+        $this->assertEquals('service', $syncedService['product_type']);
+        $this->assertEquals('basic', $syncedPhysical['product_type']);
+
+        $this->assertEquals('Box', $syncedPhysical['unit']);
+        $this->assertNotNull($syncedInv);
+        $this->assertEquals('Box', $syncedInv['unit']);
+    }
+
+    public function test_sync_master_data_executes_minimal_queries_without_duplicates(): void
+    {
+        Sanctum::actingAs($this->deviceA, ['pos:access']);
+
+        // Panggilan awal untuk memastikan auto-provisioning selesai
+        $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-001',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-001',
+        ])->getJson('http://api.sollu.test/pos/sync/master');
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-001',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-001',
+        ])->getJson('http://api.sollu.test/pos/sync/master');
+
+        $response->assertStatus(200);
+
+        $queries = DB::getQueryLog();
+        $sqls = array_column($queries, 'query');
+
+        // Check for duplicate identical queries
+        $duplicateQueries = array_filter(array_count_values($sqls), fn ($count) => $count > 1);
+        $this->assertEmpty($duplicateQueries, 'Terdeteksi query duplikat: '.json_encode(array_keys($duplicateQueries)));
+
+        // Pastikan total query berkurang signifikan (di bawah 10 query dibanding 36 sebelumnya)
+        $this->assertLessThanOrEqual(9, count($queries), 'Query count melebihi target optimasi ('.count($queries).' queries).');
     }
 }

@@ -12,10 +12,11 @@ class SyncController extends Controller
     {
         $device = $request->user();
 
-        // Ensure relationships are loaded
-        $device->load('outlet.business');
+        // Ensure relationships are loaded without duplicate queries
+        $device->loadMissing('outlet.business');
 
-        $payload = $service->getPayload($device);
+        $force = $request->boolean('force');
+        $payload = $service->getPayload($device, $force);
 
         return $this->successResponse($payload, 'Master data retrieved successfully');
     }

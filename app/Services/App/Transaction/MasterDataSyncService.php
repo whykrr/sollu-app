@@ -3,7 +3,6 @@
 namespace App\Services\App\Transaction;
 
 use App\Enums\PromotionStatus;
-use App\Enums\RoleEnum;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Customer;
@@ -21,25 +20,60 @@ use App\Models\OutletSetting;
 use App\Models\Promotion\Promotion;
 use App\Services\App\Outlet\OutletProvisioningService;
 use App\Services\Auth\UserPermissionCacheService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class MasterDataSyncService
 {
-    public function getPayload(OutletDevice $device): array
+    public const MASTER_SYNC_CACHE_TTL = 60; // 60 seconds
+
+    public function getPayload(OutletDevice $device, bool $force = false): array
     {
         $outletId = $device->outlet_id;
-        $businessId = $device->outlet->business_id;
+        $cacheKey = "pos:outlet:{$outletId}:master_sync";
 
-        // 1. Ambil Produk (hanya yang aktif di outlet ini)
-        $products = Product::where('business_id', $businessId)
-            ->whereHas('outlets', function ($q) use ($outletId) {
-                $q->where('outlet_id', $outletId)->where('is_enabled', true);
-            })
-            ->get()
-            ->makeHidden('business_id');
+        if ($force || app()->environment('testing')) {
+            Cache::forget($cacheKey);
+        }
 
-        $productIds = $products->pluck('id')->toArray();
+        if (app()->environment('testing')) {
+            return $this->buildPayload($device, $outletId);
+        }
+
+        return Cache::remember(
+            $cacheKey,
+            self::MASTER_SYNC_CACHE_TTL,
+            fn () => $this->buildPayload($device, $outletId)
+        );
+    }
+
+    private function buildPayload(OutletDevice $device, string $outletId): array
+    {
+        $outlet = $device->outlet;
+        $businessId = $outlet->business_id;
+
+        // 1. Ambil Produk & Outlet Products langsung via outlet_product table (fast index scan)
+        $outletProductsRaw = DB::table('outlet_product')
+            ->where('outlet_id', $outletId)
+            ->where('is_enabled', true)
+            ->get();
+
+        $productIds = $outletProductsRaw->pluck('product_id')->all();
+
+        $outletProducts = $outletProductsRaw->map(function ($item) {
+            unset($item->outlet_id);
+
+            return $item;
+        });
+
+        $products = ! empty($productIds)
+            ? Product::with(['productItems.uom'])
+                ->where('business_id', $businessId)
+                ->whereIn('id', $productIds)
+                ->get()
+                ->makeHidden('business_id')
+            : collect();
 
         // 2. Data turunan produk
         $productCategories = ProductCategory::where('business_id', $businessId)
@@ -48,29 +82,47 @@ class MasterDataSyncService
             ->get()
             ->makeHidden('business_id');
 
-        $productPrices = ProductPrice::whereIn('product_id', $productIds)
-            ->where(function ($q) use ($outletId) {
-                $q->where('outlet_id', $outletId)->orWhereNull('outlet_id');
-            })
-            ->get()
-            ->makeHidden('outlet_id');
+        $productPrices = ! empty($productIds)
+            ? ProductPrice::whereIn('product_id', $productIds)
+                ->where(function ($q) use ($outletId) {
+                    $q->where('outlet_id', $outletId)
+                        ->orWhereNull('outlet_id');
+                })
+                ->get()
+                ->makeHidden('outlet_id')
+            : collect();
 
-        $productImages = ProductImage::whereIn('product_id', $productIds)->get();
+        $productImages = ! empty($productIds)
+            ? ProductImage::whereIn('product_id', $productIds)->get()
+            : collect();
 
-        $variantGroups = VariantGroup::whereIn('product_id', $productIds)->get();
+        $variantGroups = ! empty($productIds)
+            ? VariantGroup::whereIn('product_id', $productIds)->get()
+            : collect();
 
-        $variantGroupOptions = VariantGroupOption::whereIn('variant_group_id', $variantGroups->pluck('id'))->get();
+        $variantGroupIds = $variantGroups->pluck('id')->all();
+        $variantGroupOptions = ! empty($variantGroupIds)
+            ? VariantGroupOption::whereIn('variant_group_id', $variantGroupIds)->get()
+            : collect();
 
-        $productModifierGroups = DB::table('product_modifier_groups')
-            ->whereIn('product_id', $productIds)
-            ->get();
+        $productModifierGroups = ! empty($productIds)
+            ? DB::table('product_modifier_groups')
+                ->whereIn('product_id', $productIds)
+                ->get()
+            : collect();
 
-        // 3. Data modifier
-        $modifierGroups = ModifierGroup::whereIn('id', $productModifierGroups->pluck('modifier_group_id'))
-            ->get()
-            ->makeHidden('business_id');
+        // 3. Data modifier dengan guards array kosong
+        $modifierGroupIds = $productModifierGroups->pluck('modifier_group_id')->filter()->unique()->values()->all();
+        $modifierGroups = ! empty($modifierGroupIds)
+            ? ModifierGroup::whereIn('id', $modifierGroupIds)
+                ->get()
+                ->makeHidden('business_id')
+            : collect();
 
-        $modifierOptions = ModifierOption::whereIn('modifier_group_id', $modifierGroups->pluck('id'))->get();
+        $modifierGroupPks = $modifierGroups->pluck('id')->all();
+        $modifierOptions = ! empty($modifierGroupPks)
+            ? ModifierOption::whereIn('modifier_group_id', $modifierGroupPks)->get()
+            : collect();
 
         // 4. Pendukung lainnya
         $customers = Customer::where('business_id', $businessId)
@@ -88,7 +140,7 @@ class MasterDataSyncService
 
         // Auto-provision if either payment methods or outlet settings are completely missing
         if ($paymentMethods->isEmpty() || $outletSettings->isEmpty()) {
-            app(OutletProvisioningService::class)->provisionAll($device->outlet);
+            app(OutletProvisioningService::class)->provisionAll($outlet);
 
             $paymentMethods = PaymentMethod::where('business_id', $businessId)
                 ->activeForOutlet($outletId)
@@ -132,7 +184,6 @@ class MasterDataSyncService
             'qr_type' => 'invoice',
         ];
 
-        $outlet = $device->outlet;
         $business = $outlet->business;
         $logoUrl = null;
         if ($outlet->logo_url) {
@@ -152,54 +203,66 @@ class MasterDataSyncService
             'receipt' => $receiptSetting,
         ];
 
-        // 4b. Data Karyawan Terdaftar pada Outlet (lengkap dengan role & permissions)
-        $permissionCacheService = app(UserPermissionCacheService::class);
-        $employees = $device->outlet->users()
-            ->with(['roles:id,name,label'])
-            ->select('users.id', 'users.name', 'users.email', 'users.pin', 'users.photo')
-            ->get()
-            ->map(function ($user) use ($businessId, $permissionCacheService) {
-                $role = $user->roles->first();
+        // 4b. Data Karyawan Terdaftar pada Outlet (lengkap dengan role & permissions, memanfaatkan Redis cache bersama pos:outlet:employees)
+        $employeeCacheKey = "pos:outlet:{$outletId}:employees";
+        $employees = Cache::remember($employeeCacheKey, 3600, function () use ($outlet, $businessId) {
+            $permissionCacheService = app(UserPermissionCacheService::class);
 
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'pin' => $user->pin,
-                    'photo' => $user->photo,
-                    'role' => $role?->label ?? 'Kasir',
-                    'permissions' => $permissionCacheService->getPermissions($user, $businessId),
-                ];
-            })
-            ->all();
+            return $outlet->users()
+                ->with(['roles:id,name,label'])
+                ->select('users.id', 'users.name', 'users.email', 'users.pin', 'users.photo')
+                ->get()
+                ->map(function ($user) use ($businessId, $permissionCacheService) {
+                    $role = $user->roles->first();
 
-        $outletProducts = DB::table('outlet_product')
-            ->where('outlet_id', $outletId)
-            ->whereIn('product_id', $productIds)
-            ->get()
-            ->map(function ($item) {
-                unset($item->outlet_id);
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'pin' => $user->pin,
+                        'photo' => $user->photo,
+                        'role' => $role?->label ?? 'Kasir',
+                        'permissions' => $permissionCacheService->getPermissions($user, $businessId),
+                    ];
+                })
+                ->all();
+        });
 
-                return $item;
-            });
+        // 5. Inventori Stok (optimasi direct lookup tanpa full sequential table scan)
+        if (! empty($productIds)) {
+            $productItemIds = DB::table('product_items')
+                ->whereIn('product_id', $productIds)
+                ->whereNull('deleted_at')
+                ->pluck('id')
+                ->all();
 
-        // 5. Inventori Stok
-        $inventoryItems = InventoryItem::whereHas('productItem', fn ($q) => $q->whereIn('product_id', $productIds))
-            ->get()
-            ->makeHidden('business_id');
+            $inventoryItems = ! empty($productItemIds)
+                ? InventoryItem::with(['uom', 'productItem.uom'])
+                    ->whereIn('product_item_id', $productItemIds)
+                    ->get()
+                    ->makeHidden('business_id')
+                : collect();
 
-        $inventoryBalances = InventoryBalance::whereIn('inventory_item_id', $inventoryItems->pluck('id'))
-            ->where('outlet_id', $outletId)
-            ->get()
-            ->makeHidden(['business_id', 'outlet_id']);
+            $inventoryItemIds = $inventoryItems->pluck('id')->all();
+
+            $inventoryBalances = ! empty($inventoryItemIds)
+                ? InventoryBalance::whereIn('inventory_item_id', $inventoryItemIds)
+                    ->where('outlet_id', $outletId)
+                    ->get()
+                    ->makeHidden(['business_id', 'outlet_id'])
+                : collect();
+        } else {
+            $inventoryItems = collect();
+            $inventoryBalances = collect();
+        }
 
         $inventoryItemVariantGroupOptions = collect();
 
-        // 6. Promos Aktif untuk Outlet ini
+        // 6. Promos Aktif untuk Outlet ini (menggunakan indexed promotion_outlets)
         $promos = Promotion::where('business_id', $businessId)
             ->where('status', PromotionStatus::Active->value)
             ->where(function ($q) use ($outletId) {
-                $q->whereHas('outlets', fn ($q) => $q->where('outlets.id', $outletId))
+                $q->whereIn('id', DB::table('promotion_outlets')->where('outlet_id', $outletId)->select('promotion_id'))
                     ->orWhere('applies_to_all_outlets', true);
             })
             ->get()

@@ -59,7 +59,10 @@ class VerifyPosDevice
         }
 
         // Validate that the business has active subscription/trial granting POS_CASHIER feature
-        $outlet = $device->relationLoaded('outlet') ? $device->outlet : $device->outlet()->first();
+        if (! $device->relationLoaded('outlet')) {
+            $device->loadMissing('outlet');
+        }
+        $outlet = $device->outlet;
         $business = $outlet?->business_id ? Business::findCached($outlet->business_id) : null;
 
         if (! $business || ! $business->hasFeature(FeatureEnum::POS_CASHIER)) {

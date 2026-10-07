@@ -8,6 +8,7 @@ use App\Models\Outlet;
 use App\Trait\HasBusiness;
 use App\Trait\SortableModel;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -56,6 +57,7 @@ class Product extends Model
 
     protected $appends = [
         'cover_image_url',
+        'unit',
     ];
 
     /**
@@ -95,6 +97,13 @@ class Product extends Model
     public function getCoverImageUrlAttribute(): ?string
     {
         return $this->image_url ? Storage::url($this->image_url) : null;
+    }
+
+    protected function unit(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->productItems->first()?->uom?->code ?? 'Pcs',
+        );
     }
 
     public function category(): BelongsTo

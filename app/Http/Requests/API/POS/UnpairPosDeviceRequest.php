@@ -13,6 +13,9 @@ class UnpairPosDeviceRequest extends FormRequest
 
     public function rules(): array
     {
-        return [];
+        return [
+            'user_id' => ['nullable', 'string', 'exists:users,id'],
+            'pin' => ['nullable', 'string'],
+        ];
     }
 }

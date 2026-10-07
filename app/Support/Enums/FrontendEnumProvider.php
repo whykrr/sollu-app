@@ -41,6 +41,7 @@ use App\Enums\TransactionPaymentStatus;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionTypeEnum;
 use App\Models\Feature;
+use Illuminate\Support\Facades\Cache;
 
 class FrontendEnumProvider
 {
@@ -108,18 +109,20 @@ class FrontendEnumProvider
             return static::$cachedEnums;
         }
 
-        $result = [];
+        return static::$cachedEnums = Cache::remember('system:frontend_enums', 86400, function () {
+            $result = [];
 
-        foreach (static::$frontendEnums as $enumClass) {
-            if (! enum_exists($enumClass)) {
-                continue;
+            foreach (static::$frontendEnums as $enumClass) {
+                if (! enum_exists($enumClass)) {
+                    continue;
+                }
+
+                $shortName = class_basename($enumClass);
+                $result[$shortName] = static::transform($enumClass);
             }
 
-            $shortName = class_basename($enumClass);
-            $result[$shortName] = static::transform($enumClass);
-        }
-
-        return static::$cachedEnums = $result;
+            return $result;
+        });
     }
 
     /**
@@ -221,5 +224,6 @@ class FrontendEnumProvider
     public static function clearCache(): void
     {
         static::$cachedEnums = null;
+        Cache::forget('system:frontend_enums');
     }
 }

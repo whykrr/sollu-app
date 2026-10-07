@@ -52,6 +52,7 @@ class InventoryItem extends Model
         'product_id',
         'item_type',
         'track_inventory',
+        'unit',
     ];
 
     protected $with = ['productItem'];
@@ -94,6 +95,13 @@ class InventoryItem extends Model
     protected function trackInventory(): Attribute
     {
         return Attribute::make(get: fn () => $this->productItem?->track_inventory ?? false);
+    }
+
+    protected function unit(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->uom?->code ?? $this->productItem?->uom?->code ?? 'Pcs',
+        );
     }
 
     // ── Relationships ────────────────────────────────────────────

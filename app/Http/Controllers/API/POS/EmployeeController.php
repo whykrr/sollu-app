@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\API\POS;
 
-use App\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Services\Auth\UserPermissionCacheService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -16,32 +16,35 @@ class EmployeeController extends Controller
         // $request->user() is the OutletDevice for POS APIs protected by pos.device middleware
         $device = $request->user();
 
-        $device->load('outlet');
-        $outlet = $device->outlet;
+        $outlet = $device->relationLoaded('outlet') ? $device->outlet : $device->outlet;
 
         if (! $outlet) {
             return $this->errorResponse('Outlet not found for this device.', [], 404);
         }
 
-        // Get all users associated with this outlet
-        $permissionCacheService = app(UserPermissionCacheService::class);
-        $employees = $outlet->users()
-            ->with(['roles:id,name,label'])
-            ->select('users.id', 'users.name', 'users.email', 'users.pin', 'users.photo')
-            ->get()
-            ->map(function ($user) use ($outlet, $permissionCacheService) {
-                $role = $user->roles->first();
+        $cacheKey = "pos:outlet:{$outlet->id}:employees";
+        $employees = Cache::remember($cacheKey, 3600, function () use ($outlet) {
+            $permissionCacheService = app(UserPermissionCacheService::class);
 
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'pin' => $user->pin,
-                    'photo' => $user->photo,
-                    'role' => $role?->label ?? 'Kasir',
-                    'permissions' => $permissionCacheService->getPermissions($user, $outlet->business_id),
-                ];
-            });
+            return $outlet->users()
+                ->with(['roles:id,name,label'])
+                ->select('users.id', 'users.name', 'users.email', 'users.pin', 'users.photo')
+                ->get()
+                ->map(function ($user) use ($outlet, $permissionCacheService) {
+                    $role = $user->roles->first();
+
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'pin' => $user->pin,
+                        'photo' => $user->photo,
+                        'role' => $role?->label ?? 'Kasir',
+                        'permissions' => $permissionCacheService->getPermissions($user, $outlet->business_id),
+                    ];
+                })
+                ->toArray();
+        });
 
         return $this->successResponse($employees, 'Data karyawan berhasil diambil.');
     }
@@ -49,8 +52,7 @@ class EmployeeController extends Controller
     public function updatePin(Request $request)
     {
         $device = $request->user();
-        $device->load('outlet');
-        $outlet = $device->outlet;
+        $outlet = $device->relationLoaded('outlet') ? $device->outlet : $device->outlet;
 
         if (! $outlet) {
             return $this->errorResponse('Outlet tidak ditemukan untuk perangkat ini.', [], 404);
@@ -91,6 +93,8 @@ class EmployeeController extends Controller
         $user->update([
             'pin' => $request->pin,
         ]);
+
+        Cache::forget("pos:outlet:{$outlet->id}:employees");
 
         return $this->successResponse([
             'id' => $user->id,

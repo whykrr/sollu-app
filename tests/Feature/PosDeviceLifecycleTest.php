@@ -183,6 +183,35 @@ class PosDeviceLifecycleTest extends TestCase
         $this->assertFalse($this->cacheService->isDeviceActive($this->device->id));
     }
 
+    public function test_client_unpair_succeeds_with_authorized_user_id_without_pin(): void
+    {
+        $this->device->update([
+            'client_device_uuid' => 'dev-uuid-002',
+            'hardware_fingerprint' => 'hw-sig-002',
+            'is_active' => true,
+            'unpaired_at' => null,
+            'unpaired_by' => null,
+        ]);
+        $this->cacheService->putDevice($this->device);
+
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-002',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-002',
+        ])->postJson('http://api.sollu.test/pos/device/unpair', [
+            'user_id' => $this->user->id, // Send user_id only, no pin
+        ]);
+
+        $response->assertStatus(200);
+
+        $this->device->refresh();
+        $this->assertFalse($this->device->is_active);
+        $this->assertNotNull($this->device->unpaired_at);
+        $this->assertEquals($this->user->id, $this->device->unpaired_by);
+        $this->assertFalse($this->cacheService->isDeviceActive($this->device->id));
+    }
+
     public function test_web_portal_sales_setting_can_update_pos_settings(): void
     {
         $this->user->givePermissionTo(PermissionEnum::SETTING_SALES->value);

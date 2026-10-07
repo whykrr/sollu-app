@@ -9,6 +9,10 @@ use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
+use App\Models\Inventory\InventoryBalance;
+use App\Models\Inventory\InventoryItem;
+use App\Models\Master\ProductItem;
+use App\Models\Outlet;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
@@ -88,6 +92,50 @@ class InventorySettingTest extends TestCase
         $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
         $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
 
+        $outlet = Outlet::create([
+            'business_id' => $user->business_id,
+            'name' => 'Main Outlet',
+            'is_active' => true,
+        ]);
+
+        $trackedProductItem = ProductItem::create([
+            'business_id' => $user->business_id,
+            'item_type' => 'variant_sku',
+            'name' => 'Tracked Item',
+            'track_inventory' => true,
+            'is_active' => true,
+        ]);
+
+        $trackedInvItem = InventoryItem::create([
+            'business_id' => $user->business_id,
+            'product_item_id' => $trackedProductItem->id,
+            'is_active' => true,
+        ]);
+
+        $untrackedProductItem = ProductItem::create([
+            'business_id' => $user->business_id,
+            'item_type' => 'variant_sku',
+            'name' => 'Untracked Item',
+            'track_inventory' => false,
+            'is_active' => true,
+        ]);
+
+        InventoryItem::create([
+            'business_id' => $user->business_id,
+            'product_item_id' => $untrackedProductItem->id,
+            'is_active' => true,
+        ]);
+
+        InventoryBalance::create([
+            'business_id' => $user->business_id,
+            'outlet_id' => $outlet->id,
+            'inventory_item_id' => $trackedInvItem->id,
+            'current_stock' => 10,
+            'average_cost' => 15000,
+            'last_cost' => 15000,
+            'total_value' => 150000,
+        ]);
+
         $response = $this->actingAs($user, 'business')->get("http://{$this->appDomain}/settings/inventory");
 
         $response->assertStatus(200);
@@ -96,8 +144,9 @@ class InventorySettingTest extends TestCase
             ->has('costingMethod')
             ->has('isConfigured')
             ->has('options')
-            ->has('stats')
             ->has('sodSettings')
+            ->where('stats.tracked_items_count', 1)
+            ->where('stats.total_stock_value', 150000)
         );
     }
 
