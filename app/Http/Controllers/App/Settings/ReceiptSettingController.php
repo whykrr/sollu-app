@@ -70,17 +70,6 @@ class ReceiptSettingController extends Controller
                 'key' => 'layout_config',
                 'value' => $validated,
             ],
-            // Also sync legacy POS receipt format & auto print keys for backward compatibility
-            [
-                'category' => 'pos',
-                'key' => 'receipt_format',
-                'value' => $validated['paper_size'] === '80mm' ? 'large' : 'standard',
-            ],
-            [
-                'category' => 'pos',
-                'key' => 'auto_print',
-                'value' => $validated['auto_print'] ? 1 : 0,
-            ],
         ], $request->user());
 
         return redirect()->back()->with(

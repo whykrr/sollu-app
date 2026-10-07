@@ -4,7 +4,10 @@ namespace App\Http\Controllers\API\POS;
 
 use App\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
+use App\Services\Auth\UserPermissionCacheService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class EmployeeController extends Controller
 {
@@ -21,13 +24,13 @@ class EmployeeController extends Controller
         }
 
         // Get all users associated with this outlet
+        $permissionCacheService = app(UserPermissionCacheService::class);
         $employees = $outlet->users()
-            ->with(['roles:id,name'])
+            ->with(['roles:id,name,label'])
             ->select('users.id', 'users.name', 'users.email', 'users.pin', 'users.photo')
             ->get()
-            ->map(function ($user) {
-                $roleName = $user->roles->first()?->name;
-                $roleEnum = $roleName ? RoleEnum::tryFrom($roleName) : null;
+            ->map(function ($user) use ($outlet, $permissionCacheService) {
+                $role = $user->roles->first();
 
                 return [
                     'id' => $user->id,
@@ -35,7 +38,8 @@ class EmployeeController extends Controller
                     'email' => $user->email,
                     'pin' => $user->pin,
                     'photo' => $user->photo,
-                    'role' => $roleEnum?->label() ?? ($roleName ?? 'Kasir'),
+                    'role' => $role?->label ?? 'Kasir',
+                    'permissions' => $permissionCacheService->getPermissions($user, $outlet->business_id),
                 ];
             });
 
@@ -52,7 +56,7 @@ class EmployeeController extends Controller
             return $this->errorResponse('Outlet tidak ditemukan untuk perangkat ini.', [], 404);
         }
 
-        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'user_id' => ['required', 'string', 'exists:users,id'],
             'current_pin' => ['required', 'string', 'digits:6'],
             'pin' => ['required', 'string', 'digits:6'],
@@ -79,7 +83,7 @@ class EmployeeController extends Controller
         }
 
         // Check if current PIN matches
-        if (! \Illuminate\Support\Facades\Hash::check($request->current_pin, $user->pin)) {
+        if (! Hash::check($request->current_pin, $user->pin)) {
             return $this->errorResponse('PIN saat ini yang Anda masukkan salah.', [], 422);
         }
 

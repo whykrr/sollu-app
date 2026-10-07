@@ -3,7 +3,7 @@
         <template #header>
             <MainPageHeader
                 title="Pengaturan Penjualan"
-                description="Atur fleksibilitas transaksi, batas stok, saluran penjualan aktif, dan template faktur per outlet."
+                description="Atur fleksibilitas kasir POS, toleransi stok, saluran penjualan aktif, dan template faktur per outlet."
             >
                 <SettingOutletSelector
                     v-if="outlets && outlets.length > 1"
@@ -14,7 +14,55 @@
             </MainPageHeader>
         </template>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12">
+        <!-- Navigation Tabs -->
+        <div class="flex items-center gap-1 border-b border-slate-200 mb-4">
+            <button
+                type="button"
+                class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer"
+                :class="[
+                    activeTab === 'pos'
+                        ? 'border-main text-main font-bold'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
+                ]"
+                @click="activeTab = 'pos'"
+            >
+                <FontAwesomeIcon :icon="faCashRegister" />
+                <span>Pengaturan POS</span>
+            </button>
+
+            <button
+                v-if="hasInvoiceDebtFeature"
+                type="button"
+                class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer"
+                :class="[
+                    activeTab === 'b2b'
+                        ? 'border-main text-main font-bold'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
+                ]"
+                @click="activeTab = 'b2b'"
+            >
+                <FontAwesomeIcon :icon="faFileInvoiceDollar" />
+                <span>Pengaturan Penjualan Faktur</span>
+            </button>
+        </div>
+
+        <!-- Tab 1: Pengaturan POS -->
+        <div v-show="activeTab === 'pos'" class="pb-12">
+            <PosSettingsTab
+                :outlet="selectedOutlet"
+                :outlets="outlets"
+                :pos-settings="posSettings"
+                :devices="devices"
+                :otp-data="otpData"
+            />
+        </div>
+
+        <!-- Tab 2: Pengaturan Penjualan Faktur (B2B) -->
+        <div
+            v-if="hasInvoiceDebtFeature"
+            v-show="activeTab === 'b2b'"
+            class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12"
+        >
             <!-- Left Column: Form Settings -->
             <div class="lg:col-span-7 flex flex-col gap-4">
                 <!-- Card 1: Fleksibilitas Transaksi & Stok -->
@@ -333,9 +381,11 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
+import { usePage } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import SettingOutletSelector from '../Components/SettingOutletSelector.vue'
+import PosSettingsTab from './Partials/PosSettingsTab.vue'
 import Switch from '@/Components/Form/Switch.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
@@ -344,6 +394,7 @@ import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faBoxesStacked,
+    faCashRegister,
     faShop,
     faCalendarAlt,
     faFileInvoiceDollar,
@@ -357,6 +408,7 @@ import {
     faComments,
     faWrench,
 } from '@fortawesome/free-solid-svg-icons'
+import FeatureEnum from '@/Enums/FeatureEnum'
 
 const props = defineProps({
     outlets: {
@@ -371,7 +423,29 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    posSettings: {
+        type: Object,
+        default: () => ({
+            enable_supervisor_pin: false,
+            allow_negative_stock: false,
+        }),
+    },
+    devices: {
+        type: Array,
+        default: () => [],
+    },
+    otpData: {
+        type: Object,
+        default: null,
+    },
 })
+
+const page = usePage()
+const hasInvoiceDebtFeature = computed(() => {
+    return page.props.features?.includes(FeatureEnum.INVOICE_DEBT) ?? true
+})
+
+const activeTab = ref('pos')
 
 const availableChannels = [
     {

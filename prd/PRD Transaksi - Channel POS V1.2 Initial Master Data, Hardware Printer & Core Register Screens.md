@@ -1,17 +1,32 @@
-# PRD — Modul Transaksi & Penjualan - Channel POS App V1.2
-## Initial Master Data, Hardware Printer & Core Register Screens
+# PRD — Modul Transaksi & Penjualan - Channel POS V1.2
+## Initial Master Data, Cashier PIN Authentication, Dedicated Device Hardware Printer & Core Register Screens
 
 ## 1. Executive Summary & Bounded Context
 
-Sub-modul **V1.2 Initial Master Data, Hardware Printer & Core Register Screens** bertanggung jawab atas proses inisialisasi awal (*cold start bootstrapping*), sinkronisasi snapshot master produk dan kategori ke basis data lokal Drift SQLite, penghubung perangkat keras cetak (*hardware thermal printing bridge* ESC/POS), serta penyediaan tata letak layar utama kasir (*POS Register Screen*) yang ergonomis untuk tablet, smartphone, maupun desktop PC.
+Sub-modul **V1.2 Initial Master Data, Cashier PIN Authentication, Dedicated Device Hardware Printer & Core Register Screens** bertanggung jawab atas proses inisialisasi awal (*cold start bootstrapping*), sinkronisasi snapshot master data outlet yang terisolasi ketat per outlet (katalog produk, varian, kategori, pelanggan, metode pembayaran aktif, pajak dan biaya layanan, pengaturan konten struk, serta **daftar karyawan yang terdaftar pada outlet tersebut lengkap dengan peran (*role*) dan hak aksesnya (*permissions*)**), autentikasi kasir harian berbasis PIN numerik cepat (*Fast Cashier PIN Login*) menggunakan **flow existing**, otorisasi aksi kasir berbasis role dan permissions, penguncian layar kasir (*Screen Lock*), penghubung perangkat keras cetak (*hardware thermal printing bridge* ESC/POS) yang dikonfigurasi **secara dedicated pada masing-masing perangkat kasir (Local Device Storage)** lengkap dengan fitur **Auto Print Struk (default: true)**, pemindai barcode (*barcode scanner HID*), serta penyediaan tata letak layar utama kasir (*POS Register Screen*) yang ergonomis untuk tablet, smartphone, maupun desktop PC.
+
+> **Catatan Fase Arsitektur**:
+> 1. **Isolasi Data Ketat Per Outlet (*Strict Outlet Scoping*)**: Seluruh data yang disinkronkan ke perangkat kasir diambil secara eksklusif berdasarkan `outlet_id` perangkat yang terotorisasi. Karyawan, produk, metode pembayaran, inventori, dan pengaturan yang bukan milik outlet tersebut **dilarang keras diambil atau bocor**.
+> 2. **Single-Endpoint Cold Start**: Untuk efisiensi jaringan dan keandalan cold start, aplikasi kasir **hanya memanggil 1 endpoint tunggal** (`GET /api/v1/pos/sync/master`). Endpoint ini mengembalikan data katalog produk, pengaturan outlet, metode pembayaran, pajak/biaya, tata letak konten struk, **serta seluruh data karyawan terdaftar pada outlet tersebut lengkap dengan peran (*role*), hash PIN, dan daftar izin (*permissions*)**. Klien **tidak perlu melakukan 2 kali hit API** saat awal aplikasi dibuka.
+> 3. **On-Demand Employee Refresh**: Endpoint `GET /api/v1/pos/employees` difungsikan khusus untuk pembaruan mandiri (*on-demand refresh*) data karyawan dan hak akses tanpa perlu mengunduh ulang master katalog.
+> 4. **Dedicated Device Hardware & Local Storage**: Pengaturan perangkat keras printer thermal (MAC address Bluetooth BLE, koneksi USB/Network, ukuran kertas fisik 58mm/80mm) serta opsi **Auto Print (default: true)** sepenuhnya disimpan dan dikelola **di perangkat kasir masing-masing (Local SharedPreferences)**. Pengaturan printer dihilangkan dari portal app web backend. Pada portal app web (menu Layout Struk), pengaturan ukuran kertas **hanya berfungsi sebagai toggle display/preview simulator struk semata tanpa menyimpan ke database**.
 
 ### Kapabilitas Utama V1.2:
-1. **Dedicated Initial Data Bootstrapping (`GET /api/v1/pos/initial-data`)**: Endpoint terpisah berkecepatan tinggi yang mengembalikan snapshot utuh (katalog produk, kategori, varian, pelanggan, fitur paket bisnis aktif, konfigurasi outlet) tanpa logika percabangan delta yang rumit.
-2. **Local Drift SQLite Database Engine**: Penyimpanan data katalog, varian, dan setting outlet ke tabel lokal SQLite untuk akses instan (< 10ms) dan ketahanan offline total.
-3. **Adaptive POS Register Screen**: Antarmuka responsif dengan mode Split-View Landscape (65% Katalog di kiri, 35% Panel Keranjang di kanan) dan Portrait kompak.
-4. **Hardware Thermal Printer Bridge**: Driver printer lokal mendukung koneksi Bluetooth Low Energy (BLE) dan USB ESC/POS dengan template cetak 58mm (32 kolom) dan 80mm (48 kolom).
-5. **Hardware Barcode Scanner Bridge**: Dukungan pemindaian instan via kamera bawaan atau Barcode Scanner fisik (USB/Bluetooth HID Keyboard Emulation).
-6. **Layar Pengaturan Aplikasi (*POS Settings Screen*)**: Menu konfigurasi koneksi printer, uji cetak (*test print*), pemilihan ukuran kertas, dan preferensi tampilan katalog (Grid Gambar vs List Kompak).
+1. **Unified Initial Master Data Bootstrapping (`GET /api/v1/pos/sync/master`)**: Endpoint snapshot tunggal berkecepatan tinggi yang mengembalikan seluruh data master outlet secara terisolasi ketat: katalog produk, varian, kategori, pelanggan, metode pembayaran aktif outlet, pengaturan pajak & biaya layanan (*tax & service fee*), tata letak konten struk (*receipt layout*), serta **daftar karyawan aktif outlet lengkap dengan peran (*role*), hash PIN, dan daftar hak akses (*permissions*)**.
+2. **On-Demand Employee Refresh (`GET /api/v1/pos/employees`)**: Jalur pembaruan data karyawan outlet secara mandiri dan cepat tanpa harus mengunduh ulang seluruh katalog master data.
+3. **Fast Cashier PIN Login, Role & Permission Session (Flow Existing)**: 
+   - Kasir memilih profil dari daftar karyawan outlet yang tersedia (dengan pencarian instan dan tombol reload staf).
+   - Numpad angka 0-9 untuk input 6 digit PIN kasir.
+   - Verifikasi PIN dieksekusi secara instan dan *offline-first* dengan mencocokkan input terhadap hash Bcrypt (`BCrypt.checkpw`) pada basis data lokal `employees`.
+   - Pembebanan **role** dan **permissions** kasir ke sesi aktif (`activeEmployeeProvider`) untuk memvalidasi wewenang operasional kasir (seperti void transaksi, diskon khusus, buka/tutup shift, dan unpair device).
+   - Perpindahan shift kasir (*cashier switch*) serta penguncian layar instan (*screen lock*) saat kasir meninggalkan meja register.
+4. **Pembaruan PIN Kasir Mandiri (`PUT /api/v1/pos/employees/pin`)**: Menggunakan alur existing dengan validasi PIN lama (`current_pin`), PIN baru 6 digit numerik (`pin`), dan konfirmasi PIN (`pin_confirmation`), lalu mengupdate hash di server dan tabel lokal `employees`.
+5. **Local Drift SQLite Database & Local Settings Storage**: Penyimpanan katalog produk, varian, kategori, metode pembayaran, dan karyawan (+ role & permissions JSON) ke tabel lokal SQLite Drift, serta penyimpanan profil outlet, pajak/biaya, dan layout struk ke `OutletSettingsService` (SharedPreferences) untuk akses instan (< 10ms) dan ketahanan offline total.
+6. **Dedicated Device Hardware Printer Bridge**: Driver printer lokal mendukung koneksi Bluetooth Low Energy (BLE), USB ESC/POS, dan Network/Desktop Raw Printer dengan konfigurasi fisik mandiri di level perangkat kasir.
+7. **Pengaturan Auto Print Struk (Default: True, Dedicated di Device)**: Pengaturan otomatisasi cetak struk begitu transaksi berhasil diselesaikan, aktif secara bawaan (*default: true*), dikelola secara lokal pada perangkat kasir melalui Layar Pengaturan POS tanpa perlu disinkronkan ke server web.
+8. **Adaptive POS Register Screen**: Antarmuka responsif dengan mode Split-View Landscape (65% Katalog di kiri, 35% Panel Keranjang di kanan) dan Portrait kompak.
+9. **Hardware Barcode Scanner Bridge**: Dukungan pemindaian instan via kamera bawaan atau Barcode Scanner fisik (USB/Bluetooth HID Keyboard Emulation).
+10. **Layar Pengaturan Aplikasi (*POS Settings Screen*)**: Menu konfigurasi koneksi printer, uji cetak (*test print*), pemilihan ukuran kertas printer fisik, **toggle auto print struk (default: true)**, preferensi tampilan katalog, dan profil akun kasir.
 
 ---
 
@@ -19,21 +34,47 @@ Sub-modul **V1.2 Initial Master Data, Hardware Printer & Core Register Screens**
 
 ```
 Laravel 12 Backend                   Sollu POS Client (Flutter)
-┌──────────────────────────────┐     ┌────────────────────────────────┐
-│ PosInitialDataController     │────>│ Remote Dio API Client          │
-│ (Full Snapshot Loader)       │     └───────────────┬────────────────┘
-└──────────────────────────────┘                     │ (Batch UPSERT)
-                                                     ▼
-                                     ┌────────────────────────────────┐
-                                     │ Drift SQLite Local Database    │
-                                     │ (local_product_cache, settings)│
-                                     └───────────────┬────────────────┘
-                                                     │
-                                                     ▼
-┌──────────────────────────────┐     ┌────────────────────────────────┐
-│ Thermal Printer (ESC/POS)    │<────│ ThermalPrinterService (Bridge) │
-│ Bluetooth BLE / USB OTG      │     │ (58mm / 80mm Format Generator) │
-└──────────────────────────────┘     └────────────────────────────────┘
+┌──────────────────────────────┐     ┌──────────────────────────────────────────┐
+│ SyncController@masterData    │────>│ SyncRepository (Dio API Client)            │
+│ (Strict Outlet Scoped:       │     │ 1 Single Request: GET /sync/master       │
+│  - Products, Categories      │     └────────────────────┬─────────────────────┘
+│  - Active Payment Methods    │                          │
+│  - Tax & Service Fees        │                          ▼ (Atomic Batch UPSERT & Cache)
+│  - Receipt Content Settings  │     ┌──────────────────────────────────────────┐
+│  - Employees, Roles, Perms)  │     │ Local Storage Engine                     │
+└──────────────────────────────┘     │ 1. Drift SQLite:                         │
+                                     │    - products, product_categories        │
+┌──────────────────────────────┐     │    - payment_methods                     │
+│ EmployeeController@index     │────>│    - employees (id, name, pin, role,     │
+│ (On-Demand Refresh:          │     │                 permissions JSON)        │
+│  GET /employees)             │     │ 2. OutletSettingsService (Dedicated):    │
+└──────────────────────────────┘     │    - tax_percentage, service_charge      │
+                                     │    - receipt_settings (content only)     │
+                                     │    - printer_config (MAC, paper, auto)   │
+                                     └────────────────────┬─────────────────────┘
+                                                          │
+                                                          ▼ (Existing Cashier PIN Flow)
+                                     ┌──────────────────────────────────────────┐
+                                     │ EmployeeLoginDialog / LockScreen         │
+                                     │ 1. Pilih Karyawan Outlet                 │
+                                     │ 2. Input PIN 6-digit                     │
+                                     │ 3. Offline BCrypt.checkpw(pin, hash)     │
+                                     │ 4. Set Active Employee (Role & Perms)    │
+                                     └────────────────────┬─────────────────────┘
+                                                          │
+                                                          ▼ (Authenticated Session)
+                                     ┌──────────────────────────────────────────┐
+                                     │ POS Register Screen                      │
+                                     │ - Split-View Catalog & Cart              │
+                                     │ - Role/Permission Guard (Void/Discount)  │
+                                     └────────────────────┬─────────────────────┘
+                                                          │ (Checkout Done)
+                                                          ▼ (Auto Print: True Default)
+                                     ┌──────────────────────────────────────────┐
+                                     │ Thermal Printer (ESC/POS Dedicated)      │
+                                     │ - BLE / USB / Desktop Raw Printer        │
+                                     │ - Managed 100% on Local Device           │
+                                     └──────────────────────────────────────────┘
 ```
 
 ---
@@ -44,11 +85,14 @@ Laravel 12 Backend                   Sollu POS Client (Flutter)
 
 | Fitur | Deskripsi |
 | :--- | :--- |
-| **Initial Master Data Loader** | Mengunduh seluruh snapshot master produk, harga, varian, kategori, pelanggan, dan fitur SaaS bisnis aktif. |
-| **Katalog Produk Dinamis** | Tampilan Grid Gambar atau List Kompak dengan Category Chips dan pencarian instan. |
-| **Panel Pengaturan Printer** | Pemindaian perangkat Bluetooth/USB di sekitar, pemilihan ukuran kertas (58mm/80mm), dan tombol Uji Cetak Struk. |
-| **Hardware Scanner Bridge** | Listener pemindai barcode USB/Bluetooth HID yang langsung menangkap input tanpa memindahkan kursor mouse. |
-| **Kustomisasi Tampilan Layar** | Pengaturan rasio grid produk, visibilitas foto produk, dan ukuran teks untuk kenyamanan kasir. |
+| **Unified Master Data Loader** | Mengunduh snapshot master produk, kategori, pelanggan, metode pembayaran aktif, pajak & biaya layanan, pengaturan konten struk, **serta karyawan outlet beserta role & hak aksesnya** via **1 endpoint tunggal** `GET /api/v1/pos/sync/master`. Semua data terfilter ketat hanya untuk outlet perangkat terkait. |
+| **On-Demand Employee Refresh** | Endpoint mandiri `GET /api/v1/pos/employees` untuk memperbarui data staf, role, dan hak akses kasir outlet tanpa perlu re-fetch master katalog. |
+| **Login Kasir Cepat (Flow Existing)** | Kasir memilih profil karyawan outlet dan memasukkan 6 digit PIN. Verifikasi dilakukan instan secara lokal menggunakan `BCrypt.checkpw`. |
+| **Otorisasi Berbasis Role & Permissions** | Memuat `role` dan daftar `permissions` ke sesi aktif untuk memvalidasi wewenang operasional kasir (misal: kasir vs supervisor untuk void transaksi atau diskon manual). |
+| **Dedicated Hardware Printer & Auto Print** | Pengaturan koneksi printer fisik dan toggle **Auto Print (default: true)** disimpan mandiri di level perangkat kasir tanpa dependensi ke portal web backend. |
+| **Web Portal Receipt Preview Only** | Di portal web backoffice, pengaturan ukuran kertas hanya berfungsi sebagai toggle simulator preview tampilan nota, tanpa menyimpan data hardware/kertas ke database. |
+| **Kunci Layar & Ganti Kasir (*Screen Lock*)** | Mengunci sesi register kasir saat ditinggalkan dan mendukung perpindahan operator kasir dengan cepat tanpa logout perangkat. |
+| **Ganti PIN Mandiri (*Update PIN*)** | Formulir pembaruan PIN kasir via `PUT /api/v1/pos/employees/pin` dengan validasi PIN lama dan update hash di server & database lokal. |
 
 ### 3.2. Skenario Aktivitas Pengguna (Use Cases)
 
@@ -58,18 +102,29 @@ Laravel 12 Backend                   Sollu POS Client (Flutter)
 ├──────────────────────────────┬──────────────────────────────┬──────────────────────────────────────────┤
 │ Use Case                     │ Kondisi & Perangkat          │ Respon & Output Sistem                   │
 ├──────────────────────────────┼──────────────────────────────┼──────────────────────────────────────────┤
-│ 1. Cold Start Inisialisasi   │ Kasir selesai aktivasi/login │ App memanggil /api/v1/pos/initial-data.  │
-│    Data Master Katalog       │ Internet: Online             │ 1.000 produk tersimpan ke Drift SQLite   │
-│                              │                              │ dalam waktu < 2 detik.                   │
+│ 1. Cold Start Inisialisasi   │ Perangkat telah di-pairing   │ App HANYA memanggil /sync/master (1 hit).│
+│    Data Master Khusus Outlet │ Internet: Online             │ Hanya data milik outlet perangkat yang   │
+│                                                             │ diambil. Karyawan, role, perms tersimpan.│
 ├──────────────────────────────┼──────────────────────────────┼──────────────────────────────────────────┤
-│ 2. Menghubungkan Printer     │ Kasir di menu Pengaturan     │ App memindai Bluetooth BLE. Kasir pilih  │
-│    Thermal Bluetooth         │ Printer ESC/POS menyala      │ "RPP02N", klik Test Print. Struk keluar. │
+│ 2. Login Kasir Harian        │ Kasir memulai shift          │ Kasir pilih profil & ketik PIN 6 digit.  │
+│    (Flow Existing PIN Auth)  │ Internet: Online/Offline     │ Validasi hash BCrypt lokal (< 20ms).     │
+│                                                             │ Sesi aktif + role & permissions termuat. │
 ├──────────────────────────────┼──────────────────────────────┼──────────────────────────────────────────┤
-│ 3. Pindai Barcode Produk     │ Kasir di Layar Utama POS     │ Scanner menembak barcode produk. Item    │
-│    dengan Barcode Scanner    │ Scanner USB terpasang        │ langsung masuk ke keranjang belanja.     │
+│ 3. On-Demand Refresh Staf    │ Kasir baru didaftarkan       │ Kasir klik "Load Karyawan" di dialog.    │
+│    (Pembaruan Data Karyawan) │ Operasional toko berjalan    │ App memanggil /employees (tanpa re-fetch │
+│                                                             │ katalog). Staf outlet terbaru muncul.    │
 ├──────────────────────────────┼──────────────────────────────┼──────────────────────────────────────────┤
-│ 4. Menyesuaikan Layout Layar │ Tablet kasir 10 inci         │ Kasir beralih dari Grid Gambar ke List   │
-│    (Grid vs List Kompak)     │ Mode Landscape               │ Kompak untuk menampilkan 30 item/layar.  │
+│ 4. Otorisasi Supervisor Void │ Kasir biasa ingin void item  │ Sistem cek role & permission kasir. Jika │
+│    (Permission Guard)        │ Meja register aktif          │ tidak ada izin, muncul pop-up otorisasi  │
+│                                                             │ PIN Supervisor outlet.                   │
+├──────────────────────────────┼──────────────────────────────┼──────────────────────────────────────────┤
+│ 5. Konfigurasi Printer &     │ Kasir di menu Pengaturan     │ Kasir hubungkan printer Bluetooth/USB    │
+│    Auto Print Struk          │ Tab Hardware Printer         │ lokal. Auto Print aktif (default true).  │
+│                                                             │ Pengaturan tersimpan di device lokal.    │
+├──────────────────────────────┼──────────────────────────────┼──────────────────────────────────────────┤
+│ 6. Desain Struk di Portal    │ Manajer di web backoffice    │ Manajer mengatur logo, header, footer.   │
+│    (Web Layout Preview)      │ Halaman Layout Struk         │ Toggle 58mm/80mm hanya mengubah tampilan │
+│                                                             │ preview tanpa menyimpan ukuran ke DB.    │
 └──────────────────────────────┴──────────────────────────────┴──────────────────────────────────────────┘
 ```
 
@@ -77,89 +132,119 @@ Laravel 12 Backend                   Sollu POS Client (Flutter)
 
 ## 4. User Flow & Sequence Diagrams
 
-### 4.1. Alur Bootstrapping Data Master Awal (*Cold Start Flow*)
+### 4.1. Alur Bootstrapping Data Master Awal (*Cold Start Flow - 1 Single Request*)
 
 ```mermaid
 sequenceDiagram
-    actor Cashier as Kasir
+    actor Cashier as Kasir / Operator
     participant App as Sollu POS Client
-    participant LocalDB as Drift SQLite
-    participant API as Laravel Backend (/api/v1/pos)
+    participant LocalDB as Drift SQLite & SharedPreferences
+    participant Backend as Laravel Backend (/api/v1/pos)
 
-    Cashier->>App: Buka Aplikasi Kasir (Cold Start)
-    App->>App: Tampilkan Splash Screen "Memuat Katalog Toko..."
-    App->>API: GET /api/v1/pos/initial-data (Bearer Sanctum Device Token)
-    API-->>App: 200 OK (Full Snapshot: products, categories, active_features, outlet_settings)
-    App->>LocalDB: db.transaction() -> Batch UPSERT ke local_product_cache
-    App->>LocalDB: Simpan outlet_settings & active_features
+    Cashier->>App: Buka Aplikasi Kasir (Cold Start Setelah Pairing)
+    App->>App: Tampilkan Splash Overlay "Sinkronisasi Data Toko & Karyawan..."
+    
+    Note over App,Backend: HANYA 1 KALI HIT API UNTUK SELURUH DATA MASTER OUTLET TERISOLASI
+    App->>Backend: GET /api/v1/pos/sync/master (Bearer Device Token)
+    Backend-->>App: 200 OK (scoped products, categories, payment_methods, tax, receipt content, EMPLOYEES + ROLE + PERMISSIONS)
+    
+    App->>LocalDB: Batch UPSERT products, categories, payment_methods ke Drift SQLite
+    App->>LocalDB: Simpan tax, service_fee, dan receipt content ke OutletSettingsService
+    App->>LocalDB: Batch UPSERT employees (id, name, email, pin, photo, role, permissions JSON)
+    
     App->>App: Simpan last_sync_timestamp
-    App-->>Cashier: Layar Utama Kasir Terbuka dengan Katalog Siap Digunakan (< 2s)
+    App-->>Cashier: Buka Layar Login Kasir (EmployeeLoginDialog / Cashier Gate)
 ```
 
-### 4.2. Alur Konfigurasi Printer & Test Print
+### 4.2. Alur Pembaruan Karyawan Mandiri (*On-Demand Employee Refresh*)
 
 ```mermaid
 sequenceDiagram
     actor Cashier as Kasir
-    participant App as POS Settings Screen
-    participant Bridge as ThermalPrinterService
-    participant Printer as Hardware Thermal Printer
+    participant Dialog as EmployeeLoginDialog
+    participant App as EmployeeRepository
+    participant Backend as Laravel Backend (/api/v1/pos)
+    participant LocalDB as Drift SQLite (`employees`)
 
-    Cashier->>App: Buka Menu Pengaturan -> Tab Hardware
-    Cashier->>App: Klik "Cari Printer Bluetooth"
-    App->>Bridge: startScan(timeout: 5s)
-    Bridge-->>App: Ditemukan: ["RPP02N (00:11:22:33:44:55)", "POS-58"]
-    Cashier->>App: Pilih "RPP02N", Set Kertas: 58mm
-    Cashier->>App: Klik "Uji Cetak Struk"
-    App->>Bridge: printTestReceipt(macAddress, width: 58)
-    Bridge->>Printer: Kirim Byte ESC/POS (Header, Barcode, Line, Cut)
-    Printer-->>Cashier: Struk Kertas Uji Cetak Keluar Sempurna
-    App-->>Cashier: Notifikasi Hijau "Printer Berhasil Terhubung"
+    Cashier->>Dialog: Buka Modal Login -> Klik Tombol "Load Karyawan / Sync"
+    Dialog->>App: syncEmployees()
+    App->>Backend: GET /api/v1/pos/employees (Bearer Device Token)
+    Note over App,Backend: Hanya fetch data karyawan outlet + role + permissions (Ringan)
+    Backend-->>App: 200 OK [ { id, name, email, pin, photo, role, permissions }, ... ]
+    App->>LocalDB: Clear & Batch Insert tabel `employees`
+    App-->>Dialog: Refresh State Daftar Karyawan
+    Dialog-->>Cashier: Menampilkan daftar karyawan outlet terbaru
+```
+
+### 4.3. Alur Login Kasir, Role & Pemuatan Hak Akses (Flow Existing)
+
+```mermaid
+sequenceDiagram
+    actor Cashier as Kasir
+    participant Dialog as EmployeeLoginDialog / LockScreen
+    participant DB as Drift SQLite (`employees`)
+    participant State as activeEmployeeProvider
+
+    Cashier->>Dialog: Buka Dialog Pilih Karyawan
+    Dialog->>DB: Query SELECT * FROM employees
+    DB-->>Dialog: Daftar Karyawan Outlet (Nama, Avatar, Role, Permissions)
+    Cashier->>Dialog: Pilih Profil Karyawan (misal: "Budi Santoso - Kasir")
+    Dialog->>Dialog: Tampilkan Numpad / PinInput (6 Digit)
+    Cashier->>Dialog: Masukkan 6 Digit PIN
+
+    Dialog->>Dialog: Ambil storedPin (Bcrypt hash) milik karyawan
+    Dialog->>Dialog: Evaluasi BCrypt.checkpw(inputPin, storedPin)
+    
+    alt PIN Valid (Cocok)
+        Dialog->>State: login({ id, name, role, permissions: jsonDecode(employee.permissions) })
+        Dialog-->>Cashier: Sesi Kasir Aktif! Masuk ke POS Register Screen (< 20ms)
+    else PIN Tidak Valid
+        Dialog-->>Cashier: Tampilkan Error "PIN tidak valid!" & Hapus Input Numpad
+    end
 ```
 
 ---
 
 ## 5. Technical Architecture & File Structure
 
-### 5.1. File Structure Klien Flutter (`sollu_pos_client`)
+### 5.1. File Structure Klien Flutter (`sollu-pos-client`)
 
 ```
-lib/features/
-├── pos/
-│   ├── presentation/
-│   │   ├── controllers/
-│   │   │   ├── catalog_controller.dart          # Riverpod Notifier pencarian & filter produk
-│   │   │   └── pos_layout_controller.dart       # Pengaturan tampilan Grid vs List
-│   │   ├── screens/
-│   │   │   ├── pos_register_screen.dart         # Layar utama kasir (Split Screen)
-│   │   │   ├── catalog_view.dart                # Grid/List katalog produk
-│   │   │   └── product_detail_modal.dart        # Pop-up varian produk & modifier
-│   │   └── widgets/
-│   │       ├── category_chips_bar.dart          # Filter horizontal kategori produk
-│   │       └── product_card_item.dart           # Komponen kartu produk di katalog
-│   └── data/
-│       ├── database/
-│       │   ├── tables/
-│       │   │   ├── local_product_cache.dart     # Definisi tabel produk SQLite
-│       │   │   └── local_outlet_settings.dart   # Pengaturan outlet lokal
-│       │   └── daos/
-│       │       └── catalog_dao.dart             # Query cari produk, filter kategori
-│       └── remote/
-│           └── pos_initial_data_service.dart    # Dio client call ke initial-data
-├── hardware/
-│   ├── presentation/
-│   │   └── screens/
-│   │       └── printer_settings_screen.dart     # Layar pemindaian printer & konfigurasi
-│   ├── printer/
-│   │   ├── thermal_printer_service.dart         # Wrapper Bluetooth BLE & USB ESC/POS
-│   │   ├── escpos_ticket_builder.dart           # Generator byte ESC/POS 58mm & 80mm
-│   │   └── thermal_printer_models.dart          # PrinterDevice, PaperWidthEnum
-│   └── scanner/
-│       └── barcode_scanner_listener.dart        # HID Keyboard event interceptor
-└── settings/
-    └── presentation/
-        └── screens/
-            └── pos_settings_screen.dart         # Layar pengaturan umum kasir
+lib/
+├── core/
+│   ├── database/
+│   │   ├── app_database.dart                     # Drift database container
+│   │   └── tables/
+│   │       └── master_data_tables.dart           # Tabel Products, PaymentMethods, Employees (role & permissions)
+│   ├── network/
+│   │   └── dio_client.dart                       # Dio HTTP client dengan interceptor token
+│   └── services/
+│       ├── outlet_settings_service.dart          # Local cache profil outlet, tax, receipt settings, printer config
+│       └── desktop_raw_printer.dart              # Raw printing service untuk desktop (macOS/Win)
+├── features/
+│   ├── auth/
+│   │   ├── data/
+│   │   │   ├── auth_repository.dart              # Pairing & unpairing device
+│   │   │   └── employee_repository.dart          # syncEmployees (/employees) & changePin (/employees/pin)
+│   │   └── presentation/
+│   │       ├── providers/
+│   │       │   ├── auth_provider.dart            # activeEmployeeProvider (id, name, role, permissions)
+│   │       │   └── employee_provider.dart        # employeeListProvider
+│   │       └── widgets/
+│   │           ├── employee_login_dialog.dart    # Dialog pilih karyawan & input PIN (Flow Existing)
+│   │           └── change_pin_dialog.dart        # Dialog ganti PIN 6 digit mandiri
+│   ├── settings/
+│   │   ├── data/
+│   │   │   └── sync_repository.dart              # syncMasterData (/sync/master) memproses katalog + employees
+│   │   └── presentation/
+│   │       ├── providers/
+│   │       │   └── printer_provider.dart         # Pengelolaan koneksi printer & toggle auto_print (dedicated lokal)
+│   │       └── pages/
+│   │           └── settings_screen.dart          # Layar pengaturan printer & auto-print (default: true)
+│   └── hardware/
+│       └── printer/
+│           ├── thermal_printer_service.dart      # Adapter Bluetooth BLE & USB ESC/POS
+│           └── escpos_ticket_builder.dart        # Generator struk 58mm & 80mm
 ```
 
 ### 5.2. File Structure Backend Laravel 12 (`sollu-app`)
@@ -167,147 +252,163 @@ lib/features/
 ```
 app/
 ├── Http/
-│   ├── Controllers/API/POS/
-│   │   ├── PosInitialDataController.php         # Endpoint /api/v1/pos/initial-data
-│   │   └── PosConfigController.php              # Pengaturan outlet POS
-│   └── Resources/POS/
-│       ├── PosInitialDataResource.php           # Resource pembungkus snapshot
-│       └── PosCatalogProductResource.php        # Resource produk, varian, dan harga
+│   ├── Controllers/
+│   │   ├── API/POS/
+│   │   │   ├── SyncController.php                # GET /api/v1/pos/sync/master (Strict Scoped, Employees & Perms)
+│   │   │   ├── EmployeeController.php            # GET /api/v1/pos/employees & PUT /api/v1/pos/employees/pin
+│   │   │   └── DeviceController.php              # Pairing, checkStatus, & unpair pos device
+│   │   └── App/Settings/
+│   │       └── ReceiptSettingController.php      # Layout Struk web portal (Hanya simpan konten nota)
+│   └── Requests/App/Settings/
+│       └── UpdateReceiptSettingRequest.php       # Form request konten struk (tanpa konfigurasi printer hardware)
+├── Services/App/
+│   └── Transaction/
+│       └── MasterDataSyncService.php             # Agregator snapshot master: scoped produk, setting & employees
+└── Models/
+    ├── User.php                                  # Kolom `pin` (Bcrypt), relasi `roles`, `permissions`, `outlets`
+    ├── Outlet.php                                # Relasi `users`, `paymentMethods`, `settings`
+    └── Master/
+        └── PaymentMethod.php                     # Scope `activeForOutlet($outletId)`
+resources/js/Pages/App/Settings/Receipt/
+└── Index.vue                                     # Web layout struk (Toggle kertas hanya untuk display preview)
 ```
 
-### 5.3. Public API Contract (`GET /api/v1/pos/initial-data`)
+### 5.3. Public API Contracts
 
-- *Endpoint*: `GET /api/v1/pos/initial-data`
+#### 5.3.1. Endpoint Master Data Sync (`GET /api/v1/pos/sync/master`)
+- *Endpoint*: `GET /api/v1/pos/sync/master`
 - *Header*: `Authorization: Bearer <sanctum_device_token>`
+- *Deskripsi*: Satu-satunya endpoint yang dipanggil saat *cold start*, memuat seluruh data master katalog, konfigurasi outlet, serta karyawan outlet beserta peran (*role*) dan hak aksesnya (*permissions*). Data terfilter ketat hanya untuk outlet perangkat terkait.
 - *Response (200 OK)*:
   ```json
   {
     "success": true,
+    "message": "Master data retrieved successfully",
     "data": {
       "outlet": {
         "id": "8a0deb4c-1b7d-4aad-9bee-1b0d7b3dcb1a",
         "name": "Sollu Coffee Kemang",
         "address": "Jl. Kemang Raya No. 10, Jakarta Selatan",
         "phone": "081234567890",
-        "receipt_footer": "Terima kasih atas kunjungan Anda!"
+        "email": "kemang@sollu.id",
+        "logo_url": "https://cdn.sollu.id/outlets/logo.png"
       },
-      "active_features": [
-        "pos_cashier",
-        "shift_management",
-        "cash_drawer"
-      ],
-      "outlet_settings": {
-        "enable_supervisor_pin_pos": false,
-        "allow_negative_stock_pos": true,
-        "bypass_shift_pos": false,
-        "tax_percentage": 11.0,
-        "service_charge_percentage": 0.0
-      },
-      "categories": [
-        {
-          "id": "1a0deb4c-1b7d-4aad-9bee-1b0d7b3dcb11",
-          "name": "Coffee",
-          "order": 1
-        }
-      ],
       "products": [
         {
           "id": "7b0deb4c-1b7d-4aad-9bee-1b0d7b3dcb2b",
           "name": "Kopi Susu Gula Aren",
-          "category_id": "1a0deb4c-1b7d-4aad-9bee-1b0d7b3dcb11",
+          "product_category_id": "1a0deb4c-1b7d-4aad-9bee-1b0d7b3dcb11",
+          "sku": "KOP-001",
           "barcode": "899123456789",
-          "price": 25000.0000,
-          "stock": 45.0000,
-          "image_url": "https://cdn.sollu.id/products/kopi.jpg",
-          "variants": []
+          "is_show": true
+        }
+      ],
+      "payment_methods": [
+        {
+          "id": "pm-cash-01",
+          "name": "Tunai (Cash)",
+          "type": "cash",
+          "sort_order": 1,
+          "is_active": true
+        }
+      ],
+      "settings": {
+        "tax_percentage": 11.0,
+        "service_charge_percentage": 5.0,
+        "tax_included_in_price": false,
+        "rounding_enabled": true,
+        "rounding_mode": "nearest",
+        "receipt": {
+          "show_logo": true,
+          "logo_url": "https://cdn.sollu.id/outlets/logo.png",
+          "custom_header_title": null,
+          "header_notes": "Terima kasih atas kunjungan Anda!",
+          "show_address": true,
+          "show_phone": true,
+          "show_cashier_name": true,
+          "show_customer_name": true,
+          "show_order_type": true,
+          "show_tax_detail": true,
+          "show_service_charge": true,
+          "footer_notes": "Barang yang sudah dibeli tidak dapat ditukar."
+        }
+      },
+      "employees": [
+        {
+          "id": "3c0deb4c-1b7d-4aad-9bee-1b0d7b3dcb8e",
+          "name": "Budi Santoso",
+          "email": "budi@sollu.id",
+          "pin": "$2y$12$eXampLeHashCashier1...",
+          "photo": null,
+          "role": "Kasir",
+          "permissions": [
+            "transaction.create",
+            "transaction.view",
+            "transaction.hold",
+            "transaction.reprint"
+          ]
+        },
+        {
+          "id": "5e0deb4c-1b7d-4aad-9bee-2b0d7b3dcb9f",
+          "name": "Siti Rahma",
+          "email": "siti@sollu.id",
+          "pin": "$2y$12$eXampLeHashSupervisor2...",
+          "photo": "https://cdn.sollu.id/avatars/siti.jpg",
+          "role": "Supervisor Outlet",
+          "permissions": [
+            "transaction.*",
+            "transaction.void",
+            "transaction.refund",
+            "transaction.discount",
+            "transaction.open_shift",
+            "transaction.close_shift",
+            "setting.device"
+          ]
         }
       ]
     }
   }
   ```
 
----
-
-## 6. Database Schema & Data Integrity
-
-### 6.1. Schema Drift SQLite (Client)
-
-```dart
-class LocalProductCache extends Table {
-  TextColumn get id => text()();
-  TextColumn get name => text()();
-  TextColumn get categoryId => text().nullable()();
-  TextColumn get barcode => text().nullable()();
-  RealColumn get price => real()();
-  RealColumn get stock => real().withDefault(const Constant(0.0))();
-  TextColumn get imageUrl => text().nullable()();
-  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
-  DateTimeColumn get updatedAt => dateTime()();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class LocalCategories extends Table {
-  TextColumn get id => text()();
-  TextColumn get name => text()();
-  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-```
+#### 5.3.2. Endpoint Refresh Data Karyawan Mandiri (`GET /api/v1/pos/employees`)
+- *Endpoint*: `GET /api/v1/pos/employees`
+- *Header*: `Authorization: Bearer <sanctum_device_token>`
+- *Deskripsi*: Digunakan secara on-demand untuk me-refresh data staf, role, dan hak akses kasir outlet terkait.
+- *Response (200 OK)*:
+  ```json
+  {
+    "success": true,
+    "message": "Data karyawan berhasil diambil.",
+    "data": [
+      {
+        "id": "3c0deb4c-1b7d-4aad-9bee-1b0d7b3dcb8e",
+        "name": "Budi Santoso",
+        "email": "budi@sollu.id",
+        "pin": "$2y$12$eXampLeHashCashier1...",
+        "photo": null,
+        "role": "Kasir",
+        "permissions": [
+          "transaction.create",
+          "transaction.view",
+          "transaction.hold",
+          "transaction.reprint"
+        ]
+      }
+    ]
+  }
+  ```
 
 ---
 
-## 7. Single Source of Truth: Enums
+## 6. Hardware Printing & Dedicated Device Auto Print
 
-### 7.1. Dart Client Enums
-
-```dart
-enum PaperWidth {
-  mm58(32),
-  mm80(48);
-
-  final int maxCharsPerLine;
-  const PaperWidth(this.maxCharsPerLine);
-}
-
-enum CatalogViewMode { grid, compactList }
-enum PrinterConnectionStatus { disconnected, connecting, connected }
-```
-
----
-
-## 8. Hardware Printing Standard (ESC/POS)
-
-- **Template Struk Standar 58mm**:
-  - Kolom Maksimal: 32 karakter per baris.
-  - Nama Toko: `ESC ! 0x30` (Double Height & Width, Center).
-  - Alamat & Telp: Normal Center.
-  - Garis Pemisah: `--------------------------------` (32 karakter `-`).
-  - Baris Item: Format 2 baris jika nama produk panjang.
-  - Total & Pembayaran: Bold Align Right.
-  - Cut Paper: `GS V 66 0` (Feed and Cut).
-
----
-
-## 9. Testing & Quality Assurance
-
-- `test_initial_data_fetches_and_persists_to_drift()`
-- `test_catalog_search_filters_instantly_by_name_and_barcode()`
-- `test_escpos_generator_formats_58mm_receipt_within_character_limit()`
-- `test_scanner_bridge_captures_fast_keyboard_keystrokes()`
-
----
-
-## 10. Implementation Plan & Definition of Done
-
-### Deliverables:
-1. **Backend**: Controller & Resource `/api/v1/pos/initial-data`.
-2. **Client**: Initial data sync worker, Drift table `LocalProductCache`, antarmuka Split-Screen kasir, thermal printer service Bluetooth/USB, layar setting printer.
-
-### Definition of Done (DoD):
-- Inisialisasi awal 1.000 produk berhasil disimpan di SQLite lokal dalam waktu < 2 detik.
-- Aplikasi berhasil mendeteksi dan mencetak struk uji coba ke printer thermal Bluetooth 58mm/80mm.
-- Barcode scanner fisik langsung memasukkan item ke keranjang belanja tanpa latensi.
+### 6.1. Dedicated Device Printer Architecture
+- **Konsep**: Printer thermal adalah periferal fisik yang melekat pada unit kasir (POS Terminal / Device). Tidak ada penyimpanan hardware printer di database pusat.
+- **Konfigurasi Lokal (`OutletSettingsService`)**:
+  - Mac Address / Vendor ID / Product ID Printer.
+  - Ukuran Kertas Fisik (58mm / 80mm).
+  - **Auto Print Struk**: Nilai bawaan (*default*) adalah **`true`**.
+- **Perilaku Selesai Transaksi**:
+  - Begitu kasir menekan selesaikan pembayaran dan transaksi sukses tercatat di database lokal, jika `autoPrint == true`, aplikasi langsung memicu pencetakan struk ke printer yang terhubung.
+- **Portal Backoffice Layout Struk**:
+  - Tombol ukuran kertas (58mm vs 80mm) pada form web portal hanya berfungsi sebagai toggle simulator preview display struk di layar monitor, **tidak disimpan ke database**.

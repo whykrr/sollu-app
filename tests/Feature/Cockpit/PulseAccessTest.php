@@ -2,11 +2,16 @@
 
 namespace Tests\Feature\Cockpit;
 
+use App\Enums\DeviceTypeEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\CockpitUser;
+use App\Models\Outlet;
+use App\Models\OutletDevice;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Pulse\Contracts\ResolvesUsers;
+use Laravel\Pulse\PulseServiceProvider;
 use Tests\TestCase;
 
 class PulseAccessTest extends TestCase
@@ -27,8 +32,8 @@ class PulseAccessTest extends TestCase
         config(['pulse.domain' => 'cockpit.sollu.test']);
         config(['pulse.storage.database.connection' => 'sqlite']);
 
-        if (! $this->app->providerIsLoaded(\Laravel\Pulse\PulseServiceProvider::class)) {
-            $this->app->register(\Laravel\Pulse\PulseServiceProvider::class);
+        if (! $this->app->providerIsLoaded(PulseServiceProvider::class)) {
+            $this->app->register(PulseServiceProvider::class);
             $this->app->register(\App\Providers\PulseServiceProvider::class);
         }
 
@@ -114,7 +119,7 @@ class PulseAccessTest extends TestCase
         putenv('PULSE_ALLOWED_EMAILS');
     }
 
-    public function test_pulse_user_resolver_resolves_both_business_user_and_cockpit_user(): void
+    public function test_pulse_user_resolver_resolves_business_user_device_and_cockpit_user(): void
     {
         $type = BusinessType::create(['name' => 'F&B', 'code' => 'fnb_iso']);
         $business = Business::create([
@@ -126,23 +131,40 @@ class PulseAccessTest extends TestCase
             'trial_end_at' => now()->addDays(14),
         ]);
 
+        $outlet = Outlet::create([
+            'business_id' => $business->id,
+            'name' => 'Outlet Kemang',
+        ]);
+
         $businessUser = User::factory()->create([
             'business_id' => $business->id,
             'name' => 'Tenant User',
             'email' => 'tenant@test.com',
         ]);
+        $businessUser->outlets()->attach($outlet->id);
 
-        $resolver = app(\Laravel\Pulse\Contracts\ResolvesUsers::class);
-        $keys = collect([$businessUser->id, $this->activeAdmin->id, 'non-existent-uuid']);
+        $device = OutletDevice::create([
+            'outlet_id' => $outlet->id,
+            'device_name' => 'Kasir Utama 01',
+            'device_type' => DeviceTypeEnum::POS_TERMINAL,
+            'is_active' => true,
+        ]);
+
+        $resolver = app(ResolvesUsers::class);
+        $keys = collect([$businessUser->id, $device->id, $this->activeAdmin->id, 'non-existent-uuid']);
 
         $resolver->load($keys);
 
         $resolvedBusiness = $resolver->find($businessUser->id);
+        $resolvedDevice = $resolver->find($device->id);
         $resolvedCockpit = $resolver->find($this->activeAdmin->id);
         $resolvedMissing = $resolver->find('non-existent-uuid');
 
         $this->assertSame('Tenant User', $resolvedBusiness->name);
-        $this->assertSame('tenant@test.com', $resolvedBusiness->extra);
+        $this->assertSame('Outlet: Outlet Kemang • tenant@test.com', $resolvedBusiness->extra);
+
+        $this->assertSame('Kasir Utama 01 (Perangkat)', $resolvedDevice->name);
+        $this->assertSame('Outlet: Outlet Kemang', $resolvedDevice->extra);
 
         $this->assertSame('Active Admin (Cockpit)', $resolvedCockpit->name);
         $this->assertSame('active_admin@sollu.test', $resolvedCockpit->extra);

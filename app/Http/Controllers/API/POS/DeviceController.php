@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\API\POS;
 
+use App\Events\Pos\PosDeviceUnpairedEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\POS\ConnectDeviceRequest;
+use App\Http\Requests\API\POS\UnpairPosDeviceRequest;
 use App\Models\OutletDevice;
+use App\Services\Pos\PosDeviceAuthCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -41,16 +44,18 @@ class DeviceController extends Controller
             'app_version' => $appVersion,
             'platform_type' => $platformType,
             'is_active' => true,
+            'unpaired_at' => null,
+            'unpaired_by' => null,
         ]);
 
-        // Simpan info ke Redis Cache untuk pengecekan cepat di Middleware
-        Cache::put("pos_device_{$device->id}", [
+        // Simpan info ke Redis Cache via PosDeviceAuthCacheService
+        $cacheService = app(PosDeviceAuthCacheService::class);
+        $cacheService->putDevice($device, [
             'client_device_uuid' => $deviceUuid,
             'hardware_fingerprint' => $fingerprint,
             'app_version' => $appVersion,
             'platform_type' => $platformType,
-            'is_active' => true,
-        ], now()->addDays(7));
+        ]);
 
         // Generate token permanen untuk POS
         $token = $device->createToken('pos-client')->plainTextToken;
@@ -85,13 +90,40 @@ class DeviceController extends Controller
                 'platform_type' => $request->input('platform_type', $device->platform_type),
             ]);
 
-            $cacheKey = "pos_device_{$device->id}";
-            $cached = Cache::get($cacheKey, []);
-            $cached['app_version'] = $device->app_version;
-            $cached['platform_type'] = $device->platform_type;
-            Cache::put($cacheKey, $cached, now()->addDays(7));
+            $cacheService = app(PosDeviceAuthCacheService::class);
+            $cacheService->putDevice($device);
         }
 
         return $this->successResponse(null, 'Device terkoneksi dan valid.');
+    }
+
+    public function unpair(UnpairPosDeviceRequest $request)
+    {
+        $device = $request->user();
+
+        if (! $device instanceof OutletDevice) {
+            return $this->errorResponse('Perangkat tidak valid.', [], 401);
+        }
+
+        $device->load('outlet');
+        $outlet = $device->outlet;
+
+        if (! $outlet) {
+            return $this->errorResponse('Outlet tidak ditemukan untuk perangkat ini.', [], 404);
+        }
+
+        $device->update([
+            'is_active' => false,
+            'unpaired_at' => now(),
+            'unpaired_by' => null,
+        ]);
+
+        // Hapus token Sanctum aktif
+        $device->currentAccessToken()?->delete();
+
+        // Trigger event untuk menghapus cache seketika
+        event(new PosDeviceUnpairedEvent($device, null));
+
+        return $this->successResponse(null, 'Perangkat berhasil diputus dari outlet.');
     }
 }

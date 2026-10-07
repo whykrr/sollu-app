@@ -27,6 +27,8 @@ class OutletDevice extends Authenticatable
         'is_active',
         'app_version',
         'platform_type',
+        'unpaired_at',
+        'unpaired_by',
     ];
 
     protected array $sortable = [
@@ -42,11 +44,27 @@ class OutletDevice extends Authenticatable
         return [
             'is_active' => 'boolean',
             'device_type' => DeviceTypeEnum::class,
+            'unpaired_at' => 'datetime',
         ];
     }
 
     public function outlet(): BelongsTo
     {
         return $this->belongsTo(Outlet::class);
+    }
+
+    public function unpairedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'unpaired_by');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeUnpaired($query)
+    {
+        return $query->where('is_active', false)->whereNotNull('unpaired_at');
     }
 }

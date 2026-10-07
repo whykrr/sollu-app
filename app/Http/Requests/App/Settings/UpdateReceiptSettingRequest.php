@@ -44,9 +44,6 @@ class UpdateReceiptSettingRequest extends BaseInertiaFormRequest
             'wifi_info' => ['nullable', 'string', 'max:100'],
             'show_qr_code' => ['required', 'boolean'],
             'qr_type' => ['nullable', 'string', 'in:feedback,payment,invoice'],
-            'auto_print' => ['required', 'boolean'],
-            'print_kitchen_copy' => ['required', 'boolean'],
-            'print_checker_copy' => ['required', 'boolean'],
         ];
     }
 }

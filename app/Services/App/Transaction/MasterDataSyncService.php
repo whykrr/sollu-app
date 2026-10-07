@@ -3,6 +3,7 @@
 namespace App\Services\App\Transaction;
 
 use App\Enums\PromotionStatus;
+use App\Enums\RoleEnum;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Customer;
@@ -18,8 +19,8 @@ use App\Models\Master\VariantGroupOption;
 use App\Models\OutletDevice;
 use App\Models\OutletSetting;
 use App\Models\Promotion\Promotion;
-use App\Models\Sales\Transaction;
 use App\Services\App\Outlet\OutletProvisioningService;
+use App\Services\Auth\UserPermissionCacheService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -151,6 +152,27 @@ class MasterDataSyncService
             'receipt' => $receiptSetting,
         ];
 
+        // 4b. Data Karyawan Terdaftar pada Outlet (lengkap dengan role & permissions)
+        $permissionCacheService = app(UserPermissionCacheService::class);
+        $employees = $device->outlet->users()
+            ->with(['roles:id,name,label'])
+            ->select('users.id', 'users.name', 'users.email', 'users.pin', 'users.photo')
+            ->get()
+            ->map(function ($user) use ($businessId, $permissionCacheService) {
+                $role = $user->roles->first();
+
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'pin' => $user->pin,
+                    'photo' => $user->photo,
+                    'role' => $role?->label ?? 'Kasir',
+                    'permissions' => $permissionCacheService->getPermissions($user, $businessId),
+                ];
+            })
+            ->all();
+
         $outletProducts = DB::table('outlet_product')
             ->where('outlet_id', $outletId)
             ->whereIn('product_id', $productIds)
@@ -183,49 +205,6 @@ class MasterDataSyncService
             ->get()
             ->makeHidden('business_id');
 
-        // 7. Transaksi 1 bulan terakhir
-        $transactions = Transaction::with([
-            'items',
-            'items.modifiers',
-            'payments',
-            'promos',
-        ])
-            ->where('outlet_id', $outletId)
-            ->where('created_at', '>=', now()->subMonth())
-            ->get();
-
-        $transactionData = [];
-        $transactionItems = [];
-        $transactionItemModifiers = [];
-        $transactionPayments = [];
-        $transactionPromos = [];
-
-        foreach ($transactions as $transaction) {
-            $tArray = $transaction->toArray();
-
-            foreach ($transaction->items as $item) {
-                $iArray = $item->toArray();
-                foreach ($item->modifiers as $mod) {
-                    $transactionItemModifiers[] = $mod->toArray();
-                }
-                unset($iArray['modifiers']);
-                $transactionItems[] = $iArray;
-            }
-            unset($tArray['items']);
-
-            foreach ($transaction->payments as $payment) {
-                $transactionPayments[] = $payment->toArray();
-            }
-            unset($tArray['payments']);
-
-            foreach ($transaction->promos as $promo) {
-                $transactionPromos[] = $promo->toArray();
-            }
-            unset($tArray['promos']);
-
-            $transactionData[] = $tArray;
-        }
-
         return [
             'outlet' => [
                 'id' => $outlet->id,
@@ -248,16 +227,12 @@ class MasterDataSyncService
             'payment_methods' => $paymentMethods,
             'outlet_settings' => $outletSettings,
             'settings' => $structuredSettings,
+            'employees' => $employees,
             'outlet_products' => $outletProducts,
             'inventory_items' => $inventoryItems,
             'inventory_balances' => $inventoryBalances,
             'inventory_item_variant_group_options' => $inventoryItemVariantGroupOptions,
             'promos' => $promos,
-            'transactions' => $transactionData,
-            'transaction_items' => $transactionItems,
-            'transaction_item_modifiers' => $transactionItemModifiers,
-            'transaction_payments' => $transactionPayments,
-            'transaction_promos' => $transactionPromos,
         ];
     }
 }

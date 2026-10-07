@@ -3,6 +3,7 @@
 namespace App\Support\Pulse;
 
 use App\Models\CockpitUser;
+use App\Models\OutletDevice;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
@@ -41,7 +42,7 @@ class MultiGuardPulseUsers implements ResolvesUsers
     }
 
     /**
-     * Eager load the users with the given keys from both User and CockpitUser models.
+     * Eager load the users with the given keys from User, OutletDevice, and CockpitUser models.
      *
      * @param  Collection<int, int|string|null>  $keys
      */
@@ -55,19 +56,29 @@ class MultiGuardPulseUsers implements ResolvesUsers
             return $this;
         }
 
-        // 1. Eager load tenant users
-        $users = User::findMany($uniqueKeys);
+        // 1. Eager load tenant users with their outlets
+        $users = User::with('outlets')->findMany($uniqueKeys);
 
-        // 2. Identify missing keys and look up Cockpit users
+        // 2. Identify missing keys and look up Outlet Devices with outlet
         $foundUserKeys = $users->map(fn ($u) => (string) $this->key($u));
         $missingKeys = $uniqueKeys->reject(fn ($key) => $foundUserKeys->contains((string) $key))->values();
 
-        $cockpitUsers = $missingKeys->isNotEmpty()
-            ? CockpitUser::findMany($missingKeys)
+        $devices = $missingKeys->isNotEmpty()
+            ? OutletDevice::with('outlet')->findMany($missingKeys)
             : collect();
 
-        // 3. Merge resolved models
-        $this->resolvedUsers = $users->concat($cockpitUsers);
+        // 3. Identify still missing keys and look up Cockpit users
+        $foundDeviceKeys = $devices->map(fn ($d) => (string) $this->key($d));
+        $stillMissingKeys = $missingKeys->reject(fn ($key) => $foundDeviceKeys->contains((string) $key))->values();
+
+        $cockpitUsers = $stillMissingKeys->isNotEmpty()
+            ? CockpitUser::findMany($stillMissingKeys)
+            : collect();
+
+        // 4. Merge resolved models
+        $this->resolvedUsers = $users
+            ->concat($devices)
+            ->concat($cockpitUsers);
 
         return $this;
     }
@@ -85,13 +96,42 @@ class MultiGuardPulseUsers implements ResolvesUsers
             return (object) ($this->fieldResolver)($user);
         }
 
+        if ($user instanceof OutletDevice) {
+            $outletName = $user->outlet?->name;
+
+            return (object) [
+                'name' => "{$user->device_name} (Perangkat)",
+                'extra' => $outletName ? "Outlet: {$outletName}" : 'Perangkat POS',
+                'avatar' => 'https://ui-avatars.com/api/?name='.urlencode($user->device_name).'&background=6366f1&color=fff',
+            ];
+        }
+
+        if ($user instanceof CockpitUser) {
+            return (object) [
+                'name' => "{$user->name} (Cockpit)",
+                'extra' => $user->email ?? '',
+                'avatar' => sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($user->email ?? '')))),
+            ];
+        }
+
+        if ($user instanceof User) {
+            $outletName = $user->is_root_user
+                ? 'Semua Outlet'
+                : ($user->outlets->pluck('name')->implode(', ') ?: '-');
+
+            return (object) [
+                'name' => $user->name,
+                'extra' => "Outlet: {$outletName}".($user->email ? " • {$user->email}" : ''),
+                'avatar' => $user->photo_url ?? (($user->email ?? false)
+                    ? sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($user->email))))
+                    : sprintf('https://gravatar.com/avatar?d=mp')),
+            ];
+        }
+
         return (object) [
-            'name' => $user?->name ?? "ID: $key",
-            'extra' => $user?->email ?? '',
-            'avatar' => $user?->avatar ?? (($user?->email ?? false)
-                ? sprintf('https://gravatar.com/avatar/%s?d=mp', hash('sha256', trim(strtolower($user->email))))
-                : sprintf('https://gravatar.com/avatar?d=mp')
-            ),
+            'name' => "ID: $key",
+            'extra' => '',
+            'avatar' => sprintf('https://gravatar.com/avatar?d=mp'),
         ];
     }
 

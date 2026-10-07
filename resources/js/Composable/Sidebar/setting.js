@@ -121,7 +121,6 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
         url: route('settings.sales.index'),
         icon: faFileInvoiceDollar,
         label: 'Pengaturan Penjualan',
-        feature: enums.FeatureEnum.INVOICE_DEBT,
         permissions: ['setting.sales', 'setting.*', 'transaction.view'],
         activeRoute: 'settings.sales',
     },

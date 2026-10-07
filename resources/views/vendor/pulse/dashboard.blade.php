@@ -9,6 +9,10 @@
 
     <livewire:pulse.slow-queries cols="8" />
 
+    <livewire:reverb.connections lazy cols="6" />
+
+    <livewire:reverb.messages lazy cols="6" />
+
     <livewire:pulse.exceptions cols="6" />
 
     <livewire:pulse.slow-requests cols="6" />

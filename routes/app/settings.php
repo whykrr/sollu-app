@@ -123,7 +123,6 @@ Route::prefix('settings')
 
         Route::middleware([
             'can:'.PermissionEnum::SETTING_SALES->value,
-            'plan.feature:'.FeatureEnum::INVOICE_DEBT->value,
         ])
             ->prefix('sales')
             ->name('sales.')

@@ -5,9 +5,11 @@ namespace App\Http\Middleware;
 use App\Enums\FeatureEnum;
 use App\Models\Business;
 use App\Models\OutletDevice;
+use App\Services\Pos\PosDeviceAuthCacheService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Laravel\Pulse\Facades\Pulse;
 use Symfony\Component\HttpFoundation\Response;
 
 class VerifyPosDevice
@@ -25,6 +27,8 @@ class VerifyPosDevice
             return response()->json(['message' => 'Unauthorized device token.'], 401);
         }
 
+        Pulse::rememberUser($device);
+
         $clientUuid = $request->header('X-DEVICE-UUID');
         $hardwareFingerprint = $request->header('X-HARDWARE-SIGNATURE');
 
@@ -32,21 +36,21 @@ class VerifyPosDevice
             return response()->json(['message' => 'Missing device verification headers.'], 401);
         }
 
-        $cacheKey = "pos_device_{$device->id}";
-        $cachedDevice = Cache::get($cacheKey);
+        $cacheService = app(PosDeviceAuthCacheService::class);
+        $cachedDevice = $cacheService->getDevice($device->id);
 
         if (! $cachedDevice) {
             // Rebuild cache if missing
-            $cachedDevice = [
-                'client_device_uuid' => $device->client_device_uuid,
-                'hardware_fingerprint' => $device->hardware_fingerprint,
-                'is_active' => $device->is_active,
-            ];
-            Cache::put($cacheKey, $cachedDevice, now()->addDays(7));
+            $cacheService->putDevice($device);
+            $cachedDevice = $cacheService->getDevice($device->id);
         }
 
-        if (! $cachedDevice['is_active']) {
-            return response()->json(['message' => 'Device is deactivated.'], 401);
+        if (! ($cachedDevice['is_active'] ?? false)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Perangkat telah dinonaktifkan atau diputus dari outlet.',
+                'error_code' => 'DEVICE_UNPAIRED',
+            ], 401);
         }
 
         if ($cachedDevice['client_device_uuid'] !== $clientUuid ||
@@ -64,6 +68,9 @@ class VerifyPosDevice
                 'error_code' => 'SUBSCRIPTION_EXPIRED',
             ], 402);
         }
+
+        // Pastikan team ID permission diset ke business_id saat mengakses API POS
+        setPermissionsTeamId($business->id);
 
         return $next($request);
     }

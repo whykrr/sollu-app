@@ -17,43 +17,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-8">
             <!-- Left Column: Settings Form -->
             <div class="lg:col-span-7 flex flex-col gap-4">
-                <!-- Card 1: Format Kertas & Perilaku Cetak -->
-                <div class="bg-white rounded-xl border border-slate-200 p-5">
-                    <h3
-                        class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
-                    >
-                        <FontAwesomeIcon :icon="faPrint" class="text-main" />
-                        Format Kertas & Perilaku Cetak
-                    </h3>
-                    <div class="space-y-2">
-                        <SelectionGroupField
-                            id="paper_size"
-                            v-model="form.paper_size"
-                            label="Ukuran Kertas Thermal"
-                            :options="paperSizeOptions"
-                            :feedback="form.errors.paper_size"
-                        />
-
-                        <div class="pt-1">
-                            <label
-                                for="auto_print"
-                                class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer select-none hover:bg-slate-50/80 hover:border-slate-300 transition-colors"
-                            >
-                                <div>
-                                    <div class="font-medium text-sm text-slate-700">
-                                        Auto Print Struk
-                                    </div>
-                                    <div class="text-xs text-slate-500">
-                                        Cetak otomatis setelah bayar
-                                    </div>
-                                </div>
-                                <Switch id="auto_print" v-model="form.auto_print" size="md" />
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 2: Header Struk -->
+                <!-- Card 1: Header Struk -->
                 <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
@@ -276,17 +240,47 @@
             <!-- Right Column: Live Thermal Receipt Preview -->
             <div class="lg:col-span-5">
                 <div class="sticky top-0 flex flex-col items-center">
-                    <div
-                        class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"
-                    >
-                        <FontAwesomeIcon :icon="faEye" class="text-main" />
-                        Live Preview Struk Thermal ({{ form.paper_size }})
+                    <div class="flex items-center justify-between w-full mb-3 max-w-[380px]">
+                        <div
+                            class="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5"
+                        >
+                            <FontAwesomeIcon :icon="faEye" class="text-main" />
+                            Preview Struk Thermal
+                        </div>
+                        <div
+                            class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200"
+                        >
+                            <button
+                                type="button"
+                                class="px-2.5 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer"
+                                :class="
+                                    displayPaperSize === '58mm'
+                                        ? 'bg-white text-slate-800 shadow-xs'
+                                        : 'text-slate-500 hover:text-slate-800'
+                                "
+                                @click="displayPaperSize = '58mm'"
+                            >
+                                58 mm
+                            </button>
+                            <button
+                                type="button"
+                                class="px-2.5 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer"
+                                :class="
+                                    displayPaperSize === '80mm'
+                                        ? 'bg-white text-slate-800 shadow-xs'
+                                        : 'text-slate-500 hover:text-slate-800'
+                                "
+                                @click="displayPaperSize = '80mm'"
+                            >
+                                80 mm
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Receipt Paper Container -->
                     <div
                         class="bg-[#fafaf8] text-slate-800 p-5 rounded-sm shadow-md border border-slate-300 font-mono text-xs leading-relaxed transition-all duration-300 w-full"
-                        :class="form.paper_size === '58mm' ? 'max-w-[300px]' : 'max-w-[380px]'"
+                        :class="displayPaperSize === '58mm' ? 'max-w-[300px]' : 'max-w-[380px]'"
                     >
                         <!-- Top jagged edge indicator -->
                         <div
@@ -471,16 +465,10 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import {
-    faEye,
-    faHeading,
-    faList,
-    faParagraph,
-    faPrint,
-    faSave,
-} from '@fortawesome/free-solid-svg-icons'
+import { faEye, faHeading, faList, faParagraph, faSave } from '@fortawesome/free-solid-svg-icons'
 
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
@@ -488,7 +476,6 @@ import SettingOutletSelector from '../Components/SettingOutletSelector.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import Switch from '@/Components/Form/Switch.vue'
-import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 
 const props = defineProps({
     outlets: Array,
@@ -497,14 +484,10 @@ const props = defineProps({
     business: Object,
 })
 
-const paperSizeOptions = [
-    { label: '58 mm (Standar)', value: '58mm' },
-    { label: '80 mm (Lebar)', value: '80mm' },
-]
+const displayPaperSize = ref('58mm')
 
 const defaultSettings = {
     outlet_id: props.selectedOutlet?.id ?? '',
-    paper_size: '58mm',
     show_logo: true,
     custom_header_title: '',
     header_notes: 'Terima kasih atas kunjungan Anda!',
@@ -523,7 +506,6 @@ const defaultSettings = {
     wifi_info: '',
     show_qr_code: false,
     qr_type: 'invoice',
-    auto_print: true,
 }
 
 const form = useForm({
