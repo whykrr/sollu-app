@@ -22,6 +22,9 @@ Route::get('/health', [HealthCheckController::class, 'index'])->name('api.health
 // Webhook compatibility
 Route::post('midtrans/notification', NotificationController::class)->name('midtrans.notification');
 
+// POS Device Broadcasting Auth
+Broadcast::routes(['prefix' => 'api', 'middleware' => ['auth:sanctum']]);
+
 /*
 |--------------------------------------------------------------------------
 | Versioned API Routes (Canonical)
@@ -55,6 +58,8 @@ Route::prefix('pos')
             Route::get('/device/status', [DeviceController::class, 'checkStatus'])->name('device.status');
             Route::post('/device/unpair', [DeviceController::class, 'unpair'])->name('device.unpair');
 
+            Route::get('/sync/initial', [SyncController::class, 'initial'])->name('sync.initial');
+            Route::get('/sync/delta', [SyncController::class, 'delta'])->name('sync.delta');
             Route::get('/sync/master', [SyncController::class, 'masterData'])->name('sync.master');
 
             Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');

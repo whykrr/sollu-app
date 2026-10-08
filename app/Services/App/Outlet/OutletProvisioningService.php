@@ -196,7 +196,7 @@ class OutletProvisioningService
         $defaultTnc = "1. Pembayaran dilakukan sesuai tanggal jatuh tempo yang tertera pada faktur.\n2. Pembayaran via transfer ditujukan ke rekening resmi yang tertera.\n3. Barang yang sudah diterima dalam kondisi baik tidak dapat dikembalikan tanpa persetujuan tertulis.";
 
         $salesDefaults = [
-            'allow_negative_stock' => false,
+            'allow_negative_stock' => true,
             'allow_negative_stock_b2b' => false,
             'allow_custom_price' => true,
             'allow_custom_price_b2b' => true,

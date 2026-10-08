@@ -50,7 +50,7 @@ class SalesSettingController extends Controller
 
         $posSettings = [
             'enable_supervisor_pin' => false,
-            'allow_negative_stock' => false,
+            'allow_negative_stock' => true,
         ];
 
         $devices = [];
@@ -88,7 +88,7 @@ class SalesSettingController extends Controller
                 ->get();
         }
 
-        return Inertia::render('App/Settings/Sales/Index', [
+        return Inertia::render('Settings/Sales/Index', [
             'outlets' => $outlets,
             'selectedOutlet' => $targetOutlet,
             'salesSettings' => $salesSettings,

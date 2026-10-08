@@ -9,10 +9,16 @@ use App\Enums\PermissionEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Feature;
+use App\Models\Inventory\InventoryBalance;
+use App\Models\Master\Product;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Observers\POS\InventoryBalanceObserver;
+use App\Observers\POS\ProductItemObserver;
+use App\Observers\POS\ProductObserver;
 use App\Observers\UserCacheObserver;
 use App\Services\App\Audit\ActivityLogService;
 use App\Services\App\Inventory\InventoryDeductionService;
@@ -134,6 +140,10 @@ class AppServiceProvider extends ServiceProvider
         Role::observe(UserCacheObserver::class);
         \App\Models\Permission::observe(UserCacheObserver::class);
         Permission::observe(UserCacheObserver::class);
+
+        Product::observe(ProductObserver::class);
+        ProductItem::observe(ProductItemObserver::class);
+        InventoryBalance::observe(InventoryBalanceObserver::class);
 
         Event::listen(Authenticated::class, function ($event) {
             if (isset($event->user->business_id)) {

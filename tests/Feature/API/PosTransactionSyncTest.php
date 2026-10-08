@@ -15,6 +15,7 @@ use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryCostLayer;
 use App\Models\Inventory\InventoryItem;
+use App\Models\Inventory\InventoryMovement;
 use App\Models\Master\PaymentMethod;
 use App\Models\Master\Product;
 use App\Models\Outlet;
@@ -27,6 +28,7 @@ use App\Services\Pos\PosDeviceAuthCacheService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -349,5 +351,70 @@ class PosTransactionSyncTest extends TestCase
             PermissionEnum::TRANSACTION_OPEN_DRAWER->value,
             $cashierData['permissions']
         );
+    }
+
+    public function test_transaction_sync_supports_mutation_log_deduction_and_offline_id_preservation(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $offlineId = (string) Str::uuid();
+        $payload = [
+            'offline_id' => $offlineId,
+            'transaction_number' => 'POS/MUT/20261009/0001',
+            'shift_id' => $this->shift->id,
+            'cashier_id' => $this->cashier->id,
+            'subtotal' => 25000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'service_charge_amount' => 0,
+            'total' => 25000,
+            'payment_status' => 'paid',
+            'status' => 'completed',
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'product_name' => 'Kopi Susu',
+                    'price' => 25000,
+                    'qty_deducted' => 3.0, // Format log mutasi kuantitas
+                    'discount_amount' => 0,
+                    'subtotal' => 25000,
+                ],
+            ],
+            'payments' => [
+                [
+                    'payment_method_id' => $this->cashMethod->id,
+                    'amount' => 25000,
+                    'change_amount' => 0,
+                ],
+            ],
+        ];
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'pos-dev-001',
+            'X-HARDWARE-SIGNATURE' => 'pos-sig-001',
+        ])->postJson('http://api.sollu.test/pos/transactions', $payload);
+
+        $response->assertStatus(200);
+
+        // Verifikasi ID transaksi server sama dengan offline_id
+        $this->assertDatabaseHas('transactions', [
+            'id' => $offlineId,
+            'transaction_number' => 'POS/MUT/20261009/0001',
+        ]);
+
+        // Verifikasi stok terpotong sebesar 3 (10 - 3 = 7)
+        $balance = InventoryBalance::where('outlet_id', $this->outlet->id)
+            ->where('inventory_item_id', $this->inventoryItem->id)
+            ->first();
+        $this->assertEquals(7.0, (float) $balance->current_stock);
+
+        // Verifikasi ledger InventoryMovement tercatat
+        $movement = InventoryMovement::where('outlet_id', $this->outlet->id)
+            ->where('inventory_item_id', $this->inventoryItem->id)
+            ->where('reference_id', $offlineId)
+            ->first();
+        $this->assertNotNull($movement);
+        $this->assertEquals(-3.0, (float) $movement->qty_change);
     }
 }

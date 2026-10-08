@@ -31,21 +31,8 @@ class MasterDataSyncService
     public function getPayload(OutletDevice $device, bool $force = false): array
     {
         $outletId = $device->outlet_id;
-        $cacheKey = "pos:outlet:{$outletId}:master_sync";
 
-        if ($force || app()->environment('testing')) {
-            Cache::forget($cacheKey);
-        }
-
-        if (app()->environment('testing')) {
-            return $this->buildPayload($device, $outletId);
-        }
-
-        return Cache::remember(
-            $cacheKey,
-            self::MASTER_SYNC_CACHE_TTL,
-            fn () => $this->buildPayload($device, $outletId)
-        );
+        return $this->buildPayload($device, $outletId);
     }
 
     private function buildPayload(OutletDevice $device, string $outletId): array
@@ -200,6 +187,7 @@ class MasterDataSyncService
             'tax_included_in_price' => $taxIncluded,
             'rounding_enabled' => $roundingEnabled,
             'rounding_mode' => $roundingMode,
+            'allow_negative_stock' => (bool) ($outletSettings->firstWhere('key', 'allow_negative_stock')?->value ?? true),
             'receipt' => $receiptSetting,
         ];
 
@@ -270,6 +258,7 @@ class MasterDataSyncService
             ->makeHidden('business_id');
 
         return [
+            'synced_at' => now()->toIso8601String(),
             'outlet' => [
                 'id' => $outlet->id,
                 'name' => $outlet->name,

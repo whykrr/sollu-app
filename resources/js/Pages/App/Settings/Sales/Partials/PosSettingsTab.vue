@@ -274,7 +274,7 @@ const props = defineProps({
         type: Object,
         default: () => ({
             enable_supervisor_pin: false,
-            allow_negative_stock: false,
+            allow_negative_stock: true,
         }),
     },
     devices: {
@@ -294,7 +294,7 @@ const popUpStore = usePopUpStore()
 const posForm = useForm({
     outlet_id: props.outlet?.id,
     enable_supervisor_pin: props.posSettings?.enable_supervisor_pin ?? false,
-    allow_negative_stock: props.posSettings?.allow_negative_stock ?? false,
+    allow_negative_stock: props.posSettings?.allow_negative_stock ?? true,
 })
 
 watch(
@@ -302,7 +302,7 @@ watch(
     newSettings => {
         posForm.outlet_id = props.outlet?.id
         posForm.enable_supervisor_pin = newSettings?.enable_supervisor_pin ?? false
-        posForm.allow_negative_stock = newSettings?.allow_negative_stock ?? false
+        posForm.allow_negative_stock = newSettings?.allow_negative_stock ?? true
     },
     { deep: true }
 )

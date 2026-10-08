@@ -143,8 +143,9 @@ class TransactionService
 
             $balance = $balances->get($item['inventory_item_id']);
             $currentStock = $balance ? (float) $balance->current_stock : 0.0;
+            $qty = (float) ($item['qty_deducted'] ?? $item['qty'] ?? 1);
 
-            if ($currentStock < (float) $item['qty']) {
+            if ($currentStock < $qty) {
                 $productName = $item['product_name'] ?? 'Item';
                 throw new InvalidArgumentException("Stok {$productName} tidak mencukupi. Sisa stok: {$currentStock}");
             }
@@ -254,7 +255,12 @@ class TransactionService
             // 1. Idempotensi ketat: cegah duplikasi transaksi dan double deduction
             $existing = Transaction::with(['items', 'payments', 'promos'])
                 ->where('outlet_id', $outletId)
-                ->where('transaction_number', $transactionNumber)
+                ->where(function ($q) use ($transactionNumber, $data) {
+                    $q->where('transaction_number', $transactionNumber);
+                    if (! empty($data['offline_id']) && Str::isUuid((string) $data['offline_id'])) {
+                        $q->orWhere('id', $data['offline_id']);
+                    }
+                })
                 ->lockForUpdate()
                 ->first();
 
@@ -306,7 +312,7 @@ class TransactionService
             $totalPaid = $paymentStatus === 'paid' ? $total : (float) ($data['total_paid'] ?? 0);
             $balanceDue = max(0.0, $total - $totalPaid);
 
-            $transaction = Transaction::create([
+            $txAttributes = [
                 'outlet_id' => $outlet->id,
                 'shift_id' => $shiftId,
                 'customer_id' => $customerId,
@@ -329,7 +335,13 @@ class TransactionService
                 'notes' => $data['notes'] ?? null,
                 'created_by' => $user->id,
                 'updated_by' => $user->id,
-            ]);
+            ];
+
+            $transaction = new Transaction($txAttributes);
+            if (! empty($data['offline_id']) && Str::isUuid((string) $data['offline_id'])) {
+                $transaction->id = $data['offline_id'];
+            }
+            $transaction->save();
 
             // 5. Simpan Item Transaksi
             foreach ($data['items'] as $item) {
@@ -352,13 +364,15 @@ class TransactionService
                         ->value('id');
                 }
 
+                $itemQty = (float) ($item['qty_deducted'] ?? $item['qty'] ?? 1);
+
                 $transaction->items()->create([
                     'product_id' => $productId,
                     'product_item_id' => $productItemId,
                     'inventory_item_id' => $inventoryItemId,
                     'product_name' => $item['product_name'] ?? 'Item POS',
                     'price' => $item['price'] ?? 0,
-                    'qty' => $item['qty'] ?? 1,
+                    'qty' => $itemQty,
                     'discount_amount' => $item['discount_amount'] ?? 0,
                     'subtotal' => $item['subtotal'] ?? 0,
                     'promo_name' => $item['promo_name'] ?? null,
