@@ -120,7 +120,7 @@ class EmployeeExportImportJobTest extends TestCase
         $job = new ExportEmployeeJob($this->user);
         $mappedOwner = $job->mapRow($this->user);
 
-        $this->assertSame('Pemilik Usaha (Owner)', $mappedOwner[3]);
+        $this->assertSame('Akun Utama', $mappedOwner[3]);
         $this->assertSame('Semua Outlet', $mappedOwner[4]);
 
         $trashed = User::factory()->create([

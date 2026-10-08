@@ -15,7 +15,7 @@
                         {{ detail?.name || '-' }}
                     </h3>
                     <span v-if="detail?.is_root_user" class="badge badge-warning text-[10px]">
-                        Pemilik Usaha (Owner)
+                        Akun Utama
                     </span>
                     <span v-else-if="roleLabel" class="badge badge-info text-[10px]">
                         {{ roleLabel }}
@@ -74,7 +74,7 @@
                     <span class="font-medium text-slate-800 mt-0.5 block">
                         {{
                             detail?.is_root_user
-                                ? 'Pemilik Usaha (Full Access)'
+                                ? 'Akun Utama (Full Access)'
                                 : roleLabel || 'Belum diatur'
                         }}
                     </span>

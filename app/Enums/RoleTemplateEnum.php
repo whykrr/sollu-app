@@ -23,6 +23,7 @@ enum RoleTemplateEnum: string
     case SERVICE_MANAGER = 'service_manager';
 
     // General / Lintas Industri
+    case OWNER = 'owner';
     case FINANCE_ACCOUNTING = 'finance_accounting';
 
     public function label(): string
@@ -43,6 +44,7 @@ enum RoleTemplateEnum: string
             self::SERVICE_STAFF => 'Terapis / Stylist / Teknisi',
             self::SERVICE_MANAGER => 'Manajer Operasional Jasa',
 
+            self::OWNER => 'Pemilik Usaha',
             self::FINANCE_ACCOUNTING => 'Staf Keuangan & Akunting',
         };
     }
@@ -65,6 +67,7 @@ enum RoleTemplateEnum: string
             self::SERVICE_STAFF => 'Melihat daftar antrean pelanggan, input status pengerjaan servis selesai, dan cek bahan layanan.',
             self::SERVICE_MANAGER => 'Kelola paket layanan, komisi staf, serta laporan performa shift dan kepuasan pelanggan.',
 
+            self::OWNER => 'Hak akses manajerial penuh seluruh modul dan pengaturan bisnis untuk pemilik atau perwakilan usaha.',
             self::FINANCE_ACCOUNTING => 'Audit seluruh laporan penjualan, arus kas kasir, laba kotor, dan ekspor berkas keuangan.',
         };
     }
@@ -87,6 +90,7 @@ enum RoleTemplateEnum: string
             self::SERVICE_STAFF,
             self::SERVICE_MANAGER => 'service',
 
+            self::OWNER,
             self::FINANCE_ACCOUNTING => 'general',
         };
     }
@@ -123,6 +127,7 @@ enum RoleTemplateEnum: string
             self::SERVICE_STAFF,
             self::SERVICE_MANAGER => ['service', 'barbershop', 'salon', 'spa', 'laundry', 'workshop'],
 
+            self::OWNER,
             self::FINANCE_ACCOUNTING => ['fnb', 'retail', 'service', 'general'],
         };
     }
@@ -452,6 +457,8 @@ enum RoleTemplateEnum: string
                 PermissionEnum::SETTING_SALES->value,
                 PermissionEnum::SETTING_AUDIT->value,
             ],
+
+            self::OWNER => PermissionEnum::values(),
         };
     }
 

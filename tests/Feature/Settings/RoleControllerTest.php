@@ -296,4 +296,48 @@ class RoleControllerTest extends TestCase
             ->has('roles.0.summary_groups')
         );
     }
+
+    public function test_user_can_update_owner_role_permissions(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user);
+        setPermissionsTeamId($user->business_id);
+        $user->givePermissionTo(PermissionEnum::ROLE_UPDATE->value);
+
+        $ownerRole = Role::where('business_id', $user->business_id)
+            ->where('name', 'owner')
+            ->first();
+
+        $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/roles/{$ownerRole->id}", [
+            'label' => 'Owner Custom Label (Ignored for Default)',
+            'permissions' => [
+                PermissionEnum::PRODUCT_VIEW->value,
+                PermissionEnum::TRANSACTION_VIEW->value,
+            ],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertEquals('Owner', $ownerRole->fresh()->label); // label unchanged for is_default
+        $this->assertEquals(
+            [PermissionEnum::PRODUCT_VIEW->value, PermissionEnum::TRANSACTION_VIEW->value],
+            $ownerRole->fresh()->permissions->pluck('name')->sort()->values()->toArray()
+        );
+    }
+
+    public function test_user_cannot_delete_default_owner_role(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user);
+        setPermissionsTeamId($user->business_id);
+        $user->givePermissionTo(PermissionEnum::ROLE_DELETE->value);
+
+        $ownerRole = Role::where('business_id', $user->business_id)
+            ->where('name', 'owner')
+            ->first();
+
+        $response = $this->actingAs($user, 'business')->delete("http://{$this->appDomain}/settings/roles/{$ownerRole->id}");
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('roles', ['id' => $ownerRole->id]);
+    }
 }

@@ -25,6 +25,10 @@ export function useAuth() {
     const can = permission => {
         const perms = permissions.value
 
+        if (perms.includes('*')) {
+            return true
+        }
+
         if (perms.includes(permission)) {
             return true
         }
@@ -50,7 +54,8 @@ export function useAuth() {
         return permissionList.every(permission => can(permission))
     }
 
-    const isOwner = computed(() => hasRole('owner'))
+    const isRoot = computed(() => Boolean(auth.value.is_root_user))
+    const isOwner = computed(() => isRoot.value || hasRole('owner'))
 
     return {
         auth,
@@ -64,6 +69,7 @@ export function useAuth() {
         roles,
         permissions,
 
+        isRoot,
         isOwner,
 
         can,

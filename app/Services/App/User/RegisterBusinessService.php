@@ -2,7 +2,6 @@
 
 namespace App\Services\App\User;
 
-use App\Enums\RoleEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Outlet;
@@ -57,9 +56,7 @@ class RegisterBusinessService
             // Provision roles for this business
             app(RoleProvisioningService::class)->provision($business);
 
-            // Assign owner role & attach to main outlet
-            setPermissionsTeamId($business->id);
-            $user->assignRole(RoleEnum::OWNER->value);
+            // Attach root user to main outlet (Root user has wildcard * and no role)
             $user->outlets()->attach($outlet->id);
 
             // Provision default settings & payment methods

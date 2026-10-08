@@ -210,7 +210,7 @@ class MasterDataSyncService
 
             return $outlet->users()
                 ->with(['roles:id,name,label'])
-                ->select('users.id', 'users.name', 'users.email', 'users.pin', 'users.photo')
+                ->select('users.id', 'users.name', 'users.email', 'users.pin', 'users.photo', 'users.is_root_user')
                 ->get()
                 ->map(function ($user) use ($businessId, $permissionCacheService) {
                     $role = $user->roles->first();
@@ -221,7 +221,8 @@ class MasterDataSyncService
                         'email' => $user->email,
                         'pin' => $user->pin,
                         'photo' => $user->photo,
-                        'role' => $role?->label ?? 'Kasir',
+                        'role' => $user->is_root_user ? 'Akun Utama' : ($role?->label ?? 'Kasir'),
+                        'is_root_user' => (bool) $user->is_root_user,
                         'permissions' => $permissionCacheService->getPermissions($user, $businessId),
                     ];
                 })

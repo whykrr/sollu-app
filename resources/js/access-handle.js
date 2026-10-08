@@ -3,6 +3,9 @@ import { useModalStore } from '@/store/notification'
 import FeatureLockedModal from '@/Components/Modals/FeatureLockedModal.vue'
 
 const checkPermission = (permissions, required) => {
+    if (permissions.includes('*')) {
+        return true
+    }
     return permissions.some(perm => {
         if (perm.includes('*')) {
             const regex = new RegExp('^' + perm.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$')

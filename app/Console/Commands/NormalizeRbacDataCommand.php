@@ -37,14 +37,12 @@ class NormalizeRbacDataCommand extends Command
             // 1. Provision default tenant roles for this business
             $provisioningService->provision($business);
 
-            // 2. Assign root user to owner role in this business
+            // 2. Ensure root user has NO roles or direct permissions (Root user has wildcard *)
             $rootUser = $business->users()->where('is_root_user', true)->first();
             if ($rootUser) {
                 setPermissionsTeamId($business->id);
-                // Ensure root user gets the Owner role
-                if (! $rootUser->hasRole('owner')) {
-                    $rootUser->assignRole('owner');
-                }
+                $rootUser->syncRoles([]);
+                $rootUser->syncPermissions([]);
             }
 
             // 3. Fix pivot tables for all users in this business

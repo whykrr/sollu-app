@@ -44,6 +44,7 @@ class SummaryUser
             60 * 60,
             function () use ($user) {
                 return [
+                    'is_root_user' => (bool) $user->is_root_user,
                     'role' => $user->roles->map(fn ($role) => [
                         'name' => $role->name,
                         'label' => $role->label,

@@ -10,6 +10,7 @@ use App\Models\Outlet;
 use App\Models\User;
 use App\Services\App\Outlet\OutletProvisioningService;
 use App\Services\App\User\RegisterBusinessService;
+use Database\Seeders\Production\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
@@ -26,7 +27,7 @@ class RegisterBusinessServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\Production\RolePermissionSeeder::class);
+        $this->seed(RolePermissionSeeder::class);
         $this->provisioningServiceMock = Mockery::mock(OutletProvisioningService::class);
         $this->service = new RegisterBusinessService($this->provisioningServiceMock);
     }
@@ -92,10 +93,18 @@ class RegisterBusinessServiceTest extends TestCase
         $this->assertEquals('081234567890', $user->phone);
         $this->assertTrue($user->is_root_user);
         $this->assertEquals($business->id, $user->business_id);
-        $this->assertTrue($user->hasRole(RoleEnum::OWNER->value));
+        $this->assertFalse($user->hasRole(RoleEnum::OWNER->value));
+        $this->assertCount(0, $user->roles);
+        $this->assertEquals(['*'], $user->getCachedPermissions());
+        $this->assertTrue($user->can('any.custom.ability'));
         $this->assertTrue($user->outlets->contains($outlet->id));
 
         // Assert Database records
+        $this->assertDatabaseHas('roles', [
+            'business_id' => $business->id,
+            'name' => RoleEnum::OWNER->value,
+            'is_default' => true,
+        ]);
         $this->assertDatabaseHas('businesses', [
             'id' => $business->id,
             'name' => 'Kopi Maju Jaya',

@@ -48,7 +48,14 @@ class NotificationDispatcherServiceTest extends TestCase
         $user1->setAttribute('id', 'user-1');
 
         $relation = Mockery::mock(HasMany::class);
-        $relation->shouldReceive('role')->with(['owner', 'manager'])->andReturnSelf();
+        $relation->shouldReceive('where')->with(Mockery::on(function ($closure) {
+            $subQuery = Mockery::mock(HasMany::class);
+            $subQuery->shouldReceive('role')->with(['owner', 'manager'])->andReturnSelf();
+            $subQuery->shouldReceive('orWhere')->with('is_root_user', true)->andReturnSelf();
+            $closure($subQuery);
+
+            return true;
+        }))->andReturnSelf();
         $relation->shouldReceive('get')->andReturn(new Collection([$user1]));
 
         $businessMock = Mockery::mock($business)->makePartial();

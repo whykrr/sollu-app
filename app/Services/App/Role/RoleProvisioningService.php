@@ -2,7 +2,6 @@
 
 namespace App\Services\App\Role;
 
-use App\Enums\PermissionEnum;
 use App\Enums\RoleEnum;
 use App\Enums\RoleTemplateEnum;
 use App\Models\Business;
@@ -31,7 +30,7 @@ class RoleProvisioningService
             ]
         );
 
-        $owner->syncPermissions(PermissionEnum::values());
+        $owner->syncPermissions(RoleTemplateEnum::OWNER->permissions());
     }
 
     /**

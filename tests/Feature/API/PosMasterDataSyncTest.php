@@ -356,4 +356,56 @@ class PosMasterDataSyncTest extends TestCase
         // Pastikan total query berkurang signifikan (di bawah 10 query dibanding 36 sebelumnya)
         $this->assertLessThanOrEqual(9, count($queries), 'Query count melebihi target optimasi ('.count($queries).' queries).');
     }
+
+    public function test_sync_master_data_and_employees_endpoint_returns_root_user_as_akun_utama_with_wildcard_permission(): void
+    {
+        // Buat Root User yang terdaftar di Outlet A
+        $rootUser = User::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outletA->id,
+            'name' => 'Owner Bos Utama',
+            'email' => 'root_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+            'pin' => Hash::make('112233'),
+            'is_root_user' => true,
+        ]);
+        $this->outletA->users()->attach($rootUser->id);
+
+        Cache::forget("pos:outlet:{$this->outletA->id}:employees");
+
+        Sanctum::actingAs($this->deviceA, ['pos:access']);
+
+        // 1. Test via Sync Master Data
+        $syncResponse = $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-001',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-001',
+        ])->getJson('http://api.sollu.test/pos/sync/master');
+
+        $syncResponse->assertStatus(200);
+        $syncEmployees = $syncResponse->json('data.employees');
+        $rootInSync = collect($syncEmployees)->firstWhere('id', $rootUser->id);
+
+        $this->assertNotNull($rootInSync);
+        $this->assertEquals('Owner Bos Utama', $rootInSync['name']);
+        $this->assertEquals('Akun Utama', $rootInSync['role']);
+        $this->assertTrue($rootInSync['is_root_user']);
+        $this->assertEquals(['*'], $rootInSync['permissions']);
+
+        // 2. Test via Employees Endpoint
+        Cache::forget("pos:outlet:{$this->outletA->id}:employees");
+        $empResponse = $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-001',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-001',
+        ])->getJson('http://api.sollu.test/pos/employees');
+
+        $empResponse->assertStatus(200);
+        $employeesData = $empResponse->json('data');
+        $rootInEmp = collect($employeesData)->firstWhere('id', $rootUser->id);
+
+        $this->assertNotNull($rootInEmp);
+        $this->assertEquals('Owner Bos Utama', $rootInEmp['name']);
+        $this->assertEquals('Akun Utama', $rootInEmp['role']);
+        $this->assertTrue($rootInEmp['is_root_user']);
+        $this->assertEquals(['*'], $rootInEmp['permissions']);
+    }
 }

@@ -31,13 +31,17 @@
                     </template>
 
                     <template #permissions_summary="{ row }">
-                        <div v-if="row.name === $enums.RoleEnum?.OWNER || row.name === 'owner'">
-                            <span class="badge badge-success text-xs font-medium">
-                                Akses Penuh (Semua Modul)
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span
+                                v-if="
+                                    (row.name === $enums.RoleEnum?.OWNER || row.name === 'owner') &&
+                                    row.permissions_count >= 100
+                                "
+                                class="badge badge-success text-xs font-medium"
+                            >
+                                Akses Penuh
                             </span>
-                        </div>
-                        <div v-else class="flex items-center gap-1.5 flex-wrap">
-                            <span class="badge badge-info text-xs font-semibold">
+                            <span v-else class="badge badge-info text-xs font-semibold">
                                 {{ row.permissions_count }} Izin
                             </span>
                             <span

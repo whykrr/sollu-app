@@ -7,7 +7,6 @@ use App\Constants\ResourceMessage;
 use App\Contracts\Audit\ActivityLoggerInterface;
 use App\Enums\AuditModuleEnum;
 use App\Enums\PermissionEnum;
-use App\Enums\RoleEnum;
 use App\Enums\RoleTemplateEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Settings\StoreRoleRequest;
@@ -205,11 +204,6 @@ class RoleController extends Controller
         }
 
         $data = $request->validated();
-
-        // If trying to edit owner, abort
-        if ($role->name === RoleEnum::OWNER->value) {
-            abort(Response::HTTP_FORBIDDEN, 'Role Owner tidak dapat diubah izinnya.');
-        }
 
         $before = [
             'label' => $role->label,

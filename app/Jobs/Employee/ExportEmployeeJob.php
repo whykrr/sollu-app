@@ -71,7 +71,7 @@ class ExportEmployeeJob extends AbstractExcelExportJob
     public function mapRow($row): array
     {
         $roleName = $row->is_root_user
-            ? 'Pemilik Usaha (Owner)'
+            ? 'Akun Utama'
             : ($row->roles->first()?->label ?? $row->roles->first()?->name ?? '-');
 
         $outlets = $row->is_root_user

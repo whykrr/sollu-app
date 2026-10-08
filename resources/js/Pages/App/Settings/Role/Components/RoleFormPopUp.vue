@@ -22,10 +22,10 @@
 
             <div
                 v-if="isOwnerRole"
-                class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-700"
+                class="p-2.5 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-700"
             >
-                Peran Pemilik Usaha (Owner) memiliki hak akses penuh ke seluruh sistem dan tidak
-                dapat dikurangi.
+                Peran Pemilik Usaha (Owner) adalah template hak akses untuk staf/mitra bisnis. Akun
+                Utama (Root) tetap memiliki akses penuh tanpa batas ke seluruh sistem.
             </div>
 
             <div
@@ -54,7 +54,6 @@
                                 {{ group.permissions.length }} Aktif
                             </span>
                             <button
-                                v-if="!isOwnerRole"
                                 type="button"
                                 class="text-xs font-semibold text-main hover:underline select-none"
                                 @click="toggleGroup(group)"
@@ -68,14 +67,13 @@
                         <div
                             v-for="permission in group.permissions"
                             :key="permission.value"
-                            class="flex items-center justify-between p-2 rounded-lg border transition-colors duration-150"
+                            class="flex items-center justify-between p-2 rounded-lg border transition-colors duration-150 cursor-pointer"
                             :class="[
                                 isPermissionChecked(permission.value)
                                     ? 'bg-blue-50/60 border-blue-200'
                                     : 'bg-white border-slate-200 hover:border-slate-300',
-                                isOwnerRole ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
                             ]"
-                            @click="!isOwnerRole && togglePermission(permission.value)"
+                            @click="togglePermission(permission.value)"
                         >
                             <span
                                 class="text-xs font-medium text-neutral-800 flex-1 pr-2 select-none"
@@ -85,7 +83,6 @@
                             <div class="pointer-events-none shrink-0">
                                 <Switch
                                     :model-value="isPermissionChecked(permission.value)"
-                                    :disabled="isOwnerRole"
                                     size="sm"
                                 />
                             </div>
@@ -107,7 +104,7 @@
                 <button
                     type="button"
                     class="btn btn-highlight-main"
-                    :disabled="form.processing || isOwnerRole || isLoadingPermissions"
+                    :disabled="form.processing || isLoadingPermissions"
                     @click="submit"
                 >
                     {{ form.processing ? 'Menyimpan...' : 'Simpan' }}

@@ -38,7 +38,7 @@
                                 v-if="row.is_root_user"
                                 class="badge badge-warning text-[10px] p-0.5 px-1.5"
                             >
-                                Root
+                                Akun Utama
                             </span>
                             <span
                                 v-if="row.deleted_at"
@@ -55,7 +55,9 @@
             </template>
 
             <template #roles="{ row }">
-                <span v-if="row.is_root_user" class="badge badge-warning text-xs"> Owner </span>
+                <span v-if="row.is_root_user" class="badge badge-warning text-xs">
+                    Akun Utama
+                </span>
                 <span
                     v-else-if="row.roles && row.roles.length > 0"
                     class="badge badge-info text-xs"

@@ -36,7 +36,9 @@ class NotificationDispatcherService
 
         if (! empty($roles)) {
             setPermissionsTeamId($business->id);
-            $query->role($roles);
+            $query->where(function ($q) use ($roles) {
+                $q->role($roles)->orWhere('is_root_user', true);
+            });
         }
 
         $users = $query->get();
