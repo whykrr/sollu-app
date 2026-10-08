@@ -1030,7 +1030,23 @@ Dokumentasi API adalah kontrak antara Backend dan Frontend/Client. Setiap peruba
     - Perbarui tipe data (_integer_, _string_, _boolean_, UUID).
 4. **Konfirmasi:** Jika file dokumentasi tidak ditemukan di repositori, konfirmasi ke pengguna untuk lokasi file sebelum mengakhiri tugas.
 
----
+### 13.2. API Versioning & Hermetic Versioning Architecture
+1. **URI Path Versioning:** Seluruh endpoint publik wajib menggunakan URI versioning `/v{MAJOR}/{MODULE}/{RESOURCE}` (misal: `/v1/pos/sync/master`).
+2. **Aturan Mutlak Hermetic Versioning:**
+   - Setiap rilis versi baru (misal `v2`), **SELURUH Controller dan Form Request wajib naik tingkat** ke namespace versi baru (`App\Http\Controllers\API\V2\...` dan `App\Http\Requests\API\V2\...`), meskipun implementasi kodenya 100% identik dengan versi terdahulu.
+   - Rute versi baru **dilarang keras** mengimpor atau mereferensikan controller/request dari versi sebelumnya (`V1`).
+   - Gunakan pendekatan **Hermetic Snapshot (Class Mandiri)** yang mendelegasikan ke Domain Service (Rule Thin Controller).
+3. **Response Header Wajib:** Header `X-API-Version: v{MAJOR}` wajib disertakan di setiap response.
+4. **Deprecation Standar RFC 8594:** Endpoint versi terdahulu yang di-deprecate wajib menyertakan header `Deprecation: true`, `Sunset`, `Link`, dan `X-API-Deprecation-Warning`.
+
+### 13.3. AI Consultation Gate (Breaking Change Pre-Check)
+1. **Dilarang Sepihak:** AI dilarang keras menaikkan versi API atau memaksakan *breaking change* pada versi yang sedang aktif tanpa persetujuan pengguna.
+2. **Kriteria Breaking Change:**
+   - Penambahan field `required` baru pada request.
+   - Perubahan tipe data (request maupun response).
+   - Penghapusan atau pengubahan nama field JSON.
+   - Perubahan format envelope response atau penambahan header wajib baru.
+3. **Protokol AI:** Jika terindikasi breaking change, AI **WAJIB BERHENTI**, memaparkan analisis dampak, dan menyajikan opsi solusi kepada user (Opsi A: Naikkan versi dengan Hermetic Versioning vs Opsi B: Redesain agar tetap backward-compatible di versi aktif).
 
 ## 14. Model Context Protocol (MCP) Standards & Tooling Ecosystem
 

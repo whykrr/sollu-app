@@ -2,20 +2,9 @@
 
 namespace App\Http\Requests\API\POS;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\API\V1\POS\CloseShiftRequest as V1CloseShiftRequest;
 
-class CloseShiftRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    public function rules(): array
-    {
-        return [
-            'closing_cash' => ['required', 'numeric', 'min:0'],
-            'actual_cash' => ['required', 'numeric', 'min:0'], // if needed
-        ];
-    }
-}
+/**
+ * @deprecated Legacy unversioned request. Please use App\Http\Requests\API\V1\POS\CloseShiftRequest.
+ */
+class CloseShiftRequest extends V1CloseShiftRequest {}

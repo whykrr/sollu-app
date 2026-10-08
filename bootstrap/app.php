@@ -1,6 +1,8 @@
 <?php
 
 use App\Exceptions\ExceptionHandler;
+use App\Http\Middleware\AttachApiDeprecationHeader;
+use App\Http\Middleware\AttachApiVersionHeader;
 use App\Http\Middleware\CheckPlanFeature;
 use App\Http\Middleware\ConfigureDomainSession;
 use App\Http\Middleware\EnsureStockNotFrozen;
@@ -81,6 +83,8 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $middleware->alias([
+            'api.version' => AttachApiVersionHeader::class,
+            'api.deprecation' => AttachApiDeprecationHeader::class,
             'stock.not.frozen' => EnsureStockNotFrozen::class,
             'pos.device' => VerifyPosDevice::class,
             'plan.feature' => CheckPlanFeature::class,

@@ -2,21 +2,9 @@
 
 namespace App\Http\Requests\API\POS;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\API\V1\POS\StoreCashLogRequest as V1StoreCashLogRequest;
 
-class StoreCashLogRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    public function rules(): array
-    {
-        return [
-            'type' => ['required', 'string', 'in:cash_in,cash_out'],
-            'amount' => ['required', 'numeric', 'min:0'],
-            'description' => ['nullable', 'string'],
-        ];
-    }
-}
+/**
+ * @deprecated Legacy unversioned request. Please use App\Http\Requests\API\V1\POS\StoreCashLogRequest.
+ */
+class StoreCashLogRequest extends V1StoreCashLogRequest {}

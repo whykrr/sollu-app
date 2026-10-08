@@ -2,20 +2,9 @@
 
 namespace App\Http\Requests\API\POS;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\API\V1\POS\UnpairPosDeviceRequest as V1UnpairPosDeviceRequest;
 
-class UnpairPosDeviceRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    public function rules(): array
-    {
-        return [
-            'user_id' => ['nullable', 'string', 'exists:users,id'],
-            'pin' => ['nullable', 'string'],
-        ];
-    }
-}
+/**
+ * @deprecated Legacy unversioned request. Please use App\Http\Requests\API\V1\POS\UnpairPosDeviceRequest.
+ */
+class UnpairPosDeviceRequest extends V1UnpairPosDeviceRequest {}

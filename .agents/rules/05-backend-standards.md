@@ -44,5 +44,19 @@
 
 ---
 
-## 4. Code Formatter (Laravel Pint)
+## 4. Standar Versioning API Endpoint & AI Consultation Gate
+- **Format URI:** Seluruh rute API publik wajib menggunakan URI Path Versioning: `/v{MAJOR}/{MODULE}/{RESOURCE}` (misal: `/v1/pos/transactions`).
+- **Header Respons Wajib:** Setiap response API wajib menyertakan header `X-API-Version: v{MAJOR}` (misal: `X-API-Version: v1`).
+- **Aturan Mutlak Hermetic Versioning:**
+  - Saat merilis versi baru (misal `v2`), **SELURUH** Controller dan Form Request untuk modul terkait **WAJIB** naik tingkat ke namespace versi baru (`App\Http\Controllers\API\V2\...` dan `App\Http\Requests\API\V2\...`), meskipun kodenya 100% identik.
+  - Rute versi baru secara mutlak dilarang mengimpor atau mereferensikan controller/request dari versi sebelumnya (`V1`).
+  - Gunakan pendekatan **Hermetic Snapshot (Class Mandiri)** yang mendelegasikan ke Domain Service (Rule Thin Controller).
+- **Standar Deprecation RFC 8594:** Endpoint versi lama yang di-deprecate wajib menyertakan header `Deprecation: true`, `Sunset`, `Link`, dan `X-API-Deprecation-Warning`.
+- **AI Consultation Gate (Wajib Konfirmasi User Sebelum Naik Versi):**
+  - AI dilarang keras menaikkan versi API atau memaksakan *breaking change* secara sepihak tanpa persetujuan pengguna.
+  - Jika terindikasi *breaking change* (penambahan field `required` baru, perubahan tipe data, hapus/rename field, atau ubah format response envelope), AI **WAJIB berhenti** dan menanyakan persetujuan user dengan memaparkan opsi: (A) Naik versi dengan Hermetic Versioning, atau (B) Redesain agar tetap backward-compatible di versi aktif.
+
+---
+
+## 5. Code Formatter (Laravel Pint)
 - Jalankan `vendor/bin/pint --dirty` sebelum melakukan commit untuk memastikan format kode PHP bersih dan seragam.

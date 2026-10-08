@@ -2,32 +2,9 @@
 
 namespace App\Http\Requests\API\POS;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\API\V1\POS\ConnectDeviceRequest as V1ConnectDeviceRequest;
 
-class ConnectDeviceRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    protected function prepareForValidation(): void
-    {
-        if ($this->has('otp')) {
-            $this->merge([
-                'otp' => preg_replace('/[^0-9]/', '', (string) $this->otp),
-            ]);
-        }
-    }
-
-    public function rules(): array
-    {
-        return [
-            'otp' => ['required', 'string', 'digits:8'],
-            'device_uuid' => ['required', 'string'],
-            'hardware_fingerprint' => ['required', 'string'],
-            'app_version' => ['nullable', 'string'],
-            'platform_type' => ['nullable', 'string'],
-        ];
-    }
-}
+/**
+ * @deprecated Legacy unversioned request. Please use App\Http\Requests\API\V1\POS\ConnectDeviceRequest.
+ */
+class ConnectDeviceRequest extends V1ConnectDeviceRequest {}

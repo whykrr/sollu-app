@@ -4,8 +4,12 @@ info:
     version: 1.0.0
     description: API Spesifikasi untuk Aplikasi POS Client (Flutter) & Pairing Perangkat
 servers:
+    - url: http://api.sollu.test/v1/pos
+      description: Local V1 Server (Canonical)
+    - url: http://api.sollu.test/pos
+      description: Local Fallback Server (Deprecated)
     - url: http://app.sollu.test/api/pos
-      description: Local Server
+      description: Legacy App Bridge Server (Deprecated)
 components:
     securitySchemes:
         SanctumAuth:

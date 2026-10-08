@@ -2,20 +2,9 @@
 
 namespace App\Http\Requests\API\POS;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\API\V1\POS\OpenShiftRequest as V1OpenShiftRequest;
 
-class OpenShiftRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    public function rules(): array
-    {
-        return [
-            'user_id' => ['required', 'string', 'uuid'],
-            'opening_cash' => ['required', 'numeric', 'min:0'],
-        ];
-    }
-}
+/**
+ * @deprecated Legacy unversioned request. Please use App\Http\Requests\API\V1\POS\OpenShiftRequest.
+ */
+class OpenShiftRequest extends V1OpenShiftRequest {}

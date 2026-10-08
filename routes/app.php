@@ -25,7 +25,6 @@ use App\Http\Controllers\App\User\ImpersonateController;
 use App\Http\Controllers\App\User\LoginController;
 use App\Http\Controllers\App\User\RegisterController;
 use App\Http\Controllers\Support\CsrfTokenController;
-use App\Http\Middleware\AttachApiDeprecationHeader;
 use App\Models\User;
 use App\Notifications\EmailVerifiedNotification;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -135,7 +134,7 @@ if (app()->environment('local', 'development')) {
 | requests to http://app.sollu.test/api/pos/... or http://app.sollu.test/api/midtrans/...
 |
 */
-Route::prefix('api')->middleware(['api', AttachApiDeprecationHeader::class])->group(function () {
+Route::prefix('api')->middleware(['api', 'api.deprecation', 'api.version:v1'])->group(function () {
     Route::get('/health', [HealthCheckController::class, 'index'])->name('legacy.api.health');
 
     Route::post('midtrans/notification', App\Http\Controllers\API\Midtrans\NotificationController::class)
