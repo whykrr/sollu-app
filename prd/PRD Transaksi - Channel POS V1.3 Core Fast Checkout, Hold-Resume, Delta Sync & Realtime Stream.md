@@ -3,15 +3,18 @@
 
 ## 1. Executive Summary & Bounded Context
 
-Sub-modul **V1.3 Core Fast Checkout, Hold-Resume, Delta Sync & Realtime Stream** adalah mesin inti (*engine*) transaksi penjualan pada aplikasi kasir **Sollu POS Client**. Modul ini bertanggung jawab atas alur checkout ultra-cepat berlatensi rendah (< 50ms), kalkulasi keranjang belanja (diskon baris/dokumen, pajak, kembalian), penundaan tagihan (*Hold Bill*) dan pembukaan kembali (*Resume Bill*), pengiriman transaksi asinkron ke server Laravel (`POST /api/v1/pos/transactions`), pemulihan rekoneksi delta sync (`GET /api/v1/pos/sync?last_online_at=...`), serta penyaluran perubahan master produk & saldo stok inventori secara seketika (*realtime*) menggunakan **Laravel Reverb WebSocket** yang diamankan oleh **Laravel Sanctum**.
+Sub-modul **V1.3 Core Fast Checkout, Hold-Resume, Delta Sync & Realtime Stream** adalah mesin inti (*engine*) transaksi penjualan pada aplikasi kasir **Sollu POS Client**. Modul ini bertanggung jawab atas alur checkout ultra-cepat berlatensi rendah (< 50ms), kalkulasi keranjang belanja (diskon baris/dokumen, pajak, kembalian), penundaan tagihan (*Hold Bill*) dan pembukaan kembali (*Resume Bill*), pengiriman transaksi asinkron ke server Laravel (`POST /api/v1/pos/transactions`), pemulihan rekoneksi delta sync dengan mekanisme *handshake* realtime Reverb (`GET /api/v1/pos/sync?last_handshake_at=...`), serta penyaluran perubahan master produk & saldo stok inventori secara seketika (*realtime*) menggunakan **Laravel Reverb WebSocket** yang dipicu otomatis oleh **Laravel Eloquent Observer** dan diamankan oleh **Laravel Sanctum**.
 
 ### Kapabilitas Utama V1.3:
 1. **Ultra-Fast Local Checkout (< 50ms)**: Transaksi penjualan disimpan seketika ke SQLite lokal (`local_transactions`), memicu pencetakan struk fisik dan membuka laci kas tanpa menunggu respons jaringan internet.
 2. **Dedicated Transaction Submission (`POST /api/v1/pos/transactions`)**: Transaksi penjualan lokal dikirimkan secara mandiri melalui *Background Sync Worker* secara FIFO ke server tanpa mencampuradukkan payload master data.
 3. **Idempotency & Zero Double-Deduction**: Pencegahan pemotongan stok berulang dan duplikasi transaksi via pemeriksaan `offline_id` UUIDv4 di server backend.
 4. **Hold & Resume Transactions (*Held Bills*)**: Kasir dapat memarkir transaksi pelanggan yang menunda pembayaran ke tabel `local_held_transactions` dan melanjutkannya kembali kapan saja.
-5. **Reconnection Delta Sync Engine (`GET /api/v1/pos/sync`)**: Saat internet kembali online, sistem hanya mengunduh data yang mengalami pembaruan sejak `last_online_at` tanpa mengunduh ulang snapshot penuh.
-6. **Realtime Broadcast via Laravel Reverb (Sanctum Auth)**: Sinkronisasi instan pembaruan harga, penonaktifan produk, dan mutasi saldo stok ke seluruh terminal kasir aktif di outlet via WebSocket `private-outlet.{outlet_id}.pos`.
+5. **Reconnection Handshake & Delta Sync Engine (`GET /api/v1/pos/sync`)**: Saat internet kembali online, terminal POS mengeksekusi endpoint sync sebagai *trigger handshake* data realtime Reverb antara backend cloud dengan POS client dengan mengirimkan `last_handshake_at`. Backend mengidentifikasi gap data dan memicu pembaruan data yang tertinggal (baik via respons delta langsung maupun via WebSocket channel Reverb).
+6. **Realtime Broadcast via Laravel Reverb & Eloquent Observer**: Menggunakan **Laravel Observer** (`ProductObserver`, `InventoryBalanceObserver`) sebagai pemicu (*trigger*) otomatis saat terjadi mutasi data di server, menyiarkan event pembaruan harga, penonaktifan produk, dan mutasi saldo stok ke seluruh terminal kasir aktif di outlet via WebSocket `private-outlet.{outlet_id}.pos`.
+7. **Strict Background Reconnection Pipeline (Non-Blocking)**: Saat perangkat beralih dari kondisi *offline* ke *online*, sistem mengeksekusi urutan sinkronisasi ketat di latar belakang tanpa mengganggu atau membekukan aktivitas kasir yang sedang bertransaksi:
+   - **Langkah 1**: Eksekusi endpoint sync (`GET /api/v1/pos/sync`) pertama kali untuk handshake Reverb dan sinkronisasi delta master data / stok.
+   - **Langkah 2**: Dilanjutkan eksekusi sinkronisasi antrean transaksi lokal pending (`POST /api/v1/pos/transactions`) secara FIFO.
 
 ---
 
@@ -19,28 +22,55 @@ Sub-modul **V1.3 Core Fast Checkout, Hold-Resume, Delta Sync & Realtime Stream**
 
 ```
 Flutter Client (sollu_pos_client)                     Laravel 12 Backend
-┌─────────────────────────────────┐                   ┌───────────────────────────────────┐
-│ CartNotifier & Checkout Flow    │                   │ TransactionController             │
-│ (Instant Save to Drift SQLite)  │                   │ POST /api/v1/pos/transactions     │
-└────────────────┬────────────────┘                   └─────────────────▲─────────────────┘
-                 │ (UUIDv4 Generated)                                   │
-                 ▼                                                      │ (FIFO Queue)
-┌─────────────────────────────────┐                   ┌─────────────────┴─────────────────┐
-│ Drift DB: local_transactions    │───Background Worker──│ SyncQueueManager                  │
-│ Status: pending -> synced       │                   │ (Retry on Network Error)          │
-└─────────────────────────────────┘                   └───────────────────────────────────┘
-
-┌─────────────────────────────────┐                   ┌───────────────────────────────────┐
-│ PosReverbClient (WebSocket WS)  │<──Realtime Events─│ Laravel Reverb Gateway            │
-│ private-outlet.{outletId}.pos   │                   │ (Sanctum Authenticated Channel)   │
-└────────────────┬────────────────┘                   └───────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────┐                   ┌───────────────────────────────────┐
-│ PosSyncController (Delta)       │<──Delta Request───│ GET /api/v1/pos/sync              │
-│ Catch-up after Reconnect        │                   │ ?last_online_at=<ISO-Timestamp>   │
-└─────────────────────────────────┘                   └───────────────────────────────────┘
+┌─────────────────────────────────┐                   
+│ CartNotifier & Checkout Flow    │                   
+│ (Instant Save to Drift SQLite)  │                   
+└────────────────┬────────────────┘                   
+                 │ (UUIDv4 Generated)                 
+                 ▼                                    
+┌─────────────────────────────────┐                   
+│ Drift DB: local_transactions    │                   
+│ Status: pending                 │                   
+└────────────────┬────────────────┘                   
+                 │                                    
+                 │ [Device Online Reconnection Event]
+                 ▼                                    
+┌────────────────────────────────────────────────────────┐
+│ Background Sync Worker (Non-Blocking Isolated Thread)  │
+│                                                        │
+│ 1. STEP 1 (FIRST): Handshake Trigger & Delta Sync      │
+│    GET /api/v1/pos/sync?last_handshake_at=<ISO>        │
+│                                                        │
+│ 2. STEP 2 (SECOND): Push Pending Transactions (FIFO)   │
+│    POST /api/v1/pos/transactions                       │
+└──────────────┬───────────────────────────┬─────────────┘
+               │ (Step 1 Request)          │ (Step 2 Request)
+               ▼                           ▼
+┌───────────────────────────────┐ ┌───────────────────────────────┐
+│ PosSyncController (Handshake) │ │ TransactionController (FIFO)  │
+│ GET /api/v1/pos/sync          │ │ POST /api/v1/pos/transactions │
+└──────────────┬────────────────┘ └───────────────▲───────────────┘
+               │ (Handshake OK + Delta Data)      │
+               ▼                                  │
+┌───────────────────────────────┐                 │
+│ Drift DB: Update Catalog/Stock│                 │
+└───────────────────────────────┘                 │
+                                                  │
+┌───────────────────────────────┐ ┌───────────────┴───────────────┐
+│ PosReverbClient (WebSocket)   │ │ Laravel Reverb Gateway        │
+│ private-outlet.{outletId}.pos │◄│ (Sanctum Authenticated)       │
+└───────────────────────────────┘ └───────────────▲───────────────┘
+                                                  │ (Broadcast Event)
+                                  ┌───────────────┴───────────────┐
+                                  │ Laravel Eloquent Observers    │
+                                  │ - ProductObserver             │
+                                  │ - InventoryBalanceObserver    │
+                                  └───────────────────────────────┘
 ```
+
+> **Prinsip Non-Blocking & Urutan Eksekusi**:
+> 1. **Zero UI Interruption**: Seluruh proses sinkronisasi rekoneksi dieksekusi secara asinkron di *background worker*. Kasir dapat terus menambah item ke keranjang belanja, memproses checkout tunai baru, atau mencetak struk tanpa jeda/freeze UI sama sekali.
+> 2. **Urutan Eksekusi Wajib (Handshake Sync -> Transaction Push)**: Saat internet kembali pulih, sistem POS **wajib mengeksekusi endpoint sync terlebih dahulu** untuk melakukan handshake realtime Reverb dan menyerap katalog/stok termutakhir. Setelah endpoint sync berhasil, sistem baru melanjutkan pengiriman antrean transaksi lokal secara FIFO.
 
 ---
 
@@ -54,9 +84,9 @@ Flutter Client (sollu_pos_client)                     Laravel 12 Backend
 | **Modal Pembayaran Kilat (*Quick Pay*)** | Tombol pecahan uang pas (*Exact Cash*, 50rb, 100rb), kalkulator kembalian otomatis, dan metode multi-bayar. |
 | **Simpan Tagihan (*Hold Bill*)** | Menyimpan isi keranjang aktif ke antrean pending tanpa memotong stok, memberi nama catatan (contoh: "Meja 5"). |
 | **Buka Tagihan (*Resume Bill*)** | Drawer daftar held bills dengan jam simpan, tombol muat ulang ke keranjang (*resume*), dan tombol hapus. |
-| **Dedicated Transaction Push** | Pengiriman transaksi lokal ke endpoint `POST /api/v1/pos/transactions` berstatus FIFO. |
-| **Reconnection Delta Sync** | Pengambilan delta perubahan master data & stok saat internet kembali tersambung via `GET /api/v1/pos/sync`. |
-| **Live Reverb Event Stream** | Pembaruan stok dan harga secara seketika (< 100ms) saat admin mengubah data di Web Portal. |
+| **Reconnection Handshake & Delta Sync (Step 1)** | Endpoint `GET /api/v1/pos/sync` dieksekusi **pertama kali** saat kembali online, mengirimkan `last_handshake_at` untuk inisialisasi handshake Reverb dan delta download perubahan master data/stok. |
+| **Sequential Transaction Push (Step 2)** | Pengiriman transaksi lokal ke endpoint `POST /api/v1/pos/transactions` berstatus FIFO dieksekusi **setelah** delta sync selesai, berjalan di background tanpa memblokir kasir. |
+| **Live Reverb Event Stream via Eloquent Observers** | Perubahan harga, penonaktifan produk, dan mutasi stok di backend dipantau oleh Laravel Observer (`ProductObserver`, `InventoryBalanceObserver`) yang otomatis menembakkan event Reverb seketika (< 100ms) ke channel WebSocket POS. |
 
 ### 3.2. Skenario Aktivitas Pengguna (Use Cases)
 
@@ -75,13 +105,16 @@ Flutter Client (sollu_pos_client)                     Laravel 12 Backend
 │ 3. Buka Tagihan (Resume Bill)│ Pelanggan Meja 12 siap bayar │ Kasir buka drawer Held Bills, klik       │
 │                              │ Antrean sebelumnya selesai   │ Resume. Item kembali ke keranjang kasir. │
 ├──────────────────────────────┼──────────────────────────────┼──────────────────────────────────────────┤
-│ 4. Pemulihan Pasca Offline   │ Internet kembali terhubung   │ 1. Worker kirim 20 transaksi pending.    │
-│    (Auto Sync & Delta Fetch) │ Ada 20 transaksi pending     │ 2. Client panggil /pos/sync?last_online. │
-│                              │                              │ 3. Status transaksi menjadi `synced`.    │
+│ 4. Pemulihan Pasca Offline   │ Internet kembali terhubung   │ Background Worker berjalan senyap:       │
+│    (Handshake Sync -> Push)  │ Ada 20 transaksi pending     │ 1. Urutan 1: Hit GET /pos/sync           │
+│                              │ Kasir sedang sibuk input     │    (kirim last_handshake_at & delta).    │
+│                              │ keranjang transaksi baru     │ 2. Urutan 2: Push 20 transaksi pending   │
+│                              │                              │    secara FIFO ke /pos/transactions.     │
+│                              │                              │ 3. UI Kasir 100% responsif tanpa jeda.   │
 ├──────────────────────────────┼──────────────────────────────┼──────────────────────────────────────────┤
 │ 5. Update Harga & Stok Live  │ Internet: Online             │ Admin ubah harga kopi di Web Portal.     │
-│    (Reverb Event Stream)     │ Aplikasi Kasir Standby       │ Reverb menyiarkan event, harga di layar  │
-│                              │                              │ kasir berubah seketika tanpa refresh.    │
+│    (Reverb via Observer)     │ Aplikasi Kasir Standby       │ ProductObserver trigger event Reverb,    │
+│                              │                              │ harga di layar kasir berubah seketika.   │
 └──────────────────────────────┴──────────────────────────────┴──────────────────────────────────────────┘
 ```
 
@@ -121,27 +154,56 @@ sequenceDiagram
     end
 ```
 
-### 4.2. Alur Reconnection Delta & Realtime Reverb Stream
+### 4.2. Alur Reconnection Sequence & Realtime Reverb Stream (via Observer)
+
+Urutan eksekusi saat koneksi internet pulih (*reconnected*):
+1. **Urutan 1 (Wajib Pertama)**: Eksekusi endpoint sync (`GET /api/v1/pos/sync`) membawa `last_handshake_at` untuk handshake realtime Reverb & pull delta.
+2. **Urutan 2**: Dilanjutkan eksekusi pengiriman antrean transaksi lokal pending (`POST /api/v1/pos/transactions`) secara FIFO.
+3. Seluruh proses berjalan di latar belakang (*background worker*) tanpa memblokir UI kasir yang sedang aktif bertransaksi.
 
 ```mermaid
 sequenceDiagram
-    participant POS as Sollu POS Client
+    actor Cashier as Kasir (UI Thread)
+    participant Worker as Background Sync Worker
     participant LocalDB as Drift SQLite
     participant API as Laravel Backend (/api/v1/pos)
+    participant Observer as Laravel Eloquent Observer
     participant Reverb as Laravel Reverb WebSocket
 
-    Note over POS: Internet Terhubung Kembali (Reconnected)
-    POS->>API: GET /api/v1/pos/sync?last_online_at=2026-10-01T10:00:00Z
-    API-->>POS: 200 OK { updated_products, updated_stocks, updated_settings }
-    POS->>LocalDB: Batch UPDATE local_product_cache
-    POS->>API: POST /api/broadcasting/auth (Sanctum Auth)
-    API-->>POS: Signature OK
-    POS->>Reverb: Re-subscribe 'private-outlet.{outlet_id}.pos'
+    Note over Cashier,Worker: Kondisi: Device baru saja kembali ONLINE
+    Note over Cashier: Kasir tetap melayani antrean & input keranjang (Non-Blocking)
 
-    Note over POS,Reverb: Skenario Broadcast Realtime
-    Reverb->>POS: Event 'ProductUpdated' { product_id, new_price: 28000 }
-    POS->>LocalDB: UPDATE local_product_cache SET price = 28000
-    POS->>POS: Notifier memicu UI Update (< 100ms)
+    rect rgb(240, 248, 255)
+    Note over Worker,API: TAHAP 1: Handshake Reverb & Delta Sync (Pertama Kali)
+    Worker->>API: GET /api/v1/pos/sync?last_handshake_at=2026-10-01T10:00:00Z
+    Note over API: Backend evaluasi last_handshake_at,<br/>trigger data gap & set status handshake
+    API-->>Worker: 200 OK { handshake: ack, updated_products, updated_stocks }
+    Worker->>LocalDB: Batch UPDATE local_product_cache & stock
+    Worker->>API: POST /api/broadcasting/auth (Sanctum Auth)
+    API-->>Worker: Broadcast Channel Signature OK
+    Worker->>Reverb: Re-subscribe 'private-outlet.{outlet_id}.pos'
+    end
+
+    rect rgb(255, 250, 240)
+    Note over Worker,API: TAHAP 2: Eksekusi Sync Transaksi Pending (FIFO Push)
+    Worker->>LocalDB: Query local_transactions WHERE sync_status = 'pending' (ASC)
+    LocalDB-->>Worker: List 20 Transaksi Offline
+    loop Tiap Transaksi (FIFO)
+        Worker->>API: POST /api/v1/pos/transactions (StorePosTransactionRequest)
+        API->>API: Idempotency Check & Potong Stok FIFO
+        API-->>Worker: 200 OK (Sync Success)
+        Worker->>LocalDB: UPDATE local_transactions SET sync_status = 'synced'
+    end
+    end
+
+    rect rgb(240, 255, 240)
+    Note over Observer,Cashier: SKENARIO REALTIME: Admin Ubah Data via Web Portal
+    Observer->>Observer: Model Event: Product::updated / InventoryBalance::updated
+    Observer->>Reverb: Dispatch PosProductUpdatedEvent (ShouldBroadcastNow)
+    Reverb->>Worker: WebSocket Event 'PosProductUpdatedEvent' { product_id, new_price }
+    Worker->>LocalDB: UPDATE local_product_cache SET price = new_price
+    Worker-->>Cashier: Riverpod Notifier update UI Keranjang / Katalog (< 100ms)
+    end
 ```
 
 ---
@@ -182,10 +244,10 @@ lib/features/pos/
     │       ├── transaction_dao.dart
     │       └── held_bills_dao.dart
     ├── sync/
-    │   ├── background_sync_worker.dart          # Antrean FIFO pengiriman transaksi
-    │   └── sync_delta_service.dart              # Pemanggil /pos/sync
+    │   ├── background_sync_worker.dart          # Orchestrator sinkronisasi non-blocking (Fase 1: Sync Handshake, Fase 2: Transaction Push FIFO)
+    │   └── sync_delta_service.dart              # Client API pemanggil /pos/sync dengan last_handshake_at
     └── realtime/
-        └── pos_reverb_client.dart               # Listener WebSocket Reverb
+        └── pos_reverb_client.dart               # Listener WebSocket Reverb channel private-outlet.{outletId}.pos
 ```
 
 ### 5.2. File Structure Backend Laravel 12 (`sollu-app`)
@@ -195,12 +257,16 @@ app/
 ├── Http/
 │   ├── Controllers/API/POS/
 │   │   ├── TransactionController.php            # POST /api/v1/pos/transactions
-│   │   └── PosSyncController.php                # GET /api/v1/pos/sync
+│   │   └── PosSyncController.php                # GET /api/v1/pos/sync (Handshake trigger & delta sync)
 │   └── Requests/API/POS/
-│       └── StorePosTransactionRequest.php       # Validasi lengkap payload transaksi
+│       ├── StorePosTransactionRequest.php       # Validasi lengkap payload transaksi
+│       └── PosSyncHandshakeRequest.php          # Validasi parameter last_handshake_at & outlet_id
+├── Observers/POS/
+│   ├── ProductObserver.php                      # Trigger PosProductUpdatedEvent saat harga/status produk berubah
+│   └── InventoryBalanceObserver.php             # Trigger PosStockBalanceUpdatedEvent saat mutasi stok terjadi
 ├── Events/POS/
-│   ├── PosProductUpdatedEvent.php               # ShouldBroadcastNow
-│   └── PosStockBalanceUpdatedEvent.php          # ShouldBroadcastNow
+│   ├── PosProductUpdatedEvent.php               # ShouldBroadcastNow ke WebSocket Reverb
+│   └── PosStockBalanceUpdatedEvent.php          # ShouldBroadcastNow ke WebSocket Reverb
 └── Services/App/Transaction/
     └── TransactionService.php                   # Pemotongan stok FIFO & idempotensi
 ```
@@ -240,14 +306,23 @@ app/
   }
   ```
 
-#### 5.3.2. Reconnection Delta Sync (`GET /api/v1/pos/sync`)
-- *Endpoint*: `GET /api/v1/pos/sync?last_online_at=2026-10-01T10:00:00Z`
+#### 5.3.2. Reconnection Handshake & Delta Sync (`GET /api/v1/pos/sync`)
+- *Tujuan*: Berfungsi sebagai **trigger handshake data realtime Reverb** antara backend cloud Laravel dengan terminal POS client, sekaligus mengunduh delta perubahan katalog dan stok yang terjadi selama perangkat offline.
+- *Aturan Eksekusi*: **Wajib dieksekusi pertama kali** saat perangkat mendeteksi jaringan internet pulih, sebelum mengeksekusi antrean push transaksi lokal.
+- *Endpoint*: `GET /api/v1/pos/sync?last_handshake_at=2026-10-01T10:00:00Z&outlet_id=9b1deb4c-2b7d-4aad-9bee-1b0d7b3dcb1a`
+- *Query Parameters*:
+  - `last_handshake_at` (string ISO 8601, required): Waktu rekaman handshake/sinkronisasi terakhir yang tersimpan di perangkat POS. Backend menggunakannya untuk mengevaluasi gap data yang perlu diperbarui dan memvalidasi state streaming Reverb.
+  - `outlet_id` (UUIDv4, required): ID outlet terminal aktif untuk otentikasi channel WebSocket outlet terkait.
 - *Response (200 OK)*:
   ```json
   {
     "success": true,
+    "message": "Handshake acknowledged & delta synchronized successfully",
     "data": {
+      "handshake_status": "acknowledged",
+      "handshake_at": "2026-10-01T12:05:00+07:00",
       "synced_at": "2026-10-01T12:05:00+07:00",
+      "reverb_channel": "private-outlet.9b1deb4c-2b7d-4aad-9bee-1b0d7b3dcb1a.pos",
       "updated_products": [
         {
           "id": "7b0deb4c-1b7d-4aad-9bee-1b0d7b3dcb2b",
@@ -324,20 +399,33 @@ enum SyncStatusEnum: string {
 ## 8. Testing & Quality Assurance
 
 - `test_offline_checkout_persists_instantly_in_drift()`
+- `test_reconnection_pipeline_executes_sync_handshake_before_transaction_push()`: Memastikan endpoint sync dieksekusi pertama kali sebelum transaksi pending dikirim saat online.
+- `test_background_sync_is_non_blocking_to_cashier_cart_flow()`: Memastikan thread worker tidak memblokir render UI atau aktivitas kasir.
+- `test_sync_endpoint_acknowledges_last_handshake_at_and_returns_gap_delta()`: Memastikan parameter `last_handshake_at` dievaluasi backend untuk trigger handshake dan delta data.
 - `test_background_sync_pushes_pending_transactions_fifo()`
 - `test_idempotency_prevents_duplicate_transactions_with_same_offline_id()`
-- `test_reconnection_sync_returns_only_changed_records()`
-- `test_reverb_event_updates_local_catalog_price()`
+- `test_eloquent_product_observer_dispatches_reverb_broadcast_event()`: Memastikan mutasi model Product memicu event Reverb broadcast.
+- `test_eloquent_inventory_balance_observer_dispatches_reverb_broadcast_event()`: Memastikan mutasi saldo stok memicu event Reverb broadcast.
+- `test_reverb_event_updates_local_catalog_price_in_realtime()`
 
 ---
 
 ## 9. Implementation Plan & Definition of Done
 
 ### Deliverables:
-1. **Backend**: Controller `/api/v1/pos/transactions`, `/api/v1/pos/sync`, Reverb Event Broadcasters, Service Inventory Deduction.
-2. **Client**: Cart state calculation, Quick Pay Modal, Hold & Resume drawer, Background Sync Worker, Reverb WebSocket listener.
+1. **Backend**:
+   - Controller `/api/v1/pos/sync` dengan validasi `last_handshake_at` & otentikasi handshake Reverb.
+   - Controller `/api/v1/pos/transactions` dengan FIFO processor & idempotency check.
+   - Eloquent Observers (`ProductObserver`, `InventoryBalanceObserver`) untuk auto-trigger event Reverb (`PosProductUpdatedEvent`, `PosStockBalanceUpdatedEvent`).
+   - Service Inventory Deduction & FIFO stock costing.
+2. **Client**:
+   - Background Sync Worker dengan 2-phase reconnection pipeline (Urutan 1: Handshake Delta Sync -> Urutan 2: Transaction Queue Push FIFO) berjalan senyap di background.
+   - Cart state & checkout calculation, Quick Pay Modal, Hold & Resume drawer.
+   - Reverb WebSocket client listener terintegrasi ke SQLite cache dan Riverpod state notifiers.
 
 ### Definition of Done (DoD):
-- Transaksi offline dapat dieksekusi 100 kali berturut-turut tanpa jeda/hang.
-- Saat kembali online, seluruh 100 transaksi tersinkronisasi tanpa duplikasi data atau selisih stok.
-- Perubahan harga dari Web Portal langsung terupdate di kasir dalam waktu < 200ms.
+- Saat perangkat offline kembali online, sistem secara otomatis mengeksekusi endpoint sync terlebih dahulu, lalu dilanjutkan pengiriman antrean transaksi lokal.
+- Seluruh eksekusi sync pasca offline berjalan di latar belakang (background) tanpa mengganggu aktivitas kasir atau menyebabkan jeda input pada UI keranjang.
+- Endpoint sync sukses menerima `last_handshake_at`, memvalidasi handshake Reverb, dan mengembalikan delta data terbaru.
+- Perubahan harga atau saldo stok di backend yang dipicu oleh Web Portal ter-trigger otomatis oleh Laravel Observer dan tersiar ke seluruh terminal POS aktif dalam waktu < 200ms.
+- Transaksi offline dapat dieksekusi 100 kali berturut-turut tanpa jeda/hang dan seluruhnya tersinkronisasi tanpa duplikasi data atau selisih stok saat kembali online.

@@ -71,6 +71,8 @@ enum PermissionEnum: string
     case TRANSACTION_RECORD_PAYMENT = 'transaction.record_payment';
     case TRANSACTION_EDIT_DUE_DATE = 'transaction.edit_due_date';
     case TRANSACTION_OVERRIDE_PRICE = 'transaction.override_price';
+    case TRANSACTION_VALIDATION_SUPERVISION = 'transaction.validation_supervision';
+    case TRANSACTION_OPEN_DRAWER = 'transaction.open_drawer';
     case TRANSACTION_DELETE = 'transaction.delete';
 
     /*
@@ -286,6 +288,8 @@ enum PermissionEnum: string
             self::TRANSACTION_RECORD_PAYMENT => 'Akses Mencatat Pelunasan',
             self::TRANSACTION_EDIT_DUE_DATE => 'Akses Mengubah Jatuh Tempo',
             self::TRANSACTION_OVERRIDE_PRICE => 'Akses Override Harga/Diskon',
+            self::TRANSACTION_VALIDATION_SUPERVISION => 'Akses Otorisasi Supervisor Kasir',
+            self::TRANSACTION_OPEN_DRAWER => 'Akses Buka Laci Kasir Manual',
             self::TRANSACTION_DELETE => 'Akses Menghapus Transaksi',
 
             // Product
@@ -420,6 +424,8 @@ enum PermissionEnum: string
             self::TRANSACTION_RECORD_PAYMENT,
             self::TRANSACTION_EDIT_DUE_DATE,
             self::TRANSACTION_OVERRIDE_PRICE,
+            self::TRANSACTION_VALIDATION_SUPERVISION,
+            self::TRANSACTION_OPEN_DRAWER,
             self::TRANSACTION_DELETE => 'pos_and_transactions',
 
             self::PRODUCT_ALL,

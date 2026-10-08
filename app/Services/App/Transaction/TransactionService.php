@@ -5,9 +5,18 @@ declare(strict_types=1);
 namespace App\Services\App\Transaction;
 
 use App\Enums\InventoryMovementType;
+use App\Enums\SalesChannelEnum;
 use App\Models\Inventory\InventoryBalance;
+use App\Models\Inventory\InventoryItem;
+use App\Models\Master\Customer;
+use App\Models\Master\PaymentMethod;
+use App\Models\Master\Product;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
+use App\Models\OutletDevice;
 use App\Models\OutletSetting;
+use App\Models\Promotion\Promotion;
+use App\Models\Sales\Shift;
 use App\Models\Sales\Transaction;
 use App\Models\User;
 use App\Services\App\Inventory\InventoryCostingService;
@@ -220,5 +229,187 @@ class TransactionService
                 );
             }
         }
+    }
+
+    /**
+     * Sinkronisasi transaksi POS offline/online dengan idempotensi ketat dan pemotongan stok FIFO.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function syncOfflineTransaction(array $data, ?OutletDevice $device = null): Transaction
+    {
+        return DB::transaction(function () use ($data, $device) {
+            $outletId = $device?->outlet_id ?? $data['outlet_id'] ?? null;
+            if (! $outletId) {
+                throw new InvalidArgumentException('Outlet ID tidak ditemukan pada device atau data transaksi.');
+            }
+
+            $outlet = Outlet::with('business')->findOrFail($outletId);
+
+            $transactionNumber = $data['transaction_number']
+                ?? $data['receipt_number']
+                ?? $data['offline_id']
+                ?? $this->generateTransactionNumber($outlet, now());
+
+            // 1. Idempotensi ketat: cegah duplikasi transaksi dan double deduction
+            $existing = Transaction::with(['items', 'payments', 'promos'])
+                ->where('outlet_id', $outletId)
+                ->where('transaction_number', $transactionNumber)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
+
+            $isValidUuid = static fn (?string $id): bool => ! empty($id) && Str::isUuid($id);
+
+            // 2. Resolusi Shift, Customer, dan User Penanggung Jawab
+            $shiftId = ($isValidUuid($data['shift_id'] ?? null) && Shift::where('id', $data['shift_id'])->where('outlet_id', $outletId)->exists())
+                ? $data['shift_id']
+                : null;
+
+            $customerId = ($isValidUuid($data['customer_id'] ?? null) && Customer::where('id', $data['customer_id'])->where('business_id', $outlet->business_id)->exists())
+                ? $data['customer_id']
+                : null;
+
+            // Resolusi created_by (kasir)
+            $cashierCandidateId = $data['cashier_id'] ?? $data['user_id'] ?? null;
+            $user = null;
+            if ($isValidUuid($cashierCandidateId)) {
+                $user = User::where('id', $cashierCandidateId)->first();
+            }
+
+            if (! $user) {
+                $user = $outlet->business->users()->where('is_root_user', true)->first()
+                    ?? $outlet->users()->first()
+                    ?? User::first();
+            }
+
+            if (! $user) {
+                throw new InvalidArgumentException('Tidak dapat mengidentifikasi user penanggung jawab transaksi.');
+            }
+
+            // 3. Pre-load dan validasi ketersediaan stok fisik
+            $preloadedBalances = $this->checkStockAvailability($data['items'], $outlet);
+
+            // 4. Buat Master Transaksi
+            $status = in_array($data['status'] ?? '', ['completed', 'paid', 'hold', 'void', 'draft'], true)
+                ? $data['status']
+                : 'completed';
+
+            $paymentStatus = in_array($data['payment_status'] ?? '', ['unpaid', 'paid', 'partial'], true)
+                ? $data['payment_status']
+                : 'paid';
+
+            $total = (float) ($data['total'] ?? 0);
+            $totalPaid = $paymentStatus === 'paid' ? $total : (float) ($data['total_paid'] ?? 0);
+            $balanceDue = max(0.0, $total - $totalPaid);
+
+            $transaction = Transaction::create([
+                'outlet_id' => $outlet->id,
+                'shift_id' => $shiftId,
+                'customer_id' => $customerId,
+                'channel' => SalesChannelEnum::Direct,
+                'transaction_number' => $transactionNumber,
+                'transaction_date' => now(),
+                'subtotal' => $data['subtotal'] ?? 0,
+                'discount_amount' => $data['discount_amount'] ?? 0,
+                'discount_type' => $data['discount_type'] ?? null,
+                'discount_value' => $data['discount_value'] ?? 0,
+                'promo_name' => $data['promo_name'] ?? null,
+                'tax_amount' => $data['tax_amount'] ?? 0,
+                'shipping_fee' => $data['shipping_fee'] ?? 0,
+                'service_charge_amount' => $data['service_charge_amount'] ?? 0,
+                'total' => $total,
+                'total_paid' => $totalPaid,
+                'balance_due' => $balanceDue,
+                'payment_status' => $paymentStatus,
+                'status' => $status,
+                'notes' => $data['notes'] ?? null,
+                'created_by' => $user->id,
+                'updated_by' => $user->id,
+            ]);
+
+            // 5. Simpan Item Transaksi
+            foreach ($data['items'] as $item) {
+                $productId = ($isValidUuid($item['product_id'] ?? null) && Product::where('id', $item['product_id'])->where('business_id', $outlet->business_id)->exists())
+                    ? $item['product_id']
+                    : null;
+
+                $productItemId = ($isValidUuid($item['product_item_id'] ?? null) && ProductItem::where('id', $item['product_item_id'])->exists())
+                    ? $item['product_item_id']
+                    : null;
+
+                $inventoryItemId = ($isValidUuid($item['inventory_item_id'] ?? null) && InventoryItem::where('id', $item['inventory_item_id'])->where('business_id', $outlet->business_id)->exists())
+                    ? $item['inventory_item_id']
+                    : null;
+
+                // Fallback otomatis inventory_item_id dari product jika belum terisi
+                if (! $inventoryItemId && $productId) {
+                    $inventoryItemId = InventoryItem::where('product_id', $productId)
+                        ->where('business_id', $outlet->business_id)
+                        ->value('id');
+                }
+
+                $transaction->items()->create([
+                    'product_id' => $productId,
+                    'product_item_id' => $productItemId,
+                    'inventory_item_id' => $inventoryItemId,
+                    'product_name' => $item['product_name'] ?? 'Item POS',
+                    'price' => $item['price'] ?? 0,
+                    'qty' => $item['qty'] ?? 1,
+                    'discount_amount' => $item['discount_amount'] ?? 0,
+                    'subtotal' => $item['subtotal'] ?? 0,
+                    'promo_name' => $item['promo_name'] ?? null,
+                    'notes' => $item['notes'] ?? null,
+                ]);
+            }
+
+            // 6. Simpan Pembayaran
+            if (! empty($data['payments'])) {
+                foreach ($data['payments'] as $payment) {
+                    $paymentMethodId = ($isValidUuid($payment['payment_method_id'] ?? null) && PaymentMethod::where('id', $payment['payment_method_id'])->where('business_id', $outlet->business_id)->exists())
+                        ? $payment['payment_method_id']
+                        : null;
+
+                    $transaction->payments()->create([
+                        'payment_method_id' => $paymentMethodId,
+                        'amount' => $payment['amount'] ?? 0,
+                        'change_amount' => $payment['change_amount'] ?? 0,
+                        'payment_reference' => $payment['payment_reference'] ?? null,
+                        'payment_date' => now(),
+                        'created_by' => $user->id,
+                    ]);
+                }
+            }
+
+            // 7. Simpan Promosi Terkait
+            if (! empty($data['promos'])) {
+                foreach ($data['promos'] as $promo) {
+                    $promoId = ($isValidUuid($promo['promo_id'] ?? null) && Promotion::where('id', $promo['promo_id'])->where('business_id', $outlet->business_id)->exists())
+                        ? $promo['promo_id']
+                        : null;
+
+                    $transaction->promos()->create([
+                        'promo_id' => $promoId,
+                        'promo_name' => $promo['promo_name'] ?? 'Promo POS',
+                        'discount_type' => $promo['discount_type'] ?? 'fixed',
+                        'discount_value' => $promo['discount_value'] ?? 0,
+                        'discount_amount' => $promo['discount_amount'] ?? 0,
+                    ]);
+                }
+            }
+
+            // Reload relasi items untuk keperluan pemotongan stok
+            $transaction->load(['items.inventoryItem', 'outlet.business']);
+
+            // 8. Pemotongan Stok Fisik & Alokasi Layer FIFO jika Transaksi Selesai/Lunas
+            if (in_array($transaction->status->value, ['completed', 'paid'], true)) {
+                $this->deductStockForTransaction($transaction, $user, $preloadedBalances);
+            }
+
+            return $transaction;
+        });
     }
 }
