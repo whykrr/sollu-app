@@ -345,9 +345,10 @@ class TransactionService
 
             // 5. Simpan Item Transaksi
             foreach ($data['items'] as $item) {
-                $productId = ($isValidUuid($item['product_id'] ?? null) && Product::where('id', $item['product_id'])->where('business_id', $outlet->business_id)->exists())
-                    ? $item['product_id']
+                $product = ($isValidUuid($item['product_id'] ?? null))
+                    ? Product::where('id', $item['product_id'])->where('business_id', $outlet->business_id)->first()
                     : null;
+                $productId = $product?->id;
 
                 $productItemId = ($isValidUuid($item['product_item_id'] ?? null) && ProductItem::where('id', $item['product_item_id'])->exists())
                     ? $item['product_item_id']
@@ -357,11 +358,21 @@ class TransactionService
                     ? $item['inventory_item_id']
                     : null;
 
-                // Fallback otomatis inventory_item_id dari product jika belum terisi
-                if (! $inventoryItemId && $productId) {
-                    $inventoryItemId = InventoryItem::where('product_id', $productId)
-                        ->where('business_id', $outlet->business_id)
-                        ->value('id');
+                // Jasa / Service items tidak memiliki inventory_item_id dan tidak melacak stok
+                if ($product && $product->isService()) {
+                    $inventoryItemId = null;
+                } elseif (! $inventoryItemId && $product && $product->track_inventory) {
+                    // Fallback otomatis inventory_item_id untuk barang fisik jika belum terisi
+                    if ($productItemId) {
+                        $inventoryItemId = InventoryItem::where('product_item_id', $productItemId)
+                            ->where('business_id', $outlet->business_id)
+                            ->value('id');
+                    }
+                    if (! $inventoryItemId) {
+                        $inventoryItemId = $product->inventoryItems()
+                            ->where('inventory_items.business_id', $outlet->business_id)
+                            ->value('inventory_items.id');
+                    }
                 }
 
                 $itemQty = (float) ($item['qty_deducted'] ?? $item['qty'] ?? 1);

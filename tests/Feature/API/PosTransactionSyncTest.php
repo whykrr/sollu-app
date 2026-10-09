@@ -417,4 +417,99 @@ class PosTransactionSyncTest extends TestCase
         $this->assertNotNull($movement);
         $this->assertEquals(-3.0, (float) $movement->qty_change);
     }
+
+    public function test_sync_offline_transaction_with_service_item_and_inventory_item_succeeds(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        // Buat produk tipe jasa / service
+        $serviceProduct = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Topup Shopee Pay 200K',
+            'code' => 'SRV-001',
+            'product_type' => ProductTypeEnum::SERVICE->value,
+            'track_inventory' => false,
+            'is_show' => true,
+            'sellable' => true,
+        ]);
+        $serviceProduct->outlets()->attach($this->outlet->id, ['is_enabled' => true, 'is_available' => true]);
+
+        $offlineId = (string) Str::uuid();
+        $payload = [
+            'offline_id' => $offlineId,
+            'transaction_number' => 'POS/SRV/20261009/0002',
+            'shift_id' => $this->shift->id,
+            'cashier_id' => $this->cashier->id,
+            'subtotal' => 225000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'service_charge_amount' => 0,
+            'total' => 225000,
+            'payment_status' => 'paid',
+            'status' => 'completed',
+            'items' => [
+                [
+                    'product_id' => $serviceProduct->id,
+                    'inventory_item_id' => null,
+                    'product_name' => 'Topup Shopee Pay 200K',
+                    'price' => 200000,
+                    'qty' => 1,
+                    'discount_amount' => 0,
+                    'subtotal' => 200000,
+                ],
+                [
+                    'product_id' => $this->product->id,
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'product_name' => 'Kopi Arabika 250g',
+                    'price' => 25000,
+                    'qty' => 1,
+                    'discount_amount' => 0,
+                    'subtotal' => 25000,
+                ],
+            ],
+            'payments' => [
+                [
+                    'payment_method_id' => $this->cashMethod->id,
+                    'amount' => 225000,
+                    'change_amount' => 0,
+                ],
+            ],
+        ];
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'pos-dev-001',
+            'X-HARDWARE-SIGNATURE' => 'pos-sig-001',
+        ])->postJson('http://api.sollu.test/pos/transactions', $payload);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('message', 'Transaksi berhasil disinkronisasi');
+
+        // Verifikasi transaksi dan items tercatat di database
+        $this->assertDatabaseHas('transactions', [
+            'id' => $offlineId,
+            'transaction_number' => 'POS/SRV/20261009/0002',
+            'total' => 225000,
+            'status' => TransactionStatus::Completed->value,
+        ]);
+
+        $this->assertDatabaseHas('transaction_items', [
+            'transaction_id' => $offlineId,
+            'product_id' => $serviceProduct->id,
+            'inventory_item_id' => null,
+            'product_name' => 'Topup Shopee Pay 200K',
+        ]);
+
+        $this->assertDatabaseHas('transaction_items', [
+            'transaction_id' => $offlineId,
+            'product_id' => $this->product->id,
+            'inventory_item_id' => $this->inventoryItem->id,
+            'qty' => 1,
+        ]);
+
+        // Stok fisik Kopi Arabika berkurang 1 (10 - 1 = 9)
+        $balance = InventoryBalance::where('outlet_id', $this->outlet->id)
+            ->where('inventory_item_id', $this->inventoryItem->id)
+            ->first();
+        $this->assertEquals(9.0, (float) $balance->current_stock);
+    }
 }
