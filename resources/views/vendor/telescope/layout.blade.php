@@ -75,14 +75,6 @@
         <div class="row mt-4">
             <div class="col-2 sidebar">
                 <ul class="nav flex-column">
-                    <li class="nav-item mb-3 pb-2 border-bottom">
-                        <a href="{{ route('cockpit.dashboard') }}" class="nav-link d-flex align-items-center text-primary font-weight-bold">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon mr-2" style="width: 1.25rem; height: 1.25rem;">
-                                <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd" />
-                            </svg>
-                            <span>Ke Cockpit</span>
-                        </a>
-                    </li>
                     @if (\Laravel\Telescope\Telescope::hasWatcher(\Laravel\Telescope\Watchers\RequestWatcher::class))
                     <li class="nav-item">
                         <router-link active-class="active" to="/requests" class="nav-link d-flex align-items-center">
