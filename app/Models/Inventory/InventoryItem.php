@@ -94,7 +94,7 @@ class InventoryItem extends Model
 
     protected function trackInventory(): Attribute
     {
-        return Attribute::make(get: fn () => $this->productItem?->track_inventory ?? false);
+        return Attribute::make(get: fn () => $this->productItem ? (bool) $this->productItem->track_inventory : (bool) $this->is_active);
     }
 
     protected function unit(): Attribute

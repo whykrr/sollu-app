@@ -158,6 +158,7 @@ class PosTransactionSyncTest extends TestCase
             'name' => 'Kopi Arabika 250g',
             'code' => 'KOP-001',
             'product_type' => ProductTypeEnum::BASIC->value,
+            'track_inventory' => true,
             'is_show' => true,
             'sellable' => true,
         ]);
@@ -511,5 +512,120 @@ class PosTransactionSyncTest extends TestCase
             ->where('inventory_item_id', $this->inventoryItem->id)
             ->first();
         $this->assertEquals(9.0, (float) $balance->current_stock);
+    }
+
+    public function test_sync_offline_transaction_with_untracked_inventory_product_does_not_fail_and_does_not_deduct_stock(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        // Buat produk basic retail dengan track_inventory = false
+        $untrackedProduct = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Stiker Promosi Toko',
+            'code' => 'STK-001',
+            'product_type' => ProductTypeEnum::BASIC->value,
+            'track_inventory' => false,
+            'is_show' => true,
+            'sellable' => true,
+        ]);
+        $untrackedProduct->outlets()->attach($this->outlet->id, ['is_enabled' => true, 'is_available' => true]);
+
+        // Buat dummy InventoryItem lama (misal sisa peninggalan saat pernah di-track) dengan stok 0
+        $oldInvItem = InventoryItem::create([
+            'business_id' => $this->business->id,
+            'name' => 'Stiker Promosi Toko (Old)',
+            'is_active' => false,
+        ]);
+        InventoryBalance::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'inventory_item_id' => $oldInvItem->id,
+            'current_stock' => 0.0,
+        ]);
+
+        $offlineId = (string) Str::uuid();
+        $payload = [
+            'offline_id' => $offlineId,
+            'transaction_number' => 'POS/UNTRACKED/20261009/0003',
+            'shift_id' => $this->shift->id,
+            'cashier_id' => $this->cashier->id,
+            'subtotal' => 30000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'service_charge_amount' => 0,
+            'total' => 30000,
+            'payment_status' => 'paid',
+            'status' => 'completed',
+            'items' => [
+                [
+                    'product_id' => $untrackedProduct->id,
+                    'inventory_item_id' => $oldInvItem->id, // Client mengirim ID inventori lama
+                    'track_inventory' => false,
+                    'product_name' => 'Stiker Promosi Toko',
+                    'price' => 5000,
+                    'qty' => 1,
+                    'discount_amount' => 0,
+                    'subtotal' => 5000,
+                ],
+                [
+                    'product_id' => $this->product->id,
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'track_inventory' => true,
+                    'product_name' => 'Kopi Arabika 250g',
+                    'price' => 25000,
+                    'qty' => 1,
+                    'discount_amount' => 0,
+                    'subtotal' => 25000,
+                ],
+            ],
+            'payments' => [
+                [
+                    'payment_method_id' => $this->cashMethod->id,
+                    'amount' => 30000,
+                    'change_amount' => 0,
+                ],
+            ],
+        ];
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'pos-dev-001',
+            'X-HARDWARE-SIGNATURE' => 'pos-sig-001',
+        ])->postJson('http://api.sollu.test/pos/transactions', $payload);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('message', 'Transaksi berhasil disinkronisasi');
+
+        // Pastikan transaksi berhasil tersimpan
+        $this->assertDatabaseHas('transactions', [
+            'id' => $offlineId,
+            'transaction_number' => 'POS/UNTRACKED/20261009/0003',
+            'status' => TransactionStatus::Completed->value,
+        ]);
+
+        // Pastikan item non-tracked tidak memotong stok oldInvItem (tetap 0)
+        $untrackedBalance = InventoryBalance::where('outlet_id', $this->outlet->id)
+            ->where('inventory_item_id', $oldInvItem->id)
+            ->first();
+        $this->assertEquals(0.0, (float) $untrackedBalance->current_stock);
+
+        // Pastikan tidak ada movement inventori yang dibuat untuk oldInvItem
+        $this->assertDatabaseMissing('inventory_movements', [
+            'outlet_id' => $this->outlet->id,
+            'inventory_item_id' => $oldInvItem->id,
+            'reference_id' => $offlineId,
+        ]);
+
+        // Pastikan item tracked (Kopi Arabika) tetap berkurang stoknya (10 - 1 = 9)
+        $trackedBalance = InventoryBalance::where('outlet_id', $this->outlet->id)
+            ->where('inventory_item_id', $this->inventoryItem->id)
+            ->first();
+        $this->assertEquals(9.0, (float) $trackedBalance->current_stock);
+
+        // Pastikan movement dibuat untuk item tracked
+        $this->assertDatabaseHas('inventory_movements', [
+            'outlet_id' => $this->outlet->id,
+            'inventory_item_id' => $this->inventoryItem->id,
+            'reference_id' => $offlineId,
+        ]);
     }
 }

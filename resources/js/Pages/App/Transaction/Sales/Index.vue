@@ -88,16 +88,8 @@
             </template>
 
             <template #status="{ item }">
-                <span
-                    class="badge"
-                    :class="{
-                        'badge-success': item.status === 'paid',
-                        'badge-danger': item.status === 'unpaid',
-                        'badge-warning': item.status === 'partial' || item.status === 'draft',
-                        'badge-secondary': item.status === 'cancel' || item.status === 'void',
-                    }"
-                >
-                    {{ $enums.TransactionStatus?.[item.status]?.label || item.status }}
+                <span class="badge" :class="getStatusBadgeClass(item.status)">
+                    {{ getLabel('TransactionStatus', item.status) }}
                 </span>
             </template>
         </Table>
@@ -124,10 +116,18 @@ import SalesDetailPopUp from './Components/SalesDetailPopUp.vue'
 import { formatDateTimeSimple } from '@/Composable/date.js'
 import { formatIDR as formatCurrency } from '@/Composable/currency-format.js'
 import { useAuth } from '@/Composable/useAuth.js'
+import { useEnum } from '@/Composable/useEnum.js'
 import { usePopUpStore } from '@/store/popup'
 
 const { can } = useAuth()
+const { getLabel, getColor } = useEnum()
 const popUpStore = usePopUpStore()
+
+const getStatusBadgeClass = status => {
+    const color = getColor('TransactionStatus', status)
+    if (!color) return 'badge-neutral'
+    return color.startsWith('badge-') ? color : `badge-${color}`
+}
 
 defineProps({
     transactions: {

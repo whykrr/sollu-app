@@ -136,16 +136,46 @@ class TransactionService
         }
 
         foreach ($items as $item) {
-            // Hanya periksa item fisik (inventory_item_id != null)
-            if (empty($item['inventory_item_id'])) {
+            $invId = $item['inventory_item_id'] ?? null;
+            if (empty($invId)) {
                 continue;
             }
 
-            $balance = $balances->get($item['inventory_item_id']);
+            // Jika item dalam payload secara eksplisit menyatakan track_inventory === false, lewati
+            if (isset($item['track_inventory']) && $item['track_inventory'] === false) {
+                continue;
+            }
+
+            $balance = $balances->get($invId);
             $currentStock = $balance ? (float) $balance->current_stock : 0.0;
             $qty = (float) ($item['qty_deducted'] ?? $item['qty'] ?? 1);
 
             if ($currentStock < $qty) {
+                // Pastikan item benar-benar dilacak sebelum melempar exception
+                $isTracked = DB::table('inventory_items')
+                    ->leftJoin('product_items', 'inventory_items.product_item_id', '=', 'product_items.id')
+                    ->leftJoin('products', 'product_items.product_id', '=', 'products.id')
+                    ->where('inventory_items.id', $invId)
+                    ->where('inventory_items.business_id', $outlet->business_id)
+                    ->where(function ($q) {
+                        $q->where(function ($sq) {
+                            $sq->whereNotNull('inventory_items.product_item_id')
+                                ->where('product_items.track_inventory', true)
+                                ->where(function ($psq) {
+                                    $psq->whereNull('products.product_type')
+                                        ->orWhere('products.product_type', '!=', 'service');
+                                });
+                        })->orWhere(function ($sq) {
+                            $sq->whereNull('inventory_items.product_item_id')
+                                ->where('inventory_items.is_active', true);
+                        });
+                    })
+                    ->exists();
+
+                if (! $isTracked) {
+                    continue;
+                }
+
                 $productName = $item['product_name'] ?? 'Item';
                 throw new InvalidArgumentException("Stok {$productName} tidak mencukupi. Sisa stok: {$currentStock}");
             }
@@ -171,6 +201,11 @@ class TransactionService
 
             $inventoryItem = $item->inventoryItem;
             if (! $inventoryItem) {
+                continue;
+            }
+
+            // Skip jika relation sudah di-load dan item terbukti tidak melacak inventori
+            if ($inventoryItem->relationLoaded('productItem') && $inventoryItem->productItem && ! $inventoryItem->productItem->track_inventory) {
                 continue;
             }
 
@@ -358,8 +393,9 @@ class TransactionService
                     ? $item['inventory_item_id']
                     : null;
 
-                // Jasa / Service items tidak memiliki inventory_item_id dan tidak melacak stok
-                if ($product && $product->isService()) {
+                // Jasa / Service items atau produk non-tracked tidak memiliki inventory_item_id
+                $isTrackInventory = $product ? (bool) $product->track_inventory : true;
+                if ($product && ($product->isService() || ! $isTrackInventory)) {
                     $inventoryItemId = null;
                 } elseif (! $inventoryItemId && $product && $product->track_inventory) {
                     // Fallback otomatis inventory_item_id untuk barang fisik jika belum terisi
@@ -427,7 +463,7 @@ class TransactionService
             }
 
             // Reload relasi items untuk keperluan pemotongan stok
-            $transaction->load(['items.inventoryItem', 'outlet.business']);
+            $transaction->load(['items.inventoryItem.productItem.product', 'items.product', 'outlet.business']);
 
             // 8. Pemotongan Stok Fisik & Alokasi Layer FIFO jika Transaksi Selesai/Lunas
             if (in_array($transaction->status->value, ['completed', 'paid'], true)) {
