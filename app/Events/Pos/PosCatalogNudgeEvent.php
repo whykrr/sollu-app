@@ -19,10 +19,12 @@ class PosCatalogNudgeEvent implements ShouldBroadcastNow
 
     /**
      * Create a new event instance.
+     *
+     * @param  string|array<string>  $entityType
      */
     public function __construct(
         public int|string $outletId,
-        public string $entityType = 'product',
+        public string|array $entityType = 'product',
     ) {}
 
     /**
@@ -52,10 +54,15 @@ class PosCatalogNudgeEvent implements ShouldBroadcastNow
      */
     public function broadcastWith(): array
     {
+        $entities = is_array($this->entityType)
+            ? array_values(array_unique($this->entityType))
+            : [$this->entityType];
+
         return [
             'event' => 'pos.catalog.nudge',
-            'outlet_id' => $this->outletId,
-            'entity_type' => $this->entityType,
+            'outlet_id' => (string) $this->outletId,
+            'entity_type' => implode(',', $entities),
+            'entities' => $entities,
             'timestamp' => now()->toIso8601String(),
         ];
     }

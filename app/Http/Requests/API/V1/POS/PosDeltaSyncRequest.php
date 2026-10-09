@@ -28,6 +28,7 @@ class PosDeltaSyncRequest extends FormRequest
                     }
                 },
             ],
+            'entities' => ['nullable', 'string'],
         ];
     }
 }

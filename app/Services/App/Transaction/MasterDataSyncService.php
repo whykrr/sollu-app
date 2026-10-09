@@ -12,7 +12,6 @@ use App\Models\Master\PaymentMethod;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
 use App\Models\Master\ProductImage;
-use App\Models\Master\ProductPrice;
 use App\Models\Master\VariantGroup;
 use App\Models\Master\VariantGroupOption;
 use App\Models\OutletDevice;
@@ -20,6 +19,7 @@ use App\Models\OutletSetting;
 use App\Models\Promotion\Promotion;
 use App\Services\App\Outlet\OutletProvisioningService;
 use App\Services\Auth\UserPermissionCacheService;
+use App\Services\Pos\PosPriceResolver;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -27,6 +27,10 @@ use Illuminate\Support\Facades\Storage;
 class MasterDataSyncService
 {
     public const MASTER_SYNC_CACHE_TTL = 60; // 60 seconds
+
+    public function __construct(
+        private readonly PosPriceResolver $priceResolver,
+    ) {}
 
     public function getPayload(OutletDevice $device, bool $force = false): array
     {
@@ -55,7 +59,7 @@ class MasterDataSyncService
         });
 
         $products = ! empty($productIds)
-            ? Product::with(['productItems.uom'])
+            ? Product::with(['productItems.uom', 'productItems.inventoryItem'])
                 ->where('business_id', $businessId)
                 ->whereIn('id', $productIds)
                 ->get()
@@ -70,14 +74,8 @@ class MasterDataSyncService
             ->makeHidden('business_id');
 
         $productPrices = ! empty($productIds)
-            ? ProductPrice::whereIn('product_id', $productIds)
-                ->where(function ($q) use ($outletId) {
-                    $q->where('outlet_id', $outletId)
-                        ->orWhereNull('outlet_id');
-                })
-                ->get()
-                ->makeHidden('outlet_id')
-            : collect();
+            ? $this->priceResolver->resolveForOutlet($products, $productIds, $outletId)
+            : [];
 
         $productImages = ! empty($productIds)
             ? ProductImage::whereIn('product_id', $productIds)->get()

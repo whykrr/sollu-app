@@ -169,6 +169,9 @@ class PosDualModeSyncTest extends TestCase
         $this->assertArrayHasKey('inventory_balances', $data);
         $this->assertCount(1, $data['products']);
         $this->assertEquals('Kopi Susu Gula Aren', $data['products'][0]['name']);
+        $this->assertEquals(25000, (float) $data['products'][0]['price']);
+        $this->assertNotEmpty($data['product_prices']);
+        $this->assertEquals(25000, (float) $data['product_prices'][0]['amount']);
     }
 
     public function test_delta_sync_returns_empty_when_no_updates(): void
@@ -221,6 +224,7 @@ class PosDualModeSyncTest extends TestCase
 
         $this->assertCount(1, $data['updated_products']);
         $this->assertEquals('Kopi Susu Gula Aren Spesial', $data['updated_products'][0]['name']);
+        $this->assertEquals(25000, (float) $data['updated_products'][0]['price']);
 
         $this->assertCount(1, $data['updated_product_items']);
         $this->assertEquals('BAR-001-NEW', $data['updated_product_items'][0]['barcode']);
@@ -248,5 +252,64 @@ class PosDualModeSyncTest extends TestCase
         $data = $response->json('data');
 
         $this->assertContains($this->product->id, $data['deleted_product_ids']);
+    }
+
+    public function test_delta_sync_with_entities_filter_returns_only_requested_entities(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $checkpoint = now()->subSeconds(2)->toIso8601String();
+
+        // Mutate both product and balance
+        $this->product->update(['name' => 'Kopi Selective Query']);
+        $balance = InventoryBalance::where('outlet_id', $this->outlet->id)->first();
+        $balance->update(['current_stock' => 12]);
+
+        $checkParam = urlencode($checkpoint);
+
+        // Call delta with entities=inventory_balance
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-dual-001',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-dual-001',
+        ])->getJson("http://api.sollu.test/v1/pos/sync/delta?updated_since={$checkParam}&entities=inventory_balance");
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+
+        // Only inventory_balances should be returned
+        $this->assertCount(1, $data['updated_inventory_balances']);
+        $this->assertEquals(12, (float) $data['updated_inventory_balances'][0]['current_stock']);
+        $this->assertEmpty($data['updated_products']);
+        $this->assertEmpty($data['updated_product_items']);
+        $this->assertEmpty($data['updated_prices']);
+        $this->assertEmpty($data['deleted_product_ids']);
+    }
+
+    public function test_delta_sync_resolves_price_change_via_price_entity(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $checkpoint = now()->subSeconds(2)->toIso8601String();
+
+        // Update price
+        $price = ProductPrice::where('product_id', $this->product->id)->first();
+        $price->update(['amount' => 32000]);
+
+        $checkParam = urlencode($checkpoint);
+
+        // Call delta with entities=product_price
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-dual-001',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-dual-001',
+        ])->getJson("http://api.sollu.test/v1/pos/sync/delta?updated_since={$checkParam}&entities=product_price");
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+
+        $this->assertNotEmpty($data['updated_prices']);
+        $this->assertEquals(32000, (float) $data['updated_prices'][0]['amount']);
+        $this->assertCount(1, $data['updated_products']);
+        $this->assertEquals(32000, (float) $data['updated_products'][0]['price']);
+        $this->assertEmpty($data['updated_inventory_balances']);
     }
 }

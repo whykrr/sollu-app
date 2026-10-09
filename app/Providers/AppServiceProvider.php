@@ -12,6 +12,7 @@ use App\Models\Feature;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Master\Product;
 use App\Models\Master\ProductItem;
+use App\Models\Master\ProductPrice;
 use App\Models\Outlet;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -19,6 +20,7 @@ use App\Models\User;
 use App\Observers\POS\InventoryBalanceObserver;
 use App\Observers\POS\ProductItemObserver;
 use App\Observers\POS\ProductObserver;
+use App\Observers\POS\ProductPriceObserver;
 use App\Observers\UserCacheObserver;
 use App\Services\App\Audit\ActivityLogService;
 use App\Services\App\Inventory\InventoryDeductionService;
@@ -27,6 +29,7 @@ use App\Services\App\Promotion\PromotionEvaluatorService;
 use App\Services\App\Transaction\B2bTransactionService;
 use App\Services\App\Transaction\Contracts\B2bTransactionServiceInterface;
 use App\Services\Auth\UserPermissionCacheService;
+use App\Services\Pos\PosNudgeQueueService;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Cache;
 use Illuminate\Auth\Events\Authenticated;
@@ -86,6 +89,8 @@ class AppServiceProvider extends ServiceProvider
             ActivityLoggerInterface::class,
             ActivityLogService::class
         );
+
+        $this->app->singleton(PosNudgeQueueService::class);
     }
 
     /**
@@ -143,6 +148,7 @@ class AppServiceProvider extends ServiceProvider
 
         Product::observe(ProductObserver::class);
         ProductItem::observe(ProductItemObserver::class);
+        ProductPrice::observe(ProductPriceObserver::class);
         InventoryBalance::observe(InventoryBalanceObserver::class);
 
         Event::listen(Authenticated::class, function ($event) {

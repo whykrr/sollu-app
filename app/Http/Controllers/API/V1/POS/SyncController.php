@@ -34,7 +34,12 @@ class SyncController extends Controller
         $device->loadMissing('outlet.business');
 
         $updatedSince = $request->validated('updated_since');
-        $payload = $service->getDelta($device, $updatedSince);
+        $entitiesParam = $request->validated('entities');
+        $entities = $entitiesParam !== null && $entitiesParam !== ''
+            ? array_filter(array_map('trim', explode(',', $entitiesParam)))
+            : null;
+
+        $payload = $service->getDelta($device, $updatedSince, $entities);
 
         return $this->successResponse($payload, 'Delta master catalog synchronized successfully');
     }
