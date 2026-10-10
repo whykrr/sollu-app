@@ -5,14 +5,40 @@
             class="flex justify-between items-start bg-slate-50 p-4 rounded-xl border border-slate-200"
         >
             <div>
-                <h2 class="font-bold text-base sm:text-lg text-slate-800">
-                    {{ transaction.invoice?.invoice_number || transaction.transaction_number }}
+                <div class="flex items-center gap-2 mb-1">
+                    <span
+                        class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase"
+                        :class="
+                            transaction.channel === 'pos'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                : 'bg-purple-100 text-purple-800 border border-purple-200'
+                        "
+                    >
+                        {{ transaction.channel === 'pos' ? 'POS (Point of Sale)' : 'Wholesale / B2B' }}
+                    </span>
+                    <span
+                        v-if="transaction.type"
+                        class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-200 text-slate-700"
+                    >
+                        {{
+                            transaction.type === 'walk_in'
+                                ? 'Walk-In'
+                                : transaction.type === 'dine_in'
+                                  ? 'Dine-In'
+                                  : transaction.type === 'take_away'
+                                    ? 'Take-Away'
+                                    : 'Faktur'
+                        }}
+                    </span>
+                </div>
+                <h2 class="font-bold text-base sm:text-lg text-slate-800 font-mono">
+                    {{ transaction.transaction_number }}
                 </h2>
                 <div
                     v-if="transaction.invoice?.invoice_number"
-                    class="text-xs text-slate-500 font-mono"
+                    class="text-xs text-slate-600 font-mono mt-0.5"
                 >
-                    Ref: {{ transaction.transaction_number }}
+                    No. Faktur: {{ transaction.invoice.invoice_number }}
                 </div>
                 <div class="text-xs text-slate-500 mt-1">
                     {{
@@ -34,27 +60,6 @@
                 >
                     {{
                         $enums.TransactionStatus?.[transaction.status]?.label || transaction.status
-                    }}
-                </span>
-                <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                    :class="{
-                        'bg-purple-100 text-purple-700 border border-purple-200':
-                            transaction.channel === 'wholesale',
-                        'bg-blue-100 text-blue-700 border border-blue-200':
-                            transaction.channel === 'direct',
-                        'bg-emerald-100 text-emerald-700 border border-emerald-200':
-                            transaction.channel === 'e_commerce',
-                        'bg-amber-100 text-amber-700 border border-amber-200':
-                            transaction.channel === 'social_media',
-                        'bg-cyan-100 text-cyan-700 border border-cyan-200':
-                            transaction.channel === 'custom',
-                    }"
-                >
-                    {{
-                        $enums.SalesChannelEnum?._meta?.[transaction.channel]?.label ||
-                        $enums.SalesChannelEnum?.[transaction.channel]?.label ||
-                        transaction.channel
                     }}
                 </span>
             </div>
@@ -88,8 +93,9 @@
             </div>
         </div>
 
-        <!-- Payment Term & Due Date Info -->
+        <!-- Payment Term & Due Date Info (Wholesale / Invoice only) -->
         <div
+            v-if="transaction.channel === 'wholesale' || transaction.invoice"
             class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200"
         >
             <div>

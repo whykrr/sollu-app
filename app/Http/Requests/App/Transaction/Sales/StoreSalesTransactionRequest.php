@@ -32,7 +32,7 @@ class StoreSalesTransactionRequest extends BaseInertiaFormRequest
         return [
             'outlet_id' => ['required', 'uuid', 'exists:outlets,id'],
             'customer_id' => ['nullable', 'uuid', 'exists:customers,id'],
-            'channel' => ['required', Rule::enum(SalesChannelEnum::class)],
+            'channel' => ['nullable', Rule::enum(SalesChannelEnum::class)],
             'transaction_date' => ['required', 'date'],
             'payment_term' => ['required', 'in:cash,credit'],
             'due_date' => ['nullable', 'required_if:payment_term,credit', 'date', 'after_or_equal:transaction_date'],
@@ -161,9 +161,12 @@ class StoreSalesTransactionRequest extends BaseInertiaFormRequest
             );
         }
 
+        $channelValue = $this->validated('channel');
+        $resolvedChannel = $channelValue ? SalesChannelEnum::from($channelValue) : SalesChannelEnum::Wholesale;
+
         return new CreateB2bTransactionDTO(
             outletId: $this->validated('outlet_id'),
-            channel: SalesChannelEnum::from($this->validated('channel')),
+            channel: $resolvedChannel,
             transactionDate: Carbon::parse($this->validated('transaction_date')),
             paymentTerm: PaymentTermEnum::from($this->validated('payment_term')),
             items: $items,

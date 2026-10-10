@@ -54,7 +54,7 @@ class B2bTransactionService implements B2bTransactionServiceInterface
             $inventoryItemsMap = $masterData['inventoryItemsMap'];
             $catalogPrices = $masterData['catalogPrices'];
 
-            $transactionNumber = $this->transactionService->generateTransactionNumber($outlet, $dto->transactionDate);
+            $transactionNumber = $this->transactionService->generateTransactionNumber($outlet, $dto->transactionDate, $dto->channel);
 
             // 1. Siapkan Cart Items untuk evaluasi promo (dengan harga katalog terverifikasi)
             $cartItems = [];

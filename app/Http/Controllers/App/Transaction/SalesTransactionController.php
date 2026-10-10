@@ -7,7 +7,6 @@ namespace App\Http\Controllers\App\Transaction;
 use App\Constants\AuthorizationMessage;
 use App\Constants\FlashDataVariable;
 use App\Enums\DatePresetEnum;
-use App\Enums\TransactionTypeEnum;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Transaction\Sales\CancelSalesTransactionRequest;
@@ -86,7 +85,6 @@ class SalesTransactionController extends Controller
                 'payment_status',
                 'created_at',
             ])
-            ->where('type', TransactionTypeEnum::Invoice->value)
             ->when(
                 $effectiveOutletId !== null,
                 fn (Builder $q) => $q->where('outlet_id', $effectiveOutletId),

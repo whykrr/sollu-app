@@ -57,6 +57,54 @@
                         size="md"
                     />
                 </label>
+
+                <!-- Tipe Pesanan POS Aktif -->
+                <div class="p-3.5 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2.5">
+                    <div>
+                        <div class="font-medium text-sm text-slate-700">
+                            Tipe Pesanan POS Aktif (Order Types)
+                        </div>
+                        <div class="text-xs text-slate-500 mt-0.5">
+                            Pilih tipe pesanan yang tersedia di kasir outlet ini (minimal 1 aktif). Jika hanya 1 aktif, kasir akan langsung menggunakan tipe tersebut saat transaksi.
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                        <div
+                            v-for="orderType in posOrderTypeOptions"
+                            :key="orderType.value"
+                            class="flex items-center justify-between p-3 border rounded-lg transition-colors"
+                            :class="[
+                                posForm.pos_order_types.includes(orderType.value)
+                                    ? 'border-main bg-main/5'
+                                    : 'border-slate-200 bg-white hover:bg-slate-50/80',
+                                posForm.pos_order_types.length === 1 && posForm.pos_order_types.includes(orderType.value)
+                                    ? 'opacity-85 cursor-not-allowed'
+                                    : 'cursor-pointer'
+                            ]"
+                            @click="togglePosOrderType(orderType.value)"
+                        >
+                            <div>
+                                <div class="font-semibold text-xs text-slate-800">
+                                    {{ orderType.label }}
+                                </div>
+                                <div class="text-[11px] text-slate-400 mt-0.5">
+                                    {{ orderType.desc }}
+                                </div>
+                            </div>
+                            <input
+                                type="checkbox"
+                                :checked="posForm.pos_order_types.includes(orderType.value)"
+                                :disabled="posForm.pos_order_types.length === 1 && posForm.pos_order_types.includes(orderType.value)"
+                                class="checkbox checkbox-sm checkbox-primary"
+                                @click.stop="togglePosOrderType(orderType.value)"
+                            />
+                        </div>
+                    </div>
+                    <div v-if="posForm.errors.pos_order_types" class="text-xs text-rose-500 mt-1">
+                        {{ posForm.errors.pos_order_types }}
+                    </div>
+                </div>
             </div>
 
             <!-- Save POS Settings button -->
@@ -194,7 +242,7 @@
 
                                     <button
                                         v-if="device.tokens_count > 0"
-                                        v-can="permissionEnum.SETTING_DEVICE"
+                                        v-can="$enums.PermissionEnum.SETTING_DEVICE"
                                         type="button"
                                         class="btn btn-highlight-warning btn-xs rounded-lg cursor-pointer"
                                         title="Putuskan koneksi perangkat ini"
@@ -259,7 +307,6 @@ import { useModalStore } from '@/store/notification'
 import { usePopUpStore } from '@/store/popup'
 import OtpModalContent from '@/Pages/App/Settings/Device/Components/OtpModalContent.vue'
 import DevicePopUp from '@/Pages/App/Settings/Device/Components/DevicePopUp.vue'
-import PermissionEnum from '@/Enums/PermissionEnum'
 
 const props = defineProps({
     outlet: {
@@ -287,15 +334,46 @@ const props = defineProps({
     },
 })
 
-const permissionEnum = PermissionEnum
 const modalStore = useModalStore()
 const popUpStore = usePopUpStore()
+
+const posOrderTypeOptions = [
+    {
+        value: 'walk_in',
+        label: 'Walk-In',
+        desc: 'Pelanggan datang langsung ke kasir',
+    },
+    {
+        value: 'dine_in',
+        label: 'Dine-In',
+        desc: 'Makan di tempat / meja restoran',
+    },
+    {
+        value: 'take_away',
+        label: 'Take-Away',
+        desc: 'Bungkus bawa pulang',
+    },
+]
 
 const posForm = useForm({
     outlet_id: props.outlet?.id,
     enable_supervisor_pin: props.posSettings?.enable_supervisor_pin ?? false,
     allow_negative_stock: props.posSettings?.allow_negative_stock ?? true,
+    pos_order_types: props.posSettings?.pos_order_types || ['walk_in', 'dine_in', 'take_away'],
 })
+
+const togglePosOrderType = type => {
+    const types = [...posForm.pos_order_types]
+    const idx = types.indexOf(type)
+    if (idx > -1) {
+        // Jangan izinkan uncheck jika tinggal 1 (minimal 1 aktif)
+        if (types.length <= 1) return
+        types.splice(idx, 1)
+    } else {
+        types.push(type)
+    }
+    posForm.pos_order_types = types
+}
 
 watch(
     () => props.posSettings,
@@ -303,6 +381,7 @@ watch(
         posForm.outlet_id = props.outlet?.id
         posForm.enable_supervisor_pin = newSettings?.enable_supervisor_pin ?? false
         posForm.allow_negative_stock = newSettings?.allow_negative_stock ?? true
+        posForm.pos_order_types = newSettings?.pos_order_types || ['walk_in', 'dine_in', 'take_away']
     },
     { deep: true }
 )

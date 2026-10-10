@@ -129,7 +129,7 @@
 
             <!-- Simulation Calculation Column -->
             <div class="lg:col-span-5">
-                <div class="sticky top-20 bg-white rounded-xl border border-slate-200 p-5">
+                <div class="sticky bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-sm font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >

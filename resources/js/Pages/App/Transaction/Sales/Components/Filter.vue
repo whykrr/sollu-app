@@ -36,7 +36,7 @@
                     @click="$emit('create')"
                 >
                     <FontAwesomeIcon :icon="faPlus" />
-                    <span>Faktur Baru</span>
+                    <span>Penjualan Baru</span>
                 </button>
             </template>
         </ActionBar>
@@ -93,11 +93,8 @@ const channelOptions = computed(() => {
     const opts = getOptions('SalesChannelEnum')
     if (opts && opts.length > 0) return opts
     return [
+        { value: 'pos', label: 'Point of Sale (POS)' },
         { value: 'wholesale', label: 'Grosir (Wholesale)' },
-        { value: 'direct', label: 'Penjualan Langsung (Direct)' },
-        { value: 'e_commerce', label: 'E-Commerce / Marketplace' },
-        { value: 'social_media', label: 'Media Sosial & WhatsApp' },
-        { value: 'custom', label: 'Pesanan Khusus' },
     ]
 })
 

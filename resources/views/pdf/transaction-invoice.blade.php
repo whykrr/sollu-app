@@ -332,11 +332,11 @@
     <table class="summary-wrapper">
         <tr>
             <td style="width: 55%; padding-right: 15px;">
-                @if($transaction->invoice->terms_and_conditions)
+                @if(!empty($transaction->notes))
                     <div class="payment-info-box">
-                        <div class="payment-info-title">Syarat & Ketentuan:</div>
+                        <div class="payment-info-title">Catatan:</div>
                         <div style="font-size: 9px; color: #475569;">
-                            {{ $transaction->invoice->terms_and_conditions }}
+                            {{ $transaction->notes }}
                         </div>
                     </div>
                 @endif

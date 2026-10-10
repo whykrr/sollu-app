@@ -179,6 +179,11 @@ class MasterDataSyncService
 
         $receiptSetting['logo_url'] = $logoUrl;
 
+        $posOrderTypes = $outletSettings->where('category', 'pos')->firstWhere('key', 'pos_order_types')?->value ?? ['walk_in', 'dine_in', 'take_away'];
+        if (! is_array($posOrderTypes) || empty($posOrderTypes)) {
+            $posOrderTypes = ['walk_in', 'dine_in', 'take_away'];
+        }
+
         $structuredSettings = [
             'tax_percentage' => $financialTax,
             'service_charge_percentage' => $financialServiceFee,
@@ -186,6 +191,7 @@ class MasterDataSyncService
             'rounding_enabled' => $roundingEnabled,
             'rounding_mode' => $roundingMode,
             'allow_negative_stock' => (bool) ($outletSettings->firstWhere('key', 'allow_negative_stock')?->value ?? true),
+            'pos_order_types' => $posOrderTypes,
             'receipt' => $receiptSetting,
         ];
 
@@ -260,6 +266,7 @@ class MasterDataSyncService
             'outlet' => [
                 'id' => $outlet->id,
                 'name' => $outlet->name,
+                'initial' => app(TransactionService::class)->resolveOutletInitial($outlet),
                 'address' => $outlet->address,
                 'phone' => $outlet->phone,
                 'email' => $outlet->email,

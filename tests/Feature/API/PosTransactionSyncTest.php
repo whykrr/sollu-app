@@ -239,7 +239,7 @@ class PosTransactionSyncTest extends TestCase
             'transaction_number' => 'TRX/POS/202610/0001',
             'total' => 45000,
             'status' => TransactionStatus::Completed->value,
-            'channel' => SalesChannelEnum::Direct->value,
+            'channel' => SalesChannelEnum::POS->value,
         ]);
 
         // Pastikan item tercatat dengan inventory_item_id yang sesuai

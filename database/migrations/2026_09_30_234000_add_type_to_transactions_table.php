@@ -30,7 +30,7 @@ return new class extends Migration
                     ->from('transaction_invoices')
                     ->whereColumn('transaction_invoices.transaction_id', 'transactions.id');
             })
-            ->update(['type' => TransactionTypeEnum::Pos->value]);
+            ->update(['type' => 'walk_in']);
     }
 
     /**

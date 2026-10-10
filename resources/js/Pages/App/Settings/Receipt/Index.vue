@@ -344,17 +344,16 @@
                         <div
                             class="border-b border-dashed border-slate-300 pb-2 mb-2 text-[11px] text-slate-700"
                         >
-                            <div class="flex justify-between">
-                                <span>No: INV/20260814/0001</span>
+                            <div class="font-bold text-slate-900 break-all">
+                                No: TRX/2026.08.14/OUT.POS/0001
+                            </div>
+                            <div class="flex justify-between mt-0.5 text-slate-600">
                                 <span>14/08/2026 14:00</span>
+                                <span v-if="form.show_order_type" class="font-bold text-slate-800">Walk In</span>
                             </div>
                             <div class="flex justify-between mt-0.5">
                                 <span v-if="form.show_cashier_name">Kasir: Budi</span>
-                                <span v-else></span>
-                                <span v-if="form.show_order_type" class="font-bold">Dine In</span>
-                            </div>
-                            <div v-if="form.show_customer_name" class="mt-0.5">
-                                Pelanggan: Ahmad
+                                <span v-if="form.show_customer_name">Pelanggan: Ahmad</span>
                             </div>
                         </div>
 

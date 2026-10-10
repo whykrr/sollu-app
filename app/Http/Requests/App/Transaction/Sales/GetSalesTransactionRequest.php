@@ -26,6 +26,7 @@ class GetSalesTransactionRequest extends BaseInertiaFormRequest
         return [
             'search' => ['nullable', 'string', 'max:255'],
             'channel' => ['nullable', 'string', Rule::enum(SalesChannelEnum::class)],
+            'type' => ['nullable', 'string'],
             'status' => ['nullable', 'string'],
             'payment_status' => ['nullable', 'string'],
             'outlet' => ['nullable', 'string'],

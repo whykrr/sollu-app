@@ -178,7 +178,7 @@ class B2bTransactionServiceTest extends TestCase
 
         // Verify Invoice Extension
         $this->assertNotNull($transaction->invoice);
-        $this->assertStringStartsWith('INV/MAIN-B2B-OUTLET/202609/', $transaction->invoice->invoice_number);
+        $this->assertStringStartsWith('INV/2026.09.30/MBO/', $transaction->invoice->invoice_number);
         $this->assertEquals(PaymentTermEnum::Credit, $transaction->invoice->payment_term);
         $this->assertEquals('2026-10-30', $transaction->invoice->due_date->format('Y-m-d'));
         $this->assertEquals(TransactionStatus::Draft, $transaction->invoice->status);
@@ -194,7 +194,7 @@ class B2bTransactionServiceTest extends TestCase
         $this->assertEquals(950000.0, (float) $item->subtotal);
     }
 
-    public function test_it_creates_draft_b2b_direct_transaction_without_customer(): void
+    public function test_it_creates_draft_b2b_wholesale_transaction_without_customer(): void
     {
         $itemDto = new CreateTransactionItemDTO(
             productId: $this->product->id,
@@ -204,7 +204,7 @@ class B2bTransactionServiceTest extends TestCase
 
         $dto = new CreateB2bTransactionDTO(
             outletId: $this->outlet->id,
-            channel: SalesChannelEnum::Direct,
+            channel: SalesChannelEnum::Wholesale,
             transactionDate: new DateTimeImmutable('2026-09-30 11:00:00'),
             paymentTerm: PaymentTermEnum::Cash,
             items: [$itemDto],
@@ -216,7 +216,7 @@ class B2bTransactionServiceTest extends TestCase
         $transaction = $this->b2bService->createTransaction($dto, $this->user);
 
         $this->assertNull($transaction->customer_id);
-        $this->assertEquals(SalesChannelEnum::Direct, $transaction->channel);
+        $this->assertEquals(SalesChannelEnum::Wholesale, $transaction->channel);
         $this->assertEquals(240000.0, (float) $transaction->total);
         $this->assertEquals(PaymentTermEnum::Cash, $transaction->invoice->payment_term);
     }
@@ -750,13 +750,13 @@ class B2bTransactionServiceTest extends TestCase
         );
         $tx3 = $this->b2bService->createTransaction($dto3, $this->user);
 
-        $this->assertEquals('TRX/MAIN-B2B-OUTLET/202610/0001', $tx1->transaction_number);
-        $this->assertEquals('INV/MAIN-B2B-OUTLET/202610/0001', $tx1->invoice->invoice_number);
+        $this->assertEquals('TRX/2026.10.01/MBO.WS/0001', $tx1->transaction_number);
+        $this->assertEquals('INV/2026.10.01/MBO/0001', $tx1->invoice->invoice_number);
 
-        $this->assertEquals('TRX/SECONDARY-BRANCH/202610/0001', $tx2->transaction_number);
-        $this->assertEquals('INV/SECONDARY-BRANCH/202610/0001', $tx2->invoice->invoice_number);
+        $this->assertEquals('TRX/2026.10.01/SB.WS/0001', $tx2->transaction_number);
+        $this->assertEquals('INV/2026.10.01/SB/0001', $tx2->invoice->invoice_number);
 
-        $this->assertEquals('TRX/MAIN-B2B-OUTLET/202610/0002', $tx3->transaction_number);
-        $this->assertEquals('INV/MAIN-B2B-OUTLET/202610/0002', $tx3->invoice->invoice_number);
+        $this->assertEquals('TRX/2026.10.01/MBO.WS/0002', $tx3->transaction_number);
+        $this->assertEquals('INV/2026.10.01/MBO/0002', $tx3->invoice->invoice_number);
     }
 }

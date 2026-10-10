@@ -28,15 +28,14 @@ class UpdateSalesSettingRequest extends BaseInertiaFormRequest
             // POS Settings
             'enable_supervisor_pin' => ['sometimes', 'boolean'],
             'allow_negative_stock' => ['sometimes', 'boolean'],
+            'pos_order_types' => ['sometimes', 'array', 'min:1'],
+            'pos_order_types.*' => ['string', 'in:walk_in,dine_in,take_away'],
 
             // B2B Invoice Settings
             'allow_negative_stock_b2b' => ['sometimes', 'boolean'],
             'allow_custom_price_b2b' => ['sometimes', 'boolean'],
-            'sales_channels_b2b' => ['sometimes', 'array', 'min:1'],
-            'sales_channels_b2b.*' => ['string', 'in:direct,wholesale,e_commerce,social_media,custom'],
             'default_due_days_b2b' => ['sometimes', 'integer', 'min:0', 'max:365'],
-            'default_terms_and_conditions_b2b' => ['nullable', 'string', 'max:2000'],
-            'b2b_invoice_prefix' => ['sometimes', 'string', 'max:10', 'regex:/^[A-Z0-9\-_]+$/i'],
+            'b2b_invoice_prefix' => ['sometimes', 'string', 'max:5', 'regex:/^[A-Z0-9\-_]+$/i'],
         ];
     }
 }

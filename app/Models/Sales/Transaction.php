@@ -200,7 +200,30 @@ class Transaction extends Model
      */
     public function scopePos(Builder $query): Builder
     {
-        return $query->where($this->qualifyColumn('type'), TransactionTypeEnum::Pos->value);
+        return $query->where($this->qualifyColumn('channel'), SalesChannelEnum::POS->value);
+    }
+
+    /**
+     * Scope query for Wholesale transactions.
+     */
+    public function scopeWholesale(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('channel'), SalesChannelEnum::Wholesale->value);
+    }
+
+    public function scopeWalkIn(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('type'), TransactionTypeEnum::WalkIn->value);
+    }
+
+    public function scopeDineIn(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('type'), TransactionTypeEnum::DineIn->value);
+    }
+
+    public function scopeTakeAway(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('type'), TransactionTypeEnum::TakeAway->value);
     }
 
     /**

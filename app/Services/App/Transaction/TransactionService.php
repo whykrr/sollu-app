@@ -6,6 +6,7 @@ namespace App\Services\App\Transaction;
 
 use App\Enums\InventoryMovementType;
 use App\Enums\SalesChannelEnum;
+use App\Enums\TransactionTypeEnum;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Customer;
@@ -32,23 +33,42 @@ class TransactionService
     ) {}
 
     /**
-     * Resolve short uppercase outlet code for document prefixes.
+    /**
+     * Resolve deterministik uppercase outlet initial (>= 2 kata: inisial huruf depan tiap kata, 1 kata: 3 huruf pertama).
      */
-    protected function resolveOutletCode(Outlet $outlet): string
+    public function resolveOutletInitial(Outlet $outlet): string
     {
-        $rawCode = $outlet->slug ?: $outlet->name;
-        $code = strtoupper(Str::slug(substr($rawCode ?: 'OUTLET', 0, 20)));
+        $name = trim($outlet->name ?? $outlet->slug ?? 'OUTLET');
+        $words = preg_split('/\s+/', $name, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
-        return ! empty($code) ? $code : 'OUTLET';
+        if (count($words) >= 2) {
+            $initial = '';
+            foreach ($words as $word) {
+                $initial .= mb_substr(preg_replace('/[^a-zA-Z0-9]/', '', $word), 0, 1);
+            }
+            $initial = strtoupper($initial);
+
+            return ! empty($initial) ? substr($initial, 0, 4) : 'OT';
+        }
+
+        $cleaned = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $name));
+
+        return mb_substr($cleaned ?: 'OUT', 0, 3);
     }
 
     /**
-     * Generate Nomor Transaksi (TRX/{OUTLET}/{YYYYMM}/{XXXX})
+     * Generate Nomor Transaksi (TRX/YYYY.MM.DD/{Inisial Outlet}.{Inisial channel}/{Increament 4 digit})
      */
-    public function generateTransactionNumber(Outlet $outlet, \DateTimeInterface $date): string
-    {
-        $outletCode = $this->resolveOutletCode($outlet);
-        $prefix = 'TRX/'.$outletCode.'/'.$date->format('Ym').'/';
+    public function generateTransactionNumber(
+        Outlet $outlet,
+        \DateTimeInterface $date,
+        SalesChannelEnum $channel = SalesChannelEnum::Wholesale
+    ): string {
+        $outletInit = $this->resolveOutletInitial($outlet);
+        $channelInit = $channel->initial();
+        $dateFormatted = $date->format('Y.m.d');
+        $prefix = "TRX/{$dateFormatted}/{$outletInit}.{$channelInit}/";
+
         $lastTx = Transaction::where('outlet_id', $outlet->id)
             ->where('transaction_number', 'like', $prefix.'%')
             ->orderBy('transaction_number', 'desc')
@@ -65,12 +85,22 @@ class TransactionService
     }
 
     /**
-     * Generate Nomor Faktur B2B (INV/{OUTLET}/{YYYYMM}/{XXXX})
+     * Generate Nomor Faktur B2B ({Prefix}/YYYY.MM.DD/{Inisial Outlet}/{Increament 4 digit})
      */
     public function generateInvoiceNumber(Outlet $outlet, \DateTimeInterface $date): string
     {
-        $outletCode = $this->resolveOutletCode($outlet);
-        $prefix = 'INV/'.$outletCode.'/'.$date->format('Ym').'/';
+        $outletInit = $this->resolveOutletInitial($outlet);
+        $dateFormatted = $date->format('Y.m.d');
+
+        $prefixSetting = $outlet->settings()
+            ->where('category', 'sales')
+            ->where('key', 'b2b_invoice_prefix')
+            ->value('value');
+
+        $rawPrefix = is_string($prefixSetting) && ! empty(trim($prefixSetting)) ? trim($prefixSetting) : 'INV';
+        $prefixCode = strtoupper(substr(preg_replace('/[^a-zA-Z0-9\-_]/', '', $rawPrefix) ?: 'INV', 0, 5));
+
+        $prefix = "{$prefixCode}/{$dateFormatted}/{$outletInit}/";
 
         $lastInvoice = DB::table('transaction_invoices')
             ->join('transactions', 'transaction_invoices.transaction_id', '=', 'transactions.id')
@@ -347,11 +377,15 @@ class TransactionService
             $totalPaid = $paymentStatus === 'paid' ? $total : (float) ($data['total_paid'] ?? 0);
             $balanceDue = max(0.0, $total - $totalPaid);
 
+            $rawType = $data['type'] ?? 'walk_in';
+            $resolvedType = TransactionTypeEnum::tryFrom((string) $rawType) ?? TransactionTypeEnum::WalkIn;
+
             $txAttributes = [
                 'outlet_id' => $outlet->id,
                 'shift_id' => $shiftId,
                 'customer_id' => $customerId,
-                'channel' => SalesChannelEnum::Direct,
+                'channel' => SalesChannelEnum::POS,
+                'type' => $resolvedType,
                 'transaction_number' => $transactionNumber,
                 'transaction_date' => now(),
                 'subtotal' => $data['subtotal'] ?? 0,

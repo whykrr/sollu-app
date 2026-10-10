@@ -12,39 +12,39 @@
                     @update:model-value="changeOutlet"
                 />
             </MainPageHeader>
+            <div class="flex items-center gap-1 border-b border-slate-200 mb-4">
+                <button
+                    type="button"
+                    class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer"
+                    :class="[
+                        activeTab === 'pos'
+                            ? 'border-main text-main font-bold'
+                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
+                    ]"
+                    @click="activeTab = 'pos'"
+                >
+                    <FontAwesomeIcon :icon="faCashRegister" />
+                    <span>Pengaturan POS</span>
+                </button>
+
+                <button
+                    v-feature="$enums.FeatureEnum.INVOICE_DEBT"
+                    type="button"
+                    class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer"
+                    :class="[
+                        activeTab === 'b2b'
+                            ? 'border-main text-main font-bold'
+                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
+                    ]"
+                    @click="activeTab = 'b2b'"
+                >
+                    <FontAwesomeIcon :icon="faFileInvoiceDollar" />
+                    <span>Pengaturan Penjualan Faktur</span>
+                </button>
+            </div>
         </template>
 
         <!-- Navigation Tabs -->
-        <div class="flex items-center gap-1 border-b border-slate-200 mb-4">
-            <button
-                type="button"
-                class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer"
-                :class="[
-                    activeTab === 'pos'
-                        ? 'border-main text-main font-bold'
-                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
-                ]"
-                @click="activeTab = 'pos'"
-            >
-                <FontAwesomeIcon :icon="faCashRegister" />
-                <span>Pengaturan POS</span>
-            </button>
-
-            <button
-                v-if="hasInvoiceDebtFeature"
-                type="button"
-                class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer"
-                :class="[
-                    activeTab === 'b2b'
-                        ? 'border-main text-main font-bold'
-                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
-                ]"
-                @click="activeTab = 'b2b'"
-            >
-                <FontAwesomeIcon :icon="faFileInvoiceDollar" />
-                <span>Pengaturan Penjualan Faktur</span>
-            </button>
-        </div>
 
         <!-- Tab 1: Pengaturan POS -->
         <div v-show="activeTab === 'pos'" class="pb-12">
@@ -59,8 +59,8 @@
 
         <!-- Tab 2: Pengaturan Penjualan Faktur (B2B) -->
         <div
-            v-if="hasInvoiceDebtFeature"
             v-show="activeTab === 'b2b'"
+            v-feature="$enums.FeatureEnum.INVOICE_DEBT"
             class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12"
         >
             <!-- Left Column: Form Settings -->
@@ -117,59 +117,7 @@
                     </div>
                 </div>
 
-                <!-- Card 2: Saluran Penjualan Aktif -->
-                <div class="bg-white rounded-xl border border-slate-200 p-5">
-                    <h3
-                        class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
-                    >
-                        <FontAwesomeIcon :icon="faShop" class="text-main" />
-                        Saluran Penjualan Aktif (Sales Channels)
-                    </h3>
-                    <p class="text-xs text-slate-500 mb-3">
-                        Pilih saluran penjualan yang dapat dipilih oleh staf pada formulir transaksi
-                        outlet ini:
-                    </p>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <div
-                            v-for="channel in availableChannels"
-                            :key="channel.value"
-                            class="flex items-center justify-between p-3 border rounded-lg cursor-pointer select-none transition-colors"
-                            :class="
-                                form.sales_channels_b2b.includes(channel.value)
-                                    ? 'border-main bg-main/5'
-                                    : 'border-slate-200 hover:bg-slate-50/80'
-                            "
-                            @click="toggleChannel(channel.value)"
-                        >
-                            <div class="flex items-center gap-2.5">
-                                <FontAwesomeIcon
-                                    :icon="channel.icon"
-                                    class="text-slate-500 text-sm"
-                                />
-                                <div>
-                                    <div class="font-medium text-sm text-slate-700">
-                                        {{ channel.label }}
-                                    </div>
-                                    <div class="text-xs text-slate-400">
-                                        {{ channel.desc }}
-                                    </div>
-                                </div>
-                            </div>
-                            <input
-                                type="checkbox"
-                                :checked="form.sales_channels_b2b.includes(channel.value)"
-                                class="checkbox checkbox-sm checkbox-primary"
-                                @click.stop="toggleChannel(channel.value)"
-                            />
-                        </div>
-                    </div>
-                    <div v-if="form.errors.sales_channels_b2b" class="text-xs text-rose-500 mt-2">
-                        {{ form.errors.sales_channels_b2b }}
-                    </div>
-                </div>
-
-                <!-- Card 3: Termin Pembayaran & Jatuh Tempo -->
+                <!-- Card 2: Termin Pembayaran & Jatuh Tempo -->
                 <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
@@ -201,23 +149,23 @@
                     </div>
                 </div>
 
-                <!-- Card 4: Format Faktur & Syarat Ketentuan -->
+                <!-- Card 3: Format Faktur -->
                 <div class="bg-white rounded-xl border border-slate-200 p-5">
                     <h3
                         class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2"
                     >
                         <FontAwesomeIcon :icon="faFileInvoiceDollar" class="text-main" />
-                        Format Faktur & Syarat Ketentuan Standar
+                        Format Nomor Faktur (Invoice)
                     </h3>
 
                     <div class="space-y-3">
                         <TextField
                             id="b2b_invoice_prefix"
                             v-model="form.b2b_invoice_prefix"
-                            label="Awalan Nomor Faktur (Prefix)"
+                            label="Awalan Nomor Faktur (Prefix, maks 5 karakter)"
                             placeholder="INV"
                             :feedback="form.errors.b2b_invoice_prefix"
-                            maxlength="10"
+                            maxlength="5"
                         />
                         <p class="text-xs text-slate-400 -mt-1">
                             Format faktur:
@@ -225,15 +173,6 @@
                                 previewInvoiceNumber
                             }}</span>
                         </p>
-
-                        <TextareaField
-                            id="default_terms_and_conditions_b2b"
-                            v-model="form.default_terms_and_conditions_b2b"
-                            label="Syarat & Ketentuan Standar Faktur (T&C)"
-                            placeholder="Masukkan syarat pembayaran, nomor rekening transfer bank, atau kebijakan retur..."
-                            rows="4"
-                            :feedback="form.errors.default_terms_and_conditions_b2b"
-                        />
                     </div>
                 </div>
 
@@ -318,36 +257,10 @@
                         </div>
 
                         <div>
-                            <div class="text-slate-400 text-[11px] mb-1">Kanal Aktif Terpilih:</div>
-                            <div class="flex flex-wrap gap-1">
-                                <span
-                                    v-for="ch in form.sales_channels_b2b"
-                                    :key="ch"
-                                    class="badge badge-sm badge-info font-normal"
-                                >
-                                    {{ getChannelLabel(ch) }}
-                                </span>
-                                <span
-                                    v-if="form.sales_channels_b2b.length === 0"
-                                    class="text-rose-500 italic text-[11px]"
-                                >
-                                    Belum ada kanal dipilih
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="border-t border-slate-200 pt-2.5">
-                            <div class="font-semibold text-slate-700 text-[11px] mb-1">
-                                Syarat & Ketentuan:
-                            </div>
-                            <div
-                                class="text-slate-500 whitespace-pre-line text-[11px] bg-white p-2 rounded border border-slate-200"
-                            >
-                                {{
-                                    form.default_terms_and_conditions_b2b ||
-                                    'Belum ada syarat & ketentuan yang dikonfigurasi.'
-                                }}
-                            </div>
+                            <div class="text-slate-400 text-[11px] mb-1">Karakter Saluran:</div>
+                            <span class="badge badge-sm badge-info font-normal">
+                                Wholesale (Grosir / B2B)
+                            </span>
                         </div>
                     </div>
 
@@ -388,27 +301,19 @@ import SettingOutletSelector from '../Components/SettingOutletSelector.vue'
 import PosSettingsTab from './Partials/PosSettingsTab.vue'
 import Switch from '@/Components/Form/Switch.vue'
 import TextField from '@/Components/Form/TextField.vue'
-import TextareaField from '@/Components/Form/TextareaField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faBoxesStacked,
     faCashRegister,
-    faShop,
     faCalendarAlt,
     faFileInvoiceDollar,
     faSave,
     faUndo,
     faEye,
     faInfoCircle,
-    faStore,
-    faWarehouse,
-    faGlobe,
-    faComments,
-    faWrench,
 } from '@fortawesome/free-solid-svg-icons'
-import FeatureEnum from '@/Enums/FeatureEnum'
 
 const props = defineProps({
     outlets: {
@@ -440,45 +345,7 @@ const props = defineProps({
     },
 })
 
-const page = usePage()
-const hasInvoiceDebtFeature = computed(() => {
-    return page.props.features?.includes(FeatureEnum.INVOICE_DEBT) ?? true
-})
-
 const activeTab = ref('pos')
-
-const availableChannels = [
-    {
-        value: 'direct',
-        label: 'Penjualan Langsung',
-        desc: 'Transaksi langsung di kasir / toko fisik',
-        icon: faStore,
-    },
-    {
-        value: 'wholesale',
-        label: 'Grosir / Wholesale',
-        desc: 'Pesanan partai besar B2B',
-        icon: faWarehouse,
-    },
-    {
-        value: 'e_commerce',
-        label: 'E-Commerce / Marketplace',
-        desc: 'Shopee, Tokopedia, TikTok Shop, dll',
-        icon: faGlobe,
-    },
-    {
-        value: 'social_media',
-        label: 'Media Sosial & WhatsApp',
-        desc: 'Pesanan chat WhatsApp / Instagram',
-        icon: faComments,
-    },
-    {
-        value: 'custom',
-        label: 'Pesanan Khusus',
-        desc: 'Kustomisasi B2B / Proyek pesanan',
-        icon: faWrench,
-    },
-]
 
 const dueTermOptions = [
     { label: 'Tunai (0 Hari)', value: '0' },
@@ -497,14 +364,7 @@ const form = useForm({
     outlet_id: props.selectedOutlet?.id || '',
     allow_negative_stock_b2b: props.salesSettings?.allow_negative_stock_b2b ?? false,
     allow_custom_price_b2b: props.salesSettings?.allow_custom_price_b2b ?? true,
-    sales_channels_b2b: props.salesSettings?.sales_channels_b2b || [
-        'direct',
-        'wholesale',
-        'e_commerce',
-        'social_media',
-    ],
     default_due_days_b2b: initialDueDays,
-    default_terms_and_conditions_b2b: props.salesSettings?.default_terms_and_conditions_b2b || '',
     b2b_invoice_prefix: props.salesSettings?.b2b_invoice_prefix || 'INV',
 })
 
@@ -520,14 +380,7 @@ watch(
         form.outlet_id = props.selectedOutlet?.id || ''
         form.allow_negative_stock_b2b = newSettings?.allow_negative_stock_b2b ?? false
         form.allow_custom_price_b2b = newSettings?.allow_custom_price_b2b ?? true
-        form.sales_channels_b2b = newSettings?.sales_channels_b2b || [
-            'direct',
-            'wholesale',
-            'e_commerce',
-            'social_media',
-        ]
         form.default_due_days_b2b = newSettings?.default_due_days_b2b ?? 14
-        form.default_terms_and_conditions_b2b = newSettings?.default_terms_and_conditions_b2b || ''
         form.b2b_invoice_prefix = newSettings?.b2b_invoice_prefix || 'INV'
 
         const currentDue = form.default_due_days_b2b
@@ -538,27 +391,21 @@ watch(
     { deep: true }
 )
 
-const toggleChannel = val => {
-    const idx = form.sales_channels_b2b.indexOf(val)
-    if (idx > -1) {
-        if (form.sales_channels_b2b.length > 1) {
-            form.sales_channels_b2b.splice(idx, 1)
-        }
-    } else {
-        form.sales_channels_b2b.push(val)
-    }
-}
-
-const getChannelLabel = val => {
-    return availableChannels.find(c => c.value === val)?.label || val
-}
-
 const previewInvoiceNumber = computed(() => {
     const prefix = (form.b2b_invoice_prefix || 'INV').trim().toUpperCase()
     const now = new Date()
     const year = now.getFullYear()
     const month = String(now.getMonth() + 1).padStart(2, '0')
-    return `${prefix}/${year}${month}/00001`
+    const day = String(now.getDate()).padStart(2, '0')
+    const outletName = props.selectedOutlet?.name || 'OUTLET'
+    const words = outletName.trim().split(/\s+/)
+    let outletInit = ''
+    if (words.length >= 2) {
+        outletInit = words.map(w => w[0]).join('').toUpperCase()
+    } else {
+        outletInit = words[0].substring(0, 3).toUpperCase()
+    }
+    return `${prefix}/${year}.${month}.${day}/${outletInit}/00001`
 })
 
 const currentDateFormatted = computed(() => {

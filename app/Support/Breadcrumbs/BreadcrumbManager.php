@@ -235,12 +235,12 @@ class BreadcrumbManager
             // Transactions Module
             'transactions.sales.index' => [
                 ['label' => 'Transaksi', 'url' => null],
-                ['label' => 'Faktur Penjualan', 'url' => self::safeRoute('transactions.sales.index')],
+                ['label' => 'Penjualan', 'url' => self::safeRoute('transactions.sales.index')],
             ],
             'transactions.sales.show' => [
                 ['label' => 'Transaksi', 'url' => null],
-                ['label' => 'Faktur Penjualan', 'url' => self::safeRoute('transactions.sales.index')],
-                ['label' => 'Detail Faktur Penjualan', 'url' => null],
+                ['label' => 'Penjualan', 'url' => self::safeRoute('transactions.sales.index')],
+                ['label' => 'Detail Penjualan', 'url' => null],
             ],
             'transactions.sales.invoices.index' => [
                 ['label' => 'Transaksi', 'url' => null],

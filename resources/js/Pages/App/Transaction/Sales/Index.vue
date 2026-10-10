@@ -2,8 +2,8 @@
     <MainPage>
         <template #header>
             <MainPageHeader
-                title="Faktur Penjualan"
-                description="Kelola faktur komersial, pesanan grosir, dan penjualan langsung korporat."
+                title="Penjualan"
+                description="Kelola riwayat transaksi penjualan POS, faktur komersial, dan pesanan grosir."
             />
         </template>
 
@@ -32,12 +32,18 @@
             <template #numbers="{ item }">
                 <div class="flex flex-col">
                     <span class="font-bold text-slate-900 text-xs">
-                        {{ item.invoice?.invoice_number || item.transaction_number }}
+                        {{ item.transaction_number }}
                     </span>
                     <span v-if="item.invoice?.invoice_number" class="text-[10px] text-slate-500">
-                        Ref: {{ item.transaction_number }}
+                        Ref: {{ item.invoice.invoice_number }}
                     </span>
                 </div>
+            </template>
+
+            <template #outlet="{ item }">
+                <span class="text-xs text-slate-800 font-medium">
+                    {{ item.outlet?.name || '-' }}
+                </span>
             </template>
 
             <template #customer="{ item }">
@@ -55,17 +61,14 @@
                 <span
                     class="inline-flex text-[10px] font-semibold badge"
                     :class="{
+                        'badge-emerald-700': item.channel === 'pos',
                         'badge-purple-700': item.channel === 'wholesale',
-                        'badge-blue-700': item.channel === 'direct',
-                        'badge-emerald-700': item.channel === 'e_commerce',
-                        'badge-amber-700': item.channel === 'social_media',
-                        'badge-cyan-700': item.channel === 'custom',
                     }"
                 >
                     {{
                         $enums.SalesChannelEnum?._meta?.[item.channel]?.label ||
                         $enums.SalesChannelEnum?.[item.channel]?.label ||
-                        item.channel
+                        (item.channel === 'pos' ? 'POS' : 'Wholesale')
                     }}
                 </span>
             </template>
@@ -74,17 +77,6 @@
                 <span class="font-bold text-slate-900 font-mono text-xs">
                     {{ formatCurrency(item.total) }}
                 </span>
-            </template>
-
-            <template #balance_due="{ item }">
-                <span v-if="item.status === 'draft'" class="font-bold font-mono text-xs"> - </span>
-                <span
-                    v-else-if="Number(item.balance_due) > 0"
-                    class="font-bold text-danger font-mono text-xs"
-                >
-                    {{ formatCurrency(item.balance_due) }}
-                </span>
-                <span v-else class="font-semibold text-emerald-600 text-xs"> Lunas </span>
             </template>
 
             <template #status="{ item }">
@@ -106,6 +98,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
@@ -119,7 +112,7 @@ import { useAuth } from '@/Composable/useAuth.js'
 import { useEnum } from '@/Composable/useEnum.js'
 import { usePopUpStore } from '@/store/popup'
 
-const { can } = useAuth()
+const { can, outlets: userOutlets } = useAuth()
 const { getLabel, getColor } = useEnum()
 const popUpStore = usePopUpStore()
 
@@ -148,25 +141,39 @@ defineProps({
     },
 })
 
-const headers = [
-    {
-        label: 'Tanggal',
-        field: 'transaction_date',
-        slot: 'transaction_date',
-        sortable: true,
-    },
-    { label: 'No. Faktur / Referensi', slot: 'numbers', sortable: false },
-    { label: 'Pelanggan', slot: 'customer', sortable: false },
-    { label: 'Saluran', slot: 'channel', sortable: false },
-    { label: 'Total Tagihan', field: 'total', slot: 'total', sortable: true },
-    { label: 'Sisa Piutang', slot: 'balance_due', sortable: false },
-    {
-        label: 'Status',
-        field: 'status',
-        slot: 'status',
-        sortable: true,
-    },
-]
+const hasMultipleOutlets = computed(() => {
+    return Array.isArray(userOutlets?.value) && userOutlets.value.length > 1
+})
+
+const headers = computed(() => {
+    const list = [
+        {
+            label: 'Tanggal',
+            field: 'transaction_date',
+            slot: 'transaction_date',
+            sortable: true,
+        },
+        { label: 'No. Transaksi', slot: 'numbers', sortable: false },
+    ]
+
+    if (hasMultipleOutlets.value) {
+        list.push({ label: 'Outlet', slot: 'outlet', sortable: false })
+    }
+
+    list.push(
+        { label: 'Pelanggan', slot: 'customer', sortable: false },
+        { label: 'Saluran', slot: 'channel', sortable: false },
+        { label: 'Total', field: 'total', slot: 'total', sortable: true },
+        {
+            label: 'Status',
+            field: 'status',
+            slot: 'status',
+            sortable: true,
+        }
+    )
+
+    return list
+})
 
 const handleRowClick = row => {
     if (row.status === 'draft') {
@@ -178,7 +185,7 @@ const handleRowClick = row => {
 
 const openEditDraft = row => {
     popUpStore.open({
-        title: 'Edit Draf Faktur Penjualan',
+        title: 'Edit Draf Penjualan',
         component: SalesFormPopUp,
         size: 'xl',
         props: {
@@ -189,7 +196,7 @@ const openEditDraft = row => {
 
 const openDetail = row => {
     popUpStore.open({
-        title: 'Detail Faktur Penjualan',
+        title: 'Detail Penjualan',
         component: SalesDetailPopUp,
         size: 'lg',
         props: {
@@ -200,7 +207,7 @@ const openDetail = row => {
 
 const openCreate = () => {
     popUpStore.open({
-        title: 'Faktur Penjualan Baru',
+        title: 'Penjualan Baru',
         component: SalesFormPopUp,
         size: 'xl',
         props: {},

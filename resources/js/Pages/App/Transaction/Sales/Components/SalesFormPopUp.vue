@@ -44,15 +44,6 @@
                     @clear="onCustomerClear"
                 />
 
-                <DropdownField
-                    v-model="form.channel"
-                    label="Saluran Penjualan"
-                    :options="channelOptions"
-                    :error="form.errors.channel"
-                    size="sm"
-                    required
-                />
-
                 <TextField
                     v-model="form.transaction_date"
                     label="Tanggal Transaksi"

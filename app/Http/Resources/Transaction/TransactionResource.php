@@ -21,6 +21,7 @@ class TransactionResource extends JsonResource
             'customer_id' => $this->customer_id,
             'transaction_number' => $this->transaction_number,
             'channel' => $this->channel,
+            'type' => $this->type,
             'transaction_date' => $this->transaction_date,
             'due_date' => $this->invoice ? $this->invoice->due_date : null,
             'payment_term' => $this->invoice ? $this->invoice->payment_term : 'tunai',
@@ -37,8 +38,7 @@ class TransactionResource extends JsonResource
             'paid_amount' => (float) ($this->total_paid ?? $this->paid_amount ?? 0),
             'balance_due' => (float) ($this->balance_due ?? max(0, (float) $this->total - (float) ($this->total_paid ?? $this->paid_amount ?? 0))),
             'payment_status' => is_object($this->payment_status) ? $this->payment_status->value : $this->payment_status,
-            'notes' => $this->invoice ? $this->invoice->notes : $this->notes,
-            'terms_and_conditions' => $this->invoice ? $this->invoice->terms_and_conditions : null,
+            'notes' => $this->notes,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 

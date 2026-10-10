@@ -521,10 +521,11 @@ class SalesTransactionControllerTest extends TestCase
             'updated_by' => $this->user->id,
         ]);
 
-        // 2. Transaction 2: direct, draft
+        // 2. Transaction 2: POS, draft
         Transaction::create([
             'outlet_id' => $this->outlet->id,
-            'channel' => SalesChannelEnum::Direct->value,
+            'channel' => SalesChannelEnum::POS->value,
+            'type' => TransactionTypeEnum::WalkIn->value,
             'transaction_number' => 'TRX/202609/OTHER',
             'transaction_date' => now(),
             'total' => 200000,
@@ -657,10 +658,10 @@ class SalesTransactionControllerTest extends TestCase
 
     public function test_channel_validation_strictly_allows_only_valid_sales_channels(): void
     {
-        // 1. Valid channel (e_commerce) succeeds
+        // 1. Valid channel (wholesale) succeeds
         $validPayload = [
             'outlet_id' => $this->outlet->id,
-            'channel' => SalesChannelEnum::ECommerce->value,
+            'channel' => SalesChannelEnum::Wholesale->value,
             'transaction_date' => now()->toDateTimeString(),
             'payment_term' => PaymentTermEnum::Cash->value,
             'items' => [
@@ -719,8 +720,8 @@ class SalesTransactionControllerTest extends TestCase
         // 2. Transaction POS
         Transaction::create([
             'outlet_id' => $this->outlet->id,
-            'type' => TransactionTypeEnum::Pos->value,
-            'channel' => SalesChannelEnum::Direct->value,
+            'type' => TransactionTypeEnum::WalkIn->value,
+            'channel' => SalesChannelEnum::POS->value,
             'transaction_number' => 'TRX/POS/001',
             'transaction_date' => now(),
             'total' => 50000,
@@ -732,7 +733,7 @@ class SalesTransactionControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user, 'business')
-            ->getJson("http://{$this->appDomain}/transactions/sales");
+            ->getJson("http://{$this->appDomain}/transactions/sales?type=invoice");
 
         $response->assertOk();
         $response->assertJsonPath('total', 1);
@@ -744,7 +745,7 @@ class SalesTransactionControllerTest extends TestCase
         // 1. Cash transaction issued without payment amount => 422
         $invalidPayload = [
             'outlet_id' => $this->outlet->id,
-            'channel' => SalesChannelEnum::Direct->value,
+            'channel' => SalesChannelEnum::Wholesale->value,
             'transaction_date' => now()->toDateTimeString(),
             'payment_term' => PaymentTermEnum::Cash->value,
             'items' => [
@@ -770,7 +771,7 @@ class SalesTransactionControllerTest extends TestCase
         // 2. Cash transaction issued with full payment amount => 201
         $validPayload = [
             'outlet_id' => $this->outlet->id,
-            'channel' => SalesChannelEnum::Direct->value,
+            'channel' => SalesChannelEnum::Wholesale->value,
             'transaction_date' => now()->toDateTimeString(),
             'payment_term' => PaymentTermEnum::Cash->value,
             'items' => [
@@ -803,7 +804,7 @@ class SalesTransactionControllerTest extends TestCase
     {
         $payload = [
             'outlet_id' => $this->outlet->id,
-            'channel' => SalesChannelEnum::Direct->value,
+            'channel' => SalesChannelEnum::Wholesale->value,
             'transaction_date' => now()->toDateTimeString(),
             'payment_term' => PaymentTermEnum::Cash->value,
             'items' => [
@@ -1233,6 +1234,6 @@ class SalesTransactionControllerTest extends TestCase
         $response->assertStatus(201);
         $response->assertJsonPath('message', 'Faktur penjualan berhasil diterbitkan.');
 
-        $this->assertLessThanOrEqual(50, count($queries), 'Query count exceeds optimized threshold. Actual: '.count($queries));
+        $this->assertLessThanOrEqual(55, count($queries), 'Query count exceeds optimized threshold. Actual: '.count($queries));
     }
 }

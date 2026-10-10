@@ -37,20 +37,17 @@ class SalesSettingController extends Controller
 
         $targetOutlet = $outlets->firstWhere('id', $selectedOutletId) ?? $outlets->first();
 
-        $defaultTnc = "1. Pembayaran dilakukan sesuai tanggal jatuh tempo yang tertera pada faktur.\n2. Pembayaran via transfer ditujukan ke rekening resmi yang tertera.\n3. Barang yang sudah diterima dalam kondisi baik tidak dapat dikembalikan tanpa persetujuan tertulis.";
-
         $salesSettings = [
             'allow_negative_stock_b2b' => false,
             'allow_custom_price_b2b' => true,
-            'sales_channels_b2b' => ['direct', 'wholesale', 'e_commerce', 'social_media'],
             'default_due_days_b2b' => 14,
-            'default_terms_and_conditions_b2b' => $defaultTnc,
             'b2b_invoice_prefix' => 'INV',
         ];
 
         $posSettings = [
             'enable_supervisor_pin' => false,
             'allow_negative_stock' => true,
+            'pos_order_types' => ['walk_in', 'dine_in', 'take_away'],
         ];
 
         $devices = [];
@@ -64,6 +61,8 @@ class SalesSettingController extends Controller
                 if ($setting->category === 'pos') {
                     if ($setting->key === 'enable_supervisor_pin') {
                         $posSettings['enable_supervisor_pin'] = (bool) $setting->value;
+                    } elseif ($setting->key === 'pos_order_types') {
+                        $posSettings['pos_order_types'] = is_array($setting->value) ? $setting->value : ['walk_in', 'dine_in', 'take_away'];
                     }
                 } elseif ($setting->category === 'sales') {
                     if ($setting->key === 'allow_negative_stock') {
@@ -72,10 +71,6 @@ class SalesSettingController extends Controller
                         $salesSettings[$setting->key] = (bool) $setting->value;
                     } elseif ($setting->key === 'default_due_days_b2b') {
                         $salesSettings[$setting->key] = (int) $setting->value;
-                    } elseif ($setting->key === 'sales_channels_b2b') {
-                        $salesSettings[$setting->key] = is_array($setting->value) ? $setting->value : ['direct', 'wholesale', 'e_commerce', 'social_media'];
-                    } elseif ($setting->key === 'default_terms_and_conditions_b2b') {
-                        $salesSettings[$setting->key] = (string) ($setting->value ?? '');
                     } elseif ($setting->key === 'b2b_invoice_prefix') {
                         $salesSettings[$setting->key] = (string) ($setting->value ?? 'INV');
                     }
@@ -124,6 +119,14 @@ class SalesSettingController extends Controller
             ];
         }
 
+        if (array_key_exists('pos_order_types', $validated)) {
+            $settingsArray[] = [
+                'category' => 'pos',
+                'key' => 'pos_order_types',
+                'value' => array_values($validated['pos_order_types']),
+            ];
+        }
+
         // Save B2B Invoice settings if present
         if (array_key_exists('allow_negative_stock_b2b', $validated)) {
             $settingsArray[] = [
@@ -141,27 +144,11 @@ class SalesSettingController extends Controller
             ];
         }
 
-        if (array_key_exists('sales_channels_b2b', $validated)) {
-            $settingsArray[] = [
-                'category' => 'sales',
-                'key' => 'sales_channels_b2b',
-                'value' => array_values($validated['sales_channels_b2b']),
-            ];
-        }
-
         if (array_key_exists('default_due_days_b2b', $validated)) {
             $settingsArray[] = [
                 'category' => 'sales',
                 'key' => 'default_due_days_b2b',
                 'value' => (int) $validated['default_due_days_b2b'],
-            ];
-        }
-
-        if (array_key_exists('default_terms_and_conditions_b2b', $validated)) {
-            $settingsArray[] = [
-                'category' => 'sales',
-                'key' => 'default_terms_and_conditions_b2b',
-                'value' => $validated['default_terms_and_conditions_b2b'] ?? '',
             ];
         }
 
