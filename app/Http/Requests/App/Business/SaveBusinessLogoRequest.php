@@ -4,6 +4,7 @@ namespace App\Http\Requests\App\Business;
 
 use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Auth;
 
 class SaveBusinessLogoRequest extends BaseInertiaFormRequest
@@ -19,7 +20,7 @@ class SaveBusinessLogoRequest extends BaseInertiaFormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {

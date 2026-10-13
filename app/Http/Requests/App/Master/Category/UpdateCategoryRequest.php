@@ -5,6 +5,7 @@ namespace App\Http\Requests\App\Master\Category;
 use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
 use App\Models\Master\ProductCategory;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 class UpdateCategoryRequest extends BaseInertiaFormRequest
 {
@@ -31,7 +32,7 @@ class UpdateCategoryRequest extends BaseInertiaFormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {

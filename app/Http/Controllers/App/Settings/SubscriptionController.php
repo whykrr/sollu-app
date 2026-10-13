@@ -6,9 +6,14 @@ use App\Constants\FlashDataVariable;
 use App\Http\Controllers\Controller;
 use App\Models\SubscriptionPlan;
 use App\Models\SystemSetting;
+use App\Services\App\Invoice\CompleteInvoiceService;
 use App\Services\App\Subscription\BillingEngine;
+use App\Services\App\Subscription\GenerateRenewalInvoiceService;
 use App\Services\App\Subscription\SubscriptionService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class SubscriptionController extends Controller
 {
@@ -48,7 +53,7 @@ class SubscriptionController extends Controller
             $invoice = $this->billingEngine->generateRecurringInvoice($business, $subscription);
 
             if ($invoice->total_amount == 0) {
-                app(\App\Services\App\Invoice\CompleteInvoiceService::class)->execute($invoice);
+                app(CompleteInvoiceService::class)->execute($invoice);
 
                 return redirect()->route('settings.billing.index')->with(
                     FlashDataVariable::SUCCESS->value,
@@ -61,7 +66,7 @@ class SubscriptionController extends Controller
                     'amount' => $invoice->total_amount,
                     'payment_method' => 'manual',
                     'status' => 'pending',
-                    'payment_reference' => "{$invoice->invoice_number}-MANUAL-".\Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
+                    'payment_reference' => "{$invoice->invoice_number}-MANUAL-".Str::upper(Str::random(4)),
                 ]);
             }
 
@@ -78,7 +83,7 @@ class SubscriptionController extends Controller
             ->where('status', 'active')
             ->update([
                 'status' => 'canceled',
-                'canceled_at' => \Carbon\Carbon::now(),
+                'canceled_at' => Carbon::now(),
             ]);
 
         $subscription->update([
@@ -115,7 +120,7 @@ class SubscriptionController extends Controller
         $invoice = $this->billingEngine->generateRecurringInvoice($business, $subscription);
 
         if ($invoice->total_amount == 0) {
-            app(\App\Services\App\Invoice\CompleteInvoiceService::class)->execute($invoice);
+            app(CompleteInvoiceService::class)->execute($invoice);
 
             return redirect()->route('settings.billing.index')->with(
                 FlashDataVariable::SUCCESS->value,
@@ -128,7 +133,7 @@ class SubscriptionController extends Controller
                 'amount' => $invoice->total_amount,
                 'payment_method' => 'manual',
                 'status' => 'pending',
-                'payment_reference' => "{$invoice->invoice_number}-MANUAL-".\Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
+                'payment_reference' => "{$invoice->invoice_number}-MANUAL-".Str::upper(Str::random(4)),
             ]);
         }
 
@@ -154,7 +159,7 @@ class SubscriptionController extends Controller
         );
     }
 
-    public function renew(Request $request, \App\Services\App\Subscription\GenerateRenewalInvoiceService $renewService)
+    public function renew(Request $request, GenerateRenewalInvoiceService $renewService)
     {
         $request->validate([
             'plan_id' => 'required|exists:subscription_plans,id',
@@ -175,7 +180,7 @@ class SubscriptionController extends Controller
 
         try {
             $invoice = $renewService->execute($business, $plan, $request->billing_cycle);
-        } catch (\Symfony\Component\HttpKernel\Exception\BadRequestHttpException $e) {
+        } catch (BadRequestHttpException $e) {
             return redirect()->route('settings.billing.index')->with(
                 FlashDataVariable::FAILED->value,
                 $e->getMessage()
@@ -183,7 +188,7 @@ class SubscriptionController extends Controller
         }
 
         if ($invoice->total_amount == 0) {
-            app(\App\Services\App\Invoice\CompleteInvoiceService::class)->execute($invoice);
+            app(CompleteInvoiceService::class)->execute($invoice);
 
             return redirect()->route('settings.billing.index')->with(
                 FlashDataVariable::SUCCESS->value,
@@ -196,7 +201,7 @@ class SubscriptionController extends Controller
                 'amount' => $invoice->total_amount,
                 'payment_method' => 'manual',
                 'status' => 'pending',
-                'payment_reference' => "{$invoice->invoice_number}-MANUAL-".\Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
+                'payment_reference' => "{$invoice->invoice_number}-MANUAL-".Str::upper(Str::random(4)),
             ]);
         }
 

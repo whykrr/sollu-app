@@ -4,6 +4,7 @@ namespace App\Http\Controllers\App\User;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Events\User\BusinessRegistered;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\User\RegisterRequest;
 use App\Models\BusinessType;
@@ -45,7 +46,7 @@ class RegisterController extends Controller
         $result['user']->sendEmailVerificationNotification();
         $result['user']->notify(new WelcomeUser($result['user']));
 
-        \App\Events\User\BusinessRegistered::dispatch($result['business'], $result['user'], $result['outlet']);
+        BusinessRegistered::dispatch($result['business'], $result['user'], $result['outlet']);
 
         return redirect()->route('overview')->with(
             FlashDataVariable::SUCCESS->value,

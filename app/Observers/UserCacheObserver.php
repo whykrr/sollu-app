@@ -10,6 +10,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\Auth\UserPermissionCacheService;
+use App\Services\Pos\PosNudgeQueueService;
 use App\Support\Enums\FrontendEnumProvider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -109,6 +110,10 @@ class UserCacheObserver
                 foreach ($userIds as $userId) {
                     SummaryUser::cacheDelete($userId);
                 }
+            }
+
+            if ($model->wasChanged(['name', 'address', 'phone', 'email', 'logo_url'])) {
+                app(PosNudgeQueueService::class)->queueSignal($model->id, 'setting');
             }
 
             return;

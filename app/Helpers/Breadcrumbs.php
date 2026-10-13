@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\Breadcrumbs\BreadcrumbManager;
+
 if (! function_exists('generateBreadcrumbs')) {
     /**
      * @param  mixed  $routeName
@@ -7,6 +9,6 @@ if (! function_exists('generateBreadcrumbs')) {
      */
     function generateBreadcrumbs($routeName = null, string $scope = 'app')
     {
-        return (new \App\Support\Breadcrumbs\BreadcrumbManager)->generate($routeName, $scope);
+        return (new BreadcrumbManager)->generate($routeName, $scope);
     }
 }

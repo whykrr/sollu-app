@@ -10,6 +10,7 @@ use App\Http\Requests\App\Reports\ExportReportRequest;
 use App\Http\Requests\App\Reports\GetProductReportRequest;
 use App\Jobs\Reports\ExportProductReportJob;
 use App\Jobs\Reports\Pdf\ExportProductReportPdfJob;
+use App\Models\User;
 use App\Services\App\Reports\ProductReportService;
 use App\Services\App\Reports\ReportOutletResolver;
 use Carbon\Carbon;
@@ -21,7 +22,7 @@ class ProductReportController extends Controller
 {
     public function index(GetProductReportRequest $request, ProductReportService $service): Response
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         $businessId = (string) $user->business_id;
 
@@ -58,7 +59,7 @@ class ProductReportController extends Controller
 
     public function exportPdf(ExportReportRequest $request): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         $range = DatePresetEnum::resolveRange(
@@ -81,7 +82,7 @@ class ProductReportController extends Controller
 
     public function exportCsv(ExportReportRequest $request): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         $range = DatePresetEnum::resolveRange(

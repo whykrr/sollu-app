@@ -14,10 +14,12 @@ use App\Models\Master\Product;
 use App\Models\Master\ProductItem;
 use App\Models\Master\ProductPrice;
 use App\Models\Outlet;
+use App\Models\OutletSetting;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Observers\POS\InventoryBalanceObserver;
+use App\Observers\POS\OutletSettingObserver;
 use App\Observers\POS\ProductItemObserver;
 use App\Observers\POS\ProductObserver;
 use App\Observers\POS\ProductPriceObserver;
@@ -150,6 +152,7 @@ class AppServiceProvider extends ServiceProvider
         ProductItem::observe(ProductItemObserver::class);
         ProductPrice::observe(ProductPriceObserver::class);
         InventoryBalance::observe(InventoryBalanceObserver::class);
+        OutletSetting::observe(OutletSettingObserver::class);
 
         Event::listen(Authenticated::class, function ($event) {
             if (isset($event->user->business_id)) {

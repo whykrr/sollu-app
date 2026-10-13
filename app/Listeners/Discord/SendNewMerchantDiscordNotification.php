@@ -4,6 +4,7 @@ namespace App\Listeners\Discord;
 
 use App\Events\User\BusinessRegistered;
 use App\Services\Discord\DiscordWebhookService;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Throwable;
@@ -35,7 +36,7 @@ class SendNewMerchantDiscordNotification implements ShouldQueue
             : '-';
 
         $trialEnd = $business->trial_end_at
-            ? \Carbon\Carbon::parse($business->trial_end_at)->format('d M Y').' (15 Hari)'
+            ? Carbon::parse($business->trial_end_at)->format('d M Y').' (15 Hari)'
             : '-';
 
         $cockpitUrl = route('cockpit.merchants.show', $business->id, false);

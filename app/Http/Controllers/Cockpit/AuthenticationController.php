@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Cockpit;
 
 use App\Http\Controllers\Controller;
+use App\Models\CockpitUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -24,7 +25,7 @@ class AuthenticationController extends Controller
         if (Auth::guard('cockpit')->attempt(array_merge($credentials, ['status' => 'active']), $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            /** @var \App\Models\CockpitUser $user */
+            /** @var CockpitUser $user */
             $user = Auth::guard('cockpit')->user();
             $user->update(['last_login_at' => now()]);
 

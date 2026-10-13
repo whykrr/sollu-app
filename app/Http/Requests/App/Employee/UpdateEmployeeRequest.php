@@ -4,8 +4,10 @@ namespace App\Http\Requests\App\Employee;
 
 use App\Http\Requests\BaseInertiaFormRequest;
 use App\Models\User;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateEmployeeRequest extends BaseInertiaFormRequest
 {
@@ -20,7 +22,7 @@ class UpdateEmployeeRequest extends BaseInertiaFormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -75,7 +77,7 @@ class UpdateEmployeeRequest extends BaseInertiaFormRequest
     /**
      * Configure the validator instance.
      *
-     * @param  \Illuminate\Validation\Validator  $validator
+     * @param  Validator  $validator
      */
     public function withValidator($validator): void
     {

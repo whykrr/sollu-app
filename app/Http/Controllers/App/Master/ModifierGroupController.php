@@ -5,6 +5,7 @@ namespace App\Http\Controllers\App\Master;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Master\StoreModifierGroupRequest;
 use App\Http\Requests\App\Master\UpdateModifierGroupRequest;
+use App\Models\Business;
 use App\Models\Master\ModifierGroup;
 use App\Services\App\Master\ModifierService;
 use Illuminate\Http\Request;
@@ -45,7 +46,7 @@ class ModifierGroupController extends Controller
     public function store(StoreModifierGroupRequest $request)
     {
         $data = $request->validated();
-        $data['business_id'] = auth()->user()->business_id ?? \App\Models\Business::first()->id;
+        $data['business_id'] = auth()->user()->business_id ?? Business::first()->id;
 
         $this->modifierService->createGroup($data);
 

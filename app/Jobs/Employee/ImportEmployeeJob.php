@@ -181,7 +181,7 @@ class ImportEmployeeJob implements ShouldQueue
 
                         DB::beginTransaction();
                         try {
-                            /** @var \App\Models\User $newUser */
+                            /** @var User $newUser */
                             $newUser = $this->job->user->business->users()->create([
                                 'name' => $name,
                                 'email' => $email,

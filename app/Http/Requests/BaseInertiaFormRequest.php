@@ -10,7 +10,7 @@ class BaseInertiaFormRequest extends FormRequest
     /**
      * Handle a failed authorization attempt.
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     protected function failedAuthorization(): void
     {

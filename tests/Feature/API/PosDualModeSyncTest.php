@@ -7,6 +7,7 @@ namespace Tests\Feature\API;
 use App\Enums\DeviceTypeEnum;
 use App\Enums\FeatureEnum;
 use App\Enums\ProductTypeEnum;
+use App\Events\Pos\PosCatalogNudgeEvent;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
@@ -17,11 +18,13 @@ use App\Models\Master\ProductItem;
 use App\Models\Master\ProductPrice;
 use App\Models\Outlet;
 use App\Models\OutletDevice;
+use App\Models\OutletSetting;
 use App\Models\Uom;
 use App\Services\Pos\PosDeviceAuthCacheService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -311,5 +314,79 @@ class PosDualModeSyncTest extends TestCase
         $this->assertCount(1, $data['updated_products']);
         $this->assertEquals(32000, (float) $data['updated_products'][0]['price']);
         $this->assertEmpty($data['updated_inventory_balances']);
+    }
+
+    public function test_delta_sync_returns_updated_settings_when_setting_mutates(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $checkpoint = now()->subSeconds(2)->toIso8601String();
+
+        OutletSetting::updateOrCreate(
+            [
+                'outlet_id' => $this->outlet->id,
+                'category' => 'tax',
+                'key' => 'tax',
+            ],
+            [
+                'value' => 11.0,
+            ]
+        );
+
+        $checkParam = urlencode($checkpoint);
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-dual-001',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-dual-001',
+        ])->getJson("http://api.sollu.test/v1/pos/sync/delta?updated_since={$checkParam}");
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+
+        $this->assertNotNull($data['settings']);
+        $this->assertEquals(11.0, (float) $data['settings']['tax_percentage']);
+        $this->assertNotNull($data['outlet']);
+        $this->assertEquals($this->outlet->id, $data['outlet']['id']);
+        $this->assertNotEmpty($data['outlet_settings']);
+    }
+
+    public function test_delta_sync_with_setting_entity_filter(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $futureTimestamp = now()->addMinute()->toIso8601String();
+        $futureParam = urlencode($futureTimestamp);
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'dev-uuid-dual-001',
+            'X-HARDWARE-SIGNATURE' => 'hw-sig-dual-001',
+        ])->getJson("http://api.sollu.test/v1/pos/sync/delta?updated_since={$futureParam}&entities=setting");
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+
+        $this->assertNotNull($data['settings']);
+        $this->assertNotNull($data['outlet']);
+        $this->assertEmpty($data['updated_products']);
+        $this->assertEmpty($data['updated_prices']);
+        $this->assertEmpty($data['updated_inventory_balances']);
+    }
+
+    public function test_outlet_setting_mutation_triggers_pos_catalog_nudge_event(): void
+    {
+        Event::fake([PosCatalogNudgeEvent::class]);
+
+        OutletSetting::create([
+            'outlet_id' => $this->outlet->id,
+            'category' => 'pos',
+            'key' => 'rounding_mode',
+            'value' => 'up',
+        ]);
+
+        Event::assertDispatched(PosCatalogNudgeEvent::class, function ($event) {
+            $entities = is_array($event->entityType) ? $event->entityType : [$event->entityType];
+
+            return (string) $event->outletId === (string) $this->outlet->id
+                && in_array('setting', $entities, true);
+        });
     }
 }

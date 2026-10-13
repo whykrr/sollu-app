@@ -9,10 +9,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Customer\GetCustomerRequest;
 use App\Http\Requests\App\Customer\StoreCustomerRequest;
 use App\Http\Requests\App\Customer\UpdateCustomerRequest;
+use App\Jobs\Customer\ExportCustomerJob;
+use App\Jobs\Customer\ImportCustomerJob;
 use App\Models\Master\Customer;
 use App\Services\App\Customer\CustomerService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
@@ -111,7 +116,7 @@ class CustomerController extends Controller
         $headers = ['Nama Lengkap', 'Nomor Telepon', 'Email', 'Alamat', 'Tanggal Lahir', 'Jenis Kelamin', 'Catatan', 'Status'];
         $dummyData = ['Budi Santoso', '081234567890', 'budi@example.com', 'Jl. Merdeka No. 45', '1990-05-15', 'Laki-laki', 'Pelanggan VIP', 'Aktif'];
 
-        $export = new class($headers, $dummyData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings
+        $export = new class($headers, $dummyData) implements FromArray, WithHeadings
         {
             private $headers;
 
@@ -136,7 +141,7 @@ class CustomerController extends Controller
 
         $filename = 'template_'.strtolower(class_basename($this)).'.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+        return Excel::download($export, $filename);
     }
 
     public function import(Request $request)
@@ -145,7 +150,7 @@ class CustomerController extends Controller
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:10240']);
         $path = $request->file('file')->store('imports', 'local');
 
-        \App\Jobs\Customer\ImportCustomerJob::dispatch(auth()->user(), $path);
+        ImportCustomerJob::dispatch(auth()->user(), $path);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
@@ -171,7 +176,7 @@ class CustomerController extends Controller
         $this->authorize(PermissionEnum::REPORT_CUSTOMER->value);
         $filters = $request->only(['search', 'is_active']);
 
-        \App\Jobs\Customer\ExportCustomerJob::dispatch(auth()->user(), $filters);
+        ExportCustomerJob::dispatch(auth()->user(), $filters);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

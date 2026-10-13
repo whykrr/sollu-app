@@ -4,6 +4,7 @@ namespace App\Http\Controllers\App\Overview;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Overview\GetOverviewRequest;
+use App\Models\User;
 use App\Services\App\Reports\DashboardService;
 use App\Services\App\Reports\ReportOutletResolver;
 use Inertia\Inertia;
@@ -20,7 +21,7 @@ class OverviewController extends Controller
      */
     public function __invoke(GetOverviewRequest $request): Response
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
         $businessId = (string) $user->business_id;
 

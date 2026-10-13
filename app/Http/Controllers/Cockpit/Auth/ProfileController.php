@@ -7,6 +7,7 @@ use App\Constants\ResourceMessage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cockpit\Auth\ProfilePasswordUpdateRequest;
 use App\Http\Requests\Cockpit\Auth\ProfileUpdateRequest;
+use App\Models\CockpitUser;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -18,7 +19,7 @@ class ProfileController extends Controller
      */
     public function updateProfile(ProfileUpdateRequest $request)
     {
-        /** @var \App\Models\CockpitUser $user */
+        /** @var CockpitUser $user */
         $user = Auth::guard('cockpit')->user();
 
         $user->update([
@@ -36,7 +37,7 @@ class ProfileController extends Controller
      */
     public function updatePassword(ProfilePasswordUpdateRequest $request)
     {
-        /** @var \App\Models\CockpitUser $user */
+        /** @var CockpitUser $user */
         $user = Auth::guard('cockpit')->user();
 
         if (! Hash::check($request->validated('current_password'), $user->password)) {

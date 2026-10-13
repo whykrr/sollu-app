@@ -8,6 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class RecordActivityLogJob implements ShouldQueue
@@ -39,7 +40,7 @@ class RecordActivityLogJob implements ShouldQueue
 
             ActivityLog::create($data);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Gagal menyimpan record log audit di background worker: '.$e->getMessage(), [
+            Log::error('Gagal menyimpan record log audit di background worker: '.$e->getMessage(), [
                 'payload' => $this->payload,
             ]);
         }

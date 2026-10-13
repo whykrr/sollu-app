@@ -9,7 +9,9 @@ use App\Models\Master\Product;
 use App\Models\Master\ProductItem;
 use App\Models\Master\ProductPrice;
 use App\Models\OutletDevice;
+use App\Models\OutletSetting;
 use App\Services\Pos\PosPriceResolver;
+use App\Services\Pos\PosSettingsPayloadBuilder;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -17,6 +19,7 @@ class DeltaSyncService
 {
     public function __construct(
         private readonly PosPriceResolver $priceResolver,
+        private readonly PosSettingsPayloadBuilder $settingsPayloadBuilder,
     ) {}
 
     /**
@@ -32,37 +35,30 @@ class DeltaSyncService
         $outletId = $outlet->id;
         $businessId = $outlet->business_id;
 
-        // 1. Ambil ID produk yang aktif di outlet ini (fast compound index seek)
-        $outletProductRows = DB::table('outlet_product')
-            ->where('outlet_id', $outletId)
-            ->where('is_enabled', true)
-            ->get();
-
-        $productIds = $outletProductRows->pluck('product_id')->all();
-
-        if (empty($productIds)) {
-            return [
-                'synced_at' => now()->toIso8601String(),
-                'updated_products' => [],
-                'updated_product_items' => [],
-                'updated_prices' => [],
-                'updated_inventory_balances' => [],
-                'deleted_product_ids' => [],
-                'deleted_product_item_ids' => [],
-            ];
-        }
-
         $shouldFetchBalances = empty($entities) || in_array('inventory_balance', $entities, true);
         $shouldFetchProducts = empty($entities) || in_array('product', $entities, true);
         $shouldFetchProductItems = empty($entities) || in_array('product_item', $entities, true);
         $shouldFetchPrices = empty($entities) || in_array('product_price', $entities, true) || in_array('price', $entities, true);
         $shouldFetchDeletes = empty($entities) || in_array('product', $entities, true) || in_array('product_item', $entities, true);
+        $shouldFetchSettings = empty($entities) || in_array('setting', $entities, true) || in_array('outlet_setting', $entities, true) || in_array('settings', $entities, true);
+
+        $needsProductData = $shouldFetchProducts || $shouldFetchPrices || $shouldFetchProductItems || $shouldFetchBalances || $shouldFetchDeletes;
+
+        // 1. Ambil ID produk yang aktif di outlet ini (fast compound index pluck hanya jika dibutuhkan)
+        $productIds = [];
+        if ($needsProductData) {
+            $productIds = DB::table('outlet_product')
+                ->where('outlet_id', $outletId)
+                ->where('is_enabled', true)
+                ->pluck('product_id')
+                ->all();
+        }
 
         // 2 & 4. Produk & Harga yang diperbarui sejak updated_since
         $updatedProducts = collect();
         $updatedPrices = [];
 
-        if ($shouldFetchProducts || $shouldFetchPrices) {
+        if (! empty($productIds) && ($shouldFetchProducts || $shouldFetchPrices)) {
             $targetProductIds = [];
 
             if ($shouldFetchProducts) {
@@ -95,12 +91,14 @@ class DeltaSyncService
                 $resolvedPrices = $this->priceResolver->resolveForOutlet($loadedProducts, $targetProductIds, $outletId);
 
                 $updatedProducts = $loadedProducts->makeHidden('business_id');
-                $updatedPrices = $resolvedPrices;
+                if ($shouldFetchPrices) {
+                    $updatedPrices = $resolvedPrices;
+                }
             }
         }
 
         // 3. Product items (varian, SKU, barcode) yang dibuat atau diperbarui sejak updated_since
-        $updatedProductItems = $shouldFetchProductItems
+        $updatedProductItems = (! empty($productIds) && $shouldFetchProductItems)
             ? ProductItem::with(['uom', 'inventoryItem'])
                 ->where('business_id', $businessId)
                 ->whereIn('product_id', $productIds)
@@ -146,6 +144,36 @@ class DeltaSyncService
                 ->all()));
         }
 
+        // 8. Pengaturan Outlet (pajak, service fee, pembulatan, struk, dan profil outlet)
+        $updatedSettings = null;
+        $updatedOutletSettings = null;
+        $updatedOutlet = null;
+
+        if ($shouldFetchSettings) {
+            $isExplicitSettingRequest = ! empty($entities) && (
+                in_array('setting', $entities, true) ||
+                in_array('outlet_setting', $entities, true) ||
+                in_array('settings', $entities, true)
+            );
+
+            $hasMutatedSettings = DB::table('outlet_settings')
+                ->where('outlet_id', $outletId)
+                ->where('updated_at', '>', $since)
+                ->exists();
+
+            $hasMutatedOutlet = $outlet->updated_at !== null && $outlet->updated_at->isAfter($since);
+
+            if ($isExplicitSettingRequest || $hasMutatedSettings || $hasMutatedOutlet) {
+                $outletSettings = OutletSetting::where('outlet_id', $outletId)
+                    ->get()
+                    ->makeHidden('outlet_id');
+
+                $updatedSettings = $this->settingsPayloadBuilder->buildStructuredSettings($outlet, $outletSettings);
+                $updatedOutletSettings = $outletSettings;
+                $updatedOutlet = $this->settingsPayloadBuilder->buildOutletProfile($outlet);
+            }
+        }
+
         return [
             'synced_at' => now()->toIso8601String(),
             'updated_products' => $updatedProducts,
@@ -154,6 +182,9 @@ class DeltaSyncService
             'updated_inventory_balances' => $updatedInventoryBalances,
             'deleted_product_ids' => $deletedProductIds,
             'deleted_product_item_ids' => $deletedProductItemIds,
+            'settings' => $updatedSettings,
+            'outlet_settings' => $updatedOutletSettings,
+            'outlet' => $updatedOutlet,
         ];
     }
 }

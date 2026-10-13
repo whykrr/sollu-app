@@ -20,9 +20,9 @@ use App\Models\Promotion\Promotion;
 use App\Services\App\Outlet\OutletProvisioningService;
 use App\Services\Auth\UserPermissionCacheService;
 use App\Services\Pos\PosPriceResolver;
+use App\Services\Pos\PosSettingsPayloadBuilder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class MasterDataSyncService
 {
@@ -30,6 +30,7 @@ class MasterDataSyncService
 
     public function __construct(
         private readonly PosPriceResolver $priceResolver,
+        private readonly PosSettingsPayloadBuilder $settingsPayloadBuilder,
     ) {}
 
     public function getPayload(OutletDevice $device, bool $force = false): array
@@ -138,62 +139,7 @@ class MasterDataSyncService
         }
 
         // Build structured settings object
-        $financialTax = (float) ($outletSettings->firstWhere('key', 'tax')?->value ?? 0.0);
-        $financialServiceFee = (float) ($outletSettings->firstWhere('key', 'service_fee')?->value ?? 0.0);
-        $taxIncluded = (bool) ($outletSettings->firstWhere('key', 'tax_included_in_price')?->value ?? false);
-        $roundingEnabled = (bool) ($outletSettings->firstWhere('key', 'rounding_enabled')?->value ?? false);
-        $roundingMode = (string) ($outletSettings->firstWhere('key', 'rounding_mode')?->value ?? 'nearest');
-
-        $receiptSetting = $outletSettings->where('category', 'receipt')->firstWhere('key', 'layout_config')?->value ?? [
-            'paper_size' => '58mm',
-            'auto_print' => true,
-            'print_kitchen_copy' => false,
-            'print_checker_copy' => false,
-            'show_logo' => true,
-            'custom_header_title' => null,
-            'header_notes' => 'Terima kasih atas kunjungan Anda!',
-            'show_address' => true,
-            'show_phone' => true,
-            'show_email' => false,
-            'show_cashier_name' => true,
-            'show_customer_name' => true,
-            'show_order_type' => true,
-            'show_modifiers' => true,
-            'show_item_notes' => true,
-            'show_tax_detail' => true,
-            'show_service_charge' => false,
-            'footer_notes' => 'Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan.',
-            'social_media_info' => null,
-            'wifi_info' => null,
-            'show_qr_code' => false,
-            'qr_type' => 'invoice',
-        ];
-
-        $business = $outlet->business;
-        $logoUrl = null;
-        if ($outlet->logo_url) {
-            $logoUrl = str_starts_with($outlet->logo_url, 'http') ? $outlet->logo_url : url($outlet->logo_url);
-        } elseif ($business?->logo) {
-            $logoUrl = url(Storage::url($business->logo));
-        }
-
-        $receiptSetting['logo_url'] = $logoUrl;
-
-        $posOrderTypes = $outletSettings->where('category', 'pos')->firstWhere('key', 'pos_order_types')?->value ?? ['walk_in', 'dine_in', 'take_away'];
-        if (! is_array($posOrderTypes) || empty($posOrderTypes)) {
-            $posOrderTypes = ['walk_in', 'dine_in', 'take_away'];
-        }
-
-        $structuredSettings = [
-            'tax_percentage' => $financialTax,
-            'service_charge_percentage' => $financialServiceFee,
-            'tax_included_in_price' => $taxIncluded,
-            'rounding_enabled' => $roundingEnabled,
-            'rounding_mode' => $roundingMode,
-            'allow_negative_stock' => (bool) ($outletSettings->firstWhere('key', 'allow_negative_stock')?->value ?? true),
-            'pos_order_types' => $posOrderTypes,
-            'receipt' => $receiptSetting,
-        ];
+        $structuredSettings = $this->settingsPayloadBuilder->buildStructuredSettings($outlet, $outletSettings);
 
         // 4b. Data Karyawan Terdaftar pada Outlet (lengkap dengan role & permissions, memanfaatkan Redis cache bersama pos:outlet:employees)
         $employeeCacheKey = "pos:outlet:{$outletId}:employees";
@@ -263,15 +209,7 @@ class MasterDataSyncService
 
         return [
             'synced_at' => now()->toIso8601String(),
-            'outlet' => [
-                'id' => $outlet->id,
-                'name' => $outlet->name,
-                'initial' => app(TransactionService::class)->resolveOutletInitial($outlet),
-                'address' => $outlet->address,
-                'phone' => $outlet->phone,
-                'email' => $outlet->email,
-                'logo_url' => $logoUrl,
-            ],
+            'outlet' => $this->settingsPayloadBuilder->buildOutletProfile($outlet),
             'products' => $products,
             'product_categories' => $productCategories,
             'product_prices' => $productPrices,

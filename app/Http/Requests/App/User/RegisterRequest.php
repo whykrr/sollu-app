@@ -3,6 +3,7 @@
 namespace App\Http\Requests\App\User;
 
 use App\Http\Requests\BaseInertiaFormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
  * @property string $name
@@ -23,7 +24,7 @@ class RegisterRequest extends BaseInertiaFormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {

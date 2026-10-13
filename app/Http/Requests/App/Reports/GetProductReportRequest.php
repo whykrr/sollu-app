@@ -5,6 +5,7 @@ namespace App\Http\Requests\App\Reports;
 use App\Enums\DatePresetEnum;
 use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
 class GetProductReportRequest extends BaseInertiaFormRequest
@@ -17,7 +18,7 @@ class GetProductReportRequest extends BaseInertiaFormRequest
     }
 
     /**
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
