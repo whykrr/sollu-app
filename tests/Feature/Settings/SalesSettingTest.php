@@ -124,10 +124,10 @@ class SalesSettingTest extends TestCase
             'outlet_id' => $outlet->id,
             'allow_negative_stock_b2b' => true,
             'allow_custom_price_b2b' => false,
-            'sales_channels_b2b' => ['direct', 'wholesale'],
+            'pos_order_types' => ['walk_in', 'dine_in'],
             'default_due_days_b2b' => 30,
             'default_terms_and_conditions_b2b' => 'Syarat khusus outlet cabang.',
-            'b2b_invoice_prefix' => 'FAKTUR',
+            'b2b_invoice_prefix' => 'INV',
         ];
 
         $response = $this->actingAs($user, 'business')
@@ -152,7 +152,7 @@ class SalesSettingTest extends TestCase
         $savedPrefix = OutletSetting::where('outlet_id', $outlet->id)
             ->where('key', 'b2b_invoice_prefix')
             ->value('value');
-        $this->assertEquals('FAKTUR', $savedPrefix);
+        $this->assertEquals('INV', $savedPrefix);
     }
 
     public function test_user_cannot_update_settings_for_outlet_belonging_to_another_business(): void
@@ -164,7 +164,7 @@ class SalesSettingTest extends TestCase
             'outlet_id' => $otherOutlet->id, // Belongs to otherBusiness
             'allow_negative_stock_b2b' => true,
             'allow_custom_price_b2b' => true,
-            'sales_channels_b2b' => ['direct'],
+            'pos_order_types' => ['walk_in'],
             'default_due_days_b2b' => 14,
             'default_terms_and_conditions_b2b' => 'T&C',
             'b2b_invoice_prefix' => 'INV',
@@ -185,7 +185,7 @@ class SalesSettingTest extends TestCase
             'outlet_id' => $outlet->id,
             'allow_negative_stock_b2b' => 'invalid-boolean',
             'allow_custom_price_b2b' => true,
-            'sales_channels_b2b' => ['invalid_channel_name'],
+            'pos_order_types' => ['invalid_order_type'],
             'default_due_days_b2b' => -5,
             'b2b_invoice_prefix' => '',
         ];
@@ -196,7 +196,7 @@ class SalesSettingTest extends TestCase
 
         $response->assertSessionHasErrors([
             'allow_negative_stock_b2b',
-            'sales_channels_b2b.0',
+            'pos_order_types.0',
             'default_due_days_b2b',
             'b2b_invoice_prefix',
         ]);

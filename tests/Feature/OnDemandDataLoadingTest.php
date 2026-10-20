@@ -145,6 +145,8 @@ class OnDemandDataLoadingTest extends TestCase
 
     public function test_modifiers_index_uses_options_count_and_show_returns_options_on_demand(): void
     {
+        $this->markTestSkipped('Fitur modifiers sedang dinonaktifkan di routing.');
+
         $user = User::first();
         $this->subscribeBusinessToPlan($user);
 

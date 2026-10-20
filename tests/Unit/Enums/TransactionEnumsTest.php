@@ -16,34 +16,39 @@ class TransactionEnumsTest extends TestCase
     public function test_transaction_type_enum_cases_and_labels(): void
     {
         $this->assertSame('invoice', TransactionTypeEnum::Invoice->value);
-        $this->assertSame('pos', TransactionTypeEnum::Pos->value);
+        $this->assertSame('walk_in', TransactionTypeEnum::WalkIn->value);
+        $this->assertSame('dine_in', TransactionTypeEnum::DineIn->value);
+        $this->assertSame('take_away', TransactionTypeEnum::TakeAway->value);
 
-        $this->assertSame('Faktur Penjualan', TransactionTypeEnum::Invoice->label());
-        $this->assertSame('Kasir POS', TransactionTypeEnum::Pos->label());
+        $this->assertSame('Penjualan', TransactionTypeEnum::Invoice->label());
+        $this->assertSame('Walk-In', TransactionTypeEnum::WalkIn->label());
+        $this->assertSame('Dine In', TransactionTypeEnum::DineIn->label());
+        $this->assertSame('Take Away', TransactionTypeEnum::TakeAway->label());
 
         $this->assertSame('info', TransactionTypeEnum::Invoice->color());
-        $this->assertSame('primary', TransactionTypeEnum::Pos->color());
+        $this->assertSame('primary', TransactionTypeEnum::WalkIn->color());
+        $this->assertSame('amber', TransactionTypeEnum::DineIn->color());
+        $this->assertSame('purple', TransactionTypeEnum::TakeAway->color());
+
+        $this->assertFalse(TransactionTypeEnum::Invoice->isPosType());
+        $this->assertTrue(TransactionTypeEnum::WalkIn->isPosType());
+        $this->assertTrue(TransactionTypeEnum::DineIn->isPosType());
+        $this->assertTrue(TransactionTypeEnum::TakeAway->isPosType());
     }
 
     public function test_sales_channel_enum_cases_and_labels(): void
     {
+        $this->assertSame('pos', SalesChannelEnum::POS->value);
         $this->assertSame('wholesale', SalesChannelEnum::Wholesale->value);
-        $this->assertSame('direct', SalesChannelEnum::Direct->value);
-        $this->assertSame('e_commerce', SalesChannelEnum::ECommerce->value);
-        $this->assertSame('social_media', SalesChannelEnum::SocialMedia->value);
-        $this->assertSame('custom', SalesChannelEnum::Custom->value);
 
-        $this->assertSame('Grosir (Wholesale)', SalesChannelEnum::Wholesale->label());
-        $this->assertSame('Penjualan Langsung (Direct)', SalesChannelEnum::Direct->label());
-        $this->assertSame('E-Commerce / Marketplace', SalesChannelEnum::ECommerce->label());
-        $this->assertSame('Media Sosial & WhatsApp', SalesChannelEnum::SocialMedia->label());
-        $this->assertSame('Pesanan Khusus', SalesChannelEnum::Custom->label());
+        $this->assertSame('Kasir POS', SalesChannelEnum::POS->label());
+        $this->assertSame('Wholesale (Penjualan)', SalesChannelEnum::Wholesale->label());
 
+        $this->assertSame('primary', SalesChannelEnum::POS->color());
         $this->assertSame('purple', SalesChannelEnum::Wholesale->color());
-        $this->assertSame('blue', SalesChannelEnum::Direct->color());
-        $this->assertSame('emerald', SalesChannelEnum::ECommerce->color());
-        $this->assertSame('amber', SalesChannelEnum::SocialMedia->color());
-        $this->assertSame('cyan', SalesChannelEnum::Custom->color());
+
+        $this->assertSame('POS', SalesChannelEnum::POS->initial());
+        $this->assertSame('WS', SalesChannelEnum::Wholesale->initial());
     }
 
     public function test_payment_term_enum_cases_and_labels(): void

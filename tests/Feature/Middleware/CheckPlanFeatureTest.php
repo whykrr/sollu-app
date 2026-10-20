@@ -30,8 +30,8 @@ class CheckPlanFeatureTest extends TestCase
                 return response()->json(['status' => 'success']);
             });
 
-        Route::middleware(['web', 'auth', 'plan.feature:'.FeatureEnum::RECIPE_MANAGEMENT->value])
-            ->get('/test-recipe-management', function () {
+        Route::middleware(['web', 'auth', 'plan.feature:'.FeatureEnum::STOCK_ADJUSTMENTS->value])
+            ->get('/test-stock-adjustments', function () {
                 return response()->json(['status' => 'success']);
             });
     }
@@ -176,12 +176,12 @@ class CheckPlanFeatureTest extends TestCase
             'business_id' => $business->id,
         ]);
 
-        $response = $this->actingAs($user)->getJson('/test-recipe-management');
+        $response = $this->actingAs($user)->getJson('/test-stock-adjustments');
 
         $response->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::RECIPE_MANAGEMENT->value,
+                'feature' => FeatureEnum::STOCK_ADJUSTMENTS->value,
             ]);
     }
 }

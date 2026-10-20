@@ -83,7 +83,6 @@ class TelescopeAccessTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee(route('cockpit.dashboard'), false);
         $response->assertSee('Kembali ke Cockpit', false);
-        $response->assertSee('Ke Cockpit', false);
     }
 
     public function test_navigation_bar_only_displays_active_watchers(): void

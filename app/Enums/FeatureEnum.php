@@ -27,9 +27,6 @@ enum FeatureEnum: string
     case SERVICE_CATALOG = 'service_catalog';
     case PRODUCT_CATEGORIES = 'product_categories';
     case PRODUCT_VARIANTS = 'product_variants';
-    // case PRODUCT_MODIFIERS = 'product_modifiers';
-    // case PRODUCT_BUNDLES = 'product_bundles';
-    // case RECIPE_MANAGEMENT = 'recipe_management';
 
     /*
     |--------------------------------------------------------------------------
