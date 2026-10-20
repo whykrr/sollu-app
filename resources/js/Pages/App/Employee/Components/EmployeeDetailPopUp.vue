@@ -55,21 +55,35 @@
                 </div>
                 <div>
                     <span class="text-slate-500 block text-[11px]">Akses Portal Web</span>
-                    <span class="font-medium text-slate-800 flex items-center gap-1.5 mt-0.5">
-                        <FontAwesomeIcon
-                            :icon="faGlobe"
-                            :class="
+                    <div class="flex items-center justify-between gap-1.5 mt-0.5">
+                        <span class="font-medium text-slate-800 flex items-center gap-1.5">
+                            <FontAwesomeIcon
+                                :icon="faGlobe"
+                                :class="
+                                    detail?.is_root_user || detail?.has_web_access || detail?.email
+                                        ? 'text-emerald-500'
+                                        : 'text-slate-300'
+                                "
+                            />
+                            {{
                                 detail?.is_root_user || detail?.has_web_access || detail?.email
-                                    ? 'text-emerald-500'
-                                    : 'text-slate-300'
+                                    ? 'Aktif (Email & Sandi)'
+                                    : 'Kasir POS Saja (Tanpa Web)'
+                            }}
+                        </span>
+                        <button
+                            v-if="
+                                !detail?.is_root_user &&
+                                !detail?.deleted_at &&
+                                (detail?.has_web_access || detail?.email)
                             "
-                        />
-                        {{
-                            detail?.is_root_user || detail?.has_web_access || detail?.email
-                                ? 'Aktif (Email & Sandi)'
-                                : 'Kasir POS Saja (Tanpa Web)'
-                        }}
-                    </span>
+                            type="button"
+                            class="btn btn-outline-primary btn-xs"
+                            @click.prevent="showPasswordResetModal = true"
+                        >
+                            Reset Sandi
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <span class="text-slate-500 block text-[11px]">Terakhir Masuk (Login)</span>
@@ -124,6 +138,8 @@
                 </div>
             </div>
         </div>
+
+        <PasswordResetModal v-model:show="showPasswordResetModal" :user="detail" />
     </div>
 
     <Teleport v-if="isMounted" to="#popUpFooter">
@@ -147,6 +163,7 @@ import { usePopUpStore } from '@/store/popup'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faEnvelope, faPhone, faKey, faGlobe } from '@fortawesome/free-solid-svg-icons'
 import { formatDateTime } from '@/Composable/time'
+import PasswordResetModal from './PasswordResetModal.vue'
 import axios from 'axios'
 
 const props = defineProps({
@@ -164,6 +181,7 @@ const emit = defineEmits(['edit'])
 
 const popUpStore = usePopUpStore()
 const isMounted = ref(false)
+const showPasswordResetModal = ref(false)
 const detail = ref({ ...props.user })
 const isLoading = ref(true)
 

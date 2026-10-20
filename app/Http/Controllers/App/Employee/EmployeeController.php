@@ -303,4 +303,31 @@ class EmployeeController extends Controller
             ResourceMessage::PURGE_SUCCESS
         );
     }
+
+    /**
+     * Reset the employee's web password without sending email and return the new plain password.
+     */
+    public function resetPassword(Request $request, User $user): JsonResponse
+    {
+        $this->authorize(PermissionEnum::USER_UPDATE->value);
+
+        if ($user->business_id !== $request->user()?->business_id) {
+            abort(403);
+        }
+
+        try {
+            $newPassword = $this->employeeService->resetPassword($user);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kata sandi berhasil direset.',
+                'password' => $newPassword,
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
 }

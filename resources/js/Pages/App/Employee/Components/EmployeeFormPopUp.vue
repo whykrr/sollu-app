@@ -48,7 +48,7 @@
             </div>
 
             <!-- Email Field: Hanya tampil jika akses web aktif -->
-            <div v-if="form.has_web_access" class="pt-2 border-t border-slate-200">
+            <div v-if="form.has_web_access" class="pt-2 border-t border-slate-200 space-y-3">
                 <EmailField
                     id="email"
                     v-model="form.email"
@@ -56,8 +56,34 @@
                     placeholder="Misal: ahmad@bisnis.com"
                     :error="form.errors.email"
                     required
-                    hint="Kata sandi default (nama kota + 4 angka) akan dikirimkan ke email ini."
+                    :hint="
+                        !props.user
+                            ? 'Kata sandi default (nama kota + 4 angka) akan dikirimkan ke email ini.'
+                            : ''
+                    "
                 />
+
+                <!-- Reset Kata Sandi Card (Pola serupa Reset PIN) saat mode edit -->
+                <div
+                    v-if="props.user"
+                    class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-lg text-xs"
+                >
+                    <div>
+                        <span class="font-medium text-slate-700 block"
+                            >Kata Sandi Web Dashboard</span
+                        >
+                        <span class="text-slate-400 text-[11px]">
+                            Kata sandi akun sudah aktif tersimpan secara aman.
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary btn-xs"
+                        @click.prevent="showPasswordResetModal = true"
+                    >
+                        Reset Kata Sandi
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -153,6 +179,8 @@
                 </button>
             </div>
         </Teleport>
+
+        <PasswordResetModal v-model:show="showPasswordResetModal" :user="props.user" />
     </form>
 </template>
 
@@ -168,6 +196,7 @@ import EmailField from '@/Components/Form/EmailField.vue'
 import PinField from '@/Components/Form/PinField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
 import Switch from '@/Components/Form/Switch.vue'
+import PasswordResetModal from './PasswordResetModal.vue'
 
 const props = defineProps({
     user: {
@@ -183,6 +212,7 @@ const props = defineProps({
 const { outlets: authOutlets, selectedOutlet } = useAuth()
 const modalStore = useModalStore()
 const isMounted = ref(false)
+const showPasswordResetModal = ref(false)
 
 const roleOptions = computed(() => {
     return (props.roles || []).map(r => ({

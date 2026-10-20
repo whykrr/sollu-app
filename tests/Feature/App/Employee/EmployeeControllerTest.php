@@ -20,6 +20,8 @@ use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -455,5 +457,72 @@ class EmployeeControllerTest extends TestCase
             ->post("http://{$this->appDomain}/employees", $payload);
 
         $response->assertSessionHasErrors('email');
+    }
+
+    public function test_it_resets_employee_password_via_endpoint_without_sending_email(): void
+    {
+        Notification::fake();
+
+        $employee = User::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Staf Reset',
+            'email' => 'reset.staf@test.test',
+            'password' => 'old_pass_123',
+            'is_root_user' => false,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->postJson("http://{$this->appDomain}/employees/{$employee->id}/reset-password");
+
+        $response->assertOk()
+            ->assertJson([
+                'success' => true,
+                'message' => 'Kata sandi berhasil direset.',
+            ]);
+
+        $newPassword = $response->json('password');
+        $this->assertNotEmpty($newPassword);
+        $this->assertTrue(Hash::check($newPassword, $employee->fresh()->password));
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_it_prevents_resetting_employee_password_from_another_business(): void
+    {
+        $type = BusinessType::first();
+        $otherBusiness = Business::create([
+            'name' => 'Other Business',
+            'owner_name' => 'Other Owner',
+            'email' => 'other_owner_'.uniqid().'@test.test',
+            'phone' => '08'.random_int(100000000, 999999999),
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $otherEmployee = User::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Staf Other Business',
+            'email' => 'staf.other@test.test',
+            'password' => 'pass123',
+            'is_root_user' => false,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->postJson("http://{$this->appDomain}/employees/{$otherEmployee->id}/reset-password");
+
+        $response->assertForbidden();
+    }
+
+    public function test_it_prevents_resetting_root_user_password_via_endpoint(): void
+    {
+        $response = $this->actingAs($this->user, 'business')
+            ->postJson("http://{$this->appDomain}/employees/{$this->user->id}/reset-password");
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Kata sandi Akun Utama tidak dapat direset melalui menu pegawai.',
+            ]);
     }
 }

@@ -278,4 +278,40 @@ class EmployeeServiceTest extends TestCase
 
         Notification::assertNothingSent();
     }
+
+    public function test_it_resets_employee_password_without_sending_email(): void
+    {
+        $owner = $this->createMerchantUser();
+        $this->actingAs($owner);
+
+        Notification::fake();
+
+        $employee = User::create([
+            'business_id' => $owner->business_id,
+            'name' => 'Staf Test',
+            'email' => 'staf@test.test',
+            'password' => 'old_password_123',
+            'is_root_user' => false,
+        ]);
+
+        $newPassword = $this->service->resetPassword($employee);
+
+        $this->assertNotEmpty($newPassword);
+        $this->assertTrue(Hash::check($newPassword, $employee->fresh()->password));
+        $this->assertFalse(Hash::check('old_password_123', $employee->fresh()->password));
+
+        // Ensure NO email notification is sent
+        Notification::assertNothingSent();
+    }
+
+    public function test_it_prevents_resetting_root_user_password_via_employee_service(): void
+    {
+        $owner = $this->createMerchantUser();
+        $this->actingAs($owner);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Kata sandi Akun Utama tidak dapat direset melalui menu pegawai.');
+
+        $this->service->resetPassword($owner);
+    }
 }

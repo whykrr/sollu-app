@@ -18,4 +18,5 @@ Route::prefix('employees')
         Route::delete('/{user}', [EmployeeController::class, 'delete'])->name('delete');
         Route::put('/{user}/restore', [EmployeeController::class, 'restore'])->name('restore')->withTrashed();
         Route::delete('/{user}/destroy', [EmployeeController::class, 'destroy'])->name('destroy')->withTrashed();
+        Route::post('/{user}/reset-password', [EmployeeController::class, 'resetPassword'])->name('resetPassword');
     });

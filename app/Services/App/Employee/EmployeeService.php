@@ -241,4 +241,39 @@ class EmployeeService
 
         $user->forceDelete();
     }
+
+    /**
+     * Reset an employee's password without sending email.
+     * Generates a new Indonesian city + 4 digits password, saves it, and returns the plain text password.
+     *
+     * @throws InvalidArgumentException
+     */
+    public function resetPassword(User $user): string
+    {
+        if ($user->is_root_user) {
+            throw new InvalidArgumentException('Kata sandi Akun Utama tidak dapat direset melalui menu pegawai.');
+        }
+
+        $newPassword = self::generateDefaultPassword();
+
+        $user->update([
+            'password' => $newPassword,
+            'email_verified_at' => $user->email_verified_at ?? Carbon::now(),
+        ]);
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::EMPLOYEES->value,
+            action: 'employee.password_reset',
+            description: "Mereset kata sandi staf: {$user->name}",
+            subject: $user,
+            causer: Auth::user(),
+            properties: [
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ]
+        );
+
+        return $newPassword;
+    }
 }
