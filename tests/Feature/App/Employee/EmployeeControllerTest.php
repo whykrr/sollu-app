@@ -8,6 +8,8 @@ use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
 use App\Enums\SubscriptionStatus;
+use App\Jobs\Employee\ExportEmployeeJob;
+use App\Jobs\Employee\ImportEmployeeJob;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Outlet;
@@ -17,6 +19,9 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -283,7 +288,7 @@ class EmployeeControllerTest extends TestCase
 
     public function test_it_dispatches_export_employee_job(): void
     {
-        \Illuminate\Support\Facades\Queue::fake();
+        Queue::fake();
 
         $response = $this->actingAs($this->user, 'business')
             ->from("http://{$this->appDomain}/employees")
@@ -292,7 +297,7 @@ class EmployeeControllerTest extends TestCase
         $response->assertRedirect("http://{$this->appDomain}/employees")
             ->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::EXPORT_PROCESSING);
 
-        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\Employee\ExportEmployeeJob::class, function (\App\Jobs\Employee\ExportEmployeeJob $job) {
+        Queue::assertPushed(ExportEmployeeJob::class, function (ExportEmployeeJob $job) {
             return $job->getModuleName() === 'Pegawai';
         });
     }
@@ -308,10 +313,10 @@ class EmployeeControllerTest extends TestCase
 
     public function test_it_handles_employee_excel_import(): void
     {
-        \Illuminate\Support\Facades\Queue::fake();
-        \Illuminate\Support\Facades\Storage::fake('local');
+        Queue::fake();
+        Storage::fake('local');
 
-        $file = \Illuminate\Http\UploadedFile::fake()->create('employees.xlsx', 100, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $file = UploadedFile::fake()->create('employees.xlsx', 100, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
         $response = $this->actingAs($this->user, 'business')
             ->from("http://{$this->appDomain}/employees")
@@ -322,6 +327,133 @@ class EmployeeControllerTest extends TestCase
         $response->assertRedirect("http://{$this->appDomain}/employees")
             ->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::IMPORT_PROCESSING);
 
-        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\Employee\ImportEmployeeJob::class);
+        Queue::assertPushed(ImportEmployeeJob::class);
+    }
+
+    public function test_it_can_create_cashier_without_email(): void
+    {
+        $payload = [
+            'name' => 'Kasir Tanpa Email',
+            'email' => null,
+            'phone' => null,
+            'has_web_access' => false,
+            'role' => 'cashier',
+            'outlets' => [$this->outlet->id],
+            'pin' => '123456',
+        ];
+
+        $response = $this->actingAs($this->user, 'business')
+            ->from("http://{$this->appDomain}/employees")
+            ->post("http://{$this->appDomain}/employees", $payload);
+
+        $response->assertRedirect("http://{$this->appDomain}/employees")
+            ->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::CREATE_SUCCESS);
+
+        $this->assertDatabaseHas('users', [
+            'business_id' => $this->business->id,
+            'name' => 'Kasir Tanpa Email',
+            'email' => null,
+            'password' => null,
+            'is_root_user' => false,
+        ]);
+    }
+
+    public function test_it_allows_same_email_in_different_businesses(): void
+    {
+        // 1. Create employee in Business A
+        $sharedEmail = 'budi_turnover@test.test';
+
+        User::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Budi di Bisnis A',
+            'email' => $sharedEmail,
+            'is_root_user' => false,
+        ]);
+
+        // 2. Set up Business B
+        $businessB = Business::create([
+            'name' => 'Business B',
+            'owner_name' => 'Owner B',
+            'email' => 'owner_b_'.uniqid().'@test.test',
+            'phone' => '087711223344',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $this->business->business_type_id,
+            'settings' => ['active_features' => [FeatureEnum::EMPLOYEE_MANAGEMENT->value]],
+        ]);
+
+        $ownerB = User::create([
+            'business_id' => $businessB->id,
+            'name' => 'Owner B',
+            'email' => 'owner_b_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+            'is_root_user' => true,
+        ]);
+
+        $outletB = Outlet::create([
+            'business_id' => $businessB->id,
+            'name' => 'Outlet B',
+            'is_main_outlet' => true,
+        ]);
+        $ownerB->outlets()->attach($outletB->id);
+
+        setPermissionsTeamId($businessB->id);
+        foreach ([
+            PermissionEnum::USER_VIEW->value,
+            PermissionEnum::USER_CREATE->value,
+        ] as $perm) {
+            $ownerB->givePermissionTo($perm);
+        }
+
+        Role::firstOrCreate(
+            ['business_id' => $businessB->id, 'name' => 'cashier', 'guard_name' => 'business'],
+            ['label' => 'Kasir Toko B', 'is_default' => false]
+        );
+
+        // 3. Register Budi in Business B using the SAME email
+        $payload = [
+            'name' => 'Budi Pindah ke Bisnis B',
+            'email' => $sharedEmail,
+            'phone' => '089988776655',
+            'role' => 'cashier',
+            'outlets' => [$outletB->id],
+            'pin' => '654321',
+        ];
+
+        $response = $this->actingAs($ownerB, 'business')
+            ->from("http://{$this->appDomain}/employees")
+            ->post("http://{$this->appDomain}/employees", $payload);
+
+        $response->assertRedirect("http://{$this->appDomain}/employees")
+            ->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::CREATE_SUCCESS);
+
+        // Verify both exist with the same email in different businesses
+        $this->assertEquals(2, User::where('email', $sharedEmail)->count());
+    }
+
+    public function test_it_prevents_duplicate_email_in_same_business(): void
+    {
+        $existingEmail = 'kasir1@test.test';
+
+        User::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Kasir 1',
+            'email' => $existingEmail,
+            'is_root_user' => false,
+        ]);
+
+        $payload = [
+            'name' => 'Kasir 2 Duplikat',
+            'email' => $existingEmail,
+            'role' => 'cashier',
+            'outlets' => [$this->outlet->id],
+            'pin' => '123456',
+        ];
+
+        $response = $this->actingAs($this->user, 'business')
+            ->from("http://{$this->appDomain}/employees")
+            ->post("http://{$this->appDomain}/employees", $payload);
+
+        $response->assertSessionHasErrors('email');
     }
 }

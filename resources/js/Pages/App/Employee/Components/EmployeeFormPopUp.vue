@@ -10,28 +10,58 @@
             required
         />
 
-        <!-- Email -->
-        <EmailField
-            id="email"
-            v-model="form.email"
-            label="Alamat Email"
-            placeholder="Misal: ahmad@bisnis.com"
-            :error="form.errors.email"
-            :disabled="Boolean(props.user)"
-            required
-        />
-
-        <!-- Telepon -->
+        <!-- Nomor Telepon -->
         <TextField
             id="phone"
             v-model="form.phone"
-            label="Nomor Telepon"
+            label="Nomor Telepon (WhatsApp)"
             placeholder="Misal: 081234567890"
             :error="form.errors.phone"
             type="tel"
         />
 
-        <!-- PIN -->
+        <!-- Akses Web & Email (Bagi Akun Utama / Root User selalu wajib email) -->
+        <div v-if="props.user?.is_root_user">
+            <EmailField
+                id="email"
+                v-model="form.email"
+                label="Alamat Email Pemilik"
+                placeholder="Misal: ahmad@bisnis.com"
+                :error="form.errors.email"
+                required
+            />
+        </div>
+
+        <!-- Akses Web Backoffice Switch (Bagi Karyawan Non-Root) -->
+        <div v-else class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="pr-2">
+                    <span class="font-medium text-xs text-slate-800 block">
+                        Akses Dashboard Web
+                    </span>
+                    <span class="text-slate-400 text-[11px] block">
+                        Izinkan pegawai masuk ke portal web. Jika dimatikan, pegawai cukup
+                        menggunakan PIN di aplikasi kasir (POS).
+                    </span>
+                </div>
+                <Switch id="has_web_access" v-model="form.has_web_access" size="sm" />
+            </div>
+
+            <!-- Email Field: Hanya tampil jika akses web aktif -->
+            <div v-if="form.has_web_access" class="pt-2 border-t border-slate-200">
+                <EmailField
+                    id="email"
+                    v-model="form.email"
+                    label="Alamat Email"
+                    placeholder="Misal: ahmad@bisnis.com"
+                    :error="form.errors.email"
+                    required
+                    hint="Kata sandi default (nama kota + 4 angka) akan dikirimkan ke email ini."
+                />
+            </div>
+        </div>
+
+        <!-- PIN Kasir / Pegawai -->
         <div class="space-y-1">
             <PinField
                 v-if="showPinField"
@@ -42,7 +72,7 @@
                 :hint="
                     props.user
                         ? 'Masukkan 6 digit angka untuk mengganti PIN'
-                        : 'Wajib 6 digit angka untuk otentikasi kasir & operasional'
+                        : 'Wajib 6 digit angka untuk otentikasi kasir & operasional POS'
                 "
             />
             <div
@@ -81,7 +111,7 @@
             </div>
         </div>
 
-        <!-- Akses Outlet (Hanya jika ada >1 outlet dan tidak sedang dalam mode single outlet terpilih di sidebar) -->
+        <!-- Akses Outlet -->
         <div v-if="showOutletField" class="space-y-1">
             <label class="block text-xs font-medium text-slate-700">Akses Outlet</label>
             <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-lg">
@@ -137,6 +167,7 @@ import TextField from '@/Components/Form/TextField.vue'
 import EmailField from '@/Components/Form/EmailField.vue'
 import PinField from '@/Components/Form/PinField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
+import Switch from '@/Components/Form/Switch.vue'
 
 const props = defineProps({
     user: {
@@ -194,6 +225,7 @@ const form = useForm({
     pin: '',
     role: props.user?.roles?.[0]?.name || (roleOptions.value[0]?.value ?? ''),
     outlets: resolveInitialOutlets(props.user),
+    has_web_access: props.user?.is_root_user ? true : Boolean(props.user?.email),
 })
 
 const { handleCancel, forceClose } = useFormDirtyGuard({ form })
@@ -225,6 +257,7 @@ watch(
                 form.role = user.roles[0].name
             }
             form.outlets = resolveInitialOutlets(user)
+            form.has_web_access = user.is_root_user ? true : Boolean(user.email)
             showPinField.value = !user.has_pin
         }
     }
@@ -235,6 +268,10 @@ onMounted(() => {
 })
 
 const submit = () => {
+    if (!form.has_web_access && !props.user?.is_root_user) {
+        form.email = null
+    }
+
     if (props.user?.id) {
         form.put(route('employees.update', { user: props.user.id }), {
             preserveScroll: true,

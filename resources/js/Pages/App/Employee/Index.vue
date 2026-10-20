@@ -47,8 +47,15 @@
                                 Arsip
                             </span>
                         </div>
-                        <div class="text-[11px] text-slate-400 truncate">
-                            {{ row.email }}
+                        <div class="text-[11px] text-slate-400 truncate flex items-center gap-1">
+                            <span v-if="row.email">{{ row.email }}</span>
+                            <span v-else-if="row.phone"
+                                >{{ row.phone }} <span class="text-slate-300">•</span> Kasir
+                                POS</span
+                            >
+                            <span v-else class="text-slate-400 italic"
+                                >Kasir POS (Tanpa Email)</span
+                            >
                         </div>
                     </div>
                 </div>

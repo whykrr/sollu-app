@@ -2,11 +2,16 @@
 
 namespace Tests\Unit\Services\App;
 
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Outlet;
+use App\Models\Role;
 use App\Models\User;
 use App\Notifications\NewEmployee;
 use App\Services\App\Employee\EmployeeService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -19,18 +24,18 @@ class EmployeeServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $this->service = new EmployeeService;
     }
 
     protected function createMerchantUser(): User
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Test Merchant',
             'owner_name' => 'Owner Name',
             'email' => 'owner_'.uniqid().'@test.test',
@@ -66,7 +71,7 @@ class EmployeeServiceTest extends TestCase
         ]);
 
         setPermissionsTeamId($user->business_id);
-        \App\Models\Role::firstOrCreate(
+        Role::firstOrCreate(
             ['business_id' => $user->business_id, 'name' => 'cashier', 'guard_name' => 'business'],
             ['label' => 'Kasir', 'is_default' => false]
         );
@@ -101,11 +106,11 @@ class EmployeeServiceTest extends TestCase
         $this->actingAs($user);
 
         setPermissionsTeamId($user->business_id);
-        \App\Models\Role::firstOrCreate(
+        Role::firstOrCreate(
             ['business_id' => $user->business_id, 'name' => 'cashier', 'guard_name' => 'business'],
             ['label' => 'Kasir', 'is_default' => false]
         );
-        \App\Models\Role::firstOrCreate(
+        Role::firstOrCreate(
             ['business_id' => $user->business_id, 'name' => 'manager', 'guard_name' => 'business'],
             ['label' => 'Manajer', 'is_default' => false]
         );
@@ -132,7 +137,7 @@ class EmployeeServiceTest extends TestCase
         $updated = $this->service->update($employee, $data);
 
         $this->assertEquals('Updated Employee', $updated->name);
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('9999', $updated->pin));
+        $this->assertTrue(Hash::check('9999', $updated->pin));
 
         $updated->refresh();
         $this->assertTrue($updated->hasRole('manager'));
@@ -210,5 +215,67 @@ class EmployeeServiceTest extends TestCase
         $this->expectExceptionMessage('Kamu tidak dapat menghapus akunmu sendiri.');
 
         $this->service->delete($employee);
+    }
+
+    public function test_it_generates_default_password_using_indonesian_city_and_four_digits(): void
+    {
+        for ($i = 0; $i < 20; $i++) {
+            $password = EmployeeService::generateDefaultPassword();
+
+            $this->assertGreaterThanOrEqual(8, strlen($password));
+
+            // Must match one of the Indonesian cities followed by 4 digits
+            $matchedCity = false;
+            foreach (EmployeeService::INDONESIAN_CITIES as $city) {
+                if (str_starts_with($password, $city)) {
+                    $matchedCity = true;
+                    $suffix = substr($password, strlen($city));
+                    $this->assertEquals(4, strlen($suffix));
+                    $this->assertTrue(ctype_digit($suffix));
+                    break;
+                }
+            }
+
+            $this->assertTrue($matchedCity, "Password {$password} should start with a valid Indonesian city");
+        }
+    }
+
+    public function test_it_creates_cashier_without_email_and_without_password_and_no_notification(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->actingAs($user);
+
+        Notification::fake();
+
+        $outlet = Outlet::create([
+            'business_id' => $user->business_id,
+            'name' => 'Outlet Kasir',
+        ]);
+
+        setPermissionsTeamId($user->business_id);
+        Role::firstOrCreate(
+            ['business_id' => $user->business_id, 'name' => 'cashier', 'guard_name' => 'business'],
+            ['label' => 'Kasir', 'is_default' => false]
+        );
+
+        $data = [
+            'name' => 'Kasir Murni POS',
+            'email' => null,
+            'phone' => null,
+            'has_web_access' => false,
+            'pin' => '123456',
+            'role' => 'cashier',
+            'outlets' => [$outlet->id],
+        ];
+
+        $employee = $this->service->create($data);
+
+        $this->assertInstanceOf(User::class, $employee);
+        $this->assertNull($employee->email);
+        $this->assertNull($employee->password);
+        $this->assertNull($employee->email_verified_at);
+        $this->assertNotNull($employee->pin);
+
+        Notification::assertNothingSent();
     }
 }

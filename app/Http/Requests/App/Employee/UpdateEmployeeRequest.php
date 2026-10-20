@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\App\Employee;
 
 use App\Http\Requests\BaseInertiaFormRequest;
@@ -31,10 +33,20 @@ class UpdateEmployeeRequest extends BaseInertiaFormRequest
 
         $rules = [
             'name' => 'required|string|max:200',
-            'email' => 'required|email|max:200',
+            'has_web_access' => 'nullable|boolean',
+            'email' => [
+                'nullable',
+                'required_if:has_web_access,true,1',
+                'email',
+                'max:200',
+            ],
             'phone' => 'nullable|numeric|digits_between:8,16',
             'pin' => 'nullable|numeric|digits:6',
         ];
+
+        if ($targetUser && $targetUser->is_root_user) {
+            $rules['email'] = ['required', 'email', 'max:200'];
+        }
 
         if ($targetUser && ! $targetUser->is_root_user) {
             $rules['role'] = [
@@ -63,6 +75,7 @@ class UpdateEmployeeRequest extends BaseInertiaFormRequest
             'name.required' => 'Nama lengkap wajib diisi.',
             'name.max' => 'Nama lengkap tidak boleh lebih dari :max karakter.',
             'email.required' => 'Alamat email wajib diisi.',
+            'email.required_if' => 'Alamat email wajib diisi jika memberikan akses ke dashboard web.',
             'email.email' => 'Format email kurang tepat. Contoh: nama@bisnis.com',
             'phone.numeric' => 'Nomor telepon harus berupa angka.',
             'phone.digits_between' => 'Nomor telepon harus terdiri dari :min hingga :max angka.',
@@ -81,7 +94,9 @@ class UpdateEmployeeRequest extends BaseInertiaFormRequest
      */
     public function withValidator($validator): void
     {
-        $validator->after(function ($validator) {
+        $businessId = Auth::user()?->business_id;
+
+        $validator->after(function ($validator) use ($businessId) {
             $email = $this->input('email');
             $phone = $this->input('phone');
             $targetUser = $this->route('user');
@@ -89,23 +104,25 @@ class UpdateEmployeeRequest extends BaseInertiaFormRequest
 
             if (! empty($email)) {
                 $emailExists = User::withTrashed()
+                    ->where('business_id', $businessId)
                     ->where('email', $email)
                     ->when($targetId, fn ($q) => $q->where('id', '!=', $targetId))
                     ->exists();
 
                 if ($emailExists) {
-                    $validator->errors()->add('email', 'Email ini sudah terdaftar di sistem. Coba gunakan alamat email lain ya.');
+                    $validator->errors()->add('email', 'Email ini sudah terdaftar pada bisnismu. Coba gunakan alamat email lain ya.');
                 }
             }
 
             if (! empty($phone)) {
                 $phoneExists = User::withTrashed()
+                    ->where('business_id', $businessId)
                     ->where('phone', $phone)
                     ->when($targetId, fn ($q) => $q->where('id', '!=', $targetId))
                     ->exists();
 
                 if ($phoneExists) {
-                    $validator->errors()->add('phone', 'Nomor telepon sudah digunakan. Coba gunakan nomor telepon lain ya.');
+                    $validator->errors()->add('phone', 'Nomor telepon sudah digunakan pada bisnismu. Coba gunakan nomor telepon lain ya.');
                 }
             }
         });

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\App\Employee;
 
 use App\Http\Requests\BaseInertiaFormRequest;
@@ -30,8 +32,22 @@ class StoreEmployeeRequest extends BaseInertiaFormRequest
 
         return [
             'name' => 'required|string|max:200',
-            'email' => 'required|email|max:200',
-            'phone' => 'nullable|numeric|digits_between:8,16',
+            'has_web_access' => 'nullable|boolean',
+            'email' => [
+                'nullable',
+                'required_if:has_web_access,true,1',
+                'email',
+                'max:200',
+                Rule::unique('users', 'email')
+                    ->where('business_id', $businessId),
+            ],
+            'phone' => [
+                'nullable',
+                'numeric',
+                'digits_between:8,16',
+                Rule::unique('users', 'phone')
+                    ->where('business_id', $businessId),
+            ],
             'role' => [
                 'required',
                 'string',
@@ -57,9 +73,12 @@ class StoreEmployeeRequest extends BaseInertiaFormRequest
             'name.required' => 'Nama lengkap wajib diisi.',
             'name.max' => 'Nama lengkap tidak boleh lebih dari :max karakter.',
             'email.required' => 'Alamat email wajib diisi.',
+            'email.required_if' => 'Alamat email wajib diisi jika memberikan akses ke dashboard web.',
             'email.email' => 'Format email kurang tepat. Contoh: nama@bisnis.com',
+            'email.unique' => 'Email ini sudah terdaftar pada bisnismu.',
             'phone.numeric' => 'Nomor telepon harus berupa angka.',
             'phone.digits_between' => 'Nomor telepon harus terdiri dari :min hingga :max angka.',
+            'phone.unique' => 'Nomor telepon sudah digunakan pada bisnismu.',
             'role.required' => 'Silakan pilih peran untuk karyawan ini.',
             'role.exists' => 'Peran yang dipilih tidak valid.',
             'outlets.required' => 'Pilih setidaknya satu outlet untuk akses karyawan.',
@@ -76,21 +95,31 @@ class StoreEmployeeRequest extends BaseInertiaFormRequest
      */
     public function withValidator($validator): void
     {
-        $validator->after(function ($validator) {
+        $businessId = Auth::user()?->business_id;
+
+        $validator->after(function ($validator) use ($businessId) {
             $email = $this->input('email');
             $phone = $this->input('phone');
 
             if (! empty($email)) {
-                $emailExists = User::withTrashed()->where('email', $email)->exists();
+                $emailExists = User::withTrashed()
+                    ->where('business_id', $businessId)
+                    ->where('email', $email)
+                    ->exists();
+
                 if ($emailExists) {
-                    $validator->errors()->add('email', 'Email ini sudah terdaftar di sistem. Coba gunakan alamat email lain ya.');
+                    $validator->errors()->add('email', 'Email ini sudah terdaftar pada bisnismu. Coba gunakan alamat email lain ya.');
                 }
             }
 
             if (! empty($phone)) {
-                $phoneExists = User::withTrashed()->where('phone', $phone)->exists();
+                $phoneExists = User::withTrashed()
+                    ->where('business_id', $businessId)
+                    ->where('phone', $phone)
+                    ->exists();
+
                 if ($phoneExists) {
-                    $validator->errors()->add('phone', 'Nomor telepon sudah digunakan. Coba gunakan nomor telepon lain ya.');
+                    $validator->errors()->add('phone', 'Nomor telepon sudah digunakan pada bisnismu. Coba gunakan nomor telepon lain ya.');
                 }
             }
         });

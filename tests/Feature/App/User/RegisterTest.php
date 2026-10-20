@@ -4,12 +4,17 @@ namespace Tests\Feature\App\User;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Events\User\BusinessRegistered;
+use App\Models\Business;
 use App\Models\BusinessType;
+use App\Models\User;
 use App\Notifications\VerifyEmailBusiness;
 use App\Notifications\WelcomeUser;
 use App\Services\App\Outlet\OutletProvisioningService;
+use Database\Seeders\Production\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 use Mockery;
@@ -78,9 +83,9 @@ class RegisterTest extends TestCase
     public function test_user_can_register_business_and_notifications_are_queued(): void
     {
         Notification::fake();
-        \Illuminate\Support\Facades\Event::fake([\App\Events\User\BusinessRegistered::class]);
+        Event::fake([BusinessRegistered::class]);
 
-        $this->seed(\Database\Seeders\Production\RolePermissionSeeder::class);
+        $this->seed(RolePermissionSeeder::class);
 
         $type = BusinessType::factory()->forType('minimarket')->create();
 
@@ -118,7 +123,7 @@ class RegisterTest extends TestCase
             WelcomeUser::class
         );
 
-        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\User\BusinessRegistered::class);
+        Event::assertDispatched(BusinessRegistered::class);
     }
 
     public function test_registration_validation_fails_with_invalid_data(): void
@@ -130,5 +135,105 @@ class RegisterTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['name', 'owner_name', 'outlet_name', 'email', 'phone', 'business_type_id', 'password']);
+    }
+
+    public function test_former_employee_can_register_new_business_with_same_email(): void
+    {
+        Notification::fake();
+        Event::fake([BusinessRegistered::class]);
+        $this->seed(RolePermissionSeeder::class);
+
+        $type = BusinessType::factory()->forType('minimarket')->create();
+        $provisioningMock = Mockery::mock(OutletProvisioningService::class);
+        $provisioningMock->shouldReceive('provisionAll')->once()->andReturnNull();
+        $this->app->instance(OutletProvisioningService::class, $provisioningMock);
+
+        // Pre-existing employee in another business
+        $otherBusiness = Business::create([
+            'name' => 'Previous Employer',
+            'owner_name' => 'Old Boss',
+            'email' => 'boss_'.uniqid().'@test.test',
+            'phone' => '081122334455',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        $employeeEmail = 'budi.barista@test.test';
+        $employeePhone = '081234567899';
+
+        User::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Budi Barista',
+            'email' => $employeeEmail,
+            'phone' => $employeePhone,
+            'password' => bcrypt('password123'),
+            'is_root_user' => false,
+        ]);
+
+        // Budi now starts his own coffee shop
+        $payload = [
+            'name' => 'Kopi Budi Senja',
+            'owner_name' => 'Budi Mandiri',
+            'outlet_name' => 'Kedai Pusat',
+            'email' => $employeeEmail,
+            'phone' => $employeePhone,
+            'business_type_id' => $type->id,
+            'password' => 'kopi123456',
+            'password_confirmation' => 'kopi123456',
+        ];
+
+        $response = $this->post(route('register.store'), $payload);
+
+        $response->assertRedirect(route('overview'));
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::REGISTER_SUCCESS);
+
+        // Verify Budi is authenticated as root user of new business
+        $this->assertTrue(Auth::guard('business')->check());
+        $newRoot = Auth::guard('business')->user();
+        $this->assertEquals($employeeEmail, $newRoot->email);
+        $this->assertTrue((bool) $newRoot->is_root_user);
+        $this->assertNotEquals($otherBusiness->id, $newRoot->business_id);
+    }
+
+    public function test_existing_root_owner_cannot_register_new_business_with_same_email(): void
+    {
+        $type = BusinessType::factory()->forType('minimarket')->create();
+
+        $existingOwnerEmail = 'owner.active@test.test';
+
+        $existingBusiness = Business::create([
+            'name' => 'Active Business',
+            'owner_name' => 'Active Owner',
+            'email' => $existingOwnerEmail,
+            'phone' => '081999888777',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $type->id,
+        ]);
+
+        User::create([
+            'business_id' => $existingBusiness->id,
+            'name' => 'Active Owner',
+            'email' => $existingOwnerEmail,
+            'phone' => '081999888777',
+            'password' => bcrypt('password123'),
+            'is_root_user' => true,
+        ]);
+
+        $payload = [
+            'name' => 'Second Business',
+            'owner_name' => 'Active Owner',
+            'outlet_name' => 'Second Outlet',
+            'email' => $existingOwnerEmail,
+            'phone' => '081999888777',
+            'business_type_id' => $type->id,
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ];
+
+        $response = $this->post(route('register.store'), $payload);
+
+        $response->assertSessionHasErrors(['email', 'phone']);
     }
 }

@@ -78,6 +78,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $appends = [
         'has_pin',
+        'has_web_access',
         'photo_url',
     ];
 
@@ -109,6 +110,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getHasPinAttribute(): bool
     {
         return ! empty($this->pin);
+    }
+
+    /**
+     * Determine if the user has web dashboard access.
+     */
+    public function getHasWebAccessAttribute(): bool
+    {
+        return ! empty($this->password);
     }
 
     /**

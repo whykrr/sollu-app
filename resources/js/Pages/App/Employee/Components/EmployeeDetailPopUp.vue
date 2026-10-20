@@ -54,6 +54,24 @@
                     </span>
                 </div>
                 <div>
+                    <span class="text-slate-500 block text-[11px]">Akses Portal Web</span>
+                    <span class="font-medium text-slate-800 flex items-center gap-1.5 mt-0.5">
+                        <FontAwesomeIcon
+                            :icon="faGlobe"
+                            :class="
+                                detail?.is_root_user || detail?.has_web_access || detail?.email
+                                    ? 'text-emerald-500'
+                                    : 'text-slate-300'
+                            "
+                        />
+                        {{
+                            detail?.is_root_user || detail?.has_web_access || detail?.email
+                                ? 'Aktif (Email & Sandi)'
+                                : 'Kasir POS Saja (Tanpa Web)'
+                        }}
+                    </span>
+                </div>
+                <div>
                     <span class="text-slate-500 block text-[11px]">Terakhir Masuk (Login)</span>
                     <span class="font-medium text-slate-800 mt-0.5 block">
                         {{
@@ -127,7 +145,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { usePopUpStore } from '@/store/popup'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faEnvelope, faPhone, faKey } from '@fortawesome/free-solid-svg-icons'
+import { faEnvelope, faPhone, faKey, faGlobe } from '@fortawesome/free-solid-svg-icons'
 import { formatDateTime } from '@/Composable/time'
 import axios from 'axios'
 

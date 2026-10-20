@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\App\User;
 
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Rule;
 
 /**
  * @property string $name
@@ -32,14 +35,35 @@ class RegisterRequest extends BaseInertiaFormRequest
             'name' => ['required', 'string', 'max:200'],
             'owner_name' => ['required', 'string', 'max:200'],
             'outlet_name' => ['required', 'string', 'max:200'],
-            'email' => ['required', 'email', 'unique:users,email'],
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'email')->where(function ($query) {
+                    return $query->where('is_root_user', true)->whereNull('deleted_at');
+                }),
+            ],
             'phone' => [
                 'required',
                 'regex:/^(0|\+62|62)[0-9]{7,13}$/',
-                'unique:users,phone',
+                Rule::unique('users', 'phone')->where(function ($query) {
+                    return $query->where('is_root_user', true)->whereNull('deleted_at');
+                }),
             ],
             'business_type_id' => ['required', 'integer', 'exists:business_types,id'],
             'password' => ['required', 'confirmed', 'min:8'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'Email ini sudah terdaftar sebagai pemilik usaha di bisnis lain.',
+            'phone.unique' => 'Nomor telepon sudah terdaftar sebagai pemilik usaha di bisnis lain.',
         ];
     }
 }

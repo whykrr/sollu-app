@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Notifications\ExcelImportCompleted;
 use App\Notifications\NewEmployee;
+use App\Services\App\Employee\EmployeeService;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,7 +19,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -132,14 +132,16 @@ class ImportEmployeeJob implements ShouldQueue
                             throw new Exception(implode(', ', $validator->errors()->all()));
                         }
 
-                        // Check global email uniqueness
-                        if (User::withTrashed()->where('email', $email)->exists()) {
-                            throw new Exception("Email '{$email}' sudah terdaftar di sistem.");
+                        $businessId = $this->job->user->business_id;
+
+                        // Check email uniqueness within current business
+                        if (User::withTrashed()->where('business_id', $businessId)->where('email', $email)->exists()) {
+                            throw new Exception("Email '{$email}' sudah terdaftar pada bisnismu.");
                         }
 
-                        // Check phone uniqueness if provided
-                        if (! empty($phone) && User::withTrashed()->where('phone', $phone)->exists()) {
-                            throw new Exception("Nomor telepon '{$phone}' sudah digunakan.");
+                        // Check phone uniqueness within current business if provided
+                        if (! empty($phone) && User::withTrashed()->where('business_id', $businessId)->where('phone', $phone)->exists()) {
+                            throw new Exception("Nomor telepon '{$phone}' sudah digunakan pada bisnismu.");
                         }
 
                         // Resolve Role
@@ -177,7 +179,7 @@ class ImportEmployeeJob implements ShouldQueue
                             $assignedOutletNames = $this->outlets->pluck('name')->toArray();
                         }
 
-                        $defaultPassword = Str::random(10);
+                        $defaultPassword = EmployeeService::generateDefaultPassword();
 
                         DB::beginTransaction();
                         try {
