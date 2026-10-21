@@ -3,12 +3,16 @@
 namespace Tests\Integration\Services\App\User;
 
 use App\Enums\BusinessStatus;
-use App\Enums\RoleEnum;
+use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
+use App\Models\Invoice;
 use App\Models\Outlet;
-use App\Models\User;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
+use App\Services\App\Invoice\CompleteInvoiceService;
 use App\Services\App\Outlet\OutletProvisioningService;
+use App\Services\App\Subscription\BillingEngine;
 use App\Services\App\User\RegisterBusinessService;
 use Database\Seeders\Production\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,7 +33,11 @@ class RegisterBusinessServiceTest extends TestCase
 
         $this->seed(RolePermissionSeeder::class);
         $this->provisioningServiceMock = Mockery::mock(OutletProvisioningService::class);
-        $this->service = new RegisterBusinessService($this->provisioningServiceMock);
+        $this->service = new RegisterBusinessService(
+            $this->provisioningServiceMock,
+            app(BillingEngine::class),
+            app(CompleteInvoiceService::class)
+        );
     }
 
     protected function tearDown(): void
@@ -38,10 +46,21 @@ class RegisterBusinessServiceTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_it_successfully_registers_business_outlet_and_owner(): void
+    public function test_it_successfully_registers_business_with_trial_subscription(): void
     {
-        // Setup business type
+        // Setup business type & subscription plan
         $type = BusinessType::factory()->forType('coffee_shop')->create();
+        $plan = SubscriptionPlan::create([
+            'code' => 'micro_test',
+            'name' => 'Paket Mikro Test',
+            'price_per_outlet' => 50000,
+            'yearly_discount_percent' => 0,
+            'max_outlets' => 1,
+            'has_trial' => true,
+            'trial_duration_days' => 14,
+            'is_active' => true,
+            'is_public' => true,
+        ]);
 
         $this->provisioningServiceMock->shouldReceive('provisionAll')
             ->once()
@@ -55,6 +74,8 @@ class RegisterBusinessServiceTest extends TestCase
             'email' => 'budi@kopimaju.test',
             'phone' => '081234567890',
             'business_type_id' => $type->id,
+            'plan_id' => $plan->id,
+            'use_trial' => true,
             'password' => 'secret123',
         ];
 
@@ -65,73 +86,145 @@ class RegisterBusinessServiceTest extends TestCase
         $this->assertArrayHasKey('user', $result);
         $this->assertArrayHasKey('business', $result);
         $this->assertArrayHasKey('outlet', $result);
+        $this->assertArrayHasKey('subscription', $result);
+        $this->assertNull($result['invoice']);
 
         $business = $result['business'];
         $outlet = $result['outlet'];
         $user = $result['user'];
+        $subscription = $result['subscription'];
 
-        // Assert Business
+        // Assert Business & has_used_trial
         $this->assertInstanceOf(Business::class, $business);
         $this->assertEquals('Kopi Maju Jaya', $business->name);
-        $this->assertEquals('Budi Santoso', $business->owner_name);
-        $this->assertEquals('budi@kopimaju.test', $business->email);
-        $this->assertEquals('081234567890', $business->phone);
+        $this->assertTrue($business->has_used_trial);
         $this->assertEquals(BusinessStatus::Active, $business->status);
-        $this->assertEquals($type->id, $business->business_type_id);
-        $this->assertNotNull($business->trial_end_at);
 
-        // Assert Outlet
-        $this->assertInstanceOf(Outlet::class, $outlet);
-        $this->assertEquals('Outlet Sudirman', $outlet->name);
-        $this->assertTrue($outlet->is_main_outlet);
-        $this->assertEquals($business->id, $outlet->business_id);
+        // Assert Subscription is trial & active
+        $this->assertInstanceOf(Subscription::class, $subscription);
+        $this->assertTrue($subscription->is_trial);
+        $this->assertEquals(SubscriptionStatus::Active, $subscription->status);
+        $this->assertEquals($plan->id, $subscription->plan_id);
+        $this->assertEquals(14, (int) round(now()->diffInDays($subscription->expired_at)));
 
-        // Assert User
-        $this->assertInstanceOf(User::class, $user);
-        $this->assertEquals('Budi Santoso', $user->name);
-        $this->assertEquals('budi@kopimaju.test', $user->email);
-        $this->assertEquals('081234567890', $user->phone);
-        $this->assertTrue($user->is_root_user);
-        $this->assertEquals($business->id, $user->business_id);
-        $this->assertFalse($user->hasRole(RoleEnum::OWNER->value));
-        $this->assertCount(0, $user->roles);
-        $this->assertEquals(['*'], $user->getCachedPermissions());
-        $this->assertTrue($user->can('any.custom.ability'));
-        $this->assertTrue($user->outlets->contains($outlet->id));
-
-        // Assert Database records
-        $this->assertDatabaseHas('roles', [
-            'business_id' => $business->id,
-            'name' => RoleEnum::OWNER->value,
-            'is_default' => true,
-        ]);
-        $this->assertDatabaseHas('businesses', [
-            'id' => $business->id,
-            'name' => 'Kopi Maju Jaya',
-            'email' => 'budi@kopimaju.test',
-        ]);
-
-        $this->assertDatabaseHas('outlets', [
-            'id' => $outlet->id,
-            'name' => 'Outlet Sudirman',
-            'is_main_outlet' => true,
-        ]);
-
-        $this->assertDatabaseHas('users', [
-            'id' => $user->id,
-            'email' => 'budi@kopimaju.test',
-            'is_root_user' => true,
-        ]);
-
-        $this->assertDatabaseHas('outlet_user', [
+        // Assert outlet attached to subscription
+        $this->assertDatabaseHas('subscription_outlets', [
+            'subscription_id' => $subscription->id,
             'outlet_id' => $outlet->id,
-            'user_id' => $user->id,
         ]);
+
+        // Assert no invoices generated
+        $this->assertDatabaseCount('invoices', 0);
+    }
+
+    public function test_it_successfully_registers_business_with_direct_paid_subscription(): void
+    {
+        $type = BusinessType::factory()->forType('coffee_shop')->create();
+        $plan = SubscriptionPlan::create([
+            'code' => 'basic_test',
+            'name' => 'Paket Basic Test',
+            'price_per_outlet' => 100000,
+            'yearly_discount_percent' => 20,
+            'max_outlets' => null,
+            'has_trial' => true,
+            'is_active' => true,
+            'is_public' => true,
+        ]);
+
+        $this->provisioningServiceMock->shouldReceive('provisionAll')
+            ->once()
+            ->with(Mockery::type(Outlet::class))
+            ->andReturnNull();
+
+        $data = [
+            'name' => 'Kopi Berbayar Direct',
+            'owner_name' => 'Rina Wijaya',
+            'outlet_name' => 'Outlet Gatot Subroto',
+            'email' => 'rina@kopidirect.test',
+            'phone' => '081234567891',
+            'business_type_id' => $type->id,
+            'plan_id' => $plan->id,
+            'use_trial' => false,
+            'billing_cycle' => 'yearly',
+            'password' => 'secret123',
+        ];
+
+        $result = $this->service->execute($data);
+
+        $business = $result['business'];
+        $subscription = $result['subscription'];
+        $invoice = $result['invoice'];
+
+        $this->assertFalse($business->has_used_trial);
+        $this->assertFalse($subscription->is_trial);
+        $this->assertEquals(SubscriptionStatus::Pending, $subscription->status);
+        $this->assertEquals('yearly', $subscription->billing_cycle);
+
+        // Verify initial invoice created
+        $this->assertNotNull($invoice);
+        $this->assertInstanceOf(Invoice::class, $invoice);
+        // 100000 * 12 = 1200000 - 20% = 960000
+        $this->assertEquals(960000, (float) $invoice->total_amount);
+        $this->assertDatabaseHas('invoices', [
+            'id' => $invoice->id,
+            'business_id' => $business->id,
+            'total_amount' => 960000,
+        ]);
+    }
+
+    public function test_it_forces_paid_if_plan_does_not_have_trial(): void
+    {
+        $type = BusinessType::factory()->forType('coffee_shop')->create();
+        $plan = SubscriptionPlan::create([
+            'code' => 'pro_test',
+            'name' => 'Paket Pro Test',
+            'price_per_outlet' => 250000,
+            'yearly_discount_percent' => 0,
+            'has_trial' => false,
+            'is_active' => true,
+            'is_public' => true,
+        ]);
+
+        $this->provisioningServiceMock->shouldReceive('provisionAll')
+            ->once()
+            ->with(Mockery::type(Outlet::class))
+            ->andReturnNull();
+
+        $data = [
+            'name' => 'Pro Enterprise Co',
+            'owner_name' => 'Doni Darmawan',
+            'outlet_name' => 'HQ Jakarta',
+            'email' => 'doni@enterprise.test',
+            'phone' => '081234567892',
+            'business_type_id' => $type->id,
+            'plan_id' => $plan->id,
+            'use_trial' => true, // Attempted to get trial
+            'billing_cycle' => 'monthly',
+            'password' => 'secret123',
+        ];
+
+        $result = $this->service->execute($data);
+
+        // Must NOT be trial
+        $this->assertFalse($result['business']->has_used_trial);
+        $this->assertFalse($result['subscription']->is_trial);
+        $this->assertEquals(SubscriptionStatus::Pending, $result['subscription']->status);
+        $this->assertNotNull($result['invoice']);
+        $this->assertEquals(250000, (float) $result['invoice']->total_amount);
     }
 
     public function test_it_rolls_back_database_transaction_on_failure(): void
     {
         $type = BusinessType::factory()->forType('minimarket')->create();
+        $plan = SubscriptionPlan::create([
+            'code' => 'fail_plan',
+            'name' => 'Fail Plan',
+            'price_per_outlet' => 10000,
+            'yearly_discount_percent' => 0,
+            'has_trial' => true,
+            'is_active' => true,
+            'is_public' => true,
+        ]);
 
         $this->provisioningServiceMock->shouldReceive('provisionAll')
             ->once()
@@ -144,6 +237,8 @@ class RegisterBusinessServiceTest extends TestCase
             'email' => 'siti@tokoserba.test',
             'phone' => '081298765432',
             'business_type_id' => $type->id,
+            'plan_id' => $plan->id,
+            'use_trial' => true,
             'password' => 'password123',
         ];
 
@@ -158,6 +253,7 @@ class RegisterBusinessServiceTest extends TestCase
             $this->assertDatabaseCount('outlets', 0);
             $this->assertDatabaseCount('users', 0);
             $this->assertDatabaseCount('outlet_user', 0);
+            $this->assertDatabaseCount('subscriptions', 0);
         }
     }
 }

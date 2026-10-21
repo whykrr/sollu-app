@@ -142,12 +142,19 @@ class BillingController extends Controller
             ->orderBy('bank_name')
             ->get();
 
+        $activeOutletsList = $business->outlets()
+            ->where('is_active', true)
+            ->orderByDesc('is_main_outlet')
+            ->orderBy('created_at')
+            ->get(['id', 'name', 'slug', 'is_active', 'is_main_outlet']);
+
         return Inertia::render('Settings/Billing/Checkout', [
             'subscription' => $subscription,
             'plan' => $plan,
             'isRenewal' => $request->boolean('is_renewal'),
             'manualPaymentMethods' => $manualPaymentMethods,
             'isMidtransEnabled' => SystemSetting::isMidtransEnabled(),
+            'activeOutletsList' => $activeOutletsList,
         ]);
     }
 }

@@ -9,6 +9,8 @@ use App\Models\OutletAuditLog;
 use App\Models\User;
 use App\Services\App\Subscription\BillingEngine;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CreateOutletService
 {
@@ -25,6 +27,22 @@ class CreateOutletService
     public function execute(array $data, User $user)
     {
         return DB::transaction(function () use ($data, $user) {
+            $activeSubscription = $user->business->subscriptions()
+                ->where('status', 'active')
+                ->first();
+
+            if ($activeSubscription && $activeSubscription->plan) {
+                $plan = $activeSubscription->plan;
+                if (! $plan->isUnlimitedOutlets()) {
+                    $activeOutletsCount = $user->business->outlets()->where('is_active', true)->count();
+                    if ($activeOutletsCount >= $plan->max_outlets) {
+                        throw ValidationException::withMessages([
+                            'name' => "Paket Anda ({$plan->name}) dibatasi maksimal {$plan->max_outlets} cabang outlet. Silakan upgrade ke Paket Basic untuk menambah cabang baru.",
+                        ]);
+                    }
+                }
+            }
+
             $outlet = new Outlet;
             $outlet->business_id = $user->business_id;
             $outlet->name = $data['name'];
@@ -88,7 +106,7 @@ class CreateOutletService
                         'amount' => $invoice->total_amount,
                         'payment_method' => 'manual',
                         'status' => 'pending',
-                        'payment_reference' => "{$invoice->invoice_number}-MANUAL-".\Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
+                        'payment_reference' => "{$invoice->invoice_number}-MANUAL-".Str::upper(Str::random(4)),
                     ]);
                 }
             }

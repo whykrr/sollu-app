@@ -47,8 +47,8 @@
                 </div>
             </div>
 
-            <!-- TAMPILAN JIKA BELUM BERLANGGANAN (MASA UJI COBA / TRIAL) -->
-            <div v-if="!subscription" class="bg-white border border-slate-200 rounded-xl p-3">
+            <!-- TAMPILAN JIKA MASA UJI COBA (TRIAL) -->
+            <div v-if="subscription?.is_trial" class="bg-white border border-slate-200 rounded-xl p-3">
                 <div
                     class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-100 pb-3 mb-3"
                 >
@@ -61,26 +61,25 @@
                         <div>
                             <div class="flex items-center gap-2">
                                 <h2 class="text-base font-bold text-gray-900">
-                                    Masa Uji Coba Gratis (Free Trial)
+                                    Masa Uji Coba Gratis (Free Trial) - {{ subscription.plan?.name }}
                                 </h2>
                                 <span
                                     class="badge text-xs"
                                     :class="
-                                        gapDaysFromNow(auth.business?.trial_end_at) > 0
+                                        gapDaysFromNow(subscription.expired_at) > 0
                                             ? 'badge-info'
                                             : 'badge-danger'
                                     "
                                 >
                                     {{
-                                        gapDaysFromNow(auth.business?.trial_end_at) > 0
+                                        gapDaysFromNow(subscription.expired_at) > 0
                                             ? 'Aktif'
                                             : 'Berakhir'
                                     }}
                                 </span>
                             </div>
                             <p class="text-xs text-gray-500 mt-0.5">
-                                Tingkatkan ke paket berbayar untuk menikmati akses penuh dan kelola
-                                multi-outlet tanpa batasan.
+                                Tingkatkan ke paket berbayar untuk menikmati akses penuh dan perpanjang masa aktif bisnismu.
                             </p>
                         </div>
                     </div>
@@ -90,7 +89,7 @@
                         class="btn btn-main btn-sm text-xs font-semibold py-2 px-3 rounded-lg w-full md:w-auto text-center shrink-0"
                     >
                         <FontAwesomeIcon :icon="faGem" />
-                        Pilih Paket Langganan
+                        Tingkatkan Paket Langganan
                     </Link>
                 </div>
 
@@ -108,21 +107,21 @@
                             </span>
                             <span class="block text-sm font-bold text-gray-800 mt-0.5">
                                 {{
-                                    auth.business?.trial_end_at
-                                        ? formatDateID(auth.business.trial_end_at)
+                                    subscription.expired_at
+                                        ? formatDateID(subscription.expired_at)
                                         : '-'
                                 }}
                                 <span
                                     v-if="
-                                        auth.business?.trial_end_at &&
-                                        gapDaysFromNow(auth.business.trial_end_at) > 0
+                                        subscription.expired_at &&
+                                        gapDaysFromNow(subscription.expired_at) > 0
                                     "
                                     class="text-xs font-normal text-amber-600 ml-1"
                                 >
-                                    (tersisa {{ gapDaysFromNow(auth.business.trial_end_at) }} hari)
+                                    (tersisa {{ gapDaysFromNow(subscription.expired_at) }} hari)
                                 </span>
                                 <span
-                                    v-else-if="auth.business?.trial_end_at"
+                                    v-else-if="subscription.expired_at"
                                     class="text-xs font-normal text-rose-600 ml-1"
                                 >
                                     (telah berakhir)
@@ -144,9 +143,49 @@
                             </span>
                             <span class="block text-sm font-bold text-gray-800 mt-0.5">
                                 {{ auth.outlets?.length ?? 0 }} Outlet Terdaftar
+                                <span v-if="subscription.plan?.max_outlets" class="text-xs font-normal text-gray-500 ml-1">
+                                    (Maks {{ subscription.plan.max_outlets }} outlet)
+                                </span>
+                                <span v-else class="text-xs font-normal text-gray-500 ml-1">
+                                    (Unlimited outlet)
+                                </span>
                             </span>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- TAMPILAN JIKA TIDAK ADA PAKET AKTIF -->
+            <div v-else-if="!subscription" class="bg-white border border-slate-200 rounded-xl p-3">
+                <div
+                    class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3"
+                >
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500 shrink-0"
+                        >
+                            <FontAwesomeIcon :icon="faBolt" class="text-base" />
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-base font-bold text-gray-900">
+                                    Tidak Ada Paket Aktif
+                                </h2>
+                                <span class="badge badge-danger text-xs">Kedaluwarsa</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                Masa langganan atau masa uji coba bisnismu telah berakhir. Pilih paket langganan untuk melanjutkan operasional.
+                            </p>
+                        </div>
+                    </div>
+
+                    <Link
+                        :href="route('settings.billing.plans')"
+                        class="btn btn-main btn-sm text-xs font-semibold py-2 px-3 rounded-lg w-full md:w-auto text-center shrink-0"
+                    >
+                        <FontAwesomeIcon :icon="faGem" />
+                        Pilih Paket Langganan
+                    </Link>
                 </div>
             </div>
 

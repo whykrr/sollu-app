@@ -95,6 +95,33 @@
                 </div>
             </template>
 
+            <template #limits="{ row }">
+                <div class="flex flex-col gap-1 items-start py-1">
+                    <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded font-bold"
+                        :class="
+                            row.max_outlets
+                                ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                                : 'bg-purple-50 text-purple-700 border border-purple-200'
+                        "
+                    >
+                        <FontAwesomeIcon :icon="faStore" class="text-[9px]" />
+                        {{ row.max_outlets ? `Maks ${row.max_outlets} Cabang` : 'Unlimited Cabang' }}
+                    </span>
+                    <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded font-bold"
+                        :class="
+                            row.has_trial
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-slate-50 text-slate-500 border border-slate-200'
+                        "
+                    >
+                        <FontAwesomeIcon :icon="faBolt" class="text-[9px]" />
+                        {{ row.has_trial ? `Trial ${row.trial_duration_days || 14} Hari` : 'Tanpa Trial' }}
+                    </span>
+                </div>
+            </template>
+
             <template #features="{ row }">
                 <button
                     type="button"
@@ -217,6 +244,7 @@ import {
     faTrash,
     faStore,
     faBuilding,
+    faBolt,
 } from '@fortawesome/free-solid-svg-icons'
 import { router } from '@inertiajs/vue3'
 import { usePopUpStore } from '@/store/popup'
@@ -246,6 +274,7 @@ const visibilityFilter = ref('all')
 const tableHeaders = [
     { field: 'name', label: 'Paket & Kode', slot: 'code_name', sortable: true },
     { field: 'price_per_outlet', label: 'Harga / Outlet', slot: 'price', sortable: true },
+    { field: 'max_outlets', label: 'Batas Cabang & Trial', slot: 'limits' },
     { field: 'features_count', label: 'Fitur Sistem', slot: 'features', sortable: true },
     { field: 'subscriptions_count', label: 'Pelanggan Aktif', slot: 'subscribers', sortable: true },
     { field: 'is_public', label: 'Katalog', slot: 'is_public', sortable: true },

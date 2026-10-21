@@ -57,12 +57,11 @@
                         <span class="font-bold text-neutral-800">
                             {{ row.subscriptions[0].plan.name }}
                         </span>
-                    </div>
-                    <div v-else-if="isTrialActive(row.trial_end_at)">
                         <span
-                            class="px-2 py-0.5 text-[10px] rounded-full font-bold bg-amber-100 text-amber-800"
+                            v-if="row.subscriptions[0].is_trial"
+                            class="ml-1.5 px-1.5 py-0.5 text-[10px] rounded font-semibold bg-amber-100 text-amber-800"
                         >
-                            Masa Trial
+                            Trial
                         </span>
                     </div>
                     <div v-else>
@@ -217,11 +216,6 @@ const formatDate = val => {
               month: 'short',
               year: 'numeric',
           })
-}
-
-const isTrialActive = trialEndAt => {
-    if (!trialEndAt) return false
-    return new Date(trialEndAt).getTime() > Date.now()
 }
 
 const openDetail = id => {

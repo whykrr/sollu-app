@@ -35,9 +35,10 @@ class SendNewMerchantDiscordNotification implements ShouldQueue
             ? "[{$phone}](https://wa.me/{$waPhone})"
             : '-';
 
-        $trialEnd = $business->trial_end_at
-            ? Carbon::parse($business->trial_end_at)->format('d M Y').' (15 Hari)'
-            : '-';
+        $subscription = $business->getActiveSubscriptionWithPlan();
+        $trialEnd = ($subscription && $subscription->is_trial && $subscription->expired_at)
+            ? Carbon::parse($subscription->expired_at)->format('d M Y')." ({$subscription->plan?->name})"
+            : ($subscription ? $subscription->plan?->name : '-');
 
         $cockpitUrl = route('cockpit.merchants.show', $business->id, false);
         $fullCockpitUrl = url($cockpitUrl);

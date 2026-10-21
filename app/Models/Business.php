@@ -48,7 +48,7 @@ class Business extends Model
         'phone',
         'address',
         'logo',
-        'trial_end_at',
+        'has_used_trial',
         'business_type_id',
         'status',
         'settings',
@@ -59,7 +59,7 @@ class Business extends Model
         return [
             'status' => BusinessStatus::class,
             'settings' => 'json',
-            'trial_end_at' => 'datetime',
+            'has_used_trial' => 'boolean',
         ];
     }
 
@@ -157,6 +157,14 @@ class Business extends Model
     }
 
     /**
+     * Clear cached active subscription for a given business ID.
+     */
+    public static function clearActiveSubscriptionCache(string $businessId): void
+    {
+        Cache::forget("business:{$businessId}:active_subscription");
+    }
+
+    /**
      * Memoized active subscription instance with plan and system features loaded.
      */
     protected ?Subscription $memoizedActiveSubscription = null;
@@ -201,7 +209,9 @@ class Business extends Model
         if ($this->relationLoaded('subscriptions')) {
             $subscription = $this->subscriptions
                 ->where('status', 'active')
-                ->first();
+                ->first(function (Subscription $sub) {
+                    return $sub->expired_at === null || Carbon::parse($sub->expired_at)->isFuture();
+                });
 
             if ($subscription) {
                 if (! $subscription->relationLoaded('plan')) {
@@ -220,6 +230,10 @@ class Business extends Model
         $subscription = Cache::remember("business:{$this->id}:active_subscription", 3600, function () {
             return $this->subscriptions()
                 ->where('status', 'active')
+                ->where(function ($query) {
+                    $query->whereNull('expired_at')
+                        ->orWhere('expired_at', '>=', Carbon::now());
+                })
                 ->first();
         });
 
@@ -307,14 +321,30 @@ class Business extends Model
                 return $activeSubscription->plan->activeFeatureEnums();
             }
 
-            $isTrial = $this->trial_end_at ? Carbon::parse($this->trial_end_at)->isFuture() : false;
-
-            if ($isTrial) {
-                return SystemSetting::getTrialFeatureEnumsCached();
-            }
-
             return [];
         });
+    }
+
+    /**
+     * Check how many outlets are currently active.
+     */
+    public function activeOutletsCount(): int
+    {
+        return $this->outlets()->where('is_active', true)->count();
+    }
+
+    /**
+     * Check if business can add another active outlet based on current plan quota.
+     */
+    public function canAddOutlet(): bool
+    {
+        $subscription = $this->getActiveSubscriptionWithPlan();
+
+        if (! $subscription || ! $subscription->plan) {
+            return false;
+        }
+
+        return $subscription->plan->allowsOutletCount($this->activeOutletsCount() + 1);
     }
 
     /**

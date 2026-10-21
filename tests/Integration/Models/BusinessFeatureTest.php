@@ -46,7 +46,17 @@ class BusinessFeatureTest extends TestCase
             'email' => 'trial@example.com',
             'phone' => '08123456789',
             'business_type_id' => $businessType->id,
-            'trial_end_at' => Carbon::now()->addDays(14),
+            'has_used_trial' => true,
+        ]);
+
+        Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $basicPlan->id,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'is_trial' => true,
+            'started_at' => now(),
+            'expired_at' => Carbon::now()->addDays(14),
         ]);
 
         $availableFeatures = $business->getAvailablePlanFeatures();
@@ -90,7 +100,6 @@ class BusinessFeatureTest extends TestCase
             'email' => 'pro@example.com',
             'phone' => '08123456780',
             'business_type_id' => $businessType->id,
-            'trial_end_at' => Carbon::now()->subDays(1),
         ]);
 
         $subscription = Subscription::create([
@@ -98,8 +107,8 @@ class BusinessFeatureTest extends TestCase
             'plan_id' => $proPlan->id,
             'status' => 'active',
             'billing_cycle' => 'monthly',
-            'start_at' => Carbon::now(),
-            'end_at' => Carbon::now()->addMonth(),
+            'started_at' => Carbon::now(),
+            'expired_at' => Carbon::now()->addMonth(),
         ]);
 
         $availableFeatures = $business->getAvailablePlanFeatures();
@@ -121,7 +130,6 @@ class BusinessFeatureTest extends TestCase
             'email' => 'orig@example.com',
             'phone' => '081299990001',
             'business_type_id' => $businessType->id,
-            'trial_end_at' => Carbon::now()->addDays(14),
         ]);
 
         $cachedBusiness = Business::findCached($business->id);
@@ -169,7 +177,6 @@ class BusinessFeatureTest extends TestCase
             'email' => 'person@example.com',
             'phone' => '081299990002',
             'business_type_id' => $businessType->id,
-            'trial_end_at' => Carbon::now()->subDays(1),
             'settings' => [
                 // User tries to personalize with a feature they don't have on the plan
                 'active_features' => [
@@ -184,8 +191,8 @@ class BusinessFeatureTest extends TestCase
             'plan_id' => $microPlan->id,
             'status' => 'active',
             'billing_cycle' => 'monthly',
-            'start_at' => Carbon::now(),
-            'end_at' => Carbon::now()->addMonth(),
+            'started_at' => Carbon::now(),
+            'expired_at' => Carbon::now()->addMonth(),
         ]);
 
         // Has POS_CASHIER because it's both on the plan and in active_features

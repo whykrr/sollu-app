@@ -63,6 +63,15 @@ class VerifyPosDevice
             $device->loadMissing('outlet');
         }
         $outlet = $device->outlet;
+
+        if (! $outlet || ! $outlet->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cabang outlet ini sedang dinonaktifkan oleh pemilik usaha. Silakan aktifkan cabang pada menu Pengaturan Outlet untuk melanjutkan transaksi kasir.',
+                'error_code' => 'OUTLET_INACTIVE',
+            ], 403);
+        }
+
         $business = $outlet?->business_id ? Business::findCached($outlet->business_id) : null;
 
         if (! $business || ! $business->hasFeature(FeatureEnum::POS_CASHIER)) {

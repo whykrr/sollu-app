@@ -4,10 +4,13 @@ namespace App\Services\App\Outlet;
 
 use App\Contracts\Audit\ActivityLoggerInterface;
 use App\Enums\AuditModuleEnum;
+use App\Models\Invoice;
 use App\Models\Outlet;
 use App\Models\OutletAuditLog;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ManageOutletStatusService
 {
@@ -22,8 +25,29 @@ class ManageOutletStatusService
     public function toggleStatus(Outlet $outlet, bool $isActive, User $user): Outlet
     {
         if ($isActive) {
+            // Check active outlets quota against plan
+            $activeSubscription = $outlet->business->subscriptions()
+                ->where('status', 'active')
+                ->first();
+
+            if ($activeSubscription && $activeSubscription->plan) {
+                $plan = $activeSubscription->plan;
+                if (! $plan->isUnlimitedOutlets()) {
+                    $activeCount = $outlet->business->outlets()
+                        ->where('is_active', true)
+                        ->where('id', '!=', $outlet->id)
+                        ->count();
+
+                    if ($activeCount >= $plan->max_outlets) {
+                        throw ValidationException::withMessages([
+                            'error' => ["Tidak dapat mengaktifkan cabang. Paket Anda ({$plan->name}) dibatasi maksimal {$plan->max_outlets} cabang outlet. Silakan nonaktifkan cabang lain atau upgrade paket Anda."],
+                        ]);
+                    }
+                }
+            }
+
             // Find if there is an unpaid invoice for this outlet
-            $unpaidInvoice = \App\Models\Invoice::where('business_id', $outlet->business_id)
+            $unpaidInvoice = Invoice::where('business_id', $outlet->business_id)
                 ->where('status', '!=', 'paid')
                 ->whereHas('items', function ($query) use ($outlet) {
                     $query->where('item_type', 'outlet_addition')
@@ -32,7 +56,7 @@ class ManageOutletStatusService
                 ->first();
 
             if ($unpaidInvoice) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'unpaid_invoice_number' => $unpaidInvoice->invoice_number,
                     'unpaid_invoice_url' => route('settings.billing.invoices.show', $unpaidInvoice->invoice_number),
                     'error' => ['Outlet tidak dapat diaktifkan karena ada tagihan penambahan outlet yang belum dibayar.'],
@@ -54,14 +78,14 @@ class ManageOutletStatusService
                     'outlet_id' => $outlet->id,
                     'deactivated_at' => null,
                 ], [
-                    'activated_at' => \Carbon\Carbon::now(),
+                    'activated_at' => Carbon::now(),
                 ]);
             } else {
                 $subscription->subscriptionOutlets()
                     ->where('outlet_id', $outlet->id)
                     ->whereNull('deactivated_at')
                     ->update([
-                        'deactivated_at' => \Carbon\Carbon::now(),
+                        'deactivated_at' => Carbon::now(),
                     ]);
             }
         }
@@ -141,7 +165,7 @@ class ManageOutletStatusService
     public function setMainOutlet(Outlet $outlet, User $user): Outlet
     {
         if (! $outlet->is_active) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'error' => ['Hanya outlet yang aktif yang dapat dijadikan sebagai outlet utama.'],
             ]);
         }

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\Outlet;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,7 +21,7 @@ class BusinessInfoController extends Controller
         /** @var Business|null $business */
         $business = Business::query()
             ->where('id', $businessId)
-            ->select(['id', 'business_type_id', 'trial_end_at'])
+            ->select(['id', 'business_type_id'])
             ->with(['type:id,name'])
             ->first();
 
@@ -32,19 +31,19 @@ class BusinessInfoController extends Controller
 
         $subscription = $business->subscriptions()
             ->where('status', 'active')
-            ->select(['id', 'business_id', 'plan_id', 'expired_at'])
+            ->where(function ($q) {
+                $q->whereNull('expired_at')
+                    ->orWhere('expired_at', '>=', now());
+            })
+            ->select(['id', 'business_id', 'plan_id', 'expired_at', 'is_trial'])
             ->with(['plan:id,name'])
             ->latest('started_at')
             ->first();
 
-        $isTrial = $business->trial_end_at ? Carbon::parse($business->trial_end_at)->isFuture() : false;
-
         if ($subscription) {
-            $planName = $subscription->plan?->name ?? 'Default Plan';
+            $baseName = $subscription->plan?->name ?? 'Default Plan';
+            $planName = $subscription->is_trial ? "{$baseName} (Trial)" : $baseName;
             $expiredAt = $subscription->expired_at?->toISOString() ?? (string) $subscription->expired_at;
-        } elseif ($isTrial) {
-            $planName = 'Trial Plan';
-            $expiredAt = $business->trial_end_at ? Carbon::parse($business->trial_end_at)->toISOString() : null;
         } else {
             $planName = 'Free Plan';
             $expiredAt = null;

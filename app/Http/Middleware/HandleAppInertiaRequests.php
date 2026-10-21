@@ -77,6 +77,46 @@ class HandleAppInertiaRequests extends Middleware
             },
 
             'selectedOutlet' => fn () => $request->user() ? SelectedOutlet::make($request->user())->cached() : null,
+
+            'subscription_lock' => function () use ($request) {
+                $user = $request->user();
+                if (! $user || ! $user->business_id || ! $user->business) {
+                    return [
+                        'is_locked' => false,
+                        'lock_reason' => null,
+                        'invoice_url' => null,
+                        'plans_url' => null,
+                    ];
+                }
+
+                $business = $user->business;
+                $activeSub = $business->getActiveSubscriptionWithPlan();
+                if ($activeSub) {
+                    return [
+                        'is_locked' => false,
+                        'lock_reason' => null,
+                        'invoice_url' => null,
+                        'plans_url' => null,
+                    ];
+                }
+
+                $pendingInvoice = $business->invoices()->where('status', 'open')->latest()->first();
+                $latestSub = $business->subscriptions()->latest()->first();
+
+                $lockReason = 'subscription_expired';
+                if ($pendingInvoice) {
+                    $lockReason = 'payment_pending';
+                } elseif ($latestSub && $latestSub->is_trial) {
+                    $lockReason = 'trial_expired';
+                }
+
+                return [
+                    'is_locked' => true,
+                    'lock_reason' => $lockReason,
+                    'invoice_url' => $pendingInvoice ? route('settings.billing.invoices.show', $pendingInvoice->invoice_number) : null,
+                    'plans_url' => route('settings.billing.plans'),
+                ];
+            },
         ]);
     }
 }

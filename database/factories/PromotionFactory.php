@@ -41,7 +41,6 @@ class PromotionFactory extends Factory
                     'email' => fake()->unique()->safeEmail(),
                     'phone' => fake()->phoneNumber(),
                     'business_type_id' => $businessType->id,
-                    'trial_end_at' => now()->addDays(14),
                 ])->id;
             },
             'name' => fake()->words(3, true),

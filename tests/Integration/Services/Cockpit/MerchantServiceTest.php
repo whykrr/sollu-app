@@ -42,7 +42,6 @@ class MerchantServiceTest extends TestCase
             'email' => 'budi@sollumart.test',
             'phone' => '081111111111',
             'status' => BusinessStatus::Active,
-            'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
 
@@ -52,7 +51,6 @@ class MerchantServiceTest extends TestCase
             'email' => 'asep@bandung.test',
             'phone' => '082222222222',
             'status' => BusinessStatus::Suspended,
-            'trial_end_at' => now()->subDays(5),
             'business_type_id' => $type->id,
         ]);
 
@@ -84,7 +82,6 @@ class MerchantServiceTest extends TestCase
             'email' => 'rina@kopi.test',
             'phone' => '081333333333',
             'status' => BusinessStatus::Active,
-            'trial_end_at' => now()->addDays(7),
             'business_type_id' => $type->id,
         ]);
 
@@ -113,14 +110,33 @@ class MerchantServiceTest extends TestCase
             'business_id' => $b1->id,
             'plan_id' => $plan->id,
             'status' => SubscriptionStatus::Active,
+            'is_trial' => false,
             'started_at' => now(),
             'expired_at' => now()->addMonth(),
         ]);
 
+        $b2 = Business::create([
+            'name' => 'Kopi Trial',
+            'owner_name' => 'Doni',
+            'email' => 'doni@kopi.test',
+            'phone' => '081333333334',
+            'status' => BusinessStatus::Active,
+            'business_type_id' => $type->id,
+        ]);
+
+        Subscription::create([
+            'business_id' => $b2->id,
+            'plan_id' => $plan->id,
+            'status' => SubscriptionStatus::Active,
+            'is_trial' => true,
+            'started_at' => now(),
+            'expired_at' => now()->addDays(7),
+        ]);
+
         $metrics = $this->service->getMetrics();
 
-        $this->assertSame(1, $metrics['total_merchants']);
-        $this->assertSame(1, $metrics['active_merchants']);
+        $this->assertSame(2, $metrics['total_merchants']);
+        $this->assertSame(2, $metrics['active_merchants']);
         $this->assertSame(0, $metrics['suspended_merchants']);
         $this->assertSame(1, $metrics['active_subscribers']);
         $this->assertSame(1, $metrics['trial_merchants']);
@@ -143,8 +159,26 @@ class MerchantServiceTest extends TestCase
             'phone' => '081444444444',
             'address' => 'Jl. Kuliner No. 1',
             'status' => BusinessStatus::Active,
-            'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
+        ]);
+
+        $trialPlan = SubscriptionPlan::create([
+            'code' => 'micro_trial',
+            'name' => 'Micro',
+            'price_per_outlet' => 29000,
+            'yearly_discount_percent' => 0,
+            'is_active' => true,
+            'is_public' => true,
+            'has_trial' => true,
+        ]);
+
+        Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $trialPlan->id,
+            'status' => SubscriptionStatus::Active,
+            'is_trial' => true,
+            'started_at' => now(),
+            'expired_at' => now()->addDays(14),
         ]);
 
         Outlet::create([
@@ -172,7 +206,7 @@ class MerchantServiceTest extends TestCase
         $this->assertCount(1, $detail['outlets']);
         $this->assertCount(1, $detail['users']);
         $this->assertSame('trial', $detail['active_plan']['type']);
-        $this->assertSame('Masa Uji Coba (Trial)', $detail['active_plan']['plan_name']);
+        $this->assertSame('Micro (Trial)', $detail['active_plan']['plan_name']);
     }
 
     public function test_toggle_status_updates_database_and_creates_log(): void
@@ -190,7 +224,6 @@ class MerchantServiceTest extends TestCase
             'email' => 'andi@gaul.test',
             'phone' => '081555555555',
             'status' => BusinessStatus::Active,
-            'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
 
@@ -226,7 +259,6 @@ class MerchantServiceTest extends TestCase
             'email' => 'ade@fitness.test',
             'phone' => '081666666666',
             'status' => BusinessStatus::Active,
-            'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
 

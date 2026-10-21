@@ -51,13 +51,13 @@ class SummaryUser
                     ])->toArray(),
                     'permissions' => app(UserPermissionCacheService::class)->getPermissions($user, $user->business_id),
                     'business' => $user->business ? array_merge(
-                        $user->business->only('id', 'name', 'type', 'trial_end_at', 'logo', 'logo_url'),
+                        $user->business->only('id', 'name', 'type', 'has_used_trial', 'logo', 'logo_url'),
                         [
                             'inventory_costing_method' => $user->business->getCostingMethod()->value,
                             'is_costing_configured' => $user->business->isCostingMethodConfigured(),
                         ]
                     ) : null,
-                    'subscription' => $user->business->subscriptions()->with('plan')->where('status', 'active')->first()?->toArray()
+                    'subscription' => $user->business->getActiveSubscriptionWithPlan()?->toArray()
                         ?? $user->business->subscriptions()->with('plan')->latest()->first()?->toArray(),
                     'features' => $user->business ? $user->business->activePlanFeatures() : [],
                     'outlets' => ($user->is_root_user

@@ -35,6 +35,88 @@
                         </div>
                     </div>
 
+                    <!-- Downgrade Conflict Resolution Wizard -->
+                    <div
+                        v-if="isDowngradeConflict"
+                        class="bg-white border-2 border-amber-300 rounded-xl p-3.5 space-y-3"
+                    >
+                        <div class="flex items-start gap-2.5">
+                            <div class="p-2 bg-amber-100 text-amber-700 rounded-lg shrink-0 mt-0.5">
+                                <FontAwesomeIcon :icon="faTriangleExclamation" class="w-4 h-4" />
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-bold text-gray-900 text-xs">
+                                        Pilih Cabang yang Tetap Aktif
+                                    </h4>
+                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                        Maksimal {{ plan.max_outlets }} Cabang
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-gray-600 mt-1 leading-relaxed">
+                                    Paket <strong>{{ plan.name }}</strong> dibatasi maksimal <strong>{{ plan.max_outlets }} cabang</strong>. Karena Anda saat ini memiliki {{ allActiveOutlets.length }} cabang aktif, pilih cabang yang akan tetap beroperasi. Cabang yang tidak dipilih akan dinonaktifkan sementara dan kasir pada cabang tersebut terkunci, namun data transaksi dan stok cabang tetap aman.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Outlet Checklist -->
+                        <div class="space-y-2 pt-1 border-t border-amber-100">
+                            <div
+                                v-for="outlet in allActiveOutlets"
+                                :key="outlet.id"
+                                class="flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer"
+                                :class="
+                                    selectedOutletIds.includes(outlet.id)
+                                        ? 'border-main bg-main/5'
+                                        : 'border-gray-200 bg-gray-50 opacity-75'
+                                "
+                                @click="toggleOutletSelection(outlet.id)"
+                            >
+                                <div class="flex items-center gap-2.5">
+                                    <input
+                                        type="checkbox"
+                                        :checked="selectedOutletIds.includes(outlet.id)"
+                                        class="rounded text-main focus:ring-main h-4 w-4 pointer-events-none"
+                                    />
+                                    <div>
+                                        <div class="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+                                            <span>{{ outlet.name }}</span>
+                                            <span
+                                                v-if="outlet.is_main_outlet"
+                                                class="bg-blue-100 text-blue-700 text-[9px] font-bold px-1.5 py-0.2 rounded"
+                                            >
+                                                Cabang Utama
+                                            </span>
+                                        </div>
+                                        <div class="text-[10px] text-gray-500">
+                                            {{ outlet.slug || 'Outlet' }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span
+                                        v-if="selectedOutletIds.includes(outlet.id)"
+                                        class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                                    >
+                                        <FontAwesomeIcon :icon="faCheckCircle" class="w-3 h-3" />
+                                        Tetap Aktif
+                                    </span>
+                                    <span
+                                        v-else
+                                        class="bg-slate-100 text-slate-500 text-[10px] font-medium px-2 py-0.5 rounded-full"
+                                    >
+                                        Akan Dinonaktifkan
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-right text-[11px] text-gray-500 font-medium">
+                            {{ selectedOutletIds.length }} dari {{ plan.max_outlets }} cabang terpilih
+                        </div>
+                    </div>
+
                     <!-- Billing Cycle Selector -->
                     <div class="bg-white border rounded-xl p-3">
                         <h4 class="font-bold text-gray-900 text-xs mb-3">Pilih Siklus Tagihan</h4>
@@ -229,14 +311,14 @@
                             </div>
                             <div class="flex flex-col">
                                 <div class="flex justify-between">
-                                    <span class="text-gray-600">Jumlah Outlet Aktif</span>
+                                    <span class="text-gray-600">Jumlah Outlet Ditagihkan</span>
                                     <span class="font-medium">{{ activeOutlets }} Outlet</span>
                                 </div>
                                 <div
-                                    v-if="activeOutletsList.length > 0"
+                                    v-if="billedOutletsList.length > 0"
                                     class="mt-1 text-[11px] text-gray-500 pl-2 border-l-2 border-gray-200"
                                 >
-                                    <div v-for="outlet in activeOutletsList" :key="outlet.id">
+                                    <div v-for="outlet in billedOutletsList" :key="outlet.id">
                                         - {{ outlet.name }}
                                     </div>
                                 </div>
@@ -284,8 +366,20 @@
                                     plan_id: plan.id,
                                     billing_cycle: billingCycle,
                                     payment_method: paymentMethod,
+                                    selected_outlet_ids: isDowngradeConflict ? selectedOutletIds : null,
                                 }"
+                                :disabled="
+                                    isDowngradeConflict &&
+                                    (selectedOutletIds.length === 0 ||
+                                        selectedOutletIds.length > plan.max_outlets)
+                                "
                                 class="btn btn-main w-full py-2.5 text-center flex justify-center items-center rounded-lg font-bold text-xs transition-all"
+                                :class="{
+                                    'opacity-50 cursor-not-allowed':
+                                        isDowngradeConflict &&
+                                        (selectedOutletIds.length === 0 ||
+                                            selectedOutletIds.length > plan.max_outlets),
+                                }"
                             >
                                 Lanjutkan Pembayaran
                             </Link>
@@ -309,6 +403,7 @@ import {
     faCheckCircle,
     faCreditCard,
     faInfoCircle,
+    faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons'
 
 import MainPage from '@/Components/UI/MainPage.vue'
@@ -329,6 +424,10 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    activeOutletsList: {
+        type: Array,
+        default: () => [],
+    },
 })
 
 const page = usePage()
@@ -337,16 +436,61 @@ const auth = computed(() => page.props.auth)
 const billingCycle = ref(props.subscription ? props.subscription.billing_cycle : 'monthly')
 const paymentMethod = ref(props.isMidtransEnabled ? 'midtrans' : 'manual')
 
-const activeOutletsList = computed(() => {
-    return auth.value.outlets ? auth.value.outlets.filter(o => o.is_active) : []
+const allActiveOutlets = computed(() => {
+    if (props.activeOutletsList && props.activeOutletsList.length > 0) {
+        return props.activeOutletsList
+    }
+    return auth.value?.outlets ? auth.value.outlets.filter(o => o.is_active) : []
+})
+
+const isDowngradeConflict = computed(() => {
+    return (
+        props.plan.max_outlets !== null &&
+        allActiveOutlets.value.length > props.plan.max_outlets
+    )
+})
+
+// Initialize selected outlets: priority to main outlet, up to max_outlets
+const initializeSelectedOutlets = () => {
+    if (!isDowngradeConflict.value) {
+        return allActiveOutlets.value.map(o => o.id)
+    }
+    const max = props.plan.max_outlets || 1
+    const sorted = [...allActiveOutlets.value].sort((a, b) => {
+        if (a.is_main_outlet && !b.is_main_outlet) return -1
+        if (!a.is_main_outlet && b.is_main_outlet) return 1
+        return 0
+    })
+    return sorted.slice(0, max).map(o => o.id)
+}
+
+const selectedOutletIds = ref(initializeSelectedOutlets())
+
+const toggleOutletSelection = outletId => {
+    if (selectedOutletIds.value.includes(outletId)) {
+        if (selectedOutletIds.value.length > 1) {
+            selectedOutletIds.value = selectedOutletIds.value.filter(id => id !== outletId)
+        }
+    } else {
+        const max = props.plan.max_outlets || 1
+        if (selectedOutletIds.value.length < max) {
+            selectedOutletIds.value.push(outletId)
+        }
+    }
+}
+
+const billedOutletsList = computed(() => {
+    if (isDowngradeConflict.value) {
+        return allActiveOutlets.value.filter(o => selectedOutletIds.value.includes(o.id))
+    }
+    return allActiveOutlets.value
 })
 
 const activeOutlets = computed(() => {
-    return activeOutletsList.value.length > 0
-        ? activeOutletsList.value.length
-        : auth.value.outlets
-          ? auth.value.outlets.length
-          : 0
+    if (isDowngradeConflict.value) {
+        return selectedOutletIds.value.length
+    }
+    return allActiveOutlets.value.length > 0 ? allActiveOutlets.value.length : 1
 })
 
 // Calculations

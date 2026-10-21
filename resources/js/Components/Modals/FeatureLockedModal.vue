@@ -15,14 +15,14 @@ const props = defineProps({
 const page = usePage()
 const modalStore = useModalStore()
 
-const isSubscribed = computed(() => {
+const isTrialActive = computed(() => {
     const subscription = page.props.auth?.subscription
-    return Boolean(subscription && subscription.status === 'active')
+    return Boolean(subscription && subscription.status === 'active' && subscription.is_trial)
 })
 
-const isTrialActive = computed(() => {
-    const trialEndAt = page.props.auth?.business?.trial_end_at
-    return trialEndAt ? new Date(trialEndAt) > new Date() : false
+const isSubscribed = computed(() => {
+    const subscription = page.props.auth?.subscription
+    return Boolean(subscription && subscription.status === 'active' && !subscription.is_trial)
 })
 
 const featureLabel = computed(() => {

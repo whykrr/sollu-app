@@ -2,6 +2,7 @@
 
 namespace App\Services\App\Subscription;
 
+use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -12,34 +13,68 @@ class SubscriptionService
 {
     /**
      * Subscribe business to a plan
+     *
+     * @param  array<string>|null  $selectedOutletIds
      */
-    public function subscribe(Business $business, SubscriptionPlan $plan, string $billing_cycle = 'monthly'): Subscription
+    public function subscribe(Business $business, SubscriptionPlan $plan, string $billing_cycle = 'monthly', ?array $selectedOutletIds = null): Subscription
     {
         /** @var Subscription */
-        $subscription = DB::transaction(function () use ($business, $plan, $billing_cycle) {
-            // We no longer cancel the current active subscription here.
-            // It will be canceled only when the new subscription invoice is paid,
-            // so the user does not lose their current subscription while waiting for payment.
+        $subscription = DB::transaction(function () use ($business, $plan, $billing_cycle, $selectedOutletIds) {
+            // If the current active subscription is a trial, eliminate it immediately on upgrade
+            $business->subscriptions()
+                ->where('status', SubscriptionStatus::Active)
+                ->where('is_trial', true)
+                ->update([
+                    'status' => SubscriptionStatus::Canceled,
+                    'canceled_at' => Carbon::now(),
+                ]);
+
+            if (! $business->has_used_trial) {
+                $business->update(['has_used_trial' => true]);
+            }
 
             $durationDays = $billing_cycle === 'yearly' ? 365 : 30;
 
             $subscription = Subscription::create([
                 'business_id' => $business->id,
                 'plan_id' => $plan->id,
-                'status' => \App\Enums\SubscriptionStatus::Pending,
+                'status' => SubscriptionStatus::Pending,
                 'billing_cycle' => $billing_cycle,
+                'is_trial' => false,
                 'started_at' => Carbon::now(),
                 'expired_at' => Carbon::now()->addDays($durationDays),
             ]);
 
-            // Sync all active outlets to the new subscription
-            $activeOutlets = $business->outlets()->where('is_active', true)->get();
-            foreach ($activeOutlets as $outlet) {
+            // If specific outlets were selected (e.g. during a downgrade conflict resolution)
+            if ($selectedOutletIds !== null && count($selectedOutletIds) > 0) {
+                // Deactivate unselected outlets
+                $business->outlets()
+                    ->where('is_active', true)
+                    ->whereNotIn('id', $selectedOutletIds)
+                    ->update(['is_active' => false]);
+
+                // Deactivate unselected outlets on existing active subscriptions
+                $activeSub = $business->subscriptions()->where('status', SubscriptionStatus::Active)->first();
+                if ($activeSub) {
+                    $activeSub->subscriptionOutlets()
+                        ->whereNotIn('outlet_id', $selectedOutletIds)
+                        ->whereNull('deactivated_at')
+                        ->update(['deactivated_at' => Carbon::now()]);
+                }
+
+                $outletsToAttach = $business->outlets()->whereIn('id', $selectedOutletIds)->get();
+            } else {
+                $outletsToAttach = $business->outlets()->where('is_active', true)->get();
+            }
+
+            foreach ($outletsToAttach as $outlet) {
                 $subscription->subscriptionOutlets()->create([
                     'outlet_id' => $outlet->id,
                     'activated_at' => Carbon::now(),
                 ]);
             }
+
+            Business::clearActiveSubscriptionCache($business->id);
 
             return $subscription;
         });
@@ -53,7 +88,7 @@ class SubscriptionService
     public function cancel(Subscription $subscription): bool
     {
         return $subscription->update([
-            'status' => \App\Enums\SubscriptionStatus::Canceled,
+            'status' => SubscriptionStatus::Canceled,
             'canceled_at' => Carbon::now(),
         ]);
     }

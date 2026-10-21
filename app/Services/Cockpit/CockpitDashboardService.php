@@ -83,6 +83,7 @@ class CockpitDashboardService
         // Active Paying Subscribers
         $activeSubscribers = Subscription::query()
             ->where('status', SubscriptionStatus::Active->value)
+            ->where('is_trial', false)
             ->where(function ($q) {
                 $q->whereNull('expired_at')
                     ->orWhere('expired_at', '>=', now());
@@ -91,9 +92,15 @@ class CockpitDashboardService
             ->count('business_id');
 
         // Trial Merchants
-        $trialMerchants = Business::query()
-            ->where('trial_end_at', '>=', now())
-            ->count();
+        $trialMerchants = Subscription::query()
+            ->where('status', SubscriptionStatus::Active->value)
+            ->where('is_trial', true)
+            ->where(function ($q) {
+                $q->whereNull('expired_at')
+                    ->orWhere('expired_at', '>=', now());
+            })
+            ->distinct('business_id')
+            ->count('business_id');
 
         // Total Outlets
         $totalOutlets = Outlet::query()->whereNull('deleted_at')->count();
@@ -264,25 +271,14 @@ class CockpitDashboardService
                     ->orWhere('expired_at', '>=', now());
             })
             ->with('plan:id,name,code')
-            ->select(['id', 'plan_id'])
+            ->select(['id', 'plan_id', 'is_trial'])
             ->get();
 
         $planCounts = [];
         foreach ($subscriptions as $sub) {
-            $planName = $sub->plan->name ?? 'Paket Kustom';
+            $baseName = $sub->plan->name ?? 'Paket Kustom';
+            $planName = $sub->is_trial ? "{$baseName} (Trial)" : $baseName;
             $planCounts[$planName] = ($planCounts[$planName] ?? 0) + 1;
-        }
-
-        // Add Trial count
-        $trialCount = Business::query()
-            ->where('trial_end_at', '>=', now())
-            ->whereDoesntHave('subscriptions', function ($q) {
-                $q->where('status', SubscriptionStatus::Active->value);
-            })
-            ->count();
-
-        if ($trialCount > 0) {
-            $planCounts['Masa Trial'] = $trialCount;
         }
 
         if (empty($planCounts)) {
@@ -393,13 +389,17 @@ class CockpitDashboardService
                 'phone',
                 'business_type_id',
                 'status',
-                'trial_end_at',
+                'has_used_trial',
                 'created_at',
             ])
             ->with([
                 'type:id,code,name',
                 'subscriptions' => function ($q) {
                     $q->where('status', SubscriptionStatus::Active->value)
+                        ->where(function ($sq) {
+                            $sq->whereNull('expired_at')
+                                ->orWhere('expired_at', '>=', now());
+                        })
                         ->latest('created_at')
                         ->with('plan:id,name');
                 },
@@ -410,9 +410,8 @@ class CockpitDashboardService
             ->get()
             ->map(function (Business $b) {
                 $activeSub = $b->subscriptions->first();
+                $isTrial = $activeSub ? (bool) $activeSub->is_trial : false;
                 $planName = $activeSub?->plan?->name;
-
-                $isTrial = $b->trial_end_at && Carbon::parse($b->trial_end_at)->isFuture();
 
                 return [
                     'id' => $b->id,
@@ -422,7 +421,7 @@ class CockpitDashboardService
                     'business_type' => $b->type?->name ?? '-',
                     'outlets_count' => (int) $b->outlets_count,
                     'status' => $b->status instanceof BusinessStatus ? $b->status->value : (string) $b->status,
-                    'plan_name' => $planName ?: ($isTrial ? 'Masa Trial' : 'Tanpa Paket'),
+                    'plan_name' => $planName ? ($isTrial ? "{$planName} (Trial)" : $planName) : 'Tanpa Paket',
                     'is_trial' => $isTrial,
                     'created_at' => $b->created_at?->toISOString(),
                     'created_at_formatted' => $b->created_at?->translatedFormat('d M Y') ?? '-',

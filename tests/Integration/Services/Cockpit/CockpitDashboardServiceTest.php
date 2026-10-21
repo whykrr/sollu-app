@@ -60,7 +60,6 @@ class CockpitDashboardServiceTest extends TestCase
             'email' => 'ahmad@barokah.test',
             'phone' => '081111111111',
             'status' => BusinessStatus::Active,
-            'trial_end_at' => now()->addDays(7),
             'business_type_id' => $type->id,
         ]);
 
@@ -156,12 +155,30 @@ class CockpitDashboardServiceTest extends TestCase
             'email' => 'rian@senja.test',
             'phone' => '082222222222',
             'status' => BusinessStatus::Active,
-            'trial_end_at' => now()->addDays(5),
             'business_type_id' => $typeFnb->id,
         ]);
 
+        $trialPlan = SubscriptionPlan::create([
+            'code' => 'micro_trial',
+            'name' => 'Micro',
+            'price_per_outlet' => 29000,
+            'yearly_discount_percent' => 0,
+            'is_active' => true,
+            'is_public' => true,
+            'has_trial' => true,
+        ]);
+
+        Subscription::create([
+            'business_id' => $b->id,
+            'plan_id' => $trialPlan->id,
+            'status' => SubscriptionStatus::Active,
+            'is_trial' => true,
+            'started_at' => now(),
+            'expired_at' => now()->addDays(5),
+        ]);
+
         $planDist = $this->service->getPlanDistribution();
-        $this->assertContains('Masa Trial', $planDist['labels']);
+        $this->assertContains('Micro (Trial)', $planDist['labels']);
 
         $typeDist = $this->service->getBusinessTypeDistribution();
         $this->assertContains('F&B', $typeDist['labels']);

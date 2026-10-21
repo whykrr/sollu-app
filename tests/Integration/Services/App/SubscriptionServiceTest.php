@@ -4,11 +4,13 @@ namespace Tests\Integration\Services\App;
 
 use App\Enums\SubscriptionStatus;
 use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Outlet;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Services\App\Subscription\SubscriptionService;
 use Carbon\Carbon;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -26,8 +28,8 @@ class SubscriptionServiceTest extends TestCase
 
     public function test_it_subscribes_business_to_plan()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $this->seed(DatabaseSeeder::class);
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
@@ -38,7 +40,6 @@ class SubscriptionServiceTest extends TestCase
             'email' => 'test@test.test',
             'phone' => '08123456789',
             'status' => 'active',
-            'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
 
@@ -86,8 +87,8 @@ class SubscriptionServiceTest extends TestCase
 
     public function test_it_cancels_subscription()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $this->seed(DatabaseSeeder::class);
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
@@ -98,7 +99,6 @@ class SubscriptionServiceTest extends TestCase
             'email' => 'test2@test.test',
             'phone' => '08123456789',
             'status' => 'active',
-            'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
         $plan = SubscriptionPlan::first();
@@ -121,6 +121,60 @@ class SubscriptionServiceTest extends TestCase
         $subscription->refresh();
         $this->assertEquals(SubscriptionStatus::Canceled, $subscription->status);
         $this->assertEquals($now, $subscription->canceled_at);
+    }
+
+    public function test_it_eliminates_active_trial_immediately_when_merchant_subscribes_to_plan(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $type = BusinessType::firstOrCreate(
+            ['code' => 'retail'],
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+        );
+
+        $business = Business::create([
+            'name' => 'Trial Merchant Business',
+            'owner_name' => 'Owner Trial',
+            'email' => 'trial_owner@test.test',
+            'phone' => '08123456788',
+            'status' => 'active',
+            'has_used_trial' => true,
+            'business_type_id' => $type->id,
+        ]);
+
+        $trialPlan = SubscriptionPlan::first();
+
+        // Active trial subscription with remaining days
+        $trialSubscription = Subscription::create([
+            'business_id' => $business->id,
+            'plan_id' => $trialPlan->id,
+            'status' => SubscriptionStatus::Active,
+            'billing_cycle' => 'monthly',
+            'is_trial' => true,
+            'started_at' => Carbon::now()->subDays(2),
+            'expired_at' => Carbon::now()->addDays(12),
+        ]);
+
+        Outlet::create(['business_id' => $business->id, 'name' => 'Outlet Main', 'is_active' => true]);
+
+        $paidPlan = SubscriptionPlan::create([
+            'name' => 'Paid Micro Plan',
+            'code' => 'micro_paid_svc',
+            'price_per_outlet' => 59000,
+            'yearly_discount_percent' => 0,
+        ]);
+
+        $newSubscription = $this->service->subscribe($business, $paidPlan, 'monthly');
+
+        // Verify trial was canceled immediately
+        $trialSubscription->refresh();
+        $this->assertEquals(SubscriptionStatus::Canceled, $trialSubscription->status);
+        $this->assertNotNull($trialSubscription->canceled_at);
+
+        // Verify new subscription is NOT trial and pending
+        $this->assertInstanceOf(Subscription::class, $newSubscription);
+        $this->assertFalse($newSubscription->is_trial);
+        $this->assertEquals(SubscriptionStatus::Pending, $newSubscription->status);
+        $this->assertTrue($business->fresh()->has_used_trial);
     }
 
     protected function tearDown(): void

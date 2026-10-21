@@ -3,6 +3,8 @@
 namespace Tests\Integration\Models;
 
 use App\Enums\FeatureEnum;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Feature;
 use App\Models\SubscriptionPlan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -126,20 +128,19 @@ class SubscriptionPlanTest extends TestCase
 
     public function test_business_relationship_and_custom_helpers(): void
     {
-        $type = \App\Models\BusinessType::create([
+        $type = BusinessType::create([
             'code' => 'retail',
             'name' => 'Retail',
             'sort_order' => 1,
             'is_visible' => true,
         ]);
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Custom Retailer',
             'owner_name' => 'Owner A',
             'email' => 'retailer@test.test',
             'phone' => '081234567890',
             'status' => 'active',
-            'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
 
@@ -156,5 +157,33 @@ class SubscriptionPlanTest extends TestCase
         $this->assertSame($business->id, $customPlan->business->id);
         $this->assertCount(1, $business->customSubscriptionPlans);
         $this->assertSame($customPlan->id, $business->customSubscriptionPlans->first()->id);
+    }
+
+    public function test_quota_and_trial_helper_methods(): void
+    {
+        $microPlan = SubscriptionPlan::factory()->create([
+            'code' => 'micro',
+            'name' => 'Paket Mikro',
+            'max_outlets' => 1,
+            'has_trial' => true,
+            'trial_duration_days' => 14,
+        ]);
+
+        $this->assertFalse($microPlan->isUnlimitedOutlets());
+        $this->assertTrue($microPlan->allowsOutletCount(1));
+        $this->assertFalse($microPlan->allowsOutletCount(2));
+        $this->assertSame(14, $microPlan->getTrialDays());
+
+        $basicPlan = SubscriptionPlan::factory()->create([
+            'code' => 'basic',
+            'name' => 'Paket Basic',
+            'max_outlets' => null,
+            'has_trial' => false,
+            'trial_duration_days' => 0,
+        ]);
+
+        $this->assertTrue($basicPlan->isUnlimitedOutlets());
+        $this->assertTrue($basicPlan->allowsOutletCount(100));
+        $this->assertSame(0, $basicPlan->getTrialDays());
     }
 }

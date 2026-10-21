@@ -33,6 +33,8 @@ class SubscriptionController extends Controller
             'plan_id' => 'required|exists:subscription_plans,id',
             'billing_cycle' => 'required|in:monthly,yearly',
             'payment_method' => 'required|in:midtrans,manual',
+            'selected_outlet_ids' => 'nullable|array',
+            'selected_outlet_ids.*' => 'exists:outlets,id',
         ]);
 
         if ($request->payment_method === 'midtrans' && ! SystemSetting::isMidtransEnabled()) {
@@ -46,7 +48,35 @@ class SubscriptionController extends Controller
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $error);
         }
 
-        $subscription = $this->subscriptionService->subscribe($business, $plan, $request->billing_cycle);
+        $selectedOutletIds = $request->input('selected_outlet_ids');
+        $activeOutlets = $business->outlets()->where('is_active', true)->get();
+        $activeCount = $activeOutlets->count();
+
+        if ($plan->max_outlets !== null && $activeCount > $plan->max_outlets) {
+            if (empty($selectedOutletIds) || ! is_array($selectedOutletIds)) {
+                return redirect()->back()->with(
+                    FlashDataVariable::FAILED->value,
+                    "Paket {$plan->name} dibatasi maksimal {$plan->max_outlets} cabang outlet. Silakan pilih {$plan->max_outlets} cabang yang ingin tetap aktif."
+                );
+            }
+
+            if (count($selectedOutletIds) > $plan->max_outlets) {
+                return redirect()->back()->with(
+                    FlashDataVariable::FAILED->value,
+                    "Jumlah cabang yang dipilih melebihi kuota paket {$plan->name} (Maksimal {$plan->max_outlets} cabang)."
+                );
+            }
+
+            $validCount = $business->outlets()->whereIn('id', $selectedOutletIds)->count();
+            if ($validCount !== count($selectedOutletIds)) {
+                return redirect()->back()->with(
+                    FlashDataVariable::FAILED->value,
+                    'Terdapat cabang yang tidak valid atau bukan milik bisnis Anda.'
+                );
+            }
+        }
+
+        $subscription = $this->subscriptionService->subscribe($business, $plan, $request->billing_cycle, $selectedOutletIds);
 
         // Generate the initial invoice for active outlets
         if ($business->outlets()->where('is_active', true)->count() > 0) {
@@ -102,6 +132,8 @@ class SubscriptionController extends Controller
             'plan_id' => 'required|exists:subscription_plans,id',
             'billing_cycle' => 'required|in:monthly,yearly',
             'payment_method' => 'required|in:midtrans,manual',
+            'selected_outlet_ids' => 'nullable|array',
+            'selected_outlet_ids.*' => 'exists:outlets,id',
         ]);
 
         if ($request->payment_method === 'midtrans' && ! SystemSetting::isMidtransEnabled()) {
@@ -115,7 +147,35 @@ class SubscriptionController extends Controller
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $error);
         }
 
-        $subscription = $this->subscriptionService->subscribe($business, $plan, $request->billing_cycle);
+        $selectedOutletIds = $request->input('selected_outlet_ids');
+        $activeOutlets = $business->outlets()->where('is_active', true)->get();
+        $activeCount = $activeOutlets->count();
+
+        if ($plan->max_outlets !== null && $activeCount > $plan->max_outlets) {
+            if (empty($selectedOutletIds) || ! is_array($selectedOutletIds)) {
+                return redirect()->back()->with(
+                    FlashDataVariable::FAILED->value,
+                    "Paket {$plan->name} dibatasi maksimal {$plan->max_outlets} cabang outlet. Silakan pilih {$plan->max_outlets} cabang yang ingin tetap aktif."
+                );
+            }
+
+            if (count($selectedOutletIds) > $plan->max_outlets) {
+                return redirect()->back()->with(
+                    FlashDataVariable::FAILED->value,
+                    "Jumlah cabang yang dipilih melebihi kuota paket {$plan->name} (Maksimal {$plan->max_outlets} cabang)."
+                );
+            }
+
+            $validCount = $business->outlets()->whereIn('id', $selectedOutletIds)->count();
+            if ($validCount !== count($selectedOutletIds)) {
+                return redirect()->back()->with(
+                    FlashDataVariable::FAILED->value,
+                    'Terdapat cabang yang tidak valid atau bukan milik bisnis Anda.'
+                );
+            }
+        }
+
+        $subscription = $this->subscriptionService->subscribe($business, $plan, $request->billing_cycle, $selectedOutletIds);
 
         $invoice = $this->billingEngine->generateRecurringInvoice($business, $subscription);
 

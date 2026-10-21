@@ -10,7 +10,6 @@ use App\Http\Controllers\Cockpit\DashboardController;
 use App\Http\Controllers\Cockpit\InvoiceController;
 use App\Http\Controllers\Cockpit\SubscriptionManualPaymentMethodController;
 use App\Http\Controllers\Cockpit\SubscriptionPlanController;
-use App\Http\Controllers\Cockpit\TrialConfigController;
 use App\Http\Controllers\Cockpit\UomController;
 use App\Http\Controllers\Support\CsrfTokenController;
 use Illuminate\Support\Facades\Route;
@@ -70,8 +69,6 @@ Route::name('cockpit.')->group(function () {
         Route::get('/config', [ConfigController::class, 'index'])->name('config.index');
         Route::put('/config/settings', [ConfigController::class, 'updateSettings'])->name('config.settings.update');
         Route::patch('/config/feature-flag', [ConfigController::class, 'updateFlag'])->name('config.feature-flag.update');
-        Route::get('/config/trial', [TrialConfigController::class, 'show'])->name('config.trial.show');
-        Route::put('/config/trial', [TrialConfigController::class, 'update'])->name('config.trial.update');
 
         Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
     });

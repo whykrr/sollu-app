@@ -57,6 +57,57 @@
                 />
             </div>
 
+            <!-- Pengaturan Kuota Cabang Outlet & Fasilitas Trial -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 border-t border-slate-100">
+                <!-- Batas Cabang -->
+                <div class="flex flex-col gap-1.5 p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-semibold text-slate-800">Batas Cabang Outlet</div>
+                            <div class="text-[11px] text-slate-500">
+                                {{ isUnlimitedOutlets ? 'Tanpa batasan cabang' : 'Dibatasi kuota tertentu' }}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] text-slate-500 font-medium">Unlimited</span>
+                            <Switch v-model="isUnlimitedOutlets" @update:model-value="toggleUnlimitedOutlets" />
+                        </div>
+                    </div>
+                    <div v-if="!isUnlimitedOutlets" class="mt-1">
+                        <NumberField
+                            v-model="form.max_outlets"
+                            label="Maksimal Cabang"
+                            placeholder="cth. 1 untuk paket Mikro"
+                            :feedback="form.errors.max_outlets"
+                            min="1"
+                        />
+                    </div>
+                </div>
+
+                <!-- Fasilitas Trial -->
+                <div class="flex flex-col gap-1.5 p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-semibold text-slate-800">Fasilitas Masa Trial</div>
+                            <div class="text-[11px] text-slate-500">
+                                {{ form.has_trial ? 'Dapat dicoba gratis saat daftar' : 'Tanpa masa uji coba' }}
+                            </div>
+                        </div>
+                        <Switch v-model="form.has_trial" />
+                    </div>
+                    <div v-if="form.has_trial" class="mt-1">
+                        <NumberField
+                            v-model="form.trial_duration_days"
+                            label="Durasi Trial (Hari)"
+                            placeholder="14"
+                            :feedback="form.errors.trial_duration_days"
+                            min="1"
+                            max="90"
+                        />
+                    </div>
+                </div>
+            </div>
+
             <!-- Toggle switches for status and public catalog -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                 <div
@@ -298,12 +349,24 @@ const loading = ref(Boolean(props.planId))
 const isEdit = computed(() => Boolean(props.planId))
 const planCode = ref('')
 const selectedMerchant = ref(null)
+const isUnlimitedOutlets = ref(true)
+
+const toggleUnlimitedOutlets = val => {
+    if (val) {
+        form.max_outlets = null
+    } else if (!form.max_outlets) {
+        form.max_outlets = 1
+    }
+}
 
 const form = useForm({
     code: '',
     name: '',
     price_per_outlet: 0,
     yearly_discount_percent: 0,
+    max_outlets: null,
+    has_trial: false,
+    trial_duration_days: 14,
     is_active: true,
     is_public: true,
     business_id: null,
@@ -321,6 +384,10 @@ onMounted(async () => {
             form.name = data.name
             form.price_per_outlet = Number(data.price_per_outlet) || 0
             form.yearly_discount_percent = Number(data.yearly_discount_percent) || 0
+            form.max_outlets = data.max_outlets !== null && data.max_outlets !== undefined ? Number(data.max_outlets) : null
+            isUnlimitedOutlets.value = form.max_outlets === null
+            form.has_trial = Boolean(data.has_trial)
+            form.trial_duration_days = data.trial_duration_days !== null && data.trial_duration_days !== undefined ? Number(data.trial_duration_days) : 14
             form.is_active = Boolean(data.is_active)
             form.is_public = Boolean(data.is_public ?? true)
             form.business_id = data.business_id || null

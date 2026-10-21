@@ -2,12 +2,16 @@
 
 namespace Tests\Integration\Services\App\Outlet;
 
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Invoice;
 use App\Models\Outlet;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\App\Outlet\ManageOutletStatusService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class ManageOutletStatusServiceTest extends TestCase
@@ -24,18 +28,17 @@ class ManageOutletStatusServiceTest extends TestCase
 
     protected function createMerchantUser(): User
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Merchant Test Business',
             'owner_name' => 'Merchant Owner',
             'email' => 'merchant_'.uniqid().'@test.test',
             'phone' => '081234567890',
             'status' => 'active',
-            'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
 
@@ -50,7 +53,7 @@ class ManageOutletStatusServiceTest extends TestCase
 
     public function test_it_toggles_status_to_active()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $user = $this->createMerchantUser();
         $business = $user->business;
         $outlet = Outlet::create([
@@ -88,9 +91,9 @@ class ManageOutletStatusServiceTest extends TestCase
 
     public function test_it_fails_to_activate_if_unpaid_invoice()
     {
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
 
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $user = $this->createMerchantUser();
         $business = $user->business;
         $outlet = Outlet::create([
@@ -125,7 +128,7 @@ class ManageOutletStatusServiceTest extends TestCase
 
     public function test_it_toggles_status_to_inactive()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $user = $this->createMerchantUser();
         $business = $user->business;
         $outlet = Outlet::create([
@@ -167,7 +170,7 @@ class ManageOutletStatusServiceTest extends TestCase
 
     public function test_it_deletes_outlet()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $user = $this->createMerchantUser();
         $outlet = Outlet::create([
             'business_id' => $user->business_id,
@@ -188,7 +191,7 @@ class ManageOutletStatusServiceTest extends TestCase
 
     public function test_it_restores_outlet()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $user = $this->createMerchantUser();
         $outlet = Outlet::create([
             'business_id' => $user->business_id,
@@ -215,7 +218,7 @@ class ManageOutletStatusServiceTest extends TestCase
 
     public function test_it_successfully_sets_an_outlet_as_main_outlet()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $user = $this->createMerchantUser();
         $business = $user->business;
 
@@ -257,9 +260,9 @@ class ManageOutletStatusServiceTest extends TestCase
 
     public function test_it_fails_to_set_inactive_outlet_as_main_outlet()
     {
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
 
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $user = $this->createMerchantUser();
         $business = $user->business;
 
@@ -273,5 +276,53 @@ class ManageOutletStatusServiceTest extends TestCase
         $this->actingAs($user);
 
         $this->service->setMainOutlet($inactiveOutlet, $user);
+    }
+
+    public function test_it_fails_to_activate_outlet_if_max_outlets_limit_reached(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $user = $this->createMerchantUser();
+        $business = $user->business;
+
+        // Plan with max_outlets = 1
+        $plan = SubscriptionPlan::create([
+            'code' => 'single_outlet_plan',
+            'name' => 'Single Outlet Plan',
+            'price_per_outlet' => 50000,
+            'yearly_discount_percent' => 0,
+            'max_outlets' => 1,
+            'has_trial' => false,
+            'is_active' => true,
+            'is_public' => true,
+        ]);
+
+        $business->subscriptions()->create([
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'current_period_start' => now(),
+            'current_period_end' => now()->addMonth(),
+        ]);
+
+        // Already 1 active outlet
+        Outlet::create([
+            'business_id' => $business->id,
+            'name' => 'Existing Active Outlet',
+            'is_active' => true,
+            'is_main_outlet' => true,
+        ]);
+
+        // Second inactive outlet
+        $secondOutlet = Outlet::create([
+            'business_id' => $business->id,
+            'name' => 'Second Outlet Inactive',
+            'is_active' => false,
+            'is_main_outlet' => false,
+        ]);
+
+        $this->actingAs($user);
+
+        $this->expectException(ValidationException::class);
+
+        $this->service->toggleStatus($secondOutlet, true, $user);
     }
 }

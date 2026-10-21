@@ -24,6 +24,7 @@
             <ToastContainer />
             <ModalContainer />
             <PopUpContainer />
+            <SubscriptionLockModal />
         </div>
     </div>
 </template>
@@ -33,6 +34,7 @@ import Sidebar from '@/Components/Layout/Sidebar/Sidebar.vue'
 import ModalContainer from '@/Components/Notifications/ModalContainer.vue'
 import ToastContainer from '@/Components/Notifications/ToastContainer.vue'
 import PopUpContainer from '@/Components/UI/PopUpContainer.vue'
+import SubscriptionLockModal from '@/Components/Modals/SubscriptionLockModal.vue'
 
 import i18n from '@/i18n'
 import { useModalStore } from '@/store/notification'

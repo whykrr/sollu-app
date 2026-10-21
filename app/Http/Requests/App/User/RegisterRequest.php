@@ -32,6 +32,9 @@ class RegisterRequest extends BaseInertiaFormRequest
     public function rules(): array
     {
         return [
+            'plan_id' => ['required', 'string', 'exists:subscription_plans,id'],
+            'use_trial' => ['required', 'boolean'],
+            'billing_cycle' => ['nullable', 'in:monthly,yearly'],
             'name' => ['required', 'string', 'max:200'],
             'owner_name' => ['required', 'string', 'max:200'],
             'outlet_name' => ['required', 'string', 'max:200'],
@@ -62,6 +65,8 @@ class RegisterRequest extends BaseInertiaFormRequest
     public function messages(): array
     {
         return [
+            'plan_id.required' => 'Pilih salah satu paket langganan terlebih dahulu.',
+            'plan_id.exists' => 'Paket langganan yang dipilih tidak valid.',
             'email.unique' => 'Email ini sudah terdaftar sebagai pemilik usaha di bisnis lain.',
             'phone.unique' => 'Nomor telepon sudah terdaftar sebagai pemilik usaha di bisnis lain.',
         ];

@@ -32,7 +32,7 @@ class MerchantService
                 'phone',
                 'business_type_id',
                 'status',
-                'trial_end_at',
+                'has_used_trial',
                 'created_at',
             ])
             ->with([
@@ -46,6 +46,7 @@ class MerchantService
                         'billing_cycle',
                         'started_at',
                         'expired_at',
+                        'is_trial',
                     ])
                         ->where('status', SubscriptionStatus::Active->value)
                         ->latest('created_at')
@@ -87,28 +88,28 @@ class MerchantService
             if ($subStatus === 'active') {
                 $query->whereHas('subscriptions', function ($q) {
                     $q->where('status', SubscriptionStatus::Active->value)
+                        ->where('is_trial', false)
                         ->where(function ($sq) {
                             $sq->whereNull('expired_at')
                                 ->orWhere('expired_at', '>=', now());
                         });
                 });
             } elseif ($subStatus === 'trial') {
-                $query->where('trial_end_at', '>=', now())
-                    ->whereDoesntHave('subscriptions', function ($q) {
-                        $q->where('status', SubscriptionStatus::Active->value);
-                    });
+                $query->whereHas('subscriptions', function ($q) {
+                    $q->where('status', SubscriptionStatus::Active->value)
+                        ->where('is_trial', true)
+                        ->where(function ($sq) {
+                            $sq->whereNull('expired_at')
+                                ->orWhere('expired_at', '>=', now());
+                        });
+                });
             } elseif ($subStatus === 'expired') {
-                $query->where(function ($q) {
-                    $q->where(function ($sq) {
-                        $sq->where('trial_end_at', '<', now())
-                            ->orWhereNull('trial_end_at');
-                    })->whereDoesntHave('subscriptions', function ($sq) {
-                        $sq->where('status', SubscriptionStatus::Active->value)
-                            ->where(function ($ssq) {
-                                $ssq->whereNull('expired_at')
-                                    ->orWhere('expired_at', '>=', now());
-                            });
-                    });
+                $query->whereDoesntHave('subscriptions', function ($sq) {
+                    $sq->where('status', SubscriptionStatus::Active->value)
+                        ->where(function ($ssq) {
+                            $ssq->whereNull('expired_at')
+                                ->orWhere('expired_at', '>=', now());
+                        });
                 });
             }
         }
@@ -155,6 +156,7 @@ class MerchantService
 
             $activeSubscribers = Subscription::query()
                 ->where('status', SubscriptionStatus::Active->value)
+                ->where('is_trial', false)
                 ->where(function ($q) {
                     $q->whereNull('expired_at')
                         ->orWhere('expired_at', '>=', now());
@@ -162,9 +164,15 @@ class MerchantService
                 ->distinct('business_id')
                 ->count('business_id');
 
-            $trialMerchants = Business::query()
-                ->where('trial_end_at', '>=', now())
-                ->count();
+            $trialMerchants = Subscription::query()
+                ->where('status', SubscriptionStatus::Active->value)
+                ->where('is_trial', true)
+                ->where(function ($q) {
+                    $q->whereNull('expired_at')
+                        ->orWhere('expired_at', '>=', now());
+                })
+                ->distinct('business_id')
+                ->count('business_id');
 
             $totalOutlets = Outlet::query()->whereNull('deleted_at')->count();
 
@@ -249,32 +257,37 @@ class MerchantService
 
         // Resolve real active plan and subscription metadata
         $activeSubscription = $business->subscriptions
-            ->where('status', SubscriptionStatus::Active)
-            ->first();
+            ->first(fn ($s) => $s->status === SubscriptionStatus::Active && ($s->expired_at === null || Carbon::parse($s->expired_at)->isFuture()));
 
         $activePlanInfo = null;
         if ($activeSubscription && $activeSubscription->plan) {
             $plan = $activeSubscription->plan;
+            $isTrial = (bool) $activeSubscription->is_trial;
+            $trialDaysLeft = $isTrial && $activeSubscription->expired_at
+                ? max(0, (int) ceil(now()->diffInDays(Carbon::parse($activeSubscription->expired_at), false)))
+                : 0;
+
             $activePlanInfo = [
-                'type' => 'paid',
+                'type' => $isTrial ? 'trial' : 'paid',
                 'plan_id' => $plan->id,
-                'plan_name' => $plan->name,
+                'plan_name' => $isTrial ? "{$plan->name} (Trial)" : $plan->name,
                 'plan_code' => $plan->code,
                 'is_custom' => $plan->isCustomForMerchant(),
                 'price_per_outlet' => (float) $plan->price_per_outlet,
                 'yearly_discount_percent' => (int) $plan->yearly_discount_percent,
-                'billing_cycle' => $activeSubscription->billing_cycle,
+                'billing_cycle' => $isTrial ? 'trial' : $activeSubscription->billing_cycle,
                 'started_at' => $activeSubscription->started_at?->toISOString(),
                 'expired_at' => $activeSubscription->expired_at?->toISOString(),
+                'trial_days_left' => $trialDaysLeft,
                 'status' => $activeSubscription->status instanceof SubscriptionStatus
                     ? $activeSubscription->status->value
                     : (string) $activeSubscription->status,
-                'status_label' => $activeSubscription->status instanceof SubscriptionStatus
+                'status_label' => $isTrial ? 'Masa Trial' : ($activeSubscription->status instanceof SubscriptionStatus
                     ? $activeSubscription->status->label()
-                    : 'Aktif',
-                'status_color' => $activeSubscription->status instanceof SubscriptionStatus
+                    : 'Aktif'),
+                'status_color' => $isTrial ? 'badge-warning' : ($activeSubscription->status instanceof SubscriptionStatus
                     ? $activeSubscription->status->color()
-                    : 'badge-success',
+                    : 'badge-success'),
                 'system_features_count' => $plan->systemFeatures->count(),
                 'system_features' => $plan->systemFeatures->map(fn ($feat) => [
                     'id' => $feat->id,
@@ -285,46 +298,23 @@ class MerchantService
                 ])->all(),
             ];
         } else {
-            $isTrialActive = $business->trial_end_at && Carbon::parse($business->trial_end_at)->isFuture();
-            if ($isTrialActive) {
-                $trialDaysLeft = max(0, (int) ceil(now()->diffInDays(Carbon::parse($business->trial_end_at), false)));
-                $activePlanInfo = [
-                    'type' => 'trial',
-                    'plan_id' => null,
-                    'plan_name' => 'Masa Uji Coba (Trial)',
-                    'plan_code' => 'trial',
-                    'is_custom' => false,
-                    'price_per_outlet' => 0.0,
-                    'yearly_discount_percent' => 0,
-                    'billing_cycle' => 'trial',
-                    'started_at' => $business->created_at?->toISOString(),
-                    'expired_at' => Carbon::parse($business->trial_end_at)->toISOString(),
-                    'trial_days_left' => $trialDaysLeft,
-                    'status' => 'trial',
-                    'status_label' => 'Masa Trial',
-                    'status_color' => 'badge-warning',
-                    'system_features_count' => 0,
-                    'system_features' => [],
-                ];
-            } else {
-                $activePlanInfo = [
-                    'type' => 'none',
-                    'plan_id' => null,
-                    'plan_name' => 'Tidak Ada Paket Aktif',
-                    'plan_code' => 'none',
-                    'is_custom' => false,
-                    'price_per_outlet' => 0.0,
-                    'yearly_discount_percent' => 0,
-                    'billing_cycle' => '-',
-                    'started_at' => null,
-                    'expired_at' => $business->trial_end_at ? Carbon::parse($business->trial_end_at)->toISOString() : null,
-                    'status' => 'expired',
-                    'status_label' => 'Kedaluwarsa / Nonaktif',
-                    'status_color' => 'badge-danger',
-                    'system_features_count' => 0,
-                    'system_features' => [],
-                ];
-            }
+            $activePlanInfo = [
+                'type' => 'none',
+                'plan_id' => null,
+                'plan_name' => 'Tidak Ada Paket Aktif',
+                'plan_code' => 'none',
+                'is_custom' => false,
+                'price_per_outlet' => 0.0,
+                'yearly_discount_percent' => 0,
+                'billing_cycle' => '-',
+                'started_at' => null,
+                'expired_at' => null,
+                'status' => 'expired',
+                'status_label' => 'Kedaluwarsa / Nonaktif',
+                'status_color' => 'badge-danger',
+                'system_features_count' => 0,
+                'system_features' => [],
+            ];
         }
 
         return [
@@ -336,7 +326,7 @@ class MerchantService
             'address' => $business->address,
             'logo_url' => $business->logo_url,
             'status' => $business->status instanceof BusinessStatus ? $business->status->value : (string) $business->status,
-            'trial_end_at' => $business->trial_end_at?->toISOString(),
+            'has_used_trial' => (bool) $business->has_used_trial,
             'created_at' => $business->created_at?->toISOString(),
             'type' => $business->type ? [
                 'id' => $business->type->id,
@@ -376,6 +366,7 @@ class MerchantService
             'subscription_history' => $business->subscriptions->map(fn ($sub) => [
                 'id' => $sub->id,
                 'plan_name' => $sub->plan?->name ?? 'Paket Kustom',
+                'is_trial' => (bool) $sub->is_trial,
                 'status' => $sub->status instanceof SubscriptionStatus ? $sub->status->value : (string) $sub->status,
                 'status_label' => $sub->status instanceof SubscriptionStatus ? $sub->status->label() : (string) $sub->status,
                 'status_color' => $sub->status instanceof SubscriptionStatus ? $sub->status->color() : 'badge-gray',

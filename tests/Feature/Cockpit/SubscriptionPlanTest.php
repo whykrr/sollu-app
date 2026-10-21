@@ -5,7 +5,11 @@ namespace Tests\Feature\Cockpit;
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\PermissionEnum;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\CockpitUser;
+use App\Models\Feature;
+use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -220,7 +224,7 @@ class SubscriptionPlanTest extends TestCase
     public function test_admin_can_update_plan_features_in_separate_endpoint(): void
     {
         $plan = SubscriptionPlan::first();
-        $features = \App\Models\Feature::take(3)->get();
+        $features = Feature::take(3)->get();
         $featureIds = $features->pluck('id')->all();
 
         $response = $this->actingAs($this->admin, 'cockpit')
@@ -240,14 +244,14 @@ class SubscriptionPlanTest extends TestCase
     {
         $plan = SubscriptionPlan::first();
 
-        $type = \App\Models\BusinessType::create([
+        $type = BusinessType::create([
             'code' => 'retail',
             'name' => 'Retail',
             'sort_order' => 1,
             'is_visible' => true,
         ]);
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Test Business',
             'owner_name' => 'Owner Test',
             'email' => 'owner@test.test',
@@ -257,7 +261,7 @@ class SubscriptionPlanTest extends TestCase
             'business_type_id' => $type->id,
         ]);
 
-        \App\Models\Subscription::create([
+        Subscription::create([
             'business_id' => $business->id,
             'plan_id' => $plan->id,
             'status' => 'active',
@@ -295,12 +299,12 @@ class SubscriptionPlanTest extends TestCase
 
     public function test_merchant_cannot_checkout_deactivated_plan(): void
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::firstOrCreate(
+        $business = Business::firstOrCreate(
             ['email' => 'merchant_biz@test.test'],
             [
                 'name' => 'Merchant Business',
@@ -335,12 +339,12 @@ class SubscriptionPlanTest extends TestCase
 
     public function test_admin_can_search_merchants_for_plan_assignment(): void
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Kopi Kenangan Senopati',
             'owner_name' => 'Kenangan Owner',
             'email' => 'kopikenangan@test.test',
@@ -363,12 +367,12 @@ class SubscriptionPlanTest extends TestCase
 
     public function test_admin_can_create_plan_assigned_to_specific_merchant(): void
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Enterprise Client A',
             'owner_name' => 'Director A',
             'email' => 'client_a@test.test',
@@ -409,12 +413,12 @@ class SubscriptionPlanTest extends TestCase
     {
         $plan = SubscriptionPlan::first();
 
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Client B',
             'owner_name' => 'Director B',
             'email' => 'client_b@test.test',
@@ -453,5 +457,82 @@ class SubscriptionPlanTest extends TestCase
 
         $response->assertRedirect();
         $this->assertNull($plan->fresh()->business_id);
+    }
+
+    public function test_admin_can_create_plan_with_max_outlets_and_trial_settings(): void
+    {
+        $payload = [
+            'code' => 'micro-custom-quota',
+            'name' => 'Paket Micro Single Outlet',
+            'price_per_outlet' => 29000,
+            'yearly_discount_percent' => 10,
+            'max_outlets' => 1,
+            'has_trial' => true,
+            'trial_duration_days' => 7,
+            'is_active' => true,
+            'is_public' => true,
+        ];
+
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->post("http://{$this->cockpitHost}/subscription-plans", $payload);
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::CREATE_SUCCESS);
+
+        $this->assertDatabaseHas('subscription_plans', [
+            'code' => 'micro-custom-quota',
+            'name' => 'Paket Micro Single Outlet',
+            'max_outlets' => 1,
+            'has_trial' => true,
+            'trial_duration_days' => 7,
+        ]);
+    }
+
+    public function test_admin_can_update_plan_with_max_outlets_and_trial_settings(): void
+    {
+        $plan = SubscriptionPlan::first();
+
+        $payload = [
+            'name' => 'Paket Updated Quota',
+            'price_per_outlet' => 49000,
+            'yearly_discount_percent' => 0,
+            'max_outlets' => 5,
+            'has_trial' => true,
+            'trial_duration_days' => 14,
+            'is_active' => true,
+            'is_public' => true,
+        ];
+
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->put("http://{$this->cockpitHost}/subscription-plans/{$plan->id}", $payload);
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);
+
+        $plan->refresh();
+        $this->assertSame(5, $plan->max_outlets);
+        $this->assertTrue($plan->has_trial);
+        $this->assertSame(14, $plan->trial_duration_days);
+    }
+
+    public function test_plan_validation_rejects_invalid_max_outlets_and_trial_duration(): void
+    {
+        $payload = [
+            'code' => 'invalid-limits-plan',
+            'name' => 'Invalid Plan',
+            'price_per_outlet' => 20000,
+            'yearly_discount_percent' => 0,
+            'max_outlets' => 0, // must be min 1
+            'has_trial' => true,
+            'trial_duration_days' => 100, // max is 90
+        ];
+
+        $response = $this->actingAs($this->admin, 'cockpit')
+            ->withServerVariables(['HTTP_HOST' => $this->cockpitHost])
+            ->post("http://{$this->cockpitHost}/subscription-plans", $payload);
+
+        $response->assertSessionHasErrors(['max_outlets', 'trial_duration_days']);
     }
 }

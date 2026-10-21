@@ -31,9 +31,11 @@ class SubscriptionPlan extends Model
         'name',
         'code',
         'price_per_outlet',
+        'max_outlets',
         'yearly_discount_percent',
         'is_active',
         'is_public',
+        'has_trial',
         'subscriptions_count',
         'features_count',
         'created_at',
@@ -44,10 +46,13 @@ class SubscriptionPlan extends Model
         'code',
         'name',
         'price_per_outlet',
+        'max_outlets',
         'yearly_discount_percent',
         'features',
         'is_active',
         'is_public',
+        'has_trial',
+        'trial_duration_days',
         'business_id',
     ];
 
@@ -55,12 +60,30 @@ class SubscriptionPlan extends Model
     {
         return [
             'price_per_outlet' => 'decimal:2',
+            'max_outlets' => 'integer',
             'yearly_discount_percent' => 'integer',
             'features' => 'json',
             'is_active' => 'boolean',
             'is_public' => 'boolean',
+            'has_trial' => 'boolean',
+            'trial_duration_days' => 'integer',
             'business_id' => 'string',
         ];
+    }
+
+    public function isUnlimitedOutlets(): bool
+    {
+        return is_null($this->max_outlets);
+    }
+
+    public function allowsOutletCount(int $count): bool
+    {
+        return $this->isUnlimitedOutlets() || $count <= $this->max_outlets;
+    }
+
+    public function getTrialDays(): int
+    {
+        return $this->trial_duration_days ?? SystemSetting::getTrialDurationDays();
     }
 
     public function business(): BelongsTo

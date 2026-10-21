@@ -45,7 +45,6 @@ trait InteractsWithBaseData
             'email' => 'owner_'.uniqid().'@test.com',
             'phone' => '08123456789',
             'status' => 'active',
-            'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
 

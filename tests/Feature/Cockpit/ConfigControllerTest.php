@@ -4,8 +4,11 @@ namespace Tests\Feature\Cockpit;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\CockpitUser;
 use App\Models\SystemSetting;
+use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -89,24 +92,23 @@ class ConfigControllerTest extends TestCase
         SystemSetting::set('help_center_url', 'https://help.sollu.id');
         SystemSetting::set('whatsapp_support_number', '6281234567890');
 
-        $type = \App\Models\BusinessType::create([
+        $type = BusinessType::create([
             'code' => 'retail',
             'name' => 'Retail',
             'sort_order' => 1,
             'is_visible' => true,
         ]);
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Test Business',
             'owner_name' => 'Owner',
             'email' => 'owner@test.test',
             'phone' => '081234567890',
             'status' => 'active',
-            'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
 
-        $user = \App\Models\User::create([
+        $user = User::create([
             'business_id' => $business->id,
             'name' => 'Test User',
             'email' => 'user@test.test',
