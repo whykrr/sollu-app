@@ -18,33 +18,13 @@
                 @clear="updateQuery"
             />
         </template>
-
-        <template #create>
-            <Link
-                v-if="!subscription || subscription.status !== $enums.SubscriptionStatus.Active"
-                :href="route('settings.billing.plans')"
-                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
-            >
-                <FontAwesomeIcon :icon="faGem" />
-                <span>Pilih Paket</span>
-            </Link>
-            <Link
-                v-else
-                :href="route('settings.billing.plans')"
-                class="btn btn-outline-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
-            >
-                <span>Ubah Paket</span>
-            </Link>
-        </template>
     </ActionBar>
 </template>
 
 <script setup>
 import { computed, reactive, watch } from 'vue'
-import { Link, router } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faGem } from '@fortawesome/free-solid-svg-icons'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'

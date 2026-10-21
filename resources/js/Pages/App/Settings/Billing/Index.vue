@@ -48,7 +48,10 @@
             </div>
 
             <!-- TAMPILAN JIKA MASA UJI COBA (TRIAL) -->
-            <div v-if="subscription?.is_trial" class="bg-white border border-slate-200 rounded-xl p-3">
+            <div
+                v-if="subscription?.is_trial"
+                class="bg-white border border-slate-200 rounded-xl p-3"
+            >
                 <div
                     class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-100 pb-3 mb-3"
                 >
@@ -61,7 +64,8 @@
                         <div>
                             <div class="flex items-center gap-2">
                                 <h2 class="text-base font-bold text-gray-900">
-                                    Masa Uji Coba Gratis (Free Trial) - {{ subscription.plan?.name }}
+                                    Masa Uji Coba Gratis (Free Trial) -
+                                    {{ subscription.plan?.name }}
                                 </h2>
                                 <span
                                     class="badge text-xs"
@@ -79,7 +83,8 @@
                                 </span>
                             </div>
                             <p class="text-xs text-gray-500 mt-0.5">
-                                Tingkatkan ke paket berbayar untuk menikmati akses penuh dan perpanjang masa aktif bisnismu.
+                                Tingkatkan ke paket berbayar untuk menikmati akses penuh dan
+                                perpanjang masa aktif bisnismu.
                             </p>
                         </div>
                     </div>
@@ -143,7 +148,10 @@
                             </span>
                             <span class="block text-sm font-bold text-gray-800 mt-0.5">
                                 {{ auth.outlets?.length ?? 0 }} Outlet Terdaftar
-                                <span v-if="subscription.plan?.max_outlets" class="text-xs font-normal text-gray-500 ml-1">
+                                <span
+                                    v-if="subscription.plan?.max_outlets"
+                                    class="text-xs font-normal text-gray-500 ml-1"
+                                >
                                     (Maks {{ subscription.plan.max_outlets }} outlet)
                                 </span>
                                 <span v-else class="text-xs font-normal text-gray-500 ml-1">
@@ -174,7 +182,8 @@
                                 <span class="badge badge-danger text-xs">Kedaluwarsa</span>
                             </div>
                             <p class="text-xs text-gray-500 mt-0.5">
-                                Masa langganan atau masa uji coba bisnismu telah berakhir. Pilih paket langganan untuk melanjutkan operasional.
+                                Masa langganan atau masa uji coba bisnismu telah berakhir. Pilih
+                                paket langganan untuk melanjutkan operasional.
                             </p>
                         </div>
                     </div>
@@ -237,6 +246,7 @@
                             :href="route('settings.billing.plans')"
                             class="btn btn-outline-main text-xs font-semibold py-2 px-3 rounded-lg w-full md:w-auto text-center"
                         >
+                            <FontAwesomeIcon :icon="faRefresh" />
                             Ubah Paket
                         </Link>
                     </div>
@@ -412,6 +422,7 @@ import {
     faCreditCard,
     faEye,
     faGem,
+    faRefresh,
     faShop,
 } from '@fortawesome/free-solid-svg-icons'
 
