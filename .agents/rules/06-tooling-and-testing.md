@@ -96,3 +96,19 @@ Tugas dinyatakan selesai (*Done*) HANYA JIKA:
 4. Skenario test case telah dikonfirmasi dan mencakup jalur kritis bisnis serta multi-tenant scoping.
 5. Verifikasi dua arah migrasi database (`migrate -> rollback -> migrate`) berhasil tanpa error jika ada perubahan skema database (Rule 08).
 6. Tidak ada error/warning console pada antarmuka frontend.
+
+---
+
+## 7. Sandbox Constraints & Protokol Eksekusi Bertahap
+
+### A. Terminal Sandbox Network Isolation (PostgreSQL & Git)
+1. **Koneksi Database Lokal (`BypassSandbox: true`):** Standard Sandbox Mode memblokir akses jaringan eksternal dan loopback socket. Perintah yang membutuhkan koneksi langsung ke PostgreSQL lokal (`127.0.0.1:5432`) seperti:
+   - `php artisan migrate` / `migrate:rollback`
+   - `php artisan test`
+   - `php artisan db:seed`
+   **WAJIB dieksekusi dengan `BypassSandbox: true`** untuk mencegah error `SQLSTATE[08006] Connection refused`.
+2. **Operasi Git Berbasis Lock:** Perintah Git yang membuat lock file di dalam direktori repository (seperti `git checkout`, `git commit`, `git stash`) membutuhkan `BypassSandbox: true` karena batasan write file system sandbox pada `.git/index.lock`.
+
+### B. Protokol Eksekusi Bertahap Per Fase (Strict Phased Execution)
+1. **Disiplin Fase Tunggal:** Jika perencanaan kerja dipecah menjadi beberapa fase (Fase 1, Fase 2, dst.), agen **WAJIB HANYA fokus pada fase yang sedang aktif**.
+2. **Larangan Mendahului:** Dilarang keras melakukan implementasi atau modifikasi kode pada fase berikutnya sebelum fase aktif selesai, diverifikasi dengan tes/linter, dilaporkan ke pengguna, dan disetujui untuk lanjut.

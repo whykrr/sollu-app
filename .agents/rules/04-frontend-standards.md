@@ -119,3 +119,20 @@ Aplikasi Sollu memisahkan dengan tegas antara **Drawer / Side-Panel** (alur kerj
      - Properti tombol: Wajib gunakan `confirmText` dan `cancelText` (DILARANG `confirmButtonText`).
      - Tipe semantik: `'danger'` (merah), `'warning'` (amber), `'info'`/`'confirm'` (biru), `'success'` (hijau) (DILARANG `type: 'error'`).
 
+---
+
+## 9. Modal Kredensial, Clipboard Fallback, & In-Modal Async Flow
+
+### A. Pengamanan Kredensial Sekali Tampil (One-Time Credential Display)
+1. **Proteksi Backdrop (`closeOnBackdrop: false`):** Saat modal menampilkan kredensial yang hanya muncul sekali (misal: kata sandi baru hasil reset, kode OTP, atau token API), properti `closeOnBackdrop` **WAJIB bernilai `false`** agar dialog tidak tertutup secara tidak sengaja oleh klik di luar modal sebelum kredensial disalin.
+2. **Kepatuhan Zero-Shadow & Aksesibilitas:** Kotak preview kredensial menggunakan background solid halus (`bg-slate-50`), border lembut (`border-slate-200`), font monospace jelas dengan seleksi instan (`select-all font-mono font-bold`), dan tombol salin berukuran standar touch-target (`touch-target-sm`).
+
+### B. Standardisasi Penyalinan Papan Klip (Clipboard Fallback)
+1. **Dukungan Lingkungan Non-Secure Context (HTTP):** Pemanggilan `navigator.clipboard.writeText()` hanya berfungsi di *secure context* (HTTPS/localhost). Untuk lingkungan testing staging/lokal (`http://app.sollu.test`), fungsi salin **WAJIB memiliki fallback** ke elemen sementara `<textarea>` dengan `document.execCommand('copy')`.
+2. **Feedback Visual Instan:** Tombol salin wajib memberikan umpan balik langsung (misal: berubah menjadi tanda centang hijau *"Kata Sandi Tersalin!"* selama 2 detik) disertai trigger notifikasi `toastStore.success()`.
+
+### C. Alur Asinkron In-Modal 2-Tahap (Two-State In-Modal Flow)
+1. **Hindari Chaining `modalStore.confirm` dengan `modalStore.open`:** `modalStore.confirm` menutup modal secara otomatis tepat saat `onConfirm()` dipanggil. Jika `onConfirm` menjalankan operasi asynchronous (seperti API reset password), modal akan tertutup lebih awal dan menimbulkan kedip UI sebelum dialog hasil muncul.
+2. **Gunakan Komponen Modal Terpadu:** Untuk alur konfirmasi yang menghasilkan data asinkron, gunakan komponen modal terdedikasi (misal `<PasswordResetModal>`) dengan transisi status internal (Tahap 1: Konfirmasi $\rightarrow$ Indikator Loading $\rightarrow$ Tahap 2: Hasil & Tombol Salin).
+
+

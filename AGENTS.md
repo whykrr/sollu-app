@@ -32,6 +32,7 @@ Before designing or modifying code, ensure compliance with the standing rules:
 Activate the relevant specialized skill when working in specific domains:
 
 - `domain-inventory`: Stock balances, FIFO layers, movements, PO, GR, transfers, opname, SoD.
+- `domain-subscription`: Subscription lifecycle, One-Trial Policy, multi-outlet quotas, downgrade wizard, payment wall, and billing reconciliation.
 - `domain-notifications`: `BaseNotification`, multi-tenant scoping, mail, broadcast, retention.
 - `domain-audit-log`: ActivityLoggerInterface, table partitioning, event matrices.
 - `sollu`: Comprehensive architecture & technical implementation reference.

@@ -61,3 +61,27 @@
    - Model `Outlet`: Dilarang menghapus permission cache user.
    - Model `Role` & `Permission`: Tetap invalidasi penuh (`clearBusinessPermissions` / `clearRuntimeCache`).
 
+---
+
+## 4. Arsitektur Multi-Tenant User, Otentikasi Kasir & Reset Sandi Instan
+
+### A. Scoped Uniqueness & Penanganan Nullable di PostgreSQL
+1. **Unik Komposit Per Bisnis:** Kolom `email` dan `phone` pada tabel `users` **DILARANG** menggunakan unique global. Wajib menggunakan unique komposit: `['business_id', 'email']` dan `['business_id', 'phone']`.
+2. **Karakteristik Nullable PostgreSQL:** Kolom `email` dan `password` bersifat `nullable()`. Di PostgreSQL, multiple baris bernilai `NULL` pada unique index komposit **tidak saling melanggar constraint**, memungkinkan penambahan kasir tanpa email secara tak terbatas dalam bisnis yang sama.
+3. **Turnover Karyawan & Registrasi Bisnis Baru:** Karyawan lama dengan email terdaftar di bisnis lain bebas mendaftarkan bisnis barunya sendiri. `RegisterRequest` HANYA menolak jika email/phone adalah milik Akun Utama aktif (`is_root_user = true` dan `deleted_at IS NULL`).
+
+### B. Pemisahan Kasir POS vs Staf Web Backoffice
+1. **Kasir POS Murni (`has_web_access = false`):**
+   - Disimpan dengan `email = null` dan `password = null`.
+   - Otentikasi murni via Device Lock + PIN 6 digit di perangkat POS.
+   - **Blokir Akses Web:** Kasir dengan `password = null` otomatis ditolak saat mencoba login di web dashboard (`LoginController`).
+2. **Staf Web Backoffice (`has_web_access = true`):**
+   - Wajib menyertakan `email`.
+   - Password default dibuat otomatis via `EmployeeService::generateDefaultPassword()` dengan format **Nama Kota di Indonesia + 4 digit angka acak** (misal: `Bandung4829`, `Surabaya1024`) dan dikirimkan via email saat registrasi baru.
+
+### C. Reset Kata Sandi Instan (Zero-Email Dispatch)
+1. **Endpoint Khusus:** `POST /employees/{user}/reset-password`.
+2. **Proteksi Akun Utama:** Dilarang mereset password Akun Utama (`is_root_user = true`) melalui endpoint staf (melempar HTTP 422).
+3. **Tanpa Notifikasi Email:** Reset kata sandi staf langsung mengupdate hash di database, mencatat audit log (`AuditModuleEnum::EMPLOYEES`), dan mengembalikan plain password dalam respons JSON `{ success: true, password: "..." }` tanpa memicu mailer/notifikasi email.
+4. **Smart Tenant Selector:** Jika 1 email terdaftar di lebih dari satu bisnis dengan kata sandi yang cocok, alur login web mengarahkan ke antarmuka pemilihan tenant (`User/SelectBusiness.vue`) sebelum mengautentikasi sesi bisnis.
+
