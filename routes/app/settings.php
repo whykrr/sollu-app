@@ -43,8 +43,10 @@ Route::prefix('settings')
                 Route::put('/', [BusinessInfoController::class, 'save'])->name('detail.save');
                 Route::post('/logo', [BusinessInfoController::class, 'saveLogo'])->name('detail.save.logo');
 
-                Route::get('/features', [FeatureSettingController::class, 'index'])->name('features');
-                Route::put('/features', [FeatureSettingController::class, 'save'])->name('features.save');
+                Route::middleware(['plan.feature:'.FeatureEnum::FEATURE_PERSONALIZATION->value])->group(function () {
+                    Route::get('/features', [FeatureSettingController::class, 'index'])->name('features');
+                    Route::put('/features', [FeatureSettingController::class, 'save'])->name('features.save');
+                });
             });
 
         Route::prefix('inventory')

@@ -7,6 +7,8 @@ use App\Constants\ResourceMessage;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Feature;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -33,12 +35,12 @@ class FeatureSettingControllerTest extends TestCase
 
     protected function createMerchantUser(): User
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Merchant Test Business',
             'owner_name' => 'Merchant Owner',
             'email' => 'merchant_'.uniqid().'@test.test',
@@ -133,19 +135,32 @@ class FeatureSettingControllerTest extends TestCase
         $this->assertEquals($featuresToEnable, $business->settings['active_features']);
     }
 
-    public function test_saving_features_filters_out_features_not_in_plan(): void
+    public function test_micro_plan_cannot_access_features_page(): void
     {
         $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user, PlanEnum::MICRO);
+        $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
+
+        $response = $this->actingAs($user, 'business')->get("http://{$this->appDomain}/settings/business/features");
+
+        // Should be blocked by plan.feature:feature_personalization middleware
+        $response->assertRedirect();
+        $response->assertSessionHas('feature_locked');
+    }
+
+    public function test_saving_features_filters_out_features_not_in_plan(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user, PlanEnum::BASIC);
         $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
         $user->givePermissionTo(PermissionEnum::BUSINESS_UPDATE->value);
 
         $business = $user->business;
         $availableFeatures = array_map(fn ($f) => $f->value, $business->getAvailablePlanFeatures());
 
-        // Try to save a valid feature and an invalid feature (not in Micro plan)
+        // Try to save a valid feature and an invalid feature (not in Basic plan, e.g. multi_device which is Pro only)
         $validFeature = $availableFeatures[0] ?? FeatureEnum::POS_CASHIER->value;
-        $invalidFeature = 'custom_role'; // Typically pro feature not in Micro
+        $invalidFeature = FeatureEnum::MULTI_DEVICE->value;
 
         $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/business/features", [
             'features' => [$validFeature, $invalidFeature],

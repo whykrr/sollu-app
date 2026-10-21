@@ -388,6 +388,17 @@ class FeatureSeeder extends Seeder
                 'group_label' => 'Karyawan & Hak Akses',
                 'sort_order' => 370,
             ],
+
+            // Pengaturan & Personalisasi
+            [
+                'code' => 'feature_personalization',
+                'name' => 'Personalisasi Fitur',
+                'description' => 'Kemampuan untuk menyesuaikan, mengaktifkan, atau menyembunyikan modul sesuai alur kerja tokomu.',
+                'module' => 'settings',
+                'group' => 'outlets_and_operations',
+                'group_label' => 'Outlet & Operasional',
+                'sort_order' => 380,
+            ],
         ];
 
         $now = now();

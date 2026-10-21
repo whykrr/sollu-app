@@ -197,6 +197,18 @@ class Business extends Model
         }
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function (self $business) {
+            self::clearCache($business->id);
+            $business->clearMemoizedFeatures();
+        });
+        static::deleted(function (self $business) {
+            self::clearCache($business->id);
+            $business->clearMemoizedFeatures();
+        });
+    }
+
     /**
      * Get the active subscription with loaded plan and system features.
      */
@@ -210,7 +222,15 @@ class Business extends Model
             $subscription = $this->subscriptions
                 ->where('status', 'active')
                 ->first(function (Subscription $sub) {
-                    return $sub->expired_at === null || Carbon::parse($sub->expired_at)->isFuture();
+                    if ($sub->expired_at === null || Carbon::parse($sub->expired_at)->isFuture()) {
+                        return true;
+                    }
+                    // Non-trial 3-day grace period
+                    if (! $sub->is_trial && Carbon::parse($sub->expired_at)->gte(Carbon::now()->subDays(3))) {
+                        return true;
+                    }
+
+                    return false;
                 });
 
             if ($subscription) {
@@ -232,8 +252,13 @@ class Business extends Model
                 ->where('status', 'active')
                 ->where(function ($query) {
                     $query->whereNull('expired_at')
-                        ->orWhere('expired_at', '>=', Carbon::now());
+                        ->orWhere('expired_at', '>=', Carbon::now())
+                        ->orWhere(function ($q) {
+                            $q->where('is_trial', false)
+                                ->where('expired_at', '>=', Carbon::now()->subDays(3));
+                        });
                 })
+                ->latest()
                 ->first();
         });
 
@@ -250,7 +275,8 @@ class Business extends Model
     }
 
     /**
-     * Get the active plan features for this business.
+     * Get the active plan features for this business following the 3-tier hierarchy:
+     * Level 1 (BusinessType) ∩ Level 2 (SubscriptionPlan) ∩ Level 3 (Merchant Personalization)
      *
      * @param  array<FeatureEnum>|null  $planFeatures
      * @return array<FeatureEnum>
@@ -270,29 +296,40 @@ class Business extends Model
             }
         }
 
+        // Level 2: Features granted by the subscription plan
         $planFeatures = $planFeatures ?? $this->getAvailablePlanFeatures();
 
-        // Get user personalized features if exists
-        $userFeatures = $this->settings['active_features'] ?? null;
+        // Level 1: Features supported by the BusinessType
+        $type = $this->relationLoaded('type')
+            ? $this->type
+            : ($this->business_type_id ? BusinessType::getAllCached()->firstWhere('id', $this->business_type_id) : null);
+
+        $typeFeatures = $type ? $type->featureEnums() : null;
+
+        // Base allowed features: intersection of Level 1 (BusinessType) and Level 2 (Plan)
+        $allowedFeatures = is_array($type?->features) && $typeFeatures !== null
+            ? array_values(array_filter($planFeatures, fn ($pf) => in_array($pf, $typeFeatures, true)))
+            : $planFeatures;
+
+        // Level 3: Merchant personalization
+        // Personalization is only accessible if the plan includes FEATURE_PERSONALIZATION (Basic and above)
+        $canPersonalize = in_array(FeatureEnum::FEATURE_PERSONALIZATION, $planFeatures, true);
+        $userFeatures = $canPersonalize ? ($this->settings['active_features'] ?? null) : null;
 
         if (is_null($userFeatures)) {
-            // Fallback to BusinessType defaults without triggering extra lazy SQL queries
-            $type = $this->relationLoaded('type')
-                ? $this->type
-                : ($this->business_type_id ? BusinessType::getAllCached()->firstWhere('id', $this->business_type_id) : null);
+            // Default for Micro plan or unconfigured personalization: entire allowed features
+            $activeFeatures = $allowedFeatures;
+        } else {
+            // Merchant personalized: intersect with allowedFeatures
+            $activeFeatures = [];
+            foreach ($userFeatures as $featureString) {
+                $featureEnum = $featureString instanceof FeatureEnum
+                    ? $featureString
+                    : FeatureEnum::tryFrom((string) $featureString);
 
-            $userFeatures = $type?->features ?? array_map(fn ($f) => $f->value, $planFeatures);
-        }
-
-        // Map strings to FeatureEnum and intersect with plan features
-        $activeFeatures = [];
-        foreach ($userFeatures as $featureString) {
-            $featureEnum = $featureString instanceof FeatureEnum
-                ? $featureString
-                : FeatureEnum::tryFrom((string) $featureString);
-
-            if ($featureEnum && in_array($featureEnum, $planFeatures, true)) {
-                $activeFeatures[] = $featureEnum;
+                if ($featureEnum && in_array($featureEnum, $allowedFeatures, true)) {
+                    $activeFeatures[] = $featureEnum;
+                }
             }
         }
 
@@ -301,6 +338,34 @@ class Business extends Model
         }
 
         return $this->memoizedActivePlanFeatures = $activeFeatures;
+    }
+
+    /**
+     * Check if business is currently in the 3-day grace period.
+     */
+    public function isInGracePeriod(): bool
+    {
+        $sub = $this->getActiveSubscriptionWithPlan();
+        if (! $sub || $sub->is_trial || $sub->expired_at === null) {
+            return false;
+        }
+
+        return $sub->expired_at->isPast() && $sub->expired_at->gte(Carbon::now()->subDays(3));
+    }
+
+    /**
+     * Get remaining grace days (0, 1, 2, or 3).
+     */
+    public function graceDaysRemaining(): int
+    {
+        $sub = $this->getActiveSubscriptionWithPlan();
+        if (! $sub || ! $this->isInGracePeriod()) {
+            return 0;
+        }
+
+        $graceEnd = $sub->expired_at->copy()->addDays(3);
+
+        return max(0, (int) ceil(Carbon::now()->diffInDays($graceEnd, false)));
     }
 
     /**

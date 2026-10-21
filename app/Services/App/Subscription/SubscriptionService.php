@@ -20,15 +20,6 @@ class SubscriptionService
     {
         /** @var Subscription */
         $subscription = DB::transaction(function () use ($business, $plan, $billing_cycle, $selectedOutletIds) {
-            // If the current active subscription is a trial, eliminate it immediately on upgrade
-            $business->subscriptions()
-                ->where('status', SubscriptionStatus::Active)
-                ->where('is_trial', true)
-                ->update([
-                    'status' => SubscriptionStatus::Canceled,
-                    'canceled_at' => Carbon::now(),
-                ]);
-
             if (! $business->has_used_trial) {
                 $business->update(['has_used_trial' => true]);
             }

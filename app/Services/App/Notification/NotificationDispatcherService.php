@@ -23,6 +23,19 @@ class NotificationDispatcherService
     }
 
     /**
+     * Send a notification directly to the business root user.
+     */
+    public function sendToRootUser(Business $business, BaseNotification $notification): void
+    {
+        $rootUser = $business->users()->where('is_root_user', true)->first()
+            ?? $business->users()->first();
+
+        if ($rootUser) {
+            $this->sendToUser($rootUser, $notification);
+        }
+    }
+
+    /**
      * Send a notification to all authorized users in a business (e.g. Owner, Manager).
      *
      * @param  array<string>|null  $roles

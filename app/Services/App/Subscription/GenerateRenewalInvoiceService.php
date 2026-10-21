@@ -2,6 +2,7 @@
 
 namespace App\Services\App\Subscription;
 
+use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\Invoice;
 use App\Models\SubscriptionPlan;
@@ -16,10 +17,13 @@ class GenerateRenewalInvoiceService
     {
         /** @var Invoice $invoice */
         $invoice = DB::transaction(function () use ($business, $plan, $billingCycle) {
-            $subscription = $business->subscriptions()->where('status', \App\Enums\SubscriptionStatus::Active)->first();
+            $subscription = $business->subscriptions()
+                ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Suspended])
+                ->latest()
+                ->first();
 
             if (! $subscription) {
-                throw new BadRequestHttpException('Tidak ada langganan aktif untuk diperpanjang.');
+                throw new BadRequestHttpException('Tidak ada langganan yang dapat diperpanjang.');
             }
 
             if ($subscription->plan_id !== $plan->id) {

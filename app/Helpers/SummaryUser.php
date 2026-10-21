@@ -55,6 +55,8 @@ class SummaryUser
                         [
                             'inventory_costing_method' => $user->business->getCostingMethod()->value,
                             'is_costing_configured' => $user->business->isCostingMethodConfigured(),
+                            'is_in_grace_period' => $user->business->isInGracePeriod(),
+                            'grace_days_remaining' => $user->business->graceDaysRemaining(),
                         ]
                     ) : null,
                     'subscription' => $user->business->getActiveSubscriptionWithPlan()?->toArray()

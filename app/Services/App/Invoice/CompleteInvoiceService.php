@@ -4,8 +4,15 @@ namespace App\Services\App\Invoice;
 
 use App\Enums\SubscriptionInvoice\Status;
 use App\Enums\SubscriptionStatus;
+use App\Events\Invoice\InvoicePaid;
+use App\Helpers\SummaryUser;
+use App\Models\Business;
 use App\Models\Invoice;
+use App\Models\Outlet;
+use App\Notifications\OutletActivatedNotification;
 use App\Notifications\SubscriptionActivatedNotification;
+use App\Services\App\Notification\NotificationDispatcherService;
+use App\Services\App\Outlet\ManageOutletStatusService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -32,7 +39,7 @@ class CompleteInvoiceService
                 'paid_at' => $now,
             ]);
 
-            \App\Events\Invoice\InvoicePaid::dispatch($invoice);
+            InvoicePaid::dispatch($invoice);
 
             $business = $invoice->business;
 
@@ -46,9 +53,15 @@ class CompleteInvoiceService
                 $isPlanRenewal = true;
             }
 
-            // Only activate the subscription if it is a recurring plan, OR if the subscription isn't active yet.
-            // Generally, we just ensure the latest subscription is set to active.
-            $subscription = $business->subscriptions()->latest()->first();
+            // Resolve subscription associated with this invoice (or fallback to latest)
+            $subscription = null;
+            $subscriptionItem = $invoice->items()->whereIn('item_type', ['recurring_plan', 'plan_renewal'])->first();
+            if ($subscriptionItem && isset($subscriptionItem->metadata['subscription_id'])) {
+                $subscription = $business->subscriptions()->find($subscriptionItem->metadata['subscription_id']);
+            }
+            if (! $subscription) {
+                $subscription = $business->subscriptions()->latest()->first();
+            }
 
             if ($isPlanRenewal) {
                 $renewalItem = $invoice->items()->where('item_type', 'plan_renewal')->first();
@@ -68,17 +81,17 @@ class CompleteInvoiceService
                             'status' => SubscriptionStatus::Active,
                         ]);
 
-                        $owner = $business->users()->first();
-                        if ($owner) {
-                            try {
-                                $owner->notify(new SubscriptionActivatedNotification(
+                        try {
+                            app(NotificationDispatcherService::class)->sendToRootUser(
+                                $business,
+                                new SubscriptionActivatedNotification(
                                     $business,
                                     $targetSub->plan,
                                     $targetSub->expired_at->translatedFormat('d F Y')
-                                ));
-                            } catch (\Exception $e) {
-                                Log::error('Gagal mengirim notifikasi perpanjangan langganan: '.$e->getMessage());
-                            }
+                                )
+                            );
+                        } catch (\Exception $e) {
+                            Log::error('Gagal mengirim notifikasi perpanjangan langganan: '.$e->getMessage());
                         }
                     }
                 }
@@ -86,9 +99,9 @@ class CompleteInvoiceService
                 // Cancel any previous active subscriptions before activating the new one
                 $business->subscriptions()
                     ->where('id', '!=', $subscription->id)
-                    ->where('status', SubscriptionStatus::Active)
+                    ->where('status', SubscriptionStatus::Active->value)
                     ->update([
-                        'status' => SubscriptionStatus::Canceled,
+                        'status' => SubscriptionStatus::Canceled->value,
                         'canceled_at' => $now,
                     ]);
 
@@ -98,42 +111,52 @@ class CompleteInvoiceService
                     ]);
                 }
 
-                // Send notification to the first user (business owner)
-                $owner = $business->users()->first();
-                if ($owner) {
-                    try {
-                        $expiredAt = $subscription->expired_at
-                            ? $subscription->expired_at->translatedFormat('d F Y')
-                            : 'Lifetime';
+                // Send notification to the business root user
+                try {
+                    $expiredAt = $subscription->expired_at
+                        ? $subscription->expired_at->translatedFormat('d F Y')
+                        : 'Lifetime';
 
-                        $owner->notify(new SubscriptionActivatedNotification(
+                    app(NotificationDispatcherService::class)->sendToRootUser(
+                        $business,
+                        new SubscriptionActivatedNotification(
                             $business,
                             $subscription->plan,
                             $expiredAt
-                        ));
-                    } catch (\Exception $e) {
-                        Log::error('Gagal mengirim notifikasi aktivasi langganan: '.$e->getMessage());
-                    }
+                        )
+                    );
+                } catch (\Exception $e) {
+                    Log::error('Gagal mengirim notifikasi aktivasi langganan: '.$e->getMessage());
                 }
             }
 
             if ($isOutletAddition) {
                 $outletAdditionItem = $invoice->items()->where('item_type', 'outlet_addition')->first();
                 if ($outletAdditionItem && isset($outletAdditionItem->metadata['outlet_id'])) {
-                    $outlet = \App\Models\Outlet::find($outletAdditionItem->metadata['outlet_id']);
+                    $outlet = Outlet::find($outletAdditionItem->metadata['outlet_id']);
                     if ($outlet && ! $outlet->is_active) {
-                        $owner = $business->users()->first();
-                        app(\App\Services\App\Outlet\ManageOutletStatusService::class)->toggleStatus($outlet, true, $owner);
+                        $owner = $business->users()->where('is_root_user', true)->first() ?? $business->users()->first();
+                        app(ManageOutletStatusService::class)->toggleStatus($outlet, true, $owner);
 
                         if ($owner) {
                             try {
-                                $owner->notify(new \App\Notifications\OutletActivatedNotification($outlet));
+                                app(NotificationDispatcherService::class)->sendToRootUser(
+                                    $business,
+                                    new OutletActivatedNotification($outlet)
+                                );
                             } catch (\Exception $e) {
                                 Log::error('Gagal mengirim notifikasi aktivasi outlet: '.$e->getMessage());
                             }
                         }
                     }
                 }
+            }
+
+            // Clear cached subscription and user summary for tenant
+            Business::clearCache($business->id);
+            $rootUser = $business->users()->where('is_root_user', true)->first();
+            if ($rootUser) {
+                SummaryUser::cacheDelete($rootUser->id);
             }
 
             return $invoice;

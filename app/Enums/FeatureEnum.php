@@ -92,4 +92,12 @@ enum FeatureEnum: string
     case EMPLOYEE_MANAGEMENT = 'employee_management';
     case CUSTOM_ROLE = 'custom_role';
     case AUDIT_LOGS = 'audit_logs';
+
+    /*
+    |--------------------------------------------------------------------------
+    | Personalisasi & Konfigurasi (Customization & Personalization)
+    |--------------------------------------------------------------------------
+    */
+
+    case FEATURE_PERSONALIZATION = 'feature_personalization';
 }

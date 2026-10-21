@@ -51,6 +51,7 @@ export const getSettingSidebars = (enums = { FeatureEnum: {} }) => [
         url: route('settings.business.features'),
         icon: faSliders,
         label: 'Personalisasi Fitur',
+        feature: enums.FeatureEnum.FEATURE_PERSONALIZATION,
         permissions: ['business.update'],
         activeRoute: 'settings.business.features',
     },

@@ -11,6 +11,7 @@ use App\Models\Outlet;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Services\App\Invoice\CompleteInvoiceService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -123,12 +124,11 @@ class OneTrialPolicyTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas(FlashDataVariable::SUCCESS->value);
 
-        // Verify trial was canceled immediately
+        // Verify trial remains active while invoice is pending (so merchant isn't locked out prematurely)
         $trialSub->refresh();
-        $this->assertSame(SubscriptionStatus::Canceled, $trialSub->status);
-        $this->assertNotNull($trialSub->canceled_at);
+        $this->assertSame(SubscriptionStatus::Active, $trialSub->status);
 
-        // Verify new subscription is non-trial (paid)
+        // Verify new subscription is non-trial (paid) with pending status
         $newSub = $business->subscriptions()->where('plan_id', $basicPlan->id)->first();
         $this->assertNotNull($newSub);
         $this->assertFalse((bool) $newSub->is_trial);
@@ -138,6 +138,16 @@ class OneTrialPolicyTest extends TestCase
         $invoice = $business->invoices()->latest()->first();
         $this->assertNotNull($invoice);
         $this->assertEquals(99000, (float) $invoice->total_amount);
+
+        // Complete the invoice payment and verify trial is canceled and new subscription is activated
+        app(CompleteInvoiceService::class)->execute($invoice);
+
+        $trialSub->refresh();
+        $this->assertSame(SubscriptionStatus::Canceled, $trialSub->status);
+        $this->assertNotNull($trialSub->canceled_at);
+
+        $newSub->refresh();
+        $this->assertSame(SubscriptionStatus::Active, $newSub->status);
     }
 
     public function test_business_has_used_trial_flag_persists_and_prevents_multiple_trials(): void

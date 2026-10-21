@@ -84,6 +84,7 @@ class SubscriptionPlanSeeder extends Seeder
                     'sales_reports',
                     'product_reports',
                     'outlet_management',
+                    'feature_personalization',
                 ],
             ],
             'pro' => [
@@ -129,6 +130,7 @@ class SubscriptionPlanSeeder extends Seeder
                     'sales_reports',
                     'product_reports',
                     'outlet_management',
+                    'feature_personalization',
                     // Pro features
                     'multi_device',
                     'operational_hours',
