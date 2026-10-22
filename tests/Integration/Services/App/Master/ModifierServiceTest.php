@@ -3,9 +3,11 @@
 namespace Tests\Integration\Services\App\Master;
 
 use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Master\ModifierGroup;
 use App\Services\App\Master\AuditLogService;
 use App\Services\App\Master\ModifierService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
@@ -36,7 +38,7 @@ class ModifierServiceTest extends TestCase
 
     protected function createTenant(): Business
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
@@ -54,7 +56,7 @@ class ModifierServiceTest extends TestCase
 
     public function test_it_creates_modifier_group()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $business = $this->createTenant();
 
         $data = [
@@ -90,7 +92,7 @@ class ModifierServiceTest extends TestCase
 
     public function test_it_updates_modifier_group()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $business = $this->createTenant();
 
         $group = ModifierGroup::create([
@@ -131,7 +133,7 @@ class ModifierServiceTest extends TestCase
 
     public function test_it_deletes_modifier_group()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $business = $this->createTenant();
 
         $group = ModifierGroup::create([

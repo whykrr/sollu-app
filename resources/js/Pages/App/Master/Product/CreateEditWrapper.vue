@@ -31,6 +31,8 @@
         :categories="loadedCategories"
         :outlets="loadedOutlets"
         :uoms="loadedUoms"
+        :modifier-groups="loadedModifierGroups"
+        :raw-materials="loadedRawMaterials"
         @close="emit('close', $event)"
     />
 </template>
@@ -50,11 +52,15 @@ const props = defineProps({
     categories: { type: Array, default: () => [] },
     outlets: { type: Array, default: () => [] },
     uoms: { type: Array, default: () => [] },
+    modifierGroups: { type: Array, default: () => [] },
+    rawMaterials: { type: Array, default: () => [] },
 })
 
 const loadedCategories = ref(props.categories)
 const loadedOutlets = ref(props.outlets)
 const loadedUoms = ref(props.uoms)
+const loadedModifierGroups = ref(props.modifierGroups)
+const loadedRawMaterials = ref(props.rawMaterials)
 const isLoading = ref(true)
 const fetchedProduct = ref(props.product)
 
@@ -66,13 +72,17 @@ onMounted(async () => {
         if (
             loadedCategories.value.length === 0 ||
             loadedOutlets.value.length === 0 ||
-            loadedUoms.value.length === 0
+            loadedUoms.value.length === 0 ||
+            loadedModifierGroups.value.length === 0 ||
+            loadedRawMaterials.value.length === 0
         ) {
             promises.push(
                 axios.get(route('master.products.formOptions')).then(res => {
                     loadedCategories.value = res.data.categories || []
                     loadedOutlets.value = res.data.outlets || []
                     loadedUoms.value = res.data.uoms || []
+                    loadedModifierGroups.value = res.data.modifierGroups || []
+                    loadedRawMaterials.value = res.data.rawMaterials || []
                 })
             )
         }

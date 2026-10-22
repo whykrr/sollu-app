@@ -1,5 +1,7 @@
 <?php
 
+use App\Logging\Processors\LogTraceContextProcessor;
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -78,10 +80,10 @@ return [
             'path' => storage_path('logs/laravel-json.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
-            'formatter' => \Monolog\Formatter\JsonFormatter::class,
+            'formatter' => JsonFormatter::class,
             'processors' => [
-                \App\Logging\Processors\LogTraceContextProcessor::class,
-                \Monolog\Processor\PsrLogMessageProcessor::class,
+                LogTraceContextProcessor::class,
+                PsrLogMessageProcessor::class,
             ],
             'replace_placeholders' => true,
         ],
@@ -91,10 +93,10 @@ return [
             'path' => storage_path('logs/loki.log'),
             'level' => env('LOG_LEVEL', 'info'),
             'days' => env('LOG_DAILY_DAYS', 14),
-            'formatter' => \Monolog\Formatter\JsonFormatter::class,
+            'formatter' => JsonFormatter::class,
             'processors' => [
-                \App\Logging\Processors\LogTraceContextProcessor::class,
-                \Monolog\Processor\PsrLogMessageProcessor::class,
+                LogTraceContextProcessor::class,
+                PsrLogMessageProcessor::class,
             ],
             'replace_placeholders' => true,
         ],

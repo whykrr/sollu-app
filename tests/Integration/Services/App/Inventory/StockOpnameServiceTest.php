@@ -3,13 +3,21 @@
 namespace Tests\Integration\Services\App\Inventory;
 
 use App\Enums\StockOpnameStatus;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\StockOpname;
+use App\Models\Outlet;
 use App\Models\User;
+use App\Services\App\Inventory\InventoryCostingService;
+use App\Services\App\Inventory\InventorySodService;
 use App\Services\App\Inventory\StockOpnameService;
 use App\Services\App\Master\ActivityLogService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class StockOpnameServiceTest extends TestCase
@@ -29,8 +37,8 @@ class StockOpnameServiceTest extends TestCase
 
         $this->service = new StockOpnameService(
             $this->activityLogServiceMock,
-            app(\App\Services\App\Inventory\InventoryCostingService::class),
-            app(\App\Services\App\Inventory\InventorySodService::class)
+            app(InventoryCostingService::class),
+            app(InventorySodService::class)
         );
     }
 
@@ -42,14 +50,14 @@ class StockOpnameServiceTest extends TestCase
 
     private function setupBaseData()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Test Business',
             'owner_name' => 'Owner',
             'email' => 'owner_'.uniqid().'@test.com',
@@ -66,13 +74,13 @@ class StockOpnameServiceTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
-        $outlet = \App\Models\Outlet::create([
+        $outlet = Outlet::create([
             'business_id' => $business->id,
             'name' => 'Main Outlet',
             'is_active' => true,
         ]);
 
-        $inventoryItem = \App\Models\Inventory\InventoryItem::firstOrCreate([
+        $inventoryItem = InventoryItem::firstOrCreate([
             'business_id' => $business->id,
         ], [
             'name' => 'Flour',
@@ -135,7 +143,7 @@ class StockOpnameServiceTest extends TestCase
 
     public function test_it_fails_to_update_non_in_progress_opname()
     {
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         $this->expectExceptionMessage('Hanya opname berstatus In Progress yang dapat diubah.');
 
         [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
@@ -245,7 +253,7 @@ class StockOpnameServiceTest extends TestCase
 
     public function test_it_fails_to_reject_non_pending_opname()
     {
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         $this->expectExceptionMessage('Opname harus dalam status Menunggu Persetujuan untuk ditolak.');
 
         [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();

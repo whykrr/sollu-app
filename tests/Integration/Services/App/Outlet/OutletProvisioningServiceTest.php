@@ -2,6 +2,8 @@
 
 namespace Tests\Integration\Services\App\Outlet;
 
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Master\OutletPaymentMethod;
 use App\Models\Master\PaymentMethod;
 use App\Models\Outlet;
@@ -9,6 +11,7 @@ use App\Models\OutletOperationalHour;
 use App\Models\OutletSetting;
 use App\Models\User;
 use App\Services\App\Outlet\OutletProvisioningService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -26,12 +29,12 @@ class OutletProvisioningServiceTest extends TestCase
 
     protected function createMerchantUser(): User
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Merchant Test Business',
             'owner_name' => 'Merchant Owner',
             'email' => 'merchant_'.uniqid().'@test.test',
@@ -52,7 +55,7 @@ class OutletProvisioningServiceTest extends TestCase
 
     public function test_it_provisions_all()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         $user = $this->createMerchantUser();
         $outlet = Outlet::create([
             'business_id' => $user->business_id,

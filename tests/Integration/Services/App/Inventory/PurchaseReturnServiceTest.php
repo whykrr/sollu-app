@@ -2,13 +2,17 @@
 
 namespace Tests\Integration\Services\App\Inventory;
 
+use App\Enums\GoodsReceiptStatus;
 use App\Enums\InventoryMovementType;
+use App\Enums\PurchaseOrderStatus;
 use App\Enums\PurchaseReturnStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
+use App\Models\Inventory\GoodsReceipt;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
+use App\Models\Inventory\PurchaseOrder;
 use App\Models\Inventory\PurchaseReturn;
 use App\Models\Inventory\Supplier;
 use App\Models\Outlet;
@@ -17,8 +21,10 @@ use App\Models\User;
 use App\Services\App\Inventory\InventoryCostingService;
 use App\Services\App\Inventory\PurchaseReturnService;
 use App\Services\App\Master\ActivityLogService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class PurchaseReturnServiceTest extends TestCase
@@ -54,7 +60,7 @@ class PurchaseReturnServiceTest extends TestCase
 
     private function setupBaseData(): array
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
@@ -206,12 +212,12 @@ class PurchaseReturnServiceTest extends TestCase
         // Reset saldo ke 0 untuk pengujian isolasi penerimaan bertahap
         InventoryBalance::where('inventory_item_id', $item->id)->update(['current_stock' => 0]);
 
-        $po = \App\Models\Inventory\PurchaseOrder::create([
+        $po = PurchaseOrder::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet->id,
             'supplier_id' => $supplier->id,
             'po_number' => 'PO-TEST-001',
-            'status' => \App\Enums\PurchaseOrderStatus::Ordered,
+            'status' => PurchaseOrderStatus::Ordered,
             'order_date' => now()->format('Y-m-d'),
             'total_amount' => 100000,
             'created_by' => $user->id,
@@ -229,7 +235,7 @@ class PurchaseReturnServiceTest extends TestCase
         ]);
 
         // Penerimaan 1: 1 Dus @ konversi 11 Pcs = +11 Pcs
-        $gr1 = \App\Models\Inventory\GoodsReceipt::create([
+        $gr1 = GoodsReceipt::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet->id,
             'purchase_order_id' => $po->id,
@@ -265,7 +271,7 @@ class PurchaseReturnServiceTest extends TestCase
         );
 
         // Penerimaan 2: 1 Dus @ konversi 24 Pcs = +24 Pcs
-        $gr2 = \App\Models\Inventory\GoodsReceipt::create([
+        $gr2 = GoodsReceipt::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet->id,
             'purchase_order_id' => $po->id,
@@ -344,7 +350,7 @@ class PurchaseReturnServiceTest extends TestCase
     {
         [$user, $business, $outlet, $item, $supplier, $uomPcs] = $this->setupBaseData();
 
-        $gr = \App\Models\Inventory\GoodsReceipt::create([
+        $gr = GoodsReceipt::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet->id,
             'supplier_id' => $supplier->id,
@@ -381,7 +387,7 @@ class PurchaseReturnServiceTest extends TestCase
             ],
         ];
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         $this->expectExceptionMessage('melebihi sisa penerimaan fisik surat jalan terkait');
 
         $this->service->createReturn($returnData, $user);
@@ -391,13 +397,13 @@ class PurchaseReturnServiceTest extends TestCase
     {
         [$user, $business, $outlet, $item, $supplier, $uomPcs] = $this->setupBaseData();
 
-        $gr = \App\Models\Inventory\GoodsReceipt::create([
+        $gr = GoodsReceipt::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet->id,
             'supplier_id' => $supplier->id,
             'receipt_number' => 'GR-VOIDED-001',
             'received_at' => now()->format('Y-m-d'),
-            'status' => \App\Enums\GoodsReceiptStatus::Voided,
+            'status' => GoodsReceiptStatus::Voided,
             'received_by' => $user->id,
         ]);
 
@@ -429,7 +435,7 @@ class PurchaseReturnServiceTest extends TestCase
             ],
         ];
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         $this->expectExceptionMessage('sudah dibatalkan sehingga tidak dapat diretur');
 
         $this->service->createReturn($returnData, $user);
@@ -441,12 +447,12 @@ class PurchaseReturnServiceTest extends TestCase
 
         $supplier->update(['return_period_days' => 5]);
 
-        $po = \App\Models\Inventory\PurchaseOrder::create([
+        $po = PurchaseOrder::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet->id,
             'supplier_id' => $supplier->id,
             'po_number' => 'PO-EXPIRED-01',
-            'status' => \App\Enums\PurchaseOrderStatus::Ordered,
+            'status' => PurchaseOrderStatus::Ordered,
             'order_date' => now()->subDays(10)->format('Y-m-d'),
             'total_amount' => 50000,
             'created_by' => $user->id,
@@ -461,7 +467,7 @@ class PurchaseReturnServiceTest extends TestCase
             'subtotal' => 50000,
         ]);
 
-        $gr = \App\Models\Inventory\GoodsReceipt::create([
+        $gr = GoodsReceipt::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet->id,
             'purchase_order_id' => $po->id,
@@ -501,7 +507,7 @@ class PurchaseReturnServiceTest extends TestCase
             ],
         ];
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         $this->expectExceptionMessage('telah berakhir (maksimal 5 hari');
 
         $this->service->createReturn($returnData, $user);
@@ -513,12 +519,12 @@ class PurchaseReturnServiceTest extends TestCase
 
         $supplier->update(['return_period_days' => 14]);
 
-        $po = \App\Models\Inventory\PurchaseOrder::create([
+        $po = PurchaseOrder::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet->id,
             'supplier_id' => $supplier->id,
             'po_number' => 'PO-VALID-01',
-            'status' => \App\Enums\PurchaseOrderStatus::Ordered,
+            'status' => PurchaseOrderStatus::Ordered,
             'order_date' => now()->subDays(3)->format('Y-m-d'),
             'total_amount' => 50000,
             'created_by' => $user->id,
@@ -533,7 +539,7 @@ class PurchaseReturnServiceTest extends TestCase
             'subtotal' => 50000,
         ]);
 
-        $gr = \App\Models\Inventory\GoodsReceipt::create([
+        $gr = GoodsReceipt::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet->id,
             'purchase_order_id' => $po->id,
@@ -601,7 +607,7 @@ class PurchaseReturnServiceTest extends TestCase
             ],
         ];
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         $this->expectExceptionMessage('tidak mencukupi untuk diretur');
 
         $this->service->createReturn($returnData, $user);

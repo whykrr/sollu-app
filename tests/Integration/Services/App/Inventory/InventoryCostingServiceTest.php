@@ -13,6 +13,7 @@ use App\Models\Inventory\InventoryMovement;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Services\App\Inventory\InventoryCostingService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -35,7 +36,7 @@ class InventoryCostingServiceTest extends TestCase
         parent::setUp();
         $this->service = app(InventoryCostingService::class);
 
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],

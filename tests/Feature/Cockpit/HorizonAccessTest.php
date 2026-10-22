@@ -7,6 +7,7 @@ use App\Models\BusinessType;
 use App\Models\CockpitUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Horizon\HorizonServiceProvider;
 use Tests\TestCase;
 
 class HorizonAccessTest extends TestCase
@@ -25,8 +26,8 @@ class HorizonAccessTest extends TestCase
 
         config(['horizon.domain' => 'cockpit.sollu.test']);
 
-        if (! $this->app->providerIsLoaded(\Laravel\Horizon\HorizonServiceProvider::class)) {
-            $this->app->register(\Laravel\Horizon\HorizonServiceProvider::class);
+        if (! $this->app->providerIsLoaded(HorizonServiceProvider::class)) {
+            $this->app->register(HorizonServiceProvider::class);
             $this->app->register(\App\Providers\HorizonServiceProvider::class);
         }
 

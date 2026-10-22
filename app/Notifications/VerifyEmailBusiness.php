@@ -29,7 +29,7 @@ class VerifyEmailBusiness extends NotificationsVerifyEmail implements ShouldQueu
     {
         $verificationUrl = $this->verificationUrl($notifiable);
 
-        return (new \Illuminate\Notifications\Messages\MailMessage)
+        return (new MailMessage)
             ->subject('Verifikasi Email Anda')
             ->greeting('Halo '.$notifiable->name.' 👋')
             ->line('Terima kasih telah mendaftar. Silakan klik tombol di bawah ini untuk verifikasi email Anda:')

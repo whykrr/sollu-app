@@ -2,6 +2,8 @@
 
 namespace Tests\Integration\Services\App\Reports;
 
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
 use App\Models\Outlet;
@@ -10,6 +12,7 @@ use App\Models\Sales\TransactionItem;
 use App\Models\User;
 use App\Services\App\Reports\ProductReportService;
 use Carbon\Carbon;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -27,14 +30,14 @@ class ProductReportServiceTest extends TestCase
 
     public function test_it_gets_report()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Report Merchant',
             'owner_name' => 'Report Owner',
             'email' => 'report_'.uniqid().'@test.test',
@@ -90,7 +93,7 @@ class ProductReportServiceTest extends TestCase
         ]);
 
         // Other business transaction to assert isolation
-        $otherBusiness = \App\Models\Business::create([
+        $otherBusiness = Business::create([
             'name' => 'Other Merchant',
             'owner_name' => 'Other Owner',
             'email' => 'other_'.uniqid().'@test.test',

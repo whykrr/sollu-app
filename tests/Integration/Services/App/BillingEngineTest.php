@@ -4,12 +4,14 @@ namespace Tests\Integration\Services\App;
 
 use App\Enums\SubscriptionInvoice\Status;
 use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Invoice;
 use App\Models\Outlet;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Services\App\Subscription\BillingEngine;
 use Carbon\Carbon;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -27,8 +29,8 @@ class BillingEngineTest extends TestCase
 
     public function test_it_calculates_prorated_cost_and_generates_invoice()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $businessType = \App\Models\BusinessType::create(['name' => 'F&B', 'code' => 'fnb']);
+        $this->seed(DatabaseSeeder::class);
+        $businessType = BusinessType::create(['name' => 'F&B', 'code' => 'fnb']);
         $business = Business::create([
             'business_type_id' => $businessType->id,
             'name' => 'Test Business',
@@ -75,8 +77,8 @@ class BillingEngineTest extends TestCase
 
     public function test_it_generates_recurring_invoice()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
-        $businessType = \App\Models\BusinessType::create(['name' => 'F&B', 'code' => 'fnb']);
+        $this->seed(DatabaseSeeder::class);
+        $businessType = BusinessType::create(['name' => 'F&B', 'code' => 'fnb']);
         $business = Business::create([
             'business_type_id' => $businessType->id,
             'name' => 'Test Business',

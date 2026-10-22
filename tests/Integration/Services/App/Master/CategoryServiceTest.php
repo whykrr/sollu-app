@@ -2,6 +2,8 @@
 
 namespace Tests\Integration\Services\App\Master;
 
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
 use App\Models\User;
@@ -31,12 +33,12 @@ class CategoryServiceTest extends TestCase
 
         $this->service = new CategoryService($this->auditLogServiceMock);
 
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Test Business',
             'owner_name' => 'John Doe',
             'email' => 'owner@example.com',

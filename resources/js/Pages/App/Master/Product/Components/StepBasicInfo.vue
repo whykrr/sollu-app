@@ -71,17 +71,26 @@
                 <!-- Switch Visibilitas POS & Jual -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                     <div
-                        class="flex items-center justify-between border border-slate-200 p-2.5 rounded-xl hover:bg-slate-50 transition"
+                        class="flex items-center justify-between border border-slate-200 p-2.5 rounded-xl transition"
+                        :class="
+                            !form.sellable
+                                ? 'bg-slate-50 opacity-60 cursor-not-allowed'
+                                : 'hover:bg-slate-50'
+                        "
                     >
-                        <div>
+                        <div class="pr-2">
                             <div class="font-semibold text-xs text-slate-800">
                                 Tampilkan di Kasir
                             </div>
                             <div class="text-[11px] text-slate-500">
-                                Muncul di katalog transaksi kasir
+                                <span v-if="!form.sellable" class="text-amber-600 font-medium">
+                                    Produk yang tidak dapat dijual otomatis disembunyikan dari
+                                    katalog kasir.
+                                </span>
+                                <span v-else> Muncul di katalog transaksi kasir </span>
                             </div>
                         </div>
-                        <Switch v-model="form.is_show" size="sm" />
+                        <Switch v-model="form.is_show" size="sm" :disabled="!form.sellable" />
                     </div>
 
                     <div

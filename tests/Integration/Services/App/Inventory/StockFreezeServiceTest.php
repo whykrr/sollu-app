@@ -2,11 +2,16 @@
 
 namespace Tests\Integration\Services\App\Inventory;
 
+use App\Models\Business;
+use App\Models\BusinessType;
+use App\Models\Outlet;
 use App\Models\User;
 use App\Services\App\Inventory\StockFreezeService;
 use App\Services\App\Master\ActivityLogService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class StockFreezeServiceTest extends TestCase
@@ -35,14 +40,14 @@ class StockFreezeServiceTest extends TestCase
 
     private function setupBaseData()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Test Business',
             'owner_name' => 'Owner',
             'email' => 'owner_'.uniqid().'@test.com',
@@ -59,7 +64,7 @@ class StockFreezeServiceTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
-        $outlet = \App\Models\Outlet::create([
+        $outlet = Outlet::create([
             'business_id' => $business->id,
             'name' => 'Main Outlet',
             'is_active' => true,
@@ -114,7 +119,7 @@ class StockFreezeServiceTest extends TestCase
 
     public function test_it_throws_exception_when_asserting_frozen_stock()
     {
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         $this->expectExceptionMessage('sedang dibekukan');
 
         [$user, $business, $outlet] = $this->setupBaseData();

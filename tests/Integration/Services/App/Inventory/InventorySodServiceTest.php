@@ -3,6 +3,7 @@
 namespace Tests\Integration\Services\App\Inventory;
 
 use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Inventory\PurchaseOrder;
 use App\Models\Inventory\StockAdjustment;
 use App\Models\Inventory\StockOpname;
@@ -10,7 +11,9 @@ use App\Models\Inventory\StockTransfer;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Services\App\Inventory\InventorySodService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class InventorySodServiceTest extends TestCase
@@ -27,9 +30,9 @@ class InventorySodServiceTest extends TestCase
 
     private function createBusinessWithUser(array $sodSettings = []): array
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
@@ -121,7 +124,7 @@ class InventorySodServiceTest extends TestCase
         ]);
 
         setPermissionsTeamId($business->id);
-        \Spatie\Permission\Models\Permission::findOrCreate('business.*', 'web');
+        Permission::findOrCreate('business.*', 'web');
         $user->givePermissionTo('business.*');
 
         $adjustment = new StockAdjustment([

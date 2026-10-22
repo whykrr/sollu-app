@@ -5,7 +5,9 @@ namespace App\Services\App\Inventory;
 use App\Enums\GoodsReceiptStatus;
 use App\Enums\InventoryMovementType;
 use App\Enums\PurchaseOrderStatus;
+use App\Enums\PurchaseReturnStatus;
 use App\Models\Inventory\GoodsReceipt;
+use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryCostLayer;
 use App\Models\Inventory\PurchaseOrder;
 use App\Models\User;
@@ -184,7 +186,7 @@ class GoodsReceiptService
             foreach ($receipt->items as $receiptItem) {
                 foreach ($receiptItem->purchaseReturnItems as $prItem) {
                     $pr = $prItem->purchaseReturn;
-                    if ($pr && $pr->status !== \App\Enums\PurchaseReturnStatus::Voided) {
+                    if ($pr && $pr->status !== PurchaseReturnStatus::Voided) {
                         abort(422, "Penerimaan barang ini memiliki riwayat retur aktif ({$pr->return_number}). Silakan batalkan (void) retur terlebih dahulu sebelum membatalkan penerimaan.");
                     }
                 }
@@ -194,7 +196,7 @@ class GoodsReceiptService
             foreach ($receipt->items as $receiptItem) {
                 $qtyToReverse = (float) $receiptItem->received_inventory_qty;
                 if ($qtyToReverse > 0) {
-                    $balance = \App\Models\Inventory\InventoryBalance::query()
+                    $balance = InventoryBalance::query()
                         ->where('outlet_id', $outlet->id)
                         ->where('inventory_item_id', $receiptItem->inventory_item_id)
                         ->first();

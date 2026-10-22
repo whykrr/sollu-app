@@ -10,7 +10,7 @@ class CustomerTest extends DuskTestCase
     /**
      * Test the CRM Customer flow.
      */
-    public function testCustomerFlow(): void
+    public function test_customer_flow(): void
     {
         $this->browse(function (Browser $browser) {
             // 1. Authentication

@@ -6,10 +6,12 @@ use App\Enums\SubscriptionInvoice\Status;
 use App\Models\Business;
 use App\Models\Invoice;
 use App\Models\Master\SubscriptionManualPaymentMethod;
+use App\Models\Payment;
 use App\Models\PaymentManualValidation;
 use App\Models\SystemSetting;
 use App\Services\App\Subscription\MidtransService;
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
 class ShowInvoiceService
@@ -19,10 +21,10 @@ class ShowInvoiceService
      *
      * @return array{
      *     invoice: Invoice,
-     *     payment: ?\App\Models\Payment,
+     *     payment: ?Payment,
      *     midtransClientKey: ?string,
      *     manualValidation: ?PaymentManualValidation,
-     *     manualPaymentMethods: \Illuminate\Database\Eloquent\Collection,
+     *     manualPaymentMethods: Collection,
      *     isMidtransEnabled: bool
      * }
      */

@@ -21,15 +21,26 @@
             :label="item.label"
             :active="isActive(item)"
         >
-            <Link
+            <template
                 v-for="(submenu, subIndex) in visibleItems"
                 :key="submenu.url || submenu.label || subIndex"
-                :href="submenu.url"
-                class="nav-dropdown-item"
-                :class="{ active: isActive(submenu) }"
             >
-                {{ submenu.label }}
-            </Link>
+                <Link
+                    v-if="!isLocked(submenu)"
+                    :href="submenu.url"
+                    class="nav-dropdown-item"
+                    :class="{ active: isActive(submenu) }"
+                >
+                    {{ submenu.label }}
+                </Link>
+                <div
+                    v-else
+                    v-feature.lock="submenu.feature"
+                    class="nav-dropdown-item flex items-center justify-between cursor-pointer group"
+                >
+                    <span class="truncate">{{ submenu.label }}</span>
+                </div>
+            </template>
         </NavigationDropdown>
     </div>
 </template>
@@ -83,12 +94,21 @@ const checkFeat = (features, required) => {
     return true
 }
 
+const isLocked = targetItem => {
+    if (!targetItem.lock) return false
+    const userFeats = page.props.auth?.features || []
+    return !checkFeat(userFeats, targetItem.feature || targetItem.features)
+}
+
 const isVisible = targetItem => {
     const userPerms = page.props.auth?.permissions || []
     const userFeats = page.props.auth?.features || []
 
     if (!checkPerm(userPerms, targetItem.permissions)) return false
-    if (!checkFeat(userFeats, targetItem.feature || targetItem.features)) return false
+    if (!checkFeat(userFeats, targetItem.feature || targetItem.features)) {
+        if (targetItem.lock) return true
+        return false
+    }
 
     return true
 }

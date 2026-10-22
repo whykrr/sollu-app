@@ -22,7 +22,9 @@ class RawMaterialService
                 'name' => $data['name'],
                 'sku' => $data['sku'] ?? null,
                 'barcode' => $data['barcode'] ?? null,
-                'track_inventory' => $data['track_inventory'] ?? $data['is_track_stock'] ?? true,
+                'track_inventory' => true,
+                'is_show' => false,
+                'sellable' => false,
                 'is_active' => $data['is_active'] ?? true,
             ]);
 
@@ -57,13 +59,16 @@ class RawMaterialService
     {
         return DB::transaction(function () use ($item, $data) {
             if ($item->productItem) {
-                $item->productItem->update(array_filter([
+                $item->productItem->update(array_merge([
+                    'track_inventory' => true,
+                    'is_show' => false,
+                    'sellable' => false,
+                ], array_filter([
                     'name' => $data['name'] ?? null,
                     'sku' => $data['sku'] ?? null,
                     'barcode' => $data['barcode'] ?? null,
-                    'track_inventory' => $data['track_inventory'] ?? $data['is_track_stock'] ?? null,
                     'is_active' => $data['is_active'] ?? null,
-                ], fn ($val) => $val !== null));
+                ], fn ($val) => $val !== null)));
             }
 
             $item->update(array_filter([

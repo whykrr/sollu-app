@@ -163,7 +163,7 @@ class ServiceProductController extends Controller
             abort(404);
         }
 
-        $service->delete();
+        $this->productService->deleteService($service);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

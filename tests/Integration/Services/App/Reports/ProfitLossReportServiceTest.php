@@ -16,6 +16,7 @@ use App\Models\Sales\TransactionItem;
 use App\Models\User;
 use App\Services\App\Reports\ProfitLossReportService;
 use Carbon\Carbon;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -36,7 +37,7 @@ class ProfitLossReportServiceTest extends TestCase
         parent::setUp();
         $this->service = new ProfitLossReportService;
 
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],

@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Constants\FlashDataVariable;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Session\TokenMismatchException;
@@ -33,11 +35,11 @@ class CsrfTokenFeatureTest extends TestCase
     public function test_csrf_token_endpoint_returns_authenticated_true_when_logged_in(): void
     {
         $appHost = config('domain.app', 'app.sollu.test');
-        $type = \App\Models\BusinessType::create([
+        $type = BusinessType::create([
             'name' => 'Coffee Shop',
             'code' => 'coffee_shop',
         ]);
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Merchant Test',
             'owner_name' => 'Test Owner',
             'email' => 'merchant_csrf@test.com',

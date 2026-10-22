@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Discord;
 
+use App\Enums\PaymentManualValidationStatus;
+use App\Enums\RoleEnum;
 use App\Events\Invoice\PaymentProofUploaded;
 use App\Events\User\BusinessRegistered;
 use App\Listeners\Discord\SendNewMerchantDiscordNotification;
@@ -11,7 +13,9 @@ use App\Models\BusinessType;
 use App\Models\CockpitUser;
 use App\Models\Invoice;
 use App\Models\PaymentManualValidation;
+use App\Services\App\Role\RoleProvisioningService;
 use App\Services\Discord\DiscordWebhookService;
+use Database\Seeders\Production\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
@@ -150,7 +154,7 @@ class DiscordNotificationEventsTest extends TestCase
         Storage::fake('local');
         Event::fake([PaymentProofUploaded::class]);
 
-        $this->seed(\Database\Seeders\Production\RolePermissionSeeder::class);
+        $this->seed(RolePermissionSeeder::class);
 
         $type = BusinessType::create([
             'name' => 'F&B',
@@ -175,9 +179,9 @@ class DiscordNotificationEventsTest extends TestCase
             'is_root_user' => true,
         ]);
 
-        app(\App\Services\App\Role\RoleProvisioningService::class)->provision($business);
+        app(RoleProvisioningService::class)->provision($business);
         setPermissionsTeamId($business->id);
-        $user->assignRole(\App\Enums\RoleEnum::OWNER->value);
+        $user->assignRole(RoleEnum::OWNER->value);
 
         $invoice = Invoice::create([
             'business_id' => $business->id,
@@ -197,7 +201,7 @@ class DiscordNotificationEventsTest extends TestCase
 
         Event::assertDispatched(PaymentProofUploaded::class, function ($event) use ($invoice) {
             return $event->invoice->id === $invoice->id
-                && ($event->validation->validation_status === \App\Enums\PaymentManualValidationStatus::Pending || $event->validation->validation_status?->value === 'pending' || $event->validation->validation_status === 'pending');
+                && ($event->validation->validation_status === PaymentManualValidationStatus::Pending || $event->validation->validation_status?->value === 'pending' || $event->validation->validation_status === 'pending');
         });
     }
 

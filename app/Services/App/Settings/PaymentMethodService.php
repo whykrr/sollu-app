@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PaymentMethodService
 {
@@ -66,7 +67,7 @@ class PaymentMethodService
             $syncData = [];
             foreach ($businessOutlets as $outletId) {
                 $syncData[$outletId] = [
-                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'id' => (string) Str::uuid(),
                     'is_enabled' => in_array($outletId, $selectedOutletIds),
                 ];
             }
@@ -105,7 +106,7 @@ class PaymentMethodService
                 $syncData = [];
                 foreach ($businessOutlets as $outletId) {
                     $syncData[$outletId] = [
-                        'id' => (string) \Illuminate\Support\Str::uuid(),
+                        'id' => (string) Str::uuid(),
                         'is_enabled' => in_array($outletId, $selectedOutletIds),
                     ];
                 }

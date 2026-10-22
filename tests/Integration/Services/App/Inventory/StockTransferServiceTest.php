@@ -3,14 +3,22 @@
 namespace Tests\Integration\Services\App\Inventory;
 
 use App\Enums\StockTransferStatus;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\StockTransfer;
+use App\Models\Outlet;
 use App\Models\User;
+use App\Services\App\Inventory\InventoryCostingService;
+use App\Services\App\Inventory\InventorySodService;
 use App\Services\App\Inventory\StockFreezeService;
 use App\Services\App\Inventory\StockTransferService;
 use App\Services\App\Master\ActivityLogService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class StockTransferServiceTest extends TestCase
@@ -36,8 +44,8 @@ class StockTransferServiceTest extends TestCase
         $this->service = new StockTransferService(
             $this->activityLogServiceMock,
             $this->stockFreezeServiceMock,
-            app(\App\Services\App\Inventory\InventoryCostingService::class),
-            app(\App\Services\App\Inventory\InventorySodService::class)
+            app(InventoryCostingService::class),
+            app(InventorySodService::class)
         );
     }
 
@@ -49,14 +57,14 @@ class StockTransferServiceTest extends TestCase
 
     private function setupBaseData()
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Test Business',
             'owner_name' => 'Owner',
             'email' => 'owner_'.uniqid().'@test.com',
@@ -74,22 +82,22 @@ class StockTransferServiceTest extends TestCase
         ]);
 
         setPermissionsTeamId($business->id);
-        \Spatie\Permission\Models\Permission::findOrCreate('business.*', 'web');
+        Permission::findOrCreate('business.*', 'web');
         $user->givePermissionTo('business.*');
 
-        $outlet1 = \App\Models\Outlet::create([
+        $outlet1 = Outlet::create([
             'business_id' => $business->id,
             'name' => 'Outlet 1',
             'is_active' => true,
         ]);
 
-        $outlet2 = \App\Models\Outlet::create([
+        $outlet2 = Outlet::create([
             'business_id' => $business->id,
             'name' => 'Outlet 2',
             'is_active' => true,
         ]);
 
-        $inventoryItem = \App\Models\Inventory\InventoryItem::firstOrCreate([
+        $inventoryItem = InventoryItem::firstOrCreate([
             'business_id' => $business->id,
         ], [
             'name' => 'Flour',

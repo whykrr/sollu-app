@@ -3,13 +3,14 @@
 namespace App\Helpers;
 
 use App\Models\ContentType;
+use Illuminate\Database\Eloquent\Collection;
 
 class ContentDisplay
 {
     /**
      * multiple displaying contents
      *
-     * @param  \Illuminate\Database\Eloquent\Collection<int, \App\Models\ContentType>  $contentTypes
+     * @param  Collection<int, ContentType>  $contentTypes
      * @return array
      */
     public static function multiple($contentTypes)

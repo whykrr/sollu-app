@@ -4,6 +4,8 @@ use App\Enums\FeatureEnum;
 use App\Http\Controllers\App\Master\ModifierGroupController;
 use App\Http\Controllers\App\Master\ProductCategoryController;
 use App\Http\Controllers\App\Master\ProductController;
+use App\Http\Controllers\App\Master\RawMaterialController;
+use App\Http\Controllers\App\Master\RecipeTemplateController;
 use App\Http\Controllers\App\Master\ServiceProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,8 +38,18 @@ Route::prefix('master')
                 Route::resource('services', ServiceProductController::class);
             });
 
-        // Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_MODIFIERS->value)
-        //     ->group(function () {
-        //         Route::resource('modifiers', ModifierGroupController::class)->except(['create', 'edit']);
-        //     });
+        Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_MODIFIERS->value)
+            ->group(function () {
+                Route::resource('modifiers', ModifierGroupController::class)->except(['create', 'edit']);
+            });
+
+        Route::middleware('plan.feature:'.FeatureEnum::RECIPE_MANAGEMENT->value)
+            ->group(function () {
+                Route::get('raw-materials/export', [RawMaterialController::class, 'export'])->name('raw-materials.export');
+                Route::get('raw-materials/import/template', [RawMaterialController::class, 'importTemplate'])->name('raw-materials.importTemplate');
+                Route::post('raw-materials/import', [RawMaterialController::class, 'import'])->name('raw-materials.import');
+                Route::resource('raw-materials', RawMaterialController::class)->except(['create', 'edit']);
+
+                Route::resource('recipes', RecipeTemplateController::class)->except(['create', 'edit']);
+            });
     });

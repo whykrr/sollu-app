@@ -4,6 +4,8 @@ namespace Tests\Feature\Settings;
 
 use App\Constants\FlashDataVariable;
 use App\Enums\PermissionEnum;
+use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\Invoice;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -30,12 +32,12 @@ class BillingControllerTest extends TestCase
 
     protected function createMerchantUser(): User
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $business = \App\Models\Business::create([
+        $business = Business::create([
             'name' => 'Merchant Test Business',
             'owner_name' => 'Merchant Owner',
             'email' => 'merchant_'.uniqid().'@test.test',
@@ -203,12 +205,12 @@ class BillingControllerTest extends TestCase
         $user->givePermissionTo(PermissionEnum::BUSINESS_BILLING->value);
 
         // Create another merchant and assign custom plan to that merchant
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
 
-        $otherBusiness = \App\Models\Business::create([
+        $otherBusiness = Business::create([
             'name' => 'Other Business',
             'owner_name' => 'Other Owner',
             'email' => 'other_biz_'.uniqid().'@test.test',

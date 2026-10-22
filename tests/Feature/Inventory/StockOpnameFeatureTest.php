@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Inventory;
 
+use App\Constants\FlashDataVariable;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
@@ -454,6 +455,6 @@ class StockOpnameFeatureTest extends TestCase
             ->get("http://{$this->appDomain}/inventories/stock-opnames");
 
         $response->assertRedirect("http://{$this->appDomain}/login");
-        $response->assertSessionHas(\App\Constants\FlashDataVariable::FAILED->value);
+        $response->assertSessionHas(FlashDataVariable::FAILED->value);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\App\Master;
 
+use App\Models\Master\ModifierGroup;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -12,6 +13,11 @@ class UpdateModifierGroupRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        $modifier = $this->route('modifier');
+        if ($modifier instanceof ModifierGroup) {
+            return $modifier->business_id === $this->user()?->business_id;
+        }
+
         return true;
     }
 

@@ -5,6 +5,7 @@ namespace Tests\Feature\App\Reports;
 use App\Constants\ResourceMessage;
 use App\Enums\FeatureEnum;
 use App\Enums\PlanEnum;
+use App\Enums\SubscriptionStatus;
 use App\Jobs\Reports\ExportCashierReportJob;
 use App\Jobs\Reports\ExportCustomerReportJob;
 use App\Jobs\Reports\ExportProductReportJob;
@@ -20,6 +21,8 @@ use App\Jobs\Reports\Pdf\ExportStockReportPdfJob;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Outlet;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -81,13 +84,13 @@ class ReportsControllerTest extends TestCase
             ],
         ]);
 
-        $proPlan = \App\Models\SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
 
         if ($proPlan) {
-            \App\Models\Subscription::create([
+            Subscription::create([
                 'business_id' => $this->business->id,
                 'plan_id' => $proPlan->id,
-                'status' => \App\Enums\SubscriptionStatus::Active,
+                'status' => SubscriptionStatus::Active,
                 'billing_cycle' => 'monthly',
                 'started_at' => now()->subDay(),
                 'expired_at' => now()->addMonth(),

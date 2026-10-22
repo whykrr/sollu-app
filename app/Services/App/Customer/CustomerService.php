@@ -5,6 +5,7 @@ namespace App\Services\App\Customer;
 use App\Models\Master\Customer;
 use App\Services\App\Master\ActivityLogService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -121,7 +122,7 @@ class CustomerService
     /**
      * Search active customers for POS usage.
      */
-    public function searchActive(string $query, int $limit = 10): \Illuminate\Database\Eloquent\Collection
+    public function searchActive(string $query, int $limit = 10): Collection
     {
         return Customer::currentBusiness()
             ->where('is_active', true)

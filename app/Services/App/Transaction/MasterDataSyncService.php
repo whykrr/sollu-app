@@ -12,6 +12,7 @@ use App\Models\Master\PaymentMethod;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
 use App\Models\Master\ProductImage;
+use App\Models\Master\ProductItem;
 use App\Models\Master\VariantGroup;
 use App\Models\Master\VariantGroupOption;
 use App\Models\OutletDevice;
@@ -167,13 +168,28 @@ class MasterDataSyncService
                 ->all();
         });
 
-        // 5. Inventori Stok (optimasi direct lookup tanpa full sequential table scan)
+        // 5. Product Items & Inventori Stok (optimasi direct lookup tanpa full sequential table scan)
         if (! empty($productIds)) {
-            $productItemIds = DB::table('product_items')
+            $productItems = ProductItem::with('uom')
                 ->whereIn('product_id', $productIds)
-                ->whereNull('deleted_at')
-                ->pluck('id')
-                ->all();
+                ->where('item_type', 'variant_sku')
+                ->where('is_active', true)
+                ->get()
+                ->map(function ($item) {
+                    $arr = $item->makeHidden('business_id')->toArray();
+                    $arr['unit'] = $item->uom?->name ?? 'Pcs';
+
+                    return $arr;
+                });
+
+            $productItemIds = $productItems->pluck('id')->all();
+
+            $productItemVariantGroupOptions = ! empty($productItemIds)
+                ? DB::table('product_item_variant_group_options')
+                    ->whereIn('product_item_id', $productItemIds)
+                    ->select(['product_item_id', 'variant_group_option_id'])
+                    ->get()
+                : collect();
 
             $inventoryItems = ! empty($productItemIds)
                 ? InventoryItem::with(['uom', 'productItem.uom'])
@@ -190,12 +206,25 @@ class MasterDataSyncService
                     ->get()
                     ->makeHidden(['business_id', 'outlet_id'])
                 : collect();
+
+            // Backward compatibility for legacy POS clients expecting inventory_item_variant_group_options
+            $inventoryItemVariantGroupOptions = ! empty($productItemIds)
+                ? DB::table('product_item_variant_group_options as piv')
+                    ->join('inventory_items as ii', 'ii.product_item_id', '=', 'piv.product_item_id')
+                    ->whereIn('piv.product_item_id', $productItemIds)
+                    ->select([
+                        'ii.id as inventory_item_id',
+                        'piv.variant_group_option_id',
+                    ])
+                    ->get()
+                : collect();
         } else {
+            $productItems = collect();
+            $productItemVariantGroupOptions = collect();
             $inventoryItems = collect();
             $inventoryBalances = collect();
+            $inventoryItemVariantGroupOptions = collect();
         }
-
-        $inventoryItemVariantGroupOptions = collect();
 
         // 6. Promos Aktif untuk Outlet ini (menggunakan indexed promotion_outlets)
         $promos = Promotion::where('business_id', $businessId)
@@ -211,11 +240,13 @@ class MasterDataSyncService
             'synced_at' => now()->toIso8601String(),
             'outlet' => $this->settingsPayloadBuilder->buildOutletProfile($outlet),
             'products' => $products,
+            'product_items' => $productItems,
             'product_categories' => $productCategories,
             'product_prices' => $productPrices,
             'product_images' => $productImages,
             'variant_groups' => $variantGroups,
             'variant_group_options' => $variantGroupOptions,
+            'product_item_variant_group_options' => $productItemVariantGroupOptions,
             'product_modifier_groups' => $productModifierGroups,
             'modifier_groups' => $modifierGroups,
             'modifier_options' => $modifierOptions,

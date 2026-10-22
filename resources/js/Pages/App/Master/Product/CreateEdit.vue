@@ -92,6 +92,8 @@ import {
     faPencil,
     faBoxesStacked,
     faTag,
+    faUtensils,
+    faSliders,
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
@@ -101,6 +103,8 @@ import FormTabs from '@/Components/Form/FormTabs.vue'
 import StepBasicInfo from './Components/StepBasicInfo.vue'
 import StepInventorySetup from './Components/StepInventorySetup.vue'
 import StepPricing from './Components/StepPricing.vue'
+import StepRecipeSetup from './Components/StepRecipeSetup.vue'
+import StepModifierSetup from './Components/StepModifierSetup.vue'
 
 defineEmits(['close'])
 
@@ -112,6 +116,8 @@ const props = defineProps({
     categories: { type: Array, default: () => [] },
     outlets: { type: Array, default: () => [] },
     uoms: { type: Array, default: () => [] },
+    modifierGroups: { type: Array, default: () => [] },
+    rawMaterials: { type: Array, default: () => [] },
 })
 
 const { selectedOutlet } = useAuth()
@@ -141,6 +147,26 @@ const getInitialBarcode = () => {
     return ''
 }
 
+const getInitialRecipeItems = () => {
+    const rawItems =
+        props.product?.active_recipe?.items ||
+        props.product?.recipe_versions?.[0]?.items ||
+        props.product?.recipe_items ||
+        []
+    return rawItems.map(item => ({
+        product_item_id: item.product_item_id,
+        qty: item.qty,
+        uom: item.uom || item.product_item?.uom?.name || 'Pcs',
+    }))
+}
+
+const getInitialModifierGroupIds = () => {
+    if (Array.isArray(props.product?.modifier_groups)) {
+        return props.product.modifier_groups.map(g => g.id)
+    }
+    return []
+}
+
 const form = useForm({
     id: props.product?.id || null,
     name: props.product?.name || '',
@@ -153,6 +179,8 @@ const form = useForm({
     purchasable: props.product?.purchasable ?? false,
     has_variant: props.product?.has_variant ?? false,
     track_inventory: props.product?.track_inventory ?? false,
+    has_recipe: props.product?.has_recipe ?? false,
+    has_modifier: props.product?.has_modifier ?? false,
     uom_id: getInitialUomId(),
     barcode: getInitialBarcode(),
     base_price: '',
@@ -160,6 +188,10 @@ const form = useForm({
     outlets: [],
     variants: [],
     variant_combinations: [],
+    recipe_items: getInitialRecipeItems(),
+    recipes: [],
+    modifier_group_ids: getInitialModifierGroupIds(),
+    modifier_groups: [],
     images: props.product?.images || [],
 })
 
@@ -372,6 +404,14 @@ provide(
     'uoms',
     computed(() => props.uoms)
 )
+provide(
+    'modifierGroups',
+    computed(() => props.modifierGroups)
+)
+provide(
+    'rawMaterials',
+    computed(() => props.rawMaterials)
+)
 provide('outletPriceMap', outletPriceMap)
 provide('outletStatusMap', outletStatusMap)
 provide('variantOutletPriceMap', variantOutletPriceMap)
@@ -379,6 +419,30 @@ provide('customizeVariantPrices', customizeVariantPrices)
 provide('customizeOutletPrices', customizeOutletPrices)
 provide('getComboKey', getComboKey)
 provide('autoGenerateAllSkus', autoGenerateAllSkus)
+
+watch(
+    () => form.sellable,
+    isSellable => {
+        if (!isSellable) {
+            form.is_show = false
+            if (Array.isArray(form.variant_combinations)) {
+                form.variant_combinations.forEach(combo => {
+                    combo.sellable = false
+                    combo.is_show = false
+                })
+            }
+        }
+    }
+)
+
+watch(
+    () => form.is_show,
+    isShow => {
+        if (isShow && !form.sellable) {
+            form.is_show = false
+        }
+    }
+)
 
 watch(
     () => form.variants,
@@ -447,6 +511,23 @@ const steps = computed(() => {
         icon: faTag,
         fields: ['base_price', 'outlet_prices'],
     })
+
+    if (form.product_type === 'basic') {
+        s.push({
+            id: 'recipe',
+            component: StepRecipeSetup,
+            title: 'Resep (BOM)',
+            icon: faUtensils,
+            fields: ['recipe_items'],
+        })
+        s.push({
+            id: 'modifier',
+            component: StepModifierSetup,
+            title: 'Opsi Tambahan',
+            icon: faSliders,
+            fields: ['modifier_group_ids'],
+        })
+    }
 
     return s
 })
@@ -526,6 +607,27 @@ const submit = () => {
         is_enabled: outletStatusMap.value[k],
         is_available: outletStatusMap.value[k],
     }))
+
+    // Prepare modifier groups payload
+    if (form.modifier_group_ids && form.modifier_group_ids.length > 0) {
+        form.has_modifier = true
+        form.modifier_groups = form.modifier_group_ids.map(id => ({ modifier_group_id: id }))
+    } else {
+        form.has_modifier = false
+        form.modifier_groups = []
+    }
+
+    // Prepare recipe items (BOM) payload
+    const validRecipeItems = (form.recipe_items || []).filter(
+        item => item.product_item_id && parseFloat(item.qty) > 0
+    )
+    if (validRecipeItems.length > 0) {
+        form.has_recipe = true
+        form.recipes = validRecipeItems
+    } else {
+        form.has_recipe = false
+        form.recipes = []
+    }
 
     if (isEdit.value && props.product?.id) {
         form.transform(data => ({ ...data, _method: 'PUT' })).post(

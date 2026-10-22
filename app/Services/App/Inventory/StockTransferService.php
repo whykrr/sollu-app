@@ -5,6 +5,7 @@ namespace App\Services\App\Inventory;
 use App\Enums\InventoryMovementType;
 use App\Enums\StockTransferStatus;
 use App\Models\Inventory\StockTransfer;
+use App\Models\Outlet;
 use App\Models\User;
 use App\Services\App\Master\ActivityLogService;
 use Illuminate\Support\Facades\DB;
@@ -21,11 +22,11 @@ class StockTransferService
     public function createTransfer(array $data, User $creator): StockTransfer
     {
         return DB::transaction(function () use ($data, $creator) {
-            $fromOutlet = \App\Models\Outlet::find($data['from_outlet_id'] ?? null);
+            $fromOutlet = Outlet::find($data['from_outlet_id'] ?? null);
             if ($fromOutlet) {
                 $this->stockFreezeService->assertNotFrozen($fromOutlet);
             }
-            $toOutlet = \App\Models\Outlet::find($data['to_outlet_id'] ?? null);
+            $toOutlet = Outlet::find($data['to_outlet_id'] ?? null);
             if ($toOutlet) {
                 $this->stockFreezeService->assertNotFrozen($toOutlet);
             }
@@ -71,11 +72,11 @@ class StockTransferService
             $fromOutletId = $data['from_outlet_id'] ?? $transfer->from_outlet_id;
             $toOutletId = $data['to_outlet_id'] ?? $transfer->to_outlet_id;
 
-            $fromOutlet = \App\Models\Outlet::find($fromOutletId);
+            $fromOutlet = Outlet::find($fromOutletId);
             if ($fromOutlet) {
                 $this->stockFreezeService->assertNotFrozen($fromOutlet);
             }
-            $toOutlet = \App\Models\Outlet::find($toOutletId);
+            $toOutlet = Outlet::find($toOutletId);
             if ($toOutlet) {
                 $this->stockFreezeService->assertNotFrozen($toOutlet);
             }

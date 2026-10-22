@@ -31,6 +31,7 @@ Before designing or modifying code, ensure compliance with the standing rules:
 
 Activate the relevant specialized skill when working in specific domains:
 
+- `domain-product`: Unified Item Pattern, ProductItem pivot variant options, inventory decoupling, SaaS 4-tier gating, 2-level category, RawMaterial, Recipe BOM, Modifier, and Omni-Search.
 - `domain-inventory`: Stock balances, FIFO layers, movements, PO, GR, transfers, opname, SoD.
 - `domain-subscription`: Subscription lifecycle, One-Trial Policy, multi-outlet quotas, downgrade wizard, payment wall, and billing reconciliation.
 - `domain-access-and-feature-gating`: 6-layer gating stack, SaaS plan feature gating, User RBAC, caching fast-path, and UI duality.

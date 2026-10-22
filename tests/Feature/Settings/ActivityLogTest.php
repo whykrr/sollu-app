@@ -7,6 +7,7 @@ use App\DTO\Audit\ActivityLogDTO;
 use App\Enums\AuditModuleEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
+use App\Jobs\Audit\RecordActivityLogJob;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Subscription;
@@ -204,7 +205,7 @@ class ActivityLogTest extends TestCase
             businessId: 'dummy-business-id',
         );
 
-        Queue::assertPushed(\App\Jobs\Audit\RecordActivityLogJob::class);
+        Queue::assertPushed(RecordActivityLogJob::class);
     }
 
     public function test_manage_audit_partitions_command_prunes_records_older_than_retention_days(): void

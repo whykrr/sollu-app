@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -44,6 +45,15 @@ class ProductItem extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (ProductItem $item) {
+            if (! $item->sellable) {
+                $item->is_show = false;
+            }
+        });
+    }
+
     // ── Relationships ────────────────────────────────────────────
 
     public function product(): BelongsTo
@@ -64,6 +74,21 @@ class ProductItem extends Model
     public function inventoryItem(): HasOne
     {
         return $this->hasOne(InventoryItem::class);
+    }
+
+    public function variantGroupOptions(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            VariantGroupOption::class,
+            'product_item_variant_group_options',
+            'product_item_id',
+            'variant_group_option_id'
+        );
+    }
+
+    public function recipeVersions(): HasMany
+    {
+        return $this->hasMany(RecipeVersion::class, 'product_item_id');
     }
 
     // ── Scopes ───────────────────────────────────────────────────
@@ -93,5 +118,55 @@ class ProductItem extends Model
             isset($filters['sellable']),
             fn (Builder $q) => $q->where('sellable', $filters['sellable'])
         );
+    }
+
+    public function scopeActive(Builder $builder): Builder
+    {
+        return $builder->where('is_active', true);
+    }
+
+    public function scopeSellable(Builder $builder): Builder
+    {
+        return $builder->where('sellable', true);
+    }
+
+    public function scopeVisible(Builder $builder): Builder
+    {
+        return $builder->where('is_show', true);
+    }
+
+    public function scopeSingle(Builder $builder): Builder
+    {
+        return $builder->whereNull('variant_combination');
+    }
+
+    public function scopeVariant(Builder $builder): Builder
+    {
+        return $builder->whereNotNull('variant_combination');
+    }
+
+    public function scopeRawMaterials(Builder $builder): Builder
+    {
+        return $builder->where('item_type', 'raw_material');
+    }
+
+    public function scopeGoods(Builder $builder): Builder
+    {
+        return $builder->where('item_type', 'variant_sku');
+    }
+
+    public function isSingle(): bool
+    {
+        return is_null($this->variant_combination);
+    }
+
+    public function isVariant(): bool
+    {
+        return ! is_null($this->variant_combination);
+    }
+
+    public function isRawMaterial(): bool
+    {
+        return $this->item_type === 'raw_material';
     }
 }

@@ -8,6 +8,7 @@ use App\Jobs\Audit\RecordActivityLogJob;
 use App\Models\Audit\ActivityLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ActivityLogService implements ActivityLoggerInterface
@@ -49,7 +50,7 @@ class ActivityLogService implements ActivityLoggerInterface
         try {
             RecordActivityLogJob::dispatch($dto->toArray());
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Gagal mendispatch background audit log: '.$e->getMessage(), [
+            Log::warning('Gagal mendispatch background audit log: '.$e->getMessage(), [
                 'dto' => $dto->toArray(),
             ]);
         }

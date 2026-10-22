@@ -11,7 +11,7 @@ class IntegrationTest extends DuskTestCase
     /**
      * A basic end-to-end test using the bypass auth route.
      */
-    public function testUserFlow()
+    public function test_user_flow()
     {
         // Ensure a user exists
         $user = User::first();

@@ -4,21 +4,26 @@ namespace Tests\Integration\Services\App\Inventory;
 
 use App\Enums\GoodsReceiptStatus;
 use App\Enums\PurchaseOrderStatus;
+use App\Enums\PurchaseReturnStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\GoodsReceipt;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\PurchaseOrder;
+use App\Models\Inventory\PurchaseReturn;
 use App\Models\Inventory\Supplier;
 use App\Models\Outlet;
 use App\Models\Uom;
 use App\Models\User;
 use App\Services\App\Inventory\GoodsReceiptService;
 use App\Services\App\Inventory\InventoryCostingService;
+use App\Services\App\Inventory\InventorySodService;
 use App\Services\App\Master\ActivityLogService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class GoodsReceiptServiceTest extends TestCase
@@ -39,7 +44,7 @@ class GoodsReceiptServiceTest extends TestCase
         $this->service = new GoodsReceiptService(
             $this->activityLogServiceMock,
             app(InventoryCostingService::class),
-            app(\App\Services\App\Inventory\InventorySodService::class)
+            app(InventorySodService::class)
         );
     }
 
@@ -51,7 +56,7 @@ class GoodsReceiptServiceTest extends TestCase
 
     private function setupBaseData(): array
     {
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
@@ -335,7 +340,7 @@ class GoodsReceiptServiceTest extends TestCase
 
     public function test_it_cannot_receive_draft_or_cancelled_po()
     {
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
 
         [$user, $business, $outlet, $item, $supplier] = $this->setupBaseData();
 
@@ -391,7 +396,7 @@ class GoodsReceiptServiceTest extends TestCase
         // Simulasi barang terjual di POS sehingga stok berkurang menjadi 3
         InventoryBalance::where('inventory_item_id', $item->id)->update(['current_stock' => 3]);
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         $this->expectExceptionMessage('kurang dari jumlah penerimaan');
 
         $this->service->voidReceipt($receipt, $user, 'Salah catat');
@@ -436,13 +441,13 @@ class GoodsReceiptServiceTest extends TestCase
         $grItem = $receipt->items->first();
 
         // Buat dokumen retur aktif
-        $pr = \App\Models\Inventory\PurchaseReturn::create([
+        $pr = PurchaseReturn::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet->id,
             'supplier_id' => $supplier->id,
             'return_number' => 'PR-202609-001',
             'return_date' => now()->format('Y-m-d'),
-            'status' => \App\Enums\PurchaseReturnStatus::Completed,
+            'status' => PurchaseReturnStatus::Completed,
             'created_by' => $user->id,
         ]);
 
@@ -456,7 +461,7 @@ class GoodsReceiptServiceTest extends TestCase
             'subtotal' => 20000,
         ]);
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         $this->expectExceptionMessage('memiliki riwayat retur aktif');
 
         $this->service->voidReceipt($receipt, $user, 'Coba void yang sudah diretur');

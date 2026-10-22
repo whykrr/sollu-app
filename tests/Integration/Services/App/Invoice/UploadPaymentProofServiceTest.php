@@ -10,6 +10,7 @@ use App\Models\BusinessType;
 use App\Models\Invoice;
 use App\Models\PaymentManualValidation;
 use App\Services\App\Invoice\UploadPaymentProofService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
@@ -31,7 +32,7 @@ class UploadPaymentProofServiceTest extends TestCase
         Storage::fake('public');
         Event::fake([PaymentProofUploaded::class]);
 
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],

@@ -6,9 +6,12 @@ use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\FeatureEnum;
 use App\Enums\GoodsReceiptStatus;
+use App\Enums\InventoryMovementType;
 use App\Enums\PermissionEnum;
+use App\Enums\PlanEnum;
 use App\Enums\PurchaseOrderStatus;
 use App\Enums\PurchaseReturnStatus;
+use App\Enums\SubscriptionStatus;
 use App\Jobs\Inventory\ExportPurchaseOrderJob;
 use App\Models\Business;
 use App\Models\BusinessType;
@@ -19,13 +22,19 @@ use App\Models\Inventory\PurchaseOrder;
 use App\Models\Inventory\PurchaseReturn;
 use App\Models\Inventory\Supplier;
 use App\Models\Outlet;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Uom;
 use App\Models\User;
+use App\Services\App\Inventory\GoodsReceiptService;
+use App\Services\App\Inventory\InventoryCostingService;
+use App\Services\App\Inventory\PurchaseReturnService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class StockPurchasesControllerTest extends TestCase
@@ -89,11 +98,11 @@ class StockPurchasesControllerTest extends TestCase
             ],
         ]);
 
-        $proPlan = \App\Models\SubscriptionPlan::where('code', \App\Enums\PlanEnum::PRO->value)->first();
-        \App\Models\Subscription::create([
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        Subscription::create([
             'business_id' => $this->business->id,
             'plan_id' => $proPlan->id,
-            'status' => \App\Enums\SubscriptionStatus::Active,
+            'status' => SubscriptionStatus::Active,
             'billing_cycle' => 'monthly',
             'started_at' => now()->subDay(),
             'expired_at' => now()->addMonth(),
@@ -318,7 +327,7 @@ class StockPurchasesControllerTest extends TestCase
         ]);
 
         // Receive
-        app(\App\Services\App\Inventory\GoodsReceiptService::class)->createReceipt($po, [
+        app(GoodsReceiptService::class)->createReceipt($po, [
             'delivery_order_number' => 'DO-TO-VOID',
             'items' => [
                 ['purchase_order_item_id' => $poItem->id, 'qty_received' => 5, 'conversion_factor' => 1.0],
@@ -345,13 +354,13 @@ class StockPurchasesControllerTest extends TestCase
     public function test_user_can_create_and_void_purchase_return(): void
     {
         // Berikan saldo awal 20 pcs
-        app(\App\Services\App\Inventory\InventoryCostingService::class)->recordIncomingStock(
+        app(InventoryCostingService::class)->recordIncomingStock(
             business: $this->business,
             outlet: $this->outlet,
             item: $this->item,
             qty: 20,
             unitCost: 10000,
-            movementType: \App\Enums\InventoryMovementType::InitialStock,
+            movementType: InventoryMovementType::InitialStock,
             reference: $this->supplier,
             description: 'Stok awal',
             user: $this->user
@@ -463,7 +472,7 @@ class StockPurchasesControllerTest extends TestCase
             'subtotal' => 50000,
         ]);
 
-        $receipt = app(\App\Services\App\Inventory\GoodsReceiptService::class)->createReceipt($po, [
+        $receipt = app(GoodsReceiptService::class)->createReceipt($po, [
             'delivery_order_number' => 'SJ-PDF-01',
             'items' => [
                 ['purchase_order_item_id' => $poItem->id, 'qty_received' => 5, 'conversion_factor' => 1.0],
@@ -543,7 +552,7 @@ class StockPurchasesControllerTest extends TestCase
         ]);
 
         // Receive goods
-        app(\App\Services\App\Inventory\GoodsReceiptService::class)->createReceipt($po, [
+        app(GoodsReceiptService::class)->createReceipt($po, [
             'delivery_order_number' => 'SJ-VOID-ALL',
             'items' => [
                 ['purchase_order_item_id' => $poItem->id, 'qty_received' => 10, 'conversion_factor' => 1.0],
@@ -568,8 +577,8 @@ class StockPurchasesControllerTest extends TestCase
         $this->assertEquals(1, $po->goodsReceipts()->where('status', GoodsReceiptStatus::Voided)->count());
 
         // Verify that attempting to receive on a Cancelled PO aborts with 403
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        app(\App\Services\App\Inventory\GoodsReceiptService::class)->createReceipt($po, [
+        $this->expectException(HttpException::class);
+        app(GoodsReceiptService::class)->createReceipt($po, [
             'delivery_order_number' => 'SJ-FAIL',
             'items' => [
                 ['purchase_order_item_id' => $poItem->id, 'qty_received' => 5, 'conversion_factor' => 1.0],
@@ -599,7 +608,7 @@ class StockPurchasesControllerTest extends TestCase
         ]);
 
         // Receive goods
-        $receipt = app(\App\Services\App\Inventory\GoodsReceiptService::class)->createReceipt($po, [
+        $receipt = app(GoodsReceiptService::class)->createReceipt($po, [
             'delivery_order_number' => 'SJ-WITH-RETURN',
             'items' => [
                 ['purchase_order_item_id' => $poItem->id, 'qty_received' => 10, 'conversion_factor' => 1.0],
@@ -609,7 +618,7 @@ class StockPurchasesControllerTest extends TestCase
         $receiptItem = $receipt->items()->first();
 
         // Create return
-        app(\App\Services\App\Inventory\PurchaseReturnService::class)->createReturn([
+        app(PurchaseReturnService::class)->createReturn([
             'outlet_id' => $this->outlet->id,
             'supplier_id' => $this->supplier->id,
             'purchase_order_id' => $po->id,

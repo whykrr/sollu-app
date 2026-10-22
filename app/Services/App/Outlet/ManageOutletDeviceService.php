@@ -4,10 +4,12 @@ namespace App\Services\App\Outlet;
 
 use App\Contracts\Audit\ActivityLoggerInterface;
 use App\Enums\AuditModuleEnum;
+use App\Enums\DeviceTypeEnum;
 use App\Enums\FeatureEnum;
 use App\Models\Outlet;
 use App\Models\OutletAuditLog;
 use App\Models\OutletDevice;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -34,7 +36,7 @@ class ManageOutletDeviceService
         }
 
         return DB::transaction(function () use ($outlet, $data, $user) {
-            $deviceType = $data['device_type'] instanceof \App\Enums\DeviceTypeEnum
+            $deviceType = $data['device_type'] instanceof DeviceTypeEnum
                 ? $data['device_type']->value
                 : $data['device_type'];
 
@@ -84,7 +86,7 @@ class ManageOutletDeviceService
             }
         }
 
-        if (isset($data['device_type']) && $data['device_type'] instanceof \App\Enums\DeviceTypeEnum) {
+        if (isset($data['device_type']) && $data['device_type'] instanceof DeviceTypeEnum) {
             $data['device_type'] = $data['device_type']->value;
         }
 
@@ -138,7 +140,7 @@ class ManageOutletDeviceService
             );
 
             $device->tokens()->delete();
-            \Illuminate\Support\Facades\Cache::forget("pos_device_{$device->id}");
+            Cache::forget("pos_device_{$device->id}");
 
             $device->delete();
         });

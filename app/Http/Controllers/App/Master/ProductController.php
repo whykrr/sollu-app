@@ -17,6 +17,7 @@ use App\Models\Inventory\InventoryItem;
 use App\Models\Master\ModifierGroup;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\Uom;
 use App\Services\App\Master\ProductService;
@@ -90,6 +91,11 @@ class ProductController extends Controller
             'inventoryItems' => InventoryItem::currentBusiness()->get(),
             'baseProducts' => Product::currentBusiness()->where('product_type', '!=', 'bundle')->select('id', 'name', 'code')->get(),
             'uoms' => Uom::where('status', 'active')->orderBy('name')->select('id', 'name', 'code')->get(),
+            'rawMaterials' => ProductItem::currentBusiness()
+                ->where('item_type', 'raw_material')
+                ->where('is_active', true)
+                ->with(['uom:id,name', 'inventoryItem.balances'])
+                ->get(),
         ]);
     }
 
@@ -227,7 +233,7 @@ class ProductController extends Controller
             abort(404);
         }
 
-        $product->delete();
+        $this->productService->deleteProduct($product);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,

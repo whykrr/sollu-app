@@ -79,6 +79,30 @@ class Product extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (Product $product) {
+            if (! $product->sellable) {
+                $product->is_show = false;
+            }
+        });
+
+        static::saved(function (Product $product) {
+            if (! $product->sellable) {
+                $product->productItems()->where(function ($query) {
+                    $query->where('sellable', true)->orWhere('is_show', true);
+                })->update([
+                    'sellable' => false,
+                    'is_show' => false,
+                ]);
+            } elseif (! $product->is_show) {
+                $product->productItems()->where('is_show', true)->update([
+                    'is_show' => false,
+                ]);
+            }
+        });
+    }
+
     public function isBasic(): bool
     {
         return $this->product_type === ProductTypeEnum::BASIC || $this->product_type === 'basic';
@@ -157,6 +181,11 @@ class Product extends Model
         return $this->hasMany(ProductItem::class);
     }
 
+    public function defaultItem(): HasOne
+    {
+        return $this->hasOne(ProductItem::class)->whereNull('variant_combination');
+    }
+
     public function inventoryItems(): HasManyThrough
     {
         return $this->hasManyThrough(
@@ -182,6 +211,21 @@ class Product extends Model
     public function scopeServices(Builder $builder): Builder
     {
         return $builder->where('product_type', ProductTypeEnum::SERVICE);
+    }
+
+    public function scopeSellable(Builder $builder): Builder
+    {
+        return $builder->where('sellable', true);
+    }
+
+    public function scopeVisible(Builder $builder): Builder
+    {
+        return $builder->where('is_show', true);
+    }
+
+    public function scopeCatalog(Builder $builder): Builder
+    {
+        return $builder->where('sellable', true)->where('is_show', true);
     }
 
     public function scopeFilters(Builder $builder, array $filters): Builder

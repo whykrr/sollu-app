@@ -2,8 +2,12 @@
 
 namespace App\Services\App\Inventory;
 
+use App\Enums\GoodsReceiptStatus;
 use App\Enums\InventoryMovementType;
 use App\Enums\PurchaseReturnStatus;
+use App\Models\Inventory\GoodsReceipt;
+use App\Models\Inventory\GoodsReceiptItem;
+use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\PurchaseReturn;
 use App\Models\Outlet;
@@ -63,7 +67,7 @@ class PurchaseReturnService
                 $grItem = null;
 
                 if ($goodsReceiptItemId) {
-                    $grItem = \App\Models\Inventory\GoodsReceiptItem::query()->find($goodsReceiptItemId);
+                    $grItem = GoodsReceiptItem::query()->find($goodsReceiptItemId);
                 }
 
                 $inventoryItemId = $grItem?->inventory_item_id ?? $itemData['inventory_item_id'];
@@ -77,10 +81,10 @@ class PurchaseReturnService
                 }
 
                 if ($grItem) {
-                    $receipt = $grItem->goodsReceipt ?? \App\Models\Inventory\GoodsReceipt::with(['purchaseOrder.supplier'])->find($grItem->goods_receipt_id);
+                    $receipt = $grItem->goodsReceipt ?? GoodsReceipt::with(['purchaseOrder.supplier'])->find($grItem->goods_receipt_id);
                     $receiptStatus = $receipt?->status;
 
-                    if ($receiptStatus === \App\Enums\GoodsReceiptStatus::Voided || $receiptStatus === 'voided') {
+                    if ($receiptStatus === GoodsReceiptStatus::Voided || $receiptStatus === 'voided') {
                         abort(422, 'Penerimaan barang untuk surat jalan ini sudah dibatalkan sehingga tidak dapat diretur.');
                     }
 
@@ -109,7 +113,7 @@ class PurchaseReturnService
                 $returnInventoryQty = $returnPurchaseQty * $conversionFactor;
 
                 // Validasi ketersediaan stok fisik di outlet saat ini
-                $balance = \App\Models\Inventory\InventoryBalance::query()
+                $balance = InventoryBalance::query()
                     ->where('outlet_id', $outlet->id)
                     ->where('inventory_item_id', $inventoryItemId)
                     ->first();

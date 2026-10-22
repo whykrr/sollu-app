@@ -11,6 +11,7 @@ use App\Services\App\Subscription\BillingEngine;
 use App\Services\App\Subscription\GenerateRenewalInvoiceService;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Mockery;
 use Mockery\MockInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -105,7 +106,7 @@ class GenerateRenewalInvoiceServiceTest extends TestCase
     protected function tearDown(): void
     {
         Mockery::close();
-        \Illuminate\Support\Facades\DB::clearResolvedInstances();
+        DB::clearResolvedInstances();
         parent::tearDown();
     }
 }

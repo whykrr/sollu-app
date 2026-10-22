@@ -3,6 +3,7 @@
 namespace Tests\Integration\Services\App\Invoice;
 
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Services\App\Invoice\ChangePaymentMethodService;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
@@ -42,7 +43,7 @@ class ChangePaymentMethodServiceTest extends TestCase
                        $args['status'] === 'pending' &&
                        str_starts_with($args['payment_reference'], 'INV-2026-001-MANUAL-');
             })
-            ->andReturn(new \App\Models\Payment);
+            ->andReturn(new Payment);
 
         $this->service->execute($invoiceMock, 'manual');
         $this->assertTrue(true);

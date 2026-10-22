@@ -6,6 +6,7 @@ use App\Models\Outlet;
 use App\Models\User;
 use App\Services\App\Master\ActivityLogService;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class StockFreezeService
 {
@@ -57,7 +58,7 @@ class StockFreezeService
     /**
      * Assert that the stock for a specific outlet is not frozen.
      *
-     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     * @throws HttpException
      */
     public function assertNotFrozen(Outlet $outlet): void
     {

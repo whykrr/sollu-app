@@ -5,8 +5,10 @@ namespace Tests\Integration\Services\App\Master;
 use App\Enums\AuditModuleEnum;
 use App\Jobs\Audit\RecordActivityLogJob;
 use App\Models\Business;
+use App\Models\BusinessType;
 use App\Models\User;
 use App\Services\App\Master\AuditLogService;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
@@ -26,7 +28,7 @@ class AuditLogServiceTest extends TestCase
 
     protected function createTenant(): array
     {
-        $type = \App\Models\BusinessType::firstOrCreate(
+        $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
             ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
         );
@@ -55,7 +57,7 @@ class AuditLogServiceTest extends TestCase
     {
         Queue::fake();
 
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         [$business, $user] = $this->createTenant();
 
         $this->actingAs($user);
@@ -87,7 +89,7 @@ class AuditLogServiceTest extends TestCase
     {
         Queue::fake();
 
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
         [$business] = $this->createTenant();
 
         $entityId = Str::uuid()->toString();

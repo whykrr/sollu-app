@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Console;
 
+use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Subscription;
@@ -38,7 +39,7 @@ class SendSubscriptionRenewalNotificationTest extends TestCase
         $subscription = Subscription::create([
             'business_id' => $business->id,
             'plan_id' => $plan->id,
-            'status' => \App\Enums\SubscriptionStatus::Active,
+            'status' => SubscriptionStatus::Active,
             'billing_cycle' => 'monthly',
             'started_at' => Carbon::now()->subDays(23),
             'expired_at' => Carbon::now()->addDays(7)->startOfDay(),

@@ -12,6 +12,7 @@ use App\Models\CockpitUser;
 use App\Models\Invoice;
 use App\Models\PaymentManualValidation;
 use App\Notifications\SubscriptionInvoicePaidNotification;
+use App\Services\App\Invoice\CompleteInvoiceService;
 use App\Services\Cockpit\Invoice\ApproveInvoiceValidationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Mail\Mailables\Attachment;
@@ -79,7 +80,7 @@ class SendSubscriptionInvoiceEmailTest extends TestCase
     {
         Event::fake([InvoicePaid::class]);
 
-        $completeService = app(\App\Services\App\Invoice\CompleteInvoiceService::class);
+        $completeService = app(CompleteInvoiceService::class);
         $completeService->execute($this->invoice);
 
         Event::assertDispatched(InvoicePaid::class, function ($event) {

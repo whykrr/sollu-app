@@ -18,6 +18,13 @@
                 placeholder="-- Tidak Ada (Kategori Utama) --"
                 :error="form.errors.parent_id"
             />
+            <div
+                v-else
+                class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-500"
+            >
+                Kategori ini memiliki sub-kategori sehingga tetap menjadi Kategori Utama (Maks. 2
+                tingkat hirarki).
+            </div>
 
             <NumberField
                 v-model="form.sort_order"
