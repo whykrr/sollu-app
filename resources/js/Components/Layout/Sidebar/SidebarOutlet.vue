@@ -3,9 +3,9 @@
         <div class="w-full">
             <button
                 type="button"
-                class="flex w-full items-center justify-between px-3 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[40px] bg-white border border-slate-200 rounded-xl hover:border-main/50 hover:bg-slate-50 transition-all duration-200 ease-in-out group focus:outline-none focus:ring-2 focus:ring-main/20 touch-manipulation"
+                class="flex w-full items-center justify-between px-3 py-2 sm:py-2.5 min-h-[44px] sm:min-h-[40px] bg-white border border-slate-200 rounded-xl hover:border-main/50 hover:bg-slate-50 transition-all duration-200 ease-in-out group focus:outline-none focus:ring-2 focus:ring-inset focus:ring-main/20 touch-manipulation"
                 :class="{
-                    'ring-2 ring-main/20 border-main/50': isOpen,
+                    'ring-2 ring-inset ring-main/20 border-main/50': isOpen,
                     'cursor-pointer': outlets.length > 1,
                     'cursor-default': outlets.length <= 1,
                 }"

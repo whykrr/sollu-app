@@ -225,3 +225,21 @@ docker compose exec sollu-app nginx -s reload
 docker compose exec sollu-app php artisan queue:failed
 docker compose exec sollu-app php artisan queue:retry all
 ```
+
+---
+
+## 8. Optimasi Build & Standar Keamanan Kontainer
+
+### A. Strategi Cache Layering & Invalidation
+- Berkas manifes dependensi (`composer.json` & `composer.lock`, serta `package*.json`) selalu disalin terlebih dahulu sebelum seluruh source code aplikasi.
+- Perintah unduhan menggunakan BuildKit cache mounts (`--mount=type=cache,target=/root/.composer/cache` dan `--mount=type=cache,target=/root/.npm`) sehingga layer instalasi dependensi tetap ter-cache secara andal saat hanya ada perubahan pada baris kode logika.
+- Autoloading dan package discovery (`composer dump-autoload --optimize`) dijalankan setelah penyalinan kode aplikasi.
+
+### B. Isolasi Berkas & Attack Surface Reduction (`.dockerignore`)
+- Berkas `.dockerignore` memblokir pengiriman file lokal (`node_modules/`, `.git/`, `.env`, `tests/`, file logs) ke build context Docker.
+- Seluruh header kompilasi `-dev` dan compiler tooling dieliminasi dari image runtime menggunakan `mlocati/docker-php-extension-installer` (`install-php-extensions`), memastikan container produksi bebas dari artifact yang memperluas attack surface.
+
+### C. Kebijakan Patch Keamanan Berkala (CVE & PHP2Shell)
+- Parameter `pull: true` aktif pada `docker/build-push-action` untuk mencegah Buildx terjebak pada layer cache base image lama di GitHub Actions.
+- Runner CI/CD dilengkapi assertion check otomatis yang memvalidasi versi PHP runtime ($\ge$ 8.3.36 untuk perlindungan terhadap CVE-2026-109618 & CVE-2026-109619 / PHP2Shell).
+- Perintah `apk update && apk upgrade --no-cache` secara berkala menambal pustaka sistem operasi Alpine Linux.

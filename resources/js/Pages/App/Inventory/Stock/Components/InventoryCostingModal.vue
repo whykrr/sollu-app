@@ -31,7 +31,7 @@
                 class="group relative flex cursor-pointer flex-col justify-between rounded-xl border p-4 transition-all duration-200 hover:border-main/70 hover:bg-slate-50/50"
                 :class="[
                     selectedMethod === 'fifo'
-                        ? 'border-main bg-main/5 ring-2 ring-main/20'
+                        ? 'border-main bg-main/5 ring-2 ring-inset ring-main/20'
                         : 'border-slate-200 bg-white',
                 ]"
                 @click="selectedMethod = 'fifo'"
@@ -109,7 +109,7 @@
                 class="group relative flex cursor-pointer flex-col justify-between rounded-xl border p-4 transition-all duration-200 hover:border-main/70 hover:bg-slate-50/50"
                 :class="[
                     selectedMethod === 'average'
-                        ? 'border-main bg-main/5 ring-2 ring-main/20'
+                        ? 'border-main bg-main/5 ring-2 ring-inset ring-main/20'
                         : 'border-slate-200 bg-white',
                 ]"
                 @click="selectedMethod = 'average'"

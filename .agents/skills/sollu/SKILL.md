@@ -437,7 +437,7 @@ public function store(StoreOutletRequest $request)
 9. **STANDARISASI ON-DEMAND DATA LOADING:** Data detail entitas lengkap dan data sekunder (opsi dropdown) WAJIB diambil secara _on-demand / async_ via API internal (`axios.get`) saat drawer/modal dibuka. DILARANG memuat relasi berat di props `index()`. Selalu gunakan skeleton loader atau spinner saat menunggu data async.
 10. **MANDATORY ENUM FOR CONDITIONS & FORM OPTIONS (NO MAGIC STRINGS):** DILARANG meng-hardcode string literal status/tipe. WAJIB gunakan `$enums.<EnumName>.<Case>` di template atau composable `useEnum()` (`enums.<EnumName>.<Case>`, `getOptions('EnumName')`).
 11. **MANDATORY FRONTEND UI & BUILD VERIFICATION:** Setiap pembuatan/perubahan komponen Vue WAJIB diverifikasi visual dan fungsional (bebas dari error kompilasi Vite/ESLint, verifikasi alur drawer `<PopUpPage>`, form field `@/Components/Form/`, dan toolbar filter).
-12. **MANDATORY MULTI-DEVICE ERGONOMICS & TOUCH TARGET STANDARDS:** Seluruh komponen UI WAJIB ergonomis dan adaptif untuk Laptop, Tablet (POS), dan Smartphone (Mobile). Target sentuh minimum: Mobile $\ge 44\text{px}$ (`.touch-target`), Tablet $\ge 36\text{px}$ (`.touch-target-sm`), Desktop $\ge 28\text{px}$. Input formulir wajib mencegah *auto-zoom* iOS Safari (gunakan `.form.adaptive` atau `text-base sm:text-xs`). Aksi formulir utama mobile wajib berada di *Thumb Zone* bawah (`#popUpFooter`), tabel mobile menyembunyikan kolom sekunder (`show: 'md'`), dan elemen melayang wajib menyertakan safe area insets (`safe-pb`). Lihat panduan lengkap di `docs/ui-ergonomics.md`.
+12. **MANDATORY MULTI-DEVICE ERGONOMICS & TOUCH TARGET STANDARDS:** Seluruh komponen UI WAJIB ergonomis dan adaptif untuk Laptop, Tablet (POS), dan Smartphone (Mobile). Target sentuh minimum: Mobile $\ge 44\text{px}$ (`.touch-target`), Tablet $\ge 36\text{px}$ (`.touch-target-sm`), Desktop $\ge 28\text{px}$. Input formulir wajib mencegah *auto-zoom* iOS Safari (gunakan `.form.adaptive` atau `text-base sm:text-xs`). Aksi formulir utama mobile wajib berada di *Thumb Zone* bawah (`#popUpFooter`), tabel mobile menyembunyikan kolom sekunder (`show: 'md'`), dan elemen melayang wajib menyertakan safe area insets (`safe-pb`). Halaman standalone (Auth/Onboarding) **WAJIB solid 1 layar tanpa scroll vertikal** di smartphone (`h-svh max-h-svh`), menggunakan struktur 3-tier vertikal: Header (`shrink-0`), Konten Tengah (`flex-1 min-h-0 flex flex-col justify-center`, hindari `my-auto`), dan Action Footer (`shrink-0` terpasang di bawah dengan `safe-pb` dan tombol `min-h-[44px]`). Lihat panduan lengkap di `docs/ui-ergonomics.md`.
 13. **MANDATORY UX COPYWRITING & WORDING STANDARDS (SANTAI, KOMUNIKATIF, TO THE POINT, PROFESIONAL):** Seluruh teks antarmuka (empty states, placeholders, toasts, modal konfirmasi, pesan error, label form) WAJIB menggunakan nada bicara ramah, lugas, tidak kaku/birokratis, namun tetap profesional dan presisi terhadap istilah bisnis. Dilarang menggunakan bahasa kaku ala Google Translate mentah atau slang pasar berlebihan. Lihat panduan lengkap di `docs/ux-wording.md`.
 
 ### 4.2. Component Structure (`<script setup>`)
@@ -548,6 +548,22 @@ Seluruh AI Agent WAJIB memprioritaskan dan memaksimalkan penggunaan komponen baw
 - **Tombol (`.btn`):** `.btn-xs` (12px, baris tabel padat), `.btn-sm` (12px, header/filter toolbar), `.btn` (14px, CTA/form submit), `.btn-lg` (16px, hero), `.btn-flat` (border halus, latar putih).
 - **Filter & Badges:** `.filter-badge` & `.filter-badge-remove` (badge kriteria filter aktif), `.badge`, `.pill`, `.badge-doted`.
 - **Modal & Overlays:** `.overlay-backdrop`, `.overlay-modal`, `.overlay-header`, `.overlay-title`, `.overlay-close`, `.overlay-footer`.
+
+### 4.9. Form Focus States, Inset Rings & Anti-Flash Transitions
+
+- **Pola Baku `@utility form` & `.form-group`:**
+  ```css
+  /* Selalu gunakan outline-none dan transition-colors */
+  outline-none
+  transition-colors duration-200 ease-in-out
+  focus:ring-2
+  focus:ring-inset
+  focus:outline-none
+  focus:ring-main/20
+  focus:border-main
+  ```
+- **Prinsip Ring Inset pada Modal/Drawer:** Seluruh kartu interaktif atau form yang berada di dalam wrapper scrollable (`PopUpPage`, `ModalContainer`, `overflow-y-auto`) wajib menggunakan modifier `ring-inset` agar shadow diproyeksikan ke dalam batas border box dan tidak terpotong oleh overflow container.
+- **Dilarang `transition-all`:** Jangan pernah memasang `transition-all` pada input form untuk mencegah interpolasi `box-shadow` melewati hitam (*black border flash*).
 
 ---
 
@@ -905,6 +921,13 @@ Saat merancang implementasi fitur baru atau enhancement:
     - Modal Konfirmasi (`<Modal>` & `useModalStore`): Uji dialog konfirmasi hapus/arsip.
 4. **Console & Network Inspection:**
     - Pastikan tidak ada runtime exception JavaScript atau respons HTTP unhandled (500/422).
+
+### 10.3. Headless Chrome Visual Verification Protocol (macOS & Mobile Viewport)
+
+Saat memverifikasi tampilan mobile viewport secara otomatis menggunakan Headless Chrome pada macOS:
+1. **Unsandboxed Execution:** Jalankan Chrome dengan `BypassSandbox: true` karena window server macOS / Crashpad membutuhkan hak akses Mach bootstrap (`KERN_SUCCESS`).
+2. **SPA Render Wait Time:** Wajib berikan jeda render minimal 2 detik (`Page.loadEventFired` + delay 2000ms) sebelum menangkap screenshot agar Vue 3/Inertia selesai melakukan mounting.
+3. **Isolasi Dev Debugbar:** Di lingkungan lokal (`APP_DEBUG=true`), hilangkan bar debug sebelum tangkapan layar via evaluasi DOM (`document.querySelectorAll('.phpdebugbar').forEach(el => el.remove())`) agar screenshot mencerminkan tampilan produksi yang sebenarnya.
 
 ---
 

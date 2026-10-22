@@ -55,6 +55,15 @@ Semua modul operasional **WAJIB** menggunakan layout `<MainPage>` dengan 5 slot 
 - Thumb Zone: Aksi submit utama di mobile wajib berada di sticky footer (`#popUpFooter`).
 - Responsive Columns: Kolom tabel sekunder wajib disembunyikan di smartphone menggunakan prop `show: 'md'` atau `show: 'lg'`.
 
+### 7.1. Solid Mobile Viewport Architecture (Standalone & Auth Pages)
+Khusus untuk halaman penuh mandiri tanpa layout `<MainPage>` (seperti Login, Register, Forgot Password, Select Business, Onboarding Wizard):
+1. **Viewport Height Anchoring (`h-svh`):** Container utama **WAJIB** menggunakan `h-screen h-svh max-h-svh w-full overflow-hidden` untuk mengantisipasi dynamic URL bar dan toolbar navigasi bawah pada iOS Safari dan Google Chrome.
+2. **Struktur 3-Bagian (Flex Column Pinned-Docked):**
+   - **Top Pinned Header (`shrink-0`):** Berisi Logo, Stepper progress bar, atau navigasi kembali.
+   - **Middle Content (`flex-1 min-h-0 flex flex-col justify-center`):** Menampung judul dan input form. **DILARANG menggunakan `my-auto`** pada container ini karena menyerap flex space dan mendorong footer keluar layar. Jika konten berpotensi meluap di layar sangat kecil, tambahkan `overflow-y-auto no-scrollbar`.
+   - **Docked Bottom Action (`shrink-0`):** Tombol aksi utama (submit) dan link sekunder selalu terpasang di bawah, dilengkapi `safe-pb` (`env(safe-area-inset-bottom)`) dan target sentuh $\ge 44\text{px}$.
+3. **Overscroll & Anti-Zoom Guard:** `resources/views/app.blade.php` wajib menyertakan `viewport-fit=cover` dan class `overscroll-y-none` pada `<body>`. Input floating form pada mobile wajib `text-base` ($\ge 16\text{px}$) untuk mencegah auto-zoom.
+
 ---
 
 ## 8. Standarisasi Modal Dialog & Konfirmasi (`useModalStore`) vs Drawer (`usePopUpStore`)
@@ -134,5 +143,20 @@ Aplikasi Sollu memisahkan dengan tegas antara **Drawer / Side-Panel** (alur kerj
 ### C. Alur Asinkron In-Modal 2-Tahap (Two-State In-Modal Flow)
 1. **Hindari Chaining `modalStore.confirm` dengan `modalStore.open`:** `modalStore.confirm` menutup modal secara otomatis tepat saat `onConfirm()` dipanggil. Jika `onConfirm` menjalankan operasi asynchronous (seperti API reset password), modal akan tertutup lebih awal dan menimbulkan kedip UI sebelum dialog hasil muncul.
 2. **Gunakan Komponen Modal Terpadu:** Untuk alur konfirmasi yang menghasilkan data asinkron, gunakan komponen modal terdedikasi (misal `<PasswordResetModal>`) dengan transisi status internal (Tahap 1: Konfirmasi $\rightarrow$ Indikator Loading $\rightarrow$ Tahap 2: Hasil & Tombol Salin).
+
+---
+
+## 10. Standar Efek Fokus Form, Ring Inset, & Anti-Flash Transition
+
+### 10.1. Kewajiban `ring-inset` pada Form Controls & Interactive Selectors
+Untuk mencegah pemotongan efek visual (*clipping*) oleh container scrollable (`overflow-y-auto`, `overflow-hidden`, modal dialog, atau drawer `<PopUpPage>`):
+1. **Kontrol Formulir Global:** Seluruh input form (`@utility form`, `.form-group`, `.form-check input`, `.is-valid`/`.is-invalid`, `.btn-flat`) **WAJIB** menggunakan `focus:ring-inset` dipadukan dengan `focus:ring-2 focus:ring-main/20 focus:border-main`.
+2. **Kartu Selektor Interaktif:** Komponen kartu pilihan di dalam modal/drawer (seperti kartu paket, kartu promo, opsi metode inventori, picker produk) **WAJIB** menggunakan `ring-inset` (`ring-1 ring-inset` atau `ring-2 ring-inset`) saat status aktif/terpilih.
+
+### 10.2. Invarian Anti-Flash Transition & Outline Guard
+1. **DILARANG `transition-all` pada Form Controls:** Elemen formulir dilarang keras menggunakan `transition-all` karena browser menginterpolasi `box-shadow: none` melalui `currentColor` (warna teks hitam), yang memicu kilatan (flash) border hitam tebal sebelum warna ring sebenarnya muncul.
+2. **Wajib `transition-colors duration-200 ease-in-out`:** Kontrol formulir hanya boleh menganimasikan warna (`border-color`, `background-color`, `color`). Focus ring (`ring-2 ring-inset`) harus muncul seketika secara tegas (*instant crisp feedback*).
+3. **Wajib `outline-none` pada Base State:** Deklarasikan `outline-none` pada state dasar (unfocused) dan `focus:outline-none` pada focus state untuk menonaktifkan native outline browser secara permanen.
+
 
 

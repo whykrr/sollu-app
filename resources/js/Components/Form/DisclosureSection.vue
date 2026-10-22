@@ -12,7 +12,7 @@
         <!-- Header / Toggle Button -->
         <button
             type="button"
-            class="w-full flex items-center justify-between p-3 text-left select-none rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-main/20"
+            class="w-full flex items-center justify-between p-3 text-left select-none rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-main/20"
             :aria-expanded="isOpen"
             @click="toggle"
         >

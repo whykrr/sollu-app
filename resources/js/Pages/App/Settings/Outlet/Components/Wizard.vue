@@ -160,7 +160,7 @@
                     class="relative flex cursor-pointer rounded-lg border bg-white p-3.5 focus:outline-none transition-colors"
                     :class="
                         formOutlet.payment_method === 'midtrans'
-                            ? 'border-main ring-1 ring-main bg-main/5'
+                            ? 'border-main ring-1 ring-inset ring-main bg-main/5'
                             : 'border-slate-200 hover:border-slate-300'
                     "
                 >
@@ -194,7 +194,7 @@
                     class="relative flex cursor-pointer rounded-lg border bg-white p-3.5 focus:outline-none transition-colors"
                     :class="
                         formOutlet.payment_method === 'manual'
-                            ? 'border-main ring-1 ring-main bg-main/5'
+                            ? 'border-main ring-1 ring-inset ring-main bg-main/5'
                             : 'border-slate-200 hover:border-slate-300'
                     "
                 >

@@ -61,7 +61,9 @@
                     Lihat Pilihan Paket Lain
                 </Link>
 
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-gray-500">
+                <div
+                    class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-gray-500"
+                >
                     <Link
                         :href="route('settings.billing.index')"
                         class="hover:text-main font-medium underline underline-offset-2"

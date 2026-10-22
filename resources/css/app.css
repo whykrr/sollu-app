@@ -192,7 +192,8 @@
         rounded-lg
         border
         border-gray-200
-        transition-all duration-200 ease-in-out
+        outline-none
+        transition-colors duration-200 ease-in-out
 
         hover:border-gray-300
         hover:bg-gray-50/30
@@ -213,9 +214,10 @@
         disabled:hover:border-gray-200
         disabled:hover:bg-gray-50
 
-        focus:ring-4
-        focus:outline-0
-        focus:ring-main/10
+        focus:ring-2
+        focus:ring-inset
+        focus:outline-none
+        focus:ring-main/20
         focus:border-main
         focus:bg-white;
 }
@@ -230,7 +232,7 @@
        -------------------------------------------------------------------------- */
     .btn {
         &.btn-flat {
-            @apply !border !border-gray-200 hover:!bg-gray-50 hover:!border-gray-300 !bg-white focus:outline-none focus:ring-4 focus:ring-main/10 focus:!border-main;
+            @apply !border !border-gray-200 hover:!bg-gray-50 hover:!border-gray-300 !bg-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-main/20 focus:!border-main;
         }
 
         &.btn-xs {
@@ -304,7 +306,7 @@
         @apply relative flex flex-wrap items-center gap-1;
 
         & input {
-            @apply align-top w-4 h-4 p-0 m-0 bg-white border border-gray-200 rounded focus:ring-2 focus:ring-main/10 cursor-pointer;
+            @apply align-top w-4 h-4 p-0 m-0 bg-white border border-gray-200 rounded focus:ring-2 focus:ring-inset focus:ring-main/20 cursor-pointer;
         }
 
         & input[type='radio'] {
@@ -348,10 +350,12 @@
     .form-group {
         @apply flex flex-row rounded-lg items-stretch bg-white
             border border-gray-200
+            outline-none
             transition-colors duration-200 ease-in-out
-            focus-within:ring-4
-            focus-within:outline-0
-            focus-within:ring-main/10
+            focus-within:ring-2
+            focus-within:ring-inset
+            focus-within:outline-none
+            focus-within:ring-main/20
             focus-within:border-main;
 
         & > * {
@@ -381,7 +385,7 @@
         @apply relative;
 
         & input {
-            @apply form w-full pt-4 placeholder-transparent;
+            @apply form w-full pt-4 placeholder-transparent text-base sm:text-sm;
         }
 
         & label {
@@ -422,10 +426,10 @@
     }
 
     .is-valid {
-        @apply !border-success focus:!border-success focus-within:!border-success focus-within:!ring-success/30;
+        @apply !border-success focus:!border-success focus-within:!border-success focus:ring-2 focus:ring-inset focus:!ring-success/20 focus-within:ring-2 focus-within:ring-inset focus-within:!ring-success/20;
 
         &.form-floating input {
-            @apply !border-success focus:!border-success focus-within:!border-success focus-within:!ring-success/30;
+            @apply !border-success focus:!border-success focus-within:!border-success focus:ring-2 focus:ring-inset focus:!ring-success/20 focus-within:ring-2 focus-within:ring-inset focus-within:!ring-success/20;
         }
 
         & + .form-feedback {
@@ -434,10 +438,10 @@
     }
 
     .is-invalid {
-        @apply !border-danger focus:!border-danger focus-within:!border-danger focus-within:!ring-danger/30;
+        @apply !border-danger focus:!border-danger focus-within:!border-danger focus:ring-2 focus:ring-inset focus:!ring-danger/20 focus-within:ring-2 focus-within:ring-inset focus-within:!ring-danger/20;
 
         &.form-floating input {
-            @apply !border-danger focus:!border-danger focus-within:!border-danger focus-within:!ring-danger/30;
+            @apply !border-danger focus:!border-danger focus-within:!border-danger focus:ring-2 focus:ring-inset focus:!ring-danger/20 focus-within:ring-2 focus-within:ring-inset focus-within:!ring-danger/20;
         }
 
         & + .form-feedback {

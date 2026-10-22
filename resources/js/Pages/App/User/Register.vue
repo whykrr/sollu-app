@@ -1,5 +1,5 @@
 <template>
-    <form class="h-full flex flex-col justify-between" @submit.prevent="register">
+    <form class="h-full flex flex-col justify-between overflow-hidden" @submit.prevent="register">
         <!-- Top: Stepper Bar -->
         <div class="shrink-0 space-y-1">
             <ol class="flex items-center w-full relative gap-1.5 sm:gap-2">
@@ -30,8 +30,10 @@
         </div>
 
         <!-- Middle: Dynamic Step Content -->
-        <div class="flex flex-col justify-center my-auto py-1 sm:py-2">
-            <div class="relative mb-2 sm:mb-3">
+        <div
+            class="flex-1 min-h-0 flex flex-col justify-start sm:justify-center py-1 sm:py-2 overflow-y-auto no-scrollbar"
+        >
+            <div class="relative mb-2 sm:mb-3 shrink-0">
                 <transition name="fade" mode="out-in">
                     <div v-if="steps[currentStep - 1]" :key="currentStep" class="space-y-0.5">
                         <div
@@ -47,23 +49,23 @@
             </div>
 
             <!-- Step 1: Pilih Paket Langganan & Mode Aktivasi -->
-            <div v-if="currentStep === 1" class="space-y-3">
+            <div v-if="currentStep === 1" class="space-y-2 sm:space-y-3">
                 <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[46vh] sm:max-h-[50vh] overflow-y-auto pr-1"
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 max-h-[260px] sm:max-h-[50vh] overflow-y-auto pr-1"
                 >
                     <div
                         v-for="plan in plans"
                         :key="plan.id"
-                        class="group relative flex flex-col justify-between p-3 sm:p-3.5 rounded-xl border text-left transition-all duration-200 cursor-pointer select-none"
+                        class="group relative flex flex-col justify-between p-2.5 sm:p-3.5 rounded-xl border text-left transition-all duration-200 cursor-pointer select-none"
                         :class="[
                             form.plan_id === plan.id
-                                ? 'border-main bg-main/5 ring-2 ring-main/15 shadow-xs'
-                                : 'border-slate-200 bg-white hover:border-main-light/50 hover:bg-slate-50/70 hover:shadow-xs',
+                                ? 'border-main bg-main/5 ring-2 ring-inset ring-main/15'
+                                : 'border-slate-200 bg-white hover:border-main-light/50 hover:bg-slate-50/70',
                         ]"
                         @click="selectPlan(plan)"
                     >
                         <div>
-                            <div class="flex items-start justify-between gap-1 mb-1.5">
+                            <div class="flex items-start justify-between gap-1 mb-1 sm:mb-1.5">
                                 <span class="font-bold text-sm sm:text-base text-slate-900">
                                     {{ plan.name }}
                                 </span>
@@ -81,51 +83,76 @@
                             </div>
 
                             <!-- Badges -->
-                            <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                            <div
+                                class="flex flex-wrap items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2"
+                            >
                                 <span
                                     v-if="plan.is_unlimited_outlets"
-                                    class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    class="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200"
                                 >
                                     Unlimited Cabang
                                 </span>
                                 <span
                                     v-else
-                                    class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-slate-100 text-slate-700 border border-slate-200"
+                                    class="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-md bg-slate-100 text-slate-700 border border-slate-200"
                                 >
                                     Maks. {{ plan.max_outlets }} Cabang
                                 </span>
 
                                 <span
                                     v-if="plan.has_trial"
-                                    class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-amber-50 text-amber-700 border border-amber-200"
+                                    class="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold rounded-md bg-amber-50 text-amber-700 border border-amber-200"
                                 >
                                     Trial {{ plan.trial_duration_days }} Hari
                                 </span>
                             </div>
 
                             <!-- Pricing -->
-                            <div class="text-main font-bold text-base sm:text-lg">
+                            <div class="text-main font-bold text-sm sm:text-lg">
                                 {{ formatIDR(plan.price_per_outlet) }}
-                                <span class="text-xs font-normal text-slate-500">/ outlet / bln</span>
+                                <span class="text-xs font-normal text-slate-500"
+                                    >/ outlet / bln</span
+                                >
                             </div>
                             <div
                                 v-if="plan.yearly_discount_percent > 0"
-                                class="text-[11px] font-medium text-emerald-600 mt-0.5"
+                                class="text-[10px] sm:text-[11px] font-medium text-emerald-600 mt-0.5"
                             >
                                 Diskon tahunan {{ plan.yearly_discount_percent }}%
                             </div>
 
-                            <!-- Features List Preview -->
+                            <!-- Features List Preview: Compact single-line on mobile, full list on sm+ -->
+                            <div
+                                v-if="plan.features && plan.features.length > 0"
+                                class="block sm:hidden text-[11px] text-slate-600 mt-1 truncate"
+                            >
+                                <FontAwesomeIcon
+                                    :icon="faCheck"
+                                    class="text-emerald-500 text-[10px] mr-1"
+                                />
+                                {{
+                                    plan.features
+                                        .slice(0, 2)
+                                        .map(f => f.name)
+                                        .join(', ')
+                                }}
+                                <span v-if="plan.features.length > 2">
+                                    +{{ plan.features.length - 2 }} lainnya</span
+                                >
+                            </div>
                             <ul
                                 v-if="plan.features && plan.features.length > 0"
-                                class="mt-2.5 pt-2 border-t border-slate-100 space-y-1 text-xs text-slate-600"
+                                class="hidden sm:block mt-2.5 pt-2 border-t border-slate-100 space-y-1 text-xs text-slate-600"
                             >
                                 <li
                                     v-for="feat in plan.features.slice(0, 3)"
                                     :key="feat.id"
                                     class="flex items-center gap-1.5"
                                 >
-                                    <FontAwesomeIcon :icon="faCheck" class="text-emerald-500 text-[10px]" />
+                                    <FontAwesomeIcon
+                                        :icon="faCheck"
+                                        class="text-emerald-500 text-[10px]"
+                                    />
                                     <span class="truncate">{{ feat.name }}</span>
                                 </li>
                                 <li
@@ -140,21 +167,27 @@
                 </div>
 
                 <!-- Activation Mode Options for Selected Plan -->
-                <div v-if="selectedPlan" class="pt-2 border-t border-slate-200/80 space-y-2">
+                <div
+                    v-if="selectedPlan"
+                    class="pt-1.5 sm:pt-2 border-t border-slate-200/80 space-y-1.5 sm:space-y-2"
+                >
                     <div class="text-xs font-semibold text-slate-700">Pilihan Aktivasi:</div>
 
-                    <div v-if="selectedPlan.has_trial" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div
+                        v-if="selectedPlan.has_trial"
+                        class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2"
+                    >
                         <!-- Option A: Free Trial -->
                         <div
-                            class="p-2.5 rounded-lg border text-left cursor-pointer transition-all"
+                            class="p-2 sm:p-2.5 rounded-lg border text-left cursor-pointer transition-all"
                             :class="[
                                 form.use_trial === true
-                                    ? 'border-main bg-main/5 ring-1 ring-main'
+                                    ? 'border-main bg-main/5 ring-1 ring-inset ring-main'
                                     : 'border-slate-200 bg-white hover:border-slate-300',
                             ]"
                             @click="form.use_trial = true"
                         >
-                            <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center justify-between mb-0.5">
                                 <span class="text-xs font-bold text-slate-900">
                                     Coba Gratis (Trial {{ selectedPlan.trial_duration_days }} Hari)
                                 </span>
@@ -164,22 +197,22 @@
                                     Gratis
                                 </span>
                             </div>
-                            <p class="text-[11px] text-slate-500 leading-snug">
+                            <p class="text-[11px] text-slate-500 leading-snug hidden sm:block">
                                 Uji coba penuh tanpa biaya. Tidak memerlukan kartu kredit sekarang.
                             </p>
                         </div>
 
                         <!-- Option B: Direct Paid -->
                         <div
-                            class="p-2.5 rounded-lg border text-left cursor-pointer transition-all"
+                            class="p-2 sm:p-2.5 rounded-lg border text-left cursor-pointer transition-all"
                             :class="[
                                 form.use_trial === false
-                                    ? 'border-main bg-main/5 ring-1 ring-main'
+                                    ? 'border-main bg-main/5 ring-1 ring-inset ring-main'
                                     : 'border-slate-200 bg-white hover:border-slate-300',
                             ]"
                             @click="form.use_trial = false"
                         >
-                            <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center justify-between mb-0.5">
                                 <span class="text-xs font-bold text-slate-900">
                                     Langsung Berlangganan
                                 </span>
@@ -189,7 +222,7 @@
                                     Bayar
                                 </span>
                             </div>
-                            <p class="text-[11px] text-slate-500 leading-snug">
+                            <p class="text-[11px] text-slate-500 leading-snug hidden sm:block">
                                 Mulai langsung dengan paket berbayar tanpa periode uji coba.
                             </p>
                         </div>
@@ -198,24 +231,24 @@
                     <!-- Non-Trial Notice -->
                     <div
                         v-else
-                        class="p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-600"
+                        class="p-2 sm:p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-600"
                     >
-                        Paket ini tidak menyediakan periode uji coba gratis. Anda akan diarahkan ke tagihan pembayaran awal setelah akun dibuat.
+                        Paket ini tidak menyediakan periode uji coba gratis. Anda akan diarahkan ke
+                        tagihan pembayaran awal setelah akun dibuat.
                     </div>
 
                     <!-- Billing Cycle Selector (if not trial or non-trial) -->
-                    <div
-                        v-if="!form.use_trial"
-                        class="flex items-center gap-2 pt-1 text-xs"
-                    >
+                    <div v-if="!form.use_trial" class="flex items-center gap-2 pt-0.5 text-xs">
                         <span class="text-slate-600 font-medium">Siklus Tagihan:</span>
-                        <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
+                        <div
+                            class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50"
+                        >
                             <button
                                 type="button"
                                 class="px-3 py-1 rounded-md font-medium text-xs transition-colors cursor-pointer"
                                 :class="[
                                     form.billing_cycle === 'monthly'
-                                        ? 'bg-white text-main shadow-xs font-bold'
+                                        ? 'bg-white text-main font-bold border border-slate-200'
                                         : 'text-slate-600 hover:text-slate-900',
                                 ]"
                                 @click="form.billing_cycle = 'monthly'"
@@ -227,7 +260,7 @@
                                 class="px-3 py-1 rounded-md font-medium text-xs transition-colors cursor-pointer"
                                 :class="[
                                     form.billing_cycle === 'yearly'
-                                        ? 'bg-white text-main shadow-xs font-bold'
+                                        ? 'bg-white text-main font-bold border border-slate-200'
                                         : 'text-slate-600 hover:text-slate-900',
                                 ]"
                                 @click="form.billing_cycle = 'yearly'"
@@ -244,7 +277,10 @@
                     </div>
                 </div>
 
-                <span v-if="form.errors.plan_id" class="text-danger text-xs sm:text-sm block font-medium">
+                <span
+                    v-if="form.errors.plan_id"
+                    class="text-danger text-xs sm:text-sm block font-medium"
+                >
                     {{ form.errors.plan_id }}
                 </span>
             </div>
@@ -252,7 +288,7 @@
             <!-- Step 2: Jenis Usaha -->
             <div v-if="currentStep === 2" class="space-y-2">
                 <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[46vh] sm:max-h-[50vh] overflow-y-auto pr-1"
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[44vh] sm:max-h-[50vh] overflow-y-auto pr-1"
                 >
                     <button
                         v-for="item in business_types"
@@ -261,8 +297,8 @@
                         class="group relative flex items-center p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer select-none"
                         :class="[
                             form.business_type_id === item.value
-                                ? 'border-main bg-main/5 ring-2 ring-main/15 shadow-xs'
-                                : 'border-slate-200 bg-white hover:border-main-light/50 hover:bg-slate-50/70 hover:shadow-xs',
+                                ? 'border-main bg-main/5 ring-2 ring-inset ring-main/15'
+                                : 'border-slate-200 bg-white hover:border-main-light/50 hover:bg-slate-50/70',
                         ]"
                         @click="form.business_type_id = item.value"
                     >
@@ -271,7 +307,7 @@
                             class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200"
                             :class="[
                                 form.business_type_id === item.value
-                                    ? 'bg-main text-white shadow-xs'
+                                    ? 'bg-main text-white'
                                     : 'bg-slate-100 text-slate-600 group-hover:bg-main-light/10 group-hover:text-main',
                             ]"
                         >
@@ -453,12 +489,12 @@
         </div>
 
         <!-- Bottom: Actions & Login Link -->
-        <div class="shrink-0 space-y-2 pt-1">
+        <div class="shrink-0 space-y-2 pt-2 safe-pb pb-14 sm:pb-0">
             <div class="flex gap-2">
                 <button
                     type="button"
-                    class="btn btn-highlight-danger text-base sm:text-lg shrink-0 px-3 py-2 sm:py-2.5"
-                    :disabled="currentStep === 1"
+                    class="btn btn-highlight-danger text-base sm:text-lg shrink-0 px-3.5 py-2.5 sm:py-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    :disabled="currentStep === 1 || form.processing"
                     @click="prevStep"
                 >
                     <FontAwesomeIcon :icon="faArrowLeft" />
@@ -466,7 +502,8 @@
                 <button
                     v-if="currentStep < steps.length"
                     type="button"
-                    class="btn btn-main flex-1 sm:flex-none px-8 sm:px-12 py-2 sm:py-2.5 text-base sm:text-lg justify-center"
+                    class="btn btn-main flex-1 sm:flex-none px-8 sm:px-12 py-2.5 sm:py-2.5 text-base sm:text-lg justify-center min-h-[44px]"
+                    :disabled="form.processing"
                     @click="nextStep"
                 >
                     Lanjut
@@ -474,7 +511,8 @@
                 <button
                     v-else
                     type="submit"
-                    class="btn btn-main flex-1 sm:flex-none px-8 sm:px-12 py-2 sm:py-2.5 text-base sm:text-lg justify-center"
+                    class="btn btn-main flex-1 sm:flex-none px-8 sm:px-12 py-2.5 sm:py-2.5 text-base sm:text-lg justify-center min-h-[44px]"
+                    :disabled="form.processing"
                 >
                     Daftar Sekarang
                 </button>

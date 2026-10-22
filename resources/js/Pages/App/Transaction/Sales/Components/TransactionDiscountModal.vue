@@ -124,7 +124,7 @@
                         class="p-3 rounded-xl border transition-all"
                         :class="[
                             isPromoSelected(promo)
-                                ? 'bg-emerald-50/50 border-emerald-300 ring-1 ring-emerald-200'
+                                ? 'bg-emerald-50/50 border-emerald-300 ring-1 ring-inset ring-emerald-200'
                                 : isPromoEligible(promo)
                                   ? 'bg-white border-slate-200 hover:border-slate-300'
                                   : 'bg-slate-50/70 border-slate-200 opacity-75',

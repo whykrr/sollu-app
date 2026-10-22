@@ -94,3 +94,5 @@ If existing pages and components support dark mode, new pages and components mus
 - Trying to use `tailwind.config.js` instead of CSS `@theme` directive
 - Using margins for spacing between siblings instead of gap utilities
 - Forgetting to add dark mode variants when the project uses dark mode
+- Using `transition-all` on inputs with `focus:ring-*`: Animating `box-shadow` from `none` interpolates color via `currentColor` (dark text color), producing an unsightly black border flash for the first 100ms. Always use `transition-colors duration-200 ease-in-out` with `outline-none` for form inputs.
+- Omitting `ring-inset` inside scrollable containers (`overflow-y-auto`, modals, drawers): Outer box-shadow rings get clipped by the container boundary. Always use `focus:ring-inset` or `ring-inset` for controls inside scrollable viewports.

@@ -49,12 +49,19 @@
                                     <h4 class="font-bold text-gray-900 text-xs">
                                         Pilih Cabang yang Tetap Aktif
                                     </h4>
-                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    <span
+                                        class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                    >
                                         Maksimal {{ plan.max_outlets }} Cabang
                                     </span>
                                 </div>
                                 <p class="text-[11px] text-gray-600 mt-1 leading-relaxed">
-                                    Paket <strong>{{ plan.name }}</strong> dibatasi maksimal <strong>{{ plan.max_outlets }} cabang</strong>. Karena Anda saat ini memiliki {{ allActiveOutlets.length }} cabang aktif, pilih cabang yang akan tetap beroperasi. Cabang yang tidak dipilih akan dinonaktifkan sementara dan kasir pada cabang tersebut terkunci, namun data transaksi dan stok cabang tetap aman.
+                                    Paket <strong>{{ plan.name }}</strong> dibatasi maksimal
+                                    <strong>{{ plan.max_outlets }} cabang</strong>. Karena Anda saat
+                                    ini memiliki {{ allActiveOutlets.length }} cabang aktif, pilih
+                                    cabang yang akan tetap beroperasi. Cabang yang tidak dipilih
+                                    akan dinonaktifkan sementara dan kasir pada cabang tersebut
+                                    terkunci, namun data transaksi dan stok cabang tetap aman.
                                 </p>
                             </div>
                         </div>
@@ -79,7 +86,9 @@
                                         class="rounded text-main focus:ring-main h-4 w-4 pointer-events-none"
                                     />
                                     <div>
-                                        <div class="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+                                        <div
+                                            class="font-bold text-gray-900 text-xs flex items-center gap-1.5"
+                                        >
                                             <span>{{ outlet.name }}</span>
                                             <span
                                                 v-if="outlet.is_main_outlet"
@@ -113,7 +122,8 @@
                         </div>
 
                         <div class="text-right text-[11px] text-gray-500 font-medium">
-                            {{ selectedOutletIds.length }} dari {{ plan.max_outlets }} cabang terpilih
+                            {{ selectedOutletIds.length }} dari {{ plan.max_outlets }} cabang
+                            terpilih
                         </div>
                     </div>
 
@@ -366,7 +376,9 @@
                                     plan_id: plan.id,
                                     billing_cycle: billingCycle,
                                     payment_method: paymentMethod,
-                                    selected_outlet_ids: isDowngradeConflict ? selectedOutletIds : null,
+                                    selected_outlet_ids: isDowngradeConflict
+                                        ? selectedOutletIds
+                                        : null,
                                 }"
                                 :disabled="
                                     isDowngradeConflict &&
@@ -444,10 +456,7 @@ const allActiveOutlets = computed(() => {
 })
 
 const isDowngradeConflict = computed(() => {
-    return (
-        props.plan.max_outlets !== null &&
-        allActiveOutlets.value.length > props.plan.max_outlets
-    )
+    return props.plan.max_outlets !== null && allActiveOutlets.value.length > props.plan.max_outlets
 })
 
 // Initialize selected outlets: priority to main outlet, up to max_outlets

@@ -54,10 +54,25 @@ jobs:
         with:
           context: .
           push: true
+          pull: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Verify PHP version security patch (PHP2Shell protection)
+        run: |
+          PRIMARY_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          echo "Verifying PHP runtime on $PRIMARY_TAG..."
+          docker pull "$PRIMARY_TAG"
+          docker run --rm "$PRIMARY_TAG" php -r "
+            echo 'Installed PHP Version: ' . PHP_VERSION . PHP_EOL;
+            if (version_compare(PHP_VERSION, '8.3.36', '<')) {
+              fwrite(STDERR, 'CRITICAL SECURITY ERROR: PHP version ' . PHP_VERSION . ' is below 8.3.36 (Vulnerable to PHP2Shell CVE-2026-109618/CVE-2026-109619)!' . PHP_EOL);
+              exit(1);
+            }
+            echo 'Security patch verified successfully (>= 8.3.36).' . PHP_EOL;
+          "
 
   deploy:
     needs: build-and-push-image

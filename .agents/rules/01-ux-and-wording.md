@@ -13,7 +13,7 @@
 | 1 | **Mudah di-Setup** | Onboarding ringkas; default settings otomatis per `BusinessType`; form awal minimal. |
 | 2 | **Mudah Dioperasikan** | Navigasi SPA Inertia instan; shortcut keyboard kasir; pencarian barcode scanner. |
 | 3 | **Interface Tidak Ambigu** | Label aksi eksplisit (`"+ Tambah Produk"`, `"Simpan Perubahan"`); warna badge semantik dari Enum. |
-| 4 | **Ergonomi Multi-Device** | Target sentuh: Mobile $\ge 44\text{px}$ (`.touch-target`), Tablet $\ge 36\text{px}$, Desktop $\ge 28\text{px}$/30px. Input mobile font $\ge 16\text{px}$ (`.form.adaptive`) cegah zoom iOS. Thumb zone di footer (`#popUpFooter`). |
+| 4 | **Ergonomi Multi-Device** | Target sentuh: Mobile $\ge 44\text{px}$ (`.touch-target`), Tablet $\ge 36\text{px}$, Desktop $\ge 28\text{px}$/30px. Input mobile font $\ge 16\text{px}$ (`.form.adaptive`) cegah zoom iOS. Thumb zone di footer (`#popUpFooter`). Halaman penuh standalone (Auth/Onboarding) **WAJIB solid 1 layar tanpa scroll** (`h-svh`, docked footer). |
 | 5 | **Sederhana (Zero Shadow)** | Komponen di `<MainPage>` **DILARANG MENGGUNAKAN SHADOW** (`shadow-*`). Gunakan border tipis (`border-slate-200`) dan bg solid. Non-scrolling sticky header; responsive column masking di mobile (`show: 'md'`). |
 | 6 | **Bahasa Familiar** | Kosakata bisnis ramah (*"Sampah"*, *"Pulihkan"*, *"Draf"*, *"Unduh"*); ganti pesan error teknis database dengan pesan solutif. |
 | 7 | **Sistem Konsisten** | Layout baku `<MainPage>` 5-slot; toolbar filter terpadu `ActionBar`; form `@/Components/Form/`. |

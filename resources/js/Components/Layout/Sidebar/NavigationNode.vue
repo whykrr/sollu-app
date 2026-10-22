@@ -60,7 +60,9 @@ const checkPerm = (permissions, required) => {
     const checkSingle = req => {
         return permissions.some(perm => {
             if (perm.includes('*')) {
-                const regex = new RegExp('^' + perm.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$')
+                const regex = new RegExp(
+                    '^' + perm.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$'
+                )
                 return regex.test(req)
             }
             return perm === req

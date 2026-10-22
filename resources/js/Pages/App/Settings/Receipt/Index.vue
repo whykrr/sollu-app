@@ -349,7 +349,9 @@
                             </div>
                             <div class="flex justify-between mt-0.5 text-slate-600">
                                 <span>14/08/2026 14:00</span>
-                                <span v-if="form.show_order_type" class="font-bold text-slate-800">Walk In</span>
+                                <span v-if="form.show_order_type" class="font-bold text-slate-800"
+                                    >Walk In</span
+                                >
                             </div>
                             <div class="flex justify-between mt-0.5">
                                 <span v-if="form.show_cashier_name">Kasir: Budi</span>

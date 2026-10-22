@@ -1,12 +1,14 @@
 <template>
-    <form class="h-full flex flex-col justify-between" @submit.prevent="login">
+    <form class="h-full flex flex-col justify-between overflow-hidden" @submit.prevent="login">
         <!-- Top: Logo -->
         <div class="w-full max-w-md shrink-0">
             <img class="h-7 sm:h-9 object-contain" src="img/logo-colored.png" alt="Logo" />
         </div>
 
         <!-- Middle: Form Inputs -->
-        <div class="flex flex-col justify-center my-auto py-2 sm:py-3 space-y-2 sm:space-y-3">
+        <div
+            class="flex-1 min-h-0 flex flex-col justify-center py-1 sm:py-2 space-y-2 sm:space-y-3 overflow-y-auto no-scrollbar"
+        >
             <div class="space-y-0.5">
                 <div
                     class="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900 leading-tight"
@@ -76,10 +78,11 @@
         </div>
 
         <!-- Bottom: Action Buttons & Register Link -->
-        <div class="shrink-0 space-y-2 pt-1">
+        <div class="shrink-0 space-y-2 pt-2 safe-pb pb-14 sm:pb-0">
             <button
                 type="submit"
-                class="btn btn-main w-full sm:w-auto px-10 py-2 sm:py-2.5 text-base sm:text-lg justify-center"
+                class="btn btn-main w-full sm:w-auto px-10 py-2.5 sm:py-2.5 text-base sm:text-lg justify-center min-h-[44px]"
+                :disabled="form.processing"
             >
                 Login
             </button>

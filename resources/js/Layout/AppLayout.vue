@@ -18,9 +18,14 @@
                 class="bg-amber-500 text-white px-4 py-2 text-xs sm:text-sm font-medium flex items-center justify-between shrink-0 shadow-sm z-20"
             >
                 <div class="flex items-center gap-2">
-                    <FontAwesomeIcon :icon="faTriangleExclamation" class="text-white text-base shrink-0" />
+                    <FontAwesomeIcon
+                        :icon="faTriangleExclamation"
+                        class="text-white text-base shrink-0"
+                    />
                     <span>
-                        Masa aktif langganan tokomu telah berakhir. Toko saat ini dalam masa tenggang (tersisa {{ graceDays }} hari). Segera lakukan perpanjangan agar kasir dan operasional tidak terhenti.
+                        Masa aktif langganan tokomu telah berakhir. Toko saat ini dalam masa
+                        tenggang (tersisa {{ graceDays }} hari). Segera lakukan perpanjangan agar
+                        kasir dan operasional tidak terhenti.
                     </span>
                 </div>
                 <Link

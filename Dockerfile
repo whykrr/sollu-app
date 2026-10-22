@@ -1,49 +1,41 @@
 # ==========================================
-# Stage 1: Build PHP Dependencies
+# Stage 1: Build PHP Vendor Dependencies
 # ==========================================
-FROM php:8.3-fpm-alpine as php-build
-
-RUN apk add --no-cache \
-    zip \
-    libzip-dev \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    icu-dev \
-    postgresql-dev
-
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
-        pdo_mysql \
-        pdo_pgsql \
-        zip \
-        gd \
-        intl \
-        opcache \
-        bcmath \
-        pcntl \
-        exif
+FROM php:8.3-fpm-alpine AS php-build
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
+
+# Salin manifest terlebih dahulu agar layer composer ter-cache selama lockfile tidak berubah
+COPY composer.json composer.lock ./
+
+# Unduh dependensi tanpa script & autoloader (BuildKit cache mount untuk mempercepat unduhan)
+RUN --mount=type=cache,target=/root/.composer/cache \
+    composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction
+
+# Salin source code aplikasi
 COPY . .
 
-# Install PHP dependencies (tanpa dev package, optimize autoload)
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Generate optimized classmap autoloading & package discovery
+RUN composer dump-autoload --no-dev --optimize --no-interaction
+
 
 # ==========================================
 # Stage 2: Build Node.js Assets (Vite)
 # ==========================================
-FROM node:20-alpine as node-build
+FROM node:20-alpine AS node-build
 
 WORKDIR /app
+
+# Salin package manifest terlebih dahulu untuk npm caching
 COPY package*.json ./
-RUN npm ci || npm install
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci || npm install
 
 COPY . .
 
-# Ambil vendor & file ziggy.js terbaru dari stage php-build
+# Ambil vendor (termasuk Ziggy) dari stage php-build
 COPY --from=php-build /var/www/html/vendor ./vendor
 
 RUN npm run build
@@ -54,25 +46,34 @@ RUN npm run build
 # ==========================================
 FROM php:8.3-fpm-alpine
 
-# Install runtime package saja untuk menjaga image tetap ringan
-RUN apk add --no-cache \
-    nginx \
-    supervisor \
-    libzip \
-    libpng \
-    libjpeg-turbo \
-    freetype \
-    icu \
-    libpq \
-    curl
+# Patch OS level libraries (CVE/keamanan) dan install runtime server
+RUN apk update && apk upgrade --no-cache \
+    && apk add --no-cache \
+        nginx \
+        supervisor \
+        curl
+
+# Install PHP extensions menggunakan extension-installer resmi
+# Mengompilasi ekstensi, menginstal runtime libraries yang tepat,
+# dan otomatis menghapus dev-headers & compiler tools dalam satu layer
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+
+RUN install-php-extensions \
+    pdo_mysql \
+    pdo_pgsql \
+    zip \
+    gd \
+    intl \
+    opcache \
+    bcmath \
+    pcntl \
+    exif
 
 WORKDIR /var/www/html
 
-# Copy source code & dependencies dari build stage
+# Copy source code & dependencies bersih dari build stage
 COPY --from=php-build --chown=www-data:www-data /var/www/html /var/www/html
 COPY --from=node-build --chown=www-data:www-data /app/public/build /var/www/html/public/build
-COPY --from=php-build /usr/local/lib/php/extensions /usr/local/lib/php/extensions
-COPY --from=php-build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
 
 # Copy custom config (Nginx, Supervisor, PHP)
 COPY ./docker/nginx.conf /etc/nginx/http.d/default.conf

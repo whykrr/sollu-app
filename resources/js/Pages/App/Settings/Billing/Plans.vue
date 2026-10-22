@@ -58,9 +58,9 @@
                 :key="index"
                 class="bg-white rounded-xl border flex flex-col h-full transition-colors relative overflow-hidden hover:border-slate-300"
                 :class="{
-                    'border-main ring-2 ring-main/20':
+                    'border-main ring-2 ring-inset ring-main/20':
                         subscription && subscription.plan_id === plan.id,
-                    'border-purple-300 ring-1 ring-purple-100':
+                    'border-purple-300 ring-1 ring-inset ring-purple-100':
                         (!subscription || subscription.plan_id !== plan.id) && plan.business_id,
                     'border-neutral-200':
                         (!subscription || subscription.plan_id !== plan.id) && !plan.business_id,

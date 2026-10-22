@@ -8,7 +8,7 @@
         </label>
         <select
             id="setting-outlet-select"
-            class="form sm text-xs leading-4 rounded-lg border-slate-200 bg-white focus:border-main focus:ring-main h-[30px]"
+            class="form sm text-xs leading-4 rounded-lg border-slate-200 bg-white focus:border-main focus:ring-main focus:ring-inset h-[30px]"
             :value="modelValue"
             @change="$emit('update:modelValue', $event.target.value)"
         >

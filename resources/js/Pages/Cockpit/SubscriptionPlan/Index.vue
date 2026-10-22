@@ -106,7 +106,9 @@
                         "
                     >
                         <FontAwesomeIcon :icon="faStore" class="text-[9px]" />
-                        {{ row.max_outlets ? `Maks ${row.max_outlets} Cabang` : 'Unlimited Cabang' }}
+                        {{
+                            row.max_outlets ? `Maks ${row.max_outlets} Cabang` : 'Unlimited Cabang'
+                        }}
                     </span>
                     <span
                         class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded font-bold"
@@ -117,7 +119,11 @@
                         "
                     >
                         <FontAwesomeIcon :icon="faBolt" class="text-[9px]" />
-                        {{ row.has_trial ? `Trial ${row.trial_duration_days || 14} Hari` : 'Tanpa Trial' }}
+                        {{
+                            row.has_trial
+                                ? `Trial ${row.trial_duration_days || 14} Hari`
+                                : 'Tanpa Trial'
+                        }}
                     </span>
                 </div>
             </template>

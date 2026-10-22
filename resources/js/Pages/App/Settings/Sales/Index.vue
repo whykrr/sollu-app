@@ -401,7 +401,10 @@ const previewInvoiceNumber = computed(() => {
     const words = outletName.trim().split(/\s+/)
     let outletInit = ''
     if (words.length >= 2) {
-        outletInit = words.map(w => w[0]).join('').toUpperCase()
+        outletInit = words
+            .map(w => w[0])
+            .join('')
+            .toUpperCase()
     } else {
         outletInit = words[0].substring(0, 3).toUpperCase()
     }

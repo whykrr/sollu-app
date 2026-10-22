@@ -34,7 +34,7 @@
                         class="p-2.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col gap-0.5"
                         :class="
                             form.application_mode === 'automatic'
-                                ? 'border-main bg-main/5 text-slate-900 font-medium ring-1 ring-main'
+                                ? 'border-main bg-main/5 text-slate-900 font-medium ring-1 ring-inset ring-main'
                                 : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
                         "
                         @click="form.application_mode = 'automatic'"
@@ -50,7 +50,7 @@
                         class="p-2.5 rounded-lg border text-left transition-all cursor-pointer flex flex-col gap-0.5"
                         :class="
                             form.application_mode === 'manual'
-                                ? 'border-main bg-main/5 text-slate-900 font-medium ring-1 ring-main'
+                                ? 'border-main bg-main/5 text-slate-900 font-medium ring-1 ring-inset ring-main'
                                 : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
                         "
                         @click="form.application_mode = 'manual'"

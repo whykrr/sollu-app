@@ -54,9 +54,7 @@ const isTrial = computed(() => Boolean(subscription.value?.is_trial))
 
 const planBadgeLabel = computed(() => {
     if (!subscription.value?.plan) return 'Masa Uji Coba'
-    return isTrial.value
-        ? `${subscription.value.plan.name} (Trial)`
-        : subscription.value.plan.name
+    return isTrial.value ? `${subscription.value.plan.name} (Trial)` : subscription.value.plan.name
 })
 
 const daysLeft = computed(() => {

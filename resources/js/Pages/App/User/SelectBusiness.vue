@@ -1,12 +1,14 @@
 <template>
-    <div class="h-full flex flex-col justify-between">
+    <div class="h-full flex flex-col justify-between overflow-hidden">
         <!-- Top: Logo -->
         <div class="w-full max-w-md shrink-0">
             <img class="h-7 sm:h-9 object-contain" src="img/logo-colored.png" alt="Logo" />
         </div>
 
         <!-- Middle: Business Selection -->
-        <div class="flex flex-col justify-center my-auto py-2 sm:py-3 space-y-3">
+        <div
+            class="flex-1 min-h-0 flex flex-col justify-center py-1 sm:py-2 space-y-3 overflow-y-auto no-scrollbar"
+        >
             <div class="space-y-0.5">
                 <div
                     class="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900 leading-tight"
@@ -23,7 +25,7 @@
                 <span class="text-xs sm:text-sm">{{ form.errors.email }}</span>
             </div>
 
-            <div class="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+            <div class="space-y-2 max-h-[44vh] sm:max-h-[360px] overflow-y-auto pr-1">
                 <div
                     v-for="biz in props.businesses"
                     :key="biz.id"
@@ -43,7 +45,7 @@
 
                     <button
                         type="button"
-                        class="btn btn-outline-main btn-xs shrink-0"
+                        class="btn btn-outline-main btn-xs shrink-0 min-h-[36px] px-3"
                         :disabled="form.processing"
                     >
                         Masuk
@@ -53,7 +55,7 @@
         </div>
 
         <!-- Bottom: Back to Login -->
-        <div class="shrink-0 space-y-2 pt-1">
+        <div class="shrink-0 space-y-2 pt-2 safe-pb pb-14 sm:pb-0">
             <div class="text-xs sm:text-sm text-neutral-600">
                 Bukan akun kamu?
                 <Link :href="route('login')" class="underline text-blue-800 font-medium">

@@ -65,7 +65,9 @@
                             Tipe Pesanan POS Aktif (Order Types)
                         </div>
                         <div class="text-xs text-slate-500 mt-0.5">
-                            Pilih tipe pesanan yang tersedia di kasir outlet ini (minimal 1 aktif). Jika hanya 1 aktif, kasir akan langsung menggunakan tipe tersebut saat transaksi.
+                            Pilih tipe pesanan yang tersedia di kasir outlet ini (minimal 1 aktif).
+                            Jika hanya 1 aktif, kasir akan langsung menggunakan tipe tersebut saat
+                            transaksi.
                         </div>
                     </div>
 
@@ -78,9 +80,10 @@
                                 posForm.pos_order_types.includes(orderType.value)
                                     ? 'border-main bg-main/5'
                                     : 'border-slate-200 bg-white hover:bg-slate-50/80',
-                                posForm.pos_order_types.length === 1 && posForm.pos_order_types.includes(orderType.value)
+                                posForm.pos_order_types.length === 1 &&
+                                posForm.pos_order_types.includes(orderType.value)
                                     ? 'opacity-85 cursor-not-allowed'
-                                    : 'cursor-pointer'
+                                    : 'cursor-pointer',
                             ]"
                             @click="togglePosOrderType(orderType.value)"
                         >
@@ -95,7 +98,10 @@
                             <input
                                 type="checkbox"
                                 :checked="posForm.pos_order_types.includes(orderType.value)"
-                                :disabled="posForm.pos_order_types.length === 1 && posForm.pos_order_types.includes(orderType.value)"
+                                :disabled="
+                                    posForm.pos_order_types.length === 1 &&
+                                    posForm.pos_order_types.includes(orderType.value)
+                                "
                                 class="checkbox checkbox-sm checkbox-primary"
                                 @click.stop="togglePosOrderType(orderType.value)"
                             />
@@ -381,7 +387,11 @@ watch(
         posForm.outlet_id = props.outlet?.id
         posForm.enable_supervisor_pin = newSettings?.enable_supervisor_pin ?? false
         posForm.allow_negative_stock = newSettings?.allow_negative_stock ?? true
-        posForm.pos_order_types = newSettings?.pos_order_types || ['walk_in', 'dine_in', 'take_away']
+        posForm.pos_order_types = newSettings?.pos_order_types || [
+            'walk_in',
+            'dine_in',
+            'take_away',
+        ]
     },
     { deep: true }
 )

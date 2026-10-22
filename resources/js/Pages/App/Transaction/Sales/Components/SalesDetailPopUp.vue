@@ -14,7 +14,11 @@
                                 : 'bg-purple-100 text-purple-800 border border-purple-200'
                         "
                     >
-                        {{ transaction.channel === 'pos' ? 'POS (Point of Sale)' : 'Wholesale / B2B' }}
+                        {{
+                            transaction.channel === 'pos'
+                                ? 'POS (Point of Sale)'
+                                : 'Wholesale / B2B'
+                        }}
                     </span>
                     <span
                         v-if="transaction.type"

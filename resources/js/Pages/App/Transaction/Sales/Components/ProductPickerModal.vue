@@ -211,7 +211,7 @@
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                     <input
                                         type="checkbox"
-                                        class="form-check-input h-4 w-4 rounded border-slate-300 text-main focus:ring-main shrink-0"
+                                        class="form-check-input h-4 w-4 rounded border-slate-300 text-main focus:ring-main focus:ring-inset shrink-0"
                                         :checked="isLocked(item.id) || isNewlySelected(item.id)"
                                         :disabled="isLocked(item.id)"
                                         @click.stop="toggleItem(item)"
@@ -280,7 +280,7 @@
                             isLocked(item.id)
                                 ? 'bg-slate-100/90 border-slate-200 opacity-80 cursor-not-allowed'
                                 : isNewlySelected(item.id)
-                                  ? 'bg-main/5 border-main/60 ring-1 ring-main/20 cursor-pointer'
+                                  ? 'bg-main/5 border-main/60 ring-1 ring-inset ring-main/20 cursor-pointer'
                                   : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/80 cursor-pointer',
                         ]"
                         @click="toggleItem(item)"
@@ -288,7 +288,7 @@
                         <div class="flex items-center gap-3 min-w-0 flex-1">
                             <input
                                 type="checkbox"
-                                class="form-check-input h-4 w-4 rounded border-slate-300 text-main focus:ring-main shrink-0"
+                                class="form-check-input h-4 w-4 rounded border-slate-300 text-main focus:ring-main focus:ring-inset shrink-0"
                                 :checked="isLocked(item.id) || isNewlySelected(item.id)"
                                 :disabled="isLocked(item.id)"
                                 @click.stop="toggleItem(item)"
