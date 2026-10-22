@@ -16,6 +16,9 @@
 
 ## 2. Dual-Layer Authorization (User RBAC vs SaaS Feature Plan)
 
+> [!NOTE]
+> Untuk analisa komprehensif 6 lapisan pembatasan (*The 6-Layer Stack*: Tenant Lifecycle $\rightarrow$ BusinessType $\rightarrow$ Plan $\rightarrow$ Personalization $\rightarrow$ Outlet Guard $\rightarrow$ RBAC) dan formula evaluasi instan tanpa scan seluruh kode, aktifkan domain skill `domain-access-and-feature-gating`.
+
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                      Dual-Layer Authorization                          │

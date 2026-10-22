@@ -33,6 +33,7 @@ Activate the relevant specialized skill when working in specific domains:
 
 - `domain-inventory`: Stock balances, FIFO layers, movements, PO, GR, transfers, opname, SoD.
 - `domain-subscription`: Subscription lifecycle, One-Trial Policy, multi-outlet quotas, downgrade wizard, payment wall, and billing reconciliation.
+- `domain-access-and-feature-gating`: 6-layer gating stack, SaaS plan feature gating, User RBAC, caching fast-path, and UI duality.
 - `domain-notifications`: `BaseNotification`, multi-tenant scoping, mail, broadcast, retention.
 - `domain-audit-log`: ActivityLoggerInterface, table partitioning, event matrices.
 - `sollu`: Comprehensive architecture & technical implementation reference.
