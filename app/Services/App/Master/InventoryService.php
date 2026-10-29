@@ -21,15 +21,17 @@ class InventoryService
             ->where('product_item_id', $productItem->id)
             ->first();
 
+        $minStock = array_key_exists('minimum_stock', $data)
+            ? $data['minimum_stock']
+            : (array_key_exists('min_stock', $data) ? $data['min_stock'] : ($existing?->minimum_stock ?? 0));
+
         $item = InventoryItem::updateOrCreate([
             'business_id' => $productItem->business_id,
             'product_item_id' => $productItem->id,
         ], [
             'name' => $productItem->name,
             'uom_id' => $productItem->uom_id ?? ($data['uom_id'] ?? null),
-            'minimum_stock' => array_key_exists('min_stock', $data)
-                ? ($data['min_stock'] ?? 0)
-                : ($existing?->minimum_stock ?? 0),
+            'minimum_stock' => $minStock !== null ? (float) $minStock : 0,
             'is_active' => $productItem->is_active ?? true,
         ]);
 
@@ -72,13 +74,18 @@ class InventoryService
         }
 
         foreach ($outletIds as $outletId) {
-            InventoryBalance::firstOrCreate([
+            $balance = InventoryBalance::firstOrCreate([
                 'business_id' => $item->business_id,
                 'outlet_id' => $outletId,
                 'inventory_item_id' => $item->id,
             ], [
                 'current_stock' => 0,
+                'minimum_stock' => $item->minimum_stock ?? 0,
             ]);
+
+            if ($item->minimum_stock !== null && (float) $balance->minimum_stock !== (float) $item->minimum_stock) {
+                $balance->update(['minimum_stock' => (float) $item->minimum_stock]);
+            }
         }
     }
 }

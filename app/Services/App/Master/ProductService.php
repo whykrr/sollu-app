@@ -7,6 +7,7 @@ use App\Enums\InventoryMovementType;
 use App\Enums\ProductTypeEnum;
 use App\Models\Business;
 use App\Models\Inventory\InventoryItem;
+use App\Models\Inventory\InventoryMovement;
 use App\Models\Master\Product;
 use App\Models\Master\ProductItem;
 use App\Models\Outlet;
@@ -404,9 +405,12 @@ class ProductService
 
                 // Decoupled Inventory
                 if ($product->track_inventory) {
-                    $this->inventoryService->linkInventoryItem($defaultItem, [
+                    $invItem = $this->inventoryService->linkInventoryItem($defaultItem, [
                         'uom_id' => $data['uom_id'] ?? null,
+                        'minimum_stock' => $data['minimum_stock'] ?? ($data['min_stock'] ?? null),
                     ], $activeOutletIds);
+
+                    $this->recordInitialStocksForProductItem($product, $invItem, $data, $activeOutletIds);
                 } elseif ($defaultItem->inventoryItem) {
                     $defaultItem->inventoryItem->update(['is_active' => false]);
                 }
@@ -607,9 +611,11 @@ class ProductService
                 }
 
                 if ($isTrackInventory && $isActive) {
-                    $this->inventoryService->linkInventoryItem($invItem, [
+                    $variantInvItem = $this->inventoryService->linkInventoryItem($invItem, [
                         'uom_id' => $data['uom_id'] ?? null,
                     ], $activeOutletIds);
+
+                    $this->recordInitialStocksForProductItem($product, $variantInvItem, $combo, $activeOutletIds);
                 } elseif ($invItem->inventoryItem) {
                     $invItem->inventoryItem->update([
                         'name' => $invItem->name,
@@ -965,7 +971,7 @@ class ProductService
     }
 
     /**
-     * Catat mutasi stok awal saat produk baru disimpan.
+     * Catat atau perbarui stok awal per outlet untuk item inventori produk.
      */
     protected function recordInitialStocksForProductItem(
         Product $product,
@@ -982,23 +988,17 @@ class ProductService
         if (! empty($data['initial_stocks']) && is_array($data['initial_stocks'])) {
             foreach ($data['initial_stocks'] as $stockEntry) {
                 $outletId = $stockEntry['outlet_id'] ?? null;
-                $qty = (float) ($stockEntry['qty'] ?? $stockEntry['initial_stock'] ?? 0);
-                $cost = (float) ($stockEntry['purchase_price'] ?? $stockEntry['unit_cost'] ?? 0);
+                $qty = isset($stockEntry['qty'])
+                    ? (float) $stockEntry['qty']
+                    : (isset($stockEntry['initial_stock']) ? (float) $stockEntry['initial_stock'] : 0.0);
+                $cost = isset($stockEntry['purchase_price'])
+                    ? (float) $stockEntry['purchase_price']
+                    : (isset($stockEntry['unit_cost']) ? (float) $stockEntry['unit_cost'] : 0.0);
 
                 if ($outletId && $qty > 0) {
                     $outlet = Outlet::find($outletId);
                     if ($outlet && $outlet->business_id === $product->business_id) {
-                        $this->costingService->recordIncomingStock(
-                            business: $business,
-                            outlet: $outlet,
-                            item: $invItem,
-                            qty: $qty,
-                            unitCost: $cost,
-                            movementType: InventoryMovementType::InitialStock,
-                            reference: $product,
-                            description: 'Stok Awal Produk Baru',
-                            user: auth()->user()
-                        );
+                        $this->applyInitialStockForOutlet($business, $outlet, $invItem, $product, $qty, $cost);
                     }
                 }
             }
@@ -1021,19 +1021,56 @@ class ProductService
             if ($targetOutletId) {
                 $outlet = Outlet::find($targetOutletId);
                 if ($outlet) {
-                    $this->costingService->recordIncomingStock(
-                        business: $business,
-                        outlet: $outlet,
-                        item: $invItem,
-                        qty: $qty,
-                        unitCost: $cost,
-                        movementType: InventoryMovementType::InitialStock,
-                        reference: $product,
-                        description: 'Stok Awal Produk Baru',
-                        user: auth()->user()
-                    );
+                    $this->applyInitialStockForOutlet($business, $outlet, $invItem, $product, $qty, $cost);
                 }
             }
+        }
+    }
+
+    /**
+     * Terapkan stok awal pada outlet tertentu (baik create baru maupun update jika masih eligible).
+     */
+    protected function applyInitialStockForOutlet(
+        Business $business,
+        Outlet $outlet,
+        InventoryItem $invItem,
+        Product $product,
+        float $qty,
+        float $cost
+    ): void {
+        $initialMovement = InventoryMovement::where('inventory_item_id', $invItem->id)
+            ->where('outlet_id', $outlet->id)
+            ->where('movement_type', InventoryMovementType::InitialStock)
+            ->first();
+
+        if ($initialMovement) {
+            $hasOtherMovements = InventoryMovement::where('inventory_item_id', $invItem->id)
+                ->where('outlet_id', $outlet->id)
+                ->where('movement_type', '!=', InventoryMovementType::InitialStock)
+                ->exists();
+
+            if (! $hasOtherMovements) {
+                $this->costingService->updateInitialStock(
+                    business: $business,
+                    outlet: $outlet,
+                    item: $invItem,
+                    newQty: $qty,
+                    newUnitCost: $cost,
+                    user: auth()->user()
+                );
+            }
+        } else {
+            $this->costingService->recordIncomingStock(
+                business: $business,
+                outlet: $outlet,
+                item: $invItem,
+                qty: $qty,
+                unitCost: $cost,
+                movementType: InventoryMovementType::InitialStock,
+                reference: $product,
+                description: 'Stok Awal Produk',
+                user: auth()->user()
+            );
         }
     }
 }

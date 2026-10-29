@@ -135,7 +135,10 @@ const form = useForm({
     uom_id: getInitialUomId(),
     barcode: getInitialBarcode(),
     base_price: '',
-    minimum_stock: '',
+    minimum_stock: props.product?.minimum_stock !== undefined && props.product?.minimum_stock !== null
+        ? String(props.product.minimum_stock)
+        : '',
+    can_edit_initial_stock: true,
     initial_stock: '',
     purchase_price: '',
     initial_stocks: [],
@@ -162,6 +165,7 @@ const outletStatusMap = ref({})
 const variantOutletPriceMap = ref({})
 const customizeVariantPrices = ref(false)
 const customizeOutletPrices = ref(false)
+const syncAllOutlets = ref(false)
 
 const getComboKey = comboOptions => {
     return Object.keys(comboOptions)
@@ -222,6 +226,7 @@ const updateCombinations = () => {
             price: existing ? String(existing.price) : String(form.base_price),
             initial_stock: existing ? existing.initial_stock : '',
             purchase_price: existing ? existing.purchase_price : '',
+            can_edit_initial_stock: existing ? existing.can_edit_initial_stock : true,
             track_inventory: existing ? existing.track_inventory : Boolean(form.track_inventory),
             sellable: existing ? existing.sellable : Boolean(form.sellable),
             is_active: existing ? existing.is_active : true,
@@ -319,6 +324,9 @@ if (isEdit.value && props.product) {
                 sku: matchingItem ? matchingItem.sku || '' : generateSku(comboOptions),
                 barcode: matchingItem ? matchingItem.barcode || '' : '',
                 price: String(price),
+                initial_stock: matchingItem?.initial_stock ? String(matchingItem.initial_stock) : '',
+                purchase_price: matchingItem?.purchase_price ? String(matchingItem.purchase_price) : '',
+                can_edit_initial_stock: matchingItem?.can_edit_initial_stock ?? true,
                 track_inventory: matchingItem
                     ? Boolean(matchingItem.track_inventory)
                     : Boolean(form.track_inventory),
@@ -332,7 +340,27 @@ if (isEdit.value && props.product) {
         if (hasCustomPrices) customizeVariantPrices.value = true
     } else {
         form.variants = [{ name: '', options: [{ name: '' }] }]
+        const defaultItem = props.product.product_items?.find(item => !item.variant_combination) || props.product.product_items?.[0]
+        if (defaultItem) {
+            form.can_edit_initial_stock = defaultItem.can_edit_initial_stock ?? true
+            form.initial_stock = defaultItem.initial_stock ? String(defaultItem.initial_stock) : ''
+            form.purchase_price = defaultItem.purchase_price ? String(defaultItem.purchase_price) : ''
+        }
     }
+
+    const defaultProductItem = props.product?.product_items?.find(item => !item.variant_combination) || props.product?.product_items?.[0]
+    const stocksMap = defaultProductItem?.initial_stocks_by_outlet || {}
+
+    form.initial_stocks = props.outlets.map(o => {
+        const existingStock = stocksMap[o.id]
+        return {
+            outlet_id: o.id,
+            outlet_name: o.name,
+            initial_stock: existingStock?.initial_stock ? String(existingStock.initial_stock) : '',
+            purchase_price: existingStock?.purchase_price ? String(existingStock.purchase_price) : '',
+            can_edit: existingStock ? Boolean(existingStock.can_edit_initial_stock) : true,
+        }
+    })
 } else {
     if (selectedOutlet.value) {
         props.outlets.forEach(o => {
@@ -344,6 +372,14 @@ if (isEdit.value && props.product) {
         })
     }
     form.variants = [{ name: '', options: [{ name: '' }] }]
+
+    form.initial_stocks = props.outlets.map(o => ({
+        outlet_id: o.id,
+        outlet_name: o.name,
+        initial_stock: '',
+        purchase_price: '',
+        can_edit: true,
+    }))
 }
 
 provide('productForm', form)
@@ -374,8 +410,27 @@ provide('outletStatusMap', outletStatusMap)
 provide('variantOutletPriceMap', variantOutletPriceMap)
 provide('customizeVariantPrices', customizeVariantPrices)
 provide('customizeOutletPrices', customizeOutletPrices)
+provide('syncAllOutlets', syncAllOutlets)
 provide('getComboKey', getComboKey)
 provide('autoGenerateAllSkus', autoGenerateAllSkus)
+
+watch(
+    () => [
+        syncAllOutlets.value,
+        form.initial_stocks?.[0]?.initial_stock,
+        form.initial_stocks?.[0]?.purchase_price,
+    ],
+    ([sync, firstStock, firstPrice]) => {
+        if (sync && Array.isArray(form.initial_stocks) && form.initial_stocks.length > 1) {
+            form.initial_stocks.slice(1).forEach(item => {
+                if (item.can_edit) {
+                    item.initial_stock = firstStock
+                    item.purchase_price = firstPrice
+                }
+            })
+        }
+    }
+)
 
 watch(
     () => form.sellable,
@@ -567,6 +622,24 @@ const submit = () => {
         is_enabled: outletStatusMap.value[k],
         is_available: outletStatusMap.value[k],
     }))
+
+    if (Array.isArray(form.initial_stocks) && form.initial_stocks.length > 0) {
+        form.initial_stocks = form.initial_stocks
+            .filter(s => outletStatusMap.value[s.outlet_id] !== false)
+            .map(s => ({
+                outlet_id: s.outlet_id,
+                qty: s.initial_stock !== '' && s.initial_stock !== null ? Number(s.initial_stock) : null,
+                initial_stock: s.initial_stock !== '' && s.initial_stock !== null ? Number(s.initial_stock) : null,
+                purchase_price: s.purchase_price !== '' && s.purchase_price !== null ? Number(s.purchase_price) : null,
+                unit_cost: s.purchase_price !== '' && s.purchase_price !== null ? Number(s.purchase_price) : null,
+            }))
+
+        const firstStock = form.initial_stocks[0]
+        if (firstStock) {
+            form.initial_stock = firstStock.initial_stock
+            form.purchase_price = firstStock.purchase_price
+        }
+    }
 
     // Prepare modifier groups payload
     form.has_modifier = Boolean(form.has_modifier)

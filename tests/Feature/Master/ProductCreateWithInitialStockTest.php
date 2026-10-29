@@ -358,4 +358,109 @@ class ProductCreateWithInitialStockTest extends TestCase
         $this->assertEquals(85000, (float) $balance->average_cost);
         $this->assertEquals(850000, (float) $balance->total_value);
     }
+
+    public function test_update_product_persists_minimum_stock_and_syncs_to_balances(): void
+    {
+        $payload = [
+            'name' => 'Kopi Tubruk',
+            'base_price' => 12000,
+            'track_inventory' => true,
+            'uom_id' => $this->uom->id,
+            'minimum_stock' => 5,
+            'is_show' => true,
+            'sellable' => true,
+            'outlets' => [
+                ['outlet_id' => $this->outlet->id, 'is_enabled' => true, 'is_available' => true],
+            ],
+        ];
+
+        $createResponse = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/products", $payload);
+        $createResponse->assertSessionHasNoErrors();
+
+        $product = Product::where('business_id', $this->business->id)->where('name', 'Kopi Tubruk')->first();
+        $this->assertNotNull($product);
+
+        $productItem = ProductItem::where('product_id', $product->id)->first();
+        $invItem = InventoryItem::where('product_item_id', $productItem->id)->first();
+        $this->assertEquals(5, (float) $invItem->minimum_stock);
+
+        // Update product dengan minimum_stock baru
+        $updatePayload = [
+            'name' => 'Kopi Tubruk Premium',
+            'base_price' => 15000,
+            'track_inventory' => true,
+            'uom_id' => $this->uom->id,
+            'minimum_stock' => 15,
+            'is_show' => true,
+            'sellable' => true,
+            'outlets' => [
+                ['outlet_id' => $this->outlet->id, 'is_enabled' => true, 'is_available' => true],
+            ],
+        ];
+
+        $updateResponse = $this->actingAs($this->user, 'business')
+            ->put("http://{$this->appDomain}/master/products/{$product->id}", $updatePayload);
+        $updateResponse->assertSessionHasNoErrors();
+
+        $invItem->refresh();
+        $this->assertEquals(15, (float) $invItem->minimum_stock);
+
+        $balance = InventoryBalance::where('inventory_item_id', $invItem->id)
+            ->where('outlet_id', $this->outlet->id)
+            ->first();
+        $this->assertEquals(15, (float) $balance->minimum_stock);
+    }
+
+    public function test_update_product_can_update_initial_stock_when_eligible(): void
+    {
+        $payload = [
+            'name' => 'Teh Melati',
+            'base_price' => 10000,
+            'track_inventory' => true,
+            'uom_id' => $this->uom->id,
+            'initial_stock' => 20,
+            'purchase_price' => 5000,
+            'is_show' => true,
+            'sellable' => true,
+            'outlets' => [
+                ['outlet_id' => $this->outlet->id, 'is_enabled' => true, 'is_available' => true],
+            ],
+        ];
+
+        $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/products", $payload);
+
+        $product = Product::where('business_id', $this->business->id)->where('name', 'Teh Melati')->first();
+        $productItem = ProductItem::where('product_id', $product->id)->first();
+        $invItem = InventoryItem::where('product_item_id', $productItem->id)->first();
+
+        $balanceBefore = InventoryBalance::where('inventory_item_id', $invItem->id)->where('outlet_id', $this->outlet->id)->first();
+        $this->assertEquals(20, (float) $balanceBefore->current_stock);
+        $this->assertEquals(5000, (float) $balanceBefore->average_cost);
+
+        // Update stok awal dan HPP
+        $updatePayload = [
+            'name' => 'Teh Melati',
+            'base_price' => 10000,
+            'track_inventory' => true,
+            'uom_id' => $this->uom->id,
+            'initial_stock' => 35,
+            'purchase_price' => 6000,
+            'is_show' => true,
+            'sellable' => true,
+            'outlets' => [
+                ['outlet_id' => $this->outlet->id, 'is_enabled' => true, 'is_available' => true],
+            ],
+        ];
+
+        $updateResponse = $this->actingAs($this->user, 'business')
+            ->put("http://{$this->appDomain}/master/products/{$product->id}", $updatePayload);
+        $updateResponse->assertSessionHasNoErrors();
+
+        $balanceAfter = InventoryBalance::where('inventory_item_id', $invItem->id)->where('outlet_id', $this->outlet->id)->first();
+        $this->assertEquals(35, (float) $balanceAfter->current_stock);
+        $this->assertEquals(6000, (float) $balanceAfter->average_cost);
+        $this->assertEquals(210000, (float) $balanceAfter->total_value);
+    }
 }

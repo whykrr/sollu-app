@@ -66,8 +66,10 @@ class StoreProductRequest extends BaseInertiaFormRequest
             'purchase_price' => 'nullable|numeric|min:0',
             'initial_stocks' => 'nullable|array',
             'initial_stocks.*.outlet_id' => 'required|uuid|exists:outlets,id',
-            'initial_stocks.*.qty' => 'required|numeric|min:0',
+            'initial_stocks.*.qty' => 'nullable|numeric|min:0',
+            'initial_stocks.*.initial_stock' => 'nullable|numeric|min:0',
             'initial_stocks.*.purchase_price' => 'nullable|numeric|min:0',
+            'initial_stocks.*.unit_cost' => 'nullable|numeric|min:0',
 
             // Price setup
             'base_price' => 'required|numeric|min:0',

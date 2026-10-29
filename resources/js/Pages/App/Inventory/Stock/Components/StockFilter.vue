@@ -65,7 +65,7 @@
         <template #create>
             <button
                 type="button"
-                class="btn btn-main btn-sm inline-flex items-center gap-1.5 cursor-pointer touch-target-sm"
+                class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
                 @click="openInitialStockWizard"
             >
                 <FontAwesomeIcon :icon="faPlus" />

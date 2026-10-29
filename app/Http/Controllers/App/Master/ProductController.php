@@ -116,7 +116,9 @@ class ProductController extends Controller
             'category',
             'prices',
             'outlets',
-            'productItems',
+            'productItems.inventoryItem.balances',
+            'productItems.inventoryItem.uom',
+            'inventoryItems.balances',
             'images',
             'variantGroups.options',
             'activeRecipe.items.productItem.uom',
@@ -182,7 +184,9 @@ class ProductController extends Controller
             'bundleItems',
             'prices',
             'outlets',
-            'productItems',
+            'productItems.inventoryItem.balances',
+            'productItems.inventoryItem.uom',
+            'inventoryItems.balances',
             'images',
         ]);
 

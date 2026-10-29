@@ -337,9 +337,26 @@ class StockController extends Controller
             ->where('inventory_items.is_active', true)
             ->joinProductItem()
             ->where('product_items.track_inventory', true)
-            ->with(['uom:id,name,code', 'productItem', 'balances' => function ($q) use ($outletId) {
-                $q->where('outlet_id', $outletId);
+            ->whereDoesntHave('movements', function ($q) use ($outletId) {
+                $q->where('outlet_id', $outletId)
+                    ->where('movement_type', '!=', InventoryMovementType::InitialStock);
+            })
+            ->withExists(['movements as has_initial_movement' => function ($q) use ($outletId) {
+                $q->where('outlet_id', $outletId)
+                    ->where('movement_type', InventoryMovementType::InitialStock);
             }])
+            ->with([
+                'uom:id,name,code',
+                'productItem:id,product_id,sku,barcode,name',
+                'productItem.product.prices' => function ($q) use ($outletId) {
+                    $q->where(function ($sub) use ($outletId) {
+                        $sub->where('outlet_id', $outletId)->orWhereNull('outlet_id');
+                    });
+                },
+                'balances' => function ($q) use ($outletId) {
+                    $q->where('outlet_id', $outletId);
+                },
+            ])
             ->when($search, function ($q, $search) {
                 $q->where(function ($sub) use ($search) {
                     $sub->whereLike('inventory_items.name', "%{$search}%")
@@ -350,33 +367,28 @@ class StockController extends Controller
 
         $items = $query->limit(60)->get();
 
-        $eligible = $items->filter(function ($item) use ($outletId) {
-            $hasOtherMovements = InventoryMovement::where('inventory_item_id', $item->id)
-                ->where('outlet_id', $outletId)
-                ->where('movement_type', '!=', InventoryMovementType::InitialStock)
-                ->exists();
-
-            return ! $hasOtherMovements;
-        })->map(function ($item) use ($outletId) {
+        $eligible = $items->map(function ($item) use ($outletId) {
             $balance = $item->balances->first();
-            $initialMovement = InventoryMovement::where('inventory_item_id', $item->id)
-                ->where('outlet_id', $outletId)
-                ->where('movement_type', InventoryMovementType::InitialStock)
-                ->first();
+            $productItem = $item->productItem;
+            $productPrices = $productItem?->product?->prices ?? collect();
 
-            $isInitialOnly = (bool) $initialMovement;
+            $outletPrice = $productPrices->firstWhere('outlet_id', $outletId);
+            $basePrice = $productPrices->firstWhere('outlet_id', null);
+            $sellingPrice = (float) ($outletPrice?->amount ?? $basePrice?->amount ?? 0.0);
+
             $currentStock = $balance ? (float) $balance->current_stock : 0.0;
             $currentCost = $balance ? (float) ($balance->average_cost ?: $balance->last_cost ?: 0.0) : 0.0;
 
             return [
                 'id' => $item->id,
                 'name' => $item->name,
-                'sku' => $item->sku ?: ($item->productItem?->sku ?? ''),
-                'barcode' => $item->barcode ?: ($item->productItem?->barcode ?? ''),
+                'sku' => $productItem?->sku ?? ($item->sku ?? ''),
                 'uom' => $item->uom?->name ?: ($item->uom?->code ?: 'Pcs'),
+                'uom_code' => $item->uom?->code ?: ($item->uom?->name ?: 'Pcs'),
+                'selling_price' => $sellingPrice,
                 'current_stock' => $currentStock,
                 'current_cost' => $currentCost,
-                'is_initial_only' => $isInitialOnly,
+                'is_initial_only' => (bool) $item->has_initial_movement,
             ];
         })->values();
 

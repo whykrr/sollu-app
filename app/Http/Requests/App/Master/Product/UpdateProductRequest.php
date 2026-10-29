@@ -61,6 +61,17 @@ class UpdateProductRequest extends BaseInertiaFormRequest
             'has_recipe' => 'boolean',
             'track_inventory' => 'boolean',
             'uom_id' => 'required_if:track_inventory,true|nullable|uuid|exists:uoms,id',
+            'minimum_stock' => 'nullable|numeric|min:0',
+
+            // Initial stock (jika eligible untuk pembaruan stok awal)
+            'initial_stock' => 'nullable|numeric|min:0',
+            'purchase_price' => 'nullable|numeric|min:0',
+            'initial_stocks' => 'nullable|array',
+            'initial_stocks.*.outlet_id' => 'required|uuid|exists:outlets,id',
+            'initial_stocks.*.qty' => 'nullable|numeric|min:0',
+            'initial_stocks.*.initial_stock' => 'nullable|numeric|min:0',
+            'initial_stocks.*.purchase_price' => 'nullable|numeric|min:0',
+            'initial_stocks.*.unit_cost' => 'nullable|numeric|min:0',
 
             // Price setup
             'base_price' => 'required|numeric|min:0',
@@ -100,6 +111,8 @@ class UpdateProductRequest extends BaseInertiaFormRequest
                 $rules['variant_combinations.*.outlet_prices'] = 'nullable|array';
                 $rules['variant_combinations.*.outlet_prices.*.outlet_id'] = 'required|uuid|exists:outlets,id';
                 $rules['variant_combinations.*.outlet_prices.*.amount'] = 'required|numeric|min:0';
+                $rules['variant_combinations.*.initial_stock'] = 'nullable|numeric|min:0';
+                $rules['variant_combinations.*.purchase_price'] = 'nullable|numeric|min:0';
             }
 
             if ($this->has_recipe) {

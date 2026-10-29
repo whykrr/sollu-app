@@ -57,7 +57,17 @@
                     <div
                         class="font-semibold text-xs text-main border-b border-slate-200 pb-1.5 flex items-center justify-between"
                     >
-                        <span>Varian: {{ Object.values(combo.options).join(' / ') }}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span>Varian: {{ Object.values(combo.options).join(' / ') }}</span>
+                            <span
+                                v-if="isEdit && combo.can_edit_initial_stock === false"
+                                class="badge badge-warning text-[10px]"
+                                title="Stok awal varian terkunci karena sudah ada transaksi"
+                            >
+                                <FontAwesomeIcon :icon="faLock" class="mr-1" />
+                                Terkunci
+                            </span>
+                        </div>
                         <span v-if="combo.sku" class="text-[10px] text-slate-500 font-mono">
                             {{ combo.sku }}
                         </span>
@@ -74,18 +84,19 @@
                             />
                         </div>
 
-                        <div v-if="!isEdit && (combo.track_inventory ?? form.track_inventory)" class="col-span-1">
+                        <div v-if="combo.track_inventory ?? form.track_inventory" class="col-span-1">
                             <NumberField
                                 v-model="combo.initial_stock"
                                 label="Stok Awal Varian"
                                 placeholder="0"
                                 size="sm"
                                 min="0"
-                                step="0.01"
+                                step="1"
+                                :disabled="isEdit && combo.can_edit_initial_stock === false"
                             />
                         </div>
 
-                        <div v-if="!isEdit && (combo.track_inventory ?? form.track_inventory)" class="col-span-1">
+                        <div v-if="combo.track_inventory ?? form.track_inventory" class="col-span-1">
                             <NumberField
                                 v-model="combo.purchase_price"
                                 label="Modal Beli Satuan"
@@ -93,6 +104,7 @@
                                 placeholder="0"
                                 size="sm"
                                 min="0"
+                                :disabled="isEdit && combo.can_edit_initial_stock === false"
                             />
                         </div>
                     </div>
@@ -137,7 +149,8 @@
 
 <script setup>
 import { inject, computed } from 'vue'
-import { faTag } from '@fortawesome/free-solid-svg-icons'
+import { faTag, faLock } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import ProductDisclosureCard from './ProductDisclosureCard.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
 

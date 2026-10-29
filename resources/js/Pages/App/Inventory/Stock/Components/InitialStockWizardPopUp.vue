@@ -81,14 +81,15 @@
         <!-- Grid Table Matrix -->
         <div v-else class="border border-slate-200 rounded-xl overflow-hidden bg-white">
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs min-w-[640px]">
+                <table class="w-full text-left text-xs min-w-[720px]">
                     <thead>
                         <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold">
                             <th class="p-2.5 w-10 text-center">No</th>
-                            <th class="p-2.5 min-w-[200px]">Barang & Satuan</th>
-                            <th class="p-2.5 w-32 text-center">Status</th>
-                            <th class="p-2.5 w-36">Jumlah Fisik (Qty)</th>
-                            <th class="p-2.5 w-40">Modal Beli Satuan (Rp)</th>
+                            <th class="p-2.5 min-w-[180px]">Barang</th>
+                            <th class="p-2.5 w-32 text-right">Harga Jual (Rp)</th>
+                            <th class="p-2.5 w-28 text-center">Status</th>
+                            <th class="p-2.5 w-40">Jumlah Fisik (Qty)</th>
+                            <th class="p-2.5 w-36">Modal Beli Satuan (Rp)</th>
                             <th class="p-2.5 w-36 text-right">Total Modal</th>
                             <th class="p-2.5 w-12 text-center">Aksi</th>
                         </tr>
@@ -106,12 +107,12 @@
                                 <div class="font-bold text-slate-800 text-xs">
                                     {{ item.name }}
                                 </div>
-                                <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                                    <span v-if="item.sku">SKU: {{ item.sku }}</span>
-                                    <span v-if="item.sku && item.barcode">•</span>
-                                    <span v-if="item.barcode">Barcode: {{ item.barcode }}</span>
-                                    <span>(Satuan: {{ item.uom || 'Pcs' }})</span>
+                                <div v-if="item.sku" class="text-[11px] text-slate-400 font-mono mt-0.5">
+                                    SKU: {{ item.sku }}
                                 </div>
+                            </td>
+                            <td class="p-2.5 text-right font-medium text-slate-700">
+                                {{ formatCurrency(item.selling_price || 0) }}
                             </td>
                             <td class="p-2.5 text-center">
                                 <span
@@ -129,21 +130,28 @@
                                 </span>
                             </td>
                             <td class="p-2.5">
-                                <TextField
-                                    v-model="item.qty"
-                                    type="number"
-                                    step="0.01"
-                                    min="0.01"
-                                    placeholder="0"
-                                    size="sm"
-                                    :error="form.errors[`items.${idx}.qty`]"
-                                />
+                                <div class="flex items-center rounded-lg border border-slate-300 overflow-hidden focus-within:ring-1 focus-within:ring-main focus-within:border-main bg-white">
+                                    <input
+                                        v-model.number="item.qty"
+                                        type="number"
+                                        step="1"
+                                        min="1"
+                                        class="w-full px-2 py-1 text-xs border-0 focus:outline-none text-slate-800 font-medium"
+                                        placeholder="0"
+                                    />
+                                    <span class="bg-slate-100 text-slate-600 px-2 py-1 text-[11px] font-semibold border-l border-slate-200 select-none whitespace-nowrap">
+                                        {{ item.uom_code || item.uom || 'Pcs' }}
+                                    </span>
+                                </div>
+                                <span v-if="form.errors[`items.${idx}.qty`]" class="text-[10px] text-danger mt-0.5 block">
+                                    {{ form.errors[`items.${idx}.qty`] }}
+                                </span>
                             </td>
                             <td class="p-2.5">
                                 <TextField
                                     v-model="item.purchase_price"
                                     type="number"
-                                    step="0.01"
+                                    step="1"
                                     min="0"
                                     placeholder="0"
                                     size="sm"
@@ -291,6 +299,8 @@ const onItemsSelected = selectedItems => {
                 sku: item.sku || '',
                 barcode: item.barcode || '',
                 uom: item.uom || 'Pcs',
+                uom_code: item.uom_code || item.uom || 'Pcs',
+                selling_price: item.selling_price || 0,
                 qty: item.current_stock > 0 ? String(item.current_stock) : '',
                 purchase_price: item.current_cost > 0 ? String(item.current_cost) : '',
                 is_initial_only: Boolean(item.is_initial_only),

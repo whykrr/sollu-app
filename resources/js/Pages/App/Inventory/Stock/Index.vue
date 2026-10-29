@@ -127,8 +127,8 @@ defineProps({
 })
 
 const headers = [
-    { label: 'Outlet', field: 'outlet_name', sortable: false },
     { label: 'Item', field: 'item_name', sortable: true },
+    { label: 'Outlet', field: 'outlet_name', sortable: false },
     {
         label: 'Kategori',
         field: 'category_name',
