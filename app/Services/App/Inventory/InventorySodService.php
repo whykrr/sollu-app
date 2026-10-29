@@ -2,6 +2,7 @@
 
 namespace App\Services\App\Inventory;
 
+use App\Enums\FeatureEnum;
 use App\Models\Business;
 use App\Models\Inventory\PurchaseOrder;
 use App\Models\Inventory\StockAdjustment;
@@ -45,9 +46,10 @@ class InventorySodService
 
         $raw = $business->settings['inventory_sod'] ?? [];
         $defaults = $this->defaultSettings();
+        $hasDoubleAuth = $business->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION);
 
         return [
-            'enabled' => (bool) ($raw['enabled'] ?? $defaults['enabled']),
+            'enabled' => $hasDoubleAuth && (bool) ($raw['enabled'] ?? $defaults['enabled']),
             'allow_owner_bypass' => (bool) ($raw['allow_owner_bypass'] ?? $defaults['allow_owner_bypass']),
             'rules' => array_merge($defaults['rules'], (array) ($raw['rules'] ?? [])),
         ];
@@ -58,6 +60,10 @@ class InventorySodService
      */
     public function isSodEnabled(?Business $business): bool
     {
+        if (! $business || ! $business->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION)) {
+            return false;
+        }
+
         return $this->getSettings($business)['enabled'];
     }
 
@@ -74,6 +80,10 @@ class InventorySodService
      */
     public function isRuleEnabled(?Business $business, string $ruleKey): bool
     {
+        if (! $business || ! $business->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION)) {
+            return false;
+        }
+
         $settings = $this->getSettings($business);
 
         if (! $settings['enabled']) {

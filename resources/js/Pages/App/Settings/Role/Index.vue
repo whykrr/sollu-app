@@ -2,9 +2,10 @@
     <MainPage>
         <template #header>
             <MainPageHeader
-                title="Peran & Hak Akses"
-                description="Buat dan atur peran karyawan beserta hak akses yang sesuai untuk tiap posisi."
+                title="Peran & Keamanan"
+                description="Kelola peran karyawan, hak akses jabatan, dan pantau log jejak audit tokomu."
             />
+            <RoleHeaderTabs active-tab="roles" />
         </template>
 
         <template #filter>
@@ -104,6 +105,7 @@ import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Filter from './Components/Filter.vue'
+import RoleHeaderTabs from './Components/RoleHeaderTabs.vue'
 import RoleFormPopUp from './Components/RoleFormPopUp.vue'
 import RoleTemplatePopUp from './Components/RoleTemplatePopUp.vue'
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Integration\Services\App\Inventory;
 
+use App\Enums\PlanEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\PurchaseOrder;
@@ -9,8 +10,11 @@ use App\Models\Inventory\StockAdjustment;
 use App\Models\Inventory\StockOpname;
 use App\Models\Inventory\StockTransfer;
 use App\Models\Outlet;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\App\Inventory\InventorySodService;
+use Carbon\Carbon;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -27,7 +31,7 @@ class InventorySodServiceTest extends TestCase
         $this->service = new InventorySodService;
     }
 
-    private function createBusinessWithUser(array $sodSettings = []): array
+    private function createBusinessWithUser(array $sodSettings = [], bool $withFeature = true): array
     {
         $this->seed(DatabaseSeeder::class);
 
@@ -46,6 +50,18 @@ class InventorySodServiceTest extends TestCase
             'business_type_id' => $type->id,
             'settings' => ! empty($sodSettings) ? ['inventory_sod' => $sodSettings] : [],
         ]);
+
+        if ($withFeature) {
+            $plan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+            Subscription::create([
+                'business_id' => $business->id,
+                'plan_id' => $plan->id,
+                'status' => 'active',
+                'billing_cycle' => 'monthly',
+                'started_at' => Carbon::now()->subDays(1),
+                'expired_at' => Carbon::now()->addDays(29),
+            ]);
+        }
 
         $user = User::create([
             'business_id' => $business->id,
@@ -209,5 +225,28 @@ class InventorySodServiceTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Pembuat pesanan pembelian (PO) tidak dapat mencatat penerimaan fisik surat jalan');
         $this->service->assertCanReceivePurchaseOrder($po, $user);
+    }
+
+    public function test_sod_is_bypassed_at_runtime_when_business_lacks_double_authorization(): void
+    {
+        [$business, $user, $outlet] = $this->createBusinessWithUser([
+            'enabled' => true,
+            'allow_owner_bypass' => false,
+            'rules' => ['stock_adjustment' => true],
+        ], withFeature: false);
+
+        $this->assertFalse($this->service->isSodEnabled($business));
+        $this->assertFalse($this->service->isRuleEnabled($business, 'stock_adjustment'));
+
+        $adjustment = new StockAdjustment([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'created_by' => $user->id,
+        ]);
+        $adjustment->setRelation('business', $business);
+
+        // Should not throw any exception because double authorization feature is absent
+        $this->service->assertCanApproveAdjustment($adjustment, $user);
+        $this->assertTrue(true);
     }
 }

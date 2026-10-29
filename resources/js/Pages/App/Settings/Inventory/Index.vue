@@ -424,7 +424,11 @@
         </div>
 
         <!-- TAB 2: Segregation of Duties (SoD) -->
-        <div v-show="activeTab === 'sod'" class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12">
+        <div
+            v-show="activeTab === 'sod'"
+            v-feature.mask="$enums.FeatureEnum.DOUBLE_AUTHORIZATION"
+            class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12"
+        >
             <!-- Left Column: SoD Configuration -->
             <div class="lg:col-span-8 flex flex-col gap-4">
                 <!-- Banner: Mode SoD Aktif -->

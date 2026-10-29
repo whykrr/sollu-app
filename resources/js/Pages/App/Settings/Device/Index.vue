@@ -2,9 +2,10 @@
     <MainPage>
         <template #header>
             <MainPageHeader
-                title="Perangkat POS & Kasir"
-                description="Kelola aplikasi kasir desktop dan tablet yang diberi akses kredensial API untuk sinkronisasi data tokomu."
+                title="Outlet & Perangkat"
+                description="Kelola seluruh cabang, jam operasional, dan perangkat kasir yang terhubung ke tokomu."
             />
+            <OutletHeaderTabs active-tab="devices" />
         </template>
 
         <template #filter>
@@ -244,6 +245,7 @@ import DataGrid from '@/Components/DataGrid/DataGrid.vue'
 import DeviceFilter from './Components/DeviceFilter.vue'
 import DeviceCard from './Components/DeviceCard.vue'
 import DevicePopUp from './Components/DevicePopUp.vue'
+import OutletHeaderTabs from '../Outlet/Components/OutletHeaderTabs.vue'
 import OtpModalContent from './Components/OtpModalContent.vue'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'

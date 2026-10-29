@@ -13,6 +13,7 @@ use App\Models\OutletSetting;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Services\Pos\PosSettingsPayloadBuilder;
 use Carbon\Carbon;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -200,5 +201,127 @@ class SalesSettingTest extends TestCase
             'default_due_days_b2b',
             'b2b_invoice_prefix',
         ]);
+    }
+
+    public function test_user_with_double_authorization_can_enable_supervisor_pin(): void
+    {
+        [$user, $business, $outlet] = $this->createMerchantUser(withFeature: true);
+
+        $payload = [
+            'outlet_id' => $outlet->id,
+            'enable_supervisor_pin' => true,
+        ];
+
+        $response = $this->actingAs($user, 'business')
+            ->from("http://{$this->appDomain}/settings/sales")
+            ->put("http://{$this->appDomain}/settings/sales", $payload);
+
+        $response->assertRedirect("http://{$this->appDomain}/settings/sales");
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);
+
+        $this->assertDatabaseHas('outlet_settings', [
+            'outlet_id' => $outlet->id,
+            'category' => 'pos',
+            'key' => 'enable_supervisor_pin',
+            'value' => 'true',
+        ]);
+    }
+
+    public function test_user_without_double_authorization_cannot_enable_supervisor_pin(): void
+    {
+        [$user, $business, $outlet] = $this->createMerchantUser(withFeature: false);
+
+        $payload = [
+            'outlet_id' => $outlet->id,
+            'enable_supervisor_pin' => true,
+        ];
+
+        $response = $this->actingAs($user, 'business')
+            ->from("http://{$this->appDomain}/settings/sales")
+            ->put("http://{$this->appDomain}/settings/sales", $payload);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_pos_settings_payload_builder_handles_double_authorization_correctly(): void
+    {
+        [$userWithFeature, $businessWithFeature, $outletWithFeature] = $this->createMerchantUser(withFeature: true);
+        [$userWithoutFeature, $businessWithoutFeature, $outletWithoutFeature] = $this->createMerchantUser(withFeature: false);
+
+        OutletSetting::create([
+            'outlet_id' => $outletWithFeature->id,
+            'category' => 'pos',
+            'key' => 'enable_supervisor_pin',
+            'value' => true,
+        ]);
+
+        OutletSetting::create([
+            'outlet_id' => $outletWithoutFeature->id,
+            'category' => 'pos',
+            'key' => 'enable_supervisor_pin',
+            'value' => true,
+        ]);
+
+        $builder = app(PosSettingsPayloadBuilder::class);
+
+        $settingsWithFeature = $builder->buildStructuredSettings(
+            $outletWithFeature,
+            OutletSetting::where('outlet_id', $outletWithFeature->id)->get()
+        );
+
+        $settingsWithoutFeature = $builder->buildStructuredSettings(
+            $outletWithoutFeature,
+            OutletSetting::where('outlet_id', $outletWithoutFeature->id)->get()
+        );
+
+        $this->assertTrue($settingsWithFeature['enable_supervisor_pin']);
+        $this->assertFalse($settingsWithoutFeature['enable_supervisor_pin']);
+    }
+
+    public function test_user_with_double_authorization_can_disable_supervisor_pin(): void
+    {
+        [$user, $business, $outlet] = $this->createMerchantUser(withFeature: true);
+
+        $payload = [
+            'outlet_id' => $outlet->id,
+            'enable_supervisor_pin' => false,
+        ];
+
+        $response = $this->actingAs($user, 'business')
+            ->from("http://{$this->appDomain}/settings/sales")
+            ->put("http://{$this->appDomain}/settings/sales", $payload);
+
+        $response->assertRedirect("http://{$this->appDomain}/settings/sales");
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);
+
+        $this->assertDatabaseHas('outlet_settings', [
+            'outlet_id' => $outlet->id,
+            'category' => 'pos',
+            'key' => 'enable_supervisor_pin',
+            'value' => 'false',
+        ]);
+
+        $builder = app(PosSettingsPayloadBuilder::class);
+        $settings = $builder->buildStructuredSettings(
+            $outlet,
+            OutletSetting::where('outlet_id', $outlet->id)->get()
+        );
+
+        $this->assertFalse($settings['enable_supervisor_pin']);
+    }
+
+    public function test_user_with_only_tax_permission_can_access_sales_settings_and_defaults_to_tax_tab(): void
+    {
+        [$user, $business, $outlet] = $this->createMerchantUser(withFeature: true);
+        $user->syncPermissions([PermissionEnum::SETTING_TAX->value]);
+
+        $response = $this->actingAs($user, 'business')
+            ->get("http://{$this->appDomain}/settings/sales");
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Settings/Sales/Index')
+            ->where('initialTab', 'tax')
+        );
     }
 }

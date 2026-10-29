@@ -5,12 +5,16 @@ namespace Tests\Feature;
 use App\Enums\DeviceTypeEnum;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
+use App\Enums\PlanEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Outlet;
 use App\Models\OutletDevice;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\Pos\PosDeviceAuthCacheService;
+use Carbon\Carbon;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -55,6 +59,18 @@ class PosDeviceLifecycleTest extends TestCase
             'business_type_id' => $type->id,
             'settings' => ['active_features' => array_column(FeatureEnum::cases(), 'value')],
         ]);
+
+        $plan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($plan) {
+            Subscription::create([
+                'business_id' => $this->business->id,
+                'plan_id' => $plan->id,
+                'status' => 'active',
+                'start_date' => Carbon::now(),
+                'end_date' => Carbon::now()->addYear(),
+                'is_auto_renew' => true,
+            ]);
+        }
 
         $this->outlet = Outlet::create([
             'business_id' => $this->business->id,

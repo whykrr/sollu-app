@@ -12,34 +12,66 @@
                     @update:model-value="changeOutlet"
                 />
             </MainPageHeader>
-            <div class="flex items-center gap-1 border-b border-slate-200 mb-4">
+            <div class="flex items-center gap-1 border-b border-slate-200 mb-4 overflow-x-auto">
                 <button
+                    v-can="$enums.PermissionEnum?.SETTING_SALES"
                     type="button"
-                    class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer"
+                    class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap"
                     :class="[
                         activeTab === 'pos'
                             ? 'border-main text-main font-bold'
                             : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
                     ]"
-                    @click="activeTab = 'pos'"
+                    @click="switchTab('pos')"
                 >
                     <FontAwesomeIcon :icon="faCashRegister" />
-                    <span>Pengaturan POS</span>
+                    <span>Kasir POS</span>
                 </button>
 
                 <button
+                    v-can="$enums.PermissionEnum?.SETTING_TAX"
+                    type="button"
+                    class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                    :class="[
+                        activeTab === 'tax'
+                            ? 'border-main text-main font-bold'
+                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
+                    ]"
+                    @click="switchTab('tax')"
+                >
+                    <FontAwesomeIcon :icon="faCalculator" />
+                    <span>Pajak & Pembulatan</span>
+                </button>
+
+                <button
+                    v-can="$enums.PermissionEnum?.SETTING_RECEIPT"
+                    type="button"
+                    class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                    :class="[
+                        activeTab === 'receipt'
+                            ? 'border-main text-main font-bold'
+                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
+                    ]"
+                    @click="switchTab('receipt')"
+                >
+                    <FontAwesomeIcon :icon="faReceipt" />
+                    <span>Desain Struk & Nota</span>
+                </button>
+
+                <button
+                    v-can="$enums.PermissionEnum?.SETTING_SALES"
                     v-feature="$enums.FeatureEnum.TRANSACTION_INVOICE"
                     type="button"
-                    class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer"
+                    class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap"
                     :class="[
                         activeTab === 'b2b'
                             ? 'border-main text-main font-bold'
                             : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
                     ]"
-                    @click="activeTab = 'b2b'"
+                    @click="switchTab('b2b')"
                 >
                     <FontAwesomeIcon :icon="faFileInvoiceDollar" />
-                    <span>Pengaturan Penjualan Faktur</span>
+                    <span>Penjualan Faktur B2B</span>
                 </button>
             </div>
         </template>
@@ -47,19 +79,33 @@
         <!-- Navigation Tabs -->
 
         <!-- Tab 1: Pengaturan POS -->
-        <div v-show="activeTab === 'pos'" class="pb-12">
+        <div v-show="activeTab === 'pos' && can($enums.PermissionEnum?.SETTING_SALES)" class="pb-12">
             <PosSettingsTab
                 :outlet="selectedOutlet"
-                :outlets="outlets"
                 :pos-settings="posSettings"
-                :devices="devices"
-                :otp-data="otpData"
             />
         </div>
 
-        <!-- Tab 2: Pengaturan Penjualan Faktur (B2B) -->
+        <!-- Tab 2: Pajak & Pembulatan -->
+        <div v-show="activeTab === 'tax' && can($enums.PermissionEnum?.SETTING_TAX)" class="pb-12">
+            <TaxSettingsTab
+                :selected-outlet="selectedOutlet"
+                :tax-settings="taxSettings"
+            />
+        </div>
+
+        <!-- Tab 3: Desain Struk & Nota -->
+        <div v-show="activeTab === 'receipt' && can($enums.PermissionEnum?.SETTING_RECEIPT)" class="pb-12">
+            <ReceiptSettingsTab
+                :selected-outlet="selectedOutlet"
+                :receipt-setting="receiptSetting"
+                :business="business"
+            />
+        </div>
+
+        <!-- Tab 4: Pengaturan Penjualan Faktur (B2B) -->
         <div
-            v-show="activeTab === 'b2b'"
+            v-show="activeTab === 'b2b' && can($enums.PermissionEnum?.SETTING_SALES)"
             v-feature="$enums.FeatureEnum.TRANSACTION_INVOICE"
             class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12"
         >
@@ -294,10 +340,13 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
+import { useAuth } from '@/Composable/useAuth'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import SettingOutletSelector from '../Components/SettingOutletSelector.vue'
 import PosSettingsTab from './Partials/PosSettingsTab.vue'
+import TaxSettingsTab from './Partials/TaxSettingsTab.vue'
+import ReceiptSettingsTab from './Partials/ReceiptSettingsTab.vue'
 import Switch from '@/Components/Form/Switch.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
@@ -306,13 +355,17 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     faBoxesStacked,
     faCashRegister,
+    faCalculator,
     faCalendarAlt,
     faFileInvoiceDollar,
+    faReceipt,
     faSave,
     faUndo,
     faEye,
     faInfoCircle,
 } from '@fortawesome/free-solid-svg-icons'
+
+const { can } = useAuth()
 
 const props = defineProps({
     outlets: {
@@ -334,17 +387,41 @@ const props = defineProps({
             allow_negative_stock: false,
         }),
     },
-    devices: {
-        type: Array,
-        default: () => [],
+    taxSettings: {
+        type: Object,
+        default: () => ({}),
     },
-    otpData: {
+    receiptSetting: {
         type: Object,
         default: null,
     },
+    business: {
+        type: Object,
+        default: null,
+    },
+    initialTab: {
+        type: String,
+        default: 'pos',
+    },
 })
 
-const activeTab = ref('pos')
+const activeTab = ref(props.initialTab || 'pos')
+
+watch(
+    () => props.initialTab,
+    newTab => {
+        if (newTab) {
+            activeTab.value = newTab
+        }
+    }
+)
+
+const switchTab = tab => {
+    activeTab.value = tab
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', tab)
+    window.history.replaceState({}, '', url.toString())
+}
 
 const dueTermOptions = [
     { label: 'Tunai (0 Hari)', value: '0' },
@@ -421,7 +498,7 @@ const dueDateFormatted = computed(() => {
 })
 
 const changeOutlet = outletId => {
-    router.visit(route('settings.sales.index', { outlet_id: outletId }), {
+    router.visit(route('settings.sales.index', { outlet_id: outletId, tab: activeTab.value }), {
         preserveScroll: true,
         preserveState: false,
     })

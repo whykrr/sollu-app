@@ -2,9 +2,10 @@
     <MainPage>
         <template #header>
             <MainPageHeader
-                title="Log Aktivitas & Jejak Audit"
-                description="Pantau riwayat aktivitas operasional penting, perubahan data, dan akses pengguna di tokomu."
+                title="Peran & Keamanan"
+                description="Kelola peran karyawan, hak akses jabatan, dan pantau log jejak audit tokomu."
             />
+            <RoleHeaderTabs active-tab="activity-logs" />
         </template>
 
         <template #widgets>
@@ -106,6 +107,7 @@ import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
+import RoleHeaderTabs from '../Role/Components/RoleHeaderTabs.vue'
 import ActivityLogFilter from './Components/ActivityLogFilter.vue'
 import ActivityLogWidgets from './Components/ActivityLogWidgets.vue'
 import ActivityLogDetailPopUp from './Components/ActivityLogDetailPopUp.vue'

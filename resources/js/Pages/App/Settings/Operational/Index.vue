@@ -2,8 +2,8 @@
     <MainPage>
         <template #header>
             <MainPageHeader
-                title="Jam Operasional Outlet"
-                description="Tentukan jadwal buka-tutup harian outletmu untuk tiap hari dalam seminggu."
+                title="Outlet & Perangkat"
+                description="Kelola seluruh cabang, jam operasional, dan perangkat kasir yang terhubung ke tokomu."
             >
                 <SettingOutletSelector
                     v-if="outlets && outlets.length > 1"
@@ -12,6 +12,7 @@
                     @update:model-value="changeOutlet"
                 />
             </MainPageHeader>
+            <OutletHeaderTabs active-tab="operational" />
         </template>
 
         <div class="max-w-4xl flex flex-col gap-4 pb-8">
@@ -119,6 +120,7 @@ import { faClock, faSave } from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import SettingOutletSelector from '../Components/SettingOutletSelector.vue'
+import OutletHeaderTabs from '../Outlet/Components/OutletHeaderTabs.vue'
 import Switch from '@/Components/Form/Switch.vue'
 import TextField from '@/Components/Form/TextField.vue'
 

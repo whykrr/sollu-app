@@ -6,6 +6,7 @@ use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Contracts\Audit\ActivityLoggerInterface;
 use App\Enums\AuditModuleEnum;
+use App\Enums\FeatureEnum;
 use App\Enums\InventoryCostingMethod;
 use App\Enums\PermissionEnum;
 use App\Helpers\SummaryUser;
@@ -102,6 +103,10 @@ class InventorySettingController extends Controller
 
         /** @var Business */
         $business = Auth::user()->business;
+
+        if (! empty($validated['enabled']) && ! $business->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION)) {
+            abort(403, 'Fitur Pemisahan Tugas (SoD) memerlukan paket langganan yang mendukung Otorisasi Ganda.');
+        }
 
         $settings = $business->settings ?? [];
         $oldSod = $settings['inventory_sod'] ?? [];

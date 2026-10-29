@@ -21,6 +21,7 @@ use App\Http\Controllers\App\Settings\RoleController;
 use App\Http\Controllers\App\Settings\SalesSettingController;
 use App\Http\Controllers\App\Settings\SubscriptionController;
 use App\Http\Controllers\App\Settings\TaxSettingController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('settings')
@@ -124,10 +125,7 @@ Route::prefix('settings')
                 });
         });
 
-        Route::middleware([
-            'can:'.PermissionEnum::SETTING_SALES->value,
-        ])
-            ->prefix('sales')
+        Route::prefix('sales')
             ->name('sales.')
             ->group(function () {
                 Route::get('/', [SalesSettingController::class, 'index'])->name('index');
@@ -135,8 +133,7 @@ Route::prefix('settings')
             });
 
         Route::middleware(['can:'.PermissionEnum::SETTING_PAYMENT->value])->group(function () {
-            Route::middleware('plan.feature:'.FeatureEnum::MULTI_OUTLET->value)
-                ->prefix('payment-methods')
+            Route::prefix('payment-methods')
                 ->name('payment-methods.')
                 ->group(function () {
                     Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
@@ -148,16 +145,14 @@ Route::prefix('settings')
                 });
         });
 
-        Route::middleware('plan.feature:'.FeatureEnum::MULTI_OUTLET->value)
-            ->prefix('receipt')
+        Route::prefix('receipt')
             ->name('receipt.')
             ->group(function () {
-                Route::get('/', [ReceiptSettingController::class, 'index'])->name('index');
+                Route::get('/', fn (Request $request) => redirect()->route('settings.sales.index', array_merge(['tab' => 'receipt'], $request->query())))->name('index');
                 Route::put('/', [ReceiptSettingController::class, 'update'])->name('update');
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::MULTI_OUTLET->value)
-            ->prefix('devices')
+        Route::prefix('devices')
             ->name('devices.')
             ->group(function () {
                 Route::get('/', [DeviceSettingController::class, 'index'])->name('index');
@@ -168,16 +163,14 @@ Route::prefix('settings')
                 Route::post('/{device}/unpair', [DeviceSettingController::class, 'unpair'])->name('unpair');
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::MULTI_OUTLET->value)
-            ->prefix('taxes')
+        Route::prefix('taxes')
             ->name('taxes.')
             ->group(function () {
-                Route::get('/', [TaxSettingController::class, 'index'])->name('index');
+                Route::get('/', fn (Request $request) => redirect()->route('settings.sales.index', array_merge(['tab' => 'tax'], $request->query())))->name('index');
                 Route::put('/', [TaxSettingController::class, 'update'])->name('update');
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::MULTI_OUTLET->value)
-            ->prefix('operational')
+        Route::prefix('operational')
             ->name('operational.')
             ->group(function () {
                 Route::get('/', [OperationalSettingController::class, 'index'])->name('index');

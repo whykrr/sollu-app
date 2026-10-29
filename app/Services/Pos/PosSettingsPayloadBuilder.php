@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Pos;
 
+use App\Enums\FeatureEnum;
 use App\Models\Outlet;
 use App\Services\App\Transaction\TransactionService;
 use Illuminate\Support\Collection;
@@ -49,8 +50,8 @@ class PosSettingsPayloadBuilder
     {
         $financialTax = (float) ($outletSettings->firstWhere('key', 'tax')?->value ?? 0.0);
         $financialServiceFee = (float) ($outletSettings->firstWhere('key', 'service_fee')?->value ?? 0.0);
-        $taxIncluded = (bool) ($outletSettings->firstWhere('key', 'tax_included_in_price')?->value ?? false);
-        $roundingEnabled = (bool) ($outletSettings->firstWhere('key', 'rounding_enabled')?->value ?? false);
+        $taxIncluded = filter_var($outletSettings->firstWhere('key', 'tax_included_in_price')?->value ?? false, FILTER_VALIDATE_BOOLEAN);
+        $roundingEnabled = filter_var($outletSettings->firstWhere('key', 'rounding_enabled')?->value ?? false, FILTER_VALIDATE_BOOLEAN);
         $roundingMode = (string) ($outletSettings->firstWhere('key', 'rounding_mode')?->value ?? 'nearest');
 
         $receiptSetting = $outletSettings->where('category', 'receipt')->firstWhere('key', 'layout_config')?->value ?? [
@@ -85,13 +86,23 @@ class PosSettingsPayloadBuilder
             $posOrderTypes = ['walk_in', 'dine_in', 'take_away'];
         }
 
+        $rawSupervisorPin = $outletSettings->where('category', 'pos')->firstWhere('key', 'enable_supervisor_pin')?->value;
+        $enableSupervisorPin = false;
+        if ($outlet->business?->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION)) {
+            $enableSupervisorPin = filter_var($rawSupervisorPin, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        $allowNegativeRaw = $outletSettings->firstWhere('key', 'allow_negative_stock')?->value;
+        $allowNegativeStock = $allowNegativeRaw === null ? true : filter_var($allowNegativeRaw, FILTER_VALIDATE_BOOLEAN);
+
         return [
+            'enable_supervisor_pin' => $enableSupervisorPin,
             'tax_percentage' => $financialTax,
             'service_charge_percentage' => $financialServiceFee,
             'tax_included_in_price' => $taxIncluded,
             'rounding_enabled' => $roundingEnabled,
             'rounding_mode' => $roundingMode,
-            'allow_negative_stock' => (bool) ($outletSettings->firstWhere('key', 'allow_negative_stock')?->value ?? true),
+            'allow_negative_stock' => $allowNegativeStock,
             'pos_order_types' => $posOrderTypes,
             'receipt' => $receiptSetting,
         ];

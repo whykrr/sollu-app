@@ -46,8 +46,19 @@ const isActive = menu => {
 
     // Prioritize explicit activeRoute property
     if (menu.activeRoute) {
-        const target = normalizeActiveRoute(menu.activeRoute)
-        if (target && current.startsWith(target)) return true
+        if (Array.isArray(menu.activeRoute)) {
+            if (
+                menu.activeRoute.some(routeItem => {
+                    const target = normalizeActiveRoute(routeItem)
+                    return target && current.startsWith(target)
+                })
+            ) {
+                return true
+            }
+        } else {
+            const target = normalizeActiveRoute(menu.activeRoute)
+            if (target && current.startsWith(target)) return true
+        }
     }
 
     // Fallback logic for dropdowns if activeRoute somehow doesn't match

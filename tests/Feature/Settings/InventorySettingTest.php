@@ -234,4 +234,24 @@ class InventorySettingTest extends TestCase
 
         $response->assertSessionHasErrors(['enabled', 'rules']);
     }
+
+    public function test_user_without_double_authorization_cannot_enable_inventory_sod(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user, PlanEnum::MICRO);
+        $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
+        $user->update(['is_root_user' => true]);
+
+        $payload = [
+            'enabled' => true,
+            'allow_owner_bypass' => false,
+            'rules' => [
+                'stock_adjustment' => true,
+            ],
+        ];
+
+        $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/inventory/sod", $payload);
+
+        $response->assertStatus(403);
+    }
 }

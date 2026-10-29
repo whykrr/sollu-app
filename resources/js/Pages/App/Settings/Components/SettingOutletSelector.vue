@@ -1,5 +1,9 @@
 <template>
-    <div v-if="outlets && outlets.length > 1 && !selectedOutlet" class="flex items-center gap-2">
+    <div
+        v-if="outlets && outlets.length > 1 && !isLockedToOutlet"
+        v-feature="$enums.FeatureEnum.MULTI_OUTLET"
+        class="flex items-center gap-2"
+    >
         <label
             for="setting-outlet-select"
             class="text-xs font-semibold text-slate-500 whitespace-nowrap hidden sm:inline"
@@ -20,9 +24,13 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useAuth } from '@/Composable/useAuth'
 
-const { selectedOutlet } = useAuth()
+const { auth } = useAuth()
+
+// Sembunyikan selector hanya jika karyawan terikat ke outlet tertentu
+const isLockedToOutlet = computed(() => Boolean(auth.value?.selected_outlet))
 
 defineProps({
     outlets: {

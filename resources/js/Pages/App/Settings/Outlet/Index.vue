@@ -2,9 +2,10 @@
     <MainPage>
         <template #header>
             <MainPageHeader
-                title="Data Outlet"
-                description="Lihat dan kelola seluruh cabang dan outlet operasional yang terdaftar di bisnismu."
+                title="Outlet & Perangkat"
+                description="Kelola seluruh cabang, jam operasional, dan perangkat kasir yang terhubung ke tokomu."
             />
+            <OutletHeaderTabs active-tab="outlets" />
         </template>
 
         <template #filter>
@@ -237,6 +238,7 @@ import Pagination from '@/Components/Tables/Pagination.vue'
 import DataGrid from '@/Components/DataGrid/DataGrid.vue'
 import OutletFilter from './Components/OutletFilter.vue'
 import OutletCard from './Components/OutletCard.vue'
+import OutletHeaderTabs from './Components/OutletHeaderTabs.vue'
 import Wizard from './Components/Wizard.vue'
 import UnpaidInvoiceModal from './Components/UnpaidInvoiceModal.vue'
 import EditOutletPopUp from './Components/EditOutletPopUp.vue'
