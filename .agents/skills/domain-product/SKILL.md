@@ -69,6 +69,15 @@ Modul Produk mengadopsi standar **Unified Item Pattern** (Shopify/Square):
      ```
 4. **Pembatasan Kedalaman Kategori:**
    - Kategori hanya boleh bertingkat maksimal 2 level (`parent_id` hanya boleh menunjuk ke kategori root yang `parent_id = null`). Kategori child tidak boleh menjadi parent.
+5. **Persistensi & Sinkronisasi Batas Minimum Stok (`minimum_stock`):**
+   - `minimum_stock` WAJIB divalidasi pada `StoreProductRequest` dan `UpdateProductRequest` (`nullable|numeric|min:0`).
+   - `InventoryService::linkInventoryItem()` wajib memperbarui `minimum_stock` pada `InventoryItem`.
+   - `InventoryService::syncInventoryBalances()` wajib menyinkronkan `minimum_stock` ke seluruh `inventory_balances` di setiap outlet aktif produk.
+   - `ProductController::show()` dan `ProductResource` wajib memuat dan mengekspos `minimum_stock` agar ter-prefill pada form edit.
+6. **Alokasi Stok Awal Multi-Outlet & Replikasi:**
+   - Jika single outlet / selected outlet: tampilkan nama outlet tujuan secara eksplisit pada bagian Stok & Inventori.
+   - Jika multi-outlet: tampilkan daftar per-outlet aktif produk, dilengkapi switch toggle *"Samakan semua outlet"* yang secara otomatis mereplikasi input stok awal dan HPP outlet pertama ke outlet lainnya.
+   - Pada mode edit, status eligibilitas per outlet / varian dievaluasi via `ProductResource` (zero N+1) untuk mengunci field jika sudah bertransaksi.
 
 ---
 

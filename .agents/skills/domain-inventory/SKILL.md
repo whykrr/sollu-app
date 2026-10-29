@@ -112,6 +112,19 @@ Semua operasi penambahan, pengurangan, atau penyesuaian stok **WAJIB** melalui `
 3. **Void Purchase Order:**
    - Pembatalan seluruh PO (`PurchaseStatus::Voided`) mengunci transaksi dari seluruh aksi lanjutan (tidak bisa diedit, diterima, atau diretur lagi).
 
+### 3.5. Aturan Baku Stok Awal (Initial Stock & Grace Period Invariant)
+1. **Wajib Costing Engine:**
+   - Seluruh inisialisasi stok awal (produk single, varian, bahan baku, batch wizard, maupun import Excel) **WAJIB** melalui `InventoryCostingService::recordIncomingStock()` atau `InventoryCostingService::updateInitialStock()`.
+   - **DILARANG KERAS** memanipulasi database secara langsung (`firstOrCreate`/`updateOrCreate`) pada `inventory_balances` yang membypass pembentukan layer biaya FIFO dan ledger mutasi `InventoryMovementType::InitialStock`. Bypassing costing engine menyebabkan `average_cost = 0` (HPP Rp 0 saat penjualan pertama).
+2. **Invarian Grace Period (Koreksi Stok Awal):**
+   - Pembaruan kuantitas atau HPP stok awal hanya diizinkan jika dan hanya jika item pada outlet tersebut **belum pernah memiliki mutasi operasional** selain `InitialStock`.
+   - Jika sudah ada mutasi operasional (penjualan `Sale`, transfer, adjustment, opname, purchase), stok awal **Terkunci** (*readonly*) dan revisi kuantitas fisik WAJIB melalui alur Penyesuaian Stok (*Stock Adjustment*).
+3. **Standar Wizard Stok Awal Massal:**
+   - Kueri eligibilitas item wajib menggunakan single set-based SQL (`whereDoesntHave`, `withExists`) tanpa N+1.
+   - Kolom barang harus ringkas (Nama Barang dan SKU).
+   - Menampilkan kolom khusus `Harga Jual (Rp)` sesuai matriks outlet.
+   - Kolom Jumlah Fisik (Qty) menggunakan kesatuan `form-group` terpadu dengan input number step 1 dan badge simbol/kode satuan UOM (`[ input qty | Pcs ]`).
+
 ---
 
 ## 4. Pembekuan Stok Outlet (Stock Freeze Guard) & Pemisahan Tugas (Segregation of Duties)

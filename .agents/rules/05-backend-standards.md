@@ -58,5 +58,16 @@
 
 ---
 
-## 5. Code Formatter (Laravel Pint)
+## 5. Pemberantasan N+1 Query & Standar Kueri Teroptimasi (Zero N+1 Invariant)
+- **Larangan Kueri dalam Loop PHP:** DILARANG KERAS memanggil kueri database (Eloquent/DB Builder seperti `where()->exists()`, `find()`, `first()`) di dalam loop PHP (`foreach`, `filter()`, `map()`, `each()`).
+- **Pendelegasian ke SQL Set-Based:** Seluruh pengecekan keterkaitan relasi atau riwayat mutasi WAJIB didelegasikan ke level SQL database menggunakan:
+  - `whereDoesntHave('relation', fn($q) => ...)` atau `whereHas(...)`
+  - `withExists(['relation as alias' => fn($q) => ...])`
+  - Scoped Eager Loading: `with(['relation' => fn($q) => $q->where(...)])`
+- **Kompleksitas Query O(1):** Endpoint daftar/pencarian item harus terbukti mengeksekusi jumlah kueri konstan terlepas dari apakah data yang diproses berjumlah 10, 40, atau 100 baris.
+- **Verifikasi Kinerja Kueri:** Untuk kueri data terfilter atau kalkulatif, sertakan automated test dengan `DB::enableQueryLog()` untuk memastikan query count tetap bounded (O(1)).
+
+---
+
+## 6. Code Formatter (Laravel Pint)
 - Jalankan `vendor/bin/pint --dirty` sebelum melakukan commit untuk memastikan format kode PHP bersih dan seragam.
