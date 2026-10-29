@@ -68,6 +68,22 @@
      - **Tier 1 (Fast-Path):** Backend middleware `plan.feature` membaca `SummaryUser::make($user)->cached()['features']` yang telah mencakup overlap personalisasi fitur bisnis (`settings['active_features']`) dan fitur paket langganan aktif.
      - **Tier 2 (Fallback):** Model-level cache `Business::findCached()` $\rightarrow$ `Business::activePlanFeatures()` (`business:{$id}:active_plan_features`).
    - **Cache Invalidation:** Seluruh mutasi `Business`, `Subscription`, `SubscriptionPlan`, `Feature`, dan `BusinessType` wajib terdaftar di `UserCacheObserver` yang otomatis memanggil `Business::clearCache($businessId)` dan `SummaryUser::cacheDelete($userId)`.
+4. **Pemisahan Lisensi Fitur (Plan Gating) vs Nilai Operasional Pengaturan (Settings Value):**
+   - **Pemisahan Entitas:** `FeatureEnum` murni bertindak sebagai pembatas hak akses paket (*SaaS entitlement*). Dilarang menjadikan `FeatureEnum` langsung sebagai nama kolom/key pengaturan operasional kasir atau toko.
+   - **Key Pengaturan Independen:** Pengaturan operasional wajib disimpan pada tabel pengaturan terkait (`businesses.settings` atau `outlet_settings`) dengan nama operasional eksplisit (misal: `enable_supervisor_pin`).
+   - **Default False Invariant:** Toggle pengaturan operasional yang dilindungi fitur berbayar WAJIB bernilai bawaan `false` (termasuk secara tegas bernilai `false` jika data setting belum ada pada database).
+   - **Proteksi UI & Controller:**
+     - Toggle di antarmuka web dilindungi dengan `v-feature.mask="$enums.FeatureEnum.NAME"`.
+     - Controller wajib memvalidasi bahwa aktivasi nilai `true` hanya diizinkan jika bisnis memiliki fitur tersebut:
+       ```php
+       if (! empty($validated['enable_supervisor_pin']) && ! $business->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION)) {
+           abort(403, 'Fitur memerlukan paket langganan yang mendukung Otorisasi Ganda.');
+       }
+       ```
+   - **Runtime Short-Circuit (Graceful Downgrade):**
+     - Pada Service atau Payload Builder, nilai aktif wajib dievaluasi secara dinamis:
+       `$isActive = $business->hasFeature(FeatureEnum::NAME) && (bool) $settingValue;`
+     - Jika paket langganan berakhir atau turun (*downgrade*), perilaku berbayar otomatis nonaktif secara aman di runtime tanpa mengunci pengguna atau mengubah nilai di database.
 
 ---
 

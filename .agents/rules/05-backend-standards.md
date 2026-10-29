@@ -13,6 +13,16 @@
       ->latest()
       ->paginate(20);
   ```
+- **Keamanan Deserialisasi Boolean (Anti-Trap Native `(bool)`):**
+  - DILARANG KERAS menggunakan cast native `(bool)` pada nilai pengaturan yang bersumber dari database dinamis, cache string, atau payload JSON mentah (`$setting->value`). Di PHP, string non-kosong apapun (termasuk `"false"` dan `"0"`) dievaluasi menjadi `true` saat di-cast dengan `(bool)`.
+  - WAJIB gunakan `filter_var($value, FILTER_VALIDATE_BOOLEAN)` untuk memastikan konversi boolean yang aman dan akurat:
+    ```php
+    // BENAR
+    $isEnabled = filter_var($setting->value ?? false, FILTER_VALIDATE_BOOLEAN);
+
+    // SALAH (BUG: (bool) "false" menghasilkan true)
+    $isEnabled = (bool) ($setting->value ?? false);
+    ```
 
 ---
 
