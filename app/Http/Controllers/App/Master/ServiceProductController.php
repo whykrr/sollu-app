@@ -42,6 +42,18 @@ class ServiceProductController extends Controller
 
         $services = Product::currentBusiness()
             ->services()
+            ->select([
+                'id',
+                'business_id',
+                'product_category_id',
+                'product_type',
+                'name',
+                'code',
+                'image_url',
+                'is_show',
+                'sellable',
+                'created_at',
+            ])
             ->with([
                 'category:id,name',
                 'prices' => function ($q) use ($outletId) {
@@ -52,7 +64,6 @@ class ServiceProductController extends Controller
                         });
                     }
                 },
-                'images:id,product_id,product_item_id,image_url,sort_order',
             ])
             ->filters($params)
             ->sortable($request->validated('sort', 'created_at'), $request->validated('direction', 'desc'))
@@ -96,10 +107,10 @@ class ServiceProductController extends Controller
         }
 
         $service->load([
-            'category',
-            'prices',
-            'outlets',
-            'images',
+            'category:id,name',
+            'prices:id,product_id,product_item_id,outlet_id,amount',
+            'outlets:id,name',
+            'images:id,product_id,product_item_id,image_url,sort_order',
         ]);
 
         return new ProductResource($service);

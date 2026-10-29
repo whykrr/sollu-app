@@ -4,7 +4,7 @@
         title="Varian Produk"
         description="Aktifkan jika produk memiliki variasi opsi seperti Ukuran, Rasa, atau Warna"
         :icon="faTags"
-        :feature="$enums.FeatureEnum?.PRODUCT_VARIANTS || 'product_variants'"
+        :feature="$enums.FeatureEnum.PRODUCT_VARIANT"
         :switch-value="Boolean(form.has_variant)"
         :is-open="isOpen"
         :badge="badgeText"

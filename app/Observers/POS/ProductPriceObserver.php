@@ -16,6 +16,11 @@ class ProductPriceObserver
         protected PosNudgeQueueService $nudgeQueue
     ) {}
 
+    /**
+     * @var array<string, array<string>>
+     */
+    protected static array $outletIdsCache = [];
+
     public function saved(ProductPrice $productPrice): void
     {
         $this->queueNudge($productPrice);
@@ -34,20 +39,24 @@ class ProductPriceObserver
             return;
         }
 
-        // Jika outlet_id null (harga dasar / harga varian global), antrekan ke seluruh outlet aktif produk
-        $outletIds = DB::table('outlet_product')
-            ->where('product_id', $productPrice->product_id)
-            ->where('is_enabled', true)
-            ->pluck('outlet_id')
-            ->all();
+        $productId = $productPrice->product_id;
+        if (! isset(static::$outletIdsCache[$productId])) {
+            $outletIds = DB::table('outlet_product')
+                ->where('product_id', $productId)
+                ->where('is_enabled', true)
+                ->pluck('outlet_id')
+                ->all();
 
-        if (empty($outletIds)) {
-            $businessId = Product::where('id', $productPrice->product_id)->value('business_id');
-            if ($businessId) {
-                $outletIds = Outlet::where('business_id', $businessId)->pluck('id')->all();
+            if (empty($outletIds)) {
+                $businessId = Product::where('id', $productId)->value('business_id');
+                if ($businessId) {
+                    $outletIds = Outlet::where('business_id', $businessId)->pluck('id')->all();
+                }
             }
+
+            static::$outletIdsCache[$productId] = $outletIds ?? [];
         }
 
-        $this->nudgeQueue->queueSignalsForOutlets($outletIds, 'product_price');
+        $this->nudgeQueue->queueSignalsForOutlets(static::$outletIdsCache[$productId], 'product_price');
     }
 }

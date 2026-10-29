@@ -103,9 +103,9 @@ Saat menggunakan atau mengedit komponen di `resources/js/Components/UI`, Anda **
 
 ---
 
-## 5. Tab, Dropdown Data, & Feature Locking
+## 5. Tab & Dropdown Data
 
 - **`ActionsDropdown.vue`:** Dropdown menu ringkas berikon dengan auto-collision positioning (`<ActionsDropdown label="Opsi Data" :items="actionItems" />`).
 - **`ExportDropdown.vue`:** Dropdown aksi ekspor data berbasis `ActionsDropdown` (`<ExportDropdown :items="exportOptions" />`).
 - **`Tab.vue`:** Navigasi tab dengan array `pages: [{ label, icon, page, props, badge }]`.
-- **`FeatureLock.vue`:** Proteksi kartu/fitur berbayar dengan overlay gembok (`<FeatureLock :feature="$enums.FeatureEnum.FEATURE_NAME">`).
+- **Feature Gating:** Selalu gunakan directive `v-feature="$enums.FeatureEnum.NAME"` (komponen wrapper `<FeatureLock>` telah dihapus demi standarisasi directive deklaratif).

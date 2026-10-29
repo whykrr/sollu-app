@@ -46,6 +46,7 @@ Route::prefix('settings')
                 Route::middleware(['plan.feature:'.FeatureEnum::FEATURE_PERSONALIZATION->value])->group(function () {
                     Route::get('/features', [FeatureSettingController::class, 'index'])->name('features');
                     Route::put('/features', [FeatureSettingController::class, 'save'])->name('features.save');
+                    Route::delete('/features', [FeatureSettingController::class, 'reset'])->name('features.reset');
                 });
             });
 

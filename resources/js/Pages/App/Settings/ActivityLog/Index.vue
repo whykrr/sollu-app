@@ -15,20 +15,18 @@
             <ActivityLogFilter :filters="filters" :modules="modules" :outlets="outlets" />
         </template>
 
-        <FeatureLock
-            :feature="$enums.FeatureEnum.AUDIT_LOGS"
+        <div
+            v-feature="$enums.FeatureEnum.AUDIT_LOG"
             class="h-full flex-1 min-h-0 flex flex-col"
-            content-class="h-full flex-1 min-h-0 flex flex-col"
         >
-            <div class="h-full flex-1 min-h-0 flex flex-col">
-                <Table
-                    :headers="headers"
-                    :data="logs.data"
-                    :sort="filters?.sort || 'created_at'"
-                    :sort-direction="filters?.direction || 'desc'"
-                    :action="false"
-                    @row-click="openDetail"
-                >
+            <Table
+                :headers="headers"
+                :data="logs.data"
+                :sort="filters?.sort || 'created_at'"
+                :sort-direction="filters?.direction || 'desc'"
+                :action="false"
+                @row-click="openDetail"
+            >
                     <!-- Kolom Waktu -->
                     <template #created_at="{ row }">
                         <div class="flex flex-col">
@@ -93,8 +91,7 @@
                         </span>
                     </template>
                 </Table>
-            </div>
-        </FeatureLock>
+        </div>
 
         <template #footer>
             <Pagination :links="logs.links" :meta="logs" />
@@ -109,7 +106,6 @@ import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
-import FeatureLock from '@/Components/UI/FeatureLock.vue'
 import ActivityLogFilter from './Components/ActivityLogFilter.vue'
 import ActivityLogWidgets from './Components/ActivityLogWidgets.vue'
 import ActivityLogDetailPopUp from './Components/ActivityLogDetailPopUp.vue'

@@ -4,11 +4,14 @@ namespace App\Http\Controllers\App\Settings;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Contracts\Audit\ActivityLoggerInterface;
+use App\Enums\AuditModuleEnum;
 use App\Enums\PermissionEnum;
 use App\Helpers\SummaryUser;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\Feature;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -16,6 +19,10 @@ use Inertia\Response;
 
 class FeatureSettingController extends Controller
 {
+    public function __construct(
+        protected ActivityLoggerInterface $auditLogger
+    ) {}
+
     public function index(Request $request): Response
     {
         $this->authorize(PermissionEnum::BUSINESS_VIEW->value);
@@ -55,10 +62,11 @@ class FeatureSettingController extends Controller
             'availableFeatures' => $availableFeatures,
             'activeFeatures' => $activeFeatures,
             'featureGroups' => $featureGroups,
+            'isPersonalized' => $business->isFeaturePersonalized(),
         ]);
     }
 
-    public function save(Request $request)
+    public function save(Request $request): RedirectResponse
     {
         abort_if(! Auth::user()?->is_root_user, 403);
 
@@ -93,14 +101,60 @@ class FeatureSettingController extends Controller
         $business->save();
 
         Business::clearCache($business->id);
-        $rootUser = $business->users()->where('is_root_user', true)->first();
-        if ($rootUser) {
-            SummaryUser::cacheDelete($rootUser->id);
+        foreach ($business->users()->pluck('id') as $userId) {
+            SummaryUser::cacheDelete($userId);
         }
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::SETTINGS->value,
+            action: 'feature_settings.saved',
+            description: 'Memperbarui personalisasi fitur usaha',
+            subject: $business,
+            causer: $request->user(),
+            businessId: $business->id,
+            properties: [
+                'active_features' => $validFeaturesToSave,
+            ]
+        );
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
             ResourceMessage::UPDATE_SUCCESS
+        );
+    }
+
+    public function reset(Request $request): RedirectResponse
+    {
+        abort_if(! Auth::user()?->is_root_user, 403);
+
+        $business_id = Auth::user()->business_id;
+
+        /** @var Business */
+        $business = Business::findOrFail($business_id);
+        $oldFeatures = $business->settings['active_features'] ?? [];
+
+        $business->resetFeaturePersonalization();
+
+        foreach ($business->users()->pluck('id') as $userId) {
+            SummaryUser::cacheDelete($userId);
+        }
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::SETTINGS->value,
+            action: 'feature_settings.reset',
+            description: 'Mereset personalisasi fitur usaha ke pengaturan standar paket',
+            subject: $business,
+            causer: $request->user(),
+            businessId: $business->id,
+            properties: [
+                'old' => ['active_features' => $oldFeatures],
+                'new' => ['active_features' => null],
+            ]
+        );
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            'Pengaturan personalisasi fitur berhasil direset ke standar!'
         );
     }
 }

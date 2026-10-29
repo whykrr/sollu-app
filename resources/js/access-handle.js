@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/vue3'
 import { useModalStore } from '@/store/notification'
 import FeatureLockedModal from '@/Components/Modals/FeatureLockedModal.vue'
+import { evaluateFeatureState } from '@/Composable/usePlanFeature'
 
 const checkPermission = (permissions, required) => {
     if (permissions.includes('*')) {
@@ -20,6 +21,11 @@ const handleCan = (el, binding) => {
     const permissions = props.auth?.permissions || []
 
     if (!binding.value || (Array.isArray(binding.value) && binding.value.length === 0)) {
+        if (el._canHidden) {
+            el.style.display = el._origDisplayCan || ''
+            el.removeAttribute('aria-hidden')
+            el._canHidden = false
+        }
         return
     }
 
@@ -35,14 +41,20 @@ const handleCan = (el, binding) => {
     }
 
     if (!isPermitted) {
-        el.parentNode && el.parentNode.removeChild(el)
+        if (!el._canHidden) {
+            el._origDisplayCan = el.style.display
+            el.style.display = 'none'
+            el.setAttribute('aria-hidden', 'true')
+            el._canHidden = true
+        }
+    } else if (el._canHidden) {
+        el.style.display = el._origDisplayCan || ''
+        el.removeAttribute('aria-hidden')
+        el._canHidden = false
     }
 }
 
 const LOCK_CLASSES = ['cursor-not-allowed', 'select-none']
-
-import FeatureLock from '@/Components/UI/FeatureLock.vue'
-import FeatureLockOverlay from '@/Components/UI/FeatureLockOverlay.vue'
 
 const openFeatureModal = featureName => {
     const modalStore = useModalStore()
@@ -57,16 +69,45 @@ const openFeatureModal = featureName => {
     })
 }
 
+const removeCaptureTrap = el => {
+    if (el._featureTrap) {
+        el.removeEventListener('click', el._featureTrap, true)
+        delete el._featureTrap
+    }
+    if (el._featureKeydownTrap) {
+        el.removeEventListener('keydown', el._featureKeydownTrap, true)
+        delete el._featureKeydownTrap
+    }
+}
+
 const renderLockOverlay = (el, featureName, isSubscribed) => {
-    // Check idempotency: avoid touching DOM on every re-render if already configured
-    if (
-        el._featureOverlay &&
-        el._lockedFeature === featureName &&
-        el._isSubscribed === isSubscribed
-    ) {
-        return
+    // 1. Intercept interactions at capture phase on the container
+    if (!el._featureTrap || el._lockedFeature !== featureName) {
+        removeCaptureTrap(el)
+
+        const featureTrap = e => {
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+            openFeatureModal(featureName)
+        }
+
+        const featureKeydownTrap = e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                e.stopPropagation()
+                e.stopImmediatePropagation()
+                openFeatureModal(featureName)
+            }
+        }
+
+        el._featureTrap = featureTrap
+        el._featureKeydownTrap = featureKeydownTrap
+        el.addEventListener('click', featureTrap, true)
+        el.addEventListener('keydown', featureKeydownTrap, true)
     }
 
+    // 2. Ensure relative positioning
     if (
         !el.classList.contains('relative') &&
         !el.classList.contains('absolute') &&
@@ -79,6 +120,7 @@ const renderLockOverlay = (el, featureName, isSubscribed) => {
     LOCK_CLASSES.forEach(cls => el.classList.add(cls))
     el.setAttribute('aria-disabled', 'true')
 
+    // 3. Render visual overlay badge
     const labelText = isSubscribed ? 'Tingkatkan Paket' : 'Langganan'
     let overlay = el._featureOverlay || el.querySelector(':scope > .sollu-feature-lock-overlay')
 
@@ -123,6 +165,8 @@ const renderLockOverlay = (el, featureName, isSubscribed) => {
 }
 
 const removeLockOverlay = el => {
+    removeCaptureTrap(el)
+
     if (el._addedRelative) {
         el.classList.remove('relative')
         delete el._addedRelative
@@ -145,38 +189,99 @@ const removeLockOverlay = el => {
     delete el._isSubscribed
 }
 
+const resolveTargetState = (auth, val, modifiers) => {
+    if (!val || (Array.isArray(val) && val.length === 0)) {
+        return 'active'
+    }
+
+    const activeFeatures = auth?.features || []
+
+    // 1. Modifier .hide: strictly check if active. If not active, IMMEDIATELY return 'hidden' (no masking)
+    if (modifiers.hide) {
+        if (typeof val === 'string') {
+            return activeFeatures.includes(val) ? 'active' : 'hidden'
+        }
+        if (Array.isArray(val)) {
+            if (modifiers.all) {
+                return val.every(f => activeFeatures.includes(f)) ? 'active' : 'hidden'
+            }
+            return val.some(f => activeFeatures.includes(f)) ? 'active' : 'hidden'
+        }
+        return 'hidden'
+    }
+
+    // 2. Modifier .mask: if not active, ALWAYS return 'masked' (never hidden, e.g. for Settings pages)
+    if (modifiers.mask) {
+        if (typeof val === 'string') {
+            return activeFeatures.includes(val) ? 'active' : 'masked'
+        }
+        if (Array.isArray(val)) {
+            if (modifiers.all) {
+                return val.every(f => activeFeatures.includes(f)) ? 'active' : 'masked'
+            }
+            return val.some(f => activeFeatures.includes(f)) ? 'active' : 'masked'
+        }
+        return 'masked'
+    }
+
+    // 3. Standard 3-tier matrix evaluation
+    if (typeof val === 'string') {
+        return evaluateFeatureState(auth, val)
+    }
+
+    if (Array.isArray(val)) {
+        if (modifiers.all) {
+            const states = val.map(f => evaluateFeatureState(auth, f))
+            if (states.every(s => s === 'active')) return 'active'
+            if (states.some(s => s === 'hidden')) return 'hidden'
+            return 'masked'
+        }
+        // Default OR logic
+        const states = val.map(f => evaluateFeatureState(auth, f))
+        if (states.some(s => s === 'active')) return 'active'
+        if (states.every(s => s === 'hidden')) return 'hidden'
+        return 'masked'
+    }
+
+    return 'active'
+}
+
 const handleFeature = (el, binding) => {
     const { props } = usePage()
-    const features = props.auth?.features || []
     const subscription = props.auth?.subscription
     const isSubscribed = Boolean(subscription && subscription.status === 'active')
 
     if (!binding.value || (Array.isArray(binding.value) && binding.value.length === 0)) {
+        removeLockOverlay(el)
+        if (el._featureHidden) {
+            el.style.display = el._origDisplayFeature || ''
+            el.removeAttribute('aria-hidden')
+            el._featureHidden = false
+        }
         return
     }
 
-    let isAllowed = true
-    if (typeof binding.value === 'string') {
-        isAllowed = features.includes(binding.value)
-    } else if (Array.isArray(binding.value)) {
-        if (binding.modifiers.all) {
-            isAllowed = binding.value.every(v => features.includes(v))
-        } else {
-            isAllowed = binding.value.some(v => features.includes(v))
+    const state = resolveTargetState(props.auth, binding.value, binding.modifiers)
+
+    if (state === 'hidden') {
+        removeLockOverlay(el)
+        if (!el._featureHidden) {
+            el._origDisplayFeature = el.style.display
+            el.style.display = 'none'
+            el.setAttribute('aria-hidden', 'true')
+            el._featureHidden = true
         }
-    }
+    } else {
+        if (el._featureHidden) {
+            el.style.display = el._origDisplayFeature || ''
+            el.removeAttribute('aria-hidden')
+            el._featureHidden = false
+        }
 
-    const isLockMode = binding.modifiers.lock || binding.modifiers.modal
-
-    if (!isAllowed) {
-        if (isLockMode) {
+        if (state === 'masked') {
             const featureName = Array.isArray(binding.value) ? binding.value[0] : binding.value
             renderLockOverlay(el, featureName, isSubscribed)
         } else {
-            el.parentNode && el.parentNode.removeChild(el)
-        }
-    } else {
-        if (isLockMode) {
             removeLockOverlay(el)
         }
     }
@@ -184,9 +289,19 @@ const handleFeature = (el, binding) => {
 
 const cleanupFeature = el => {
     removeLockOverlay(el)
+    if (el._canHidden) {
+        el.style.display = el._origDisplayCan || ''
+        el.removeAttribute('aria-hidden')
+        delete el._origDisplayCan
+        delete el._canHidden
+    }
+    if (el._featureHidden) {
+        el.style.display = el._origDisplayFeature || ''
+        el.removeAttribute('aria-hidden')
+        delete el._origDisplayFeature
+        delete el._featureHidden
+    }
 }
-
-export { FeatureLock, FeatureLockOverlay }
 
 export default {
     install(app) {
@@ -199,25 +314,50 @@ export default {
         Object.defineProperty(app.config.globalProperties, '$can', {
             get() {
                 const permissions = this.$page?.props?.auth?.permissions || []
-                return permission => {
+                return (permission, requireAll = false) => {
                     if (!permission) return false
                     if (typeof permission === 'string') {
                         return checkPermission(permissions, permission)
                     }
                     if (Array.isArray(permission)) {
-                        return permission.some(p => checkPermission(permissions, p))
+                        return requireAll
+                            ? permission.every(p => checkPermission(permissions, p))
+                            : permission.some(p => checkPermission(permissions, p))
                     }
                     return false
                 }
             },
         })
 
-        app.component('FeatureLock', FeatureLock)
-        app.component('FeatureLockOverlay', FeatureLockOverlay)
+        Object.defineProperty(app.config.globalProperties, '$feature', {
+            get() {
+                const auth = this.$page?.props?.auth || {}
+                return featureName => evaluateFeatureState(auth, featureName)
+            },
+        })
+
+        Object.defineProperty(app.config.globalProperties, '$hasFeature', {
+            get() {
+                const activeFeatures = this.$page?.props?.auth?.features || []
+                return (featureName, requireAll = false) => {
+                    if (!featureName) return true
+                    if (typeof featureName === 'string') {
+                        return activeFeatures.includes(featureName)
+                    }
+                    if (Array.isArray(featureName)) {
+                        return requireAll
+                            ? featureName.every(f => activeFeatures.includes(f))
+                            : featureName.some(f => activeFeatures.includes(f))
+                    }
+                    return false
+                }
+            },
+        })
 
         app.directive('can', {
             mounted: handleCan,
             updated: handleCan,
+            unmounted: cleanupFeature,
         })
 
         app.directive('feature', {

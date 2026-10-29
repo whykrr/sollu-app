@@ -5,6 +5,7 @@ namespace Tests\Feature\API;
 use App\Enums\DeviceTypeEnum;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
+use App\Enums\PlanEnum;
 use App\Enums\ProductTypeEnum;
 use App\Enums\SalesChannelEnum;
 use App\Enums\TransactionPaymentStatus;
@@ -21,6 +22,8 @@ use App\Models\OutletDevice;
 use App\Models\Sales\Transaction;
 use App\Models\Sales\TransactionItem;
 use App\Models\Sales\TransactionPayment;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Uom;
 use App\Models\User;
 use App\Services\Pos\PosDeviceAuthCacheService;
@@ -71,6 +74,17 @@ class PosMasterDataSyncTest extends TestCase
             'business_type_id' => $type->id,
             'settings' => ['active_features' => array_column(FeatureEnum::cases(), 'value')],
         ]);
+
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($proPlan) {
+            Subscription::create([
+                'business_id' => $this->business->id,
+                'plan_id' => $proPlan->id,
+                'status' => 'active',
+                'expired_at' => now()->addDays(30),
+            ]);
+            $this->business->clearCache($this->business->id);
+        }
 
         $this->outletA = Outlet::create([
             'business_id' => $this->business->id,

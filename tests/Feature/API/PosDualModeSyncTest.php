@@ -6,6 +6,7 @@ namespace Tests\Feature\API;
 
 use App\Enums\DeviceTypeEnum;
 use App\Enums\FeatureEnum;
+use App\Enums\PlanEnum;
 use App\Enums\ProductTypeEnum;
 use App\Events\Pos\PosCatalogNudgeEvent;
 use App\Models\Business;
@@ -19,6 +20,8 @@ use App\Models\Master\ProductPrice;
 use App\Models\Outlet;
 use App\Models\OutletDevice;
 use App\Models\OutletSetting;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Uom;
 use App\Services\Pos\PosDeviceAuthCacheService;
 use Database\Seeders\DatabaseSeeder;
@@ -69,6 +72,17 @@ class PosDualModeSyncTest extends TestCase
             'business_type_id' => $type->id,
             'settings' => ['active_features' => array_column(FeatureEnum::cases(), 'value')],
         ]);
+
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($proPlan) {
+            Subscription::create([
+                'business_id' => $this->business->id,
+                'plan_id' => $proPlan->id,
+                'status' => 'active',
+                'expired_at' => now()->addDays(30),
+            ]);
+            $this->business->clearCache($this->business->id);
+        }
 
         $this->outlet = Outlet::create([
             'business_id' => $this->business->id,

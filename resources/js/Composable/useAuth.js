@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import { usePage } from '@inertiajs/vue3'
+import { evaluateFeatureState } from '@/Composable/usePlanFeature'
 
 export function useAuth() {
     const page = usePage()
@@ -57,6 +58,16 @@ export function useAuth() {
     const isRoot = computed(() => Boolean(auth.value.is_root_user))
     const isOwner = computed(() => isRoot.value || hasRole('owner'))
 
+    const hasFeature = featureName => {
+        if (!featureName) return true
+        const activeFeatures = auth.value?.features || []
+        return activeFeatures.includes(featureName)
+    }
+
+    const featureState = featureName => {
+        return evaluateFeatureState(auth.value, featureName)
+    }
+
     return {
         auth,
 
@@ -78,5 +89,8 @@ export function useAuth() {
 
         hasRole,
         hasAnyRole,
+
+        hasFeature,
+        featureState,
     }
 }

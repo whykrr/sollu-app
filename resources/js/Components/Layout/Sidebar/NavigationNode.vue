@@ -1,5 +1,9 @@
 <template>
-    <div v-if="shouldRender">
+    <div
+        v-if="shouldRender"
+        v-feature.hide="item.feature || item.features"
+        v-can="item.permissions"
+    >
         <NavigationSection
             v-if="item.type === 'section'"
             :label="item.label"
@@ -26,6 +30,8 @@
                 :key="submenu.url || submenu.label || subIndex"
             >
                 <Link
+                    v-feature.hide="submenu.feature || submenu.features"
+                    v-can="submenu.permissions"
                     :href="submenu.url"
                     class="nav-dropdown-item"
                     :class="{ active: isActive(submenu) }"

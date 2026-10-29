@@ -4,7 +4,7 @@
         title="Matriks Harga Khusus"
         :description="sectionDescription"
         :icon="faTag"
-        :feature="$enums.FeatureEnum?.PRODUCT_PRICE_MATRIX || 'product_price_matrix'"
+        :feature="$enums.FeatureEnum.PRODUCT_PRICE_MATRIX"
         :switch-value="isCustomPriceActive"
         :is-open="isOpen"
         :badge="badgeText"

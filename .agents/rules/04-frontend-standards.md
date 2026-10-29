@@ -158,5 +158,23 @@ Untuk mencegah pemotongan efek visual (*clipping*) oleh container scrollable (`o
 2. **Wajib `transition-colors duration-200 ease-in-out`:** Kontrol formulir hanya boleh menganimasikan warna (`border-color`, `background-color`, `color`). Focus ring (`ring-2 ring-inset`) harus muncul seketika secara tegas (*instant crisp feedback*).
 3. **Wajib `outline-none` pada Base State:** Deklarasikan `outline-none` pada state dasar (unfocused) dan `focus:outline-none` pada focus state untuk menonaktifkan native outline browser secara permanen.
 
+---
+
+## 11. Standar Deklaratif Access & Feature Gating di Template
+
+1. **RBAC Permission Guard (`v-can`):**
+   - Gunakan `v-can="$enums.PermissionEnum.NAME"` pada tombol atau elemen aksi.
+   - Elemen otomatis disembunyikan secara aman (`display: none !important` + `aria-hidden="true"`) tanpa merusak VDOM.
+2. **SaaS Feature Plan Guard (`v-feature`):**
+   - Gunakan `v-feature="$enums.FeatureEnum.NAME"` pada card, form section, atau tombol fitur berbayar.
+   - Gunakan modifier `v-feature.hide` khusus pada item menu sidebar / navigasi agar langsung disembunyikan jika tidak aktif.
+   - Gunakan modifier `v-feature.mask` pada halaman pengaturan fitur agar selalu menampilkan lock overlay jika tidak ada di plan.
+   - Dilarang mengimpor composable `usePlanFeature` atau memanggil modal imperatif di skrip komponen. Seluruh interaksi ditangkap otomatis di capture phase oleh directive `v-feature`.
+3. **Global Template Helpers:**
+   - `$can(permission, requireAll = false)`: Evaluasi boolean RBAC di template expression.
+   - `$hasFeature(featureName, requireAll = false)`: Evaluasi boolean fitur aktif di template expression.
+   - `$feature(featureName)`: Return status `'active' | 'masked' | 'hidden'`.
+
+
 
 

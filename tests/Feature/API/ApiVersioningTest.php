@@ -4,10 +4,13 @@ namespace Tests\Feature\API;
 
 use App\Enums\DeviceTypeEnum;
 use App\Enums\FeatureEnum;
+use App\Enums\PlanEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Outlet;
 use App\Models\OutletDevice;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Services\Pos\PosDeviceAuthCacheService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,6 +51,17 @@ class ApiVersioningTest extends TestCase
             'business_type_id' => $type->id,
             'settings' => ['active_features' => array_column(FeatureEnum::cases(), 'value')],
         ]);
+
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($proPlan) {
+            Subscription::create([
+                'business_id' => $this->business->id,
+                'plan_id' => $proPlan->id,
+                'status' => 'active',
+                'expired_at' => now()->addDays(30),
+            ]);
+            $this->business->clearCache($this->business->id);
+        }
 
         $this->outlet = Outlet::create([
             'business_id' => $this->business->id,

@@ -57,8 +57,9 @@ Saat membuat atau memodifikasi antarmuka di `resources/js`, Anda **WAJIB** memat
 
 - **Kondisi Status & Tipe:** Gunakan `$enums.<EnumName>.<Case>` di template atau `useEnum()` di script setup.
 - **Opsi Dropdown:** Gunakan `:options="getOptions('EnumName')"` via `useEnum()`.
-- **Feature Plan Gating:** Gunakan directive `v-feature="$enums.FeatureEnum.NAME"` atau komponen `<FeatureLock :feature="$enums.FeatureEnum.NAME">`.
-- **RBAC Permission:** Gunakan `v-can="'permission.name'"` atau `useAuth().can('permission.name')`.
+- **Feature Plan Gating:** Gunakan directive `v-feature="$enums.FeatureEnum.NAME"` (atau modifier `v-feature.hide` khusus navigasi/sidebar untuk hide langsung, atau `v-feature.mask` untuk halaman settings). Tidak perlu komponen wrapper `<FeatureLock>`.
+- **RBAC Permission:** Gunakan `v-can="$enums.PermissionEnum.NAME"` atau `useAuth().can($enums.PermissionEnum.NAME)`.
+- **Programmatic Check di Script:** Gunakan `useAuth().hasFeature(featureName)` jika butuh sanitasi payload sebelum submit. Penampilan modal upsell ditangani otomatis di belakang layar oleh directive `v-feature` pada fase capture.
 
 ## 8. Standar Ukuran Tombol (`.btn-xs`, `.btn-sm`, `.btn`, `.btn-lg`)
 

@@ -59,7 +59,7 @@ class ProductInventoryMultiOutletTest extends TestCase
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
-            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true, 'features' => [FeatureEnum::PRODUCT_CATALOG->value]]
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true, 'features' => array_column(FeatureEnum::cases(), 'value')]
         );
 
         $this->business = Business::create([

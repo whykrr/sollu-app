@@ -86,9 +86,10 @@
 
             <!-- Row 3: Inventory Alerts & Dead Stock -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
-                <FeatureLock :feature="$enums.FeatureEnum.INVENTORY_MANAGEMENT">
-                    <TableProductLowStock :data="lowStockProduct" />
-                </FeatureLock>
+                <TableProductLowStock
+                    v-feature="$enums.FeatureEnum.INVENTORY_MANAGEMENT"
+                    :data="lowStockProduct"
+                />
                 <TableProductNotSold :data="productNotSold" />
             </div>
         </div>
@@ -104,7 +105,6 @@ import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
-import FeatureLock from '@/Components/UI/FeatureLock.vue'
 import AppDashboardKpiWidgets from './Components/AppDashboardKpiWidgets.vue'
 import SalesTrendChart from './Components/SalesTrendChart.vue'
 import CategorySalesChart from './Components/CategorySalesChart.vue'

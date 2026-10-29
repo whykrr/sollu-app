@@ -83,10 +83,38 @@ class DeltaSyncService
             }
 
             if (! empty($targetProductIds)) {
-                $loadedProducts = Product::with(['productItems.uom', 'productItems.inventoryItem'])
+                $loadedProducts = Product::with([
+                    'productItems:id,product_id,has_variant,uom_id',
+                    'productItems.uom:id,name,code',
+                    'productItems.inventoryItem:id,product_item_id',
+                ])
                     ->where('business_id', $businessId)
                     ->whereIn('id', $targetProductIds)
-                    ->get();
+                    ->select([
+                        'id',
+                        'business_id',
+                        'product_category_id',
+                        'product_type',
+                        'name',
+                        'code',
+                        'description',
+                        'image_url',
+                        'is_show',
+                        'sellable',
+                        'has_variant',
+                        'has_modifier',
+                        'has_recipe',
+                        'track_inventory',
+                        'created_at',
+                        'updated_at',
+                    ])
+                    ->get()
+                    ->map(function ($product) {
+                        $firstItem = $product->productItems->first();
+                        $product->setAttribute('unit', $firstItem?->uom?->name ?? ($firstItem?->uom?->code ?? 'Pcs'));
+
+                        return $product;
+                    });
 
                 $resolvedPrices = $this->priceResolver->resolveForOutlet($loadedProducts, $targetProductIds, $outletId);
 
@@ -99,10 +127,30 @@ class DeltaSyncService
 
         // 3. Product items (varian, SKU, barcode) yang dibuat atau diperbarui sejak updated_since
         $updatedProductItems = (! empty($productIds) && $shouldFetchProductItems)
-            ? ProductItem::with(['uom', 'inventoryItem'])
+            ? ProductItem::with([
+                'uom:id,name',
+                'inventoryItem:id,product_item_id',
+            ])
                 ->where('business_id', $businessId)
                 ->whereIn('product_id', $productIds)
                 ->where('updated_at', '>', $since)
+                ->select([
+                    'id',
+                    'product_id',
+                    'business_id',
+                    'uom_id',
+                    'item_type',
+                    'name',
+                    'variant_combination',
+                    'sku',
+                    'barcode',
+                    'track_inventory',
+                    'is_show',
+                    'sellable',
+                    'is_active',
+                    'created_at',
+                    'updated_at',
+                ])
                 ->get()
                 ->makeHidden('business_id')
             : collect();

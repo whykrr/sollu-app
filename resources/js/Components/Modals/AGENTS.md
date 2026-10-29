@@ -11,8 +11,8 @@ Panduan modal khusus untuk alur fitur SaaS dan Impor Data:
 ## 1. Feature Locked Modal (`<FeatureLockedModal>`)
 
 - **Fungsi:** Dialog upsell yang mengunci fitur berbayar dan memandu pengguna melakukan upgrade paket langganan.
-- **Trigger:** Dipicu otomatis via Inertia shared flash message saat pengguna mencoba mengakses endpoint yang terproteksi oleh middleware `plan.feature:feature_name`.
-- **Komponen Pendukung:** Gunakan `<FeatureLock :feature="$enums.FeatureEnum.NAME">` di halaman view untuk mengunci kartu/tombol tertentu secara visual.
+- **Trigger:** Dipicu otomatis via directive `v-feature` pada fase capture saat elemen masked diklik, atau via flash message backend `feature_locked`.
+- **Deklarasi Frontend:** Cukup gunakan directive `v-feature="$enums.FeatureEnum.NAME"` pada elemen target (tidak memerlukan pemanggilan modal imperatif manual di skrip komponen).
 
 ---
 

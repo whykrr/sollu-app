@@ -4,7 +4,7 @@
         title="Opsi Tambahan (Modifier)"
         description="Pilih grup opsi tambahan yang dapat dipilih pelanggan saat memesan produk ini di kasir"
         :icon="faSliders"
-        :feature="$enums.FeatureEnum?.PRODUCT_MODIFIERS || 'product_modifiers'"
+        :feature="$enums.FeatureEnum.PRODUCT_MODIFIER"
         :switch-value="Boolean(form.has_modifier)"
         :is-open="isOpen"
         :badge="badgeText"

@@ -4,7 +4,7 @@
         title="Resep & Komposisi (BOM)"
         description="Tentukan bahan baku yang dikonsumsi setiap kali produk ini terjual"
         :icon="faUtensils"
-        :feature="$enums.FeatureEnum?.RECIPE_MANAGEMENT || 'recipe_management'"
+        :feature="$enums.FeatureEnum.PRODUCT_BOM"
         :switch-value="Boolean(form.has_recipe)"
         :is-open="isOpen"
         :badge="badgeText"

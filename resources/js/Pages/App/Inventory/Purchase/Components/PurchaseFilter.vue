@@ -57,7 +57,7 @@
         <template #create>
             <!-- Jika memiliki fitur PO: gunakan dropdown action (+ Pembelian) -->
             <ActionsDropdown
-                v-if="hasPOFeature"
+                v-if="$hasFeature($enums.FeatureEnum?.PURCHASE_ORDER)"
                 label="Pembelian Baru"
                 :icon="faPlus"
                 :items="createActionItems"
@@ -95,7 +95,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
-import { usePlanFeature } from '@/Composable/usePlanFeature'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterPresetDate from '@/Components/UI/Filter/FilterPresetDate.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
@@ -125,11 +124,6 @@ const props = defineProps({
 
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 const { enums } = useEnum()
-const { hasFeature } = usePlanFeature()
-
-const hasPOFeature = computed(() => {
-    return hasFeature(enums.FeatureEnum?.PURCHASE_ORDERS || 'purchase_orders')
-})
 
 const outletOptions = computed(() => {
     const list = props.outlets?.length > 0 ? props.outlets : userOutlets.value || []

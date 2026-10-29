@@ -28,7 +28,7 @@
                 </button>
 
                 <button
-                    v-feature="$enums.FeatureEnum.INVOICE_DEBT"
+                    v-feature="$enums.FeatureEnum.TRANSACTION_INVOICE"
                     type="button"
                     class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 cursor-pointer"
                     :class="[
@@ -60,7 +60,7 @@
         <!-- Tab 2: Pengaturan Penjualan Faktur (B2B) -->
         <div
             v-show="activeTab === 'b2b'"
-            v-feature="$enums.FeatureEnum.INVOICE_DEBT"
+            v-feature="$enums.FeatureEnum.TRANSACTION_INVOICE"
             class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-12"
         >
             <!-- Left Column: Form Settings -->
@@ -294,7 +294,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
-import { usePage } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import SettingOutletSelector from '../Components/SettingOutletSelector.vue'

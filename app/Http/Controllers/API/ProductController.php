@@ -172,7 +172,10 @@ class ProductController extends Controller
             ->get();
 
         $activePromos = collect();
-        if ($checkPromo) {
+        if ($checkPromo && $products->isNotEmpty()) {
+            $productIds = $products->pluck('id')->all();
+            $productItemIds = $products->flatMap(fn ($p) => $p->productItems->pluck('id'))->all();
+
             $activePromos = Promotion::currentBusiness($businessId)
                 ->active()
                 ->when($outletId, function ($q, $outletId) {
@@ -181,9 +184,14 @@ class ProductController extends Controller
                             ->orWhereHas('outlets', fn ($o) => $o->where('outlets.id', $outletId));
                     });
                 })
-                ->where(function ($q) {
-                    $q->where('target_scope', PromotionTargetScope::Product->value)
-                        ->orWhere('target_scope', PromotionTargetScope::Variant->value);
+                ->where(function ($q) use ($productIds, $productItemIds) {
+                    $q->where(function ($sub) use ($productIds) {
+                        $sub->where('target_scope', PromotionTargetScope::Product->value)
+                            ->whereHas('products', fn ($p) => $p->whereIn('products.id', $productIds));
+                    })->orWhere(function ($sub) use ($productItemIds) {
+                        $sub->where('target_scope', PromotionTargetScope::Variant->value)
+                            ->whereHas('productItems', fn ($pi) => $pi->whereIn('product_items.id', $productItemIds));
+                    });
                 })
                 ->with(['products:id', 'productItems:id'])
                 ->get();
@@ -402,13 +410,29 @@ class ProductController extends Controller
 
         // Promos resolution
         $activePromos = collect();
-        if ($checkPromo) {
+        if ($checkPromo && ($inventoryItems->isNotEmpty() || $nonInventoryProducts->isNotEmpty())) {
+            $productIds = $nonInventoryProducts->pluck('id')
+                ->merge($inventoryItems->map(fn ($i) => $i->productItem?->product_id ?? $i->product_id)->filter())
+                ->unique()
+                ->values()
+                ->all();
+            $productItemIds = $inventoryItems->pluck('product_item_id')->filter()->unique()->values()->all();
+
             $activePromos = Promotion::currentBusiness($businessId)
                 ->active()
                 ->when($outletId, function ($q, $outletId) {
                     $q->where(function ($sub) use ($outletId) {
                         $sub->where('applies_to_all_outlets', true)
                             ->orWhereHas('outlets', fn ($o) => $o->where('outlets.id', $outletId));
+                    });
+                })
+                ->where(function ($q) use ($productIds, $productItemIds) {
+                    $q->where(function ($sub) use ($productIds) {
+                        $sub->where('target_scope', PromotionTargetScope::Product->value)
+                            ->whereHas('products', fn ($p) => $p->whereIn('products.id', $productIds));
+                    })->orWhere(function ($sub) use ($productItemIds) {
+                        $sub->where('target_scope', PromotionTargetScope::Variant->value)
+                            ->whereHas('productItems', fn ($pi) => $pi->whereIn('product_items.id', $productItemIds));
                     });
                 })
                 ->with(['products:id', 'productItems:id'])

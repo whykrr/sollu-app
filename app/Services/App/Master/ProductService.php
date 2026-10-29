@@ -65,6 +65,9 @@ class ProductService
             $canUseModifier = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_MODIFIER);
             $hasModifier = $canUseModifier && ($data['has_modifier'] ?? false);
 
+            $canUseInventory = ! $hasActiveSub || $business->hasFeature(FeatureEnum::INVENTORY_MANAGEMENT);
+            $trackInventory = $canUseInventory && (bool) ($data['track_inventory'] ?? false);
+
             $product = Product::create([
                 'business_id' => $data['business_id'],
                 'product_category_id' => $data['product_category_id'] ?? null,
@@ -72,7 +75,7 @@ class ProductService
                 'has_variant' => $hasVariant,
                 'has_modifier' => $hasModifier,
                 'has_recipe' => $hasRecipe,
-                'track_inventory' => (bool) ($data['track_inventory'] ?? false),
+                'track_inventory' => $trackInventory,
                 'code' => $data['code'] ?? null,
                 'name' => $data['name'],
                 'description' => $data['description'] ?? null,
@@ -333,13 +336,16 @@ class ProductService
             $canUseModifier = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_MODIFIER);
             $hasModifier = $canUseModifier && (array_key_exists('has_modifier', $data) ? (bool) $data['has_modifier'] : (bool) $product->has_modifier);
 
+            $canUseInventory = ! $hasActiveSub || $business->hasFeature(FeatureEnum::INVENTORY_MANAGEMENT);
+            $trackInventory = $canUseInventory && (array_key_exists('track_inventory', $data) ? (bool) $data['track_inventory'] : (bool) $product->track_inventory);
+
             $product->update([
                 'product_category_id' => $data['product_category_id'] ?? $product->product_category_id,
                 'product_type' => $productType,
                 'has_variant' => $hasVariant,
                 'has_modifier' => $hasModifier,
                 'has_recipe' => $hasRecipe,
-                'track_inventory' => array_key_exists('track_inventory', $data) ? (bool) $data['track_inventory'] : (bool) $product->track_inventory,
+                'track_inventory' => $trackInventory,
                 'code' => array_key_exists('code', $data) ? $data['code'] : $product->code,
                 'name' => $data['name'] ?? $product->name,
                 'description' => $data['description'] ?? $product->description,
@@ -405,10 +411,16 @@ class ProductService
 
                 // Decoupled Inventory
                 if ($product->track_inventory) {
-                    $invItem = $this->inventoryService->linkInventoryItem($defaultItem, [
+                    $invItemData = [
                         'uom_id' => $data['uom_id'] ?? null,
-                        'minimum_stock' => $data['minimum_stock'] ?? ($data['min_stock'] ?? null),
-                    ], $activeOutletIds);
+                    ];
+                    if (array_key_exists('minimum_stock', $data)) {
+                        $invItemData['minimum_stock'] = $data['minimum_stock'];
+                    } elseif (array_key_exists('min_stock', $data)) {
+                        $invItemData['minimum_stock'] = $data['min_stock'];
+                    }
+
+                    $invItem = $this->inventoryService->linkInventoryItem($defaultItem, $invItemData, $activeOutletIds);
 
                     $this->recordInitialStocksForProductItem($product, $invItem, $data, $activeOutletIds);
                 } elseif ($defaultItem->inventoryItem) {
@@ -525,6 +537,10 @@ class ProductService
 
         $processedItemIds = [];
         if (isset($data['variant_combinations'])) {
+            $existingItems = ProductItem::where('product_id', $product->id)->get();
+            $existingBySku = $existingItems->whereNotNull('sku')->keyBy('sku');
+            $existingByCombo = $existingItems->whereNotNull('variant_combination')->keyBy('variant_combination');
+
             foreach ($data['variant_combinations'] as $combo) {
                 $optIds = [];
                 foreach ($combo['options'] as $groupName => $optName) {
@@ -537,14 +553,10 @@ class ProductService
                 $invItem = null;
 
                 if (! empty($combo['sku'])) {
-                    $invItem = ProductItem::where('product_id', $product->id)
-                        ->where('sku', $combo['sku'])
-                        ->first();
+                    $invItem = $existingBySku->get($combo['sku']);
                 }
                 if (! $invItem) {
-                    $invItem = ProductItem::where('product_id', $product->id)
-                        ->where('variant_combination', $comboString)
-                        ->first();
+                    $invItem = $existingByCombo->get($comboString);
                 }
 
                 $isTrackInventory = array_key_exists('track_inventory', $combo)
@@ -589,6 +601,12 @@ class ProductService
                         'sellable' => $isSellable,
                         'is_active' => $isActive,
                     ]);
+                    if (! empty($invItem->sku)) {
+                        $existingBySku->put($invItem->sku, $invItem);
+                    }
+                    if (! empty($invItem->variant_combination)) {
+                        $existingByCombo->put($invItem->variant_combination, $invItem);
+                    }
                 } else {
                     $invItem->update([
                         'name' => $product->name.' - '.$comboString,
@@ -650,14 +668,16 @@ class ProductService
         }
 
         // Deactivate removed combinations
-        ProductItem::where('product_id', $product->id)
+        $toDeactivate = ProductItem::where('product_id', $product->id)
             ->whereNotIn('id', $processedItemIds)
-            ->each(function ($item) {
-                $item->update(['is_active' => false]);
-                if ($item->inventoryItem) {
-                    $item->inventoryItem->update(['is_active' => false]);
-                }
-            });
+            ->where('is_active', true)
+            ->pluck('id')
+            ->all();
+
+        if (! empty($toDeactivate)) {
+            ProductItem::whereIn('id', $toDeactivate)->update(['is_active' => false]);
+            InventoryItem::whereIn('product_item_id', $toDeactivate)->update(['is_active' => false]);
+        }
     }
 
     /**
@@ -986,6 +1006,7 @@ class ProductService
 
         // 1. Jika ada alokasi per-outlet khusus (misal array initial_stocks)
         if (! empty($data['initial_stocks']) && is_array($data['initial_stocks'])) {
+            $outletCache = [];
             foreach ($data['initial_stocks'] as $stockEntry) {
                 $outletId = $stockEntry['outlet_id'] ?? null;
                 $qty = isset($stockEntry['qty'])
@@ -996,7 +1017,7 @@ class ProductService
                     : (isset($stockEntry['unit_cost']) ? (float) $stockEntry['unit_cost'] : 0.0);
 
                 if ($outletId && $qty > 0) {
-                    $outlet = Outlet::find($outletId);
+                    $outlet = $outletCache[$outletId] ??= Outlet::find($outletId);
                     if ($outlet && $outlet->business_id === $product->business_id) {
                         $this->applyInitialStockForOutlet($business, $outlet, $invItem, $product, $qty, $cost);
                     }

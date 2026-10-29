@@ -46,6 +46,19 @@ class ProductController extends Controller
 
         $products = Product::currentBusiness()
             ->goods()
+            ->select([
+                'id',
+                'business_id',
+                'product_category_id',
+                'product_type',
+                'name',
+                'code',
+                'image_url',
+                'is_show',
+                'sellable',
+                'has_variant',
+                'created_at',
+            ])
             ->with([
                 'category:id,name',
                 'prices' => function ($q) use ($outletId) {
@@ -56,7 +69,6 @@ class ProductController extends Controller
                         });
                     }
                 },
-                'images:id,product_id,product_item_id,image_url,sort_order',
             ])
             ->filters($params)
             ->sortable($request->validated('sort', 'created_at'), $request->validated('direction', 'desc'))
@@ -82,19 +94,26 @@ class ProductController extends Controller
         $this->authorize(PermissionEnum::PRODUCT_VIEW->value);
 
         return response()->json([
-            'categories' => ProductCategory::currentBusiness()->select('id', 'name')->get(),
-            'outlets' => Outlet::currentBusiness()->active()->select('id', 'name')->get(),
+            'categories' => ProductCategory::currentBusiness()->select('id', 'name')->orderBy('name')->get(),
+            'outlets' => Outlet::currentBusiness()->active()->select('id', 'name')->orderBy('name')->get(),
             'modifierGroups' => ModifierGroup::currentBusiness()
                 ->with('options:id,modifier_group_id,name,additional_price,is_default')
                 ->select('id', 'name', 'selection_type', 'max_select', 'is_required')
                 ->get(),
-            'inventoryItems' => InventoryItem::currentBusiness()->get(),
-            'baseProducts' => Product::currentBusiness()->where('product_type', '!=', 'bundle')->select('id', 'name', 'code')->get(),
+            'inventoryItems' => [],
+            'baseProducts' => [],
             'uoms' => Uom::where('status', 'active')->orderBy('name')->select('id', 'name', 'code')->get(),
             'rawMaterials' => ProductItem::currentBusiness()
                 ->where('item_type', 'raw_material')
                 ->where('is_active', true)
-                ->with(['uom:id,name', 'inventoryItem.balances'])
+                ->select(['id', 'product_id', 'business_id', 'name', 'uom_id'])
+                ->with([
+                    'uom:id,name',
+                    'inventoryItem' => function ($q) {
+                        $q->select(['id', 'product_item_id', 'business_id'])
+                            ->with('balances:id,inventory_item_id,outlet_id,average_cost');
+                    },
+                ])
                 ->get(),
         ]);
     }
@@ -113,18 +132,36 @@ class ProductController extends Controller
 
         // Load all detailed relationships for the PopUp form
         $product->load([
-            'category',
-            'prices',
-            'outlets',
-            'productItems.inventoryItem.balances',
-            'productItems.inventoryItem.uom',
-            'inventoryItems.balances',
-            'images',
-            'variantGroups.options',
-            'activeRecipe.items.productItem.uom',
-            'recipeVersions.items.productItem.uom',
-            'modifierGroups',
-            'bundleItems',
+            'category:id,name',
+            'prices:id,product_id,product_item_id,outlet_id,amount',
+            'outlets:id,name',
+            'productItems' => function ($q) {
+                $q->select([
+                    'id',
+                    'business_id',
+                    'product_id',
+                    'uom_id',
+                    'item_type',
+                    'name',
+                    'variant_combination',
+                    'sku',
+                    'barcode',
+                    'track_inventory',
+                    'is_show',
+                    'sellable',
+                    'is_active',
+                ])->with([
+                    'uom:id,name',
+                    'inventoryItem:id,product_item_id,business_id,minimum_stock',
+                ]);
+            },
+            'images:id,product_id,product_item_id,image_url,sort_order',
+            'variantGroups' => function ($q) {
+                $q->select(['id', 'product_id', 'name', 'sort_order'])
+                    ->with('options:id,variant_group_id,name,sort_order');
+            },
+            'activeRecipe.items.productItem.uom:id,name',
+            'modifierGroups:id,name',
         ]);
 
         return new ProductResource($product);

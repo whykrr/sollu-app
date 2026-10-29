@@ -39,6 +39,7 @@
 ## 3. APIs, Eloquent Resources & Thin Controller
 - **Penamaan JSON:** Seluruh payload API menggunakan `snake_case`.
 - **Strict Numeric Casting:** Angka desimal, harga, dan kuantitas WAJIB di-cast ke `(float)` atau `(int)` di API Resource agar tidak terkirim sebagai string ke frontend.
+- **Larangan `parent::toArray()` pada JsonResource:** Eloquent Resource WAJIB mendefinisikan array bentuk DTO terstruktur eksplisit dengan tipe data pasti (strict types). DILARANG KERAS menggunakan `parent::toArray($request)` karena me-dump seluruh atribut mentah model, internal relational state, dan relasi bersarang yang memboroskan bandwidth, RAM server, serta berisiko membocorkan data.
 - **Response Message Constants:** Gunakan `App\Constants\ResourceMessage` (`CREATE_SUCCESS`, `UPDATE_SUCCESS`, `DELETE_SUCCESS`, `RESTORE_SUCCESS`).
 - **Thin Controller:** Controller di `app/Http/Controllers/App/` hanya menerima HTTP request, otorisasi, memanggil Domain Service, dan render/return response. Logika bisnis kompleks dilarang di controller.
 
@@ -59,7 +60,13 @@
 ---
 
 ## 5. Pemberantasan N+1 Query & Standar Kueri Teroptimasi (Zero N+1 Invariant)
+- **Larangan Relasi di `$appends` Model (Hidden N+1 Serialization Invariant):**
+  DILARANG KERAS menyematkan accessor yang mengakses relasi Eloquent (terutama relasi bersarang) ke dalam properti `$appends` pada Model. Hal ini memicu *hidden N+1 queries* setiap kali model diserialisasi (Inertia pagination, `toArray()`, `json_encode()`). Accessor boleh tetap ada pada model, tetapi pemanggilannya wajib eksplisit di API Resource / DTO atau setelah relasi terkait dipastikan di-eager-load.
 - **Larangan Kueri dalam Loop PHP:** DILARANG KERAS memanggil kueri database (Eloquent/DB Builder seperti `where()->exists()`, `find()`, `first()`) di dalam loop PHP (`foreach`, `filter()`, `map()`, `each()`).
+- **In-Memory Preloading & Bulk Mutation pada Operasi Matriks / Impor:**
+  Pada operasi mutasi multi-item, kalkulasi bersarang, atau job impor batch (Excel/CSV), DILARANG menjalankan query `where()->first()`, `firstOrCreate()`, atau `->each()` di dalam loop iterasi data. Wajib melakukan preloading data yang ada ke dalam memory collection berindeks (`keyBy()`, `pluck()`) dan menjalankan mutasi bulk (`whereIn()->update()`).
+- **Memoization pada Observer Per-Record:**
+  Observer yang mentrigger sinyal/nudge per record wajib mem-memoize query lookup induk/outlet pada static array lokal per siklus request untuk mencegah query berulang saat mutasi data dalam jumlah besar.
 - **Pendelegasian ke SQL Set-Based:** Seluruh pengecekan keterkaitan relasi atau riwayat mutasi WAJIB didelegasikan ke level SQL database menggunakan:
   - `whereDoesntHave('relation', fn($q) => ...)` atau `whereHas(...)`
   - `withExists(['relation as alias' => fn($q) => ...])`

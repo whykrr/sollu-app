@@ -1,7 +1,7 @@
 <template>
     <div
         :id="id"
-        v-feature.lock="feature"
+        v-feature="feature"
         class="border rounded-xl transition-colors duration-150 relative"
         :class="[
             hasError
@@ -13,8 +13,7 @@
     >
         <!-- Header / Toggle Row -->
         <div
-            class="flex items-center justify-between p-3 select-none rounded-xl"
-            :class="[isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-slate-50/60']"
+            class="flex items-center justify-between p-3 select-none rounded-xl cursor-pointer hover:bg-slate-50/60"
             @click="handleHeaderClick"
         >
             <!-- Left: Icon & Title & Description & Badges -->
@@ -22,11 +21,7 @@
                 <div
                     v-if="icon"
                     class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
-                    :class="
-                        switchValue && !isLocked
-                            ? 'bg-main/10 text-main'
-                            : 'bg-slate-100 text-slate-400'
-                    "
+                    :class="switchValue ? 'bg-main/10 text-main' : 'bg-slate-100 text-slate-400'"
                 >
                     <FontAwesomeIcon :icon="icon" class="text-xs" />
                 </div>
@@ -44,7 +39,7 @@
                             :class="
                                 hasError
                                     ? 'bg-danger-100 text-danger-700'
-                                    : switchValue && !isLocked
+                                    : switchValue
                                       ? 'bg-main/10 text-main'
                                       : 'bg-slate-100 text-slate-600'
                             "
@@ -70,16 +65,15 @@
             <div class="flex items-center gap-2 shrink-0">
                 <div v-if="hasSwitch" @click.stop>
                     <Switch
-                        :model-value="isLocked ? false : switchValue"
+                        :model-value="switchValue"
                         size="sm"
-                        :disabled="isLocked"
                         @update:model-value="handleSwitchChange"
                     />
                 </div>
 
                 <div
                     class="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 transition-transform duration-200"
-                    :class="{ 'rotate-180 text-slate-600': isOpen && !isLocked }"
+                    :class="{ 'rotate-180 text-slate-600': isOpen }"
                 >
                     <FontAwesomeIcon :icon="faChevronDown" class="text-xs" />
                 </div>
@@ -87,10 +81,7 @@
         </div>
 
         <!-- Collapsible Body -->
-        <div
-            v-show="isOpen && !isLocked"
-            class="px-3.5 pb-3.5 pt-2 border-t border-slate-100 space-y-3"
-        >
+        <div v-show="isOpen" class="px-3.5 pb-3.5 pt-2 border-t border-slate-100 space-y-3">
             <slot />
         </div>
     </div>
@@ -101,7 +92,6 @@ import { computed, watch } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import Switch from '@/Components/Form/Switch.vue'
-import { usePlanFeature } from '@/Composable/usePlanFeature'
 
 const props = defineProps({
     id: { type: String, default: null },
@@ -118,41 +108,24 @@ const props = defineProps({
 
 const emit = defineEmits(['update:switchValue', 'update:isOpen', 'switch-change', 'toggle'])
 
-const { hasFeature, requireFeature } = usePlanFeature()
-
-const isLocked = computed(() => {
-    if (!props.feature) return false
-    return !hasFeature(props.feature)
-})
-
 const hasError = computed(() => Boolean(props.error))
 
 watch(
     () => props.error,
     newErr => {
-        if (newErr && !isLocked.value && !props.isOpen) {
+        if (newErr && !props.isOpen) {
             emit('update:isOpen', true)
         }
     }
 )
 
-const handleHeaderClick = e => {
-    if (isLocked.value) {
-        e?.preventDefault?.()
-        e?.stopPropagation?.()
-        requireFeature(props.feature)
-        return
-    }
+const handleHeaderClick = () => {
     const nextOpen = !props.isOpen
     emit('update:isOpen', nextOpen)
     emit('toggle', nextOpen)
 }
 
 const handleSwitchChange = val => {
-    if (isLocked.value) {
-        requireFeature(props.feature)
-        return
-    }
     emit('update:switchValue', val)
     emit('switch-change', val)
     if (val && !props.isOpen) {

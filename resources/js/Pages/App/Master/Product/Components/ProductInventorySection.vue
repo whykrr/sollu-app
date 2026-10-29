@@ -4,7 +4,7 @@
         title="Stok & Inventori"
         description="Pantau stok masuk, keluar, dan peringatan batas minimum stok"
         :icon="faBoxesStacked"
-        :feature="$enums.FeatureEnum?.INVENTORY_MANAGEMENT || 'inventory_management'"
+        :feature="$enums.FeatureEnum.INVENTORY_MANAGEMENT"
         :switch-value="Boolean(form.track_inventory)"
         :is-open="isOpen"
         :badge="badgeText"

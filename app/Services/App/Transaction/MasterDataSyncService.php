@@ -61,15 +61,43 @@ class MasterDataSyncService
         });
 
         $products = ! empty($productIds)
-            ? Product::with(['productItems.uom', 'productItems.inventoryItem'])
+            ? Product::with([
+                'productItems:id,product_id,has_variant,uom_id',
+                'productItems.uom:id,name,code',
+                'productItems.inventoryItem:id,product_item_id',
+            ])
                 ->where('business_id', $businessId)
                 ->whereIn('id', $productIds)
+                ->select([
+                    'id',
+                    'business_id',
+                    'product_category_id',
+                    'product_type',
+                    'name',
+                    'code',
+                    'description',
+                    'image_url',
+                    'is_show',
+                    'sellable',
+                    'has_variant',
+                    'has_modifier',
+                    'has_recipe',
+                    'track_inventory',
+                    'created_at',
+                    'updated_at',
+                ])
                 ->get()
-                ->makeHidden('business_id')
+                ->map(function ($product) {
+                    $firstItem = $product->productItems->first();
+                    $product->setAttribute('unit', $firstItem?->uom?->name ?? ($firstItem?->uom?->code ?? 'Pcs'));
+
+                    return $product->makeHidden('business_id');
+                })
             : collect();
 
         // 2. Data turunan produk
         $productCategories = ProductCategory::where('business_id', $businessId)
+            ->select(['id', 'business_id', 'parent_id', 'name', 'sort_order', 'created_at', 'updated_at'])
             ->orderBy('sort_order', 'asc')
             ->orderBy('name', 'asc')
             ->get()
@@ -80,16 +108,22 @@ class MasterDataSyncService
             : [];
 
         $productImages = ! empty($productIds)
-            ? ProductImage::whereIn('product_id', $productIds)->get()
+            ? ProductImage::whereIn('product_id', $productIds)
+                ->select(['id', 'product_id', 'product_item_id', 'image_url', 'sort_order', 'created_at', 'updated_at'])
+                ->get()
             : collect();
 
         $variantGroups = ! empty($productIds)
-            ? VariantGroup::whereIn('product_id', $productIds)->get()
+            ? VariantGroup::whereIn('product_id', $productIds)
+                ->select(['id', 'product_id', 'name', 'sort_order', 'created_at', 'updated_at'])
+                ->get()
             : collect();
 
         $variantGroupIds = $variantGroups->pluck('id')->all();
         $variantGroupOptions = ! empty($variantGroupIds)
-            ? VariantGroupOption::whereIn('variant_group_id', $variantGroupIds)->get()
+            ? VariantGroupOption::whereIn('variant_group_id', $variantGroupIds)
+                ->select(['id', 'variant_group_id', 'name', 'sort_order', 'created_at', 'updated_at'])
+                ->get()
             : collect();
 
         $productModifierGroups = ! empty($productIds)
@@ -102,13 +136,16 @@ class MasterDataSyncService
         $modifierGroupIds = $productModifierGroups->pluck('modifier_group_id')->filter()->unique()->values()->all();
         $modifierGroups = ! empty($modifierGroupIds)
             ? ModifierGroup::whereIn('id', $modifierGroupIds)
+                ->select(['id', 'business_id', 'name', 'selection_type', 'max_select', 'is_required', 'created_at', 'updated_at'])
                 ->get()
                 ->makeHidden('business_id')
             : collect();
 
         $modifierGroupPks = $modifierGroups->pluck('id')->all();
         $modifierOptions = ! empty($modifierGroupPks)
-            ? ModifierOption::whereIn('modifier_group_id', $modifierGroupPks)->get()
+            ? ModifierOption::whereIn('modifier_group_id', $modifierGroupPks)
+                ->select(['id', 'modifier_group_id', 'name', 'additional_price', 'is_default', 'sort_order', 'created_at', 'updated_at'])
+                ->get()
             : collect();
 
         // 4. Pendukung lainnya
@@ -170,10 +207,27 @@ class MasterDataSyncService
 
         // 5. Product Items & Inventori Stok (optimasi direct lookup tanpa full sequential table scan)
         if (! empty($productIds)) {
-            $productItems = ProductItem::with('uom')
+            $productItems = ProductItem::with('uom:id,name')
                 ->whereIn('product_id', $productIds)
                 ->where('item_type', 'variant_sku')
                 ->where('is_active', true)
+                ->select([
+                    'id',
+                    'product_id',
+                    'business_id',
+                    'uom_id',
+                    'item_type',
+                    'name',
+                    'variant_combination',
+                    'sku',
+                    'barcode',
+                    'track_inventory',
+                    'is_show',
+                    'sellable',
+                    'is_active',
+                    'created_at',
+                    'updated_at',
+                ])
                 ->get()
                 ->map(function ($item) {
                     $arr = $item->makeHidden('business_id')->toArray();
@@ -192,8 +246,23 @@ class MasterDataSyncService
                 : collect();
 
             $inventoryItems = ! empty($productItemIds)
-                ? InventoryItem::with(['uom', 'productItem.uom'])
+                ? InventoryItem::with(['uom:id,name,code', 'productItem.uom:id,name,code'])
                     ->whereIn('product_item_id', $productItemIds)
+                    ->select([
+                        'id',
+                        'business_id',
+                        'product_id',
+                        'product_item_id',
+                        'uom_id',
+                        'sku',
+                        'barcode',
+                        'name',
+                        'track_inventory',
+                        'minimum_stock',
+                        'is_active',
+                        'created_at',
+                        'updated_at',
+                    ])
                     ->get()
                     ->makeHidden('business_id')
                 : collect();

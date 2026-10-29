@@ -2,7 +2,12 @@
     <nav class="sidebar-navigation cockpit-navigation">
         <div class="navigation-list">
             <template v-for="(sidebar, index) in sidebars" :key="index">
-                <div v-if="!sidebar.route" v-can="sidebar.permissions" class="nav-section">
+                <div
+                    v-if="!sidebar.route"
+                    v-can="sidebar.permissions"
+                    v-feature.hide="sidebar.feature || sidebar.features"
+                    class="nav-section"
+                >
                     <div v-if="sidebar.separator === true" class="py-0.5">
                         <div class="w-full border-t pt-1 text-xs">
                             {{ sidebar.label }}
@@ -15,6 +20,7 @@
                 <NavigationItem
                     v-else-if="!sidebar.items"
                     v-can="sidebar.permissions"
+                    v-feature.hide="sidebar.feature || sidebar.features"
                     :to="sidebar.href || (route().has(sidebar.route) ? route(sidebar.route) : '#')"
                     :icon="sidebar.icon"
                     :label="sidebar.label"
@@ -24,6 +30,7 @@
                 <NavigationDropdown
                     v-else
                     v-can="sidebar.permissions"
+                    v-feature.hide="sidebar.feature || sidebar.features"
                     to="#"
                     :icon="sidebar.icon"
                     :label="sidebar.label"
@@ -33,6 +40,7 @@
                         v-for="(submenu, subIndex) in sidebar.items"
                         :key="subIndex"
                         v-can="submenu.permissions"
+                        v-feature.hide="submenu.feature || submenu.features"
                         :href="route().has('' + submenu.route) ? route('' + submenu.route) : '#'"
                         class="nav-dropdown-item"
                         :class="{

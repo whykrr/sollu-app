@@ -30,7 +30,7 @@ Apakah yang sedang dievaluasi?
   ├─► Kapabilitas Toko / Modul Bisnis? (Inventori, CRM, Laporan Lanjutan, Promo)
   │     └─► Gunakan LAYER 1 - 3: SaaS Feature Gating (FeatureEnum)
   │         • Cek: Apakah feature ∈ (BusinessType ∩ Plan ∩ (Personalization || All))?
-  │         • Frontend: Gunakan `v-feature.lock` (Tampilkan gembok & modal upsell)
+  │         • Frontend: Gunakan `v-feature="$enums.FeatureEnum.NAME"` (atau `v-feature.hide` untuk sidebar/navigasi)
   │         • Backend: Dilindungi oleh Route Middleware `plan.feature:feature_name`
   │
   ├─► Kewenangan Jabatan Karyawan? (Tambah produk, Void transaksi, Stock opname)
@@ -111,13 +111,13 @@ Dilarang keras mencampuradukkan pengecekan RBAC dengan SaaS Feature Gating. Kedu
 | :--- | :--- | :--- |
 | **Dimensi Pengaturan** | Kewenangan Jabatan Personal User | Kapabilitas Komersial Tenant / Bisnis |
 | **Master Enum SSOT** | `PermissionEnum` (e.g. `product.create`) | `FeatureEnum` (e.g. `inventory_management`) |
-| **Prinsip UI / UX** | **Silent Guard (Sembunyikan)** | **Commercial Upsell (Kunci & Ajak Upgrade)** |
-| **Directive Vue** | `v-can="'permission.name'"` | `v-feature.lock="'feature_name'"` |
-| **Komponen Vue** | `v-if="$can('permission.name')"` | `<FeatureLock :feature="...">` / `<FeatureLockOverlay>` |
+| **Prinsip UI / UX** | **Silent Guard (Sembunyikan)** | **Dual-Prinsip (Hide jika Personal/Jenis Usaha vs Masking jika Belum)** |
+| **Directive Vue** | `v-can="$enums.PermissionEnum.NAME"` | `v-feature="$enums.FeatureEnum.NAME"` (`.hide` untuk sidebar, `.mask` untuk settings) |
+| **Komponen Vue** | `v-if="$can(...)"` | Tanpa wrapper (komponen `<FeatureLock>` telah dieliminasi total) |
 | **Perlindungan Backend**| `FormRequest::authorize()` / Controller Gate | Route Middleware: `plan.feature:feature_name` |
 | **Respon Backend (JSON)**| HTTP 403 `{ message: "This action is unauthorized." }` | HTTP 403 `{ is_feature_locked: true, feature: "..." }` |
 | **Respon Backend (Web)** | HTTP 403 Exception | Redirect back dengan flash `feature_locked` |
-| **Interaksi Pengguna** | Tidak ada akses, menu/tombol lenyap | Tampil overlay gembok $\rightarrow$ Klik $\rightarrow$ Buka `FeatureLockedModal.vue` |
+| **Interaksi Pengguna** | Tidak ada akses, menu/tombol lenyap | Tampil overlay gembok $\rightarrow$ Klik $\rightarrow$ Di-trap capture-phase $\rightarrow$ Buka `FeatureLockedModal.vue` |
 
 ---
 
@@ -166,8 +166,8 @@ class StoreStockAdjustmentRequest extends FormRequest
 ### B. Frontend Vue Component
 ```vue
 <template>
-    <!-- 1. Feature Plan Gating: Kunci dengan overlay jika paket belum mencakup fitur -->
-    <div v-feature.lock="$enums.FeatureEnum.STOCK_ADJUSTMENTS" class="card">
+    <!-- 1. Feature Plan Gating: Masking atau Hide otomatis via v-feature -->
+    <div v-feature="$enums.FeatureEnum.INVENTORY_MANAGEMENT" class="card">
         <h3>Penyesuaian Stok</h3>
         
         <!-- 2. User RBAC: Sembunyikan tombol jika kasir/staf tidak punya wewenang -->

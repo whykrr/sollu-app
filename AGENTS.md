@@ -38,7 +38,7 @@ Activate the relevant specialized skill when working in specific domains:
 - `domain-notifications`: `BaseNotification`, multi-tenant scoping, mail, broadcast, retention.
 - `domain-audit-log`: ActivityLoggerInterface, table partitioning, event matrices.
 - `sollu`: Comprehensive architecture & technical implementation reference.
-- `inertia-vue-development`, `testing-best-practices`, `configuring-horizon`, `echo-development`.
+- `inertia-vue-development`, `testing-best-practices`, `configuring-horizon`, `echo-development`, `query-optimization`.
 
 ---
 

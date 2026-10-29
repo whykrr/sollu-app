@@ -39,7 +39,7 @@
 ├─────────────────────┼───────────────────┼──────────────────────────────┤
 │ Entitas             │ User / Employee   │ Business / Tenant            │
 │ Source of Truth     │ PermissionEnum    │ FeatureEnum                  │
-│ Logika Tampilan     │ Sembunyikan (Hide)│ Kunci & Upsell (FeatureLock) │
+│ Logika Tampilan     │ Sembunyikan (Hide)│ Masking Upsell / Hide Matriks│
 │ Directive Frontend  │ v-can             │ v-feature                    │
 │ Middleware Backend  │ permission:...    │ plan.feature:...             │
 └─────────────────────┴───────────────────┴──────────────────────────────┘
@@ -47,11 +47,18 @@
 
 1. **User RBAC (Hak Akses Jabatan):**
    - Mengatur kewenangan per user (`PermissionEnum`, `v-can`).
-   - Jika tidak ada hak akses: **Sembunyikan elemen visual**.
+   - Jika tidak ada hak akses: **Sembunyikan elemen visual** secara aman dari VDOM (`display: none !important` + `aria-hidden="true"`).
    - Operasional umum (ekspor/impor) diatur murni via RBAC (`permission: product.export`), bukan via plan feature.
 2. **Tenant Feature (Fitur Paket Berlangganan):**
    - Mengatur kapabilitas bisnis sesuai paket SaaS yang aktif (`FeatureEnum`, `v-feature`).
-   - Jika paket belum mencakup fitur: **Tampilkan elemen terkunci (Upsell)** dengan `<FeatureLock :feature="...">` atau `<FeatureLockOverlay>`.
+   - **Dilarang Komponen Wrapper:** Komponen `<FeatureLock>` dan `<FeatureLockOverlay>` telah dieliminasi total. Seluruh pembatasan visual wajib menggunakan directive `v-feature`.
+   - **Prinsip Gating Dualitas:**
+     - **Navigasi & Sidebar:** WAJIB menggunakan modifier `v-feature.hide="$enums.FeatureEnum.NAME"` (langsung sembunyikan jika tidak aktif, tanpa masking/gembok).
+     - **Content Page:**
+       - *HIDE:* Fitur di luar jenis usaha ATAU merchant sudah menyimpan personalisasi (`is_personalized = true` dan fitur mati).
+       - *MASKING:* Merchant belum personalisasi, fitur valid untuk jenis usaha, tetapi paket belum mencakup. Overlay gembok muncul otomatis.
+   - **Capture-Phase Trapping:** Pada status `masked`, event interaksi (`click`, `keydown`) di-trap pada level container (`capture: true`) dan otomatis membuka `FeatureLockedModal` di belakang layar. Dilarang menulis pengecekan manual dan modal trigger di script komponen.
+   - **Pengecekan di Skrip:** Jika membutuhkan sanitasi data form sebelum submit, gunakan `useAuth().hasFeature($enums.FeatureEnum.NAME)`.
    - Backend route protection: `middleware('plan.feature:' . FeatureEnum::NAME->value)`.
    - **Multi-Fitur pada Route Middleware (OR Logic):** Mendukung beberapa fitur dipisah koma (`plan.feature:product_catalog,service_catalog`). Akses diizinkan jika bisnis memiliki salah satu fitur tersebut.
    - Dilarang keras mencampuradukkan pengecekan permission untuk membatasi fitur paket.

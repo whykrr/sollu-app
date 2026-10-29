@@ -15,6 +15,11 @@ class ProductItemObserver
         protected PosNudgeQueueService $nudgeQueue
     ) {}
 
+    /**
+     * @var array<string, array<string>>
+     */
+    protected static array $outletIdsCache = [];
+
     public function saved(ProductItem $productItem): void
     {
         $this->broadcastNudge($productItem);
@@ -32,16 +37,25 @@ class ProductItemObserver
 
     protected function broadcastNudge(ProductItem $productItem): void
     {
+        $productId = $productItem->product_id;
         $outletIds = [];
-        if ($productItem->product_id) {
-            $outletIds = DB::table('outlet_product')
-                ->where('product_id', $productItem->product_id)
-                ->where('is_enabled', true)
-                ->pluck('outlet_id')
-                ->all();
-        }
 
-        if (empty($outletIds) && $productItem->business_id) {
+        if ($productId) {
+            if (! isset(static::$outletIdsCache[$productId])) {
+                $ids = DB::table('outlet_product')
+                    ->where('product_id', $productId)
+                    ->where('is_enabled', true)
+                    ->pluck('outlet_id')
+                    ->all();
+
+                if (empty($ids) && $productItem->business_id) {
+                    $ids = Outlet::where('business_id', $productItem->business_id)->pluck('id')->all();
+                }
+
+                static::$outletIdsCache[$productId] = $ids ?? [];
+            }
+            $outletIds = static::$outletIdsCache[$productId];
+        } elseif ($productItem->business_id) {
             $outletIds = Outlet::where('business_id', $productItem->business_id)->pluck('id')->all();
         }
 

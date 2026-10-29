@@ -150,7 +150,7 @@
             title="Matriks Tarif Cabang"
             description="Kustomisasi nominal tarif layanan khusus per cabang outlet"
             :icon="faTag"
-            :feature="$enums.FeatureEnum?.PRODUCT_PRICE_MATRIX || 'product_price_matrix'"
+            :feature="$enums.FeatureEnum.PRODUCT_PRICE_MATRIX"
             :switch-value="customizeOutletPrices"
             :is-open="isPricingOpen"
             :badge="customizeOutletPrices ? 'Kustom Aktif' : null"
@@ -228,7 +228,6 @@ import { useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSave, faSpinner, faTag } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
-import { usePlanFeature } from '@/Composable/usePlanFeature'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
@@ -250,8 +249,7 @@ const props = defineProps({
     outlets: { type: Array, default: () => [] },
 })
 
-const { selectedOutlet } = useAuth()
-const { hasFeature } = usePlanFeature()
+const { selectedOutlet, hasFeature } = useAuth()
 
 const isPricingLocked = computed(() => {
     return !hasFeature('product_price_matrix')

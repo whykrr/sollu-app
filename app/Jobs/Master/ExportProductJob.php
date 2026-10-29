@@ -32,7 +32,15 @@ class ExportProductJob extends AbstractExcelExportJob
     public function getQuery(): Builder
     {
         return Product::where('business_id', $this->businessId)
-            ->with(['category', 'variantGroups.options', 'inventoryItems.uom', 'prices', 'outlets'])
+            ->with([
+                'category:id,name',
+                'variantGroups.options:id,variant_group_id,name,sort_order',
+                'productItems.variantGroupOptions:id,name,variant_group_id',
+                'productItems.uom:id,name',
+                'productItems.inventoryItem:id,product_item_id,minimum_stock',
+                'prices',
+                'outlets:id,name',
+            ])
             ->filters($this->filters)
             ->orderByDesc('created_at');
     }
@@ -96,7 +104,8 @@ class ExportProductJob extends AbstractExcelExportJob
 
         $this->getQuery()->chunk(500, function ($products) use (&$rows, $outlets) {
             foreach ($products as $product) {
-                $uomName = $product->inventoryItems->first()?->uom?->name ?? '';
+                $firstItem = $product->productItems->first();
+                $uomName = $firstItem?->uom?->name ?? '';
 
                 // Parent Row
                 $parentRow = [
@@ -122,14 +131,15 @@ class ExportProductJob extends AbstractExcelExportJob
                     $parentRow[] = $hasOutlet ? 'Ya' : 'Tidak';
                 }
 
-                if ($product->isBasic() && $product->has_variant && $product->inventoryItems->where('item_type', 'variant_sku')->count() > 0) {
-                    $variants = $product->inventoryItems->where('item_type', 'variant_sku');
+                $variantItems = $product->productItems->where('item_type', 'variant_sku');
+
+                if ($product->isBasic() && $product->has_variant && $variantItems->count() > 0) {
                     $variantGroups = $product->variantGroups;
 
                     $parentRow[13] = ''; // Parent min stock is empty for variant products
                     $rows[] = $parentRow;
 
-                    foreach ($variants as $variant) {
+                    foreach ($variantItems as $variant) {
                         $v1Name = '';
                         $v1Opt = '';
                         $v2Name = '';
@@ -151,6 +161,8 @@ class ExportProductJob extends AbstractExcelExportJob
                             }
                         }
 
+                        $childPrice = $product->prices->where('product_item_id', $variant->id)->whereNull('outlet_id')->first()?->amount ?? $parentRow[10];
+
                         $childRow = [
                             $variant->sku,
                             $variant->barcode ?? '',
@@ -162,10 +174,10 @@ class ExportProductJob extends AbstractExcelExportJob
                             $v1Opt,
                             $v2Name,
                             $v2Opt,
-                            $product->prices->where('inventory_item_id', $variant->id)->whereNull('outlet_id')->first()?->amount ?? $parentRow[10],
+                            $childPrice,
                             '',
                             '',
-                            $variant->min_stock,
+                            $variant->inventoryItem?->minimum_stock ?? '',
                             '',
                         ];
 
@@ -176,9 +188,9 @@ class ExportProductJob extends AbstractExcelExportJob
                         $rows[] = $childRow;
                     }
                 } else {
-                    $inv = $product->inventoryItems->where('item_type', 'variant_sku')->first();
-                    $parentRow[1] = $inv ? ($inv->barcode ?? '') : '';
-                    $parentRow[13] = $inv ? $inv->min_stock : 0;
+                    $singleItem = $variantItems->first() ?? $firstItem;
+                    $parentRow[1] = $singleItem ? ($singleItem->barcode ?? '') : '';
+                    $parentRow[13] = $singleItem?->inventoryItem?->minimum_stock ?? 0;
                     $rows[] = $parentRow;
                 }
             }

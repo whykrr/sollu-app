@@ -34,7 +34,9 @@ Aplikasi dibagi ke dalam modul-modul mandiri (*Bounded Contexts*): Inventory, Ma
 - **Mutasi Lintas Modul:** Modul A **DILARANG KERAS** melakukan `insert`, `update`, atau `delete` langsung ke tabel/Model milik Modul B. Gunakan Domain Event/Listener atau Public Service Contract.
 - **Import UI Privat Lintas Modul:** File Vue Modul A dilarang mengimpor komponen privat dari folder Modul B. Pindahkan ke `@/Components/` (global) jika digunakan bersama.
 - **God Service:** Dilarang membuat class Service yang menangani logika bisnis lintas domain berbeda.
-- **Over-Fetching di `index()`:** Dilarang me-load relasi berat (*items, recipe, logs*) atau master data massal pada method `index()` Inertia. Data detail lengkap wajib dimuat secara *on-demand* via endpoint `show()` / PopUp drawer.
+- **Anti-Overfetching pada `index()` & `formOptions()`:**
+  - Dilarang me-load relasi berat (*items, recipe, logs*) atau master data massal pada method `index()` Inertia. Kueri `index()` wajib menyertakan `select(...)` kolom yang dibutuhkan tampilan tabel/kartu saja. Data detail lengkap wajib dimuat secara *on-demand* via endpoint `show()` / PopUp drawer.
+  - Endpoint `formOptions()` DILARANG me-load model atau tabel relasi yang tidak dikonsumsi frontend (misalnya menarik seluruh baris tabel transaksi/stok jika form hanya membutuhkan master data dasar). Setiap query dropdown wajib menyertakan `select(['id', 'name'])` dan ordering yang efisien.
 
 ---
 

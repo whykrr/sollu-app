@@ -110,6 +110,7 @@ class FeatureSettingControllerTest extends TestCase
             ->has('availableFeatures')
             ->has('activeFeatures')
             ->has('featureGroups')
+            ->where('isPersonalized', false)
         );
     }
 
@@ -173,5 +174,50 @@ class FeatureSettingControllerTest extends TestCase
         $savedFeatures = $business->settings['active_features'];
         $this->assertContains($validFeature, $savedFeatures);
         $this->assertNotContains($invalidFeature, $savedFeatures);
+    }
+
+    public function test_non_root_user_cannot_reset_features(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
+        $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
+        $user->update(['is_root_user' => false]);
+
+        $response = $this->actingAs($user, 'business')->delete("http://{$this->appDomain}/settings/business/features");
+
+        $response->assertStatus(403);
+    }
+
+    public function test_authorized_user_can_reset_personalized_features_to_defaults(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
+        $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
+        $user->update(['is_root_user' => true]);
+
+        $business = $user->business;
+        $availableFeatures = array_map(fn ($f) => $f->value, $business->getAvailablePlanFeatures());
+        $featuresToEnable = array_slice($availableFeatures, 0, 2);
+
+        // Save custom features first
+        $business->settings = ['active_features' => $featuresToEnable];
+        $business->save();
+        $this->assertTrue($business->fresh()->isFeaturePersonalized());
+
+        // Now call reset
+        $response = $this->actingAs($user, 'business')->delete("http://{$this->appDomain}/settings/business/features");
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, 'Pengaturan personalisasi fitur berhasil direset ke standar!');
+
+        $freshBusiness = Business::find($business->id);
+        $this->assertArrayNotHasKey('active_features', $freshBusiness->settings ?? []);
+        $this->assertFalse($freshBusiness->isFeaturePersonalized());
+
+        // activePlanFeatures should fall back to entire allowed features
+        $this->assertEquals(
+            count($freshBusiness->getAvailablePlanFeatures()),
+            count($freshBusiness->activePlanFeatures())
+        );
     }
 }

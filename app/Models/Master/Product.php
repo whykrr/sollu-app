@@ -57,7 +57,6 @@ class Product extends Model
 
     protected $appends = [
         'cover_image_url',
-        'unit',
     ];
 
     /**

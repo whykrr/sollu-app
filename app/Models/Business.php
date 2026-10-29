@@ -331,6 +331,12 @@ class Business extends Model
                     $activeFeatures[] = $featureEnum;
                 }
             }
+
+            // Always ensure FEATURE_PERSONALIZATION remains active if supported by the plan/type
+            // so a merchant cannot accidentally lock themselves out of the personalization page.
+            if ($canPersonalize && in_array(FeatureEnum::FEATURE_PERSONALIZATION, $allowedFeatures, true) && ! in_array(FeatureEnum::FEATURE_PERSONALIZATION, $activeFeatures, true)) {
+                $activeFeatures[] = FeatureEnum::FEATURE_PERSONALIZATION;
+            }
         }
 
         if ($shouldCache) {
@@ -410,6 +416,32 @@ class Business extends Model
         }
 
         return $subscription->plan->allowsOutletCount($this->activeOutletsCount() + 1);
+    }
+
+    /**
+     * Check if the business has explicitly personalized its active features.
+     */
+    public function isFeaturePersonalized(): bool
+    {
+        $planFeatures = $this->getAvailablePlanFeatures();
+        $canPersonalize = in_array(FeatureEnum::FEATURE_PERSONALIZATION, $planFeatures, true);
+
+        return $canPersonalize && isset($this->settings['active_features']) && is_array($this->settings['active_features']);
+    }
+
+    /**
+     * Reset merchant personalized features back to default unconfigured state.
+     */
+    public function resetFeaturePersonalization(): void
+    {
+        $settings = $this->settings ?? [];
+        unset($settings['active_features']);
+
+        $this->settings = $settings;
+        $this->save();
+
+        $this->memoizedActivePlanFeatures = null;
+        self::clearCache($this->id);
     }
 
     /**

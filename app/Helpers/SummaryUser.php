@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use App\Enums\FeatureEnum;
+use App\Models\BusinessType;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Services\Auth\UserPermissionCacheService;
@@ -61,7 +63,22 @@ class SummaryUser
                     ) : null,
                     'subscription' => $user->business->getActiveSubscriptionWithPlan()?->toArray()
                         ?? $user->business->subscriptions()->with('plan')->latest()->first()?->toArray(),
-                    'features' => $user->business ? $user->business->activePlanFeatures() : [],
+                    'features' => ($business = $user->business)
+                        ? array_values(array_map(fn ($f) => $f instanceof FeatureEnum ? $f->value : (string) $f, $business->activePlanFeatures()))
+                        : [],
+                    'feature_matrix' => ($business = $user->business) ? [
+                        'active' => array_values(array_map(fn ($f) => $f instanceof FeatureEnum ? $f->value : (string) $f, $business->activePlanFeatures())),
+                        'type_features' => ($type = ($business->relationLoaded('type') ? $business->type : ($business->business_type_id ? BusinessType::getAllCached()->firstWhere('id', $business->business_type_id) : null)))
+                            ? array_values(array_map(fn ($f) => $f instanceof FeatureEnum ? $f->value : (string) $f, $type->featureEnums()))
+                            : null,
+                        'plan_features' => array_values(array_map(fn ($f) => $f instanceof FeatureEnum ? $f->value : (string) $f, $business->getAvailablePlanFeatures())),
+                        'is_personalized' => $business->isFeaturePersonalized(),
+                    ] : [
+                        'active' => [],
+                        'type_features' => null,
+                        'plan_features' => [],
+                        'is_personalized' => false,
+                    ],
                     'outlets' => ($user->is_root_user
                         ? Outlet::where('business_id', $user->business_id)->where('is_active', true)
                         : $user->outlets()->where('outlets.is_active', true)->where('outlets.business_id', $user->business_id)

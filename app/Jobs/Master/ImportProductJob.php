@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Notifications\ExcelImportCompleted;
 use App\Services\App\Master\ProductService;
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Facades\Excel;
@@ -20,6 +21,21 @@ class ImportProductJob extends AbstractExcelImportJob
     protected ProductService $productService;
 
     protected $businessId;
+
+    /**
+     * @var array<string, string>
+     */
+    protected array $categoriesCache = [];
+
+    /**
+     * @var array<string, string>
+     */
+    protected array $uomsCache = [];
+
+    /**
+     * @var Collection|null
+     */
+    protected $activeOutletsCache = null;
 
     public function __construct($user, string $filePath, string $businessId)
     {
@@ -64,6 +80,10 @@ class ImportProductJob extends AbstractExcelImportJob
 
         $headers = array_map('trim', $sheet[0] ?? []);
         $dataRows = array_slice($sheet, 1);
+
+        $this->activeOutletsCache = Outlet::where('business_id', $this->businessId)->active()->get();
+        $this->uomsCache = Uom::pluck('id', 'name')->all();
+        $this->categoriesCache = ProductCategory::where('business_id', $this->businessId)->pluck('id', 'name')->all();
 
         $successCount = 0;
         $failedRows = [];
@@ -224,21 +244,29 @@ class ImportProductJob extends AbstractExcelImportJob
         // Category
         $categoryId = null;
         if (! empty($kategori)) {
-            $cat = ProductCategory::firstOrCreate(
-                ['business_id' => $this->businessId, 'name' => $kategori],
-                ['name' => $kategori]
-            );
-            $categoryId = $cat->id;
+            if (! isset($this->categoriesCache[$kategori])) {
+                $cat = ProductCategory::firstOrCreate(
+                    ['business_id' => $this->businessId, 'name' => $kategori],
+                    ['name' => $kategori]
+                );
+                $this->categoriesCache[$kategori] = $cat->id;
+            }
+            $categoryId = $this->categoriesCache[$kategori];
         }
 
         // UOM
         $uomId = null;
         if (! empty($satuan) && $lacakStok) {
-            $uom = Uom::where('name', $satuan)->first();
-            if ($uom) {
-                $uomId = $uom->id;
+            if (isset($this->uomsCache[$satuan])) {
+                $uomId = $this->uomsCache[$satuan];
             } else {
-                throw new Exception("Satuan '{$satuan}' tidak ditemukan.");
+                $uom = Uom::where('name', $satuan)->first();
+                if ($uom) {
+                    $uomId = $uom->id;
+                    $this->uomsCache[$satuan] = $uom->id;
+                } else {
+                    throw new Exception("Satuan '{$satuan}' tidak ditemukan.");
+                }
             }
         }
 
@@ -266,7 +294,7 @@ class ImportProductJob extends AbstractExcelImportJob
         ];
 
         // Process Outlets
-        $activeOutlets = Outlet::where('business_id', $this->businessId)->active()->get();
+        $activeOutlets = $this->activeOutletsCache ??= Outlet::where('business_id', $this->businessId)->active()->get();
         foreach ($activeOutlets as $outlet) {
             $colName = 'Outlet: '.$outlet->name;
             if (isset($row[$colName]) && strtolower($row[$colName]) === 'ya') {

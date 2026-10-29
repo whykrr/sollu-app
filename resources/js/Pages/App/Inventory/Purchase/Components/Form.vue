@@ -388,7 +388,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash, faExclamationTriangle, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
-import { usePlanFeature } from '@/Composable/usePlanFeature'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
@@ -396,12 +395,11 @@ import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.v
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import ItemPickerModal from '@/Components/Inventory/ItemPickerModal.vue'
 
-const { outlets: userOutlets, selectedOutlet } = useAuth()
+const { outlets: userOutlets, selectedOutlet, hasFeature } = useAuth()
 const { enums } = useEnum()
-const { hasFeature } = usePlanFeature()
 
 const hasPOFeature = computed(() => {
-    return hasFeature(enums.FeatureEnum?.PURCHASE_ORDERS || 'purchase_orders')
+    return hasFeature(enums.FeatureEnum?.PURCHASE_ORDER)
 })
 
 const props = defineProps({

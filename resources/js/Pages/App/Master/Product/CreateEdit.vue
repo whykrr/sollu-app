@@ -6,7 +6,7 @@
         <!-- Card 1: Stok & Inventori (FeatureEnum: INVENTORY_MANAGEMENT) -->
         <ProductInventorySection id="card-inventory" v-model:is-open="isInventoryOpen" />
 
-        <!-- Card 2: Varian Produk (FeatureEnum: PRODUCT_VARIANTS) -->
+        <!-- Card 2: Varian Produk (FeatureEnum: PRODUCT_VARIANT) -->
         <ProductVariantSection id="card-variant" v-model:is-open="isVariantOpen" />
 
         <!-- Card 3: Matriks Harga (Kondisional: Cabang > 1 ATAU Varian Aktif, FeatureEnum: PRODUCT_PRICE_MATRIX) -->
@@ -16,10 +16,10 @@
             v-model:is-open="isPricingOpen"
         />
 
-        <!-- Card 4: Resep BOM (FeatureEnum: RECIPE_MANAGEMENT) -->
+        <!-- Card 4: Resep BOM (FeatureEnum: PRODUCT_BOM) -->
         <ProductRecipeSection id="card-recipe" v-model:is-open="isRecipeOpen" />
 
-        <!-- Card 5: Opsi Tambahan / Modifier (FeatureEnum: PRODUCT_MODIFIERS) -->
+        <!-- Card 5: Opsi Tambahan / Modifier (FeatureEnum: PRODUCT_MODIFIER) -->
         <ProductModifierSection id="card-modifier" v-model:is-open="isModifierOpen" />
     </div>
 

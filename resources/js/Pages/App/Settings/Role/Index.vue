@@ -16,13 +16,11 @@
             />
         </template>
 
-        <FeatureLock
-            :feature="$enums.FeatureEnum.ROLE_PERMISSIONS"
+        <div
+            v-feature="$enums.FeatureEnum.CUSTOM_ROLE"
             class="h-full flex-1 min-h-0 flex flex-col"
-            content-class="h-full flex-1 min-h-0 flex flex-col"
         >
-            <div class="h-full flex-1 min-h-0 flex flex-col">
-                <Table :headers="headers" :data="roles" :action="true">
+            <Table :headers="headers" :data="roles" :action="true">
                     <template #name="{ row }">
                         <div class="flex flex-col">
                             <span class="font-medium text-neutral-900">{{ row.label }}</span>
@@ -90,8 +88,7 @@
                         </button>
                     </template>
                 </Table>
-            </div>
-        </FeatureLock>
+        </div>
     </MainPage>
 </template>
 
@@ -106,7 +103,6 @@ import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
-import FeatureLock from '@/Components/UI/FeatureLock.vue'
 import Filter from './Components/Filter.vue'
 import RoleFormPopUp from './Components/RoleFormPopUp.vue'
 import RoleTemplatePopUp from './Components/RoleTemplatePopUp.vue'
