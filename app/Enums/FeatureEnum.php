@@ -10,12 +10,10 @@ enum FeatureEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case POS_CASHIER = 'pos_cashier';
-    case SHIFT_MANAGEMENT = 'shift_management';
-    case CASH_DRAWER = 'cash_drawer';
+    case POS = 'pos';
+    case SHIFT_CASHIER = 'shift_cashier';
     case SPLIT_PAYMENT = 'split_payment';
-    case INVOICE_DEBT = 'invoice_debt';
-    case VOID_REFUND = 'void_refund';
+    case TRANSACTION_INVOICE = 'transaction_invoice';
 
     /*
     |--------------------------------------------------------------------------
@@ -25,10 +23,10 @@ enum FeatureEnum: string
 
     case PRODUCT_CATALOG = 'product_catalog';
     case SERVICE_CATALOG = 'service_catalog';
-    case PRODUCT_CATEGORIES = 'product_categories';
-    case PRODUCT_VARIANTS = 'product_variants';
-    case PRODUCT_MODIFIERS = 'product_modifiers';
-    case RECIPE_MANAGEMENT = 'recipe_management';
+    case PRODUCT_VARIANT = 'product_variant';
+    case PRODUCT_PRICE_MATRIX = 'product_price_matrix';
+    case PRODUCT_MODIFIER = 'product_modifier';
+    case PRODUCT_BOM = 'product_bom';
 
     /*
     |--------------------------------------------------------------------------
@@ -42,8 +40,8 @@ enum FeatureEnum: string
     case STOCK_ADJUSTMENTS = 'stock_adjustments';
     case STOCK_OPNAME = 'stock_opname';
     case STOCK_TRANSFERS = 'stock_transfers';
-    case SUPPLIER_MANAGEMENT = 'supplier_management';
-    case PURCHASE_ORDERS = 'purchase_orders';
+    case PURCHASE_SUPPLIER = 'purchase_supplier';
+    case PURCHASE_ORDER = 'purchase_order';
 
     /*
     |--------------------------------------------------------------------------
@@ -59,7 +57,8 @@ enum FeatureEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case CUSTOMER_MANAGEMENT = 'customer_management';
+    case CRM = 'crm';
+    case CRM_LOYALTY = 'crm_loyalty';
 
     /*
     |--------------------------------------------------------------------------
@@ -67,14 +66,12 @@ enum FeatureEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case BASIC_REPORTS = 'basic_reports';
     case ADVANCED_REPORTS = 'advanced_reports';
-    case SALES_REPORTS = 'sales_reports';
-    case PRODUCT_REPORTS = 'product_reports';
-    case STOCK_REPORTS = 'stock_reports';
-    case CASHIER_REPORTS = 'cashier_reports';
+    case REPORT_SALES = 'report_sales';
+    case REPORT_PRODUCT = 'report_product';
+    case REPORT_INVENTORY = 'report_inventory';
+    case REPORT_SHIFT = 'report_shift';
     case PROMO_REPORTS = 'promo_reports';
-    case CUSTOMER_REPORTS = 'customer_reports';
 
     /*
     |--------------------------------------------------------------------------
@@ -83,7 +80,6 @@ enum FeatureEnum: string
     */
 
     case MULTI_OUTLET = 'multi_outlet';
-    case OUTLET_MANAGEMENT = 'outlet_management';
     case MULTI_DEVICE = 'multi_device';
 
     /*
@@ -94,7 +90,8 @@ enum FeatureEnum: string
 
     case EMPLOYEE_MANAGEMENT = 'employee_management';
     case CUSTOM_ROLE = 'custom_role';
-    case AUDIT_LOGS = 'audit_logs';
+    case AUDIT_LOG = 'audit_log';
+    case DOUBLE_AUTHORIZATION = 'double_authorization';
 
     /*
     |--------------------------------------------------------------------------

@@ -79,8 +79,8 @@ class InventoryItemSearchTest extends TestCase
                 'is_visible' => true,
                 'features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
-                    FeatureEnum::PURCHASE_ORDERS->value,
-                    FeatureEnum::SUPPLIER_MANAGEMENT->value,
+                    FeatureEnum::PURCHASE_ORDER->value,
+                    FeatureEnum::PURCHASE_SUPPLIER->value,
                     FeatureEnum::STOCK_ADJUSTMENTS->value,
                     FeatureEnum::STOCK_TRANSFERS->value,
                     FeatureEnum::STOCK_MOVEMENTS->value,
@@ -99,8 +99,8 @@ class InventoryItemSearchTest extends TestCase
             'settings' => [
                 'active_features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
-                    FeatureEnum::PURCHASE_ORDERS->value,
-                    FeatureEnum::SUPPLIER_MANAGEMENT->value,
+                    FeatureEnum::PURCHASE_ORDER->value,
+                    FeatureEnum::PURCHASE_SUPPLIER->value,
                     FeatureEnum::STOCK_ADJUSTMENTS->value,
                     FeatureEnum::STOCK_TRANSFERS->value,
                     FeatureEnum::STOCK_MOVEMENTS->value,
@@ -144,16 +144,12 @@ class InventoryItemSearchTest extends TestCase
 
         $permissions = [
             PermissionEnum::INVENTORY_VIEW->value,
-            PermissionEnum::INVENTORY_ALL->value,
-            PermissionEnum::INVENTORY_MOVEMENT->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_READ->value,
-            PermissionEnum::INVENTORY_TRANSFER_READ->value,
-            PermissionEnum::PURCHASE_ORDER_VIEW->value,
-            PermissionEnum::PURCHASE_ORDER_CREATE->value,
-            PermissionEnum::SUPPLIER_VIEW->value,
-            PermissionEnum::SUPPLIER_ALL->value,
+            PermissionEnum::INVENTORY_ADJUST_VIEW->value,
+            PermissionEnum::INVENTORY_TRANSFER_VIEW->value,
+            PermissionEnum::PURCHASE_VIEW->value,
+            PermissionEnum::PURCHASE_CREATE->value,
+            PermissionEnum::PURCHASE_SUPPLIER_VIEW->value,
             PermissionEnum::PRODUCT_VIEW->value,
-            PermissionEnum::PRODUCT_ALL->value,
         ];
 
         foreach ($permissions as $perm) {

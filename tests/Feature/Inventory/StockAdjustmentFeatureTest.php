@@ -129,30 +129,27 @@ class StockAdjustmentFeatureTest extends TestCase
         setPermissionsTeamId($this->business->id);
 
         foreach ([
-            PermissionEnum::INVENTORY_ADJUSTMENT_READ->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_CREATE->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_APPROVE->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_VOID->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_EXPORT->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_FREEZE->value,
+            PermissionEnum::INVENTORY_ADJUST_VIEW->value,
+            PermissionEnum::INVENTORY_ADJUST_CREATE->value,
+            PermissionEnum::INVENTORY_ADJUST_UPDATE->value,
+            PermissionEnum::INVENTORY_ADJUST_VALIDATE->value,
+            PermissionEnum::INVENTORY_ADJUST_DELETE->value,
         ] as $p) {
             Permission::findOrCreate($p, 'web');
         }
 
         $this->owner->givePermissionTo([
-            'business.*',
-            PermissionEnum::INVENTORY_ADJUSTMENT_READ->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_CREATE->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_APPROVE->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_VOID->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_EXPORT->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_FREEZE->value,
+            PermissionEnum::INVENTORY_ADJUST_VIEW->value,
+            PermissionEnum::INVENTORY_ADJUST_CREATE->value,
+            PermissionEnum::INVENTORY_ADJUST_UPDATE->value,
+            PermissionEnum::INVENTORY_ADJUST_VALIDATE->value,
+            PermissionEnum::INVENTORY_ADJUST_DELETE->value,
         ]);
 
         $this->supervisor->givePermissionTo([
-            PermissionEnum::INVENTORY_ADJUSTMENT_READ->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_CREATE->value,
-            PermissionEnum::INVENTORY_ADJUSTMENT_APPROVE->value,
+            PermissionEnum::INVENTORY_ADJUST_VIEW->value,
+            PermissionEnum::INVENTORY_ADJUST_CREATE->value,
+            PermissionEnum::INVENTORY_ADJUST_VALIDATE->value,
         ]);
     }
 

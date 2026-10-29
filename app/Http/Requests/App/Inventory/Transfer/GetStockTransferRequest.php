@@ -16,7 +16,7 @@ class GetStockTransferRequest extends BaseInertiaFormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::INVENTORY_TRANSFER_READ->value) ?? false;
+        return Auth::user()?->can(PermissionEnum::INVENTORY_TRANSFER_VIEW->value) ?? false;
     }
 
     /**

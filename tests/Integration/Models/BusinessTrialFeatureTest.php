@@ -21,7 +21,7 @@ class BusinessTrialFeatureTest extends TestCase
     public function test_trial_features_come_from_selected_trial_subscription_plan(): void
     {
         $posFeature = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -40,7 +40,7 @@ class BusinessTrialFeatureTest extends TestCase
 
         $businessType = BusinessType::factory()->create([
             'code' => 'retail',
-            'features' => [FeatureEnum::POS_CASHIER->value],
+            'features' => [FeatureEnum::POS->value],
         ]);
 
         $business = Business::create([
@@ -64,14 +64,14 @@ class BusinessTrialFeatureTest extends TestCase
         ]);
 
         $availableFeatures = $business->getAvailablePlanFeatures();
-        $this->assertContains(FeatureEnum::POS_CASHIER, $availableFeatures);
-        $this->assertTrue($business->hasFeature(FeatureEnum::POS_CASHIER));
+        $this->assertContains(FeatureEnum::POS, $availableFeatures);
+        $this->assertTrue($business->hasFeature(FeatureEnum::POS));
     }
 
     public function test_expired_trial_subscription_locks_all_features(): void
     {
         $posFeature = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -88,7 +88,7 @@ class BusinessTrialFeatureTest extends TestCase
 
         $businessType = BusinessType::factory()->create([
             'code' => 'retail',
-            'features' => [FeatureEnum::POS_CASHIER->value],
+            'features' => [FeatureEnum::POS->value],
         ]);
 
         $business = Business::create([
@@ -113,6 +113,6 @@ class BusinessTrialFeatureTest extends TestCase
 
         $availableFeatures = $business->getAvailablePlanFeatures();
         $this->assertEmpty($availableFeatures);
-        $this->assertFalse($business->hasFeature(FeatureEnum::POS_CASHIER));
+        $this->assertFalse($business->hasFeature(FeatureEnum::POS));
     }
 }

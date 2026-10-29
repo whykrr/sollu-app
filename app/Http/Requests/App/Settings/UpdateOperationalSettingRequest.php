@@ -10,8 +10,7 @@ class UpdateOperationalSettingRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can(PermissionEnum::OUTLET_UPDATE->value)
-            || $this->user()?->can(PermissionEnum::SETTING_ALL->value);
+        return (bool) $this->user()?->can(PermissionEnum::OUTLET_UPDATE->value);
     }
 
     public function rules(): array

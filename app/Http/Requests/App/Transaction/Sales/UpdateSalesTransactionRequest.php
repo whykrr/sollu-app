@@ -22,7 +22,7 @@ class UpdateSalesTransactionRequest extends BaseInertiaFormRequest
     {
         $user = Auth::user();
 
-        return ($user?->can(PermissionEnum::TRANSACTION_UPDATE->value) || $user?->can(PermissionEnum::TRANSACTION_CREATE->value)) ?? false;
+        return $user?->can(PermissionEnum::TRANSACTION_CREATE->value) ?? false;
     }
 
     /**

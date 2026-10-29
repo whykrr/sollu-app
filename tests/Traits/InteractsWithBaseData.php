@@ -9,7 +9,6 @@ use App\Models\Outlet;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Permission;
 
 trait InteractsWithBaseData
 {
@@ -56,8 +55,7 @@ trait InteractsWithBaseData
         ]);
 
         setPermissionsTeamId($business->id);
-        Permission::findOrCreate('business.*', 'web');
-        $user->givePermissionTo('business.*');
+        $user->update(['is_root_user' => true]);
 
         $outlet = Outlet::create([
             'business_id' => $business->id,

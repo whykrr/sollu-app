@@ -305,10 +305,6 @@ class BreadcrumbManager
                 ['label' => 'Laporan', 'url' => null],
                 ['label' => 'Laporan Promosi', 'url' => self::safeRoute('reports.promotions.index')],
             ],
-            'reports.customers.index' => [
-                ['label' => 'Laporan', 'url' => null],
-                ['label' => 'Laporan Pelanggan', 'url' => self::safeRoute('reports.customers.index')],
-            ],
 
             // Settings Module
             'settings.account.profile' => [

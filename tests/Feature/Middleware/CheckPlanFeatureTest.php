@@ -25,8 +25,8 @@ class CheckPlanFeatureTest extends TestCase
     {
         parent::setUp();
 
-        Route::middleware(['web', 'auth', 'plan.feature:'.FeatureEnum::POS_CASHIER->value])
-            ->get('/test-pos-cashier', function () {
+        Route::middleware(['web', 'auth', 'plan.feature:'.FeatureEnum::POS->value])
+            ->get('/test-pos', function () {
                 return response()->json(['status' => 'success']);
             });
 
@@ -39,7 +39,7 @@ class CheckPlanFeatureTest extends TestCase
     public function test_check_plan_feature_allows_access_via_summary_cache_without_database_queries(): void
     {
         $posFeature = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -56,7 +56,7 @@ class CheckPlanFeatureTest extends TestCase
 
         $businessType = BusinessType::factory()->create([
             'code' => 'retail',
-            'features' => [FeatureEnum::POS_CASHIER->value],
+            'features' => [FeatureEnum::POS->value],
         ]);
 
         $business = Business::create([
@@ -88,7 +88,7 @@ class CheckPlanFeatureTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $response = $this->actingAs($user)->getJson('/test-pos-cashier');
+        $response = $this->actingAs($user)->getJson('/test-pos');
 
         $response->assertStatus(200)
             ->assertJson(['status' => 'success']);
@@ -105,7 +105,7 @@ class CheckPlanFeatureTest extends TestCase
     public function test_check_plan_feature_fallback_via_cached_business(): void
     {
         $posFeature = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -122,7 +122,7 @@ class CheckPlanFeatureTest extends TestCase
 
         $businessType = BusinessType::factory()->create([
             'code' => 'retail',
-            'features' => [FeatureEnum::POS_CASHIER->value],
+            'features' => [FeatureEnum::POS->value],
         ]);
 
         $business = Business::create([
@@ -150,7 +150,7 @@ class CheckPlanFeatureTest extends TestCase
         // Explicitly clear user summary cache to test fallback path
         SummaryUser::cacheDelete($user->id);
 
-        $response = $this->actingAs($user)->getJson('/test-pos-cashier');
+        $response = $this->actingAs($user)->getJson('/test-pos');
 
         $response->assertStatus(200)
             ->assertJson(['status' => 'success']);
@@ -160,7 +160,7 @@ class CheckPlanFeatureTest extends TestCase
     {
         $businessType = BusinessType::factory()->create([
             'code' => 'retail',
-            'features' => [FeatureEnum::POS_CASHIER->value],
+            'features' => [FeatureEnum::POS->value],
         ]);
 
         $business = Business::create([

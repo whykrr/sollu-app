@@ -119,6 +119,8 @@ class ProductController extends Controller
             'productItems',
             'images',
             'variantGroups.options',
+            'activeRecipe.items.productItem.uom',
+            'recipeVersions.items.productItem.uom',
             'modifierGroups',
             'bundleItems',
         ]);
@@ -243,7 +245,7 @@ class ProductController extends Controller
 
     public function export(Request $request): RedirectResponse
     {
-        $this->authorize(PermissionEnum::PRODUCT_EXPORT->value);
+        $this->authorize(PermissionEnum::PRODUCT_VIEW->value);
 
         $filters = array_merge($request->all(), ['product_type' => 'basic']);
         ExportProductJob::dispatch(auth()->user(), auth()->user()->business_id, $filters);
@@ -308,7 +310,7 @@ class ProductController extends Controller
 
     public function import(Request $request): RedirectResponse
     {
-        $this->authorize(PermissionEnum::PRODUCT_IMPORT->value);
+        $this->authorize(PermissionEnum::PRODUCT_CREATE->value);
 
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:10240']);
         $path = $request->file('file')->store('imports', 'local');

@@ -13,7 +13,6 @@ class GetSalesReportRequest extends BaseInertiaFormRequest
     public function authorize(): bool
     {
         return $this->user()?->can(PermissionEnum::REPORT_SALES->value)
-            || $this->user()?->can(PermissionEnum::REPORT_ALL->value)
             || $this->user()?->is_root_user;
     }
 

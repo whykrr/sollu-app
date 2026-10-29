@@ -13,7 +13,7 @@ class CancelSalesTransactionRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::TRANSACTION_CANCEL->value) ?? false;
+        return Auth::user()?->can(PermissionEnum::TRANSACTION_VOID->value) ?? false;
     }
 
     /**

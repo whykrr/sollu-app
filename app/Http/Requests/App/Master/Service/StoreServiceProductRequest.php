@@ -10,7 +10,7 @@ class StoreServiceProductRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::SERVICE_CREATE->value) ?? false;
+        return Auth::user()?->can(PermissionEnum::PRODUCT_CREATE->value) ?? false;
     }
 
     protected function prepareForValidation(): void

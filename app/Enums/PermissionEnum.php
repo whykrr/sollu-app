@@ -10,12 +10,9 @@ enum PermissionEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case BUSINESS_ALL = 'business.*';
     case BUSINESS_VIEW = 'business.view';
-    case BUSINESS_UPDATE = 'business.update';
     case BUSINESS_BILLING = 'business.billing';
     case BUSINESS_SUBSCRIPTION = 'business.subscription';
-    case BUSINESS_SETTING = 'business.setting';
 
     /*
     |--------------------------------------------------------------------------
@@ -23,12 +20,10 @@ enum PermissionEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case OUTLET_ALL = 'outlet.*';
     case OUTLET_VIEW = 'outlet.view';
     case OUTLET_CREATE = 'outlet.create';
     case OUTLET_UPDATE = 'outlet.update';
     case OUTLET_DELETE = 'outlet.delete';
-    case OUTLET_SWITCH = 'outlet.switch';
 
     /*
     |--------------------------------------------------------------------------
@@ -36,14 +31,11 @@ enum PermissionEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case USER_ALL = 'user.*';
     case USER_VIEW = 'user.view';
     case USER_CREATE = 'user.create';
     case USER_UPDATE = 'user.update';
     case USER_DELETE = 'user.delete';
-    case USER_INVITE = 'user.invite';
 
-    case ROLE_ALL = 'role.*';
     case ROLE_VIEW = 'role.view';
     case ROLE_CREATE = 'role.create';
     case ROLE_UPDATE = 'role.update';
@@ -55,15 +47,9 @@ enum PermissionEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case TRANSACTION_ALL = 'transaction.*';
     case TRANSACTION_VIEW = 'transaction.view';
     case TRANSACTION_CREATE = 'transaction.create';
-    case TRANSACTION_UPDATE = 'transaction.update';
-    case TRANSACTION_CANCEL = 'transaction.cancel';
-    case TRANSACTION_REFUND = 'transaction.refund';
-    case TRANSACTION_DISCOUNT = 'transaction.discount';
     case TRANSACTION_HOLD = 'transaction.hold';
-    case TRANSACTION_VOID = 'transaction.void';
     case TRANSACTION_REPRINT = 'transaction.reprint';
     case TRANSACTION_OPEN_SHIFT = 'transaction.open_shift';
     case TRANSACTION_CLOSE_SHIFT = 'transaction.close_shift';
@@ -73,112 +59,91 @@ enum PermissionEnum: string
     case TRANSACTION_OVERRIDE_PRICE = 'transaction.override_price';
     case TRANSACTION_VALIDATION_SUPERVISION = 'transaction.validation_supervision';
     case TRANSACTION_OPEN_DRAWER = 'transaction.open_drawer';
-    case TRANSACTION_DELETE = 'transaction.delete';
+    case TRANSACTION_VOID = 'transaction.void';
+    case TRANSACTION_REFUND = 'transaction.refund';
 
     /*
     |--------------------------------------------------------------------------
-    | Product
+    | Product & Menu
     |--------------------------------------------------------------------------
     */
 
-    case PRODUCT_ALL = 'product.*';
     case PRODUCT_VIEW = 'product.view';
     case PRODUCT_CREATE = 'product.create';
     case PRODUCT_UPDATE = 'product.update';
     case PRODUCT_DELETE = 'product.delete';
-    case PRODUCT_IMPORT = 'product.import';
-    case PRODUCT_EXPORT = 'product.export';
-    case PRODUCT_VARIANT = 'product.variant';
-    case PRODUCT_MODIFIER = 'product.modifier';
-    case PRODUCT_RECIPE = 'product.recipe';
+
+    case PRODUCT_CATEGORY_VIEW = 'product.category.view';
+    case PRODUCT_CATEGORY_CREATE = 'product.category.create';
+    case PRODUCT_CATEGORY_UPDATE = 'product.category.update';
+    case PRODUCT_CATEGORY_DELETE = 'product.category.delete';
+
+    case PRODUCT_MODIFIER_VIEW = 'product.modifier.view';
+    case PRODUCT_MODIFIER_CREATE = 'product.modifier.create';
+    case PRODUCT_MODIFIER_UPDATE = 'product.modifier.update';
+    case PRODUCT_MODIFIER_DELETE = 'product.modifier.delete';
+
+    case PRODUCT_BOM_VIEW = 'product.bom.view';
+    case PRODUCT_BOM_CREATE = 'product.bom.create';
+    case PRODUCT_BOM_UPDATE = 'product.bom.update';
+    case PRODUCT_BOM_DELETE = 'product.bom.delete';
 
     /*
     |--------------------------------------------------------------------------
-    | Service (Produk Layanan / Jasa)
+    | Inventory, Material & Warehouse
     |--------------------------------------------------------------------------
     */
 
-    case SERVICE_ALL = 'service.*';
-    case SERVICE_VIEW = 'service.view';
-    case SERVICE_CREATE = 'service.create';
-    case SERVICE_UPDATE = 'service.update';
-    case SERVICE_DELETE = 'service.delete';
-    case SERVICE_IMPORT = 'service.import';
-    case SERVICE_EXPORT = 'service.export';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Category
-    |--------------------------------------------------------------------------
-    */
-
-    case CATEGORY_ALL = 'category.*';
-    case CATEGORY_VIEW = 'category.view';
-    case CATEGORY_CREATE = 'category.create';
-    case CATEGORY_UPDATE = 'category.update';
-    case CATEGORY_DELETE = 'category.delete';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Inventory
-    |--------------------------------------------------------------------------
-    */
-
-    case INVENTORY_ALL = 'inventory.*';
     case INVENTORY_VIEW = 'inventory.view';
-    case INVENTORY_ADJUST = 'inventory.adjust'; // existing, we will keep it for compatibility if any
-    case INVENTORY_ADJUSTMENT_READ = 'inventory.adjustment.read';
-    case INVENTORY_ADJUSTMENT_CREATE = 'inventory.adjustment.create';
-    case INVENTORY_ADJUSTMENT_APPROVE = 'inventory.adjustment.approve';
-    case INVENTORY_ADJUSTMENT_VOID = 'inventory.adjustment.void';
-    case INVENTORY_ADJUSTMENT_EXPORT = 'inventory.adjustment.export';
-    case INVENTORY_ADJUSTMENT_FREEZE = 'inventory.adjustment.freeze';
-    case INVENTORY_TRANSFER_READ = 'inventory.transfer.read';
-    case INVENTORY_TRANSFER_CREATE = 'inventory.transfer.create';
-    case INVENTORY_TRANSFER_UPDATE = 'inventory.transfer.update';
-    case INVENTORY_TRANSFER_APPROVE = 'inventory.transfer.approve';
-    case INVENTORY_TRANSFER_SHIP = 'inventory.transfer.ship';
-    case INVENTORY_TRANSFER_RECEIVE = 'inventory.transfer.receive';
-    case INVENTORY_STOCK_OPNAME = 'inventory.stock_opname';
-    case INVENTORY_OPNAME_READ = 'inventory.opname.read';
+
+    case MATERIAL_VIEW = 'material.view';
+    case MATERIAL_CREATE = 'material.create';
+    case MATERIAL_UPDATE = 'material.update';
+    case MATERIAL_DELETE = 'material.delete';
+
+    case INVENTORY_WAREHOUSE_VIEW = 'inventory.warehouse.view';
+    case INVENTORY_WAREHOUSE_CREATE = 'inventory.warehouse.create';
+    case INVENTORY_WAREHOUSE_UPDATE = 'inventory.warehouse.update';
+    case INVENTORY_WAREHOUSE_DELETE = 'inventory.warehouse.delete';
+
+    case INVENTORY_ADJUST_VIEW = 'inventory.adjust.view';
+    case INVENTORY_ADJUST_CREATE = 'inventory.adjust.create';
+    case INVENTORY_ADJUST_UPDATE = 'inventory.adjust.update';
+    case INVENTORY_ADJUST_VALIDATE = 'inventory.adjust.validate';
+    case INVENTORY_ADJUST_DELETE = 'inventory.adjust.delete';
+
+    case INVENTORY_OPNAME_VIEW = 'inventory.opname.view';
     case INVENTORY_OPNAME_CREATE = 'inventory.opname.create';
     case INVENTORY_OPNAME_UPDATE = 'inventory.opname.update';
-    case INVENTORY_OPNAME_APPROVE = 'inventory.opname.approve';
+    case INVENTORY_OPNAME_VALIDATE = 'inventory.opname.validate';
     case INVENTORY_OPNAME_DELETE = 'inventory.opname.delete';
-    case INVENTORY_OPNAME_EXPORT = 'inventory.opname.export';
-    case INVENTORY_OPNAME_FREEZE = 'inventory.opname.freeze';
-    case INVENTORY_MOVEMENT = 'inventory.movement';
-    case INVENTORY_PURCHASE = 'inventory.purchase';
-    case INVENTORY_WASTE = 'inventory.waste';
-    case INVENTORY_RECEIVE = 'inventory.receive';
+
+    case INVENTORY_TRANSFER_VIEW = 'inventory.transfer.view';
+    case INVENTORY_TRANSFER_CREATE = 'inventory.transfer.create';
+    case INVENTORY_TRANSFER_UPDATE = 'inventory.transfer.update';
+    case INVENTORY_TRANSFER_VALIDATE = 'inventory.transfer.validate';
+    case INVENTORY_TRANSFER_DELETE = 'inventory.transfer.delete';
+    case INVENTORY_TRANSFER_RECEIVE = 'inventory.transfer.receive';
 
     /*
     |--------------------------------------------------------------------------
-    | Supplier
+    | Supplier & Purchase
     |--------------------------------------------------------------------------
     */
 
-    case SUPPLIER_ALL = 'supplier.*';
-    case SUPPLIER_VIEW = 'supplier.view';
-    case SUPPLIER_CREATE = 'supplier.create';
-    case SUPPLIER_UPDATE = 'supplier.update';
-    case SUPPLIER_DELETE = 'supplier.delete';
+    case PURCHASE_SUPPLIER_VIEW = 'purchase.supplier.view';
+    case PURCHASE_SUPPLIER_CREATE = 'purchase.supplier.create';
+    case PURCHASE_SUPPLIER_UPDATE = 'purchase.supplier.update';
+    case PURCHASE_SUPPLIER_DELETE = 'purchase.supplier.delete';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Purchase Order
-    |--------------------------------------------------------------------------
-    */
-
-    case PURCHASE_ORDER_ALL = 'purchase_order.*';
-    case PURCHASE_ORDER_VIEW = 'purchase_order.view';
-    case PURCHASE_ORDER_CREATE = 'purchase_order.create';
-    case PURCHASE_ORDER_UPDATE = 'purchase_order.update';
-    case PURCHASE_ORDER_APPROVE = 'purchase_order.approve';
-    case PURCHASE_ORDER_CANCEL = 'purchase_order.cancel';
-    case PURCHASE_ORDER_RECEIVE = 'purchase_order.receive';
-    case PURCHASE_ORDER_VOID = 'purchase_order.void';
-    case PURCHASE_ORDER_RETURN = 'purchase_order.return';
+    case PURCHASE_VIEW = 'purchase.view';
+    case PURCHASE_CREATE = 'purchase.create';
+    case PURCHASE_UPDATE = 'purchase.update';
+    case PURCHASE_VALIDATE = 'purchase.validate';
+    case PURCHASE_DELETE = 'purchase.delete';
+    case PURCHASE_RECEIVE = 'purchase.receive';
+    case PURCHASE_RETURN = 'purchase.return';
+    case PURCHASE_RETURN_VALIDATE = 'purchase.return.validate';
 
     /*
     |--------------------------------------------------------------------------
@@ -186,7 +151,6 @@ enum PermissionEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case PROMO_ALL = 'promo.*';
     case PROMO_VIEW = 'promo.view';
     case PROMO_CREATE = 'promo.create';
     case PROMO_UPDATE = 'promo.update';
@@ -199,7 +163,6 @@ enum PermissionEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case CUSTOMER_ALL = 'customer.*';
     case CUSTOMER_VIEW = 'customer.view';
     case CUSTOMER_CREATE = 'customer.create';
     case CUSTOMER_UPDATE = 'customer.update';
@@ -212,13 +175,10 @@ enum PermissionEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case REPORT_ALL = 'report.*';
     case REPORT_SALES = 'report.sales';
     case REPORT_INVENTORY = 'report.inventory';
-    case REPORT_CASHFLOW = 'report.cashflow';
     case REPORT_SHIFT = 'report.shift';
     case REPORT_PRODUCT = 'report.product';
-    case REPORT_CUSTOMER = 'report.customer';
     case REPORT_EXPORT = 'report.export';
 
     /*
@@ -227,7 +187,6 @@ enum PermissionEnum: string
     |--------------------------------------------------------------------------
     */
 
-    case SETTING_ALL = 'setting.*';
     case SETTING_SALES = 'setting.sales';
     case SETTING_TAX = 'setting.tax';
     case SETTING_RECEIPT = 'setting.receipt';
@@ -239,48 +198,33 @@ enum PermissionEnum: string
     public function label(): string
     {
         return match ($this) {
-
             // Business
-            self::BUSINESS_ALL => 'Semua Akses Bisnis',
             self::BUSINESS_VIEW => 'Akses Melihat Bisnis',
-            self::BUSINESS_UPDATE => 'Akses Memperbarui Bisnis',
             self::BUSINESS_BILLING => 'Akses Penagihan Bisnis',
             self::BUSINESS_SUBSCRIPTION => 'Akses Langganan Bisnis',
-            self::BUSINESS_SETTING => 'Akses Pengaturan Bisnis',
 
             // Outlet
-            self::OUTLET_ALL => 'Semua Akses Outlet',
             self::OUTLET_VIEW => 'Akses Melihat Outlet',
             self::OUTLET_CREATE => 'Akses Membuat Outlet',
             self::OUTLET_UPDATE => 'Akses Memperbarui Outlet',
             self::OUTLET_DELETE => 'Akses Menghapus Outlet',
-            self::OUTLET_SWITCH => 'Akses Pindah Outlet',
 
             // User
-            self::USER_ALL => 'Semua Akses Pegawai',
             self::USER_VIEW => 'Akses Melihat Pegawai',
             self::USER_CREATE => 'Akses Membuat Pegawai',
             self::USER_UPDATE => 'Akses Memperbarui Pegawai',
             self::USER_DELETE => 'Akses Menghapus Pegawai',
-            self::USER_INVITE => 'Akses Mengundang Pegawai',
 
             // Role
-            self::ROLE_ALL => 'Semua Akses Role',
             self::ROLE_VIEW => 'Akses Melihat Role',
             self::ROLE_CREATE => 'Akses Membuat Role',
             self::ROLE_UPDATE => 'Akses Memperbarui Role',
             self::ROLE_DELETE => 'Akses Menghapus Role',
 
             // Transaction
-            self::TRANSACTION_ALL => 'Semua Akses Transaksi',
             self::TRANSACTION_VIEW => 'Akses Melihat Transaksi',
             self::TRANSACTION_CREATE => 'Akses Membuat Transaksi',
-            self::TRANSACTION_UPDATE => 'Akses Memperbarui Transaksi',
-            self::TRANSACTION_CANCEL => 'Akses Membatalkan Transaksi',
-            self::TRANSACTION_REFUND => 'Akses Refund Transaksi',
-            self::TRANSACTION_DISCOUNT => 'Akses Diskon Transaksi',
             self::TRANSACTION_HOLD => 'Akses Hold Transaksi',
-            self::TRANSACTION_VOID => 'Akses Void Transaksi',
             self::TRANSACTION_REPRINT => 'Akses Cetak Ulang Transaksi',
             self::TRANSACTION_OPEN_SHIFT => 'Akses Buka Shift',
             self::TRANSACTION_CLOSE_SHIFT => 'Akses Tutup Shift',
@@ -290,85 +234,87 @@ enum PermissionEnum: string
             self::TRANSACTION_OVERRIDE_PRICE => 'Akses Override Harga/Diskon',
             self::TRANSACTION_VALIDATION_SUPERVISION => 'Akses Otorisasi Supervisor Kasir',
             self::TRANSACTION_OPEN_DRAWER => 'Akses Buka Laci Kasir Manual',
-            self::TRANSACTION_DELETE => 'Akses Menghapus Transaksi',
+            self::TRANSACTION_VOID => 'Akses Void Transaksi',
+            self::TRANSACTION_REFUND => 'Akses Refund Transaksi',
 
             // Product
-            self::PRODUCT_ALL => 'Semua Akses Produk',
             self::PRODUCT_VIEW => 'Akses Melihat Produk',
             self::PRODUCT_CREATE => 'Akses Membuat Produk',
             self::PRODUCT_UPDATE => 'Akses Memperbarui Produk',
             self::PRODUCT_DELETE => 'Akses Menghapus Produk',
-            self::PRODUCT_IMPORT => 'Akses Import Produk',
-            self::PRODUCT_EXPORT => 'Akses Export Produk',
-            self::PRODUCT_VARIANT => 'Akses Varian Produk',
-            self::PRODUCT_MODIFIER => 'Akses Modifier Produk',
-            self::PRODUCT_RECIPE => 'Akses Resep Produk',
 
-            // Service
-            self::SERVICE_ALL => 'Semua Akses Layanan',
-            self::SERVICE_VIEW => 'Akses Melihat Layanan',
-            self::SERVICE_CREATE => 'Akses Membuat Layanan',
-            self::SERVICE_UPDATE => 'Akses Memperbarui Layanan',
-            self::SERVICE_DELETE => 'Akses Menghapus Layanan',
-            self::SERVICE_IMPORT => 'Akses Import Layanan',
-            self::SERVICE_EXPORT => 'Akses Export Layanan',
+            // Product Category
+            self::PRODUCT_CATEGORY_VIEW => 'Akses Melihat Kategori',
+            self::PRODUCT_CATEGORY_CREATE => 'Akses Membuat Kategori',
+            self::PRODUCT_CATEGORY_UPDATE => 'Akses Memperbarui Kategori',
+            self::PRODUCT_CATEGORY_DELETE => 'Akses Menghapus Kategori',
 
-            // Category
-            self::CATEGORY_ALL => 'Semua Akses Kategori',
-            self::CATEGORY_VIEW => 'Akses Melihat Kategori',
-            self::CATEGORY_CREATE => 'Akses Membuat Kategori',
-            self::CATEGORY_UPDATE => 'Akses Memperbarui Kategori',
-            self::CATEGORY_DELETE => 'Akses Menghapus Kategori',
+            // Product Modifier
+            self::PRODUCT_MODIFIER_VIEW => 'Akses Melihat Modifier',
+            self::PRODUCT_MODIFIER_CREATE => 'Akses Membuat Modifier',
+            self::PRODUCT_MODIFIER_UPDATE => 'Akses Memperbarui Modifier',
+            self::PRODUCT_MODIFIER_DELETE => 'Akses Menghapus Modifier',
+
+            // Product BOM
+            self::PRODUCT_BOM_VIEW => 'Akses Melihat Resep BOM',
+            self::PRODUCT_BOM_CREATE => 'Akses Membuat Resep BOM',
+            self::PRODUCT_BOM_UPDATE => 'Akses Memperbarui Resep BOM',
+            self::PRODUCT_BOM_DELETE => 'Akses Menghapus Resep BOM',
 
             // Inventory
-            self::INVENTORY_ALL => 'Semua Akses Inventori',
             self::INVENTORY_VIEW => 'Akses Melihat Inventori',
-            self::INVENTORY_ADJUST => 'Akses Penyesuaian Inventori (Lama)',
-            self::INVENTORY_ADJUSTMENT_READ => 'Akses Melihat Penyesuaian',
-            self::INVENTORY_ADJUSTMENT_CREATE => 'Akses Membuat Penyesuaian',
-            self::INVENTORY_ADJUSTMENT_APPROVE => 'Akses Approval Penyesuaian',
-            self::INVENTORY_ADJUSTMENT_VOID => 'Akses Void Penyesuaian',
-            self::INVENTORY_ADJUSTMENT_EXPORT => 'Akses Export Penyesuaian',
-            self::INVENTORY_ADJUSTMENT_FREEZE => 'Akses Bekukan Stok Penyesuaian',
-            self::INVENTORY_TRANSFER_READ => 'Akses Melihat Transfer Inventori',
-            self::INVENTORY_TRANSFER_CREATE => 'Akses Membuat Transfer Inventori',
-            self::INVENTORY_TRANSFER_UPDATE => 'Akses Memperbarui Transfer Inventori',
-            self::INVENTORY_TRANSFER_APPROVE => 'Akses Approval Transfer Inventori',
-            self::INVENTORY_TRANSFER_SHIP => 'Akses Kirim Transfer Inventori',
-            self::INVENTORY_TRANSFER_RECEIVE => 'Akses Terima Transfer Inventori',
-            self::INVENTORY_STOCK_OPNAME => 'Akses Stock Opname',
-            self::INVENTORY_OPNAME_READ => 'Akses Melihat Stock Opname',
+
+            // Material
+            self::MATERIAL_VIEW => 'Akses Melihat Bahan Baku',
+            self::MATERIAL_CREATE => 'Akses Membuat Bahan Baku',
+            self::MATERIAL_UPDATE => 'Akses Memperbarui Bahan Baku',
+            self::MATERIAL_DELETE => 'Akses Menghapus Bahan Baku',
+
+            // Warehouse
+            self::INVENTORY_WAREHOUSE_VIEW => 'Akses Melihat Gudang',
+            self::INVENTORY_WAREHOUSE_CREATE => 'Akses Membuat Gudang',
+            self::INVENTORY_WAREHOUSE_UPDATE => 'Akses Memperbarui Gudang',
+            self::INVENTORY_WAREHOUSE_DELETE => 'Akses Menghapus Gudang',
+
+            // Inventory Adjustment
+            self::INVENTORY_ADJUST_VIEW => 'Akses Melihat Penyesuaian',
+            self::INVENTORY_ADJUST_CREATE => 'Akses Membuat Penyesuaian',
+            self::INVENTORY_ADJUST_UPDATE => 'Akses Memperbarui Penyesuaian',
+            self::INVENTORY_ADJUST_VALIDATE => 'Akses Validasi Penyesuaian',
+            self::INVENTORY_ADJUST_DELETE => 'Akses Menghapus Penyesuaian',
+
+            // Inventory Stock Opname
+            self::INVENTORY_OPNAME_VIEW => 'Akses Melihat Stock Opname',
             self::INVENTORY_OPNAME_CREATE => 'Akses Membuat Stock Opname',
             self::INVENTORY_OPNAME_UPDATE => 'Akses Memperbarui Stock Opname',
-            self::INVENTORY_OPNAME_APPROVE => 'Akses Approval Stock Opname',
+            self::INVENTORY_OPNAME_VALIDATE => 'Akses Validasi Stock Opname',
             self::INVENTORY_OPNAME_DELETE => 'Akses Menghapus Stock Opname',
-            self::INVENTORY_OPNAME_EXPORT => 'Akses Export Stock Opname',
-            self::INVENTORY_OPNAME_FREEZE => 'Akses Bekukan Stok Opname',
-            self::INVENTORY_MOVEMENT => 'Akses Pergerakan Inventori',
-            self::INVENTORY_PURCHASE => 'Akses Pembelian Inventori',
-            self::INVENTORY_WASTE => 'Akses Waste Inventori',
-            self::INVENTORY_RECEIVE => 'Akses Penerimaan Inventori',
+
+            // Inventory Transfer
+            self::INVENTORY_TRANSFER_VIEW => 'Akses Melihat Transfer Inventori',
+            self::INVENTORY_TRANSFER_CREATE => 'Akses Membuat Transfer Inventori',
+            self::INVENTORY_TRANSFER_UPDATE => 'Akses Memperbarui Transfer Inventori',
+            self::INVENTORY_TRANSFER_VALIDATE => 'Akses Validasi Transfer Inventori',
+            self::INVENTORY_TRANSFER_DELETE => 'Akses Menghapus Transfer Inventori',
+            self::INVENTORY_TRANSFER_RECEIVE => 'Akses Terima Transfer Inventori',
 
             // Supplier
-            self::SUPPLIER_ALL => 'Semua Akses Supplier',
-            self::SUPPLIER_VIEW => 'Akses Melihat Supplier',
-            self::SUPPLIER_CREATE => 'Akses Membuat Supplier',
-            self::SUPPLIER_UPDATE => 'Akses Memperbarui Supplier',
-            self::SUPPLIER_DELETE => 'Akses Menghapus Supplier',
+            self::PURCHASE_SUPPLIER_VIEW => 'Akses Melihat Supplier',
+            self::PURCHASE_SUPPLIER_CREATE => 'Akses Membuat Supplier',
+            self::PURCHASE_SUPPLIER_UPDATE => 'Akses Memperbarui Supplier',
+            self::PURCHASE_SUPPLIER_DELETE => 'Akses Menghapus Supplier',
 
             // Purchase Order
-            self::PURCHASE_ORDER_ALL => 'Semua Akses Purchase Order',
-            self::PURCHASE_ORDER_VIEW => 'Akses Melihat Purchase Order',
-            self::PURCHASE_ORDER_CREATE => 'Akses Membuat Purchase Order',
-            self::PURCHASE_ORDER_UPDATE => 'Akses Memperbarui Purchase Order',
-            self::PURCHASE_ORDER_APPROVE => 'Akses Approval Purchase Order',
-            self::PURCHASE_ORDER_CANCEL => 'Akses Membatalkan Purchase Order',
-            self::PURCHASE_ORDER_RECEIVE => 'Akses Penerimaan Purchase Order',
-            self::PURCHASE_ORDER_VOID => 'Akses Void Penerimaan Purchase Order',
-            self::PURCHASE_ORDER_RETURN => 'Akses Retur Pembelian Supplier',
+            self::PURCHASE_VIEW => 'Akses Melihat Pembelian',
+            self::PURCHASE_CREATE => 'Akses Membuat Pembelian',
+            self::PURCHASE_UPDATE => 'Akses Memperbarui Pembelian',
+            self::PURCHASE_VALIDATE => 'Akses Validasi Pembelian',
+            self::PURCHASE_DELETE => 'Akses Menghapus/Membatalkan Pembelian',
+            self::PURCHASE_RECEIVE => 'Akses Penerimaan Pembelian',
+            self::PURCHASE_RETURN => 'Akses Retur Pembelian',
+            self::PURCHASE_RETURN_VALIDATE => 'Akses Validasi Retur Pembelian',
 
             // Promo
-            self::PROMO_ALL => 'Semua Akses Promo',
             self::PROMO_VIEW => 'Akses Melihat Promo',
             self::PROMO_CREATE => 'Akses Membuat Promo',
             self::PROMO_UPDATE => 'Akses Memperbarui Promo',
@@ -376,7 +322,6 @@ enum PermissionEnum: string
             self::PROMO_PUBLISH => 'Akses Publish Promo',
 
             // Customer
-            self::CUSTOMER_ALL => 'Semua Akses Customer',
             self::CUSTOMER_VIEW => 'Akses Melihat Customer',
             self::CUSTOMER_CREATE => 'Akses Membuat Customer',
             self::CUSTOMER_UPDATE => 'Akses Memperbarui Customer',
@@ -384,17 +329,13 @@ enum PermissionEnum: string
             self::CUSTOMER_LOYALTY => 'Akses Loyalty Customer',
 
             // Report
-            self::REPORT_ALL => 'Semua Akses Laporan',
             self::REPORT_SALES => 'Akses Laporan Penjualan',
             self::REPORT_INVENTORY => 'Akses Laporan Inventori',
-            self::REPORT_CASHFLOW => 'Akses Laporan Cashflow',
-            self::REPORT_SHIFT => 'Akses Laporan Shift',
+            self::REPORT_SHIFT => 'Akses Laporan Shift & Kas',
             self::REPORT_PRODUCT => 'Akses Laporan Produk',
-            self::REPORT_CUSTOMER => 'Akses Laporan Customer',
             self::REPORT_EXPORT => 'Akses Export Laporan',
 
             // Setting
-            self::SETTING_ALL => 'Semua Akses Pengaturan',
             self::SETTING_SALES => 'Akses Pengaturan Penjualan',
             self::SETTING_TAX => 'Akses Pengaturan Pajak',
             self::SETTING_RECEIPT => 'Akses Pengaturan Struk',
@@ -408,15 +349,9 @@ enum PermissionEnum: string
     public function group(): string
     {
         return match ($this) {
-            self::TRANSACTION_ALL,
             self::TRANSACTION_VIEW,
             self::TRANSACTION_CREATE,
-            self::TRANSACTION_UPDATE,
-            self::TRANSACTION_CANCEL,
-            self::TRANSACTION_REFUND,
-            self::TRANSACTION_DISCOUNT,
             self::TRANSACTION_HOLD,
-            self::TRANSACTION_VOID,
             self::TRANSACTION_REPRINT,
             self::TRANSACTION_OPEN_SHIFT,
             self::TRANSACTION_CLOSE_SHIFT,
@@ -426,108 +361,88 @@ enum PermissionEnum: string
             self::TRANSACTION_OVERRIDE_PRICE,
             self::TRANSACTION_VALIDATION_SUPERVISION,
             self::TRANSACTION_OPEN_DRAWER,
-            self::TRANSACTION_DELETE => 'pos_and_transactions',
+            self::TRANSACTION_VOID,
+            self::TRANSACTION_REFUND => 'pos_and_transactions',
 
-            self::PRODUCT_ALL,
             self::PRODUCT_VIEW,
             self::PRODUCT_CREATE,
             self::PRODUCT_UPDATE,
             self::PRODUCT_DELETE,
-            self::PRODUCT_IMPORT,
-            self::PRODUCT_EXPORT,
-            self::PRODUCT_VARIANT,
-            self::PRODUCT_MODIFIER,
-            self::PRODUCT_RECIPE,
-            self::SERVICE_ALL,
-            self::SERVICE_VIEW,
-            self::SERVICE_CREATE,
-            self::SERVICE_UPDATE,
-            self::SERVICE_DELETE,
-            self::SERVICE_IMPORT,
-            self::SERVICE_EXPORT,
-            self::CATEGORY_ALL,
-            self::CATEGORY_VIEW,
-            self::CATEGORY_CREATE,
-            self::CATEGORY_UPDATE,
-            self::CATEGORY_DELETE => 'products_and_menu',
+            self::PRODUCT_CATEGORY_VIEW,
+            self::PRODUCT_CATEGORY_CREATE,
+            self::PRODUCT_CATEGORY_UPDATE,
+            self::PRODUCT_CATEGORY_DELETE,
+            self::PRODUCT_MODIFIER_VIEW,
+            self::PRODUCT_MODIFIER_CREATE,
+            self::PRODUCT_MODIFIER_UPDATE,
+            self::PRODUCT_MODIFIER_DELETE,
+            self::PRODUCT_BOM_VIEW,
+            self::PRODUCT_BOM_CREATE,
+            self::PRODUCT_BOM_UPDATE,
+            self::PRODUCT_BOM_DELETE => 'products_and_menu',
 
-            self::INVENTORY_ALL,
             self::INVENTORY_VIEW,
-            self::INVENTORY_ADJUST,
-            self::INVENTORY_ADJUSTMENT_READ,
-            self::INVENTORY_ADJUSTMENT_CREATE,
-            self::INVENTORY_ADJUSTMENT_APPROVE,
-            self::INVENTORY_ADJUSTMENT_VOID,
-            self::INVENTORY_ADJUSTMENT_EXPORT,
-            self::INVENTORY_ADJUSTMENT_FREEZE,
-            self::INVENTORY_TRANSFER_READ,
-            self::INVENTORY_TRANSFER_CREATE,
-            self::INVENTORY_TRANSFER_UPDATE,
-            self::INVENTORY_TRANSFER_APPROVE,
-            self::INVENTORY_TRANSFER_SHIP,
-            self::INVENTORY_TRANSFER_RECEIVE,
-            self::INVENTORY_STOCK_OPNAME,
-            self::INVENTORY_OPNAME_READ,
+            self::MATERIAL_VIEW,
+            self::MATERIAL_CREATE,
+            self::MATERIAL_UPDATE,
+            self::MATERIAL_DELETE,
+            self::INVENTORY_WAREHOUSE_VIEW,
+            self::INVENTORY_WAREHOUSE_CREATE,
+            self::INVENTORY_WAREHOUSE_UPDATE,
+            self::INVENTORY_WAREHOUSE_DELETE,
+            self::INVENTORY_ADJUST_VIEW,
+            self::INVENTORY_ADJUST_CREATE,
+            self::INVENTORY_ADJUST_UPDATE,
+            self::INVENTORY_ADJUST_VALIDATE,
+            self::INVENTORY_ADJUST_DELETE,
+            self::INVENTORY_OPNAME_VIEW,
             self::INVENTORY_OPNAME_CREATE,
             self::INVENTORY_OPNAME_UPDATE,
-            self::INVENTORY_OPNAME_APPROVE,
+            self::INVENTORY_OPNAME_VALIDATE,
             self::INVENTORY_OPNAME_DELETE,
-            self::INVENTORY_OPNAME_EXPORT,
-            self::INVENTORY_OPNAME_FREEZE,
-            self::INVENTORY_MOVEMENT,
-            self::INVENTORY_PURCHASE,
-            self::INVENTORY_WASTE,
-            self::INVENTORY_RECEIVE,
-            self::SUPPLIER_ALL,
-            self::SUPPLIER_VIEW,
-            self::SUPPLIER_CREATE,
-            self::SUPPLIER_UPDATE,
-            self::SUPPLIER_DELETE,
-            self::PURCHASE_ORDER_ALL,
-            self::PURCHASE_ORDER_VIEW,
-            self::PURCHASE_ORDER_CREATE,
-            self::PURCHASE_ORDER_UPDATE,
-            self::PURCHASE_ORDER_APPROVE,
-            self::PURCHASE_ORDER_CANCEL,
-            self::PURCHASE_ORDER_RECEIVE,
-            self::PURCHASE_ORDER_VOID,
-            self::PURCHASE_ORDER_RETURN => 'inventory_and_supply',
+            self::INVENTORY_TRANSFER_VIEW,
+            self::INVENTORY_TRANSFER_CREATE,
+            self::INVENTORY_TRANSFER_UPDATE,
+            self::INVENTORY_TRANSFER_VALIDATE,
+            self::INVENTORY_TRANSFER_DELETE,
+            self::INVENTORY_TRANSFER_RECEIVE,
+            self::PURCHASE_SUPPLIER_VIEW,
+            self::PURCHASE_SUPPLIER_CREATE,
+            self::PURCHASE_SUPPLIER_UPDATE,
+            self::PURCHASE_SUPPLIER_DELETE,
+            self::PURCHASE_VIEW,
+            self::PURCHASE_CREATE,
+            self::PURCHASE_UPDATE,
+            self::PURCHASE_VALIDATE,
+            self::PURCHASE_DELETE,
+            self::PURCHASE_RECEIVE,
+            self::PURCHASE_RETURN,
+            self::PURCHASE_RETURN_VALIDATE => 'inventory_and_supply',
 
-            self::PROMO_ALL,
             self::PROMO_VIEW,
             self::PROMO_CREATE,
             self::PROMO_UPDATE,
             self::PROMO_DELETE,
             self::PROMO_PUBLISH,
-            self::CUSTOMER_ALL,
             self::CUSTOMER_VIEW,
             self::CUSTOMER_CREATE,
             self::CUSTOMER_UPDATE,
             self::CUSTOMER_DELETE,
             self::CUSTOMER_LOYALTY => 'promotions_and_crm',
 
-            self::REPORT_ALL,
             self::REPORT_SALES,
             self::REPORT_INVENTORY,
-            self::REPORT_CASHFLOW,
             self::REPORT_SHIFT,
             self::REPORT_PRODUCT,
-            self::REPORT_CUSTOMER,
             self::REPORT_EXPORT => 'reports_and_analytics',
 
-            self::BUSINESS_ALL,
             self::BUSINESS_VIEW,
-            self::BUSINESS_UPDATE,
             self::BUSINESS_BILLING,
             self::BUSINESS_SUBSCRIPTION,
-            self::BUSINESS_SETTING,
-            self::OUTLET_ALL,
             self::OUTLET_VIEW,
             self::OUTLET_CREATE,
             self::OUTLET_UPDATE,
             self::OUTLET_DELETE,
-            self::OUTLET_SWITCH,
-            self::SETTING_ALL,
             self::SETTING_SALES,
             self::SETTING_TAX,
             self::SETTING_RECEIPT,
@@ -536,13 +451,10 @@ enum PermissionEnum: string
             self::SETTING_PRINTER,
             self::SETTING_AUDIT => 'settings_and_business',
 
-            self::USER_ALL,
             self::USER_VIEW,
             self::USER_CREATE,
             self::USER_UPDATE,
             self::USER_DELETE,
-            self::USER_INVITE,
-            self::ROLE_ALL,
             self::ROLE_VIEW,
             self::ROLE_CREATE,
             self::ROLE_UPDATE,

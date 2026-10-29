@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\App\Inventory;
 
+use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,7 @@ class RejectStockAdjustmentRequest extends BaseInertiaFormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()?->can('inventory.adjustment.approve') ?? false;
+        return Auth::user()?->can(PermissionEnum::INVENTORY_ADJUST_VALIDATE->value) ?? false;
     }
 
     /**

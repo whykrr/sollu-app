@@ -10,7 +10,7 @@ class UpdateServiceProductRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::SERVICE_UPDATE->value) ?? false;
+        return Auth::user()?->can(PermissionEnum::PRODUCT_UPDATE->value) ?? false;
     }
 
     protected function prepareForValidation(): void

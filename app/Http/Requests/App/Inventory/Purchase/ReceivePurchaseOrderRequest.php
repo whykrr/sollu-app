@@ -10,7 +10,7 @@ class ReceivePurchaseOrderRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_RECEIVE->value);
+        return Auth::user()?->can(PermissionEnum::PURCHASE_RECEIVE->value);
     }
 
     public function rules(): array

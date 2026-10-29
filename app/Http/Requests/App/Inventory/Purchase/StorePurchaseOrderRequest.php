@@ -10,7 +10,7 @@ class StorePurchaseOrderRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_CREATE->value);
+        return Auth::user()?->can(PermissionEnum::PURCHASE_CREATE->value);
     }
 
     public function rules(): array

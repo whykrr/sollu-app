@@ -134,7 +134,7 @@ class EmpiricalStressR2Test extends TestCase
         $respGet->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::PRODUCT_MODIFIERS->value,
+                'feature' => FeatureEnum::PRODUCT_MODIFIER->value,
             ]);
 
         // 2. POST create -> 403
@@ -147,7 +147,7 @@ class EmpiricalStressR2Test extends TestCase
         $respPost->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::PRODUCT_MODIFIERS->value,
+                'feature' => FeatureEnum::PRODUCT_MODIFIER->value,
             ]);
 
         // 3. PUT update -> 403
@@ -160,7 +160,7 @@ class EmpiricalStressR2Test extends TestCase
         $respPut->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::PRODUCT_MODIFIERS->value,
+                'feature' => FeatureEnum::PRODUCT_MODIFIER->value,
             ]);
 
         // 4. DELETE destroy -> 403
@@ -169,7 +169,7 @@ class EmpiricalStressR2Test extends TestCase
         $respDelete->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::PRODUCT_MODIFIERS->value,
+                'feature' => FeatureEnum::PRODUCT_MODIFIER->value,
             ]);
     }
 
@@ -183,7 +183,7 @@ class EmpiricalStressR2Test extends TestCase
         $respRecipe->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::RECIPE_MANAGEMENT->value,
+                'feature' => FeatureEnum::PRODUCT_BOM->value,
             ]);
 
         // GET raw-materials index -> 403
@@ -192,7 +192,7 @@ class EmpiricalStressR2Test extends TestCase
         $respRaw->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::RECIPE_MANAGEMENT->value,
+                'feature' => FeatureEnum::PRODUCT_BOM->value,
             ]);
 
         // POST raw-materials -> 403
@@ -204,7 +204,7 @@ class EmpiricalStressR2Test extends TestCase
         $respPostRaw->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::RECIPE_MANAGEMENT->value,
+                'feature' => FeatureEnum::PRODUCT_BOM->value,
             ]);
     }
 

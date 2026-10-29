@@ -61,6 +61,13 @@ class StoreProductRequest extends BaseInertiaFormRequest
             'has_recipe' => 'boolean',
             'track_inventory' => 'boolean',
             'uom_id' => 'required_if:track_inventory,true|nullable|uuid|exists:uoms,id',
+            'minimum_stock' => 'nullable|numeric|min:0',
+            'initial_stock' => 'nullable|numeric|min:0',
+            'purchase_price' => 'nullable|numeric|min:0',
+            'initial_stocks' => 'nullable|array',
+            'initial_stocks.*.outlet_id' => 'required|uuid|exists:outlets,id',
+            'initial_stocks.*.qty' => 'required|numeric|min:0',
+            'initial_stocks.*.purchase_price' => 'nullable|numeric|min:0',
 
             // Price setup
             'base_price' => 'required|numeric|min:0',
@@ -93,6 +100,12 @@ class StoreProductRequest extends BaseInertiaFormRequest
                 $rules['variant_combinations.*.sku'] = 'nullable|string';
                 $rules['variant_combinations.*.barcode'] = 'nullable|string';
                 $rules['variant_combinations.*.price'] = 'nullable|numeric|min:0';
+                $rules['variant_combinations.*.initial_stock'] = 'nullable|numeric|min:0';
+                $rules['variant_combinations.*.purchase_price'] = 'nullable|numeric|min:0';
+                $rules['variant_combinations.*.initial_stocks'] = 'nullable|array';
+                $rules['variant_combinations.*.initial_stocks.*.outlet_id'] = 'required|uuid|exists:outlets,id';
+                $rules['variant_combinations.*.initial_stocks.*.qty'] = 'required|numeric|min:0';
+                $rules['variant_combinations.*.initial_stocks.*.purchase_price'] = 'nullable|numeric|min:0';
                 $rules['variant_combinations.*.track_inventory'] = 'nullable|boolean';
                 $rules['variant_combinations.*.sellable'] = 'nullable|boolean';
                 $rules['variant_combinations.*.is_active'] = 'nullable|boolean';
@@ -104,7 +117,7 @@ class StoreProductRequest extends BaseInertiaFormRequest
 
             if ($this->has_recipe) {
                 $rules['recipes'] = 'required|array|min:1';
-                $rules['recipes.*.product_item_id'] = 'required|uuid|exists:inventory_items,id';
+                $rules['recipes.*.product_item_id'] = 'required|uuid|exists:product_items,id';
                 $rules['recipes.*.qty'] = 'required|numeric|min:0';
                 $rules['recipes.*.uom'] = 'required|string';
             }
@@ -113,7 +126,7 @@ class StoreProductRequest extends BaseInertiaFormRequest
         if ($this->product_type === 'bundle') {
             $rules['bundle_items'] = 'required|array|min:1';
             $rules['bundle_items.*.component_product_id'] = 'required|uuid|exists:products,id';
-            $rules['bundle_items.*.component_product_item_id'] = 'nullable|uuid|exists:inventory_items,id';
+            $rules['bundle_items.*.component_product_item_id'] = 'nullable|uuid|exists:product_items,id';
             $rules['bundle_items.*.qty'] = 'required|numeric|min:0';
         }
 

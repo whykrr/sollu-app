@@ -2,15 +2,13 @@
 
 namespace App\Http\Requests\App\Settings;
 
-use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
 
 class UpdateInventorySodSettingRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can(PermissionEnum::BUSINESS_UPDATE->value)
-            || $this->user()?->can(PermissionEnum::SETTING_ALL->value);
+        return (bool) $this->user()?->is_root_user;
     }
 
     public function rules(): array

@@ -11,6 +11,7 @@ use App\Enums\PlanEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryItem;
+use App\Models\Master\ModifierGroup;
 use App\Models\Master\Product;
 use App\Models\Master\ProductItem;
 use App\Models\Outlet;
@@ -92,8 +93,6 @@ class ProductControllerTest extends TestCase
             PermissionEnum::PRODUCT_CREATE->value,
             PermissionEnum::PRODUCT_UPDATE->value,
             PermissionEnum::PRODUCT_DELETE->value,
-            PermissionEnum::PRODUCT_EXPORT->value,
-            PermissionEnum::PRODUCT_IMPORT->value,
         ] as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'business']);
             $this->user->givePermissionTo($perm);
@@ -1112,5 +1111,235 @@ class ProductControllerTest extends TestCase
             ],
         ]);
         $this->assertEquals('Americano Coffee', $response->json('data.0.name'));
+    }
+
+    public function test_user_can_create_product_with_recipe_and_stores_has_recipe_true(): void
+    {
+        $rawMaterial = ProductItem::create([
+            'business_id' => $this->business->id,
+            'name' => 'Biji Kopi Arabika',
+            'item_type' => 'raw_material',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/products", [
+                'name' => 'Espresso Blend',
+                'code' => 'ESP-BLD',
+                'product_type' => 'basic',
+                'base_price' => 20000,
+                'has_recipe' => true,
+                'recipes' => [
+                    [
+                        'product_item_id' => $rawMaterial->id,
+                        'qty' => 18,
+                        'uom' => 'Gram',
+                    ],
+                ],
+                'track_inventory' => false,
+                'is_show' => true,
+                'sellable' => true,
+            ]);
+
+        $response->assertRedirect(route('master.products.index'));
+
+        $product = Product::where('code', 'ESP-BLD')->first();
+        $this->assertNotNull($product);
+        $this->assertTrue($product->has_recipe);
+        $this->assertCount(1, $product->recipeVersions);
+        $this->assertTrue($product->recipeVersions->first()->is_active);
+        $this->assertCount(1, $product->recipeVersions->first()->items);
+    }
+
+    public function test_user_cannot_create_product_with_has_recipe_true_and_empty_recipes(): void
+    {
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/products", [
+                'name' => 'Invalid Recipe Product',
+                'code' => 'INV-REC',
+                'product_type' => 'basic',
+                'base_price' => 15000,
+                'has_recipe' => true,
+                'recipes' => [],
+                'track_inventory' => false,
+                'is_show' => true,
+                'sellable' => true,
+            ]);
+
+        $response->assertSessionHasErrors(['recipes']);
+        $this->assertDatabaseMissing('products', ['code' => 'INV-REC']);
+    }
+
+    public function test_user_can_update_product_to_disable_has_recipe_and_deactivates_recipe_versions(): void
+    {
+        $rawMaterial = ProductItem::create([
+            'business_id' => $this->business->id,
+            'name' => 'Susu Segar',
+            'item_type' => 'raw_material',
+            'is_active' => true,
+        ]);
+
+        $product = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Latte',
+            'code' => 'LAT-001',
+            'product_type' => 'basic',
+            'has_recipe' => true,
+            'track_inventory' => false,
+            'is_show' => true,
+            'sellable' => true,
+        ]);
+
+        $recipe = $product->recipeVersions()->create([
+            'version_number' => 1,
+            'is_active' => true,
+            'effective_from' => now(),
+        ]);
+        $recipe->items()->create([
+            'product_item_id' => $rawMaterial->id,
+            'qty' => 150,
+            'uom' => 'ml',
+        ]);
+
+        $this->assertTrue($product->fresh()->has_recipe);
+        $this->assertTrue($recipe->fresh()->is_active);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->put("http://{$this->appDomain}/master/products/{$product->id}", [
+                'name' => 'Latte Updated',
+                'code' => 'LAT-001',
+                'product_type' => 'basic',
+                'base_price' => 28000,
+                'has_recipe' => false,
+                'recipes' => [],
+                'track_inventory' => false,
+                'is_show' => true,
+                'sellable' => true,
+            ]);
+
+        $response->assertRedirect(route('master.products.index'));
+
+        $updatedProduct = $product->fresh();
+        $this->assertFalse($updatedProduct->has_recipe);
+        $this->assertFalse($recipe->fresh()->is_active);
+    }
+
+    public function test_user_can_create_product_with_modifier_and_stores_has_modifier_true(): void
+    {
+        $modGroup = ModifierGroup::create([
+            'business_id' => $this->business->id,
+            'name' => 'Level Gula',
+            'selection_type' => 'single',
+            'is_required' => false,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/products", [
+                'name' => 'Boba Milk Tea',
+                'code' => 'BMT-001',
+                'product_type' => 'basic',
+                'base_price' => 22000,
+                'has_modifier' => true,
+                'modifier_groups' => [
+                    ['modifier_group_id' => $modGroup->id],
+                ],
+                'track_inventory' => false,
+                'is_show' => true,
+                'sellable' => true,
+            ]);
+
+        $response->assertRedirect(route('master.products.index'));
+
+        $product = Product::where('code', 'BMT-001')->first();
+        $this->assertNotNull($product);
+        $this->assertTrue($product->has_modifier);
+        $this->assertCount(1, $product->modifierGroups);
+        $this->assertEquals($modGroup->id, $product->modifierGroups->first()->id);
+    }
+
+    public function test_user_can_update_product_to_disable_has_modifier_and_detaches_groups(): void
+    {
+        $modGroup = ModifierGroup::create([
+            'business_id' => $this->business->id,
+            'name' => 'Topping Pilihan',
+            'selection_type' => 'multi',
+            'is_required' => false,
+        ]);
+
+        $product = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Ice Cream Cup',
+            'code' => 'ICC-001',
+            'product_type' => 'basic',
+            'has_modifier' => true,
+            'track_inventory' => false,
+            'is_show' => true,
+            'sellable' => true,
+        ]);
+        $product->modifierGroups()->sync([$modGroup->id]);
+
+        $this->assertTrue($product->fresh()->has_modifier);
+        $this->assertCount(1, $product->fresh()->modifierGroups);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->put("http://{$this->appDomain}/master/products/{$product->id}", [
+                'name' => 'Ice Cream Cup Updated',
+                'code' => 'ICC-001',
+                'product_type' => 'basic',
+                'base_price' => 18000,
+                'has_modifier' => false,
+                'modifier_groups' => [],
+                'track_inventory' => false,
+                'is_show' => true,
+                'sellable' => true,
+            ]);
+
+        $response->assertRedirect(route('master.products.index'));
+
+        $updatedProduct = $product->fresh();
+        $this->assertFalse($updatedProduct->has_modifier);
+        $this->assertCount(0, $updatedProduct->modifierGroups);
+    }
+
+    public function test_show_endpoint_loads_recipe_versions_and_active_recipe(): void
+    {
+        $rawMaterial = ProductItem::create([
+            'business_id' => $this->business->id,
+            'name' => 'Cokelat Bubuk',
+            'item_type' => 'raw_material',
+            'is_active' => true,
+        ]);
+
+        $product = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Hot Chocolate',
+            'code' => 'HCH-001',
+            'product_type' => 'basic',
+            'has_recipe' => true,
+            'track_inventory' => false,
+            'is_show' => true,
+            'sellable' => true,
+        ]);
+
+        $recipe = $product->recipeVersions()->create([
+            'version_number' => 1,
+            'is_active' => true,
+            'effective_from' => now(),
+        ]);
+        $recipe->items()->create([
+            'product_item_id' => $rawMaterial->id,
+            'qty' => 30,
+            'uom' => 'Gram',
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->get("http://{$this->appDomain}/master/products/{$product->id}");
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+        $this->assertTrue($data['has_recipe']);
+        $this->assertNotEmpty($data['recipe_versions']);
+        $this->assertNotEmpty($data['active_recipe']);
+        $this->assertEquals(30, $data['active_recipe']['items'][0]['qty']);
     }
 }

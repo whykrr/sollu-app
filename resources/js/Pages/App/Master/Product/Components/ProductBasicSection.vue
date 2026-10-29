@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-3">
+    <div :id="id" class="space-y-3">
         <!-- 1. Foto Produk -->
         <div>
             <label
@@ -10,8 +10,8 @@
             <ProductImagesUploader v-model="form.images" :error="form.errors.images" />
         </div>
 
-        <!-- 2. Nama Produk & Kategori (Core Fields 80/20) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <!-- 2. Core Inputs (80/20 Wajib): Nama, Kategori, Harga Jual Dasar -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div class="col-span-1 sm:col-span-2">
                 <TextField
                     v-model="form.name"
@@ -22,7 +22,7 @@
                 />
             </div>
 
-            <div class="col-span-1 sm:col-span-2">
+            <div class="col-span-1">
                 <SearchableDropdownField
                     v-model="form.product_category_id"
                     :options="categoryOptions"
@@ -33,9 +33,20 @@
                     clearable
                 />
             </div>
+
+            <div class="col-span-1">
+                <NumberField
+                    v-model="form.base_price"
+                    label="Harga Jual"
+                    placeholder="0"
+                    prefix="Rp"
+                    :error="form.errors.base_price"
+                    required
+                />
+            </div>
         </div>
 
-        <!-- 4. Pengaturan Lanjutan (Progressive Disclosure) -->
+        <!-- 3. Pengaturan Lanjutan (Progressive Disclosure Accordion) -->
         <DisclosureSection
             title="Pengaturan Lanjutan"
             description="Kode SKU, barcode, deskripsi, visibilitas kasir & outlet"
@@ -46,15 +57,15 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <TextField
                         v-model="form.code"
-                        label="Kode Produk / SKU (Opsional)"
-                        placeholder="Misal: KOP-AREN-01"
+                        label="Kode Produk / SKU"
+                        placeholder="Misal: KOP-AREN-01 (Opsional)"
                         :error="form.errors.code"
                     />
 
                     <TextField
                         v-model="form.barcode"
-                        label="Barcode (Opsional)"
-                        placeholder="Scan atau input barcode"
+                        label="Barcode"
+                        placeholder="Scan atau input barcode (Opsional)"
                         :error="form.errors.barcode"
                     />
                 </div>
@@ -70,6 +81,17 @@
 
                 <!-- Switch Visibilitas POS & Jual -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <div
+                        class="flex items-center justify-between border border-slate-200 p-2.5 rounded-xl hover:bg-slate-50 transition"
+                    >
+                        <div>
+                            <div class="font-semibold text-xs text-slate-800">Dapat Dijual</div>
+                            <div class="text-[11px] text-slate-500">
+                                Aktif untuk transaksi penjualan
+                            </div>
+                        </div>
+                        <Switch v-model="form.sellable" size="sm" />
+                    </div>
                     <div
                         class="flex items-center justify-between border border-slate-200 p-2.5 rounded-xl transition"
                         :class="
@@ -92,23 +114,11 @@
                         </div>
                         <Switch v-model="form.is_show" size="sm" :disabled="!form.sellable" />
                     </div>
-
-                    <div
-                        class="flex items-center justify-between border border-slate-200 p-2.5 rounded-xl hover:bg-slate-50 transition"
-                    >
-                        <div>
-                            <div class="font-semibold text-xs text-slate-800">Dapat Dijual</div>
-                            <div class="text-[11px] text-slate-500">
-                                Aktif untuk transaksi penjualan
-                            </div>
-                        </div>
-                        <Switch v-model="form.sellable" size="sm" />
-                    </div>
                 </div>
 
                 <!-- Ketersediaan Outlet (Multi-Outlet) -->
                 <div
-                    v-if="outlets.length > 1 && !selectedOutlet"
+                    v-if="outletsList.length > 1 && !selectedOutlet"
                     class="border border-slate-200 p-2.5 rounded-xl space-y-1.5"
                 >
                     <div class="font-semibold text-xs text-slate-800">Ketersediaan di Outlet</div>
@@ -135,6 +145,7 @@
 import { inject, computed } from 'vue'
 import { useAuth } from '@/Composable/useAuth'
 import TextField from '@/Components/Form/TextField.vue'
+import NumberField from '@/Components/Form/NumberField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import SelectionGroupField from '@/Components/Form/SelectionGroupField.vue'
@@ -142,15 +153,23 @@ import Switch from '@/Components/Form/Switch.vue'
 import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
 import ProductImagesUploader from './ProductImagesUploader.vue'
 
+defineProps({
+    id: { type: String, default: 'section-basic' },
+})
+
 const { selectedOutlet } = useAuth()
 const form = inject('productForm')
 const categories = inject('categories', [])
 const outlets = inject('outlets', [])
 const outletStatusMap = inject('outletStatusMap', {})
 
-const formattedOutlets = computed(() => {
+const outletsList = computed(() => {
     const list = outlets && outlets.value !== undefined ? outlets.value : outlets
-    return (Array.isArray(list) ? list : []).map(o => ({
+    return Array.isArray(list) ? list : []
+})
+
+const formattedOutlets = computed(() => {
+    return outletsList.value.map(o => ({
         value: o.id,
         label: o.name,
     }))
@@ -163,8 +182,7 @@ const selectedOutlets = computed({
             .map(id => Number(id) || id)
     },
     set: newVal => {
-        const list = outlets && outlets.value !== undefined ? outlets.value : outlets
-        ;(Array.isArray(list) ? list : []).forEach(o => {
+        outletsList.value.forEach(o => {
             outletStatusMap.value[o.id] = false
         })
         newVal.forEach(id => {

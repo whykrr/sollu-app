@@ -7,9 +7,12 @@ use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
+use App\Enums\PlanEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Master\ProductCategory;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -41,7 +44,7 @@ class ProductCategoryControllerTest extends TestCase
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
-            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true, 'features' => [FeatureEnum::PRODUCT_CATEGORIES->value]]
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true, 'features' => [FeatureEnum::PRODUCT_CATALOG->value]]
         );
 
         $this->business = Business::create([
@@ -53,9 +56,22 @@ class ProductCategoryControllerTest extends TestCase
             'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
             'settings' => [
-                'active_features' => [FeatureEnum::PRODUCT_CATEGORIES->value],
+                'active_features' => array_column(FeatureEnum::cases(), 'value'),
             ],
         ]);
+
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($proPlan) {
+            Subscription::create([
+                'business_id' => $this->business->id,
+                'plan_id' => $proPlan->id,
+                'status' => 'active',
+                'billing_cycle' => 'monthly',
+                'started_at' => now()->subDay(),
+                'expired_at' => now()->addMonth(),
+            ]);
+        }
+        $this->business->clearMemoizedFeatures();
 
         $this->user = User::create([
             'business_id' => $this->business->id,
@@ -68,10 +84,10 @@ class ProductCategoryControllerTest extends TestCase
 
         // Grant category permissions
         foreach ([
-            PermissionEnum::CATEGORY_VIEW->value,
-            PermissionEnum::CATEGORY_CREATE->value,
-            PermissionEnum::CATEGORY_UPDATE->value,
-            PermissionEnum::CATEGORY_DELETE->value,
+            PermissionEnum::PRODUCT_CATEGORY_VIEW->value,
+            PermissionEnum::PRODUCT_CATEGORY_CREATE->value,
+            PermissionEnum::PRODUCT_CATEGORY_UPDATE->value,
+            PermissionEnum::PRODUCT_CATEGORY_DELETE->value,
         ] as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'business']);
             $this->user->givePermissionTo($perm);

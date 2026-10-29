@@ -304,6 +304,125 @@ class InventoryCostingService
     }
 
     /**
+     * Memperbarui stok awal untuk barang yang belum memiliki mutasi operasional lanjutan.
+     */
+    public function updateInitialStock(
+        Business $business,
+        Outlet $outlet,
+        InventoryItem $item,
+        float $newQty,
+        float $newUnitCost,
+        User $user
+    ): InventoryMovement {
+        if ($newQty <= 0) {
+            throw new \InvalidArgumentException('Kuantitas stok awal harus lebih besar dari 0.');
+        }
+        if ($newUnitCost < 0) {
+            throw new \InvalidArgumentException('Harga modal beli tidak boleh bernilai negatif.');
+        }
+
+        return DB::transaction(function () use (
+            $business,
+            $outlet,
+            $item,
+            $newQty,
+            $newUnitCost,
+            $user
+        ) {
+            // Validasi: pastikan tidak ada mutasi selain InitialStock
+            $hasOtherMovements = InventoryMovement::where('inventory_item_id', $item->id)
+                ->where('outlet_id', $outlet->id)
+                ->where('movement_type', '!=', InventoryMovementType::InitialStock)
+                ->exists();
+
+            if ($hasOtherMovements) {
+                throw new \InvalidArgumentException("Stok awal '{$item->name}' tidak dapat diubah karena sudah memiliki riwayat mutasi operasional.");
+            }
+
+            $balance = InventoryBalance::firstOrCreate([
+                'business_id' => $business->id,
+                'outlet_id' => $outlet->id,
+                'inventory_item_id' => $item->id,
+            ], [
+                'current_stock' => 0,
+                'average_cost' => $newUnitCost,
+                'last_cost' => $newUnitCost,
+                'total_value' => 0,
+            ]);
+
+            $totalValueAfter = $newQty * $newUnitCost;
+            $balance->current_stock = $newQty;
+            $balance->average_cost = $newUnitCost;
+            $balance->last_cost = $newUnitCost;
+            $balance->total_value = $totalValueAfter;
+            $balance->save();
+
+            // Cari layer FIFO awal atau buat baru jika belum ada
+            $layer = InventoryCostLayer::where('outlet_id', $outlet->id)
+                ->where('inventory_item_id', $item->id)
+                ->orderBy('created_at', 'asc')
+                ->first();
+
+            if ($layer) {
+                $layer->qty_purchased = $newQty;
+                $layer->qty_remaining = $newQty;
+                $layer->purchase_price = $newUnitCost;
+                $layer->business_id = $business->id;
+                $layer->save();
+            } else {
+                $layer = InventoryCostLayer::create([
+                    'business_id' => $business->id,
+                    'outlet_id' => $outlet->id,
+                    'inventory_item_id' => $item->id,
+                    'purchase_price' => $newUnitCost,
+                    'qty_purchased' => $newQty,
+                    'qty_remaining' => $newQty,
+                    'reference_type' => 'initial_stock_update',
+                    'created_at' => now(),
+                ]);
+            }
+
+            // Cari movement awal atau buat baru
+            $movement = InventoryMovement::where('inventory_item_id', $item->id)
+                ->where('outlet_id', $outlet->id)
+                ->where('movement_type', InventoryMovementType::InitialStock)
+                ->first();
+
+            if ($movement) {
+                $movement->qty_change = +$newQty;
+                $movement->stock_before = 0;
+                $movement->stock_after = $newQty;
+                $movement->cost = $newUnitCost;
+                $movement->unit_cost = $newUnitCost;
+                $movement->total_cost = $totalValueAfter;
+                $movement->balance_value_after = $totalValueAfter;
+                $movement->description = 'Input Stok Awal (Diperbarui)';
+                $movement->created_by = $user->id;
+                $movement->save();
+            } else {
+                $movement = InventoryMovement::create([
+                    'business_id' => $business->id,
+                    'outlet_id' => $outlet->id,
+                    'inventory_item_id' => $item->id,
+                    'movement_type' => InventoryMovementType::InitialStock,
+                    'qty_change' => +$newQty,
+                    'stock_before' => 0,
+                    'stock_after' => $newQty,
+                    'cost' => $newUnitCost,
+                    'unit_cost' => $newUnitCost,
+                    'total_cost' => $totalValueAfter,
+                    'balance_value_after' => $totalValueAfter,
+                    'description' => 'Input Stok Awal '.$item->name,
+                    'created_by' => $user->id,
+                    'created_at' => now(),
+                ]);
+            }
+
+            return $movement;
+        });
+    }
+
+    /**
      * Hitung harga rata-rata bergerak (Moving Average) baru setelah stok masuk.
      */
     public function calculateNewMovingAverage(InventoryBalance $balance, float $incomingQty, float $incomingCost): float

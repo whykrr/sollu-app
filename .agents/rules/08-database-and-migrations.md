@@ -63,3 +63,10 @@ php artisan migrate
 - Perintah `migrate:rollback` berhasil tanpa error sintaks, unknown method, atau constraint violation.
 - Menjalankan `migrate` ulang setelah rollback berjalan mulus tanpa error tabel/kolom duplikat.
 - Seluruh test suite (`php artisan test`) lolos 100%.
+
+---
+
+## 5. Larangan Pemanggilan Seeder di Dalam Migrasi (Test State Isolation)
+Migrasi database (baik DDL maupun DML) **DILARANG memanggil Production Seeder** (seperti `(new FeatureSeeder)->run()` atau `(new RolePermissionSeeder)->run()`).
+- **Alasan:** Migrasi dijalankan otomatis pada setiap siklus testing yang menggunakan trait `RefreshDatabase`. Memanggil seeder di dalam migrasi akan mengotori tabel dan menyebabkan *unique constraint violation* atau kegagalan asersi count pada tes unit/integrasi yang menggunakan Model Factory dari kondisi database kosong.
+- **Pengecualian:** Migrasi data hanya boleh menjalankan query DML spesifik (`DB::table(...)->where(...)->update(...)`) yang bersifat idempoten dan simetris pada `down()`.

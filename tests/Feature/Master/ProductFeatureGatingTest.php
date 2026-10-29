@@ -99,7 +99,7 @@ class ProductFeatureGatingTest extends TestCase
         $response->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::RECIPE_MANAGEMENT->value,
+                'feature' => FeatureEnum::PRODUCT_BOM->value,
             ]);
     }
 
@@ -113,7 +113,7 @@ class ProductFeatureGatingTest extends TestCase
         $response->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::RECIPE_MANAGEMENT->value,
+                'feature' => FeatureEnum::PRODUCT_BOM->value,
             ]);
     }
 
@@ -127,7 +127,7 @@ class ProductFeatureGatingTest extends TestCase
         $response->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::PRODUCT_MODIFIERS->value,
+                'feature' => FeatureEnum::PRODUCT_MODIFIER->value,
             ]);
     }
 
@@ -142,7 +142,7 @@ class ProductFeatureGatingTest extends TestCase
         $recipeResp->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::RECIPE_MANAGEMENT->value,
+                'feature' => FeatureEnum::PRODUCT_BOM->value,
             ]);
 
         // Blocked from modifiers
@@ -152,7 +152,7 @@ class ProductFeatureGatingTest extends TestCase
         $modifierResp->assertStatus(403)
             ->assertJson([
                 'is_feature_locked' => true,
-                'feature' => FeatureEnum::PRODUCT_MODIFIERS->value,
+                'feature' => FeatureEnum::PRODUCT_MODIFIER->value,
             ]);
     }
 
@@ -185,6 +185,6 @@ class ProductFeatureGatingTest extends TestCase
         $response->assertRedirect("http://{$this->appDomain}/master/products");
         $response->assertSessionHas('feature_locked');
         $sessionData = session('feature_locked');
-        $this->assertEquals(FeatureEnum::RECIPE_MANAGEMENT->value, $sessionData['feature']);
+        $this->assertEquals(FeatureEnum::PRODUCT_BOM->value, $sessionData['feature']);
     }
 }

@@ -54,7 +54,7 @@ class OutletDeviceController extends Controller
     public function generateOtp(Request $request, Outlet $outlet, OutletDevice $device)
     {
         abort_unless(
-            $request->user()->can(PermissionEnum::SETTING_DEVICE->value) || $request->user()->can(PermissionEnum::SETTING_ALL->value),
+            $request->user()->can(PermissionEnum::SETTING_DEVICE->value),
             403,
             'Anda tidak memiliki izin untuk mengelola perangkat.'
         );
@@ -76,7 +76,7 @@ class OutletDeviceController extends Controller
     public function unpair(Request $request, Outlet $outlet, OutletDevice $device)
     {
         abort_unless(
-            $request->user()->can(PermissionEnum::SETTING_DEVICE->value) || $request->user()->can(PermissionEnum::SETTING_ALL->value),
+            $request->user()->can(PermissionEnum::SETTING_DEVICE->value),
             403,
             'Anda tidak memiliki izin untuk memutus koneksi perangkat.'
         );

@@ -384,6 +384,19 @@ class EmployeeControllerTest extends TestCase
             'settings' => ['active_features' => [FeatureEnum::EMPLOYEE_MANAGEMENT->value]],
         ]);
 
+        $basicPlan = SubscriptionPlan::where('code', PlanEnum::BASIC->value)->first();
+        if ($basicPlan) {
+            Subscription::create([
+                'business_id' => $businessB->id,
+                'plan_id' => $basicPlan->id,
+                'status' => SubscriptionStatus::Active,
+                'billing_cycle' => 'monthly',
+                'started_at' => now()->subDay(),
+                'expired_at' => now()->addMonth(),
+            ]);
+        }
+        $businessB->clearMemoizedFeatures();
+
         $ownerB = User::create([
             'business_id' => $businessB->id,
             'name' => 'Owner B',

@@ -59,7 +59,7 @@ class ProductItemSearchTest extends TestCase
                 'sort_order' => 1,
                 'is_visible' => true,
                 'features' => [
-                    FeatureEnum::INVOICE_DEBT->value,
+                    FeatureEnum::TRANSACTION_INVOICE->value,
                     FeatureEnum::PRODUCT_CATALOG->value,
                 ],
             ]
@@ -75,7 +75,7 @@ class ProductItemSearchTest extends TestCase
             'business_type_id' => $type->id,
             'settings' => [
                 'active_features' => [
-                    FeatureEnum::INVOICE_DEBT->value,
+                    FeatureEnum::TRANSACTION_INVOICE->value,
                     FeatureEnum::PRODUCT_CATALOG->value,
                 ],
             ],

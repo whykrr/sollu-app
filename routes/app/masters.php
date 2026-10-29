@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('master')
     ->name('master.')
     ->group(function () {
-        Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_CATEGORIES->value)
+        Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_CATALOG->value.','.FeatureEnum::SERVICE_CATALOG->value)
             ->group(function () {
                 Route::post('categories/reorder', [ProductCategoryController::class, 'reorder'])->name('categories.reorder');
                 Route::resource('categories', ProductCategoryController::class)->except(['create', 'edit', 'show']);
@@ -38,12 +38,12 @@ Route::prefix('master')
                 Route::resource('services', ServiceProductController::class);
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_MODIFIERS->value)
+        Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_MODIFIER->value)
             ->group(function () {
                 Route::resource('modifiers', ModifierGroupController::class)->except(['create', 'edit']);
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::RECIPE_MANAGEMENT->value)
+        Route::middleware('plan.feature:'.FeatureEnum::PRODUCT_BOM->value)
             ->group(function () {
                 Route::get('raw-materials/export', [RawMaterialController::class, 'export'])->name('raw-materials.export');
                 Route::get('raw-materials/import/template', [RawMaterialController::class, 'importTemplate'])->name('raw-materials.importTemplate');

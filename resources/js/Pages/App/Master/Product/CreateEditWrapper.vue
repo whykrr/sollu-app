@@ -1,23 +1,21 @@
 <template>
-    <div v-if="isLoading" class="min-h-[400px] space-y-3">
-        <!-- Pulse Skeleton Loader -->
-        <div class="animate-pulse space-y-4">
-            <!-- Stepper Skeleton -->
-            <div class="flex items-center justify-between mb-4">
-                <div v-for="i in 3" :key="i" class="flex flex-col items-center gap-1.5">
-                    <div class="size-8 bg-slate-200 rounded-full"></div>
-                    <div class="h-2.5 w-14 bg-slate-200 rounded-full"></div>
+    <div v-if="isLoading" class="min-h-[450px] space-y-3 p-1">
+        <!-- Pulse Skeleton Loader for Single-Page Drawer -->
+        <div class="animate-pulse space-y-3.5">
+            <!-- Basic Section Skeleton -->
+            <div class="space-y-2.5">
+                <div class="h-4 w-24 bg-slate-200 rounded"></div>
+                <div class="h-24 w-24 bg-slate-200 rounded-xl"></div>
+                <div class="h-9 bg-slate-200 rounded-lg w-full"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="h-9 bg-slate-200 rounded-lg"></div>
+                    <div class="h-9 bg-slate-200 rounded-lg"></div>
                 </div>
             </div>
 
-            <!-- Content Skeleton -->
-            <div class="space-y-3">
-                <div class="h-5 w-1/4 bg-slate-200 rounded-lg"></div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="h-9 bg-slate-200 rounded-lg"></div>
-                    <div class="h-9 bg-slate-200 rounded-lg"></div>
-                    <div class="h-16 bg-slate-200 rounded-lg col-span-2"></div>
-                </div>
+            <!-- Progressive Disclosure Cards Skeleton -->
+            <div class="space-y-2.5 pt-2">
+                <div v-for="i in 4" :key="i" class="h-14 bg-slate-200/80 rounded-xl w-full"></div>
             </div>
         </div>
     </div>
@@ -26,7 +24,6 @@
         v-else
         :edit-mode="editMode"
         :product="fetchedProduct"
-        :initial-step="initialStep"
         :target-step-id="targetStepId"
         :categories="loadedCategories"
         :outlets="loadedOutlets"
@@ -47,7 +44,6 @@ const emit = defineEmits(['close'])
 const props = defineProps({
     editMode: { type: Boolean, default: false },
     product: { type: Object, default: null },
-    initialStep: { type: Number, default: 0 },
     targetStepId: { type: String, default: null },
     categories: { type: Array, default: () => [] },
     outlets: { type: Array, default: () => [] },

@@ -6,6 +6,7 @@ use App\Constants\FlashDataVariable;
 use App\Enums\InventoryMovementType;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\App\Inventory\BatchInitialStockRequest;
 use App\Jobs\Inventory\ExportStockJob;
 use App\Jobs\Inventory\ImportStockJob;
 use App\Models\Inventory\InventoryBalance;
@@ -14,6 +15,8 @@ use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
 use App\Models\Master\ProductCategory;
 use App\Models\Outlet;
+use App\Services\App\Inventory\InventoryCostingService;
+use App\Services\App\Inventory\StockFreezeService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -314,62 +317,141 @@ class StockController extends Controller
         );
     }
 
-    public function storeInitialStock(Request $request, $id)
+    /**
+     * Cari barang-barang inventori yang memenuhi syarat untuk diisi atau diperbarui stok awalnya.
+     */
+    public function searchEligibleItems(Request $request)
     {
-        $balance = InventoryBalance::where('business_id', Auth::user()->business_id)
-            ->findOrFail($id);
+        $businessId = Auth::user()->business_id;
+        $outletId = $request->get('outlet_id') ?: SelectedOutlet::resolveEffectiveOutletId(Auth::user(), $request->get('outlet_id'));
+        $search = $request->get('query') ?: $request->get('search');
 
-        if ($balance->current_stock > 0) {
-            return response()->json(['message' => 'Stok awal tidak dapat ditambahkan karena stok saat ini lebih dari 0.'], 422);
+        if (! $outletId) {
+            return response()->json(['message' => 'Outlet tujuan wajib dipilih.'], 422);
         }
 
-        $movementCount = InventoryMovement::where('inventory_item_id', $balance->inventory_item_id)
-            ->where('outlet_id', $balance->outlet_id)
-            ->count();
+        $outlet = Outlet::where('business_id', $businessId)->findOrFail($outletId);
 
-        if ($movementCount > 0) {
-            return response()->json(['message' => 'Stok awal hanya dapat diinput jika belum pernah ada mutasi sama sekali.'], 422);
-        }
+        $query = InventoryItem::query()
+            ->where('inventory_items.business_id', $businessId)
+            ->where('inventory_items.is_active', true)
+            ->joinProductItem()
+            ->where('product_items.track_inventory', true)
+            ->with(['uom:id,name,code', 'productItem', 'balances' => function ($q) use ($outletId) {
+                $q->where('outlet_id', $outletId);
+            }])
+            ->when($search, function ($q, $search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->whereLike('inventory_items.name', "%{$search}%")
+                        ->orWhereLike('product_items.sku', "%{$search}%")
+                        ->orWhereLike('product_items.barcode', "%{$search}%");
+                });
+            });
 
-        $request->validate([
-            'qty' => 'required|numeric|min:0.01',
-            'purchase_price' => 'required|numeric|min:0',
-        ]);
+        $items = $query->limit(60)->get();
 
-        DB::beginTransaction();
-        try {
-            $balance->current_stock = $request->qty;
-            $balance->save();
+        $eligible = $items->filter(function ($item) use ($outletId) {
+            $hasOtherMovements = InventoryMovement::where('inventory_item_id', $item->id)
+                ->where('outlet_id', $outletId)
+                ->where('movement_type', '!=', InventoryMovementType::InitialStock)
+                ->exists();
 
-            $movement = InventoryMovement::create([
-                'business_id' => Auth::user()->business_id,
-                'outlet_id' => $balance->outlet_id,
-                'inventory_item_id' => $balance->inventory_item_id,
-                'movement_type' => InventoryMovementType::InitialStock,
-                'qty_change' => $request->qty,
-                'stock_before' => 0,
-                'stock_after' => $request->qty,
-                'description' => 'Input Stok Awal',
-                'created_by' => Auth::id(),
+            return ! $hasOtherMovements;
+        })->map(function ($item) use ($outletId) {
+            $balance = $item->balances->first();
+            $initialMovement = InventoryMovement::where('inventory_item_id', $item->id)
+                ->where('outlet_id', $outletId)
+                ->where('movement_type', InventoryMovementType::InitialStock)
+                ->first();
+
+            $isInitialOnly = (bool) $initialMovement;
+            $currentStock = $balance ? (float) $balance->current_stock : 0.0;
+            $currentCost = $balance ? (float) ($balance->average_cost ?: $balance->last_cost ?: 0.0) : 0.0;
+
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'sku' => $item->sku ?: ($item->productItem?->sku ?? ''),
+                'barcode' => $item->barcode ?: ($item->productItem?->barcode ?? ''),
+                'uom' => $item->uom?->name ?: ($item->uom?->code ?: 'Pcs'),
+                'current_stock' => $currentStock,
+                'current_cost' => $currentCost,
+                'is_initial_only' => $isInitialOnly,
+            ];
+        })->values();
+
+        return response()->json($eligible);
+    }
+
+    /**
+     * Simpan stok awal massal untuk outlet yang dipilih.
+     */
+    public function storeBatchInitialStock(
+        BatchInitialStockRequest $request,
+        InventoryCostingService $costingService,
+        StockFreezeService $stockFreezeService
+    ) {
+        $validated = $request->validated();
+        $user = Auth::user();
+        $business = $user->business;
+
+        $outlet = Outlet::where('business_id', $business->id)->findOrFail($validated['outlet_id']);
+        $stockFreezeService->assertNotFrozen($outlet);
+
+        DB::transaction(function () use ($validated, $business, $outlet, $user, $costingService) {
+            foreach ($validated['items'] as $itemData) {
+                $invItem = InventoryItem::where('business_id', $business->id)
+                    ->findOrFail($itemData['inventory_item_id']);
+
+                $hasOtherMovements = InventoryMovement::where('inventory_item_id', $invItem->id)
+                    ->where('outlet_id', $outlet->id)
+                    ->where('movement_type', '!=', InventoryMovementType::InitialStock)
+                    ->exists();
+
+                if ($hasOtherMovements) {
+                    throw new \InvalidArgumentException("Barang '{$invItem->name}' sudah memiliki riwayat mutasi operasional lanjutan sehingga stok awal tidak dapat diubah lagi.");
+                }
+
+                $hasInitialMovement = InventoryMovement::where('inventory_item_id', $invItem->id)
+                    ->where('outlet_id', $outlet->id)
+                    ->where('movement_type', InventoryMovementType::InitialStock)
+                    ->exists();
+
+                if ($hasInitialMovement) {
+                    $costingService->updateInitialStock(
+                        business: $business,
+                        outlet: $outlet,
+                        item: $invItem,
+                        newQty: (float) $itemData['qty'],
+                        newUnitCost: (float) $itemData['purchase_price'],
+                        user: $user
+                    );
+                } else {
+                    $costingService->recordIncomingStock(
+                        business: $business,
+                        outlet: $outlet,
+                        item: $invItem,
+                        qty: (float) $itemData['qty'],
+                        unitCost: (float) $itemData['purchase_price'],
+                        movementType: InventoryMovementType::InitialStock,
+                        reference: null,
+                        description: 'Inisiasi Stok Awal',
+                        user: $user
+                    );
+                }
+            }
+        });
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Stok awal berhasil disimpan.',
             ]);
-
-            InventoryCostLayer::create([
-                'inventory_item_id' => $balance->inventory_item_id,
-                'outlet_id' => $balance->outlet_id,
-                'purchase_price' => $request->purchase_price,
-                'qty_purchased' => $request->qty,
-                'qty_remaining' => $request->qty,
-                'reference_id' => $movement->id,
-            ]);
-
-            DB::commit();
-
-            return response()->json(['message' => 'Stok awal berhasil ditambahkan.']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json(['message' => 'Gagal menambahkan stok awal: '.$e->getMessage()], 500);
         }
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            'Stok awal berhasil disimpan.'
+        );
     }
 
     public function exportPdf(Request $request, $id)

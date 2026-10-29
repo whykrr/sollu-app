@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\App\Inventory;
 
+use App\Enums\PermissionEnum;
 use App\Enums\StockOpnameStatus;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
@@ -20,7 +21,7 @@ class StockOpnameController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('inventory.opname.read');
+        $this->authorize(PermissionEnum::INVENTORY_OPNAME_VIEW->value);
 
         $sort = $request->query('sort', 'created_at');
         $direction = $request->query('direction', 'desc');
@@ -57,7 +58,7 @@ class StockOpnameController extends Controller
      */
     public function show($id)
     {
-        $this->authorize('inventory.opname.read');
+        $this->authorize(PermissionEnum::INVENTORY_OPNAME_VIEW->value);
 
         $opname = StockOpname::query()
             ->currentBusiness()
@@ -69,7 +70,7 @@ class StockOpnameController extends Controller
 
     public function store(StoreStockOpnameRequest $request, StockOpnameService $service)
     {
-        $this->authorize('inventory.opname.create');
+        $this->authorize(PermissionEnum::INVENTORY_OPNAME_CREATE->value);
         $service->createOpname($request->validated(), Auth::user());
 
         return redirect()->back()->with('success', 'Sesi stock opname berhasil dimulai. Silakan catat hasil penghitungan fisik.');
@@ -77,7 +78,7 @@ class StockOpnameController extends Controller
 
     public function update(UpdateStockOpnameRequest $request, string $id, StockOpnameService $service)
     {
-        $this->authorize('inventory.opname.update');
+        $this->authorize(PermissionEnum::INVENTORY_OPNAME_UPDATE->value);
         $opname = StockOpname::query()->currentBusiness()->findOrFail($id);
         $service->updateOpname($opname, $request->validated(), Auth::user());
 
@@ -86,7 +87,7 @@ class StockOpnameController extends Controller
 
     public function destroy(string $id)
     {
-        $this->authorize('inventory.opname.delete');
+        $this->authorize(PermissionEnum::INVENTORY_OPNAME_DELETE->value);
         $opname = StockOpname::query()->currentBusiness()->findOrFail($id);
 
         try {
@@ -103,7 +104,7 @@ class StockOpnameController extends Controller
 
     public function approve(UpdateStockOpnameRequest $request, string $id, StockOpnameService $service)
     {
-        $this->authorize('inventory.opname.approve');
+        $this->authorize(PermissionEnum::INVENTORY_OPNAME_VALIDATE->value);
         $opname = StockOpname::query()->currentBusiness()->findOrFail($id);
 
         try {
@@ -117,7 +118,7 @@ class StockOpnameController extends Controller
 
     public function reject(Request $request, string $id, StockOpnameService $service)
     {
-        $this->authorize('inventory.opname.approve');
+        $this->authorize(PermissionEnum::INVENTORY_OPNAME_VALIDATE->value);
         $request->validate(['notes' => 'required|string']);
 
         $opname = StockOpname::query()->currentBusiness()->findOrFail($id);
@@ -133,7 +134,7 @@ class StockOpnameController extends Controller
 
     public function exportPdf(string $id)
     {
-        $this->authorize('inventory.opname.export');
+        $this->authorize(PermissionEnum::INVENTORY_OPNAME_VIEW->value);
 
         $opname = StockOpname::query()
             ->with([

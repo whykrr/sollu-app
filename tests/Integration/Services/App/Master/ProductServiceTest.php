@@ -123,7 +123,7 @@ class ProductServiceTest extends TestCase
         $this->assertFalse($product->has_variant);
         $this->assertCount(1, $product->prices);
         $this->assertEquals(75000, $product->prices->first()->amount);
-        $this->assertNull($product->prices->first()->product_item_id);
+        $this->assertNotNull($product->prices->first()->product_item_id);
     }
 
     public function test_it_creates_basic_product_with_inventory_tracking(): void
@@ -175,7 +175,7 @@ class ProductServiceTest extends TestCase
         $this->assertFalse($product->track_inventory);
         $this->assertCount(1, $product->prices);
         $this->assertEquals(2000, $product->prices->first()->amount);
-        $this->assertNull($product->prices->first()->product_item_id);
+        $this->assertNotNull($product->prices->first()->product_item_id);
     }
 
     public function test_it_creates_bundle_product_with_components(): void

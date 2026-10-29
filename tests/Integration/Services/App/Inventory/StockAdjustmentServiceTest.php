@@ -4,6 +4,7 @@ namespace Tests\Integration\Services\App\Inventory;
 
 use App\Enums\AdjustmentReason;
 use App\Enums\AdjustmentStatus;
+use App\Enums\PermissionEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
@@ -76,8 +77,18 @@ class StockAdjustmentServiceTest extends TestCase
         ]);
 
         setPermissionsTeamId($business->id);
-        Permission::findOrCreate('business.*', 'web');
-        $user->givePermissionTo('business.*');
+        $user->update(['is_root_user' => true]);
+        foreach ([
+            PermissionEnum::INVENTORY_ADJUST_VIEW->value,
+            PermissionEnum::INVENTORY_ADJUST_CREATE->value,
+            PermissionEnum::INVENTORY_ADJUST_UPDATE->value,
+            PermissionEnum::INVENTORY_ADJUST_VALIDATE->value,
+            PermissionEnum::INVENTORY_ADJUST_DELETE->value,
+        ] as $p) {
+            Permission::findOrCreate($p, 'business');
+            Permission::findOrCreate($p, 'web');
+            $user->givePermissionTo($p);
+        }
 
         $outlet = Outlet::create([
             'business_id' => $business->id,
@@ -142,7 +153,7 @@ class StockAdjustmentServiceTest extends TestCase
         ];
 
         $adj = $this->service->create($data, $user);
-        $user->givePermissionTo('business.*');
+        $user->update(['is_root_user' => true]);
         $approvedAdj = $this->service->approve($adj, $user);
 
         $this->assertEquals(AdjustmentStatus::Approved, $approvedAdj->status);
@@ -186,7 +197,7 @@ class StockAdjustmentServiceTest extends TestCase
         ];
         $adj = $this->service->create($data, $user);
 
-        $user->revokePermissionTo('business.*');
+        $user->update(['is_root_user' => false]);
         $this->service->approve($adj, $user);
     }
 
@@ -201,7 +212,7 @@ class StockAdjustmentServiceTest extends TestCase
         ];
         $business->save();
 
-        $user->revokePermissionTo('business.*');
+        $user->update(['is_root_user' => false]);
 
         $data = [
             'outlet_id' => $outlet->id,

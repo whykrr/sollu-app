@@ -18,7 +18,7 @@ class BusinessTypeTest extends TestCase
             'name' => 'Restoran',
             'is_visible' => true,
             'sort_order' => 10,
-            'features' => [FeatureEnum::PRODUCT_CATEGORIES->value, FeatureEnum::POS_CASHIER->value],
+            'features' => [FeatureEnum::PRODUCT_CATALOG->value, FeatureEnum::POS->value],
         ]);
 
         $this->assertSame('restaurant', $businessType->code);
@@ -32,19 +32,19 @@ class BusinessTypeTest extends TestCase
         $businessType = BusinessType::factory()->create([
             'code' => 'coffee_shop',
             'features' => [
-                FeatureEnum::PRODUCT_CATEGORIES->value,
-                FeatureEnum::POS_CASHIER->value,
+                FeatureEnum::PRODUCT_CATALOG->value,
+                FeatureEnum::POS->value,
             ],
         ]);
 
-        $this->assertTrue($businessType->hasFeature(FeatureEnum::PRODUCT_CATEGORIES));
-        $this->assertTrue($businessType->hasFeature(FeatureEnum::POS_CASHIER));
+        $this->assertTrue($businessType->hasFeature(FeatureEnum::PRODUCT_CATALOG));
+        $this->assertTrue($businessType->hasFeature(FeatureEnum::POS));
         $this->assertFalse($businessType->hasFeature(FeatureEnum::STOCK_ADJUSTMENTS));
 
         $featureEnums = $businessType->featureEnums();
         $this->assertCount(2, $featureEnums);
-        $this->assertContains(FeatureEnum::PRODUCT_CATEGORIES, $featureEnums);
-        $this->assertContains(FeatureEnum::POS_CASHIER, $featureEnums);
+        $this->assertContains(FeatureEnum::PRODUCT_CATALOG, $featureEnums);
+        $this->assertContains(FeatureEnum::POS, $featureEnums);
     }
 
     public function test_options_helper(): void

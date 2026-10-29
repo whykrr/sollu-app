@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\FeatureEnum;
 use App\Models\BusinessType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -24,12 +25,7 @@ class BusinessTypeFactory extends Factory
             'name' => 'Minimarket',
             'is_visible' => true,
             'sort_order' => 1,
-            'features' => [
-                'pos_sales',
-                'inventory_basic',
-                'customer_data',
-                'barcode_scanner',
-            ],
+            'features' => array_column(FeatureEnum::cases(), 'value'),
         ];
     }
 

@@ -7,13 +7,11 @@ use App\Enums\FeatureEnum;
 use App\Enums\PlanEnum;
 use App\Enums\SubscriptionStatus;
 use App\Jobs\Reports\ExportCashierReportJob;
-use App\Jobs\Reports\ExportCustomerReportJob;
 use App\Jobs\Reports\ExportProductReportJob;
 use App\Jobs\Reports\ExportPromotionReportJob;
 use App\Jobs\Reports\ExportSalesReportJob;
 use App\Jobs\Reports\ExportStockReportJob;
 use App\Jobs\Reports\Pdf\ExportCashierReportPdfJob;
-use App\Jobs\Reports\Pdf\ExportCustomerReportPdfJob;
 use App\Jobs\Reports\Pdf\ExportProductReportPdfJob;
 use App\Jobs\Reports\Pdf\ExportPromotionReportPdfJob;
 use App\Jobs\Reports\Pdf\ExportSalesReportPdfJob;
@@ -53,12 +51,11 @@ class ReportsControllerTest extends TestCase
         $this->appDomain = config('domain.app', 'app.sollu.test');
 
         $reportFeatures = [
-            FeatureEnum::SALES_REPORTS->value,
-            FeatureEnum::PRODUCT_REPORTS->value,
-            FeatureEnum::STOCK_REPORTS->value,
-            FeatureEnum::CASHIER_REPORTS->value,
+            FeatureEnum::REPORT_SALES->value,
+            FeatureEnum::REPORT_PRODUCT->value,
+            FeatureEnum::REPORT_INVENTORY->value,
+            FeatureEnum::REPORT_SHIFT->value,
             FeatureEnum::PROMO_REPORTS->value,
-            FeatureEnum::CUSTOMER_REPORTS->value,
         ];
 
         $type = BusinessType::firstOrCreate(
@@ -260,32 +257,6 @@ class ReportsControllerTest extends TestCase
             ->post("http://{$this->appDomain}/reports/promotions/export-pdf", ['period' => 'this_month'])
             ->assertRedirect();
         Queue::assertPushed(ExportPromotionReportPdfJob::class);
-    }
-
-    public function test_customers_report_index_and_exports(): void
-    {
-        Queue::fake();
-
-        $response = $this->actingAs($this->user, 'business')
-            ->get("http://{$this->appDomain}/reports/customers?period=this_month");
-
-        $response->assertStatus(200);
-        $response->assertInertia(fn (Assert $page) => $page
-            ->component('Reports/Customers/Index')
-            ->has('summary')
-            ->has('customers')
-            ->has('filters')
-        );
-
-        $this->actingAs($this->user, 'business')
-            ->post("http://{$this->appDomain}/reports/customers/export-csv", ['period' => 'this_month'])
-            ->assertRedirect();
-        Queue::assertPushed(ExportCustomerReportJob::class);
-
-        $this->actingAs($this->user, 'business')
-            ->post("http://{$this->appDomain}/reports/customers/export-pdf", ['period' => 'this_month'])
-            ->assertRedirect();
-        Queue::assertPushed(ExportCustomerReportPdfJob::class);
     }
 
     public function test_cannot_access_reports_for_outlet_of_another_merchant(): void

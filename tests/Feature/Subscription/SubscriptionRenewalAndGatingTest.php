@@ -36,8 +36,8 @@ class SubscriptionRenewalAndGatingTest extends TestCase
                 'sort_order' => 1,
                 'is_visible' => true,
                 'features' => [
-                    FeatureEnum::POS_CASHIER->value,
-                    FeatureEnum::SHIFT_MANAGEMENT->value,
+                    FeatureEnum::POS->value,
+                    FeatureEnum::SHIFT_CASHIER->value,
                     FeatureEnum::PRODUCT_CATALOG->value,
                     FeatureEnum::FEATURE_PERSONALIZATION->value,
                 ],
@@ -90,12 +90,12 @@ class SubscriptionRenewalAndGatingTest extends TestCase
         ]);
 
         // Level 3: Personalization sets active features.
-        // It includes POS_CASHIER (allowed by L1 and L2), and CUSTOMER_MANAGEMENT (allowed by L2, but NOT in L1 retail features above)
+        // It includes POS (allowed by L1 and L2), and CRM (allowed by L2, but NOT in L1 retail features above)
         $business->update([
             'settings' => [
                 'active_features' => [
-                    FeatureEnum::POS_CASHIER->value,
-                    FeatureEnum::CUSTOMER_MANAGEMENT->value,
+                    FeatureEnum::POS->value,
+                    FeatureEnum::CRM->value,
                 ],
             ],
         ]);
@@ -103,14 +103,14 @@ class SubscriptionRenewalAndGatingTest extends TestCase
 
         $activeFeatures = $business->activePlanFeatures();
 
-        // Should include POS_CASHIER (in L1, L2, and L3)
-        $this->assertContains(FeatureEnum::POS_CASHIER, $activeFeatures);
+        // Should include POS (in L1, L2, and L3)
+        $this->assertContains(FeatureEnum::POS, $activeFeatures);
 
-        // Should NOT include CUSTOMER_MANAGEMENT because it is NOT allowed by Level 1 (BusinessType)
-        $this->assertNotContains(FeatureEnum::CUSTOMER_MANAGEMENT, $activeFeatures);
+        // Should NOT include CRM because it is NOT allowed by Level 1 (BusinessType)
+        $this->assertNotContains(FeatureEnum::CRM, $activeFeatures);
 
-        // Should NOT include SHIFT_MANAGEMENT because it was excluded by Level 3 personalization
-        $this->assertNotContains(FeatureEnum::SHIFT_MANAGEMENT, $activeFeatures);
+        // Should NOT include SHIFT_CASHIER because it was excluded by Level 3 personalization
+        $this->assertNotContains(FeatureEnum::SHIFT_CASHIER, $activeFeatures);
     }
 
     public function test_three_day_grace_period_for_paid_subscription(): void

@@ -14,8 +14,7 @@ class DeleteSalesTransactionRequest extends BaseInertiaFormRequest
     {
         $user = Auth::user();
 
-        return ($user?->can(PermissionEnum::TRANSACTION_DELETE->value)
-            || $user?->can(PermissionEnum::TRANSACTION_CANCEL->value)
+        return ($user?->can(PermissionEnum::TRANSACTION_VOID->value)
             || $user?->can(PermissionEnum::TRANSACTION_CREATE->value)) ?? false;
     }
 

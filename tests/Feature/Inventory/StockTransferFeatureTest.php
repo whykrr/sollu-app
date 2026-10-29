@@ -121,12 +121,11 @@ class StockTransferFeatureTest extends TestCase
 
         setPermissionsTeamId($this->business->id);
         $permissions = [
-            PermissionEnum::BUSINESS_ALL->value,
-            PermissionEnum::INVENTORY_TRANSFER_READ->value,
+            PermissionEnum::INVENTORY_TRANSFER_VIEW->value,
             PermissionEnum::INVENTORY_TRANSFER_CREATE->value,
             PermissionEnum::INVENTORY_TRANSFER_UPDATE->value,
-            PermissionEnum::INVENTORY_TRANSFER_APPROVE->value,
-            PermissionEnum::INVENTORY_TRANSFER_SHIP->value,
+            PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value,
+            PermissionEnum::INVENTORY_TRANSFER_DELETE->value,
             PermissionEnum::INVENTORY_TRANSFER_RECEIVE->value,
         ];
 
@@ -136,11 +135,10 @@ class StockTransferFeatureTest extends TestCase
 
         $this->owner->givePermissionTo($permissions);
         $this->supervisor->givePermissionTo([
-            PermissionEnum::INVENTORY_TRANSFER_READ->value,
+            PermissionEnum::INVENTORY_TRANSFER_VIEW->value,
             PermissionEnum::INVENTORY_TRANSFER_CREATE->value,
             PermissionEnum::INVENTORY_TRANSFER_UPDATE->value,
-            PermissionEnum::INVENTORY_TRANSFER_APPROVE->value,
-            PermissionEnum::INVENTORY_TRANSFER_SHIP->value,
+            PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value,
             PermissionEnum::INVENTORY_TRANSFER_RECEIVE->value,
         ]);
 

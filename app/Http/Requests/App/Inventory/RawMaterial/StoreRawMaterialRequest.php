@@ -20,6 +20,8 @@ class StoreRawMaterialRequest extends FormRequest
             'uom_id' => ['required', 'exists:uoms,id'],
             'track_inventory' => ['boolean'],
             'minimum_stock' => ['nullable', 'numeric', 'min:0'],
+            'initial_stock' => ['nullable', 'numeric', 'min:0'],
+            'purchase_price' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }

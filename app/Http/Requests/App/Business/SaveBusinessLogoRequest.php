@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\App\Business;
 
-use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +13,7 @@ class SaveBusinessLogoRequest extends BaseInertiaFormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::BUSINESS_UPDATE->value) ?? false;
+        return (bool) Auth::user()?->is_root_user;
     }
 
     /**

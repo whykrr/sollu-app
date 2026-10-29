@@ -92,7 +92,7 @@ class InventorySodService
             return false;
         }
 
-        return $user->can('business.*') || (method_exists($user, 'isOwner') && $user->isOwner());
+        return (bool) ($user->is_root_user || (method_exists($user, 'isOwner') && $user->isOwner()));
     }
 
     /**

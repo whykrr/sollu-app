@@ -28,7 +28,7 @@ class ProductCategoryController extends Controller
      */
     public function index(): Response
     {
-        $this->authorize(PermissionEnum::CATEGORY_VIEW->value);
+        $this->authorize(PermissionEnum::PRODUCT_CATEGORY_VIEW->value);
 
         $categories = $this->categoryService->getTree();
 
@@ -42,7 +42,7 @@ class ProductCategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        $this->authorize(PermissionEnum::CATEGORY_CREATE->value);
+        $this->authorize(PermissionEnum::PRODUCT_CATEGORY_CREATE->value);
 
         try {
             $this->categoryService->create($request->validated());
@@ -64,7 +64,7 @@ class ProductCategoryController extends Controller
      */
     public function update(UpdateCategoryRequest $request, ProductCategory $category): RedirectResponse
     {
-        $this->authorize(PermissionEnum::CATEGORY_UPDATE->value);
+        $this->authorize(PermissionEnum::PRODUCT_CATEGORY_UPDATE->value);
 
         try {
             $this->categoryService->update($category, $request->validated());
@@ -86,7 +86,7 @@ class ProductCategoryController extends Controller
      */
     public function destroy(ProductCategory $category): RedirectResponse
     {
-        $this->authorize(PermissionEnum::CATEGORY_DELETE->value);
+        $this->authorize(PermissionEnum::PRODUCT_CATEGORY_DELETE->value);
 
         try {
             $this->categoryService->delete($category);
@@ -108,7 +108,7 @@ class ProductCategoryController extends Controller
      */
     public function reorder(ReorderCategoryRequest $request): JsonResponse
     {
-        $this->authorize(PermissionEnum::CATEGORY_UPDATE->value);
+        $this->authorize(PermissionEnum::PRODUCT_CATEGORY_UPDATE->value);
 
         try {
             $this->categoryService->reorder($request->validated()['categories']);

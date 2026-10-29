@@ -16,43 +16,50 @@ class CheckPlanFeature
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $featureName): Response
+    public function handle(Request $request, Closure $next, string ...$features): Response
     {
         $user = $request->user();
 
         if (! $user || (! $user->business_id && ! $user->relationLoaded('business'))) {
-            return $this->rejectAccess($request, $featureName);
+            return $this->rejectAccess($request, $features[0] ?? '');
         }
 
-        $feature = FeatureEnum::tryFrom($featureName);
-
-        if (! $feature) {
-            return $this->rejectAccess($request, $featureName);
+        if (empty($features)) {
+            return $next($request);
         }
 
         // Fast-path: Check from cached user summary (which already respects personalized business features)
         $summary = SummaryUser::make($user)->cached();
-        if (is_array($summary) && array_key_exists('features', $summary)) {
-            $hasFeature = in_array($feature, $summary['features'], true)
-                || in_array($feature->value, $summary['features'], true);
+        $userFeatures = (is_array($summary) && array_key_exists('features', $summary))
+            ? $summary['features']
+            : null;
 
-            if (! $hasFeature) {
-                return $this->rejectAccess($request, $featureName);
+        $business = null;
+        if ($userFeatures === null) {
+            $business = $user->relationLoaded('business')
+                ? $user->business
+                : ($user->business_id ? Business::findCached($user->business_id) : null);
+        }
+
+        foreach ($features as $featureName) {
+            $feature = FeatureEnum::tryFrom($featureName);
+            if (! $feature) {
+                continue;
             }
 
-            return $next($request);
+            if ($userFeatures !== null) {
+                $hasFeature = in_array($feature, $userFeatures, true)
+                    || in_array($feature->value, $userFeatures, true);
+
+                if ($hasFeature) {
+                    return $next($request);
+                }
+            } elseif ($business && $business->hasFeature($feature)) {
+                return $next($request);
+            }
         }
 
-        // Fallback: Resolve via cached Business model without triggering un-cached database queries
-        $business = $user->relationLoaded('business')
-            ? $user->business
-            : ($user->business_id ? Business::findCached($user->business_id) : null);
-
-        if (! $business || ! $business->hasFeature($feature)) {
-            return $this->rejectAccess($request, $featureName);
-        }
-
-        return $next($request);
+        return $this->rejectAccess($request, implode(',', $features));
     }
 
     protected function rejectAccess(Request $request, string $featureName): Response

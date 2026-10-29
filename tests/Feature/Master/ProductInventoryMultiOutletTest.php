@@ -7,6 +7,7 @@ use App\Constants\ResourceMessage;
 use App\Enums\FeatureEnum;
 use App\Enums\InventoryMovementType;
 use App\Enums\PermissionEnum;
+use App\Enums\PlanEnum;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
@@ -15,6 +16,8 @@ use App\Models\Inventory\InventoryMovement;
 use App\Models\Master\Product;
 use App\Models\Master\ProductItem;
 use App\Models\Outlet;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Uom;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -68,9 +71,22 @@ class ProductInventoryMultiOutletTest extends TestCase
             'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
             'settings' => [
-                'active_features' => [FeatureEnum::PRODUCT_CATALOG->value],
+                'active_features' => array_column(FeatureEnum::cases(), 'value'),
             ],
         ]);
+
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($proPlan) {
+            Subscription::create([
+                'business_id' => $this->business->id,
+                'plan_id' => $proPlan->id,
+                'status' => 'active',
+                'billing_cycle' => 'monthly',
+                'started_at' => now()->subDay(),
+                'expired_at' => now()->addMonth(),
+            ]);
+        }
+        $this->business->clearMemoizedFeatures();
 
         $this->outletA = Outlet::create([
             'business_id' => $this->business->id,

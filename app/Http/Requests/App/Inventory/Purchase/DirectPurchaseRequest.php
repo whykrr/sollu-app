@@ -10,7 +10,7 @@ class DirectPurchaseRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_CREATE->value) ?? false;
+        return Auth::user()?->can(PermissionEnum::PURCHASE_CREATE->value) ?? false;
     }
 
     public function rules(): array

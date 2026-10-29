@@ -17,7 +17,7 @@ class SubscriptionPlanTest extends TestCase
     public function test_get_all_cached_and_get_active_cached(): void
     {
         $feature = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -71,7 +71,7 @@ class SubscriptionPlanTest extends TestCase
     public function test_active_feature_codes_and_enums_cached(): void
     {
         $feature1 = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -94,11 +94,11 @@ class SubscriptionPlanTest extends TestCase
         $plan->clearFeatureCache();
 
         $codes = $plan->activeFeatureCodes();
-        $this->assertContains(FeatureEnum::POS_CASHIER->value, $codes);
+        $this->assertContains(FeatureEnum::POS->value, $codes);
         $this->assertContains(FeatureEnum::STOCK_ADJUSTMENTS->value, $codes);
 
         $enums = $plan->activeFeatureEnums();
-        $this->assertContains(FeatureEnum::POS_CASHIER, $enums);
+        $this->assertContains(FeatureEnum::POS, $enums);
         $this->assertContains(FeatureEnum::STOCK_ADJUSTMENTS, $enums);
     }
 

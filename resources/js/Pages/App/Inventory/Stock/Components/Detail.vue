@@ -178,24 +178,10 @@
 
                     <!-- Action Buttons -->
                     <div
+                        v-if="!loading && movementsData.length > 0"
                         class="pt-1.5 border-t border-neutral-100 flex items-center justify-end gap-1.5"
                     >
                         <button
-                            v-if="
-                                !loading &&
-                                currentBalanceData &&
-                                currentBalanceData.current_stock == 0 &&
-                                movementsData.length === 0
-                            "
-                            type="button"
-                            class="btn btn-sm btn-outline-main text-xs min-h-[34px] px-3 touch-target-sm"
-                            @click="openInitialStockModal"
-                        >
-                            <FontAwesomeIcon :icon="faPlus" class="mr-1 text-[10px]" />
-                            Input Stok Awal
-                        </button>
-                        <button
-                            v-if="!loading && movementsData.length > 0"
                             type="button"
                             class="btn btn-sm btn-outline-secondary text-xs min-h-[34px] px-3 touch-target-sm"
                             @click="exportPdf"
@@ -228,7 +214,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 // Modals
 import MinimumStockFormModal from './Modals/MinimumStockFormModal.vue'
-import InitialStockFormModal from './Modals/InitialStockFormModal.vue'
 
 // Tabs Components
 import MovementTab from '../Tabs/MovementTab.vue'
@@ -239,7 +224,6 @@ import {
     faHistory,
     faChartLine,
     faPencil,
-    faPlus,
     faFilePdf,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -335,18 +319,6 @@ const openMinimumStockModal = () => {
                 preserveState: true,
             })
         },
-    })
-}
-
-const openInitialStockModal = () => {
-    modalStore.open({
-        title: 'Input Stok Awal',
-        component: markRaw(InitialStockFormModal),
-        props: {
-            stockId: props.item.id,
-        },
-        showFooter: false,
-        onConfirm: () => fetchHeaderData(),
     })
 }
 

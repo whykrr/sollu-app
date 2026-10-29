@@ -155,7 +155,7 @@ class InventorySettingTest extends TestCase
         $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
         $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
-        $user->givePermissionTo(PermissionEnum::BUSINESS_UPDATE->value);
+        $user->update(['is_root_user' => true]);
 
         $business = $user->business;
         $this->assertEquals(InventoryCostingMethod::FIFO, $business->getCostingMethod());
@@ -178,7 +178,7 @@ class InventorySettingTest extends TestCase
         $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
         $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
-        $user->givePermissionTo(PermissionEnum::BUSINESS_UPDATE->value);
+        $user->update(['is_root_user' => true]);
 
         $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/inventory", [
             'costing_method' => 'invalid_method',
@@ -192,7 +192,7 @@ class InventorySettingTest extends TestCase
         $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
         $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
-        $user->givePermissionTo(PermissionEnum::BUSINESS_UPDATE->value);
+        $user->update(['is_root_user' => true]);
 
         $business = $user->business;
         $this->assertFalse($business->isInventorySodEnabled());
@@ -225,7 +225,7 @@ class InventorySettingTest extends TestCase
         $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
         $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
-        $user->givePermissionTo(PermissionEnum::BUSINESS_UPDATE->value);
+        $user->update(['is_root_user' => true]);
 
         $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/inventory/sod", [
             'enabled' => 'not_a_boolean',

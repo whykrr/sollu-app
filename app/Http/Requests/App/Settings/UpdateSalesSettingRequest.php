@@ -10,9 +10,7 @@ class UpdateSalesSettingRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can(PermissionEnum::SETTING_SALES->value)
-            || $this->user()?->can(PermissionEnum::SETTING_ALL->value)
-            || $this->user()?->can(PermissionEnum::BUSINESS_ALL->value);
+        return (bool) $this->user()?->can(PermissionEnum::SETTING_SALES->value);
     }
 
     public function rules(): array

@@ -10,7 +10,7 @@ class StorePurchaseReturnRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_RETURN->value) ?? false;
+        return Auth::user()?->can(PermissionEnum::PURCHASE_RETURN->value) ?? false;
     }
 
     protected function prepareForValidation(): void

@@ -14,8 +14,11 @@ class FeatureTest extends TestCase
 
     public function test_it_caches_all_features_and_clears_on_change(): void
     {
+        Feature::query()->delete();
+        Feature::clearCache();
+
         Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'group' => 'Penjualan',
             'group_label' => 'Penjualan & Kasir',
@@ -27,7 +30,7 @@ class FeatureTest extends TestCase
         $this->assertCount(1, $cached);
 
         $options = Feature::options();
-        $this->assertArrayHasKey(FeatureEnum::POS_CASHIER->value, $options);
+        $this->assertArrayHasKey(FeatureEnum::POS->value, $options);
 
         $grouped = Feature::grouped();
         $this->assertArrayHasKey('Penjualan & Kasir', $grouped);

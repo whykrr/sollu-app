@@ -2,6 +2,7 @@
 
 namespace Tests\Integration\Services\App\Inventory;
 
+use App\Enums\PermissionEnum;
 use App\Enums\StockTransferStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
@@ -82,8 +83,19 @@ class StockTransferServiceTest extends TestCase
         ]);
 
         setPermissionsTeamId($business->id);
-        Permission::findOrCreate('business.*', 'web');
-        $user->givePermissionTo('business.*');
+        $user->update(['is_root_user' => true]);
+        foreach ([
+            PermissionEnum::INVENTORY_TRANSFER_VIEW->value,
+            PermissionEnum::INVENTORY_TRANSFER_CREATE->value,
+            PermissionEnum::INVENTORY_TRANSFER_UPDATE->value,
+            PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value,
+            PermissionEnum::INVENTORY_TRANSFER_RECEIVE->value,
+            PermissionEnum::INVENTORY_TRANSFER_DELETE->value,
+        ] as $p) {
+            Permission::findOrCreate($p, 'business');
+            Permission::findOrCreate($p, 'web');
+            $user->givePermissionTo($p);
+        }
 
         $outlet1 = Outlet::create([
             'business_id' => $business->id,

@@ -75,7 +75,7 @@ class ServiceProductController extends Controller
 
     public function formOptions(Request $request): JsonResponse
     {
-        $this->authorize(PermissionEnum::SERVICE_VIEW->value);
+        $this->authorize(PermissionEnum::PRODUCT_VIEW->value);
 
         return response()->json([
             'categories' => ProductCategory::currentBusiness()->select('id', 'name')->get(),
@@ -85,7 +85,7 @@ class ServiceProductController extends Controller
 
     public function show(Product $service): ProductResource
     {
-        $this->authorize(PermissionEnum::SERVICE_VIEW->value);
+        $this->authorize(PermissionEnum::PRODUCT_VIEW->value);
 
         if ($service->business_id !== auth()->user()->business_id) {
             abort(403);
@@ -153,7 +153,7 @@ class ServiceProductController extends Controller
 
     public function destroy(Product $service): RedirectResponse
     {
-        $this->authorize(PermissionEnum::SERVICE_DELETE->value);
+        $this->authorize(PermissionEnum::PRODUCT_DELETE->value);
 
         if ($service->business_id !== auth()->user()->business_id) {
             abort(403);
@@ -173,7 +173,7 @@ class ServiceProductController extends Controller
 
     public function export(Request $request): RedirectResponse
     {
-        $this->authorize(PermissionEnum::SERVICE_EXPORT->value);
+        $this->authorize(PermissionEnum::PRODUCT_VIEW->value);
 
         $filters = array_merge($request->all(), ['product_type' => 'service']);
         ExportProductJob::dispatch(auth()->user(), auth()->user()->business_id, $filters);
@@ -230,7 +230,7 @@ class ServiceProductController extends Controller
 
     public function import(Request $request): RedirectResponse
     {
-        $this->authorize(PermissionEnum::SERVICE_IMPORT->value);
+        $this->authorize(PermissionEnum::PRODUCT_CREATE->value);
 
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv|max:10240']);
         $path = $request->file('file')->store('imports', 'local');

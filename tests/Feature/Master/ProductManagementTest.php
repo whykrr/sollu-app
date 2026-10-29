@@ -110,10 +110,6 @@ class ProductManagementTest extends TestCase
             PermissionEnum::PRODUCT_CREATE->value,
             PermissionEnum::PRODUCT_UPDATE->value,
             PermissionEnum::PRODUCT_DELETE->value,
-            PermissionEnum::SERVICE_VIEW->value,
-            PermissionEnum::SERVICE_CREATE->value,
-            PermissionEnum::SERVICE_UPDATE->value,
-            PermissionEnum::SERVICE_DELETE->value,
         ] as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'business']);
             $this->user->givePermissionTo($perm);

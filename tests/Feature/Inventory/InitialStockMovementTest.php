@@ -146,15 +146,22 @@ class InitialStockMovementTest extends TestCase
     public function test_store_initial_stock_creates_movement_with_initial_stock_type(): void
     {
         $response = $this->actingAs($this->user, 'business')
-            ->post("http://{$this->appDomain}/inventories/stocks/{$this->balance->id}/initial-stock", [
-                'qty' => 50,
-                'purchase_price' => 12500,
+            ->postJson("http://{$this->appDomain}/inventories/stocks/initial-stock/batch", [
+                'outlet_id' => $this->outlet->id,
+                'items' => [
+                    [
+                        'inventory_item_id' => $this->item->id,
+                        'qty' => 50,
+                        'purchase_price' => 12500,
+                    ],
+                ],
             ]);
 
         $response->assertStatus(200);
 
         $this->balance->refresh();
         $this->assertEquals(50, $this->balance->current_stock);
+        $this->assertEquals(12500, $this->balance->average_cost);
 
         $movement = InventoryMovement::where('inventory_item_id', $this->item->id)
             ->where('outlet_id', $this->outlet->id)
@@ -167,7 +174,7 @@ class InitialStockMovementTest extends TestCase
         $this->assertEquals(50, $movement->qty_change);
         $this->assertEquals(0, $movement->stock_before);
         $this->assertEquals(50, $movement->stock_after);
-        $this->assertEquals('Input Stok Awal', $movement->description);
+        $this->assertEquals('Inisiasi Stok Awal', $movement->description);
     }
 
     public function test_import_stock_job_creates_movement_with_initial_stock_type(): void
@@ -293,21 +300,33 @@ class InitialStockMovementTest extends TestCase
     public function test_store_initial_stock_validates_purchase_price_required_and_non_negative(): void
     {
         $responseMissing = $this->actingAs($this->user, 'business')
-            ->postJson("http://{$this->appDomain}/inventories/stocks/{$this->balance->id}/initial-stock", [
-                'qty' => 10,
+            ->postJson("http://{$this->appDomain}/inventories/stocks/initial-stock/batch", [
+                'outlet_id' => $this->outlet->id,
+                'items' => [
+                    [
+                        'inventory_item_id' => $this->item->id,
+                        'qty' => 10,
+                    ],
+                ],
             ]);
 
         $responseMissing->assertStatus(422);
-        $responseMissing->assertJsonValidationErrors(['purchase_price']);
+        $responseMissing->assertJsonValidationErrors(['items.0.purchase_price']);
 
         $responseNegative = $this->actingAs($this->user, 'business')
-            ->postJson("http://{$this->appDomain}/inventories/stocks/{$this->balance->id}/initial-stock", [
-                'qty' => 10,
-                'purchase_price' => -100,
+            ->postJson("http://{$this->appDomain}/inventories/stocks/initial-stock/batch", [
+                'outlet_id' => $this->outlet->id,
+                'items' => [
+                    [
+                        'inventory_item_id' => $this->item->id,
+                        'qty' => 10,
+                        'purchase_price' => -100,
+                    ],
+                ],
             ]);
 
         $responseNegative->assertStatus(422);
-        $responseNegative->assertJsonValidationErrors(['purchase_price']);
+        $responseNegative->assertJsonValidationErrors(['items.0.purchase_price']);
     }
 
     public function test_import_stock_job_throws_exception_when_initial_stock_has_no_purchase_price(): void

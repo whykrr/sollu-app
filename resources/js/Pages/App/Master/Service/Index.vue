@@ -193,7 +193,7 @@ const headers = [
     { label: 'Nama Layanan', field: 'name', sortable: true },
     { label: 'Kategori', field: 'category', slot: 'category', sortable: false },
     {
-        label: 'Tarif Dasar',
+        label: 'Tarif Layanan',
         field: 'base_price',
         slot: 'base_price',
         sortable: false,
@@ -243,26 +243,28 @@ const archiveService = id => {
     })
 }
 
-const openCreate = () => {
+const openCreate = (targetStepId = 'basic') => {
     popUpStore.open({
         title: 'Tambah Layanan',
-        size: 'lg',
+        size: 'xl',
         component: CreateEditWrapper,
         props: {
             editMode: false,
+            targetStepId: typeof targetStepId === 'string' ? targetStepId : 'basic',
         },
     })
 }
 
-const openEdit = row => {
+const openEdit = (row, targetStepId = 'basic') => {
     popUpStore.open({
         title: `${row.name}`,
         subTitle: row.code ? `#${row.code}` : undefined,
-        size: 'lg',
+        size: 'xl',
         component: CreateEditWrapper,
         props: {
             editMode: true,
             service: row,
+            targetStepId: typeof targetStepId === 'string' ? targetStepId : 'basic',
         },
     })
 }

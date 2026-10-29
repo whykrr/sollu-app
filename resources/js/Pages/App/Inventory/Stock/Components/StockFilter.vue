@@ -61,6 +61,17 @@
         <template #tools>
             <ActionsDropdown label="Opsi" :items="actionItems" />
         </template>
+
+        <template #create>
+            <button
+                type="button"
+                class="btn btn-main btn-sm inline-flex items-center gap-1.5 cursor-pointer touch-target-sm"
+                @click="openInitialStockWizard"
+            >
+                <FontAwesomeIcon :icon="faPlus" />
+                <span>Atur Stok Awal</span>
+            </button>
+        </template>
     </ActionBar>
 
     <!-- Import Modal -->
@@ -86,15 +97,19 @@ import {
     faFilePdf,
     faFileExcel,
     faSliders,
+    faPlus,
 } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSegmented from '@/Components/UI/Filter/FilterSegmented.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 import ActionsDropdown from '@/Components/UI/ActionsDropdown.vue'
 import ImportCsvModal from '@/Components/Modals/ImportCsvModal.vue'
+import InitialStockWizardPopUp from './InitialStockWizardPopUp.vue'
 
 import { useAuth } from '@/Composable/useAuth'
+import { usePopUpStore } from '@/store/popup'
 
 const emit = defineEmits(['open-costing-modal'])
 
@@ -108,6 +123,20 @@ const props = defineProps({
         default: () => [],
     },
 })
+
+const popUpStore = usePopUpStore()
+
+const openInitialStockWizard = () => {
+    popUpStore.open({
+        title: 'Inisiasi Stok Awal',
+        subTitle: 'Atur jumlah persediaan fisik dan modal beli awal barang di tokomu',
+        size: '2xl',
+        component: InitialStockWizardPopUp,
+        props: {
+            outletId: filterForm.outlet_id || selectedOutlet.value?.id || '',
+        },
+    })
+}
 
 const showImportModal = ref(false)
 

@@ -11,7 +11,7 @@ class StorePaymentMethodRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can(PermissionEnum::SETTING_PAYMENT->value) || $this->user()->can(PermissionEnum::SETTING_ALL->value);
+        return (bool) $this->user()?->can(PermissionEnum::SETTING_PAYMENT->value);
     }
 
     public function rules(): array

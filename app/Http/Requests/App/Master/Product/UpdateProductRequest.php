@@ -104,7 +104,7 @@ class UpdateProductRequest extends BaseInertiaFormRequest
 
             if ($this->has_recipe) {
                 $rules['recipes'] = 'required|array|min:1';
-                $rules['recipes.*.product_item_id'] = 'required|uuid|exists:inventory_items,id';
+                $rules['recipes.*.product_item_id'] = 'required|uuid|exists:product_items,id';
                 $rules['recipes.*.qty'] = 'required|numeric|min:0';
                 $rules['recipes.*.uom'] = 'required|string';
             }
@@ -113,7 +113,7 @@ class UpdateProductRequest extends BaseInertiaFormRequest
         if ($this->product_type === 'bundle') {
             $rules['bundle_items'] = 'required|array|min:1';
             $rules['bundle_items.*.component_product_id'] = 'required|uuid|exists:products,id';
-            $rules['bundle_items.*.component_product_item_id'] = 'nullable|uuid|exists:inventory_items,id';
+            $rules['bundle_items.*.component_product_item_id'] = 'nullable|uuid|exists:product_items,id';
             $rules['bundle_items.*.qty'] = 'required|numeric|min:0';
         }
 

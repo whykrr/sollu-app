@@ -11,8 +11,7 @@ class UpdateTaxSettingRequest extends BaseInertiaFormRequest
     public function authorize(): bool
     {
         return $this->user()?->can(PermissionEnum::SETTING_TAX->value)
-            || $this->user()?->can(PermissionEnum::OUTLET_UPDATE->value)
-            || $this->user()?->can(PermissionEnum::SETTING_ALL->value);
+            || $this->user()?->can(PermissionEnum::OUTLET_UPDATE->value);
     }
 
     public function rules(): array

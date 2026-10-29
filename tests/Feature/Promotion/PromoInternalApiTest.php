@@ -55,7 +55,7 @@ class PromoInternalApiTest extends TestCase
                 'name' => 'Retail',
                 'sort_order' => 1,
                 'is_visible' => true,
-                'features' => [FeatureEnum::INVOICE_DEBT->value],
+                'features' => [FeatureEnum::TRANSACTION_INVOICE->value],
             ]
         );
 
@@ -68,7 +68,7 @@ class PromoInternalApiTest extends TestCase
             'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
             'settings' => [
-                'active_features' => [FeatureEnum::INVOICE_DEBT->value],
+                'active_features' => [FeatureEnum::TRANSACTION_INVOICE->value],
             ],
         ]);
 

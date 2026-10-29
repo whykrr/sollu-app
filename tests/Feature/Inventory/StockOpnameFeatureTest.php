@@ -127,31 +127,28 @@ class StockOpnameFeatureTest extends TestCase
         setPermissionsTeamId($this->business->id);
 
         foreach ([
-            PermissionEnum::INVENTORY_OPNAME_READ->value,
+            PermissionEnum::INVENTORY_OPNAME_VIEW->value,
             PermissionEnum::INVENTORY_OPNAME_CREATE->value,
             PermissionEnum::INVENTORY_OPNAME_UPDATE->value,
-            PermissionEnum::INVENTORY_OPNAME_APPROVE->value,
+            PermissionEnum::INVENTORY_OPNAME_VALIDATE->value,
             PermissionEnum::INVENTORY_OPNAME_DELETE->value,
-            PermissionEnum::INVENTORY_OPNAME_EXPORT->value,
         ] as $p) {
             Permission::findOrCreate($p, 'web');
         }
 
         $this->owner->givePermissionTo([
-            'business.*',
-            PermissionEnum::INVENTORY_OPNAME_READ->value,
+            PermissionEnum::INVENTORY_OPNAME_VIEW->value,
             PermissionEnum::INVENTORY_OPNAME_CREATE->value,
             PermissionEnum::INVENTORY_OPNAME_UPDATE->value,
-            PermissionEnum::INVENTORY_OPNAME_APPROVE->value,
+            PermissionEnum::INVENTORY_OPNAME_VALIDATE->value,
             PermissionEnum::INVENTORY_OPNAME_DELETE->value,
-            PermissionEnum::INVENTORY_OPNAME_EXPORT->value,
         ]);
 
         $this->supervisor->givePermissionTo([
-            PermissionEnum::INVENTORY_OPNAME_READ->value,
+            PermissionEnum::INVENTORY_OPNAME_VIEW->value,
             PermissionEnum::INVENTORY_OPNAME_CREATE->value,
             PermissionEnum::INVENTORY_OPNAME_UPDATE->value,
-            PermissionEnum::INVENTORY_OPNAME_APPROVE->value,
+            PermissionEnum::INVENTORY_OPNAME_VALIDATE->value,
             PermissionEnum::INVENTORY_OPNAME_DELETE->value,
         ]);
     }

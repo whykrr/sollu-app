@@ -2,14 +2,22 @@
 
 namespace App\Services\App\Inventory;
 
+use App\Enums\InventoryMovementType;
 use App\Models\Business;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Master\ProductItem;
+use App\Models\Outlet;
 use Illuminate\Support\Facades\DB;
 
 class RawMaterialService
 {
+    public function __construct(
+        protected ?InventoryCostingService $costingService = null
+    ) {
+        $this->costingService = $costingService ?? app(InventoryCostingService::class);
+    }
+
     /**
      * Create a new raw material and initialize balances for active outlets.
      */
@@ -40,12 +48,37 @@ class RawMaterialService
             // Initialize balances for all active outlets
             $outlets = $business->outlets()->active()->get();
             foreach ($outlets as $outlet) {
-                InventoryBalance::create([
+                InventoryBalance::firstOrCreate([
                     'business_id' => $business->id,
                     'outlet_id' => $outlet->id,
                     'inventory_item_id' => $item->id,
+                ], [
                     'current_stock' => 0,
+                    'minimum_stock' => $data['minimum_stock'] ?? 0,
                 ]);
+            }
+
+            // Catat stok awal jika diisi
+            $qty = (float) ($data['initial_stock'] ?? 0);
+            $cost = (float) ($data['purchase_price'] ?? $data['initial_cost'] ?? 0);
+
+            if ($qty > 0) {
+                $targetOutletId = $data['outlet_id'] ?? $outlets->first()?->id;
+                $targetOutlet = $targetOutletId ? Outlet::find($targetOutletId) : $outlets->first();
+
+                if ($targetOutlet) {
+                    $this->costingService->recordIncomingStock(
+                        business: $business,
+                        outlet: $targetOutlet,
+                        item: $item,
+                        qty: $qty,
+                        unitCost: $cost,
+                        movementType: InventoryMovementType::InitialStock,
+                        reference: null,
+                        description: 'Stok Awal Bahan Baku Baru',
+                        user: auth()->user()
+                    );
+                }
             }
 
             return $item->fresh('productItem');

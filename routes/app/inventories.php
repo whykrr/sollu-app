@@ -22,9 +22,10 @@ Route::prefix('inventories')->group(function () {
             Route::get('stocks/export-pdf-list', [StockController::class, 'exportPdfList'])->name('stocks.export-pdf-list');
             Route::get('stocks/import/template', [StockController::class, 'importTemplate'])->name('stocks.import-template');
             Route::post('stocks/import', [StockController::class, 'import'])->name('stocks.import');
+            Route::get('stocks/initial-stock/eligible-items', [StockController::class, 'searchEligibleItems'])->name('stocks.initial-stock.eligible-items');
+            Route::post('stocks/initial-stock/batch', [StockController::class, 'storeBatchInitialStock'])->name('stocks.initial-stock.batch');
             Route::get('stocks/{id}', [StockController::class, 'show'])->name('stocks.show');
             Route::patch('stocks/{id}/minimum-stock', [StockController::class, 'updateMinimumStock'])->name('stocks.minimum-stock.update');
-            Route::post('stocks/{id}/initial-stock', [StockController::class, 'storeInitialStock'])->name('stocks.initial-stock.store');
             Route::get('stocks/{id}/export-pdf', [StockController::class, 'exportPdf'])->name('stocks.export.pdf');
 
             Route::middleware('plan.feature:'.FeatureEnum::STOCK_MOVEMENTS->value)->group(function () {
@@ -47,7 +48,7 @@ Route::prefix('inventories')->group(function () {
             });
 
             // Suppliers
-            Route::middleware('plan.feature:'.FeatureEnum::SUPPLIER_MANAGEMENT->value)->group(function () {
+            Route::middleware('plan.feature:'.FeatureEnum::PURCHASE_SUPPLIER->value)->group(function () {
                 Route::get('suppliers/search-items', [SupplierController::class, 'searchItems'])->name('suppliers.search-items');
                 Route::get('suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
                 Route::post('suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
@@ -57,7 +58,7 @@ Route::prefix('inventories')->group(function () {
             });
 
             // Purchases
-            Route::middleware('plan.feature:'.FeatureEnum::PURCHASE_ORDERS->value)->group(function () {
+            Route::middleware('plan.feature:'.FeatureEnum::PURCHASE_ORDER->value)->group(function () {
                 Route::get('purchases/search-items', [StockPurchasesController::class, 'searchItems'])->name('purchases.search-items');
                 Route::get('purchases/export-csv', [StockPurchasesController::class, 'exportCsv'])->name('purchases.export-csv');
                 Route::get('purchases', [StockPurchasesController::class, 'index'])->name('purchases.index');

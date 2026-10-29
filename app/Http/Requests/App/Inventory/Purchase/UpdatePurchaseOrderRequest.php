@@ -10,7 +10,7 @@ class UpdatePurchaseOrderRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_UPDATE->value);
+        return Auth::user()?->can(PermissionEnum::PURCHASE_UPDATE->value);
     }
 
     public function rules(): array

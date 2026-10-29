@@ -173,7 +173,7 @@ class CustomerController extends Controller
 
     public function export(Request $request)
     {
-        $this->authorize(PermissionEnum::REPORT_CUSTOMER->value);
+        $this->authorize(PermissionEnum::CUSTOMER_VIEW->value);
         $filters = $request->only(['search', 'is_active']);
 
         ExportCustomerJob::dispatch(auth()->user(), $filters);

@@ -78,10 +78,10 @@ Modul Produk dilindungi oleh 4 feature flag pada `FeatureEnum`:
 
 | Feature Flag | Tier Langganan | Deskripsi Fungsional & Proteksi |
 | :--- | :--- | :--- |
-| `basic_product` | Micro+ | Akses dasar katalog produk single. |
-| `product_variant` | Basic+ | Matriks opsi varian, tab Stok & Varian di form produk. Dilindungi `<FeatureLock :feature="$enums.FeatureEnum.PRODUCT_VARIANTS">`. |
-| `product_bom` / `recipe_management` | Pro+ | Resep bahan baku per item varian, sub-menu Bahan Baku (`/master/raw-materials`) dan Resep (`/master/recipes`). Dilindungi `plan.feature:recipe_management`. |
-| `product_modifier` / `product_modifiers` | Pro+ | Opsi tambahan produk, tab Modifier di form produk, sub-menu Modifier (`/master/modifiers`). Dilindungi `plan.feature:product_modifiers`. |
+| `product_catalog` | Micro+ | Akses dasar katalog produk single dan kategori. Dilindungi `plan.feature:product_catalog,service_catalog`. |
+| `product_variant` | Basic+ | Matriks opsi varian, bagian Varian di form produk. Dilindungi `<FeatureLock :feature="$enums.FeatureEnum.PRODUCT_VARIANT">`. |
+| `product_bom` | Pro+ | Resep bahan baku per item varian, sub-menu Bahan Baku (`/inventories/raw-materials`) dan Resep (`/master/recipes`). Dilindungi `plan.feature:product_bom`. |
+| `product_modifier` | Pro+ | Opsi tambahan produk, bagian Modifier di form produk, sub-menu Modifier (`/master/modifiers`). Dilindungi `plan.feature:product_modifier`. |
 
 ---
 

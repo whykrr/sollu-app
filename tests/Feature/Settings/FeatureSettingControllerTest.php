@@ -118,7 +118,7 @@ class FeatureSettingControllerTest extends TestCase
         $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
         $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
-        $user->givePermissionTo(PermissionEnum::BUSINESS_UPDATE->value);
+        $user->update(['is_root_user' => true]);
 
         $business = $user->business;
         $availableFeatures = array_map(fn ($f) => $f->value, $business->getAvailablePlanFeatures());
@@ -153,13 +153,13 @@ class FeatureSettingControllerTest extends TestCase
         $user = $this->createMerchantUser();
         $this->subscribeBusinessToPlan($user, PlanEnum::BASIC);
         $user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
-        $user->givePermissionTo(PermissionEnum::BUSINESS_UPDATE->value);
+        $user->update(['is_root_user' => true]);
 
         $business = $user->business;
         $availableFeatures = array_map(fn ($f) => $f->value, $business->getAvailablePlanFeatures());
 
         // Try to save a valid feature and an invalid feature (not in Basic plan, e.g. multi_device which is Pro only)
-        $validFeature = $availableFeatures[0] ?? FeatureEnum::POS_CASHIER->value;
+        $validFeature = $availableFeatures[0] ?? FeatureEnum::POS->value;
         $invalidFeature = FeatureEnum::MULTI_DEVICE->value;
 
         $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/business/features", [

@@ -6,13 +6,17 @@ use App\Constants\AuthorizationMessage;
 use App\Constants\FlashDataVariable;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
+use App\Enums\PlanEnum;
 use App\Enums\ShiftCashLogType;
 use App\Enums\ShiftStatus;
+use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Outlet;
 use App\Models\Sales\Shift;
 use App\Models\Sales\ShiftCashLog;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,7 +50,7 @@ class ShiftFeatureTest extends TestCase
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
-            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true, 'features' => [FeatureEnum::SHIFT_MANAGEMENT->value]]
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true, 'features' => [FeatureEnum::SHIFT_CASHIER->value]]
         );
 
         $this->business = Business::create([
@@ -58,9 +62,22 @@ class ShiftFeatureTest extends TestCase
             'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
             'settings' => [
-                'active_features' => [FeatureEnum::SHIFT_MANAGEMENT->value],
+                'active_features' => array_column(FeatureEnum::cases(), 'value'),
             ],
         ]);
+
+        $plan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($plan) {
+            Subscription::create([
+                'business_id' => $this->business->id,
+                'plan_id' => $plan->id,
+                'status' => SubscriptionStatus::Active,
+                'billing_cycle' => 'monthly',
+                'started_at' => now()->subDay(),
+                'expired_at' => now()->addMonth(),
+            ]);
+        }
+        $this->business->clearMemoizedFeatures();
 
         $this->outlet = Outlet::create([
             'business_id' => $this->business->id,

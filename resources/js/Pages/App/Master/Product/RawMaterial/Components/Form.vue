@@ -47,7 +47,26 @@
                     <Switch v-model="form.track_inventory" size="sm" />
                 </div>
 
-                <div v-if="form.track_inventory" class="pt-2 border-t border-slate-200">
+                <div v-if="form.track_inventory" class="pt-2 border-t border-slate-200 space-y-2.5">
+                    <div v-if="!isEdit" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <NumberField
+                            v-model="form.initial_stock"
+                            label="Jumlah Stok Awal"
+                            placeholder="0"
+                            min="0"
+                            step="0.01"
+                            :error="form.errors.initial_stock"
+                        />
+                        <NumberField
+                            v-model="form.purchase_price"
+                            label="Modal per Satuan"
+                            prefix="Rp"
+                            placeholder="0"
+                            min="0"
+                            :error="form.errors.purchase_price"
+                        />
+                    </div>
+
                     <NumberField
                         v-model="form.minimum_stock"
                         label="Batas Minimum Stok (Peringatan)"
@@ -116,6 +135,8 @@ const form = useForm({
     uom_id: props.rawMaterial?.uom_id || '',
     track_inventory: props.rawMaterial ? Boolean(props.rawMaterial.track_inventory) : true,
     minimum_stock: props.rawMaterial?.minimum_stock ?? 0,
+    initial_stock: '',
+    purchase_price: '',
 })
 
 const formattedUoms = computed(() => {

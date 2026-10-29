@@ -88,12 +88,10 @@ class ServiceProductControllerTest extends TestCase
         setPermissionsTeamId($this->business->id);
 
         foreach ([
-            PermissionEnum::SERVICE_VIEW->value,
-            PermissionEnum::SERVICE_CREATE->value,
-            PermissionEnum::SERVICE_UPDATE->value,
-            PermissionEnum::SERVICE_DELETE->value,
-            PermissionEnum::SERVICE_EXPORT->value,
-            PermissionEnum::SERVICE_IMPORT->value,
+            PermissionEnum::PRODUCT_VIEW->value,
+            PermissionEnum::PRODUCT_CREATE->value,
+            PermissionEnum::PRODUCT_UPDATE->value,
+            PermissionEnum::PRODUCT_DELETE->value,
         ] as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'business']);
             $this->user->givePermissionTo($perm);
@@ -152,8 +150,8 @@ class ServiceProductControllerTest extends TestCase
         ]);
 
         setPermissionsTeamId($businessNoFeature->id);
-        Permission::firstOrCreate(['name' => PermissionEnum::SERVICE_VIEW->value, 'guard_name' => 'business']);
-        $userNoFeature->givePermissionTo(PermissionEnum::SERVICE_VIEW->value);
+        Permission::firstOrCreate(['name' => PermissionEnum::PRODUCT_VIEW->value, 'guard_name' => 'business']);
+        $userNoFeature->givePermissionTo(PermissionEnum::PRODUCT_VIEW->value);
 
         $response = $this->actingAs($userNoFeature, 'business')
             ->get("http://{$this->appDomain}/master/services");
@@ -403,6 +401,96 @@ class ServiceProductControllerTest extends TestCase
         $this->assertEquals('Creambath Tradisional Plus Pijat Bahu', $service->name);
         $this->assertEquals('SRV-CRM-PLUS', $service->code);
         $this->assertEquals(75000, $service->prices()->whereNull('outlet_id')->first()->amount);
+    }
+
+    public function test_user_can_update_service_with_custom_outlet_prices_and_clear_them(): void
+    {
+        $outlet1 = Outlet::create([
+            'business_id' => $this->business->id,
+            'name' => 'Cabang Utama',
+            'is_active' => true,
+        ]);
+        $outlet2 = Outlet::create([
+            'business_id' => $this->business->id,
+            'name' => 'Cabang Kedua',
+            'is_active' => true,
+        ]);
+
+        $service = Product::create([
+            'business_id' => $this->business->id,
+            'name' => 'Hair Spa Aromatherapy',
+            'code' => 'SRV-SPA',
+            'product_type' => ProductTypeEnum::SERVICE,
+            'is_show' => true,
+            'sellable' => true,
+        ]);
+        $service->prices()->create([
+            'outlet_id' => null,
+            'amount' => 100000,
+        ]);
+
+        // 1. Update with custom outlet price for outlet2
+        $updatePayload = [
+            'name' => 'Hair Spa Aromatherapy Premium',
+            'base_price' => 120000,
+            'is_show' => true,
+            'sellable' => true,
+            'outlets' => [
+                ['outlet_id' => $outlet1->id, 'is_enabled' => true, 'is_available' => true],
+                ['outlet_id' => $outlet2->id, 'is_enabled' => true, 'is_available' => true],
+            ],
+            'outlet_prices' => [
+                ['outlet_id' => $outlet2->id, 'amount' => 140000],
+            ],
+        ];
+
+        $response = $this->actingAs($this->user, 'business')
+            ->put("http://{$this->appDomain}/master/services/{$service->id}", $updatePayload);
+
+        $response->assertRedirect(route('master.services.index'));
+        $this->assertEquals(140000, $service->prices()->where('outlet_id', $outlet2->id)->first()->amount);
+
+        // 2. Clear custom outlet prices (switch turned off)
+        $clearPayload = [
+            'name' => 'Hair Spa Aromatherapy Premium',
+            'base_price' => 120000,
+            'is_show' => true,
+            'sellable' => true,
+            'outlets' => [
+                ['outlet_id' => $outlet1->id, 'is_enabled' => true, 'is_available' => true],
+                ['outlet_id' => $outlet2->id, 'is_enabled' => true, 'is_available' => true],
+            ],
+            'outlet_prices' => [],
+        ];
+
+        $responseClear = $this->actingAs($this->user, 'business')
+            ->put("http://{$this->appDomain}/master/services/{$service->id}", $clearPayload);
+
+        $responseClear->assertRedirect(route('master.services.index'));
+        $this->assertNull($service->prices()->where('outlet_id', $outlet2->id)->first());
+        $this->assertCount(1, $service->prices()->get());
+    }
+
+    public function test_validation_errors_when_outlet_price_amount_is_negative(): void
+    {
+        $outlet = Outlet::create([
+            'business_id' => $this->business->id,
+            'name' => 'Cabang Error Test',
+            'is_active' => true,
+        ]);
+
+        $payload = [
+            'name' => 'Service with invalid rate',
+            'base_price' => 50000,
+            'outlet_prices' => [
+                ['outlet_id' => $outlet->id, 'amount' => -10000],
+            ],
+        ];
+
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/services", $payload);
+
+        $response->assertSessionHasErrors(['outlet_prices.0.amount']);
     }
 
     public function test_user_can_soft_delete_service(): void

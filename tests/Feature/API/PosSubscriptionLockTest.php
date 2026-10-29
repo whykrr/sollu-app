@@ -30,7 +30,7 @@ class PosSubscriptionLockTest extends TestCase
     public function test_pos_device_allowed_when_merchant_is_on_active_trial(): void
     {
         $posFeature = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -48,7 +48,7 @@ class PosSubscriptionLockTest extends TestCase
 
         $businessType = BusinessType::factory()->create([
             'code' => 'retail',
-            'features' => [FeatureEnum::POS_CASHIER->value],
+            'features' => [FeatureEnum::POS->value],
         ]);
 
         $business = Business::create([
@@ -98,7 +98,7 @@ class PosSubscriptionLockTest extends TestCase
     public function test_pos_device_rejected_with_403_when_outlet_is_inactive(): void
     {
         $posFeature = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -116,7 +116,7 @@ class PosSubscriptionLockTest extends TestCase
 
         $businessType = BusinessType::factory()->create([
             'code' => 'retail_inactive',
-            'features' => [FeatureEnum::POS_CASHIER->value],
+            'features' => [FeatureEnum::POS->value],
         ]);
 
         $business = Business::create([
@@ -171,7 +171,7 @@ class PosSubscriptionLockTest extends TestCase
     {
         $businessType = BusinessType::factory()->create([
             'code' => 'retail_exp',
-            'features' => [FeatureEnum::POS_CASHIER->value],
+            'features' => [FeatureEnum::POS->value],
         ]);
 
         // Expired business without active subscription

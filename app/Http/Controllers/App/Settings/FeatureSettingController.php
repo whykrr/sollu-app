@@ -60,7 +60,7 @@ class FeatureSettingController extends Controller
 
     public function save(Request $request)
     {
-        $this->authorize(PermissionEnum::BUSINESS_UPDATE->value);
+        abort_if(! Auth::user()?->is_root_user, 403);
 
         $request->validate([
             'features' => ['required', 'array'],

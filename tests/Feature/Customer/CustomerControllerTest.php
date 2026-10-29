@@ -45,7 +45,7 @@ class CustomerControllerTest extends TestCase
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
-            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true, 'features' => [FeatureEnum::CUSTOMER_MANAGEMENT->value]]
+            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true, 'features' => [FeatureEnum::CRM->value]]
         );
 
         $this->business = Business::create([
@@ -57,7 +57,7 @@ class CustomerControllerTest extends TestCase
             'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
             'settings' => [
-                'active_features' => [FeatureEnum::CUSTOMER_MANAGEMENT->value],
+                'active_features' => [FeatureEnum::CRM->value],
             ],
         ]);
 

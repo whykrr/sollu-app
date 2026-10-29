@@ -249,14 +249,13 @@ const archiveProduct = id => {
     })
 }
 
-// Wizard configurations for Popup
+// Drawer configurations for Popup
 const openCreate = () => {
     popUpStore.open({
         title: 'Tambah Produk Barang',
         size: 'xl',
         component: CreateEditWrapper,
         props: {
-            initialStep: 0,
             editMode: false,
             targetStepId: 'basic',
         },
@@ -264,14 +263,12 @@ const openCreate = () => {
 }
 
 const openEdit = (row, targetStepId = 'basic') => {
-    const stepIndexMap = { basic: 0, inventory: 1, pricing: 2 }
     popUpStore.open({
         title: `${row.name}`,
         subTitle: row.code ? `#${row.code}` : undefined,
         size: 'xl',
         component: CreateEditWrapper,
         props: {
-            initialStep: stepIndexMap[targetStepId] ?? 0,
             editMode: true,
             targetStepId,
             product: row,

@@ -77,7 +77,7 @@ class StockPurchasesControllerTest extends TestCase
                 'is_visible' => true,
                 'features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
-                    FeatureEnum::PURCHASE_ORDERS->value,
+                    FeatureEnum::PURCHASE_ORDER->value,
                 ],
             ]
         );
@@ -93,7 +93,7 @@ class StockPurchasesControllerTest extends TestCase
             'settings' => [
                 'active_features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
-                    FeatureEnum::PURCHASE_ORDERS->value,
+                    FeatureEnum::PURCHASE_ORDER->value,
                 ],
             ],
         ]);
@@ -127,13 +127,12 @@ class StockPurchasesControllerTest extends TestCase
         setPermissionsTeamId($this->business->id);
 
         $permissions = [
-            PermissionEnum::PURCHASE_ORDER_VIEW->value,
-            PermissionEnum::PURCHASE_ORDER_CREATE->value,
-            PermissionEnum::PURCHASE_ORDER_UPDATE->value,
-            PermissionEnum::PURCHASE_ORDER_CANCEL->value,
-            PermissionEnum::PURCHASE_ORDER_RECEIVE->value,
-            PermissionEnum::PURCHASE_ORDER_VOID->value,
-            PermissionEnum::PURCHASE_ORDER_RETURN->value,
+            PermissionEnum::PURCHASE_VIEW->value,
+            PermissionEnum::PURCHASE_CREATE->value,
+            PermissionEnum::PURCHASE_UPDATE->value,
+            PermissionEnum::PURCHASE_DELETE->value,
+            PermissionEnum::PURCHASE_RECEIVE->value,
+            PermissionEnum::PURCHASE_RETURN->value,
         ];
 
         foreach ($permissions as $perm) {

@@ -134,7 +134,7 @@ Route::prefix('settings')
             });
 
         Route::middleware(['can:'.PermissionEnum::SETTING_PAYMENT->value])->group(function () {
-            Route::middleware('plan.feature:'.FeatureEnum::OUTLET_MANAGEMENT->value)
+            Route::middleware('plan.feature:'.FeatureEnum::MULTI_OUTLET->value)
                 ->prefix('payment-methods')
                 ->name('payment-methods.')
                 ->group(function () {
@@ -147,7 +147,7 @@ Route::prefix('settings')
                 });
         });
 
-        Route::middleware('plan.feature:'.FeatureEnum::OUTLET_MANAGEMENT->value)
+        Route::middleware('plan.feature:'.FeatureEnum::MULTI_OUTLET->value)
             ->prefix('receipt')
             ->name('receipt.')
             ->group(function () {
@@ -155,7 +155,7 @@ Route::prefix('settings')
                 Route::put('/', [ReceiptSettingController::class, 'update'])->name('update');
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::OUTLET_MANAGEMENT->value)
+        Route::middleware('plan.feature:'.FeatureEnum::MULTI_OUTLET->value)
             ->prefix('devices')
             ->name('devices.')
             ->group(function () {
@@ -167,7 +167,7 @@ Route::prefix('settings')
                 Route::post('/{device}/unpair', [DeviceSettingController::class, 'unpair'])->name('unpair');
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::OUTLET_MANAGEMENT->value)
+        Route::middleware('plan.feature:'.FeatureEnum::MULTI_OUTLET->value)
             ->prefix('taxes')
             ->name('taxes.')
             ->group(function () {
@@ -175,7 +175,7 @@ Route::prefix('settings')
                 Route::put('/', [TaxSettingController::class, 'update'])->name('update');
             });
 
-        Route::middleware('plan.feature:'.FeatureEnum::OUTLET_MANAGEMENT->value)
+        Route::middleware('plan.feature:'.FeatureEnum::MULTI_OUTLET->value)
             ->prefix('operational')
             ->name('operational.')
             ->group(function () {
@@ -185,7 +185,7 @@ Route::prefix('settings')
 
         Route::middleware([
             'can:'.PermissionEnum::SETTING_AUDIT->value,
-            'plan.feature:'.FeatureEnum::AUDIT_LOGS->value,
+            'plan.feature:'.FeatureEnum::AUDIT_LOG->value,
         ])
             ->prefix('activity-logs')
             ->name('activity-logs.')

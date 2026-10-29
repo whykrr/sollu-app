@@ -3,11 +3,14 @@
 namespace App\Services\App\Master;
 
 use App\Enums\FeatureEnum;
+use App\Enums\InventoryMovementType;
 use App\Enums\ProductTypeEnum;
 use App\Models\Business;
+use App\Models\Inventory\InventoryItem;
 use App\Models\Master\Product;
 use App\Models\Master\ProductItem;
 use App\Models\Outlet;
+use App\Services\App\Inventory\InventoryCostingService;
 use App\Services\Core\ImageOptimizerService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -19,9 +22,11 @@ class ProductService
         protected AuditLogService $auditLogService,
         protected InventoryService $inventoryService,
         protected RecipeService $recipeService,
-        protected ?ImageOptimizerService $imageOptimizerService = null
+        protected ?ImageOptimizerService $imageOptimizerService = null,
+        protected ?InventoryCostingService $costingService = null
     ) {
         $this->imageOptimizerService = $imageOptimizerService ?? app(ImageOptimizerService::class);
+        $this->costingService = $costingService ?? app(InventoryCostingService::class);
     }
 
     /**
@@ -50,13 +55,13 @@ class ProductService
             $business = Business::findCached($data['business_id']) ?? Business::find($data['business_id']);
             $hasActiveSub = $business && $business->getActiveSubscriptionWithPlan();
 
-            $canUseVariant = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_VARIANTS);
+            $canUseVariant = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_VARIANT);
             $hasVariant = $canUseVariant && ($data['has_variant'] ?? false);
 
-            $canUseRecipe = ! $hasActiveSub || $business->hasFeature(FeatureEnum::RECIPE_MANAGEMENT);
+            $canUseRecipe = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_BOM);
             $hasRecipe = $canUseRecipe && ($data['has_recipe'] ?? false);
 
-            $canUseModifier = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_MODIFIERS);
+            $canUseModifier = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_MODIFIER);
             $hasModifier = $canUseModifier && ($data['has_modifier'] ?? false);
 
             $product = Product::create([
@@ -100,9 +105,12 @@ class ProductService
 
                 // Decoupled Inventory: ONLY link when track_inventory is true
                 if ($product->track_inventory) {
-                    $this->inventoryService->linkInventoryItem($defaultItem, [
+                    $invItem = $this->inventoryService->linkInventoryItem($defaultItem, [
                         'uom_id' => $data['uom_id'] ?? null,
+                        'min_stock' => $data['minimum_stock'] ?? ($data['min_stock'] ?? 0),
                     ], $activeOutletIds);
+
+                    $this->recordInitialStocksForProductItem($product, $invItem, $data, $activeOutletIds);
                 }
 
                 // Base Price linked to default ProductItem
@@ -248,9 +256,11 @@ class ProductService
 
                 // Decoupled Inventory: ONLY link when track_inventory AND is_active
                 if ($isTrackInventory && $isActive) {
-                    $this->inventoryService->linkInventoryItem($variantItem, [
+                    $invItem = $this->inventoryService->linkInventoryItem($variantItem, [
                         'uom_id' => $data['uom_id'] ?? null,
                     ], $activeOutletIds);
+
+                    $this->recordInitialStocksForProductItem($product, $invItem, $combo, $activeOutletIds);
                 }
 
                 // Combination Base Price
@@ -313,15 +323,21 @@ class ProductService
             $business = Business::findCached($product->business_id) ?? Business::find($product->business_id);
             $hasActiveSub = $business && $business->getActiveSubscriptionWithPlan();
 
-            $canUseVariant = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_VARIANTS);
+            $canUseVariant = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_VARIANT);
             $hasVariant = $canUseVariant && (array_key_exists('has_variant', $data) ? (bool) $data['has_variant'] : (bool) $product->has_variant);
+
+            $canUseRecipe = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_BOM);
+            $hasRecipe = $canUseRecipe && (array_key_exists('has_recipe', $data) ? (bool) $data['has_recipe'] : (bool) $product->has_recipe);
+
+            $canUseModifier = ! $hasActiveSub || $business->hasFeature(FeatureEnum::PRODUCT_MODIFIER);
+            $hasModifier = $canUseModifier && (array_key_exists('has_modifier', $data) ? (bool) $data['has_modifier'] : (bool) $product->has_modifier);
 
             $product->update([
                 'product_category_id' => $data['product_category_id'] ?? $product->product_category_id,
                 'product_type' => $productType,
                 'has_variant' => $hasVariant,
-                'has_modifier' => $data['has_modifier'] ?? ($product->has_modifier ?? false),
-                'has_recipe' => $data['has_recipe'] ?? ($product->has_recipe ?? false),
+                'has_modifier' => $hasModifier,
+                'has_recipe' => $hasRecipe,
                 'track_inventory' => array_key_exists('track_inventory', $data) ? (bool) $data['track_inventory'] : (bool) $product->track_inventory,
                 'code' => array_key_exists('code', $data) ? $data['code'] : $product->code,
                 'name' => $data['name'] ?? $product->name,
@@ -442,8 +458,10 @@ class ProductService
             }
 
             // Recipe Sync
-            if ($product->isBasic() && $product->has_recipe && isset($data['recipes'])) {
+            if ($product->isBasic() && $product->has_recipe && ! empty($data['recipes'])) {
                 $this->recipeService->syncRecipe($product, $data['recipes']);
+            } elseif (! $product->has_recipe) {
+                $product->recipeVersions()->where('is_active', true)->update(['is_active' => false]);
             }
 
             // Bundle Sync
@@ -944,5 +962,78 @@ class ProductService
         $product->update([
             'image_url' => $firstImageUrl,
         ]);
+    }
+
+    /**
+     * Catat mutasi stok awal saat produk baru disimpan.
+     */
+    protected function recordInitialStocksForProductItem(
+        Product $product,
+        InventoryItem $invItem,
+        array $data,
+        ?array $activeOutletIds = null
+    ): void {
+        $business = $product->business ?? Business::find($product->business_id);
+        if (! $business) {
+            return;
+        }
+
+        // 1. Jika ada alokasi per-outlet khusus (misal array initial_stocks)
+        if (! empty($data['initial_stocks']) && is_array($data['initial_stocks'])) {
+            foreach ($data['initial_stocks'] as $stockEntry) {
+                $outletId = $stockEntry['outlet_id'] ?? null;
+                $qty = (float) ($stockEntry['qty'] ?? $stockEntry['initial_stock'] ?? 0);
+                $cost = (float) ($stockEntry['purchase_price'] ?? $stockEntry['unit_cost'] ?? 0);
+
+                if ($outletId && $qty > 0) {
+                    $outlet = Outlet::find($outletId);
+                    if ($outlet && $outlet->business_id === $product->business_id) {
+                        $this->costingService->recordIncomingStock(
+                            business: $business,
+                            outlet: $outlet,
+                            item: $invItem,
+                            qty: $qty,
+                            unitCost: $cost,
+                            movementType: InventoryMovementType::InitialStock,
+                            reference: $product,
+                            description: 'Stok Awal Produk Baru',
+                            user: auth()->user()
+                        );
+                    }
+                }
+            }
+
+            return;
+        }
+
+        // 2. Jika ada single initial_stock (outlet default / aktif)
+        $qty = (float) ($data['initial_stock'] ?? 0);
+        $cost = (float) ($data['purchase_price'] ?? $data['initial_cost'] ?? 0);
+
+        if ($qty > 0) {
+            $targetOutletId = $data['outlet_id'] ?? ($activeOutletIds[0] ?? null);
+            if (! $targetOutletId) {
+                $targetOutletId = Outlet::where('business_id', $product->business_id)
+                    ->where('is_active', true)
+                    ->value('id');
+            }
+
+            if ($targetOutletId) {
+                $outlet = Outlet::find($targetOutletId);
+                if ($outlet) {
+                    $this->costingService->recordIncomingStock(
+                        business: $business,
+                        outlet: $outlet,
+                        item: $invItem,
+                        qty: $qty,
+                        unitCost: $cost,
+                        movementType: InventoryMovementType::InitialStock,
+                        reference: $product,
+                        description: 'Stok Awal Produk Baru',
+                        user: auth()->user()
+                    );
+                }
+            }
+        }
     }
 }

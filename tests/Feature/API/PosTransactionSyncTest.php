@@ -7,8 +7,10 @@ namespace Tests\Feature\API;
 use App\Enums\DeviceTypeEnum;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
+use App\Enums\PlanEnum;
 use App\Enums\ProductTypeEnum;
 use App\Enums\SalesChannelEnum;
+use App\Enums\SubscriptionStatus;
 use App\Enums\TransactionStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
@@ -22,6 +24,8 @@ use App\Models\Outlet;
 use App\Models\OutletDevice;
 use App\Models\Sales\Shift;
 use App\Models\Sales\Transaction;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Uom;
 use App\Models\User;
 use App\Services\Pos\PosDeviceAuthCacheService;
@@ -78,6 +82,19 @@ class PosTransactionSyncTest extends TestCase
             'settings' => ['active_features' => array_column(FeatureEnum::cases(), 'value')],
         ]);
 
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($proPlan) {
+            Subscription::create([
+                'business_id' => $this->business->id,
+                'plan_id' => $proPlan->id,
+                'status' => SubscriptionStatus::Active,
+                'billing_cycle' => 'monthly',
+                'started_at' => now()->subDay(),
+                'expired_at' => now()->addMonth(),
+            ]);
+        }
+        $this->business->clearMemoizedFeatures();
+
         $this->outlet = Outlet::create([
             'business_id' => $this->business->id,
             'name' => 'POS Outlet Utama',
@@ -119,7 +136,7 @@ class PosTransactionSyncTest extends TestCase
         ]);
         $this->outlet->users()->attach($this->supervisor->id);
         $this->supervisor->givePermissionTo(PermissionEnum::TRANSACTION_VALIDATION_SUPERVISION->value);
-        $this->supervisor->givePermissionTo(PermissionEnum::TRANSACTION_DISCOUNT->value);
+        $this->supervisor->givePermissionTo(PermissionEnum::TRANSACTION_OVERRIDE_PRICE->value);
 
         $this->shift = Shift::create([
             'outlet_id' => $this->outlet->id,

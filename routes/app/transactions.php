@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('transactions')->name('transactions.')->group(function () {
     Route::prefix('sales')
         ->name('sales.')
-        ->middleware(['plan.feature:'.FeatureEnum::INVOICE_DEBT->value])
+        ->middleware(['plan.feature:'.FeatureEnum::TRANSACTION_INVOICE->value])
         ->group(function () {
             Route::get('/', [SalesTransactionController::class, 'index'])
                 ->middleware('permission:transaction.view')
@@ -42,7 +42,7 @@ Route::prefix('transactions')->name('transactions.')->group(function () {
                 ->name('update-due-date');
 
             Route::post('/{transaction}/cancel', [SalesTransactionController::class, 'cancel'])
-                ->middleware('permission:transaction.cancel')
+                ->middleware('permission:transaction.void')
                 ->name('cancel');
 
             // Download PDF
@@ -51,7 +51,7 @@ Route::prefix('transactions')->name('transactions.')->group(function () {
                 ->name('pdf');
         });
 
-    Route::middleware('plan.feature:'.FeatureEnum::SHIFT_MANAGEMENT->value)->group(function () {
+    Route::middleware('plan.feature:'.FeatureEnum::SHIFT_CASHIER->value)->group(function () {
         Route::resource('shifts', ShiftController::class)->only(['index', 'show']);
     });
 });

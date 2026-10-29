@@ -4,6 +4,7 @@ namespace App\Http\Requests\App\Inventory;
 
 use App\Enums\AdjustmentReason;
 use App\Enums\AdjustmentStatus;
+use App\Enums\PermissionEnum;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,7 @@ class IndexStockAdjustmentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()?->can('inventory.adjustment.read') ?? false;
+        return Auth::user()?->can(PermissionEnum::INVENTORY_ADJUST_VIEW->value) ?? false;
     }
 
     /**

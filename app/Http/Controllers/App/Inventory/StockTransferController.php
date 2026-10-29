@@ -84,7 +84,7 @@ class StockTransferController extends Controller
 
     public function show(StockTransfer $transfer)
     {
-        Gate::authorize(PermissionEnum::INVENTORY_TRANSFER_READ->value);
+        Gate::authorize(PermissionEnum::INVENTORY_TRANSFER_VIEW->value);
 
         $transfer->load([
             'fromOutlet:id,name,is_stock_frozen',
@@ -102,7 +102,7 @@ class StockTransferController extends Controller
 
     public function exportPdf(StockTransfer $transfer)
     {
-        Gate::authorize(PermissionEnum::INVENTORY_TRANSFER_READ->value);
+        Gate::authorize(PermissionEnum::INVENTORY_TRANSFER_VIEW->value);
 
         $transfer->load([
             'fromOutlet',
@@ -138,7 +138,7 @@ class StockTransferController extends Controller
 
     public function approve(StockTransfer $transfer)
     {
-        $this->authorize(PermissionEnum::INVENTORY_TRANSFER_APPROVE->value);
+        $this->authorize(PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value);
 
         try {
             $this->stockTransferService->approveTransfer($transfer, Auth::user());
@@ -154,7 +154,7 @@ class StockTransferController extends Controller
 
     public function reject(Request $request, StockTransfer $transfer)
     {
-        $this->authorize(PermissionEnum::INVENTORY_TRANSFER_APPROVE->value);
+        $this->authorize(PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value);
 
         $request->validate(['notes' => 'required|string']);
 
@@ -172,7 +172,7 @@ class StockTransferController extends Controller
 
     public function ship(StockTransfer $transfer)
     {
-        $this->authorize(PermissionEnum::INVENTORY_TRANSFER_SHIP->value);
+        $this->authorize(PermissionEnum::INVENTORY_TRANSFER_UPDATE->value);
 
         try {
             $this->stockTransferService->shipTransfer($transfer, Auth::user());

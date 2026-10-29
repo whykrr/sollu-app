@@ -38,7 +38,7 @@ class BusinessInfoController extends Controller
 
     public function save(BusinessUpdateRequest $req)
     {
-        $this->authorize(PermissionEnum::BUSINESS_UPDATE->value);
+        abort_if(! Auth::user()?->is_root_user, 403);
 
         $business_id = Auth::user()->business_id;
 

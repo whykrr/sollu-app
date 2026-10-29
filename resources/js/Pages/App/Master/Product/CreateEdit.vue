@@ -1,117 +1,72 @@
 <template>
-    <div>
-        <!-- Stepper Indicator for Create Mode (Tier 3 Wizard) -->
-        <FormStepper
-            v-if="!isEdit"
-            v-model:current-step-index="currentStepIndex"
-            :steps="steps"
-            :errors="form.errors"
-            :allow-step-click="true"
+    <div class="space-y-3.5 pb-16">
+        <!-- Input Dasar Utama: Foto, Nama, Kategori, Harga Jual Dasar, Pengaturan Lanjutan -->
+        <ProductBasicSection id="section-basic" />
+
+        <!-- Card 1: Stok & Inventori (FeatureEnum: INVENTORY_MANAGEMENT) -->
+        <ProductInventorySection id="card-inventory" v-model:is-open="isInventoryOpen" />
+
+        <!-- Card 2: Varian Produk (FeatureEnum: PRODUCT_VARIANTS) -->
+        <ProductVariantSection id="card-variant" v-model:is-open="isVariantOpen" />
+
+        <!-- Card 3: Matriks Harga (Kondisional: Cabang > 1 ATAU Varian Aktif, FeatureEnum: PRODUCT_PRICE_MATRIX) -->
+        <ProductPricingMatrixSection
+            v-if="showPricingMatrix"
+            id="card-pricing"
+            v-model:is-open="isPricingOpen"
         />
 
-        <!-- Tab Navigation for Edit Mode (Tier 3 Direct Tabbed Navigation) -->
-        <FormTabs
-            v-else
-            :tabs="steps"
-            :model-value="currentStepId"
-            :errors="form.errors"
-            @update:model-value="handleTabChange"
-        />
+        <!-- Card 4: Resep BOM (FeatureEnum: RECIPE_MANAGEMENT) -->
+        <ProductRecipeSection id="card-recipe" v-model:is-open="isRecipeOpen" />
 
-        <!-- Dynamic Step Component -->
-        <div class="min-h-[400px] mt-2">
-            <component :is="currentStep.component" />
-        </div>
+        <!-- Card 5: Opsi Tambahan / Modifier (FeatureEnum: PRODUCT_MODIFIERS) -->
+        <ProductModifierSection id="card-modifier" v-model:is-open="isModifierOpen" />
     </div>
 
-    <!-- Sticky Footer Actions (Thumb Zone Ergonomics) -->
+    <!-- Sticky Footer Actions (Thumb Zone Ergonomics, Teleported to #popUpFooter) -->
     <Teleport v-if="isMounted" to="#popUpFooter">
-        <div
-            class="flex items-center w-full gap-2"
-            :class="isEdit ? 'justify-end' : 'justify-between'"
-        >
-            <template v-if="!isEdit">
-                <button
-                    type="button"
-                    class="btn btn-flat btn-sm"
-                    :disabled="isFirstStep"
-                    :class="{ 'opacity-50 cursor-not-allowed': isFirstStep }"
-                    @click="prevStep"
-                >
-                    <FontAwesomeIcon :icon="faChevronLeft" class="mr-1" />
-                    Kembali
-                </button>
+        <div class="flex items-center justify-between w-full gap-2">
+            <button
+                type="button"
+                class="btn btn-flat"
+                :disabled="form.processing"
+                @click="handleCancel"
+            >
+                Batal
+            </button>
 
-                <button
-                    v-if="!isLastStep"
-                    type="button"
-                    class="btn btn-main btn-sm"
-                    @click="nextStep"
-                >
-                    Lanjut
-                    <FontAwesomeIcon :icon="faChevronRight" class="ml-1" />
-                </button>
-
-                <button
-                    v-else
-                    type="button"
-                    class="btn btn-main btn-sm"
-                    :disabled="form.processing"
-                    @click="submit"
-                >
-                    <FontAwesomeIcon :icon="faSave" class="mr-1" />
-                    Simpan Produk
-                </button>
-            </template>
-            <template v-else>
-                <button type="button" class="btn btn-flat btn-sm" @click="handleCancel">
-                    Batal
-                </button>
-                <button
-                    type="button"
-                    class="btn btn-main btn-sm"
-                    :disabled="form.processing"
-                    @click="submit"
-                >
-                    <FontAwesomeIcon :icon="faSave" class="mr-1" />
-                    Simpan Perubahan
-                </button>
-            </template>
+            <button type="button" class="btn btn-main" :disabled="form.processing" @click="submit">
+                <FontAwesomeIcon
+                    :icon="form.processing ? faSpinner : faSave"
+                    :class="{ 'animate-spin': form.processing }"
+                    class="mr-1"
+                />
+                <span>Simpan</span>
+            </button>
         </div>
     </Teleport>
 </template>
 
 <script setup>
-import { ref, computed, watch, provide, onMounted } from 'vue'
+import { ref, computed, watch, provide, nextTick, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import {
-    faChevronLeft,
-    faChevronRight,
-    faSave,
-    faPencil,
-    faBoxesStacked,
-    faTag,
-    faUtensils,
-    faSliders,
-} from '@fortawesome/free-solid-svg-icons'
+import { faSave, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
-import FormStepper from '@/Components/Form/FormStepper.vue'
-import FormTabs from '@/Components/Form/FormTabs.vue'
 
-import StepBasicInfo from './Components/StepBasicInfo.vue'
-import StepInventorySetup from './Components/StepInventorySetup.vue'
-import StepPricing from './Components/StepPricing.vue'
-import StepRecipeSetup from './Components/StepRecipeSetup.vue'
-import StepModifierSetup from './Components/StepModifierSetup.vue'
+import ProductBasicSection from './Components/ProductBasicSection.vue'
+import ProductInventorySection from './Components/ProductInventorySection.vue'
+import ProductVariantSection from './Components/ProductVariantSection.vue'
+import ProductPricingMatrixSection from './Components/ProductPricingMatrixSection.vue'
+import ProductRecipeSection from './Components/ProductRecipeSection.vue'
+import ProductModifierSection from './Components/ProductModifierSection.vue'
 
 defineEmits(['close'])
 
 const props = defineProps({
     editMode: { type: Boolean, default: false },
     product: { type: Object, default: null },
-    initialStep: { type: Number, default: 0 },
     targetStepId: { type: String, default: null },
     categories: { type: Array, default: () => [] },
     outlets: { type: Array, default: () => [] },
@@ -124,10 +79,6 @@ const { selectedOutlet } = useAuth()
 
 const isEdit = computed(() => props.editMode)
 const isMounted = ref(false)
-
-onMounted(() => {
-    isMounted.value = true
-})
 
 const getInitialUomId = () => {
     const items = props.product?.product_items || props.product?.inventory_items || []
@@ -177,13 +128,17 @@ const form = useForm({
     is_show: props.product?.is_show ?? true,
     sellable: props.product?.sellable ?? true,
     purchasable: props.product?.purchasable ?? false,
-    has_variant: props.product?.has_variant ?? false,
-    track_inventory: props.product?.track_inventory ?? false,
-    has_recipe: props.product?.has_recipe ?? false,
-    has_modifier: props.product?.has_modifier ?? false,
+    has_variant: Boolean(props.product?.has_variant),
+    track_inventory: Boolean(props.product?.track_inventory),
+    has_recipe: Boolean(props.product?.has_recipe),
+    has_modifier: Boolean(props.product?.has_modifier),
     uom_id: getInitialUomId(),
     barcode: getInitialBarcode(),
     base_price: '',
+    minimum_stock: '',
+    initial_stock: '',
+    purchase_price: '',
+    initial_stocks: [],
     outlet_prices: [],
     outlets: [],
     variants: [],
@@ -265,6 +220,8 @@ const updateCombinations = () => {
             sku: existing ? existing.sku : generateSku(options),
             barcode: existing ? existing.barcode : '',
             price: existing ? String(existing.price) : String(form.base_price),
+            initial_stock: existing ? existing.initial_stock : '',
+            purchase_price: existing ? existing.purchase_price : '',
             track_inventory: existing ? existing.track_inventory : Boolean(form.track_inventory),
             sellable: existing ? existing.sellable : Boolean(form.sellable),
             is_active: existing ? existing.is_active : true,
@@ -451,12 +408,14 @@ watch(
     },
     { deep: true }
 )
+
 watch(
     () => form.track_inventory,
     track => {
         if (!track) form.uom_id = ''
     }
 )
+
 watch(
     () => form.base_price,
     newVal => {
@@ -466,109 +425,110 @@ watch(
     }
 )
 
-const steps = computed(() => {
-    const s = [
-        {
-            id: 'basic',
-            component: StepBasicInfo,
-            title: 'Informasi Dasar',
-            icon: faPencil,
-            fields: [
-                'name',
-                'code',
-                'product_category_id',
-                'description',
-                'product_type',
-                'images',
-                'is_show',
-                'sellable',
-                'outlets',
-            ],
-        },
-    ]
-
-    if (form.product_type === 'basic') {
-        s.push({
-            id: 'inventory',
-            component: StepInventorySetup,
-            title: 'Stok & Varian',
-            icon: faBoxesStacked,
-            fields: [
-                'uom_id',
-                'barcode',
-                'variants',
-                'variant_combinations',
-                'track_inventory',
-                'has_variant',
-            ],
-        })
-    }
-
-    s.push({
-        id: 'pricing',
-        component: StepPricing,
-        title: 'Harga & Outlet',
-        icon: faTag,
-        fields: ['base_price', 'outlet_prices'],
-    })
-
-    if (form.product_type === 'basic') {
-        s.push({
-            id: 'recipe',
-            component: StepRecipeSetup,
-            title: 'Resep (BOM)',
-            icon: faUtensils,
-            fields: ['recipe_items'],
-        })
-        s.push({
-            id: 'modifier',
-            component: StepModifierSetup,
-            title: 'Opsi Tambahan',
-            icon: faSliders,
-            fields: ['modifier_group_ids'],
-        })
-    }
-
-    return s
+const showPricingMatrix = computed(() => {
+    return (props.outlets && props.outlets.length > 1) || Boolean(form.has_variant)
 })
 
-const currentStepIndex = ref(0)
+// Progressive Disclosure Cards State
+const isInventoryOpen = ref(Boolean(form.track_inventory))
+const isVariantOpen = ref(Boolean(form.has_variant))
+const isPricingOpen = ref(Boolean(customizeOutletPrices.value || customizeVariantPrices.value))
+const isRecipeOpen = ref(Boolean(form.has_recipe))
+const isModifierOpen = ref(Boolean(form.has_modifier))
 
-watch(
-    () => steps.value,
-    () => {
-        if (props.targetStepId) {
-            const idx = steps.value.findIndex(s => s.id === props.targetStepId)
-            if (idx !== -1) {
-                currentStepIndex.value = idx
-                return
-            }
-        }
-        if (currentStepIndex.value >= steps.value.length) {
-            currentStepIndex.value = Math.max(0, steps.value.length - 1)
-        }
-    },
-    { immediate: true }
-)
-
-const currentStep = computed(() => steps.value[currentStepIndex.value] || steps.value[0])
-const currentStepId = computed(() => currentStep.value?.id || 'basic')
-const isFirstStep = computed(() => currentStepIndex.value === 0)
-const isLastStep = computed(() => currentStepIndex.value === steps.value.length - 1)
-
-const handleTabChange = tabId => {
-    const idx = steps.value.findIndex(s => s.id === tabId)
-    if (idx !== -1) {
-        currentStepIndex.value = idx
+const scrollToElement = id => {
+    const el = document.getElementById(id)
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
 }
 
-const nextStep = () => {
-    if (!isLastStep.value) currentStepIndex.value++
+const applyTargetStep = targetId => {
+    if (!targetId || targetId === 'basic') return
+
+    if (targetId === 'inventory') {
+        isInventoryOpen.value = true
+        nextTick(() => scrollToElement('card-inventory'))
+    } else if (targetId === 'variant') {
+        isVariantOpen.value = true
+        nextTick(() => scrollToElement('card-variant'))
+    } else if (targetId === 'pricing') {
+        isPricingOpen.value = true
+        nextTick(() => scrollToElement('card-pricing'))
+    } else if (targetId === 'recipe') {
+        isRecipeOpen.value = true
+        nextTick(() => scrollToElement('card-recipe'))
+    } else if (targetId === 'modifier') {
+        isModifierOpen.value = true
+        nextTick(() => scrollToElement('card-modifier'))
+    }
 }
-const prevStep = () => {
-    if (!isFirstStep.value) currentStepIndex.value--
-}
+
+watch(
+    () => props.targetStepId,
+    newId => {
+        if (newId) {
+            applyTargetStep(newId)
+        }
+    }
+)
+
+onMounted(() => {
+    isMounted.value = true
+    if (props.targetStepId) {
+        setTimeout(() => {
+            applyTargetStep(props.targetStepId)
+        }, 150)
+    }
+})
+
+// Auto-expand card on Server Validation Error (422)
+watch(
+    () => form.errors,
+    errors => {
+        if (!errors || Object.keys(errors).length === 0) return
+
+        let firstTarget = null
+
+        if (errors.uom_id || errors.track_inventory) {
+            isInventoryOpen.value = true
+            if (!firstTarget) firstTarget = 'card-inventory'
+        }
+        if (
+            errors.variants ||
+            errors.variant_combinations ||
+            Object.keys(errors).some(k => k.startsWith('variant_combinations.'))
+        ) {
+            isVariantOpen.value = true
+            if (!firstTarget) firstTarget = 'card-variant'
+        }
+        if (errors.outlet_prices || Object.keys(errors).some(k => k.includes('outlet_prices'))) {
+            isPricingOpen.value = true
+            if (!firstTarget) firstTarget = 'card-pricing'
+        }
+        if (
+            errors.recipes ||
+            errors.recipe_items ||
+            Object.keys(errors).some(k => k.startsWith('recipes.'))
+        ) {
+            isRecipeOpen.value = true
+            if (!firstTarget) firstTarget = 'card-recipe'
+        }
+        if (
+            errors.modifier_groups ||
+            errors.modifier_group_ids ||
+            Object.keys(errors).some(k => k.startsWith('modifier_groups.'))
+        ) {
+            isModifierOpen.value = true
+            if (!firstTarget) firstTarget = 'card-modifier'
+        }
+
+        if (firstTarget) {
+            nextTick(() => scrollToElement(firstTarget))
+        }
+    },
+    { deep: true }
+)
 
 const submit = () => {
     if (!form.has_variant) {
@@ -609,23 +569,27 @@ const submit = () => {
     }))
 
     // Prepare modifier groups payload
-    if (form.modifier_group_ids && form.modifier_group_ids.length > 0) {
-        form.has_modifier = true
-        form.modifier_groups = form.modifier_group_ids.map(id => ({ modifier_group_id: id }))
+    form.has_modifier = Boolean(form.has_modifier)
+    if (form.has_modifier) {
+        form.modifier_groups = (form.modifier_group_ids || []).map(id => ({
+            modifier_group_id: id,
+        }))
     } else {
-        form.has_modifier = false
         form.modifier_groups = []
+        form.modifier_group_ids = []
     }
 
     // Prepare recipe items (BOM) payload
-    const validRecipeItems = (form.recipe_items || []).filter(
-        item => item.product_item_id && parseFloat(item.qty) > 0
-    )
-    if (validRecipeItems.length > 0) {
-        form.has_recipe = true
-        form.recipes = validRecipeItems
+    form.has_recipe = Boolean(form.has_recipe)
+    if (form.has_recipe) {
+        form.recipes = (form.recipe_items || [])
+            .filter(item => item.product_item_id || item.qty)
+            .map(item => ({
+                product_item_id: item.product_item_id,
+                qty: item.qty,
+                uom: item.uom,
+            }))
     } else {
-        form.has_recipe = false
         form.recipes = []
     }
 

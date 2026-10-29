@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class UserPermissionCacheServiceTest extends TestCase
@@ -94,6 +95,7 @@ class UserPermissionCacheServiceTest extends TestCase
         $this->assertFalse($this->service->hasPermission($user, PermissionEnum::USER_DELETE->value, $business->id));
 
         // Test wildcard
+        Permission::findOrCreate('transaction.*', 'business');
         $role->syncPermissions(['transaction.*']);
         $this->service->clearUserPermissions($user, $business->id);
 

@@ -76,7 +76,7 @@ class StockPurchasesController extends Controller
      */
     public function show(Request $request, string $id)
     {
-        abort_if(! $request->user()?->can(PermissionEnum::PURCHASE_ORDER_VIEW->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        abort_if(! $request->user()?->can(PermissionEnum::PURCHASE_VIEW->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $purchase = PurchaseOrder::currentBusiness()
             ->with([
@@ -191,7 +191,7 @@ class StockPurchasesController extends Controller
      */
     public function order(string $id, PurchaseOrderService $service)
     {
-        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_UPDATE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_UPDATE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $po = PurchaseOrder::currentBusiness()->findOrFail($id);
         $service->markAsOrdered($po, Auth::user());
@@ -207,7 +207,7 @@ class StockPurchasesController extends Controller
      */
     public function cancel(string $id, PurchaseOrderService $service)
     {
-        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_CANCEL->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_DELETE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $po = PurchaseOrder::currentBusiness()->findOrFail($id);
         $service->cancel($po, Auth::user());
@@ -223,7 +223,7 @@ class StockPurchasesController extends Controller
      */
     public function destroy(string $id)
     {
-        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_UPDATE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_DELETE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $po = PurchaseOrder::currentBusiness()->findOrFail($id);
 
@@ -261,7 +261,7 @@ class StockPurchasesController extends Controller
      */
     public function void(Request $request, string $id, PurchaseOrderService $service)
     {
-        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_VOID->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_DELETE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $po = PurchaseOrder::currentBusiness()->findOrFail($id);
         $service->void($po, Auth::user());
@@ -277,7 +277,7 @@ class StockPurchasesController extends Controller
      */
     public function voidReceipt(Request $request, string $receiptId, GoodsReceiptService $service)
     {
-        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_VOID->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_DELETE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $receipt = GoodsReceipt::currentBusiness()->findOrFail($receiptId);
 
@@ -311,7 +311,7 @@ class StockPurchasesController extends Controller
      */
     public function voidReturn(Request $request, string $returnId, PurchaseReturnService $service)
     {
-        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_VOID->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_DELETE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $return = PurchaseReturn::currentBusiness()->findOrFail($returnId);
 
@@ -332,7 +332,7 @@ class StockPurchasesController extends Controller
      */
     public function pdf(Request $request, string $id)
     {
-        abort_if(! $request->user()?->can(PermissionEnum::PURCHASE_ORDER_VIEW->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        abort_if(! $request->user()?->can(PermissionEnum::PURCHASE_VIEW->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $po = PurchaseOrder::currentBusiness()
             ->with(['supplier', 'outlet', 'items.inventoryItem.uom', 'items.uom'])
@@ -353,7 +353,7 @@ class StockPurchasesController extends Controller
      */
     public function receiptPdf(Request $request, string $receiptId)
     {
-        abort_if(! $request->user()?->can(PermissionEnum::PURCHASE_ORDER_VIEW->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        abort_if(! $request->user()?->can(PermissionEnum::PURCHASE_VIEW->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $receipt = GoodsReceipt::currentBusiness()
             ->with(['purchaseOrder.supplier', 'outlet', 'receiver', 'items.inventoryItem.uom', 'items.uom'])
@@ -374,7 +374,7 @@ class StockPurchasesController extends Controller
      */
     public function returnPdf(Request $request, string $returnId)
     {
-        abort_if(! $request->user()?->can(PermissionEnum::PURCHASE_ORDER_VIEW->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        abort_if(! $request->user()?->can(PermissionEnum::PURCHASE_VIEW->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $return = PurchaseReturn::currentBusiness()
             ->with(['supplier', 'outlet', 'creator', 'items.inventoryItem.uom', 'items.uom'])

@@ -7,6 +7,7 @@ namespace Tests\Feature\Transaction;
 use App\Enums\FeatureEnum;
 use App\Enums\InventoryMovementType;
 use App\Enums\PaymentTermEnum;
+use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
 use App\Enums\ProductTypeEnum;
 use App\Enums\SalesChannelEnum;
@@ -75,7 +76,7 @@ class SalesTransactionControllerTest extends TestCase
                 'name' => 'Retail',
                 'sort_order' => 1,
                 'is_visible' => true,
-                'features' => [FeatureEnum::INVOICE_DEBT->value],
+                'features' => [FeatureEnum::TRANSACTION_INVOICE->value],
             ]
         );
 
@@ -88,7 +89,7 @@ class SalesTransactionControllerTest extends TestCase
             'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
             'settings' => [
-                'active_features' => [FeatureEnum::INVOICE_DEBT->value],
+                'active_features' => [FeatureEnum::TRANSACTION_INVOICE->value],
             ],
         ]);
 
@@ -126,14 +127,12 @@ class SalesTransactionControllerTest extends TestCase
 
         // Grant permissions
         $permissions = [
-            'transaction.view',
-            'transaction.create',
-            'transaction.update',
-            'transaction.delete',
-            'transaction.issue_invoice',
-            'transaction.record_payment',
-            'transaction.edit_due_date',
-            'transaction.cancel',
+            PermissionEnum::TRANSACTION_VIEW->value,
+            PermissionEnum::TRANSACTION_CREATE->value,
+            PermissionEnum::TRANSACTION_ISSUE_INVOICE->value,
+            PermissionEnum::TRANSACTION_RECORD_PAYMENT->value,
+            PermissionEnum::TRANSACTION_EDIT_DUE_DATE->value,
+            PermissionEnum::TRANSACTION_VOID->value,
         ];
 
         foreach ($permissions as $perm) {

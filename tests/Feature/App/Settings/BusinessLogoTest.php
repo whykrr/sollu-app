@@ -60,10 +60,8 @@ class BusinessLogoTest extends TestCase
 
         setPermissionsTeamId($this->business->id);
         Permission::findOrCreate(PermissionEnum::BUSINESS_VIEW->value, 'business');
-        Permission::findOrCreate(PermissionEnum::BUSINESS_UPDATE->value, 'business');
 
         $this->user->givePermissionTo(PermissionEnum::BUSINESS_VIEW->value);
-        $this->user->givePermissionTo(PermissionEnum::BUSINESS_UPDATE->value);
     }
 
     public function test_user_can_view_business_page_with_logo_url(): void

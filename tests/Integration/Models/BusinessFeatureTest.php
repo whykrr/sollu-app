@@ -20,7 +20,7 @@ class BusinessFeatureTest extends TestCase
     public function test_business_on_trial_uses_cached_basic_plan_features(): void
     {
         $feature = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -37,7 +37,7 @@ class BusinessFeatureTest extends TestCase
 
         $businessType = BusinessType::factory()->create([
             'code' => 'retail',
-            'features' => [FeatureEnum::POS_CASHIER->value],
+            'features' => [FeatureEnum::POS->value],
         ]);
 
         $business = Business::create([
@@ -60,15 +60,15 @@ class BusinessFeatureTest extends TestCase
         ]);
 
         $availableFeatures = $business->getAvailablePlanFeatures();
-        $this->assertContains(FeatureEnum::POS_CASHIER, $availableFeatures);
-        $this->assertTrue($business->hasFeature(FeatureEnum::POS_CASHIER));
+        $this->assertContains(FeatureEnum::POS, $availableFeatures);
+        $this->assertTrue($business->hasFeature(FeatureEnum::POS));
         $this->assertFalse($business->hasFeature(FeatureEnum::STOCK_ADJUSTMENTS));
     }
 
     public function test_business_with_active_subscription_resolves_cached_plan(): void
     {
         $posFeature = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -91,7 +91,7 @@ class BusinessFeatureTest extends TestCase
 
         $businessType = BusinessType::factory()->create([
             'code' => 'retail',
-            'features' => [FeatureEnum::POS_CASHIER->value, FeatureEnum::STOCK_ADJUSTMENTS->value],
+            'features' => [FeatureEnum::POS->value, FeatureEnum::STOCK_ADJUSTMENTS->value],
         ]);
 
         $business = Business::create([
@@ -112,9 +112,9 @@ class BusinessFeatureTest extends TestCase
         ]);
 
         $availableFeatures = $business->getAvailablePlanFeatures();
-        $this->assertContains(FeatureEnum::POS_CASHIER, $availableFeatures);
+        $this->assertContains(FeatureEnum::POS, $availableFeatures);
         $this->assertContains(FeatureEnum::STOCK_ADJUSTMENTS, $availableFeatures);
-        $this->assertTrue($business->hasFeature(FeatureEnum::POS_CASHIER));
+        $this->assertTrue($business->hasFeature(FeatureEnum::POS));
         $this->assertTrue($business->hasFeature(FeatureEnum::STOCK_ADJUSTMENTS));
     }
 
@@ -152,7 +152,7 @@ class BusinessFeatureTest extends TestCase
     public function test_business_personalized_features_respects_plan_allowance(): void
     {
         $posFeature = Feature::factory()->create([
-            'code' => FeatureEnum::POS_CASHIER->value,
+            'code' => FeatureEnum::POS->value,
             'name' => 'POS Kasir',
             'is_active' => true,
         ]);
@@ -180,7 +180,7 @@ class BusinessFeatureTest extends TestCase
             'settings' => [
                 // User tries to personalize with a feature they don't have on the plan
                 'active_features' => [
-                    FeatureEnum::POS_CASHIER->value,
+                    FeatureEnum::POS->value,
                     FeatureEnum::STOCK_ADJUSTMENTS->value,
                 ],
             ],
@@ -195,8 +195,8 @@ class BusinessFeatureTest extends TestCase
             'expired_at' => Carbon::now()->addMonth(),
         ]);
 
-        // Has POS_CASHIER because it's both on the plan and in active_features
-        $this->assertTrue($business->hasFeature(FeatureEnum::POS_CASHIER));
+        // Has POS because it's both on the plan and in active_features
+        $this->assertTrue($business->hasFeature(FeatureEnum::POS));
 
         // Does NOT have STOCK_ADJUSTMENTS because the micro plan does not grant it
         $this->assertFalse($business->hasFeature(FeatureEnum::STOCK_ADJUSTMENTS));

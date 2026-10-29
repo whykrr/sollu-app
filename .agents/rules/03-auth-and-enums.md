@@ -11,6 +11,18 @@
 - **Zero-Orphan Permission & Role Template:**
   - Setiap case baru pada `PermissionEnum` WAJIB memiliki method `label()`, `group()`, `groupLabel()`.
   - WAJIB dipetakan ke template peran POS di `RoleTemplateEnum` dan lolos `tests/Unit/Enums/RoleTemplateIntegrityTest.php`.
+- **Larangan Keras Wildcard Permissions (`.*`):**
+  - DILARANG KERAS menggunakan permission wildcard (`business.*`, `product.*`, `transaction.*`, dsb) di database, seeders, route, controller, form request, maupun test.
+  - Seluruh permission harus eksplisit terdaftar di `PermissionEnum`. Pada antarmuka kustomisasi peran, seluruh permission dalam satu kategori/grup dipilih sebagai array item eksplisit.
+- **Otorisasi Akun Utama (Root User):**
+  - Otorisasi mutasi level entitas bisnis (profil toko, logo, konfigurasi SoD, dan penentuan metode biaya inventori) serta hak bypass Segregation of Duties (SoD) murni menggunakan verifikasi status Akun Utama: `$user->is_root_user === true`.
+  - Permission `business.setting` dan `business.update` telah ditiadakan.
+- **Standardisasi Namespace Permission:**
+  - Kategori Produk: `product.category.{view,create,update,delete}` (bukan `category.*`).
+  - Pemasok & Pembelian: `purchase.supplier.{view,create,update,delete}` dan `purchase.{view,create,update,validate,delete,receive,return}` (bukan `purchase_order.*`). Aksi cancel & void dipetakan ke `purchase.delete`.
+  - Penyesuaian Inventori: `inventory.adjust.{view,create,update,validate,delete}` (bukan `inventory.adjustment.*`).
+  - Katalog Jasa: Menggunakan hak akses `product.*` (karena `service.*` telah dieliminasi total).
+  - Kasir & Transaksi: Mempertahankan `transaction.override_price` dan menambahkan `transaction.validation_supervision` untuk otorisasi supervisor.
 
 ---
 
@@ -41,6 +53,7 @@
    - Mengatur kapabilitas bisnis sesuai paket SaaS yang aktif (`FeatureEnum`, `v-feature`).
    - Jika paket belum mencakup fitur: **Tampilkan elemen terkunci (Upsell)** dengan `<FeatureLock :feature="...">` atau `<FeatureLockOverlay>`.
    - Backend route protection: `middleware('plan.feature:' . FeatureEnum::NAME->value)`.
+   - **Multi-Fitur pada Route Middleware (OR Logic):** Mendukung beberapa fitur dipisah koma (`plan.feature:product_catalog,service_catalog`). Akses diizinkan jika bisnis memiliki salah satu fitur tersebut.
    - Dilarang keras mencampuradukkan pengecekan permission untuk membatasi fitur paket.
 3. **Tenant & Subscription Caching Standard (Zero-Redundant Query):**
    - **Gunakan `Business::findCached($id)`:** Dilarang melakukan *lazy-loading* `$user->business` berulang di middleware/request filter. Gunakan `$user->relationLoaded('business') ? $user->business : ($user->business_id ? Business::findCached($user->business_id) : null)`.

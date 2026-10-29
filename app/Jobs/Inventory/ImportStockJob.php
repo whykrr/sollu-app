@@ -4,14 +4,15 @@ namespace App\Jobs\Inventory;
 
 use App\Enums\InventoryMovementType;
 use App\Jobs\ImportExport\AbstractExcelImportJob;
+use App\Models\Business;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryCostLayer;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\InventoryMovement;
 use App\Models\Outlet;
 use App\Models\User;
+use App\Services\App\Inventory\InventoryCostingService;
 use Exception;
-use Illuminate\Support\Facades\DB;
 
 class ImportStockJob extends AbstractExcelImportJob
 {
@@ -123,37 +124,20 @@ class ImportStockJob extends AbstractExcelImportJob
                     throw new Exception("Batal/Ditolak: Stok awal untuk '{$item->name}' di outlet '{$outlet->name}' tidak dapat diinput karena sudah memiliki stok ({$balance->current_stock}) atau riwayat mutasi.");
                 }
 
-                DB::beginTransaction();
-                try {
-                    $balance->current_stock = $stokAwal;
-                    $balance->save();
+                $costingService = app(InventoryCostingService::class);
+                $business = Business::find($this->businessId);
 
-                    $movement = InventoryMovement::create([
-                        'business_id' => $this->businessId,
-                        'outlet_id' => $outlet->id,
-                        'inventory_item_id' => $item->id,
-                        'movement_type' => InventoryMovementType::InitialStock,
-                        'qty_change' => $stokAwal,
-                        'stock_before' => 0,
-                        'stock_after' => $stokAwal,
-                        'description' => 'Input Stok Awal (Impor CSV)',
-                        'created_by' => $this->user->id,
-                    ]);
-
-                    InventoryCostLayer::create([
-                        'inventory_item_id' => $item->id,
-                        'outlet_id' => $outlet->id,
-                        'purchase_price' => $hargaBeli,
-                        'qty_purchased' => $stokAwal,
-                        'qty_remaining' => $stokAwal,
-                        'reference_id' => $movement->id,
-                    ]);
-
-                    DB::commit();
-                } catch (Exception $e) {
-                    DB::rollBack();
-                    throw $e;
-                }
+                $costingService->recordIncomingStock(
+                    business: $business,
+                    outlet: $outlet,
+                    item: $item,
+                    qty: $stokAwal,
+                    unitCost: $hargaBeli,
+                    movementType: InventoryMovementType::InitialStock,
+                    reference: null,
+                    description: 'Input Stok Awal (Impor CSV)',
+                    user: $this->user
+                );
             }
         } elseif ($hargaBeliStr !== '' && is_numeric($hargaBeliStr) && (float) $hargaBeliStr >= 0) {
             $hargaBeli = (float) $hargaBeliStr;

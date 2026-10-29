@@ -16,7 +16,7 @@ class GetPurchaseOrderRequest extends BaseInertiaFormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()?->can(PermissionEnum::PURCHASE_ORDER_VIEW->value) ?? false;
+        return Auth::user()?->can(PermissionEnum::PURCHASE_VIEW->value) ?? false;
     }
 
     /**

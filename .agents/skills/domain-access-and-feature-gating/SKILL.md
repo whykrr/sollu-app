@@ -128,11 +128,12 @@ Sistem menggunakan multi-tier caching berjenjang untuk memastikan evaluasi hak a
 ### A. Fast-Path Backend Middleware (`CheckPlanFeature`)
 1. **Tier 1 (Fastest):** Membaca `SummaryUser::make($user)->cached()['features']`. Cache ini telah menghitung perpotongan *BusinessType*, *Plan*, dan *Merchant Personalization*.
 2. **Tier 2 (Fallback):** Membaca `Business::findCached($id)->hasFeature($enum)` $\rightarrow$ mengambil data dari cache Redis `business:{$id}:active_plan_features` (TTL 3600 detik).
+3. **Multi-Feature Support (OR Logic):** Mendukung parameter fitur ganda yang dipisahkan koma (`plan.feature:product_catalog,service_catalog`). Akses diizinkan jika bisnis memiliki salah satu fitur tersebut.
 
 ### B. Fast-Path User RBAC (`UserPermissionCacheService`)
 1. **Runtime In-Memory Cache:** `$runtimePermissions` menyimpan hak akses user pada siklus request berjalan.
 2. **Redis Scoped Cache:** `auth:user:{$userId}:business:{$businessId}:permissions` (TTL 3600 detik).
-3. **Wildcard Resolution:** Mendukung `*` (otomatis untuk `is_root_user`) dan prefix wildcard seperti `transaction.*`, `inventory.*`.
+3. **Strict Explicit Permissions:** Runtime service mendukung `*` khusus bagi `is_root_user`. Di luar root user, **DILARANG KERAS menggunakan wildcard (`.*`)**; seluruh hak akses harus berupa case eksplisit di `PermissionEnum`.
 4. **AppServiceProvider Gate Hook:** Seluruh panggilan `$user->can(...)` otomatis dicegat di `Gate::before` dan diarahkan ke `UserPermissionCacheService`.
 
 ### C. Invalidation Pipeline (`UserCacheObserver`)
@@ -157,7 +158,7 @@ class StoreStockAdjustmentRequest extends FormRequest
     public function authorize(): bool
     {
         // Otorisasi RBAC WAJIB di FormRequest::authorize()
-        return $this->user()?->can(PermissionEnum::INVENTORY_ADJUSTMENT_CREATE->value) ?? false;
+        return $this->user()?->can(PermissionEnum::INVENTORY_ADJUST_CREATE->value) ?? false;
     }
 }
 ```
@@ -170,7 +171,7 @@ class StoreStockAdjustmentRequest extends FormRequest
         <h3>Penyesuaian Stok</h3>
         
         <!-- 2. User RBAC: Sembunyikan tombol jika kasir/staf tidak punya wewenang -->
-        <button v-can="$enums.PermissionEnum.INVENTORY_ADJUSTMENT_CREATE" @click="openModal">
+        <button v-can="$enums.PermissionEnum.INVENTORY_ADJUST_CREATE" @click="openModal">
             Buat Penyesuaian
         </button>
     </div>
@@ -189,3 +190,6 @@ class StoreStockAdjustmentRequest extends FormRequest
    - Hak akses `is_root_user` dan `permissions` diperiksa di memori klien sebelum mengizinkan aksi sensitif (void, diskon khusus, buka cash drawer).
 3. **Penyekatan Outlet Nonaktif:**
    - Jika outlet dinonaktifkan di backoffice (`is_active = false`), request sync POS langsung ditolak dengan HTTP 403 `error_code: OUTLET_INACTIVE`.
+4. **Otorisasi Supervisor Kasir & Double Authorization:**
+   - Fitur `FeatureEnum::DOUBLE_AUTHORIZATION` mengaktifkan flow verifikasi ganda saat kasir melakukan tindakan berisiko (misal override harga/diskon atau void transaksi).
+   - Dialog otorisasi kasir memvalidasi PIN supervisor yang memiliki izin `PermissionEnum::TRANSACTION_VALIDATION_SUPERVISION` (`transaction.validation_supervision`).

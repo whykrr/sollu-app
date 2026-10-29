@@ -13,7 +13,6 @@ use App\Models\User;
 use App\Services\App\Inventory\InventorySodService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class InventorySodServiceTest extends TestCase
@@ -124,8 +123,7 @@ class InventorySodServiceTest extends TestCase
         ]);
 
         setPermissionsTeamId($business->id);
-        Permission::findOrCreate('business.*', 'web');
-        $user->givePermissionTo('business.*');
+        $user->update(['is_root_user' => true]);
 
         $adjustment = new StockAdjustment([
             'business_id' => $business->id,

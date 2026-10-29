@@ -14,7 +14,7 @@ class StoreCategoryRequest extends BaseInertiaFormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->can(PermissionEnum::CATEGORY_CREATE->value) ?? false;
+        return $this->user()?->can(PermissionEnum::PRODUCT_CATEGORY_CREATE->value) ?? false;
     }
 
     /**

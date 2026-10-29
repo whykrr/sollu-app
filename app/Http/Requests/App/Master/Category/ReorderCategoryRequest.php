@@ -13,7 +13,7 @@ class ReorderCategoryRequest extends BaseInertiaFormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->can(PermissionEnum::CATEGORY_UPDATE->value) ?? false;
+        return $this->user()?->can(PermissionEnum::PRODUCT_CATEGORY_UPDATE->value) ?? false;
     }
 
     /**

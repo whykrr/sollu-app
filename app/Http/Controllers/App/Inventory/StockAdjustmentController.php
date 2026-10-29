@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\App\Inventory;
 
+use App\Enums\PermissionEnum;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Inventory\IndexStockAdjustmentRequest;
@@ -65,7 +66,7 @@ class StockAdjustmentController extends Controller
      */
     public function show($id)
     {
-        Gate::authorize('inventory.adjustment.read');
+        Gate::authorize(PermissionEnum::INVENTORY_ADJUST_VIEW->value);
 
         $businessId = Auth::user()->business_id;
 
@@ -81,7 +82,7 @@ class StockAdjustmentController extends Controller
      */
     public function approve(StockAdjustment $stock_adjustment, StockAdjustmentService $service)
     {
-        $this->authorize('inventory.adjustment.approve');
+        $this->authorize(PermissionEnum::INVENTORY_ADJUST_VALIDATE->value);
 
         try {
             $service->approve($stock_adjustment, Auth::user());
@@ -111,7 +112,7 @@ class StockAdjustmentController extends Controller
      */
     public function void(StockAdjustment $stock_adjustment, StockAdjustmentService $service)
     {
-        Gate::authorize('inventory.adjustment.void');
+        Gate::authorize(PermissionEnum::INVENTORY_ADJUST_DELETE->value);
 
         // Middleware `EnsureStockNotFrozen` is applied on route
 
@@ -129,7 +130,7 @@ class StockAdjustmentController extends Controller
      */
     public function exportPdf(string $id)
     {
-        Gate::authorize('inventory.adjustment.export');
+        Gate::authorize(PermissionEnum::INVENTORY_ADJUST_VIEW->value);
 
         $businessId = Auth::user()->business_id;
 
