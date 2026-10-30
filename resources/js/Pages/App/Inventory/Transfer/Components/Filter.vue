@@ -18,6 +18,15 @@
                 @change="updateQuery"
             />
 
+            <!-- Mode Filter -->
+            <FilterDropdown
+                v-model="filterForm.transfer_mode"
+                label="Mode"
+                :options="modeOptions"
+                all-option-label="Semua Mode"
+                @change="updateQuery"
+            />
+
             <!-- From Outlet Filter -->
             <FilterDropdown
                 v-if="outletOptions.length > 1 && !selectedOutlet"
@@ -96,6 +105,7 @@ const outletOptions = computed(() =>
 )
 
 const statusOptions = computed(() => getOptions('StockTransferStatus'))
+const modeOptions = computed(() => getOptions('StockTransferMode'))
 
 const filterForm = reactive({
     preset: props.filters?.preset || 'this_month',
@@ -103,6 +113,7 @@ const filterForm = reactive({
     date_to: props.filters?.date_to || '',
     search: props.filters?.search ?? '',
     status: props.filters?.status ?? '',
+    transfer_mode: props.filters?.transfer_mode ?? '',
     from_outlet_id: props.filters?.from_outlet_id ? String(props.filters.from_outlet_id) : '',
     to_outlet_id: props.filters?.to_outlet_id ? String(props.filters.to_outlet_id) : '',
 })
@@ -123,6 +134,7 @@ const updateQuery = () => {
         date_to: filterForm.date_to || undefined,
         search: filterForm.search || undefined,
         status: filterForm.status !== '' ? filterForm.status : undefined,
+        transfer_mode: filterForm.transfer_mode !== '' ? filterForm.transfer_mode : undefined,
         from_outlet_id: filterForm.from_outlet_id !== '' ? filterForm.from_outlet_id : undefined,
         to_outlet_id: filterForm.to_outlet_id !== '' ? filterForm.to_outlet_id : undefined,
         page: 1,

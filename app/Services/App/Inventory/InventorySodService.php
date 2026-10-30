@@ -3,6 +3,7 @@
 namespace App\Services\App\Inventory;
 
 use App\Enums\FeatureEnum;
+use App\Enums\PermissionEnum;
 use App\Models\Business;
 use App\Models\Inventory\PurchaseOrder;
 use App\Models\Inventory\StockAdjustment;
@@ -34,6 +35,32 @@ class InventorySodService
     }
 
     /**
+     * Cek apakah alur validasi supervisi aktif (SSOT).
+     * Syarat: Bisnis memiliki fitur plan DOUBLE_AUTHORIZATION DAN toggle merchant = true.
+     * Default dan fallback jika null adalah false.
+     */
+    public function isSupervisionEnabled(?Business $business): bool
+    {
+        if (! $business) {
+            return false;
+        }
+
+        $hasDoubleAuth = $business->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION)
+            || in_array(FeatureEnum::DOUBLE_AUTHORIZATION, $business->getAvailablePlanFeatures(), true);
+
+        if (! $hasDoubleAuth) {
+            return false;
+        }
+
+        $raw = $business->settings['inventory_sod'] ?? $business->settings['inventory_supervision'] ?? null;
+        if ($raw === null) {
+            return false;
+        }
+
+        return (bool) ($raw['enabled'] ?? false);
+    }
+
+    /**
      * Dapatkan konfigurasi SoD aktif untuk merchant.
      *
      * @return array<string, mixed>
@@ -44,27 +71,23 @@ class InventorySodService
             return $this->defaultSettings();
         }
 
-        $raw = $business->settings['inventory_sod'] ?? [];
+        $raw = $business->settings['inventory_sod'] ?? $business->settings['inventory_supervision'] ?? [];
         $defaults = $this->defaultSettings();
-        $hasDoubleAuth = $business->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION);
+        $isSupervision = $this->isSupervisionEnabled($business);
 
         return [
-            'enabled' => $hasDoubleAuth && (bool) ($raw['enabled'] ?? $defaults['enabled']),
+            'enabled' => $isSupervision,
             'allow_owner_bypass' => (bool) ($raw['allow_owner_bypass'] ?? $defaults['allow_owner_bypass']),
             'rules' => array_merge($defaults['rules'], (array) ($raw['rules'] ?? [])),
         ];
     }
 
     /**
-     * Cek apakah SoD aktif secara global untuk merchant.
+     * Cek apakah SoD aktif secara global untuk merchant (alias untuk isSupervisionEnabled).
      */
     public function isSodEnabled(?Business $business): bool
     {
-        if (! $business || ! $business->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION)) {
-            return false;
-        }
-
-        return $this->getSettings($business)['enabled'];
+        return $this->isSupervisionEnabled($business);
     }
 
     /**
@@ -94,6 +117,16 @@ class InventorySodService
     }
 
     /**
+     * Penegakan izin validasi/supervisi pengguna.
+     */
+    public function assertUserHasValidationPermission(User $user, PermissionEnum $permission): void
+    {
+        if (! $user->can($permission->value)) {
+            abort(403, "Kamu tidak memiliki wewenang supervisi untuk memvalidasi transaksi ini: {$permission->value}");
+        }
+    }
+
+    /**
      * Evaluasi apakah pengguna memiliki hak bypass pemilik.
      */
     protected function canBypass(?Business $business, User $user): bool
@@ -102,7 +135,14 @@ class InventorySodService
             return false;
         }
 
-        return (bool) ($user->is_root_user || (method_exists($user, 'isOwner') && $user->isOwner()));
+        return (bool) (
+            $user->is_root_user
+            || (method_exists($user, 'isOwner') && $user->isOwner())
+            || (method_exists($user, 'hasRole') && $user->hasRole('Owner'))
+            || $user->can('business.*')
+            || ($business && $business->email === $user->email)
+            || ($business && $business->owner_name === $user->name)
+        );
     }
 
     /**
@@ -194,12 +234,38 @@ class InventorySodService
     }
 
     /**
+     * Validasi apakah pengguna diizinkan memproses Purchase Order dari Draft menjadi Ordered.
+     *
+     * @throws \Exception
+     */
+    public function assertCanOrderPurchaseOrder(PurchaseOrder $po, User $user): void
+    {
+        $business = $po->business ?? $po->outlet?->business ?? $user->business;
+
+        if (! $this->isRuleEnabled($business, 'purchase_order_approval')) {
+            return;
+        }
+
+        if ($this->canBypass($business, $user)) {
+            return;
+        }
+
+        if ($po->created_by === $user->id) {
+            throw new \Exception('Pemisahan tugas aktif: Kamu tidak dapat memvalidasi Purchase Order yang kamu buat sendiri.');
+        }
+    }
+
+    /**
      * Validasi apakah pengguna diizinkan mencatat penerimaan fisik barang dari PO.
      *
      * @throws \Exception
      */
-    public function assertCanReceivePurchaseOrder(PurchaseOrder $po, User $user): void
+    public function assertCanReceivePurchaseOrder(PurchaseOrder $po, User $user, bool $isDirectPurchase = false): void
     {
+        if ($isDirectPurchase) {
+            return;
+        }
+
         $business = $po->business ?? $po->outlet?->business ?? $user->business;
 
         if (! $this->isRuleEnabled($business, 'purchase_order_receive')) {

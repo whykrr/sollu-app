@@ -4,6 +4,7 @@ namespace App\Http\Requests\App\Inventory\Transfer;
 
 use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
+use App\Models\Inventory\StockTransfer;
 
 class ProcessStockTransferRequest extends BaseInertiaFormRequest
 {
@@ -18,6 +19,7 @@ class ProcessStockTransferRequest extends BaseInertiaFormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['required', 'uuid', 'exists:stock_transfer_items,id'],
             'items.*.qty_received' => ['required', 'numeric', 'min:0'],
+            'items.*.difference_reason' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -25,9 +27,11 @@ class ProcessStockTransferRequest extends BaseInertiaFormRequest
     {
         $validator->after(function ($validator) {
             $transfer = $this->route('transfer');
-            $itemsData = $this->input('items', []);
+            if (is_string($transfer)) {
+                $transfer = StockTransfer::find($transfer);
+            }
 
-            if (! $transfer || empty($itemsData)) {
+            if (! ($transfer instanceof StockTransfer) || empty($itemsData)) {
                 return;
             }
 

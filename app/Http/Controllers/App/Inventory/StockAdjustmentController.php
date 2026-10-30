@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\App\Inventory;
 
+use App\Enums\AdjustmentStatus;
 use App\Enums\PermissionEnum;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
@@ -9,6 +10,7 @@ use App\Http\Requests\App\Inventory\IndexStockAdjustmentRequest;
 use App\Http\Requests\App\Inventory\RejectStockAdjustmentRequest;
 use App\Http\Requests\App\Inventory\StoreStockAdjustmentRequest;
 use App\Models\Inventory\StockAdjustment;
+use App\Services\App\Inventory\InventorySodService;
 use App\Services\App\Inventory\StockAdjustmentService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
@@ -56,9 +58,13 @@ class StockAdjustmentController extends Controller
      */
     public function store(StoreStockAdjustmentRequest $request, StockAdjustmentService $service)
     {
-        $service->create($request->validated(), Auth::user());
+        $adjustment = $service->create($request->validated(), Auth::user());
 
-        return redirect()->back()->with('success', 'Penyesuaian berhasil disimpan sebagai draf. Menunggu persetujuan.');
+        $message = $adjustment->status === AdjustmentStatus::Approved
+            ? 'Penyesuaian stok berhasil disimpan dan diterapkan.'
+            : 'Penyesuaian berhasil disimpan sebagai draf. Menunggu persetujuan.';
+
+        return redirect()->back()->with('success', $message);
     }
 
     /**
@@ -80,9 +86,19 @@ class StockAdjustmentController extends Controller
     /**
      * Approve a draft adjustment.
      */
-    public function approve(StockAdjustment $stock_adjustment, StockAdjustmentService $service)
+    public function approve(StockAdjustment $stock_adjustment, StockAdjustmentService $service, InventorySodService $sodService)
     {
-        $this->authorize(PermissionEnum::INVENTORY_ADJUST_VALIDATE->value);
+        $business = Auth::user()?->business;
+
+        if ($sodService->isSupervisionEnabled($business)) {
+            abort_if(! Auth::user()?->can(PermissionEnum::INVENTORY_ADJUST_VALIDATE->value), 403, 'Kamu tidak memiliki wewenang supervisi untuk memvalidasi penyesuaian stok ini.');
+        } else {
+            abort_if(
+                ! Auth::user()?->can(PermissionEnum::INVENTORY_ADJUST_UPDATE->value) &&
+                ! Auth::user()?->can(PermissionEnum::INVENTORY_ADJUST_VALIDATE->value),
+                403
+            );
+        }
 
         try {
             $service->approve($stock_adjustment, Auth::user());

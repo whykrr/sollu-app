@@ -20,6 +20,7 @@ use Carbon\Carbon;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class InventorySettingTest extends TestCase
@@ -253,5 +254,47 @@ class InventorySettingTest extends TestCase
         $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/inventory/sod", $payload);
 
         $response->assertStatus(403);
+    }
+
+    public function test_manager_with_setting_audit_permission_can_update_inventory_sod_settings(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
+        $user->givePermissionTo(PermissionEnum::SETTING_AUDIT->value);
+
+        $payload = [
+            'enabled' => true,
+            'allow_owner_bypass' => true,
+        ];
+
+        $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/inventory/sod", $payload);
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);
+
+        $business = $user->business->fresh();
+        $this->assertTrue($business->isInventorySodEnabled());
+    }
+
+    public function test_manager_with_business_update_permission_can_update_inventory_sod_settings(): void
+    {
+        $user = $this->createMerchantUser();
+        $this->subscribeBusinessToPlan($user, PlanEnum::PRO);
+        Permission::findOrCreate('business.update', 'business');
+        $user->givePermissionTo('business.update');
+
+        $payload = [
+            'enabled' => true,
+            'allow_owner_bypass' => false,
+        ];
+
+        $response = $this->actingAs($user, 'business')->put("http://{$this->appDomain}/settings/inventory/sod", $payload);
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);
+
+        $business = $user->business->fresh();
+        $this->assertTrue($business->isInventorySodEnabled());
+        $this->assertFalse($business->allowsOwnerSodBypass());
     }
 }

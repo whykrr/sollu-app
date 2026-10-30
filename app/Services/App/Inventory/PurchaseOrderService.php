@@ -130,6 +130,8 @@ class PurchaseOrderService
                 abort(403, 'Hanya PO berstatus Draft yang dapat diproses menjadi Ordered.');
             }
 
+            app(InventorySodService::class)->assertCanOrderPurchaseOrder($po, $user);
+
             $po->status = PurchaseOrderStatus::Ordered;
             $po->save();
 
@@ -188,8 +190,8 @@ class PurchaseOrderService
                 'items' => $receiptItems,
             ];
 
-            // 3. Eksekusi penerimaan barang dan pembentukan mutasi serta layer FIFO
-            app(GoodsReceiptService::class)->createReceipt($po, $receiptData, $user);
+            // 3. Eksekusi penerimaan barang dan pembentukan mutasi serta layer FIFO (bypass SoD untuk pembelian langsung)
+            app(GoodsReceiptService::class)->createReceipt($po, $receiptData, $user, isDirectPurchase: true);
 
             return $po->fresh(['items', 'goodsReceipts']);
         });

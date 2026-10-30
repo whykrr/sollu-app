@@ -25,6 +25,7 @@ use App\Models\Inventory\Supplier;
 use App\Models\Outlet;
 use App\Models\Uom;
 use App\Services\App\Inventory\GoodsReceiptService;
+use App\Services\App\Inventory\InventorySodService;
 use App\Services\App\Inventory\PurchaseOrderService;
 use App\Services\App\Inventory\PurchaseReturnService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -189,9 +190,15 @@ class StockPurchasesController extends Controller
     /**
      * Mark the purchase order as ordered.
      */
-    public function order(string $id, PurchaseOrderService $service)
+    public function order(string $id, PurchaseOrderService $service, InventorySodService $sodService)
     {
-        abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_UPDATE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        $business = Auth::user()?->business;
+
+        if ($sodService->isSupervisionEnabled($business)) {
+            abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_VALIDATE->value), 403, 'Kamu tidak memiliki wewenang supervisi untuk memvalidasi Purchase Order ini.');
+        } else {
+            abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_UPDATE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
+        }
 
         $po = PurchaseOrder::currentBusiness()->findOrFail($id);
         $service->markAsOrdered($po, Auth::user());

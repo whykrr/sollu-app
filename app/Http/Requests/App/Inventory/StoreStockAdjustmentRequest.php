@@ -30,6 +30,7 @@ class StoreStockAdjustmentRequest extends BaseInertiaFormRequest
             'outlet_id' => ['required', 'uuid', 'exists:outlets,id'],
             'reason' => ['required', 'string', Rule::enum(AdjustmentReason::class)],
             'notes' => ['nullable', 'string', 'max:500'],
+            'is_draft' => ['nullable', 'boolean'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.inventory_item_id' => ['required', 'uuid', 'exists:inventory_items,id', 'distinct'],
             'items.*.qty_change' => ['required', 'numeric', 'not_in:0'],

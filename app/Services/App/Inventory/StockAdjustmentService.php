@@ -20,19 +20,24 @@ class StockAdjustmentService
     ) {}
 
     /**
-     * Create a new draft stock adjustment.
+     * Create a new draft or auto-approved stock adjustment.
      */
     public function create(array $data, User $user): StockAdjustment
     {
         return DB::transaction(function () use ($data, $user) {
+            $requiresSupervision = $this->inventorySodService->isSupervisionEnabled($user->business);
+            $isDraft = $requiresSupervision || (bool) ($data['is_draft'] ?? true);
+
             $adjustment = StockAdjustment::create([
                 'business_id' => $user->business_id,
                 'outlet_id' => $data['outlet_id'],
                 'adjustment_number' => $this->generateAdjustmentNumber(),
-                'status' => AdjustmentStatus::Draft,
+                'status' => $isDraft ? AdjustmentStatus::Draft : AdjustmentStatus::Approved,
                 'reason' => $data['reason'],
                 'notes' => $data['notes'] ?? null,
                 'created_by' => $user->id,
+                'approved_by' => $isDraft ? null : $user->id,
+                'approved_at' => $isDraft ? null : now(),
             ]);
 
             foreach ($data['items'] as $itemData) {
@@ -52,10 +57,84 @@ class StockAdjustmentService
                 ]);
             }
 
-            $this->activityLogService->log($adjustment, 'created', $user);
+            if ($isDraft) {
+                $this->activityLogService->log($adjustment, 'created', $user);
+            } else {
+                $this->applyStockMutations($adjustment, $user);
+                $this->activityLogService->log($adjustment, 'created_and_approved', $user);
+            }
 
             return $adjustment;
         });
+    }
+
+    /**
+     * Mutate stock and record costing ledger for approved stock adjustment.
+     */
+    protected function applyStockMutations(StockAdjustment $adjustment, User $user): void
+    {
+        $adjustment->load(['outlet.business', 'items.inventoryItem']);
+        $outlet = $adjustment->outlet;
+        $business = $outlet?->business ?? $user->business;
+
+        foreach ($adjustment->items as $item) {
+            $qtyChange = (float) $item->qty_change;
+            $invItem = $item->inventoryItem;
+
+            $balance = InventoryBalance::firstOrCreate([
+                'business_id' => $adjustment->business_id,
+                'outlet_id' => $adjustment->outlet_id,
+                'inventory_item_id' => $item->inventory_item_id,
+            ], [
+                'current_stock' => 0,
+            ]);
+
+            $stockBefore = (float) $balance->current_stock;
+            $stockAfter = $stockBefore + $qtyChange;
+
+            if ($stockAfter < 0) {
+                throw new \Exception("Stok tidak mencukupi untuk item {$invItem->name}. Stok saat ini: {$stockBefore}, perubahan: {$qtyChange}.");
+            }
+
+            $item->update([
+                'stock_before' => $stockBefore,
+                'stock_after' => $stockAfter,
+            ]);
+
+            if ($qtyChange > 0) {
+                $unitCost = (float) ($item->unit_cost ?? $balance->average_cost ?? $balance->last_cost ?? 0);
+                $movementType = $item->movement_type instanceof InventoryMovementType
+                    ? ($item->movement_type === InventoryMovementType::Waste ? InventoryMovementType::Waste : InventoryMovementType::AdjustmentIn)
+                    : InventoryMovementType::AdjustmentIn;
+
+                $this->costingService->recordIncomingStock(
+                    business: $business,
+                    outlet: $outlet,
+                    item: $invItem,
+                    qty: $qtyChange,
+                    unitCost: $unitCost,
+                    movementType: $movementType,
+                    reference: $adjustment,
+                    description: $item->description ?: ('Penyesuaian Masuk ('.$adjustment->adjustment_number.')'),
+                    user: $user
+                );
+            } elseif ($qtyChange < 0) {
+                $movementType = $item->movement_type instanceof InventoryMovementType
+                    ? ($item->movement_type === InventoryMovementType::Waste ? InventoryMovementType::Waste : InventoryMovementType::AdjustmentOut)
+                    : InventoryMovementType::AdjustmentOut;
+
+                $this->costingService->recordOutgoingStock(
+                    business: $business,
+                    outlet: $outlet,
+                    item: $invItem,
+                    qty: abs($qtyChange),
+                    movementType: $movementType,
+                    reference: $adjustment,
+                    description: $item->description ?: ('Penyesuaian Keluar ('.$adjustment->adjustment_number.')'),
+                    user: $user
+                );
+            }
+        }
     }
 
     /**
@@ -70,68 +149,7 @@ class StockAdjustmentService
         $this->inventorySodService->assertCanApproveAdjustment($adjustment, $user);
 
         return DB::transaction(function () use ($adjustment, $user) {
-            $adjustment->load(['outlet.business', 'items.inventoryItem']);
-            $outlet = $adjustment->outlet;
-            $business = $outlet?->business ?? $user->business;
-
-            foreach ($adjustment->items as $item) {
-                $qtyChange = (float) $item->qty_change;
-                $invItem = $item->inventoryItem;
-
-                $balance = InventoryBalance::firstOrCreate([
-                    'business_id' => $adjustment->business_id,
-                    'outlet_id' => $adjustment->outlet_id,
-                    'inventory_item_id' => $item->inventory_item_id,
-                ], [
-                    'current_stock' => 0,
-                ]);
-
-                $stockBefore = (float) $balance->current_stock;
-                $stockAfter = $stockBefore + $qtyChange;
-
-                if ($stockAfter < 0) {
-                    throw new \Exception("Stok tidak mencukupi untuk item {$invItem->name}. Stok saat ini: {$stockBefore}, perubahan: {$qtyChange}.");
-                }
-
-                $item->update([
-                    'stock_before' => $stockBefore,
-                    'stock_after' => $stockAfter,
-                ]);
-
-                if ($qtyChange > 0) {
-                    $unitCost = (float) ($item->unit_cost ?? $balance->average_cost ?? $balance->last_cost ?? 0);
-                    $movementType = $item->movement_type instanceof InventoryMovementType
-                        ? ($item->movement_type === InventoryMovementType::Waste ? InventoryMovementType::Waste : InventoryMovementType::AdjustmentIn)
-                        : InventoryMovementType::AdjustmentIn;
-
-                    $this->costingService->recordIncomingStock(
-                        business: $business,
-                        outlet: $outlet,
-                        item: $invItem,
-                        qty: $qtyChange,
-                        unitCost: $unitCost,
-                        movementType: $movementType,
-                        reference: $adjustment,
-                        description: $item->description ?: ('Penyesuaian Masuk ('.$adjustment->adjustment_number.')'),
-                        user: $user
-                    );
-                } elseif ($qtyChange < 0) {
-                    $movementType = $item->movement_type instanceof InventoryMovementType
-                        ? ($item->movement_type === InventoryMovementType::Waste ? InventoryMovementType::Waste : InventoryMovementType::AdjustmentOut)
-                        : InventoryMovementType::AdjustmentOut;
-
-                    $this->costingService->recordOutgoingStock(
-                        business: $business,
-                        outlet: $outlet,
-                        item: $invItem,
-                        qty: abs($qtyChange),
-                        movementType: $movementType,
-                        reference: $adjustment,
-                        description: $item->description ?: ('Penyesuaian Keluar ('.$adjustment->adjustment_number.')'),
-                        user: $user
-                    );
-                }
-            }
+            $this->applyStockMutations($adjustment, $user);
 
             $adjustment->update([
                 'status' => AdjustmentStatus::Approved,

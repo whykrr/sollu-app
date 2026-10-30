@@ -80,9 +80,18 @@ class StockOpnameController extends Controller
     {
         $this->authorize(PermissionEnum::INVENTORY_OPNAME_UPDATE->value);
         $opname = StockOpname::query()->currentBusiness()->findOrFail($id);
-        $service->updateOpname($opname, $request->validated(), Auth::user());
+        $validated = $request->validated();
+        $isFinal = (bool) ($validated['is_final'] ?? false);
 
-        return redirect()->back()->with('success', 'Hasil penghitungan fisik berhasil disimpan dan diajukan untuk persetujuan.');
+        $updated = $service->updateOpname($opname, $validated, Auth::user(), $isFinal);
+
+        $message = match ($updated->status) {
+            StockOpnameStatus::Approved => 'Stock opname berhasil diselesaikan dan saldo persediaan telah disesuaikan.',
+            StockOpnameStatus::PendingApproval => 'Hasil penghitungan fisik berhasil disimpan dan diajukan untuk persetujuan.',
+            default => 'Progres penghitungan fisik stock opname berhasil disimpan.',
+        };
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function destroy(string $id)

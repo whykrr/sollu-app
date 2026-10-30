@@ -46,14 +46,20 @@ class StockOpnameService
         });
     }
 
-    public function updateOpname(StockOpname $opname, array $data, User $updater): StockOpname
+    public function updateOpname(StockOpname $opname, array $data, User $updater, ?bool $isFinalSubmission = null): StockOpname
     {
-        return DB::transaction(function () use ($opname, $data, $updater) {
+        return DB::transaction(function () use ($opname, $data, $updater, $isFinalSubmission) {
             if ($opname->status !== StockOpnameStatus::InProgress) {
                 abort(403, 'Hanya opname berstatus In Progress yang dapat diubah.');
             }
 
+            $isFinal = $isFinalSubmission ?? (isset($data['is_final']) ? (bool) $data['is_final'] : true);
+
             $opname->update(['notes' => $data['notes'] ?? $opname->notes]);
+
+            if ($isFinal && ! $this->inventorySodService->isSupervisionEnabled($updater->business)) {
+                return $this->completeOpname($opname, $data, $updater);
+            }
 
             if (isset($data['items'])) {
                 $opname->items()->delete();
@@ -70,10 +76,16 @@ class StockOpnameService
                 }
             }
 
-            // Mark as pending approval after update
-            $opname->update(['status' => StockOpnameStatus::PendingApproval]);
+            if ($isFinal) {
+                // Mark as pending approval after update
+                $opname->update(['status' => StockOpnameStatus::PendingApproval]);
 
-            $this->activityLog->log($opname, 'submitted', $updater);
+                $this->activityLog->log($opname, 'submitted', $updater);
+
+                return $opname;
+            }
+
+            $this->activityLog->log($opname, 'progress_saved', $updater);
 
             return $opname;
         });
@@ -82,8 +94,8 @@ class StockOpnameService
     public function completeOpname(StockOpname $opname, array $data, User $approver): StockOpname
     {
         return DB::transaction(function () use ($opname, $data, $approver) {
-            if ($opname->status !== StockOpnameStatus::PendingApproval) {
-                abort(403, 'Opname harus dalam status Menunggu Persetujuan.');
+            if (! in_array($opname->status, [StockOpnameStatus::PendingApproval, StockOpnameStatus::InProgress], true)) {
+                abort(403, 'Opname harus dalam status Menunggu Persetujuan atau Sedang Berjalan.');
             }
 
             $this->inventorySodService->assertCanApproveOpname($opname, $approver);

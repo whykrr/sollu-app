@@ -93,7 +93,12 @@ const statusOptions = computed(() => getOptions('StockOpnameStatus'))
 
 const toolItems = computed(() => {
     const items = []
-    if (can('inventory.opname.freeze') || can('inventory.adjustment.freeze')) {
+    if (
+        can('inventory.opname.validate') ||
+        can('inventory.adjust.validate') ||
+        can('inventory.opname.freeze') ||
+        can('inventory.adjustment.freeze')
+    ) {
         items.push({
             label: 'Kelola Pembekuan Stok',
             description: 'Kunci atau buka pergerakan stok per outlet',

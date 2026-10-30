@@ -5,13 +5,16 @@ namespace App\Http\Controllers\App\Inventory;
 use App\Constants\FlashDataVariable;
 use App\Enums\DatePresetEnum;
 use App\Enums\PermissionEnum;
+use App\Enums\StockTransferStatus;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Inventory\Transfer\GetStockTransferRequest;
 use App\Http\Requests\App\Inventory\Transfer\ProcessStockTransferRequest;
 use App\Http\Requests\App\Inventory\Transfer\StoreStockTransferRequest;
 use App\Http\Requests\App\Inventory\Transfer\UpdateStockTransferRequest;
+use App\Http\Requests\App\Inventory\Transfer\VoidStockTransferRequest;
 use App\Models\Inventory\StockTransfer;
+use App\Services\App\Inventory\InventorySodService;
 use App\Services\App\Inventory\StockTransferService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -38,7 +41,7 @@ class StockTransferController extends Controller
         );
 
         $filterData = array_merge(
-            $request->only(['search', 'status', 'from_outlet_id', 'to_outlet_id', 'outlet_id']),
+            $request->only(['search', 'status', 'transfer_mode', 'from_outlet_id', 'to_outlet_id', 'outlet_id']),
             [
                 'preset' => $dateRange['preset'],
                 'date_from' => $dateRange['start_date'],
@@ -71,11 +74,17 @@ class StockTransferController extends Controller
     public function store(StoreStockTransferRequest $request)
     {
         try {
-            $this->stockTransferService->createTransfer($request->validated(), $request->user());
+            $transfer = $this->stockTransferService->createTransfer($request->validated(), $request->user());
+
+            $message = match ($transfer->status) {
+                StockTransferStatus::Completed => 'Mutasi stok 1-langkah berhasil diselesaikan seketika.',
+                StockTransferStatus::InTransit => 'Mutasi stok berhasil dibuat dan barang langsung ditandai dalam perjalanan.',
+                default => 'Permintaan mutasi stok berhasil disimpan sebagai draf. Menunggu persetujuan.',
+            };
 
             return redirect()->back()->with(
                 FlashDataVariable::SUCCESS->value,
-                'Permintaan mutasi stok berhasil disimpan sebagai draf. Menunggu persetujuan.'
+                $message
             );
         } catch (\Exception $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
@@ -92,6 +101,8 @@ class StockTransferController extends Controller
             'requester:id,name',
             'approver:id,name',
             'receiver:id,name',
+            'shipper:id,name',
+            'voidedBy:id,name',
             'items.inventoryItem.uom:id,name,code',
         ]);
 
@@ -110,6 +121,8 @@ class StockTransferController extends Controller
             'requester',
             'approver',
             'receiver',
+            'shipper',
+            'voidedBy',
             'items.inventoryItem.uom',
         ]);
 
@@ -136,9 +149,19 @@ class StockTransferController extends Controller
         }
     }
 
-    public function approve(StockTransfer $transfer)
+    public function approve(StockTransfer $transfer, InventorySodService $sodService)
     {
-        $this->authorize(PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value);
+        $business = Auth::user()?->business;
+
+        if ($sodService->isSupervisionEnabled($business)) {
+            abort_if(! Auth::user()?->can(PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value), 403, 'Kamu tidak memiliki wewenang supervisi untuk memvalidasi transfer stok ini.');
+        } else {
+            abort_if(
+                ! Auth::user()?->can(PermissionEnum::INVENTORY_TRANSFER_UPDATE->value) &&
+                ! Auth::user()?->can(PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value),
+                403
+            );
+        }
 
         try {
             $this->stockTransferService->approveTransfer($transfer, Auth::user());
@@ -194,6 +217,20 @@ class StockTransferController extends Controller
             return redirect()->back()->with(
                 FlashDataVariable::SUCCESS->value,
                 'Barang mutasi telah diterima dan stok telah disesuaikan.'
+            );
+        } catch (\Exception $e) {
+            return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
+        }
+    }
+
+    public function void(VoidStockTransferRequest $request, StockTransfer $transfer)
+    {
+        try {
+            $this->stockTransferService->voidTransfer($transfer, $request->validated(), Auth::user());
+
+            return redirect()->back()->with(
+                FlashDataVariable::SUCCESS->value,
+                'Mutasi stok berhasil dibatalkan (void).'
             );
         } catch (\Exception $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());

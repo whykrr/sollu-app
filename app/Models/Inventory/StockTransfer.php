@@ -2,6 +2,7 @@
 
 namespace App\Models\Inventory;
 
+use App\Enums\StockTransferMode;
 use App\Enums\StockTransferStatus;
 use App\Models\Business;
 use App\Models\Outlet;
@@ -54,15 +55,23 @@ class StockTransfer extends Model
         'to_outlet_id',
         'transfer_number',
         'status',
+        'transfer_mode',
         'notes',
         'requested_by',
         'approved_by',
         'received_by',
+        'shipped_at',
+        'shipped_by',
+        'received_at',
+        'voided_at',
+        'voided_by',
+        'void_reason',
     ];
 
     protected array $sortable = [
         'transfer_number',
         'status',
+        'transfer_mode',
         'created_at',
         'updated_at',
     ];
@@ -71,6 +80,10 @@ class StockTransfer extends Model
     {
         return [
             'status' => StockTransferStatus::class,
+            'transfer_mode' => StockTransferMode::class,
+            'shipped_at' => 'datetime',
+            'received_at' => 'datetime',
+            'voided_at' => 'datetime',
         ];
     }
 
@@ -111,6 +124,16 @@ class StockTransfer extends Model
         return $this->belongsTo(User::class, 'received_by');
     }
 
+    public function shipper(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'shipped_by');
+    }
+
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
+    }
+
     // ── Scopes ───────────────────────────────────────────────────
 
     public function scopeFilters(Builder $builder, array $filters): Builder
@@ -134,6 +157,9 @@ class StockTransfer extends Model
         )->when(
             $filters['status'] ?? false,
             fn (Builder $q, $value) => $q->where('status', $value)
+        )->when(
+            $filters['transfer_mode'] ?? false,
+            fn (Builder $q, $value) => $q->where('transfer_mode', $value)
         )->when(
             $filters['from_outlet_id'] ?? false,
             fn (Builder $q, $value) => $q->where('from_outlet_id', $value)

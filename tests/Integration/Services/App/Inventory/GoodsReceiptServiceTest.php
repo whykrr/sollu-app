@@ -3,8 +3,10 @@
 namespace Tests\Integration\Services\App\Inventory;
 
 use App\Enums\GoodsReceiptStatus;
+use App\Enums\PlanEnum;
 use App\Enums\PurchaseOrderStatus;
 use App\Enums\PurchaseReturnStatus;
+use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\GoodsReceipt;
@@ -14,6 +16,8 @@ use App\Models\Inventory\PurchaseOrder;
 use App\Models\Inventory\PurchaseReturn;
 use App\Models\Inventory\Supplier;
 use App\Models\Outlet;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Uom;
 use App\Models\User;
 use App\Services\App\Inventory\GoodsReceiptService;
@@ -72,6 +76,19 @@ class GoodsReceiptServiceTest extends TestCase
             'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
         ]);
+
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($proPlan) {
+            Subscription::create([
+                'business_id' => $business->id,
+                'plan_id' => $proPlan->id,
+                'status' => SubscriptionStatus::Active,
+                'billing_cycle' => 'monthly',
+                'started_at' => now()->subDay(),
+                'expired_at' => now()->addMonth(),
+            ]);
+            $business->clearMemoizedFeatures();
+        }
 
         $user = User::create([
             'business_id' => $business->id,

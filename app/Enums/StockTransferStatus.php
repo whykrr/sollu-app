@@ -9,6 +9,7 @@ enum StockTransferStatus: string
     case InTransit = 'in_transit';
     case Completed = 'completed';
     case Rejected = 'rejected';
+    case Void = 'void';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum StockTransferStatus: string
             self::InTransit => 'Dalam Perjalanan',
             self::Completed => 'Selesai',
             self::Rejected => 'Ditolak',
+            self::Void => 'Dibatalkan',
         };
     }
 
@@ -29,6 +31,7 @@ enum StockTransferStatus: string
             self::InTransit => 'badge-purple',
             self::Completed => 'badge-success',
             self::Rejected => 'badge-danger',
+            self::Void => 'badge-danger',
         };
     }
 }

@@ -25,14 +25,14 @@ class GoodsReceiptService
     /**
      * Catat penerimaan fisik barang untuk suatu Purchase Order (mendukung penerimaan sebagian / bertahap).
      */
-    public function createReceipt(PurchaseOrder $po, array $data, User $receiver): GoodsReceipt
+    public function createReceipt(PurchaseOrder $po, array $data, User $receiver, bool $isDirectPurchase = false): GoodsReceipt
     {
-        return DB::transaction(function () use ($po, $data, $receiver) {
+        return DB::transaction(function () use ($po, $data, $receiver, $isDirectPurchase) {
             if (! in_array($po->status, [PurchaseOrderStatus::Ordered, PurchaseOrderStatus::PartialReceived], true)) {
                 abort(403, 'Hanya pesanan berstatus Dipesan atau Diterima Sebagian yang dapat diproses penerimaannya.');
             }
 
-            $this->inventorySodService->assertCanReceivePurchaseOrder($po, $receiver);
+            $this->inventorySodService->assertCanReceivePurchaseOrder($po, $receiver, $isDirectPurchase);
 
             $po->load(['outlet.business', 'items.inventoryItem', 'supplier']);
             $outlet = $po->outlet;

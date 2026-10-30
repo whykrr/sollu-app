@@ -60,6 +60,7 @@ class StockOpnameFeatureTest extends TestCase
                 'features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
                     FeatureEnum::STOCK_OPNAME->value,
+                    FeatureEnum::DOUBLE_AUTHORIZATION->value,
                 ],
             ]
         );
@@ -76,6 +77,7 @@ class StockOpnameFeatureTest extends TestCase
                 'active_features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
                     FeatureEnum::STOCK_OPNAME->value,
+                    FeatureEnum::DOUBLE_AUTHORIZATION->value,
                 ],
             ],
         ]);
@@ -215,8 +217,100 @@ class StockOpnameFeatureTest extends TestCase
         ]);
     }
 
+    public function test_user_can_save_opname_progress_without_completing()
+    {
+        $opname = StockOpname::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'opname_number' => 'OP-202609-001P',
+            'opname_date' => now()->format('Y-m-d'),
+            'status' => StockOpnameStatus::InProgress,
+            'created_by' => $this->supervisor->id,
+        ]);
+
+        $payload = [
+            'notes' => 'Hitung sementara rak 1',
+            'is_final' => false,
+            'items' => [
+                [
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'system_qty' => 30,
+                    'actual_qty' => 32,
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($this->supervisor)
+            ->put("http://{$this->appDomain}/inventories/stock-opnames/{$opname->id}", $payload);
+
+        $response->assertSessionHas('success');
+
+        $opname->refresh();
+        $this->assertEquals(StockOpnameStatus::InProgress, $opname->status);
+        $this->assertEquals('Hitung sementara rak 1', $opname->notes);
+    }
+
+    public function test_user_can_complete_opname_directly_in_flexible_mode()
+    {
+        InventoryBalance::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'inventory_item_id' => $this->inventoryItem->id,
+            'current_stock' => 30,
+            'average_cost' => 10000,
+            'last_cost' => 10000,
+            'total_value' => 300000,
+        ]);
+
+        $opname = StockOpname::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'opname_number' => 'OP-202609-002F',
+            'opname_date' => now()->format('Y-m-d'),
+            'status' => StockOpnameStatus::InProgress,
+            'created_by' => $this->supervisor->id,
+        ]);
+
+        $payload = [
+            'notes' => 'Selesaikan opname langsung (fleksibel)',
+            'is_final' => true,
+            'items' => [
+                [
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'system_qty' => 30,
+                    'actual_qty' => 35,
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($this->supervisor)
+            ->put("http://{$this->appDomain}/inventories/stock-opnames/{$opname->id}", $payload);
+
+        $response->assertSessionHas('success');
+
+        $opname->refresh();
+        $this->assertEquals(StockOpnameStatus::Approved, $opname->status);
+
+        $balance = InventoryBalance::where('inventory_item_id', $this->inventoryItem->id)
+            ->where('outlet_id', $this->outlet->id)
+            ->first();
+        $this->assertEquals(35, (float) $balance->current_stock);
+    }
+
     public function test_user_can_update_opname_and_submit_for_approval()
     {
+        $this->business->update([
+            'settings' => [
+                'inventory_sod' => [
+                    'enabled' => true,
+                    'allow_owner_bypass' => false,
+                    'rules' => [
+                        'stock_opname' => true,
+                    ],
+                ],
+            ],
+        ]);
+
         $opname = StockOpname::create([
             'business_id' => $this->business->id,
             'outlet_id' => $this->outlet->id,
@@ -228,6 +322,7 @@ class StockOpnameFeatureTest extends TestCase
 
         $payload = [
             'notes' => 'Penghitungan fisik selesai dilakukan',
+            'is_final' => true,
             'items' => [
                 [
                     'inventory_item_id' => $this->inventoryItem->id,
@@ -307,17 +402,15 @@ class StockOpnameFeatureTest extends TestCase
 
     public function test_supervisor_cannot_approve_their_own_opname_when_sod_is_enabled()
     {
-        $this->business->update([
-            'settings' => [
-                'inventory_sod' => [
-                    'enabled' => true,
-                    'allow_owner_bypass' => false,
-                    'rules' => [
-                        'stock_opname' => true,
-                    ],
-                ],
+        $settings = $this->business->settings ?? [];
+        $settings['inventory_sod'] = [
+            'enabled' => true,
+            'allow_owner_bypass' => false,
+            'rules' => [
+                'stock_opname' => true,
             ],
-        ]);
+        ];
+        $this->business->update(['settings' => $settings]);
 
         $opname = StockOpname::create([
             'business_id' => $this->business->id,

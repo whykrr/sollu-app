@@ -52,7 +52,7 @@
                     <button
                         v-if="
                             item.status === $enums.StockOpnameStatus.PendingApproval &&
-                            can('inventory.opname.approve')
+                            (can('inventory.opname.validate') || can('inventory.opname.approve'))
                         "
                         class="btn btn-info btn-sm"
                         title="Review & Setujui"
@@ -64,7 +64,7 @@
                         v-if="
                             (item.status === $enums.StockOpnameStatus.Approved ||
                                 item.status === $enums.StockOpnameStatus.Rejected) &&
-                            can('inventory.opname.read')
+                            (can('inventory.opname.view') || can('inventory.opname.read'))
                         "
                         class="btn btn-flat btn-sm"
                         title="Lihat Detail"
@@ -86,7 +86,7 @@
                     <button
                         v-if="
                             item.status !== $enums.StockOpnameStatus.InProgress &&
-                            can('inventory.opname.export')
+                            (can('inventory.opname.view') || can('inventory.opname.export'))
                         "
                         class="btn btn-flat btn-sm text-danger"
                         title="Ekspor PDF"
@@ -147,7 +147,9 @@ defineProps({
 const can = permission => {
     return (
         page.props.auth?.permissions?.includes(permission) ||
-        page.props.auth?.permissions?.includes('inventory.*')
+        page.props.auth?.permissions?.includes('inventory.*') ||
+        page.props.auth?.permissions?.includes('business.*') ||
+        Boolean(page.props.auth?.user?.is_root_user)
     )
 }
 

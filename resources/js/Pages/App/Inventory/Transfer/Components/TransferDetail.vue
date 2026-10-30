@@ -10,13 +10,24 @@
         <div v-else-if="transferData" class="space-y-3">
             <!-- Header Info Card -->
             <div
-                class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs"
+                class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs"
             >
                 <div>
                     <span class="text-slate-500 font-medium">No. Dokumen Transfer</span>
                     <p class="font-bold text-sm text-slate-900 mt-0.5">
                         {{ transferData.transfer_number }}
                     </p>
+                </div>
+                <div>
+                    <span class="text-slate-500 font-medium">Mode Mutasi</span>
+                    <div class="mt-0.5">
+                        <span
+                            class="badge text-xs"
+                            :class="transferData.transfer_mode === 'two_step' ? 'badge-purple' : 'badge-info'"
+                        >
+                            {{ transferData.transfer_mode === 'two_step' ? 'Kirim & Terima (2-Langkah)' : 'Transfer Langsung (1-Langkah)' }}
+                        </span>
+                    </div>
                 </div>
                 <div>
                     <span class="text-slate-500 font-medium">Status Dokumen</span>
@@ -35,7 +46,7 @@
                         {{ transferData.from_outlet?.name || transferData.fromOutlet?.name || '-' }}
                     </p>
                 </div>
-                <div>
+                <div class="sm:col-span-2">
                     <span class="text-slate-500 font-medium">Outlet Tujuan (Penerima)</span>
                     <p class="font-semibold text-slate-800 mt-0.5">
                         {{ transferData.to_outlet?.name || transferData.toOutlet?.name || '-' }}
@@ -49,9 +60,67 @@
                 </div>
             </div>
 
+            <!-- Voided Alert Banner -->
+            <div
+                v-if="transferData.status === 'void'"
+                class="bg-rose-50 border border-rose-200 rounded-lg p-3 text-xs text-rose-800 space-y-1"
+            >
+                <div class="flex items-center gap-1.5 font-bold text-rose-900">
+                    <span>⚠️ Mutasi Stok Telah Dibatalkan (Void)</span>
+                </div>
+                <div v-if="transferData.void_reason" class="text-rose-700">
+                    <span class="font-semibold">Alasan Pembatalan:</span> {{ transferData.void_reason }}
+                </div>
+                <div class="text-[11px] text-rose-500">
+                    Dibatalkan pada {{ formatDate(transferData.voided_at) }}
+                    <span v-if="transferData.voided_by || transferData.voidedBy">
+                        oleh {{ transferData.voided_by?.name || transferData.voidedBy?.name }}
+                    </span>
+                </div>
+            <!-- Visual Timeline -->
+            <div class="bg-white p-3 rounded-lg border border-slate-200">
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                    Tahapan Siklus Transfer
+                </span>
+                <div class="flex items-center justify-between text-xs">
+                    <template v-if="transferData.transfer_mode === 'two_step'">
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] bg-primary text-white">1</div>
+                            <span class="mt-1 font-semibold text-slate-800">Draf</span>
+                        </div>
+                        <div class="h-0.5 flex-1" :class="isStepApproved ? 'bg-primary' : 'bg-slate-200'"></div>
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]" :class="isStepApproved ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400 border border-slate-300'">2</div>
+                            <span class="mt-1 font-semibold" :class="isStepApproved ? 'text-slate-800' : 'text-slate-400'">Disetujui</span>
+                        </div>
+                        <div class="h-0.5 flex-1" :class="isStepShipped ? 'bg-primary' : 'bg-slate-200'"></div>
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]" :class="isStepShipped ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400 border border-slate-300'">3</div>
+                            <span class="mt-1 font-semibold" :class="isStepShipped ? 'text-slate-800' : 'text-slate-400'">Dikirim</span>
+                        </div>
+                        <div class="h-0.5 flex-1" :class="isStepReceived ? 'bg-emerald-600' : 'bg-slate-200'"></div>
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]" :class="isStepReceived ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400 border border-slate-300'">4</div>
+                            <span class="mt-1 font-semibold" :class="isStepReceived ? 'text-emerald-700' : 'text-slate-400'">Diterima</span>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] bg-primary text-white">1</div>
+                            <span class="mt-1 font-semibold text-slate-800">Draf Dibuat</span>
+                        </div>
+                        <div class="h-0.5 flex-1" :class="isStepReceived ? 'bg-emerald-600' : 'bg-slate-200'"></div>
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]" :class="isStepReceived ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400 border border-slate-300'">2</div>
+                            <span class="mt-1 font-semibold" :class="isStepReceived ? 'text-emerald-700' : 'text-slate-400'">Transfer Selesai</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
             <!-- Audit Trail -->
             <div
-                class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-white p-3 rounded-lg border border-slate-200 text-xs text-slate-600"
+                class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white p-3 rounded-lg border border-slate-200 text-xs text-slate-600"
             >
                 <div>
                     <span class="text-slate-400 block mb-0.5 font-medium">Diajukan Oleh</span>
@@ -69,6 +138,15 @@
                     </p>
                     <p v-if="transferData.approved_at" class="text-[11px] text-slate-500">
                         {{ formatDate(transferData.approved_at) }}
+                    </p>
+                </div>
+                <div>
+                    <span class="text-slate-400 block mb-0.5 font-medium">Dikirim Oleh</span>
+                    <p class="font-semibold text-slate-800">
+                        {{ transferData.shipper?.name || '-' }}
+                    </p>
+                    <p v-if="transferData.shipped_at" class="text-[11px] text-slate-500">
+                        {{ formatDate(transferData.shipped_at) }}
                     </p>
                 </div>
                 <div>
@@ -187,13 +265,19 @@
                                     <span
                                         class="font-semibold"
                                         :class="
-                                            item.qty - item.qty_received > 0
+                                            (item.qty_difference ?? (item.qty - item.qty_received)) > 0
                                                 ? 'text-rose-600'
                                                 : 'text-slate-500'
                                         "
                                     >
-                                        {{ formatNumber(item.qty - item.qty_received) }}
+                                        {{ formatNumber(item.qty_difference ?? (item.qty - item.qty_received)) }}
                                     </span>
+                                    <div
+                                        v-if="item.difference_reason"
+                                        class="text-[10px] text-rose-500 italic mt-0.5"
+                                    >
+                                        {{ item.difference_reason }}
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
@@ -242,6 +326,47 @@
                     </button>
                 </div>
             </div>
+
+            <!-- In-place Void Form -->
+            <div
+                v-if="showVoidForm"
+                class="bg-rose-50 p-3 rounded-lg border border-rose-200 space-y-2"
+            >
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold text-rose-800 uppercase tracking-wider">
+                        Form Pembatalan (Void) Transfer Stok
+                    </h4>
+                </div>
+                <p class="text-xs text-rose-600">
+                    Membatalkan transfer stok ini akan menghasilkan entri pembalik simetris (storno) yang aman untuk audit.
+                </p>
+                <TextareaField
+                    id="void_reason"
+                    v-model="voidForm.void_reason"
+                    label="Alasan Pembatalan"
+                    placeholder="Misal: Salah memilih outlet tujuan atau pesanan barang dibatalkan."
+                    rows="2"
+                    required
+                />
+                <div class="flex justify-end gap-2 pt-1">
+                    <button
+                        type="button"
+                        class="btn btn-flat btn-sm"
+                        :disabled="voidForm.processing"
+                        @click="showVoidForm = false"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-danger btn-sm"
+                        :disabled="voidForm.processing || !voidForm.void_reason?.trim()"
+                        @click="submitVoid"
+                    >
+                        Konfirmasi Void Transfer
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Teleport Drawer Footer -->
@@ -260,9 +385,9 @@
 
                 <div class="flex items-center gap-2">
                     <!-- Actions for PENDING -->
-                    <template v-if="transferData.status === $enums.StockTransferStatus.Pending">
+                    <template v-if="transferData.status === 'pending'">
                         <button
-                            v-if="canApprove && !showRejectForm"
+                            v-if="canApprove && !showRejectForm && !showVoidForm"
                             type="button"
                             class="btn btn-danger btn-sm"
                             :disabled="actionForm.processing"
@@ -271,22 +396,22 @@
                             Tolak
                         </button>
                         <button
-                            v-if="canApprove"
+                            v-if="canApprove && !showRejectForm && !showVoidForm"
                             type="button"
                             class="btn btn-main btn-sm"
                             :disabled="actionForm.processing"
                             @click="confirmApprove"
                         >
-                            Setujui Transfer
+                            {{ transferData.transfer_mode === 'two_step' ? 'Setujui Transfer' : 'Setujui & Selesaikan' }}
                         </button>
                     </template>
 
                     <!-- Actions for APPROVED -->
                     <template
-                        v-else-if="transferData.status === $enums.StockTransferStatus.Approved"
+                        v-else-if="transferData.status === 'approved'"
                     >
                         <button
-                            v-if="canShip"
+                            v-if="canShip && !showVoidForm"
                             type="button"
                             class="btn btn-main btn-sm"
                             :disabled="actionForm.processing"
@@ -298,10 +423,10 @@
 
                     <!-- Actions for IN_TRANSIT -->
                     <template
-                        v-else-if="transferData.status === $enums.StockTransferStatus.InTransit"
+                        v-else-if="transferData.status === 'in_transit'"
                     >
                         <button
-                            v-if="canReceive"
+                            v-if="canReceive && !showVoidForm"
                             type="button"
                             class="btn btn-main btn-sm"
                             @click="emit('openReceive', transferData)"
@@ -309,6 +434,17 @@
                             Terima Barang
                         </button>
                     </template>
+
+                    <!-- Void Action for non-void, non-rejected statuses -->
+                    <button
+                        v-if="canVoid && !['void', 'rejected'].includes(transferData.status) && !showVoidForm && !showRejectForm"
+                        type="button"
+                        class="btn btn-outline-danger btn-sm"
+                        :disabled="actionForm.processing"
+                        @click="showVoidForm = true"
+                    >
+                        Void / Batalkan
+                    </button>
                 </div>
             </div>
         </Teleport>
@@ -336,33 +472,56 @@ const emit = defineEmits(['openReceive', 'refresh'])
 const popUpStore = usePopUpStore()
 const modalStore = useModalStore()
 const { getLabel, getColor } = useEnum()
-const { user, can, canAny } = useAuth()
+const { canAny } = useAuth()
 
 const isMounted = ref(false)
 const loading = ref(false)
 const transferData = ref(null)
 const showRejectForm = ref(false)
+const showVoidForm = ref(false)
 
 const actionForm = useForm({})
 const rejectForm = useForm({ notes: '' })
+const voidForm = useForm({ void_reason: '' })
 
 // SoD & RBAC Checks
 const canApprove = computed(() => {
-    const hasApprovePerm = canAny(['inventory.transfer.approve', 'inventory.*', 'business.*'])
-    const isSelf = transferData.value?.requester?.id === user.value?.id
-
-    if (can('business.*')) return true
-    return hasApprovePerm && !isSelf
+    return canAny([
+        'inventory.transfer.validate',
+        'inventory.transfer.approve',
+        'inventory.*',
+        'business.*',
+    ])
 })
 
-const canShip = computed(() => canAny(['inventory.transfer.ship', 'inventory.*', 'business.*']))
+const canShip = computed(() =>
+    canAny(['inventory.transfer.update', 'inventory.transfer.ship', 'inventory.*', 'business.*'])
+)
 const canReceive = computed(() =>
     canAny(['inventory.transfer.receive', 'inventory.*', 'business.*'])
 )
+const canVoid = computed(() =>
+    canAny(['inventory.transfer.validate', 'inventory.*', 'business.*'])
+)
+
+const isStepApproved = computed(() => {
+    const s = transferData.value?.status
+    return ['approved', 'in_transit', 'completed'].includes(s) || !!transferData.value?.approved_by
+})
+
+const isStepShipped = computed(() => {
+    const s = transferData.value?.status
+    return ['in_transit', 'completed'].includes(s) || !!transferData.value?.shipped_at
+})
+
+const isStepReceived = computed(() => {
+    const s = transferData.value?.status
+    return s === 'completed' || !!transferData.value?.received_at
+})
 
 const isReceived = computed(() => {
     const status = transferData.value?.status
-    return status === 'completed' || status === 'rejected'
+    return status === 'completed' || (status === 'void' && !!transferData.value?.received_at)
 })
 
 const totalQtySent = computed(() => {
@@ -405,7 +564,9 @@ const fetchDetail = async () => {
 onMounted(() => {
     isMounted.value = true
     showRejectForm.value = false
+    showVoidForm.value = false
     rejectForm.reset()
+    voidForm.reset()
     fetchDetail()
 })
 
@@ -414,11 +575,13 @@ const close = () => {
 }
 
 const confirmApprove = () => {
+    const isDirect = transferData.value?.transfer_mode === 'direct'
     modalStore.open({
-        title: 'Setujui Dokumen Transfer?',
-        message:
-            'Transfer stok yang disetujui akan siap untuk dikirimkan dari outlet asal ke outlet tujuan.',
-        confirmText: 'Ya, Setujui',
+        title: isDirect ? 'Setujui & Selesaikan Transfer Langsung?' : 'Setujui Dokumen Transfer?',
+        message: isDirect
+            ? 'Transfer 1-langkah akan langsung memotong stok dari outlet pengirim dan menambah stok di outlet tujuan seketika.'
+            : 'Transfer stok yang disetujui akan siap untuk dikirimkan dari outlet asal ke outlet tujuan.',
+        confirmText: isDirect ? 'Ya, Setujui & Selesaikan' : 'Ya, Setujui',
         confirmButtonClass: 'btn btn-main',
         onConfirm: () => {
             actionForm.post(route('inventory.transfers.approve', props.transferId), {
@@ -463,6 +626,26 @@ const submitReject = () => {
                 preserveScroll: true,
                 onSuccess: () => {
                     showRejectForm.value = false
+                    fetchDetail()
+                    emit('refresh')
+                },
+            })
+        },
+    })
+}
+
+const submitVoid = () => {
+    modalStore.open({
+        title: 'Konfirmasi Pembatalan (Void) Transfer?',
+        message:
+            'Mutasi pembalik (storno) akan otomatis diterbitkan untuk mengembalikan saldo stok ke kondisi semula. Tindakan ini tidak dapat dibatalkan.',
+        confirmText: 'Ya, Batalkan (Void)',
+        confirmButtonClass: 'btn btn-danger',
+        onConfirm: () => {
+            voidForm.post(route('inventory.transfers.void', props.transferId), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    showVoidForm.value = false
                     fetchDetail()
                     emit('refresh')
                 },

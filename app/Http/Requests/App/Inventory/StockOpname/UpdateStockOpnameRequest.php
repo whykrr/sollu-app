@@ -15,6 +15,7 @@ class UpdateStockOpnameRequest extends FormRequest
     {
         return [
             'notes' => ['nullable', 'string'],
+            'is_final' => ['nullable', 'boolean'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.inventory_item_id' => ['required', 'uuid', 'exists:inventory_items,id'],
             'items.*.system_qty' => ['required', 'numeric', 'min:0'],

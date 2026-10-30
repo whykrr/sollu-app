@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\App\Inventory;
 
+use App\Enums\PermissionEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Outlet;
 use App\Services\App\Inventory\StockFreezeService;
@@ -16,13 +17,13 @@ class OutletFreezeController extends Controller
      */
     public function freeze(Request $request, StockFreezeService $service)
     {
-        if (! Gate::check('inventory.opname.freeze') && ! Gate::check('inventory.adjustment.freeze')) {
-            abort(403);
+        if (! Gate::check(PermissionEnum::INVENTORY_OPNAME_VALIDATE->value) && ! Gate::check(PermissionEnum::INVENTORY_ADJUST_VALIDATE->value)) {
+            abort(403, 'Kamu tidak memiliki wewenang untuk membekukan atau mencairkan stok outlet.');
         }
 
         $request->validate(['outlet_id' => 'required|exists:outlets,id']);
 
-        $outlet = Outlet::findOrFail($request->outlet_id);
+        $outlet = Outlet::query()->currentBusiness()->findOrFail($request->outlet_id);
 
         $service->freeze($outlet, Auth::user());
 
@@ -34,13 +35,13 @@ class OutletFreezeController extends Controller
      */
     public function unfreeze(Request $request, StockFreezeService $service)
     {
-        if (! Gate::check('inventory.opname.freeze') && ! Gate::check('inventory.adjustment.freeze')) {
-            abort(403);
+        if (! Gate::check(PermissionEnum::INVENTORY_OPNAME_VALIDATE->value) && ! Gate::check(PermissionEnum::INVENTORY_ADJUST_VALIDATE->value)) {
+            abort(403, 'Kamu tidak memiliki wewenang untuk membekukan atau mencairkan stok outlet.');
         }
 
         $request->validate(['outlet_id' => 'required|exists:outlets,id']);
 
-        $outlet = Outlet::findOrFail($request->outlet_id);
+        $outlet = Outlet::query()->currentBusiness()->findOrFail($request->outlet_id);
 
         $service->unfreeze($outlet, Auth::user());
 

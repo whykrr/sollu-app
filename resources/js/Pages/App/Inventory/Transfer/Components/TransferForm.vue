@@ -36,6 +36,58 @@
                 </div>
             </div>
 
+            <!-- Pilihan Mode Transfer -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Metode / Alur Mutasi Stok
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label
+                        class="relative flex flex-col p-2.5 border rounded-lg cursor-pointer transition-colors text-xs"
+                        :class="
+                            form.transfer_mode === 'direct'
+                                ? 'border-primary bg-primary/5 text-primary-dark font-medium'
+                                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                        "
+                    >
+                        <div class="flex items-center gap-2 mb-1">
+                            <input
+                                v-model="form.transfer_mode"
+                                type="radio"
+                                value="direct"
+                                class="text-primary focus:ring-primary h-3.5 w-3.5"
+                            />
+                            <span class="font-bold text-xs text-slate-900">Transfer Langsung (1-Langkah)</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 pl-5.5 leading-relaxed">
+                            Stok langsung terpotong dari asal dan seketika masuk ke outlet tujuan.
+                        </p>
+                    </label>
+
+                    <label
+                        class="relative flex flex-col p-2.5 border rounded-lg cursor-pointer transition-colors text-xs"
+                        :class="
+                            form.transfer_mode === 'two_step'
+                                ? 'border-primary bg-primary/5 text-primary-dark font-medium'
+                                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                        "
+                    >
+                        <div class="flex items-center gap-2 mb-1">
+                            <input
+                                v-model="form.transfer_mode"
+                                type="radio"
+                                value="two_step"
+                                class="text-primary focus:ring-primary h-3.5 w-3.5"
+                            />
+                            <span class="font-bold text-xs text-slate-900">Kirim & Terima (2-Langkah)</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 pl-5.5 leading-relaxed">
+                            Stok asal dipotong saat dikirim dan butuh konfirmasi penerimaan di outlet tujuan.
+                        </p>
+                    </label>
+                </div>
+            </div>
+
             <TextareaField
                 id="notes"
                 v-model="form.notes"
@@ -254,7 +306,13 @@
                 "
                 @click="submit"
             >
-                {{ isEdit ? 'Simpan Perubahan' : 'Simpan sebagai Draf' }}
+                {{
+                    isEdit
+                        ? 'Simpan Perubahan'
+                        : form.transfer_mode === 'two_step'
+                          ? 'Kirim Barang (2-Langkah)'
+                          : 'Transfer Langsung (1-Langkah)'
+                }}
             </button>
         </Teleport>
     </div>
@@ -280,15 +338,20 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['refresh'])
-const { outlets: userOutlets, selectedOutlet } = useAuth()
+const { outlets: userOutlets, selectedOutlet, business } = useAuth()
 const isMounted = ref(false)
 const showItemPicker = ref(false)
+
+const initialTransferMode = computed(
+    () => business.value?.settings?.default_transfer_mode || 'direct'
+)
 
 const form = useForm({
     from_outlet_id:
         selectedOutlet.value?.id ||
         (userOutlets.value?.length === 1 ? userOutlets.value[0].id : ''),
     to_outlet_id: '',
+    transfer_mode: initialTransferMode.value,
     notes: '',
     items: [],
 })
@@ -341,6 +404,7 @@ onMounted(() => {
         form.to_outlet_id = props.transferData.to_outlet_id
             ? String(props.transferData.to_outlet_id)
             : ''
+        form.transfer_mode = props.transferData.transfer_mode || 'direct'
         form.notes = props.transferData.notes || ''
         form.items = (props.transferData.items || []).map(i => ({
             inventory_item_id: i.inventory_item_id,

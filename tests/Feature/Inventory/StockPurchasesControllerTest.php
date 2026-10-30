@@ -251,6 +251,49 @@ class StockPurchasesControllerTest extends TestCase
         $this->assertEquals(10, $balance->current_stock);
     }
 
+    public function test_direct_purchase_succeeds_even_when_supervision_is_enabled(): void
+    {
+        $this->business->settings = [
+            'inventory_sod' => [
+                'enabled' => true,
+                'allow_owner_bypass' => false,
+            ],
+        ];
+        $this->business->save();
+
+        $payload = [
+            'outlet_id' => $this->outlet->id,
+            'supplier_id' => $this->supplier->id,
+            'reference_number' => 'DIRECT-SOD-01',
+            'delivery_order_number' => 'SJ-SOD-01',
+            'order_date' => now()->format('Y-m-d'),
+            'items' => [
+                [
+                    'inventory_item_id' => $this->item->id,
+                    'uom_id' => $this->uomPcs->id,
+                    'qty_ordered' => 5,
+                    'purchase_price' => 12000,
+                    'discount_amount' => 0,
+                    'tax_amount' => 0,
+                    'conversion_factor' => 1.0,
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/inventories/purchases/direct", $payload);
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value);
+
+        $po = PurchaseOrder::where('business_id', $this->business->id)
+            ->where('reference_number', 'DIRECT-SOD-01')
+            ->first();
+
+        $this->assertNotNull($po);
+        $this->assertEquals(PurchaseOrderStatus::Received, $po->status);
+    }
+
     public function test_user_can_receive_items_via_goods_receipt(): void
     {
         $po = PurchaseOrder::create([
@@ -646,5 +689,54 @@ class StockPurchasesControllerTest extends TestCase
 
         // Receipt status must still be completed
         $this->assertEquals(GoodsReceiptStatus::Completed, $receipt->refresh()->status);
+    }
+
+    public function test_user_can_order_draft_po_with_purchase_update_in_flexible_mode(): void
+    {
+        $po = PurchaseOrder::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'supplier_id' => $this->supplier->id,
+            'po_number' => 'PO-ORDER-FLEX-01',
+            'order_date' => now()->format('Y-m-d'),
+            'status' => PurchaseOrderStatus::Draft,
+            'total_amount' => 50000,
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/inventories/purchases/{$po->id}/order");
+
+        $response->assertRedirect();
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value);
+        $this->assertEquals(PurchaseOrderStatus::Ordered, $po->fresh()->status);
+    }
+
+    public function test_user_without_purchase_validate_cannot_order_po_when_supervision_is_enabled(): void
+    {
+        $this->business->settings = [
+            'inventory_sod' => [
+                'enabled' => true,
+                'allow_owner_bypass' => false,
+            ],
+        ];
+        $this->business->save();
+
+        $po = PurchaseOrder::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'supplier_id' => $this->supplier->id,
+            'po_number' => 'PO-ORDER-SUP-01',
+            'order_date' => now()->format('Y-m-d'),
+            'status' => PurchaseOrderStatus::Draft,
+            'total_amount' => 50000,
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/inventories/purchases/{$po->id}/order");
+
+        $response->assertForbidden();
+        $this->assertEquals(PurchaseOrderStatus::Draft, $po->fresh()->status);
     }
 }

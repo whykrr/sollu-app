@@ -1,6 +1,6 @@
 <template>
     <div>
-        <form class="space-y-3" @submit.prevent="confirmSubmit(opname ? 'submit' : 'save')">
+        <form class="space-y-3" @submit.prevent="confirmSubmit(opname ? 'final' : 'save')">
             <!-- Info Dokumen Jika Mode Edit / Update -->
             <div
                 v-if="opname"
@@ -294,15 +294,24 @@
             >
                 Mulai Opname
             </button>
-            <button
-                v-if="opname"
-                type="button"
-                class="btn btn-info"
-                :disabled="form.processing || form.items.length === 0"
-                @click="confirmSubmit('submit')"
-            >
-                Ajukan Persetujuan
-            </button>
+            <template v-else>
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    :disabled="form.processing || form.items.length === 0"
+                    @click="executeProgressSave"
+                >
+                    Simpan Progres
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-main"
+                    :disabled="form.processing || form.items.length === 0"
+                    @click="confirmSubmit('final')"
+                >
+                    Selesaikan Opname
+                </button>
+            </template>
         </Teleport>
     </div>
 </template>
@@ -353,6 +362,7 @@ const initialOutletId = props.opname
 const form = useForm({
     outlet_id: initialOutletId,
     notes: props.opname?.notes || '',
+    is_final: true,
     items: [],
 })
 
@@ -494,6 +504,15 @@ const formatDifference = (actual, system) => {
     return '0'
 }
 
+const executeProgressSave = () => {
+    form.is_final = false
+    form.put(route('inventory.opnames.update', props.opname.id), {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => forceClose(),
+    })
+}
+
 const confirmSubmit = type => {
     if (type === 'save') {
         modalStore.open({
@@ -502,21 +521,22 @@ const confirmSubmit = type => {
                 'Sesi stok opname akan dibuat dengan status Sedang Berjalan. Kamu dapat mencatat dan melengkapi penghitungan fisik.',
             confirmText: 'Mulai Opname',
             confirmButtonClass: 'btn btn-main',
-            onConfirm: () => executeSubmit(type),
+            onConfirm: () => executeSubmit(false),
         })
     } else {
         modalStore.open({
-            title: 'Ajukan Hasil Opname',
+            title: 'Selesaikan Stok Opname',
             message:
-                'Hasil penghitungan fisik akan diajukan untuk ditinjau dan disetujui oleh supervisor/pemilik usaha. Lanjutkan?',
-            confirmText: 'Ajukan Persetujuan',
-            confirmButtonClass: 'btn btn-info',
-            onConfirm: () => executeSubmit(type),
+                'Hasil penghitungan fisik akan difinalisasi. Jika supervisi aktif, dokumen akan diajukan ke supervisor. Lanjutkan?',
+            confirmText: 'Ya, Selesaikan',
+            confirmButtonClass: 'btn btn-main',
+            onConfirm: () => executeSubmit(true),
         })
     }
 }
 
-const executeSubmit = () => {
+const executeSubmit = (isFinal = true) => {
+    form.is_final = isFinal
     const options = {
         preserveScroll: true,
         preserveState: true,

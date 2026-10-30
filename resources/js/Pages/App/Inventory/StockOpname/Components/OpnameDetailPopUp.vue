@@ -45,7 +45,7 @@
                 <div class="flex items-center justify-between mb-1.5">
                     <h4 class="font-bold text-xs text-slate-700">Rincian Fisik Barang</h4>
                     <button
-                        v-if="can('inventory.opname.export')"
+                        v-if="can('inventory.opname.view') || can('inventory.opname.export')"
                         type="button"
                         class="btn btn-outline-secondary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
                         @click="exportPdf(opname.id)"
@@ -258,11 +258,15 @@ const rejectForm = useForm({
 const can = permission => {
     return (
         page.props.auth?.permissions?.includes(permission) ||
-        page.props.auth?.permissions?.includes('inventory.*')
+        page.props.auth?.permissions?.includes('inventory.*') ||
+        page.props.auth?.permissions?.includes('business.*') ||
+        Boolean(page.props.auth?.user?.is_root_user)
     )
 }
 
-const canApprove = computed(() => can('inventory.opname.approve'))
+const canApprove = computed(
+    () => can('inventory.opname.validate') || can('inventory.opname.approve')
+)
 
 const summary = computed(() => {
     let totalItems = 0

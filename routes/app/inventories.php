@@ -124,6 +124,7 @@ Route::prefix('inventories')->group(function () {
                 Route::post('transfers/{transfer}/reject', [StockTransferController::class, 'reject'])->name('transfers.reject');
                 Route::post('transfers/{transfer}/ship', [StockTransferController::class, 'ship'])->name('transfers.ship');
                 Route::post('transfers/{transfer}/receive', [StockTransferController::class, 'receive'])->name('transfers.receive');
+                Route::post('transfers/{transfer}/void', [StockTransferController::class, 'void'])->name('transfers.void');
             });
         });
 });

@@ -2,14 +2,20 @@
 
 namespace Tests\Integration\Services\App\Inventory;
 
+use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
+use App\Enums\PlanEnum;
+use App\Enums\StockTransferMode;
 use App\Enums\StockTransferStatus;
+use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\StockTransfer;
 use App\Models\Outlet;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\App\Inventory\InventoryCostingService;
 use App\Services\App\Inventory\InventorySodService;
@@ -56,13 +62,22 @@ class StockTransferServiceTest extends TestCase
         parent::tearDown();
     }
 
-    private function setupBaseData()
+    private function setupBaseData(bool $enableSupervision = false)
     {
         $this->seed(DatabaseSeeder::class);
 
         $type = BusinessType::firstOrCreate(
             ['code' => 'retail'],
-            ['name' => 'Retail', 'sort_order' => 1, 'is_visible' => true]
+            [
+                'name' => 'Retail',
+                'sort_order' => 1,
+                'is_visible' => true,
+                'features' => [
+                    FeatureEnum::INVENTORY_MANAGEMENT->value,
+                    FeatureEnum::STOCK_TRANSFERS->value,
+                    FeatureEnum::DOUBLE_AUTHORIZATION->value,
+                ],
+            ]
         );
 
         $business = Business::create([
@@ -73,7 +88,32 @@ class StockTransferServiceTest extends TestCase
             'status' => 'active',
             'trial_end_at' => now()->addDays(14),
             'business_type_id' => $type->id,
+            'settings' => [
+                'active_features' => [
+                    FeatureEnum::INVENTORY_MANAGEMENT->value,
+                    FeatureEnum::STOCK_TRANSFERS->value,
+                    FeatureEnum::DOUBLE_AUTHORIZATION->value,
+                ],
+                'inventory_sod' => [
+                    'enabled' => $enableSupervision,
+                    'allow_owner_bypass' => false,
+                    'rules' => ['stock_transfer_approval' => true],
+                ],
+            ],
         ]);
+
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($proPlan) {
+            Subscription::create([
+                'business_id' => $business->id,
+                'plan_id' => $proPlan->id,
+                'status' => SubscriptionStatus::Active,
+                'billing_cycle' => 'monthly',
+                'started_at' => now()->subDay(),
+                'expired_at' => now()->addMonth(),
+            ]);
+            $business->clearMemoizedFeatures();
+        }
 
         $user = User::create([
             'business_id' => $business->id,
@@ -120,13 +160,14 @@ class StockTransferServiceTest extends TestCase
         return [$user, $business, $outlet1, $outlet2, $inventoryItem];
     }
 
-    public function test_it_creates_transfer()
+    public function test_it_creates_transfer_in_pending_when_supervision_is_enabled()
     {
-        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData();
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: true);
 
         $data = [
             'from_outlet_id' => $outlet1->id,
             'to_outlet_id' => $outlet2->id,
+            'transfer_mode' => StockTransferMode::DIRECT->value,
             'transfer_date' => now()->format('Y-m-d'),
             'notes' => 'Test Transfer',
             'items' => [
@@ -145,9 +186,44 @@ class StockTransferServiceTest extends TestCase
         $this->assertStringStartsWith('TF-', $transfer->transfer_number);
     }
 
-    public function test_it_updates_transfer()
+    public function test_it_creates_direct_transfer_and_completes_instantly_when_supervision_disabled()
     {
-        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData();
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: false);
+
+        InventoryBalance::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet1->id,
+            'inventory_item_id' => $inventoryItem->id,
+            'current_stock' => 50,
+            'average_cost' => 1000,
+        ]);
+
+        $data = [
+            'from_outlet_id' => $outlet1->id,
+            'to_outlet_id' => $outlet2->id,
+            'transfer_mode' => StockTransferMode::DIRECT->value,
+            'transfer_date' => now()->format('Y-m-d'),
+            'items' => [
+                [
+                    'inventory_item_id' => $inventoryItem->id,
+                    'qty' => 10,
+                ],
+            ],
+        ];
+
+        $transfer = $this->service->createTransfer($data, $user);
+
+        $this->assertEquals(StockTransferStatus::Completed, $transfer->status);
+        $sourceBalance = InventoryBalance::where('outlet_id', $outlet1->id)->where('inventory_item_id', $inventoryItem->id)->first();
+        $this->assertEquals(40, $sourceBalance->current_stock);
+
+        $destBalance = InventoryBalance::where('outlet_id', $outlet2->id)->where('inventory_item_id', $inventoryItem->id)->first();
+        $this->assertEquals(10, $destBalance->current_stock);
+    }
+
+    public function test_it_updates_pending_transfer()
+    {
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: true);
 
         $transfer = $this->service->createTransfer([
             'from_outlet_id' => $outlet1->id,
@@ -172,22 +248,15 @@ class StockTransferServiceTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Pemisahan tugas aktif');
 
-        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData();
-
-        $business->settings = [
-            'inventory_sod' => [
-                'enabled' => true,
-                'allow_owner_bypass' => false,
-                'rules' => ['stock_transfer_approval' => true],
-            ],
-        ];
-        $business->save();
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: true);
 
         $requester = User::factory()->create(['business_id' => $business->id]);
+        $requester->givePermissionTo(PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value);
 
         $transfer = $this->service->createTransfer([
             'from_outlet_id' => $outlet1->id,
             'to_outlet_id' => $outlet2->id,
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
             'transfer_date' => now()->format('Y-m-d'),
             'items' => [],
         ], $requester);
@@ -197,23 +266,20 @@ class StockTransferServiceTest extends TestCase
 
     public function test_it_allows_self_approval_when_sod_is_disabled()
     {
-        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData();
-
-        $business->settings = [
-            'inventory_sod' => [
-                'enabled' => false,
-            ],
-        ];
-        $business->save();
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: false);
 
         $requester = User::factory()->create(['business_id' => $business->id]);
 
-        $transfer = $this->service->createTransfer([
+        // Manually create pending transfer to test approval when SoD is disabled
+        $transfer = StockTransfer::create([
+            'business_id' => $business->id,
             'from_outlet_id' => $outlet1->id,
             'to_outlet_id' => $outlet2->id,
-            'transfer_date' => now()->format('Y-m-d'),
-            'items' => [],
-        ], $requester);
+            'transfer_number' => 'TF-202610-TEST',
+            'status' => StockTransferStatus::Pending,
+            'transfer_mode' => StockTransferMode::TWO_STEP,
+            'requested_by' => $requester->id,
+        ]);
 
         $approved = $this->service->approveTransfer($transfer, $requester);
         $this->assertEquals(StockTransferStatus::Approved, $approved->status);
@@ -221,13 +287,14 @@ class StockTransferServiceTest extends TestCase
 
     public function test_it_approves_transfer()
     {
-        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData();
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: true);
 
         $requester = User::factory()->create(['business_id' => $business->id]);
 
         $transfer = $this->service->createTransfer([
             'from_outlet_id' => $outlet1->id,
             'to_outlet_id' => $outlet2->id,
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
             'transfer_date' => now()->format('Y-m-d'),
             'items' => [],
         ], $requester);
@@ -240,7 +307,7 @@ class StockTransferServiceTest extends TestCase
 
     public function test_it_rejects_transfer()
     {
-        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData();
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: true);
 
         $transfer = $this->service->createTransfer([
             'from_outlet_id' => $outlet1->id,
@@ -255,16 +322,25 @@ class StockTransferServiceTest extends TestCase
         $this->assertEquals('Rejected', $rejectedTransfer->notes);
     }
 
-    public function test_it_ships_transfer()
+    public function test_it_ships_transfer_and_deducts_origin_stock()
     {
-        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData();
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: true);
+
+        InventoryBalance::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet1->id,
+            'inventory_item_id' => $inventoryItem->id,
+            'current_stock' => 50,
+            'average_cost' => 1200,
+        ]);
 
         $requester = User::factory()->create(['business_id' => $business->id]);
         $transfer = $this->service->createTransfer([
             'from_outlet_id' => $outlet1->id,
             'to_outlet_id' => $outlet2->id,
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
             'transfer_date' => now()->format('Y-m-d'),
-            'items' => [],
+            'items' => [['inventory_item_id' => $inventoryItem->id, 'qty' => 10]],
         ], $requester);
 
         $this->service->approveTransfer($transfer, $user);
@@ -272,23 +348,30 @@ class StockTransferServiceTest extends TestCase
         $shippedTransfer = $this->service->shipTransfer($transfer, $user);
 
         $this->assertEquals(StockTransferStatus::InTransit, $shippedTransfer->status);
+        $this->assertNotNull($shippedTransfer->shipped_at);
+
+        // Origin stock deducted upon shipping
+        $sourceBalance = InventoryBalance::where('outlet_id', $outlet1->id)->where('inventory_item_id', $inventoryItem->id)->first();
+        $this->assertEquals(40, $sourceBalance->current_stock);
     }
 
     public function test_it_completes_transfer_and_updates_balances()
     {
-        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData();
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: true);
 
         InventoryBalance::create([
             'business_id' => $business->id,
             'outlet_id' => $outlet1->id,
             'inventory_item_id' => $inventoryItem->id,
             'current_stock' => 15,
+            'average_cost' => 1000,
         ]);
 
         $requester = User::factory()->create(['business_id' => $business->id]);
         $transfer = $this->service->createTransfer([
             'from_outlet_id' => $outlet1->id,
             'to_outlet_id' => $outlet2->id,
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
             'transfer_date' => now()->format('Y-m-d'),
             'items' => [['inventory_item_id' => $inventoryItem->id, 'qty' => 10]],
         ], $requester);
@@ -316,5 +399,83 @@ class StockTransferServiceTest extends TestCase
 
         $destBalance = InventoryBalance::where('outlet_id', $outlet2->id)->where('inventory_item_id', $inventoryItem->id)->first();
         $this->assertEquals(10, $destBalance->current_stock); // 0 + 10
+    }
+
+    public function test_it_voids_in_transit_transfer_and_restores_origin_stock()
+    {
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: true);
+
+        InventoryBalance::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet1->id,
+            'inventory_item_id' => $inventoryItem->id,
+            'current_stock' => 20,
+            'average_cost' => 1000,
+        ]);
+
+        $requester = User::factory()->create(['business_id' => $business->id]);
+        $transfer = $this->service->createTransfer([
+            'from_outlet_id' => $outlet1->id,
+            'to_outlet_id' => $outlet2->id,
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
+            'items' => [['inventory_item_id' => $inventoryItem->id, 'qty' => 10]],
+        ], $requester);
+
+        $this->service->approveTransfer($transfer, $user);
+        $this->service->shipTransfer($transfer, $user);
+
+        $sourceBalance = InventoryBalance::where('outlet_id', $outlet1->id)->where('inventory_item_id', $inventoryItem->id)->first();
+        $this->assertEquals(10, $sourceBalance->current_stock); // Deducted 10
+
+        // Void the in-transit transfer
+        $voidedTransfer = $this->service->voidTransfer($transfer, ['void_reason' => 'Truck breakdown'], $user);
+
+        $this->assertEquals(StockTransferStatus::Void, $voidedTransfer->status);
+        $this->assertEquals('Truck breakdown', $voidedTransfer->void_reason);
+
+        // Origin stock returned back to 20
+        $sourceBalance->refresh();
+        $this->assertEquals(20, $sourceBalance->current_stock);
+    }
+
+    public function test_it_voids_completed_transfer_with_symmetric_reversal()
+    {
+        [$user, $business, $outlet1, $outlet2, $inventoryItem] = $this->setupBaseData(enableSupervision: true);
+
+        InventoryBalance::create([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet1->id,
+            'inventory_item_id' => $inventoryItem->id,
+            'current_stock' => 30,
+            'average_cost' => 1500,
+        ]);
+
+        $requester = User::factory()->create(['business_id' => $business->id]);
+        $transfer = $this->service->createTransfer([
+            'from_outlet_id' => $outlet1->id,
+            'to_outlet_id' => $outlet2->id,
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
+            'items' => [['inventory_item_id' => $inventoryItem->id, 'qty' => 10]],
+        ], $requester);
+
+        $this->service->approveTransfer($transfer, $user);
+        $this->service->shipTransfer($transfer, $user);
+
+        $transferItem = $transfer->items()->first();
+        $this->service->completeTransfer($transfer, [
+            'items' => [['id' => $transferItem->id, 'qty_received' => 10]],
+        ], $user);
+
+        // Origin is 20, destination is 10
+        $this->assertEquals(20, InventoryBalance::where('outlet_id', $outlet1->id)->where('inventory_item_id', $inventoryItem->id)->first()->current_stock);
+        $this->assertEquals(10, InventoryBalance::where('outlet_id', $outlet2->id)->where('inventory_item_id', $inventoryItem->id)->first()->current_stock);
+
+        // Void completed transfer
+        $voided = $this->service->voidTransfer($transfer, ['void_reason' => 'Wrong branch requested'], $user);
+        $this->assertEquals(StockTransferStatus::Void, $voided->status);
+
+        // Destination deducted back to 0, Origin restored to 30
+        $this->assertEquals(30, InventoryBalance::where('outlet_id', $outlet1->id)->where('inventory_item_id', $inventoryItem->id)->first()->current_stock);
+        $this->assertEquals(0, InventoryBalance::where('outlet_id', $outlet2->id)->where('inventory_item_id', $inventoryItem->id)->first()->current_stock);
     }
 }

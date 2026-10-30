@@ -5,6 +5,7 @@ namespace Tests\Feature\Inventory;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
+use App\Enums\StockTransferMode;
 use App\Enums\StockTransferStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Business;
@@ -57,6 +58,7 @@ class StockTransferFeatureTest extends TestCase
                 'features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
                     FeatureEnum::STOCK_TRANSFERS->value,
+                    FeatureEnum::DOUBLE_AUTHORIZATION->value,
                 ],
             ]
         );
@@ -73,6 +75,7 @@ class StockTransferFeatureTest extends TestCase
                 'active_features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
                     FeatureEnum::STOCK_TRANSFERS->value,
+                    FeatureEnum::DOUBLE_AUTHORIZATION->value,
                 ],
             ],
         ]);
@@ -181,13 +184,104 @@ class StockTransferFeatureTest extends TestCase
         );
     }
 
-    public function test_user_can_create_stock_transfer(): void
+    public function test_user_can_create_direct_stock_transfer(): void
     {
         $payload = [
             'from_outlet_id' => $this->outletA->id,
             'to_outlet_id' => $this->outletB->id,
+            'transfer_mode' => StockTransferMode::DIRECT->value,
             'transfer_date' => now()->format('Y-m-d'),
-            'notes' => 'Kirim stok kopi ke Cabang B',
+            'notes' => 'Kirim stok kopi ke Cabang B langsung',
+            'items' => [
+                [
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'qty' => 10,
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($this->supervisor)
+            ->post(route('inventory.transfers.store'), $payload);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('stock_transfers', [
+            'business_id' => $this->business->id,
+            'from_outlet_id' => $this->outletA->id,
+            'to_outlet_id' => $this->outletB->id,
+            'status' => StockTransferStatus::Completed->value,
+            'transfer_mode' => StockTransferMode::DIRECT->value,
+            'notes' => 'Kirim stok kopi ke Cabang B langsung',
+            'requested_by' => $this->supervisor->id,
+        ]);
+
+        $this->assertDatabaseHas('stock_transfer_items', [
+            'inventory_item_id' => $this->inventoryItem->id,
+            'qty' => 10,
+            'qty_received' => 10,
+        ]);
+
+        $this->assertEquals(40, InventoryBalance::where('outlet_id', $this->outletA->id)->where('inventory_item_id', $this->inventoryItem->id)->value('current_stock'));
+        $this->assertEquals(10, InventoryBalance::where('outlet_id', $this->outletB->id)->where('inventory_item_id', $this->inventoryItem->id)->value('current_stock'));
+    }
+
+    public function test_user_can_create_two_step_stock_transfer_in_transit(): void
+    {
+        $payload = [
+            'from_outlet_id' => $this->outletA->id,
+            'to_outlet_id' => $this->outletB->id,
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
+            'transfer_date' => now()->format('Y-m-d'),
+            'notes' => 'Kirim stok kopi ke Cabang B 2-langkah',
+            'items' => [
+                [
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'qty' => 15,
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($this->supervisor)
+            ->post(route('inventory.transfers.store'), $payload);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('stock_transfers', [
+            'business_id' => $this->business->id,
+            'from_outlet_id' => $this->outletA->id,
+            'to_outlet_id' => $this->outletB->id,
+            'status' => StockTransferStatus::InTransit->value,
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
+            'notes' => 'Kirim stok kopi ke Cabang B 2-langkah',
+            'requested_by' => $this->supervisor->id,
+        ]);
+
+        // Origin balance immediately deducted: 50 - 15 = 35
+        $this->assertEquals(35, InventoryBalance::where('outlet_id', $this->outletA->id)->where('inventory_item_id', $this->inventoryItem->id)->value('current_stock'));
+        // Destination balance still 0
+        $this->assertEquals(0, (float) (InventoryBalance::where('outlet_id', $this->outletB->id)->where('inventory_item_id', $this->inventoryItem->id)->value('current_stock') ?? 0));
+    }
+
+    public function test_user_can_create_stock_transfer_as_pending_when_supervision_is_enabled(): void
+    {
+        $this->business->settings = [
+            'active_features' => [
+                FeatureEnum::INVENTORY_MANAGEMENT->value,
+                FeatureEnum::STOCK_TRANSFERS->value,
+                FeatureEnum::DOUBLE_AUTHORIZATION->value,
+            ],
+            'inventory_sod' => [
+                'enabled' => true,
+                'allow_owner_bypass' => false,
+                'rules' => ['stock_transfer_approval' => true],
+            ],
+        ];
+        $this->business->save();
+        $this->business->clearMemoizedFeatures();
+
+        $payload = [
+            'from_outlet_id' => $this->outletA->id,
+            'to_outlet_id' => $this->outletB->id,
+            'transfer_date' => now()->format('Y-m-d'),
+            'notes' => 'Kirim stok kopi ke Cabang B butuh approval',
             'items' => [
                 [
                     'inventory_item_id' => $this->inventoryItem->id,
@@ -205,13 +299,8 @@ class StockTransferFeatureTest extends TestCase
             'from_outlet_id' => $this->outletA->id,
             'to_outlet_id' => $this->outletB->id,
             'status' => StockTransferStatus::Pending->value,
-            'notes' => 'Kirim stok kopi ke Cabang B',
+            'notes' => 'Kirim stok kopi ke Cabang B butuh approval',
             'requested_by' => $this->supervisor->id,
-        ]);
-
-        $this->assertDatabaseHas('stock_transfer_items', [
-            'inventory_item_id' => $this->inventoryItem->id,
-            'qty' => 10,
         ]);
     }
 
@@ -293,6 +382,7 @@ class StockTransferFeatureTest extends TestCase
             'from_outlet_id' => $this->outletA->id,
             'to_outlet_id' => $this->outletB->id,
             'transfer_number' => 'TF-202609-004',
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
             'transfer_date' => now()->format('Y-m-d'),
             'status' => StockTransferStatus::Pending,
             'requested_by' => $this->supervisor->id,
@@ -371,11 +461,17 @@ class StockTransferFeatureTest extends TestCase
             'from_outlet_id' => $this->outletA->id,
             'to_outlet_id' => $this->outletB->id,
             'transfer_number' => 'TF-202609-007',
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
             'transfer_date' => now()->format('Y-m-d'),
             'status' => StockTransferStatus::Approved,
             'requested_by' => $this->supervisor->id,
             'approved_by' => $this->owner->id,
             'approved_at' => now(),
+        ]);
+
+        $transfer->items()->create([
+            'inventory_item_id' => $this->inventoryItem->id,
+            'qty' => 10,
         ]);
 
         $response = $this->actingAs($this->owner)
@@ -386,6 +482,12 @@ class StockTransferFeatureTest extends TestCase
             'id' => $transfer->id,
             'status' => StockTransferStatus::InTransit->value,
         ]);
+
+        // Origin stock is deducted upon shipping
+        $sourceBalance = InventoryBalance::where('outlet_id', $this->outletA->id)
+            ->where('inventory_item_id', $this->inventoryItem->id)
+            ->first();
+        $this->assertEquals(40, $sourceBalance->current_stock);
     }
 
     public function test_user_can_receive_in_transit_stock_transfer_and_update_balances(): void
@@ -395,8 +497,9 @@ class StockTransferFeatureTest extends TestCase
             'from_outlet_id' => $this->outletA->id,
             'to_outlet_id' => $this->outletB->id,
             'transfer_number' => 'TF-202609-008',
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
             'transfer_date' => now()->format('Y-m-d'),
-            'status' => StockTransferStatus::InTransit,
+            'status' => StockTransferStatus::Approved,
             'requested_by' => $this->supervisor->id,
             'approved_by' => $this->owner->id,
             'approved_at' => now(),
@@ -406,6 +509,9 @@ class StockTransferFeatureTest extends TestCase
             'inventory_item_id' => $this->inventoryItem->id,
             'qty' => 10,
         ]);
+
+        // Ship the transfer (cuts origin stock: 50 -> 40)
+        $this->actingAs($this->owner)->post(route('inventory.transfers.ship', $transfer->id));
 
         $payload = [
             'items' => [
@@ -446,8 +552,9 @@ class StockTransferFeatureTest extends TestCase
             'from_outlet_id' => $this->outletA->id,
             'to_outlet_id' => $this->outletB->id,
             'transfer_number' => 'TF-202609-009',
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
             'transfer_date' => now()->format('Y-m-d'),
-            'status' => StockTransferStatus::InTransit,
+            'status' => StockTransferStatus::Approved,
             'requested_by' => $this->supervisor->id,
             'approved_by' => $this->owner->id,
             'approved_at' => now(),
@@ -458,11 +565,15 @@ class StockTransferFeatureTest extends TestCase
             'qty' => 10,
         ]);
 
+        // Ship the transfer (cuts origin stock: 50 -> 40)
+        $this->actingAs($this->owner)->post(route('inventory.transfers.ship', $transfer->id));
+
         $payload = [
             'items' => [
                 [
                     'id' => $item->id,
                     'qty_received' => 8, // 2 items lost/damaged
+                    'difference_reason' => 'Pecah di jalan',
                 ],
             ],
         ];
@@ -480,19 +591,97 @@ class StockTransferFeatureTest extends TestCase
             'id' => $item->id,
             'qty' => 10,
             'qty_received' => 8,
+            'qty_difference' => 2,
+            'difference_reason' => 'Pecah di jalan',
         ]);
 
-        // Source outlet had 8 received (deducted 8 from 50 = 42)
+        // Source outlet was cut 10 upon ship = 40
         $sourceBalance = InventoryBalance::where('outlet_id', $this->outletA->id)
             ->where('inventory_item_id', $this->inventoryItem->id)
             ->first();
-        $this->assertEquals(42, $sourceBalance->current_stock);
+        $this->assertEquals(40, $sourceBalance->current_stock);
 
         // Destination outlet receives 8
         $destBalance = InventoryBalance::where('outlet_id', $this->outletB->id)
             ->where('inventory_item_id', $this->inventoryItem->id)
             ->first();
         $this->assertEquals(8, $destBalance->current_stock);
+    }
+
+    public function test_user_can_void_in_transit_transfer(): void
+    {
+        $transfer = StockTransfer::create([
+            'business_id' => $this->business->id,
+            'from_outlet_id' => $this->outletA->id,
+            'to_outlet_id' => $this->outletB->id,
+            'transfer_number' => 'TF-202609-VOID1',
+            'transfer_mode' => StockTransferMode::TWO_STEP->value,
+            'transfer_date' => now()->format('Y-m-d'),
+            'status' => StockTransferStatus::Approved,
+            'requested_by' => $this->supervisor->id,
+            'approved_by' => $this->owner->id,
+            'approved_at' => now(),
+        ]);
+
+        $transfer->items()->create([
+            'inventory_item_id' => $this->inventoryItem->id,
+            'qty' => 10,
+        ]);
+
+        // Ship
+        $this->actingAs($this->owner)->post(route('inventory.transfers.ship', $transfer->id));
+        $this->assertEquals(40, InventoryBalance::where('outlet_id', $this->outletA->id)->where('inventory_item_id', $this->inventoryItem->id)->value('current_stock'));
+
+        // Void in-transit
+        $response = $this->actingAs($this->owner)
+            ->post(route('inventory.transfers.void', $transfer->id), [
+                'void_reason' => 'Kendaraan rusak di jalan, transfer dibatalkan',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('stock_transfers', [
+            'id' => $transfer->id,
+            'status' => StockTransferStatus::Void->value,
+            'void_reason' => 'Kendaraan rusak di jalan, transfer dibatalkan',
+        ]);
+
+        // Origin stock refunded back to 50
+        $this->assertEquals(50, InventoryBalance::where('outlet_id', $this->outletA->id)->where('inventory_item_id', $this->inventoryItem->id)->value('current_stock'));
+    }
+
+    public function test_user_can_void_completed_transfer(): void
+    {
+        // Start with direct transfer: origin 50 -> 40, dest 0 -> 10
+        $payload = [
+            'from_outlet_id' => $this->outletA->id,
+            'to_outlet_id' => $this->outletB->id,
+            'transfer_mode' => StockTransferMode::DIRECT->value,
+            'items' => [
+                ['inventory_item_id' => $this->inventoryItem->id, 'qty' => 10],
+            ],
+        ];
+        $this->actingAs($this->supervisor)->post(route('inventory.transfers.store'), $payload);
+        $transfer = StockTransfer::where('business_id', $this->business->id)->latest('created_at')->first();
+
+        $this->assertEquals(40, InventoryBalance::where('outlet_id', $this->outletA->id)->where('inventory_item_id', $this->inventoryItem->id)->value('current_stock'));
+        $this->assertEquals(10, InventoryBalance::where('outlet_id', $this->outletB->id)->where('inventory_item_id', $this->inventoryItem->id)->value('current_stock'));
+
+        // Void completed
+        $response = $this->actingAs($this->owner)
+            ->post(route('inventory.transfers.void', $transfer->id), [
+                'void_reason' => 'Salah tujuan transfer barang',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('stock_transfers', [
+            'id' => $transfer->id,
+            'status' => StockTransferStatus::Void->value,
+            'void_reason' => 'Salah tujuan transfer barang',
+        ]);
+
+        // Symmetric reversal: dest deducted back to 0, origin refunded to 50
+        $this->assertEquals(50, InventoryBalance::where('outlet_id', $this->outletA->id)->where('inventory_item_id', $this->inventoryItem->id)->value('current_stock'));
+        $this->assertEquals(0, InventoryBalance::where('outlet_id', $this->outletB->id)->where('inventory_item_id', $this->inventoryItem->id)->value('current_stock'));
     }
 
     public function test_transfer_creation_blocked_when_outlet_stock_is_frozen(): void

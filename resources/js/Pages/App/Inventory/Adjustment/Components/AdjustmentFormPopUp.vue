@@ -262,11 +262,19 @@
             </button>
             <button
                 type="button"
+                class="btn btn-outline-secondary"
+                :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
+                @click="submit(true)"
+            >
+                Simpan Draf
+            </button>
+            <button
+                type="button"
                 class="btn btn-main"
                 :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
-                @click="submit"
+                @click="submit(false)"
             >
-                Simpan sebagai Draf
+                Simpan & Terapkan
             </button>
         </Teleport>
     </div>
@@ -310,6 +318,7 @@ const form = useForm({
         (userOutlets.value?.length === 1 ? userOutlets.value[0].id : ''),
     reason: '',
     notes: '',
+    is_draft: false,
     items: [],
 })
 
@@ -357,7 +366,8 @@ const removeItem = index => {
     form.items.splice(index, 1)
 }
 
-const submit = () => {
+const submit = (asDraft = false) => {
+    form.is_draft = asDraft
     form.post(route('inventory.adjustments.store'), {
         preserveScroll: true,
         preserveState: true,

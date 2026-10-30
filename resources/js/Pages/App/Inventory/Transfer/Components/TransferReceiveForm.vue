@@ -96,8 +96,9 @@
                             <th class="py-2 px-3">Item / Bahan</th>
                             <th class="py-2 px-3 w-20 text-center">Satuan</th>
                             <th class="py-2 px-3 w-24 text-right">Qty Dikirim</th>
-                            <th class="py-2 px-3 w-36 text-center">Qty Diterima Fisik</th>
-                            <th class="py-2 px-3 w-24 text-right">Selisih</th>
+                            <th class="py-2 px-3 w-32 text-center">Qty Diterima Fisik</th>
+                            <th class="py-2 px-3 w-20 text-right">Selisih</th>
+                            <th class="py-2 px-3 w-44">Alasan Selisih</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
@@ -140,6 +141,16 @@
                                 >
                                     {{ formatNumber(item.qty_sent - item.qty_received) }}
                                 </span>
+                            </td>
+                            <td class="py-1.5 px-3">
+                                <input
+                                    v-if="item.qty_sent - item.qty_received > 0"
+                                    v-model="item.difference_reason"
+                                    type="text"
+                                    class="w-full text-xs px-2 py-1 border border-slate-200 rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                                    placeholder="Misal: Rusak di jalan, Pecah, Hilang"
+                                />
+                                <span v-else class="text-[11px] text-slate-400 italic">-</span>
                             </td>
                         </tr>
                     </tbody>
@@ -203,6 +214,7 @@ onMounted(() => {
             qty_sent: Number(i.qty || 0),
             qty_sent_formatted: i.qty_formatted,
             qty_received: Number(i.qty || 0), // initialize with actual numeric sent qty
+            difference_reason: i.difference_reason || '',
         }))
     } else {
         form.items = []

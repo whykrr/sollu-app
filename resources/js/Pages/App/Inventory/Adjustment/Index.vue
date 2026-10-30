@@ -46,7 +46,7 @@
             </template>
             <template #actions="{ item }">
                 <button
-                    v-if="can('inventory.adjustment.read')"
+                    v-if="can('inventory.adjust.view') || can('inventory.adjustment.read')"
                     class="btn btn-flat btn-sm"
                     title="Lihat Detail"
                     @click.stop="openDetail(item)"
@@ -54,7 +54,7 @@
                     <FontAwesomeIcon :icon="faEye" />
                 </button>
                 <button
-                    v-if="can('inventory.adjustment.export')"
+                    v-if="can('inventory.adjustment.export') || can('inventory.adjust.view')"
                     class="btn btn-flat btn-sm text-danger"
                     title="Cetak Berita Acara"
                     @click.stop="exportPdf(item.id)"
@@ -111,7 +111,9 @@ defineProps({
 const can = permission => {
     return (
         page.props.auth?.permissions?.includes(permission) ||
-        page.props.auth?.permissions?.includes('inventory.*')
+        page.props.auth?.permissions?.includes('inventory.*') ||
+        page.props.auth?.permissions?.includes('business.*') ||
+        Boolean(page.props.auth?.user?.is_root_user)
     )
 }
 

@@ -285,7 +285,7 @@
                                     receipt.is_returnable &&
                                     purchase.status !== $enums.PurchaseOrderStatus.Cancelled
                                 "
-                                v-can="$enums.PermissionEnum?.PURCHASE_ORDER_RETURN"
+                                v-can="$enums.PermissionEnum?.PURCHASE_RETURN"
                                 type="button"
                                 class="btn btn-flat btn-sm text-danger hover:text-red-700 h-7 w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
                                 title="Retur barang dari surat jalan ini ke pemasok"
@@ -300,7 +300,7 @@
                                     receipt.status === $enums.GoodsReceiptStatus.Completed &&
                                     purchase.status !== $enums.PurchaseOrderStatus.Cancelled
                                 "
-                                v-can="$enums.PermissionEnum?.PURCHASE_ORDER_VOID"
+                                v-can="$enums.PermissionEnum?.PURCHASE_DELETE"
                                 type="button"
                                 class="btn btn-flat btn-sm text-danger h-7 w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
                                 title="Batalkan (Void) Surat Jalan ini"
@@ -393,7 +393,7 @@
                                     ret.status === $enums.PurchaseReturnStatus.Completed &&
                                     purchase.status !== $enums.PurchaseOrderStatus.Cancelled
                                 "
-                                v-can="$enums.PermissionEnum?.PURCHASE_ORDER_VOID"
+                                v-can="$enums.PermissionEnum?.PURCHASE_DELETE"
                                 type="button"
                                 class="btn btn-flat btn-sm text-danger h-7 w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
                                 title="Batalkan (Void) Retur ini"
@@ -442,7 +442,7 @@
         <!-- Tombol Batalkan (Void) Pembelian (Jika berstatus Received / PartialReceived) -->
         <button
             v-if="canVoidPurchase"
-            v-can="$enums.PermissionEnum?.PURCHASE_ORDER_VOID"
+            v-can="$enums.PermissionEnum?.PURCHASE_DELETE"
             type="button"
             class="btn btn-outline-danger inline-flex items-center gap-1"
             @click="confirmVoidPurchase"

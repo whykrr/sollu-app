@@ -3,6 +3,7 @@
 namespace App\Http\Requests\App\Inventory\Transfer;
 
 use App\Enums\PermissionEnum;
+use App\Enums\StockTransferMode;
 use App\Enums\StockTransferStatus;
 use App\Http\Requests\BaseInertiaFormRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -29,6 +30,7 @@ class GetStockTransferRequest extends BaseInertiaFormRequest
         return [
             'search' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', Rule::enum(StockTransferStatus::class)],
+            'transfer_mode' => ['nullable', 'string', Rule::enum(StockTransferMode::class)],
             'from_outlet_id' => ['nullable', 'uuid', 'exists:outlets,id'],
             'to_outlet_id' => ['nullable', 'uuid', 'exists:outlets,id'],
             'outlet_id' => ['nullable', 'uuid', 'exists:outlets,id'],

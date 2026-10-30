@@ -2,13 +2,17 @@
 
 namespace Tests\Integration\Services\App\Inventory;
 
+use App\Enums\PlanEnum;
 use App\Enums\StockOpnameStatus;
+use App\Enums\SubscriptionStatus;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Inventory\InventoryBalance;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Inventory\StockOpname;
 use App\Models\Outlet;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\App\Inventory\InventoryCostingService;
 use App\Services\App\Inventory\InventorySodService;
@@ -67,6 +71,19 @@ class StockOpnameServiceTest extends TestCase
             'business_type_id' => $type->id,
         ]);
 
+        $proPlan = SubscriptionPlan::where('code', PlanEnum::PRO->value)->first();
+        if ($proPlan) {
+            Subscription::create([
+                'business_id' => $business->id,
+                'plan_id' => $proPlan->id,
+                'status' => SubscriptionStatus::Active,
+                'billing_cycle' => 'monthly',
+                'started_at' => now()->subDay(),
+                'expired_at' => now()->addMonth(),
+            ]);
+            $business->clearMemoizedFeatures();
+        }
+
         $user = User::create([
             'business_id' => $business->id,
             'name' => 'Test User',
@@ -119,6 +136,15 @@ class StockOpnameServiceTest extends TestCase
     public function test_it_updates_opname_and_changes_status_to_pending()
     {
         [$user, $business, $outlet, $inventoryItem] = $this->setupBaseData();
+
+        $business->update([
+            'settings' => [
+                'inventory_sod' => [
+                    'enabled' => true,
+                    'rules' => ['stock_opname' => true],
+                ],
+            ],
+        ]);
 
         $opname = $this->service->createOpname([
             'outlet_id' => $outlet->id,

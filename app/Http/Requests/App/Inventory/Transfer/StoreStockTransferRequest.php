@@ -3,7 +3,9 @@
 namespace App\Http\Requests\App\Inventory\Transfer;
 
 use App\Enums\PermissionEnum;
+use App\Enums\StockTransferMode;
 use App\Http\Requests\BaseInertiaFormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreStockTransferRequest extends BaseInertiaFormRequest
 {
@@ -17,6 +19,7 @@ class StoreStockTransferRequest extends BaseInertiaFormRequest
         return [
             'from_outlet_id' => ['required', 'uuid', 'exists:outlets,id'],
             'to_outlet_id' => ['required', 'uuid', 'exists:outlets,id', 'different:from_outlet_id'],
+            'transfer_mode' => ['nullable', 'string', Rule::enum(StockTransferMode::class)],
             'notes' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.inventory_item_id' => ['required', 'uuid', 'exists:inventory_items,id', 'distinct'],

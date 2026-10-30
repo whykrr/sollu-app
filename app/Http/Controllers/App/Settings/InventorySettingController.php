@@ -104,7 +104,10 @@ class InventorySettingController extends Controller
         /** @var Business */
         $business = Auth::user()->business;
 
-        if (! empty($validated['enabled']) && ! $business->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION)) {
+        $hasDoubleAuth = $business->hasFeature(FeatureEnum::DOUBLE_AUTHORIZATION)
+            || in_array(FeatureEnum::DOUBLE_AUTHORIZATION, $business->getAvailablePlanFeatures(), true);
+
+        if (! empty($validated['enabled']) && ! $hasDoubleAuth) {
             abort(403, 'Fitur Pemisahan Tugas (SoD) memerlukan paket langganan yang mendukung Otorisasi Ganda.');
         }
 
@@ -112,8 +115,8 @@ class InventorySettingController extends Controller
         $oldSod = $settings['inventory_sod'] ?? [];
 
         $settings['inventory_sod'] = [
-            'enabled' => $validated['enabled'],
-            'allow_owner_bypass' => $validated['allow_owner_bypass'],
+            'enabled' => (bool) $validated['enabled'],
+            'allow_owner_bypass' => (bool) ($validated['allow_owner_bypass'] ?? true),
             'rules' => $validated['rules'] ?? [],
         ];
 

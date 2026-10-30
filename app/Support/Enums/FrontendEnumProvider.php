@@ -35,6 +35,7 @@ use App\Enums\SalesChannelEnum;
 use App\Enums\ShiftCashLogType;
 use App\Enums\ShiftStatus;
 use App\Enums\StockOpnameStatus;
+use App\Enums\StockTransferMode;
 use App\Enums\StockTransferStatus;
 use App\Enums\SubscriptionStatus;
 use App\Enums\TransactionPaymentStatus;
@@ -89,6 +90,7 @@ class FrontendEnumProvider
         ShiftStatus::class,
         ShiftCashLogType::class,
         StockOpnameStatus::class,
+        StockTransferMode::class,
         StockTransferStatus::class,
         TransactionStatus::class,
         TransactionPaymentStatus::class,

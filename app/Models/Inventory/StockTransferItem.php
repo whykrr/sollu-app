@@ -29,11 +29,15 @@ class StockTransferItem extends Model
         'inventory_item_id',
         'qty',
         'qty_received',
+        'unit_cost',
+        'qty_difference',
+        'difference_reason',
     ];
 
     protected $appends = [
         'qty_formatted',
         'qty_received_formatted',
+        'qty_difference_formatted',
     ];
 
     protected function casts(): array
@@ -41,6 +45,8 @@ class StockTransferItem extends Model
         return [
             'qty' => 'float',
             'qty_received' => 'float',
+            'unit_cost' => 'float',
+            'qty_difference' => 'float',
         ];
     }
 
@@ -67,6 +73,13 @@ class StockTransferItem extends Model
     {
         return Attribute::make(
             get: fn () => $this->formatQuantity($this->qty_received),
+        );
+    }
+
+    protected function qtyDifferenceFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatQuantity($this->qty_difference),
         );
     }
 }

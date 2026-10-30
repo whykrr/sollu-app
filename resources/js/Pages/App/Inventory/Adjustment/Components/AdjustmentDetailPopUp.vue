@@ -269,12 +269,19 @@ const rejectForm = useForm({
 const can = permission => {
     return (
         page.props.auth?.permissions?.includes(permission) ||
-        page.props.auth?.permissions?.includes('inventory.*')
+        page.props.auth?.permissions?.includes('inventory.*') ||
+        page.props.auth?.permissions?.includes('business.*') ||
+        Boolean(page.props.auth?.user?.is_root_user)
     )
 }
 
-const canApprove = computed(() => can('inventory.adjustment.approve'))
-const canVoid = computed(() => can('inventory.adjustment.void'))
+const canApprove = computed(
+    () =>
+        can('inventory.adjust.validate') ||
+        can('inventory.adjust.update') ||
+        can('inventory.adjustment.approve')
+)
+const canVoid = computed(() => can('inventory.adjust.delete') || can('inventory.adjustment.void'))
 
 const close = () => {
     showRejectInput.value = false

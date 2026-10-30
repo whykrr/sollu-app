@@ -87,7 +87,7 @@
                             row.status === $enums.PurchaseOrderStatus.Received ||
                             row.status === $enums.PurchaseOrderStatus.PartialReceived
                         "
-                        v-can="$enums.PermissionEnum?.PURCHASE_ORDER_VOID"
+                        v-can="$enums.PermissionEnum?.PURCHASE_DELETE"
                         class="btn btn-flat btn-sm text-danger h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
                         title="Batalkan (Void) Seluruh Pembelian"
                         @click="confirmVoidPurchase(row)"

@@ -35,6 +35,14 @@
             <template #items_count="{ row }">
                 {{ row.items_count ?? row.items?.length ?? 0 }} Item
             </template>
+            <template #transfer_mode="{ row }">
+                <span
+                    class="badge text-[11px]"
+                    :class="row.transfer_mode === 'two_step' ? 'badge-purple' : 'badge-info'"
+                >
+                    {{ row.transfer_mode === 'two_step' ? '2-Langkah' : '1-Langkah' }}
+                </span>
+            </template>
             <template #status="{ row }">
                 <span class="badge" :class="getColor('StockTransferStatus', row.status)">
                     {{ getLabel('StockTransferStatus', row.status) }}
@@ -103,6 +111,7 @@ const headers = [
         sortable: false,
     },
     { label: 'Jumlah Item', field: 'items_count', slot: 'items_count', sortable: false },
+    { label: 'Mode', field: 'transfer_mode', slot: 'transfer_mode', sortable: true },
     { label: 'Status', field: 'status', slot: 'status', sortable: true },
 ]
 

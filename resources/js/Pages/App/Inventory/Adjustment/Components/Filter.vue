@@ -53,7 +53,7 @@
 
         <template #create>
             <button
-                v-if="can('inventory.adjustment.create')"
+                v-if="can('inventory.adjust.create') || can('inventory.adjustment.create')"
                 type="button"
                 class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
                 @click="$emit('create')"
@@ -103,7 +103,12 @@ const reasonOptions = computed(() => getOptions('AdjustmentReason'))
 
 const toolItems = computed(() => {
     const items = []
-    if (can('inventory.adjustment.freeze')) {
+    if (
+        can('inventory.adjust.validate') ||
+        can('inventory.opname.validate') ||
+        can('inventory.adjustment.freeze') ||
+        can('inventory.opname.freeze')
+    ) {
         items.push({
             label: 'Kelola Pembekuan Stok',
             description: 'Kunci atau buka pergerakan stok per outlet',

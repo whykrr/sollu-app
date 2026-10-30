@@ -456,23 +456,23 @@
                                 >
                                     {{
                                         formSod.enabled
-                                            ? 'Pemisahan Tugas Aktif'
-                                            : 'Mode Fleksibel (UMKM)'
+                                            ? 'Supervisi & SoD Aktif'
+                                            : 'Mode Fleksibel (Langsung Selesai)'
                                     }}
                                 </span>
                             </div>
                             <h3 class="text-base font-bold text-slate-800">
                                 {{
                                     formSod.enabled
-                                        ? 'Pemeriksaan Silang & Otorisasi Berjenjang'
-                                        : 'Fleksibilitas Penuh Tanpa Approval Silang'
+                                        ? 'Validasi Supervisi & Pemisahan Tugas (Dual Control)'
+                                        : 'Fleksibilitas Penuh (Persetujuan Otomatis)'
                                 }}
                             </h3>
                             <p class="text-xs text-slate-500">
                                 {{
                                     formSod.enabled
-                                        ? 'Pengguna yang membuat atau mencatat transaksi dilarang menyetujui transaksi mereka sendiri demi mencegah manipulasi stok.'
-                                        : 'Cocok untuk tim kecil/usaha perorangan: staf atau manajer yang sama dapat membuat sekaligus menyetujui transaksi inventori.'
+                                        ? 'Transaksi inventori (Penyesuaian, Opname, Transfer, Pesanan Pembelian) mewajibkan persetujuan supervisor dan melarang persetujuan oleh pembuat transaksi.'
+                                        : 'Cocok untuk tim ramping / toko mandiri: staf operasional dapat langsung menyimpan dan menerapkan perubahan stok tanpa menunggu persetujuan kedua.'
                                 }}
                             </p>
                         </div>
@@ -484,192 +484,87 @@
                     </div>
                 </div>
 
-                <!-- Quick Presets Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h4
-                            class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2"
-                        >
-                            <FontAwesomeIcon :icon="faWandMagicSparkles" class="text-main" />
-                            <span>Pilih Preset Cepat</span>
-                        </h4>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <button
-                            type="button"
-                            class="p-3 text-left rounded-lg border transition-all text-xs space-y-1"
-                            :class="[
-                                !formSod.enabled
-                                    ? 'border-main bg-main/5 font-semibold text-main'
-                                    : 'border-slate-200 hover:border-slate-300 text-slate-700',
-                            ]"
-                            @click="applyPreset('flexible')"
-                        >
-                            <div class="font-bold flex items-center gap-1.5">
-                                <FontAwesomeIcon :icon="faStore" class="text-xs" />
-                                <span>UMKM / Fleksibel</span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 font-normal leading-tight">
-                                SoD nonaktif. Cepat dan praktis untuk 1-3 staf per cabang.
-                            </p>
-                        </button>
-
-                        <button
-                            type="button"
-                            class="p-3 text-left rounded-lg border transition-all text-xs space-y-1"
-                            :class="[
-                                formSod.enabled && !formSod.rules.purchase_order_receive
-                                    ? 'border-main bg-main/5 font-semibold text-main'
-                                    : 'border-slate-200 hover:border-slate-300 text-slate-700',
-                            ]"
-                            @click="applyPreset('standard')"
-                        >
-                            <div class="font-bold flex items-center gap-1.5">
-                                <FontAwesomeIcon :icon="faUtensils" class="text-xs" />
-                                <span>Standar Operasional</span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 font-normal leading-tight">
-                                SoD aktif pada Penyesuaian & Opname. Pembelian tetap fleksibel.
-                            </p>
-                        </button>
-
-                        <button
-                            type="button"
-                            class="p-3 text-left rounded-lg border transition-all text-xs space-y-1"
-                            :class="[
-                                formSod.enabled &&
-                                formSod.rules.purchase_order_receive &&
-                                !formSod.allow_owner_bypass
-                                    ? 'border-main bg-main/5 font-semibold text-main'
-                                    : 'border-slate-200 hover:border-slate-300 text-slate-700',
-                            ]"
-                            @click="applyPreset('strict')"
-                        >
-                            <div class="font-bold flex items-center gap-1.5">
-                                <FontAwesomeIcon :icon="faBuilding" class="text-xs" />
-                                <span>Audit Ketat Enterprise</span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 font-normal leading-tight">
-                                Seluruh 5 kontrol aktif mutlak tanpa pengecualian pemilik.
-                            </p>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Granular Rules Card -->
+                <!-- Scope Info Card -->
                 <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
                     <div class="border-b border-slate-100 pb-3">
                         <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                             <FontAwesomeIcon :icon="faSliders" class="text-main" />
-                            <span>Aturan Rinci Pemisahan Tugas</span>
+                            <span>Cakupan Alur Validasi Supervisi</span>
                         </h4>
                         <p class="text-xs text-slate-500 mt-0.5">
-                            Pilih alur transaksi spesifik yang mewajibkan persetujuan dari orang
-                            yang berbeda.
+                            Pengaturan master ini berlaku seragam di seluruh modul inventori toko:
                         </p>
                     </div>
 
-                    <div class="divide-y divide-slate-100">
-                        <!-- Rule 1: Stock Adjustment -->
-                        <div class="py-3.5 flex items-start justify-between gap-4">
-                            <div class="space-y-1">
-                                <div
-                                    class="text-xs font-bold text-slate-800 flex items-center gap-2"
-                                >
-                                    <span>Penyesuaian Stok (Stock Adjustment)</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Pembuat draf penyesuaian (koreksi, barang rusak, kadaluwarsa)
-                                    dilarang menyetujui drafnya sendiri. Wajib disetujui oleh
-                                    staf/supervisor lain.
-                                </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div
+                            class="rounded-lg border border-slate-100 bg-slate-50/60 p-3 space-y-1"
+                        >
+                            <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                <FontAwesomeIcon :icon="faSliders" class="text-slate-500 text-xs" />
+                                <span>Penyesuaian Stok (Stock Adjustment)</span>
                             </div>
-                            <Switch
-                                v-model="formSod.rules.stock_adjustment"
-                                size="md"
-                                :disabled="!formSod.enabled"
-                            />
+                            <p class="text-[11px] text-slate-500 leading-relaxed">
+                                {{
+                                    formSod.enabled
+                                        ? 'Perubahan stok wajib diverifikasi oleh supervisor berizin khusus dan dilarang disetujui sendiri oleh pembuat draf.'
+                                        : 'Staf dapat memilih "Simpan & Terapkan" untuk langsung memperbarui saldo stok seketika, atau menyimpannya sebagai draf.'
+                                }}
+                            </p>
                         </div>
 
-                        <!-- Rule 2: Stock Opname -->
-                        <div class="py-3.5 flex items-start justify-between gap-4">
-                            <div class="space-y-1">
-                                <div
-                                    class="text-xs font-bold text-slate-800 flex items-center gap-2"
-                                >
-                                    <span>Stock Opname & Rekonsiliasi</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Petugas yang menginput hasil hitungan fisik dilarang menyetujui
-                                    atau memfinalisasi penyesuaian selisih opname.
-                                </p>
+                        <div
+                            class="rounded-lg border border-slate-100 bg-slate-50/60 p-3 space-y-1"
+                        >
+                            <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                <FontAwesomeIcon
+                                    :icon="faBoxesStacked"
+                                    class="text-slate-500 text-xs"
+                                />
+                                <span>Stock Opname & Rekonsiliasi</span>
                             </div>
-                            <Switch
-                                v-model="formSod.rules.stock_opname"
-                                size="md"
-                                :disabled="!formSod.enabled"
-                            />
+                            <p class="text-[11px] text-slate-500 leading-relaxed">
+                                {{
+                                    formSod.enabled
+                                        ? 'Hasil opname fisik diajukan sebagai draf review dan disetujui oleh supervisor sebelum mutasi selisih diterapkan.'
+                                        : 'Staf dapat menyimpan progres penghitungan fisik atau langsung menyelesaikan rekonsiliasi opname.'
+                                }}
+                            </p>
                         </div>
 
-                        <!-- Rule 3: Stock Transfer Approval -->
-                        <div class="py-3.5 flex items-start justify-between gap-4">
-                            <div class="space-y-1">
-                                <div
-                                    class="text-xs font-bold text-slate-800 flex items-center gap-2"
-                                >
-                                    <span>Persetujuan Transfer Stok Cabang</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Staf yang mengajukan permintaan transfer antar-outlet dilarang
-                                    menyetujui permintaannya sendiri.
-                                </p>
+                        <div
+                            class="rounded-lg border border-slate-100 bg-slate-50/60 p-3 space-y-1"
+                        >
+                            <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                <FontAwesomeIcon :icon="faStore" class="text-slate-500 text-xs" />
+                                <span>Transfer Stok Antar-Cabang</span>
                             </div>
-                            <Switch
-                                v-model="formSod.rules.stock_transfer_approval"
-                                size="md"
-                                :disabled="!formSod.enabled"
-                            />
+                            <p class="text-[11px] text-slate-500 leading-relaxed">
+                                {{
+                                    formSod.enabled
+                                        ? 'Permintaan transfer wajib disetujui terlebih dahulu sebelum dikirim, serta penerima di cabang tujuan harus berbeda dari pengirim.'
+                                        : 'Transfer otomatis berstatus disetujui saat dibuat sehingga langsung siap dikirim dan diterima staf cabang.'
+                                }}
+                            </p>
                         </div>
 
-                        <!-- Rule 4: Stock Transfer Receive -->
-                        <div class="py-3.5 flex items-start justify-between gap-4">
-                            <div class="space-y-1">
-                                <div
-                                    class="text-xs font-bold text-slate-800 flex items-center gap-2"
-                                >
-                                    <span>Pemisahan Pengirim & Penerima Transfer</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Staf yang mengirim barang dari outlet asal dilarang merangkap
-                                    mencatat penerimaan barang di outlet tujuan.
-                                </p>
+                        <div
+                            class="rounded-lg border border-slate-100 bg-slate-50/60 p-3 space-y-1"
+                        >
+                            <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                <FontAwesomeIcon
+                                    :icon="faBagShopping"
+                                    class="text-slate-500 text-xs"
+                                />
+                                <span>Pesanan Pembelian & Penerimaan Barang</span>
                             </div>
-                            <Switch
-                                v-model="formSod.rules.stock_transfer_receive"
-                                size="md"
-                                :disabled="!formSod.enabled"
-                            />
-                        </div>
-
-                        <!-- Rule 5: Purchase Order vs Goods Receipt -->
-                        <div class="py-3.5 flex items-start justify-between gap-4">
-                            <div class="space-y-1">
-                                <div
-                                    class="text-xs font-bold text-slate-800 flex items-center gap-2"
-                                >
-                                    <span>Pemisahan Pembuat PO & Penerima Barang</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">
-                                    Staf pembuat pesanan pembelian (PO) dilarang mencatat penerimaan
-                                    fisik surat jalan (Goods Receipt) untuk PO tersebut.
-                                </p>
-                            </div>
-                            <Switch
-                                v-model="formSod.rules.purchase_order_receive"
-                                size="md"
-                                :disabled="!formSod.enabled"
-                            />
+                            <p class="text-[11px] text-slate-500 leading-relaxed">
+                                {{
+                                    formSod.enabled
+                                        ? 'Pengiriman PO ke vendor membutuhkan otorisasi supervisor, dan penerima fisik barang harus staf yang berbeda dari pembuat PO.'
+                                        : 'Staf pembuat PO dapat langsung memesan ke pemasok dan mencatat barang yang diterima di toko.'
+                                }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -684,8 +579,8 @@
                             </div>
                             <p class="text-[11px] text-slate-500 leading-relaxed">
                                 Izinkan pemilik usaha (Owner / Superadmin) menyetujui transaksi
-                                mereka sendiri dalam kondisi mendesak/darurat, meskipun aturan SoD
-                                sedang aktif.
+                                mereka sendiri dalam kondisi mendesak/darurat, meskipun supervisi
+                                dan pemisahan tugas sedang aktif.
                             </p>
                         </div>
                         <Switch
@@ -808,9 +703,7 @@ import {
     faScaleBalanced,
     faUserShield,
     faHandshake,
-    faWandMagicSparkles,
     faStore,
-    faBuilding,
     faKey,
     faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons'
@@ -834,14 +727,6 @@ const props = defineProps({
         default: () => ({
             enabled: false,
             allow_owner_bypass: true,
-            rules: {
-                stock_adjustment: true,
-                stock_opname: true,
-                stock_transfer_approval: true,
-                stock_transfer_receive: true,
-                purchase_order_receive: false,
-                direct_purchase_allowed: true,
-            },
         }),
     },
     stats: {
@@ -881,58 +766,14 @@ const saveCostingMethod = () => {
 const formSod = useForm({
     enabled: props.sodSettings?.enabled ?? false,
     allow_owner_bypass: props.sodSettings?.allow_owner_bypass ?? true,
-    rules: {
-        stock_adjustment: props.sodSettings?.rules?.stock_adjustment ?? true,
-        stock_opname: props.sodSettings?.rules?.stock_opname ?? true,
-        stock_transfer_approval: props.sodSettings?.rules?.stock_transfer_approval ?? true,
-        stock_transfer_receive: props.sodSettings?.rules?.stock_transfer_receive ?? true,
-        purchase_order_receive: props.sodSettings?.rules?.purchase_order_receive ?? false,
-        direct_purchase_allowed: props.sodSettings?.rules?.direct_purchase_allowed ?? true,
-    },
 })
 
 const hasSodChanges = computed(() => {
     return (
         formSod.enabled !== (props.sodSettings?.enabled ?? false) ||
-        formSod.allow_owner_bypass !== (props.sodSettings?.allow_owner_bypass ?? true) ||
-        formSod.rules.stock_adjustment !== (props.sodSettings?.rules?.stock_adjustment ?? true) ||
-        formSod.rules.stock_opname !== (props.sodSettings?.rules?.stock_opname ?? true) ||
-        formSod.rules.stock_transfer_approval !==
-            (props.sodSettings?.rules?.stock_transfer_approval ?? true) ||
-        formSod.rules.stock_transfer_receive !==
-            (props.sodSettings?.rules?.stock_transfer_receive ?? true) ||
-        formSod.rules.purchase_order_receive !==
-            (props.sodSettings?.rules?.purchase_order_receive ?? false)
+        formSod.allow_owner_bypass !== (props.sodSettings?.allow_owner_bypass ?? true)
     )
 })
-
-const applyPreset = preset => {
-    if (preset === 'flexible') {
-        formSod.enabled = false
-        formSod.allow_owner_bypass = true
-        formSod.rules.stock_adjustment = true
-        formSod.rules.stock_opname = true
-        formSod.rules.stock_transfer_approval = true
-        formSod.rules.stock_transfer_receive = true
-        formSod.rules.purchase_order_receive = false
-    } else if (preset === 'standard') {
-        formSod.enabled = true
-        formSod.allow_owner_bypass = true
-        formSod.rules.stock_adjustment = true
-        formSod.rules.stock_opname = true
-        formSod.rules.stock_transfer_approval = false
-        formSod.rules.stock_transfer_receive = false
-        formSod.rules.purchase_order_receive = false
-    } else if (preset === 'strict') {
-        formSod.enabled = true
-        formSod.allow_owner_bypass = false
-        formSod.rules.stock_adjustment = true
-        formSod.rules.stock_opname = true
-        formSod.rules.stock_transfer_approval = true
-        formSod.rules.stock_transfer_receive = true
-        formSod.rules.purchase_order_receive = true
-    }
-}
 
 const saveSodSettings = () => {
     formSod.put(route('settings.inventory.sod.update'), {

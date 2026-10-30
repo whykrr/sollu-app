@@ -61,6 +61,7 @@ class StockAdjustmentFeatureTest extends TestCase
                 'features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
                     FeatureEnum::STOCK_ADJUSTMENTS->value,
+                    FeatureEnum::DOUBLE_AUTHORIZATION->value,
                 ],
             ]
         );
@@ -77,6 +78,7 @@ class StockAdjustmentFeatureTest extends TestCase
                 'active_features' => [
                     FeatureEnum::INVENTORY_MANAGEMENT->value,
                     FeatureEnum::STOCK_ADJUSTMENTS->value,
+                    FeatureEnum::DOUBLE_AUTHORIZATION->value,
                 ],
             ],
         ]);
@@ -167,6 +169,7 @@ class StockAdjustmentFeatureTest extends TestCase
             'outlet_id' => $this->outlet->id,
             'reason' => AdjustmentReason::Correction->value,
             'notes' => 'Pemeriksaan rutin mingguan',
+            'is_draft' => true,
             'items' => [
                 [
                     'inventory_item_id' => $this->inventoryItem->id,
@@ -196,6 +199,44 @@ class StockAdjustmentFeatureTest extends TestCase
             'qty_change' => 20,
             'unit_cost' => 15000,
         ]);
+    }
+
+    public function test_user_can_create_and_apply_stock_adjustment_in_flexible_mode()
+    {
+        $payload = [
+            'outlet_id' => $this->outlet->id,
+            'reason' => AdjustmentReason::Correction->value,
+            'notes' => 'Simpan dan terapkan langsung',
+            'is_draft' => false,
+            'items' => [
+                [
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'qty_change' => 10,
+                    'unit_cost' => 15000,
+                    'description' => 'Terapkan langsung',
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($this->owner)
+            ->post("http://{$this->appDomain}/inventories/adjustments", $payload);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success', 'Penyesuaian stok berhasil disimpan dan diterapkan.');
+
+        $this->assertDatabaseHas('stock_adjustments', [
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'status' => AdjustmentStatus::Approved->value,
+            'created_by' => $this->owner->id,
+            'approved_by' => $this->owner->id,
+        ]);
+
+        $balance = InventoryBalance::where('inventory_item_id', $this->inventoryItem->id)
+            ->where('outlet_id', $this->outlet->id)
+            ->first();
+
+        $this->assertEquals(10, (float) $balance->current_stock);
     }
 
     public function test_owner_can_approve_draft_adjustment()
@@ -237,19 +278,94 @@ class StockAdjustmentFeatureTest extends TestCase
         $this->assertEquals(15, (float) $item->stock_after);
     }
 
+    public function test_staff_with_update_permission_can_approve_draft_adjustment_in_flexible_mode(): void
+    {
+        $staff = User::create([
+            'business_id' => $this->business->id,
+            'name' => 'Operator Staff',
+            'email' => 'operator_'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+        ]);
+        $staff->outlets()->attach($this->outlet->id);
+        $staff->givePermissionTo(PermissionEnum::INVENTORY_ADJUST_UPDATE->value);
+
+        $adjustment = StockAdjustment::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'adjustment_number' => 'ADJ-20260922-099',
+            'status' => AdjustmentStatus::Draft,
+            'reason' => AdjustmentReason::Correction,
+            'created_by' => $this->supervisor->id,
+        ]);
+
+        $adjustment->items()->create([
+            'inventory_item_id' => $this->inventoryItem->id,
+            'movement_type' => InventoryMovementType::Adjustment,
+            'qty_change' => 5,
+            'unit_cost' => 10000,
+            'description' => 'Koreksi draf fleksibel',
+        ]);
+
+        $response = $this->actingAs($staff)
+            ->post("http://{$this->appDomain}/inventories/adjustments/{$adjustment->id}/approve");
+
+        $response->assertSessionHas('success');
+        $this->assertEquals(AdjustmentStatus::Approved, $adjustment->fresh()->status);
+    }
+
+    public function test_staff_without_validate_permission_cannot_approve_draft_adjustment_when_supervision_is_enabled(): void
+    {
+        $this->business->settings = [
+            'inventory_sod' => [
+                'enabled' => true,
+                'allow_owner_bypass' => false,
+            ],
+        ];
+        $this->business->save();
+
+        $staff = User::create([
+            'business_id' => $this->business->id,
+            'name' => 'Staff Without Validate',
+            'email' => 'staff_noval_'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+        ]);
+        $staff->outlets()->attach($this->outlet->id);
+        $staff->givePermissionTo(PermissionEnum::INVENTORY_ADJUST_UPDATE->value);
+
+        $adjustment = StockAdjustment::create([
+            'business_id' => $this->business->id,
+            'outlet_id' => $this->outlet->id,
+            'adjustment_number' => 'ADJ-20260922-100',
+            'status' => AdjustmentStatus::Draft,
+            'reason' => AdjustmentReason::Correction,
+            'created_by' => $this->supervisor->id,
+        ]);
+
+        $adjustment->items()->create([
+            'inventory_item_id' => $this->inventoryItem->id,
+            'movement_type' => InventoryMovementType::Adjustment,
+            'qty_change' => 5,
+            'description' => 'Koreksi draf',
+        ]);
+
+        $response = $this->actingAs($staff)
+            ->post("http://{$this->appDomain}/inventories/adjustments/{$adjustment->id}/approve");
+
+        $response->assertForbidden();
+        $this->assertEquals(AdjustmentStatus::Draft, $adjustment->fresh()->status);
+    }
+
     public function test_supervisor_cannot_approve_their_own_adjustment()
     {
-        $this->business->update([
-            'settings' => [
-                'inventory_sod' => [
-                    'enabled' => true,
-                    'allow_owner_bypass' => false,
-                    'rules' => [
-                        'stock_adjustment' => true,
-                    ],
-                ],
+        $settings = $this->business->settings ?? [];
+        $settings['inventory_sod'] = [
+            'enabled' => true,
+            'allow_owner_bypass' => false,
+            'rules' => [
+                'stock_adjustment' => true,
             ],
-        ]);
+        ];
+        $this->business->update(['settings' => $settings]);
 
         $adjustment = StockAdjustment::create([
             'business_id' => $this->business->id,
