@@ -66,6 +66,8 @@ Route::prefix('pos')
             Route::put('/employees/pin', [EmployeeController::class, 'updatePin'])->name('employees.pin.update');
 
             Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+            Route::post('/transactions/batch', [TransactionController::class, 'batchSync'])->name('transactions.batch');
+            Route::post('/transactions/{id}/void', [TransactionController::class, 'voidTransaction'])->name('transactions.void');
 
             Route::prefix('shifts')->name('shifts.')->group(function () {
                 Route::post('/sync', [ShiftController::class, 'sync'])->name('sync');

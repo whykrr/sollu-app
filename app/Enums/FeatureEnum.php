@@ -12,6 +12,7 @@ enum FeatureEnum: string
 
     case POS = 'pos';
     case SHIFT_CASHIER = 'shift_cashier';
+    case CASH_DRAWER = 'cash_drawer';
     case SPLIT_PAYMENT = 'split_payment';
     case TRANSACTION_INVOICE = 'transaction_invoice';
 

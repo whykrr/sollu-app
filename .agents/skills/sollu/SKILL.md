@@ -38,33 +38,33 @@ Pedoman dan standar baku rekayasa perangkat lunak untuk seluruh modul dan kompon
 ## 0. Core Philosophy & 15 User-Centric Principles
 
 ### 0.1. Filosofi Utama Desain Sistem
+
 > **"Jangan membuat user belajar cara kerja aplikasi; buat aplikasi mengikuti cara kerja user."**
-> *(Aplikasi wajib beradaptasi dengan alur dan kebiasaan bisnis nyata pedagang/merchant, bukan memaksa pengguna mempelajari kerumitan teknis dan arsitektur sistem).*
+> _(Aplikasi wajib beradaptasi dengan alur dan kebiasaan bisnis nyata pedagang/merchant, bukan memaksa pengguna mempelajari kerumitan teknis dan arsitektur sistem)._
 
 ### 0.2. 15 Prinsip Rekayasa Pengalaman Pengguna & Pemetaan Teknis
 
-| No | Prinsip | Deskripsi Operasional | Implementasi Teknis Baku |
-| :--- | :--- | :--- | :--- |
-| 1 | **Mudah di-Setup** | Konfigurasi awal cepat dan siap pakai tanpa manual panjang. | Onboarding wizard, default settings per `BusinessType`, registrasi tanpa hambatan. |
-| 2 | **Mudah Dioperasikan** | Aksi harian (kasir, transaksi, opname) intuitif dan cepat. | Transisi SPA Inertia, shortcut kasir, integrasi barcode scanner. |
-| 3 | **Interface Tidak Ambigu** | Tidak ada tombol atau status yang menimbulkan tanda tanya. | Label tombol deskriptif (`"+ Tambah Produk"`), status badge warna semantik dari Enum. |
-| 4 | **Experience User Diutamakan** | Mengoptimalkan kenyamanan penggunaan di laptop, tablet, dan HP. | Target sentuh $\ge 44\text{px}$ mobile / $\ge 36\text{px}$ tablet, thumb zone footer, anti-zoom iOS (`.form.adaptive`), performa $<5\text{s}$. |
-| 5 | **Sederhana** | Tampilkan hanya yang esensial, tanpa clutter visual. | Desain Flat Minimalis (*zero shadow* di `<MainPage>`), non-scrolling sticky header, responsive column masking. |
-| 6 | **Jelas** | Bahasa familiar pedagang/kasir, bukan istilah teknis/sistem. | Kosakata baku ramah (*"Sampah"*, *"Pulihkan"*, *"Draf"*, *"Unduh"*), hindari error code mentah. |
-| 7 | **Konsisten** | Pola layout, tombol, form, dan istilah selalu sama di seluruh modul. | Standar `<MainPage>`, hierarki `.btn`, drawer `<PopUpPage>`, tabel `<Table>`, form `@/Components/Form/`. |
-| 8 | **Smart Default** | Mengisi otomatis data yang sudah dapat diprediksi sistem. | Outlet aktif terpilih otomatis, filter tanggal default `'this_month'`, auto-generate SKU/kode, autofocus input. |
-| 9 | **Minim Langkah** | Tugas umum dapat diselesaikan dengan sedikit klik. | Single action `@row-click`, pencarian live inline debounced, dropdown `Opsi Data`. |
-| 10 | **Progressive Disclosure** | Form dan fitur kompleks hanya muncul saat dibutuhkan. | 3-Tier Form Architecture (Simple $\le 5$ fields $\rightarrow$ Progressive $6-12$ via `<DisclosureSection>` $\rightarrow$ Wizard/Tabs $> 12$). |
-| 11 | **Mencegah Kesalahan** | Melindungi user dari aksi keliru sebelum terjadi. | Proteksi form dirty via `useFormDirtyGuard`, modal konfirmasi aksi berisiko, disable button saat submit. |
-| 12 | **Mudah Diperbaiki** | Selalu sediakan jalan keluar jika terjadi kekeliruan. | Soft Deletes pada seluruh data utama, tombol Pulihkan dari sampah (`FilterTrashData`), tombol Batal aman. |
-| 13 | **Feedback Jelas** | Beritahu status keberhasilan/kegagalan aksi secara instan. | Toast notification (`ResourceMessage`), loading skeleton/spinner, pesan error solutif. |
-| 14 | **Ikuti Cara Kerja User** | Sistem mencerminkan kenyataan bisnis di lapangan. | Stok fisik vs sistem pada opname, partial goods receipt pengadaan, split bill kasir. |
-| 15 | **Wording Santai & Profesional** | Nada bicara asisten rekan kerja cerdas yang ramah dan solutif. | Sapaan *"Tokomu"*, *"Bisnismu"*, *"Yuk, ..."*, to-the-point, presisi istilah bisnis. |
+| No  | Prinsip                          | Deskripsi Operasional                                                | Implementasi Teknis Baku                                                                                                                       |
+| :-- | :------------------------------- | :------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Mudah di-Setup**               | Konfigurasi awal cepat dan siap pakai tanpa manual panjang.          | Onboarding wizard, default settings per `BusinessType`, registrasi tanpa hambatan.                                                             |
+| 2   | **Mudah Dioperasikan**           | Aksi harian (kasir, transaksi, opname) intuitif dan cepat.           | Transisi SPA Inertia, shortcut kasir, integrasi barcode scanner.                                                                               |
+| 3   | **Interface Tidak Ambigu**       | Tidak ada tombol atau status yang menimbulkan tanda tanya.           | Label tombol deskriptif (`"+ Tambah Produk"`), status badge warna semantik dari Enum.                                                          |
+| 4   | **Experience User Diutamakan**   | Mengoptimalkan kenyamanan penggunaan di laptop, tablet, dan HP.      | Target sentuh $\ge 44\text{px}$ mobile / $\ge 36\text{px}$ tablet, thumb zone footer, anti-zoom iOS (`.form.adaptive`), performa $<5\text{s}$. |
+| 5   | **Sederhana**                    | Tampilkan hanya yang esensial, tanpa clutter visual.                 | Desain Flat Minimalis (_zero shadow_ di `<MainPage>`), non-scrolling sticky header, responsive column masking.                                 |
+| 6   | **Jelas**                        | Bahasa familiar pedagang/kasir, bukan istilah teknis/sistem.         | Kosakata baku ramah (_"Sampah"_, _"Pulihkan"_, _"Draf"_, _"Unduh"_), hindari error code mentah.                                                |
+| 7   | **Konsisten**                    | Pola layout, tombol, form, dan istilah selalu sama di seluruh modul. | Standar `<MainPage>`, hierarki `.btn`, drawer `<PopUpPage>`, tabel `<Table>`, form `@/Components/Form/`.                                       |
+| 8   | **Smart Default**                | Mengisi otomatis data yang sudah dapat diprediksi sistem.            | Outlet aktif terpilih otomatis, filter tanggal default `'this_month'`, auto-generate SKU/kode, autofocus input.                                |
+| 9   | **Minim Langkah**                | Tugas umum dapat diselesaikan dengan sedikit klik.                   | Single action `@row-click`, pencarian live inline debounced, dropdown `Opsi Data`.                                                             |
+| 10  | **Progressive Disclosure**       | Form dan fitur kompleks hanya muncul saat dibutuhkan.                | 3-Tier Form Architecture (Simple $\le 5$ fields $\rightarrow$ Progressive $6-12$ via `<DisclosureSection>` $\rightarrow$ Wizard/Tabs $> 12$).  |
+| 11  | **Mencegah Kesalahan**           | Melindungi user dari aksi keliru sebelum terjadi.                    | Proteksi form dirty via `useFormDirtyGuard`, modal konfirmasi aksi berisiko, disable button saat submit.                                       |
+| 12  | **Mudah Diperbaiki**             | Selalu sediakan jalan keluar jika terjadi kekeliruan.                | Soft Deletes pada seluruh data utama, tombol Pulihkan dari sampah (`FilterTrashData`), tombol Batal aman.                                      |
+| 13  | **Feedback Jelas**               | Beritahu status keberhasilan/kegagalan aksi secara instan.           | Toast notification (`ResourceMessage`), loading skeleton/spinner, pesan error solutif.                                                         |
+| 14  | **Ikuti Cara Kerja User**        | Sistem mencerminkan kenyataan bisnis di lapangan.                    | Stok fisik vs sistem pada opname, partial goods receipt pengadaan, split bill kasir.                                                           |
+| 15  | **Wording Santai & Profesional** | Nada bicara asisten rekan kerja cerdas yang ramah dan solutif.       | Sapaan _"Tokomu"_, _"Bisnismu"_, _"Yuk, ..."_, to-the-point, presisi istilah bisnis.                                                           |
 
 ---
 
 ## 1. Core Architecture & Tech Stack
-
 
 ### 1.1. Official Technology Stack
 
@@ -111,8 +111,8 @@ resources/
 
 - **Tenant Isolation:** Enforce `business_id` and `outlet_id` checks on every query mutation and retrieval.
 - **SSOT Outlet Resolution:** Dilarang membaca mentah `$request->get('outlet_id')` atau `$request->outlet`. Wajib gunakan `SelectedOutlet::resolveEffectiveOutletId($request->user(), $request->input('outlet_id') ?: $request->input('outlet'))` di seluruh controller/service.
-  - **Prioritas 1 (Sidebar Master Scope):** Outlet aktif dari session/sidebar selalu memenangkan filter.
-  - **Prioritas 2 (Semua Outlet Scope):** Parameter URL divalidasi ke daftar accessible outlets user. Parameter tidak sah / luar tenant otomatis di-sanitize ke `null`.
+    - **Prioritas 1 (Sidebar Master Scope):** Outlet aktif dari session/sidebar selalu memenangkan filter.
+    - **Prioritas 2 (Semua Outlet Scope):** Parameter URL divalidasi ke daftar accessible outlets user. Parameter tidak sah / luar tenant otomatis di-sanitize ke `null`.
 - **Query Scoping Mode:** Model dengan relasi outlet wajib menggunakan trait `HasOutlet` (`scopeSelectedOutlet`). Mode "Semua Outlet" wajib dibatasi ke `whereIn('outlet_id', $userAccessibleOutletIds)`.
 - **ORM Enforcements:** Use Eloquent or Query Builder bindings exclusively. Never construct raw SQL strings with inline variable interpolations.
 - **Environment Secrets:** Store secret keys, webhooks, and API credentials exclusively in `.env`. Never commit secrets directly in code.
@@ -129,9 +129,8 @@ resources/
 
 | MCP Server          | Transport / Runtime                                 | Primary Purpose                                                                                           | Key Tools                                                                                                |
 | :------------------ | :-------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------- |
-| **`git`**           | Stdio (`npx git-mcp-server`)                        | Atomic version control, commit conventions, branch management, safe stash operations                      | `status`, `add`, `commit`, `branch_list`, `branch_create`, `checkout`, `stash_save`, `stash_pop`         |
+| **`git-core`**      | Stdio (`npx git-mcp-server`)                        | Atomic version control, commit conventions, branch management, safe stash operations                      | `status`, `add`, `commit`, `branch_list`, `branch_create`, `checkout`, `stash_save`, `stash_pop`         |
 | **`laravel-boost`** | Stdio (`php artisan boost:mcp` via `laravel/boost`) | Application-level schema inspection, error logs, documentation vector search, and dynamic code evaluation | `database-schema`, `database-query`, `last-error`, `read-log-entries`, `search-docs`, `application-info` |
-| **`sollu-db`**      | Stdio (`@modelcontextprotocol/server-postgres`)     | Direct PostgreSQL system catalog queries, index inspection, and raw SQL validation (Read-only `SELECT`)   | `query`                                                                                                  |
 | **`filesystem`**    | Stdio (`@modelcontextprotocol/server-filesystem`)   | Multi-file inspections, directory trees, and safe file operations                                         | `read_file`, `write_file`, `list_directory`, `search_files`, `get_file_info`                             |
 
 > [!NOTE]
@@ -258,7 +257,7 @@ class PromoEvaluationService
 
 - **MANDATORY BEFORE ANY CODING:**
     - **Documentation Verification:** Gunakan MCP `laravel-boost` (`search-docs`) untuk memverifikasi sintaks resmi, signature method, dan best practices dari package ekosistem Laravel 11.
-    - **Database Schema Inspection:** Gunakan MCP `laravel-boost` (`database-schema`) dan `sollu-db` (query PostgreSQL) untuk membaca skema langsung dari database hidup. Jangan pernah mengira-ngira nama kolom atau tipe data.
+    - **Database Schema Inspection:** Gunakan MCP `laravel-boost` (`database-schema`) untuk membaca skema langsung dari database hidup. Jangan pernah mengira-ngira nama kolom atau tipe data.
     - **Error Diagnostics:** Saat terjadi error / exception, **LANGKAH PERTAMA** adalah memanggil `last-error` atau `read-log-entries` dari `laravel-boost`.
 - **Verifikasi Kolom & Data Type:** Pastikan nama kolom, tipe data, nulabilitas (`nullable`), default value, dan Foreign Key pada Model/FormRequest/Service **persis sama** dengan skema nyata di database.
 - **Verifikasi Relasi (FK):** Cek keberadaan Foreign Key constraint di database sebelum menuliskan method relasi Eloquent (`belongsTo`, `hasMany`, dll) atau validasi `exists:table,id`.
@@ -346,7 +345,7 @@ class PromoEvaluationService
 - **Selective Column Loading (`select()`):** Hindari `SELECT *` pada tabel besar/query berat. Pilih hanya kolom yang dibutuhkan (`select(['id', 'name', 'status', ...])`), terutama saat eager loading (`with(['relation:id,parent_id,name'])`).
 - **Existence Checks:** Gunakan `exists()` atau `doesntExist()` saat mengecek keberadaan data (bukan `count() > 0` atau `first() !== null`).
 - **Batch Processing & Mutations:** Dilarang perulangan mutasi model (`foreach (...) { Model::create(...) }`). Gunakan batch `insert()` atau `upsert()`.
-- **Index Awareness:** Periksa ketersediaan indeks pada kolom pencarian, filter status, tenant ID, atau relasi menggunakan MCP `sollu-db`.
+- **Index Awareness:** Periksa ketersediaan indeks pada kolom pencarian, filter status, tenant ID, atau relasi menggunakan MCP `laravel-boost`.
 - **No Unbounded Queries:** Dilarang memanggil `get()` atau `all()` tanpa batasan (`limit` atau `paginate`). Gunakan `chunk()`, `lazy()`, atau `cursor()` untuk dataset besar.
 
 ### 3.7. API JSON Response Standards
@@ -437,7 +436,7 @@ public function store(StoreOutletRequest $request)
 9. **STANDARISASI ON-DEMAND DATA LOADING:** Data detail entitas lengkap dan data sekunder (opsi dropdown) WAJIB diambil secara _on-demand / async_ via API internal (`axios.get`) saat drawer/modal dibuka. DILARANG memuat relasi berat di props `index()`. Selalu gunakan skeleton loader atau spinner saat menunggu data async.
 10. **MANDATORY ENUM FOR CONDITIONS & FORM OPTIONS (NO MAGIC STRINGS):** DILARANG meng-hardcode string literal status/tipe. WAJIB gunakan `$enums.<EnumName>.<Case>` di template atau composable `useEnum()` (`enums.<EnumName>.<Case>`, `getOptions('EnumName')`).
 11. **MANDATORY FRONTEND UI & BUILD VERIFICATION:** Setiap pembuatan/perubahan komponen Vue WAJIB diverifikasi visual dan fungsional (bebas dari error kompilasi Vite/ESLint, verifikasi alur drawer `<PopUpPage>`, form field `@/Components/Form/`, dan toolbar filter).
-12. **MANDATORY MULTI-DEVICE ERGONOMICS & TOUCH TARGET STANDARDS:** Seluruh komponen UI WAJIB ergonomis dan adaptif untuk Laptop, Tablet (POS), dan Smartphone (Mobile). Target sentuh minimum: Mobile $\ge 44\text{px}$ (`.touch-target`), Tablet $\ge 36\text{px}$ (`.touch-target-sm`), Desktop $\ge 28\text{px}$. Input formulir wajib mencegah *auto-zoom* iOS Safari (gunakan `.form.adaptive` atau `text-base sm:text-xs`). Aksi formulir utama mobile wajib berada di *Thumb Zone* bawah (`#popUpFooter`), tabel mobile menyembunyikan kolom sekunder (`show: 'md'`), dan elemen melayang wajib menyertakan safe area insets (`safe-pb`). Halaman standalone (Auth/Onboarding) **WAJIB solid 1 layar tanpa scroll vertikal** di smartphone (`h-svh max-h-svh`), menggunakan struktur 3-tier vertikal: Header (`shrink-0`), Konten Tengah (`flex-1 min-h-0 flex flex-col justify-center`, hindari `my-auto`), dan Action Footer (`shrink-0` terpasang di bawah dengan `safe-pb` dan tombol `min-h-[44px]`). Lihat panduan lengkap di `docs/ui-ergonomics.md`.
+12. **MANDATORY MULTI-DEVICE ERGONOMICS & TOUCH TARGET STANDARDS:** Seluruh komponen UI WAJIB ergonomis dan adaptif untuk Laptop, Tablet (POS), dan Smartphone (Mobile). Target sentuh minimum: Mobile $\ge 44\text{px}$ (`.touch-target`), Tablet $\ge 36\text{px}$ (`.touch-target-sm`), Desktop $\ge 28\text{px}$. Input formulir wajib mencegah _auto-zoom_ iOS Safari (gunakan `.form.adaptive` atau `text-base sm:text-xs`). Aksi formulir utama mobile wajib berada di _Thumb Zone_ bawah (`#popUpFooter`), tabel mobile menyembunyikan kolom sekunder (`show: 'md'`), dan elemen melayang wajib menyertakan safe area insets (`safe-pb`). Halaman standalone (Auth/Onboarding) **WAJIB solid 1 layar tanpa scroll vertikal** di smartphone (`h-svh max-h-svh`), menggunakan struktur 3-tier vertikal: Header (`shrink-0`), Konten Tengah (`flex-1 min-h-0 flex flex-col justify-center`, hindari `my-auto`), dan Action Footer (`shrink-0` terpasang di bawah dengan `safe-pb` dan tombol `min-h-[44px]`). Lihat panduan lengkap di `docs/ui-ergonomics.md`.
 13. **MANDATORY UX COPYWRITING & WORDING STANDARDS (SANTAI, KOMUNIKATIF, TO THE POINT, PROFESIONAL):** Seluruh teks antarmuka (empty states, placeholders, toasts, modal konfirmasi, pesan error, label form) WAJIB menggunakan nada bicara ramah, lugas, tidak kaku/birokratis, namun tetap profesional dan presisi terhadap istilah bisnis. Dilarang menggunakan bahasa kaku ala Google Translate mentah atau slang pasar berlebihan. Lihat panduan lengkap di `docs/ux-wording.md`.
 
 ### 4.2. Component Structure (`<script setup>`)
@@ -552,18 +551,18 @@ Seluruh AI Agent WAJIB memprioritaskan dan memaksimalkan penggunaan komponen baw
 ### 4.9. Form Focus States, Inset Rings & Anti-Flash Transitions
 
 - **Pola Baku `@utility form` & `.form-group`:**
-  ```css
-  /* Selalu gunakan outline-none dan transition-colors */
-  outline-none
-  transition-colors duration-200 ease-in-out
-  focus:ring-2
-  focus:ring-inset
-  focus:outline-none
-  focus:ring-main/20
-  focus:border-main
-  ```
+    ```css
+    /* Selalu gunakan outline-none dan transition-colors */
+    outline-none
+    transition-colors duration-200 ease-in-out
+    focus:ring-2
+    focus:ring-inset
+    focus:outline-none
+    focus:ring-main/20
+    focus:border-main
+    ```
 - **Prinsip Ring Inset pada Modal/Drawer:** Seluruh kartu interaktif atau form yang berada di dalam wrapper scrollable (`PopUpPage`, `ModalContainer`, `overflow-y-auto`) wajib menggunakan modifier `ring-inset` agar shadow diproyeksikan ke dalam batas border box dan tidak terpotong oleh overflow container.
-- **Dilarang `transition-all`:** Jangan pernah memasang `transition-all` pada input form untuk mencegah interpolasi `box-shadow` melewati hitam (*black border flash*).
+- **Dilarang `transition-all`:** Jangan pernah memasang `transition-all` pada input form untuk mencegah interpolasi `box-shadow` melewati hitam (_black border flash_).
 
 ---
 
@@ -577,7 +576,7 @@ DILARANG KERAS menuliskan string literal mentah untuk validasi kondisi, status, 
 | :---------------------- | :--------------------------------------------------------------------- | :------------------------------------------------------------------ |
 | **Vue Template `v-if`** | `v-if="item.status === 'draft'"`                                       | `v-if="item.status === $enums.AdjustmentStatus.Draft"`              |
 | **Vue Feature Gating**  | `v-feature="'promo_management'"`                                       | `v-feature="$enums.FeatureEnum.PROMO_MANAGEMENT"`                   |
-| **Vue Upsell Lock**     | `v-feature.lock="'promo_management'"`                                 | `v-feature.lock="$enums.FeatureEnum.PROMO_MANAGEMENT"`             |
+| **Vue Upsell Lock**     | `v-feature.lock="'promo_management'"`                                  | `v-feature.lock="$enums.FeatureEnum.PROMO_MANAGEMENT"`              |
 | **Vue Badge Class**     | `:class="item.status === 'approved' ? 'badge-success' : 'badge-gray'"` | `:class="$enums.AdjustmentStatus._meta[item.status]?.color"`        |
 | **Vue Badge Text**      | `{{ item.status === 'approved' ? 'Disetujui' : item.status }}`         | `{{ $enums.AdjustmentStatus._meta[item.status]?.label }}`           |
 | **Vue Script Setup**    | `if (item.status === 'draft')`                                         | `if (item.status === enums.AdjustmentStatus.Draft)` via `useEnum()` |
@@ -712,8 +711,8 @@ if (can('settings.outlets.create')) {
 ### 6.5. Internal Control & Segregation of Duties (SoD Policy Layer)
 
 - **Lapisan Otorisasi Bertingkat:** Otorisasi aksi operasional inventori (Approval Penyesuaian, Opname, Transfer, PO vs Goods Receipt) mengevaluasi **2 Lapisan**:
-  1. *Lapisan RBAC:* Apakah pengguna memiliki izin peran (`$user->can('inventory.adjustment.approve')`).
-  2. *Lapisan SoD (Internal Control):* Apakah kebijakan `business->settings['inventory_sod']` membatasi *self-approval* atau pemisahan pengirim-penerima via `App\Services\App\Inventory\InventorySodService`.
+    1. _Lapisan RBAC:_ Apakah pengguna memiliki izin peran (`$user->can('inventory.adjustment.approve')`).
+    2. _Lapisan SoD (Internal Control):_ Apakah kebijakan `business->settings['inventory_sod']` membatasi _self-approval_ atau pemisahan pengirim-penerima via `App\Services\App\Inventory\InventorySodService`.
 - **Dilarang Menulis Validasi SoD Hardcode:** DILARANG melakukan cek `if ($user->id === $model->created_by)` secara manual di controller/service. Seluruh evaluasi SoD WAJIB didelegasikan ke `InventorySodService` untuk menghormati preferensi fleksibilitas masing-masing merchant.
 
 ---
@@ -820,7 +819,7 @@ if (can('settings.outlets.create')) {
 - [ ] **Wording & Tone:** Menggunakan bahasa ramah, santai namun profesional, to-the-point, bebas dari istilah teknis developer/database mentah.
 - [ ] **Instant Feedback:** Memberikan toast notification instan (`ResourceMessage`) untuk setiap mutasi dan loading state pada request async.
 - [ ] Backend logic & endpoints tested and returning accurate HTTP status codes.
-- [ ] Skema database & error log diverifikasi via MCP `laravel-boost` / `sollu-db` tanpa asumsi.
+- [ ] Skema database & error log diverifikasi via MCP `laravel-boost` tanpa asumsi.
 - [ ] Dokumentasi framework & package diverifikasi via MCP `laravel-boost` (`search-docs`).
 - [ ] Controller response messages use `App\Constants\*` (`ResourceMessage`, `FlashDataVariable`) or translation files without hardcoded strings.
 - [ ] Query & Eloquent teroptimasi (Eager loading, kolom spesifik, `exists()`, batch `insert`/`upsert`, batas query).
@@ -840,61 +839,61 @@ if (can('settings.outlets.create')) {
 
 ---
 
-
 ## 9. Pragmatic 5-Layer Testing Architecture & Zero-Error Strategy
 
-Setiap pembuatan fitur baru (*build*), pengembangan (*enhancement*), atau perbaikan bug (*bugfix*) WAJIB menerapkan pembagian 5 layer pengujian terstandar untuk mencapai **0% error pada logika, integrasi, dan data**:
+Setiap pembuatan fitur baru (_build_), pengembangan (_enhancement_), atau perbaikan bug (_bugfix_) WAJIB menerapkan pembagian 5 layer pengujian terstandar untuk mencapai **0% error pada logika, integrasi, dan data**:
 
 1. **Unit Test (`tests/Unit/` - Pure Computational Logic):**
-   - **Cakupan:** Logika murni bebas state (*stateless*), helper fungsi, kalkulasi matematis (HPP FIFO/Moving Average murni, diskon bertingkat, split pajak), DTO/Value Object, dan integritas PHP Backed Enum.
-   - **Standar:** Menggunakan `PHPUnit\Framework\TestCase`. Dilarang menyentuh database (`RefreshDatabase`) dan dilarang membuat mock Eloquent yang rumit. Eksekusi ultra-cepat ($< 1\text{ms}$).
+    - **Cakupan:** Logika murni bebas state (_stateless_), helper fungsi, kalkulasi matematis (HPP FIFO/Moving Average murni, diskon bertingkat, split pajak), DTO/Value Object, dan integritas PHP Backed Enum.
+    - **Standar:** Menggunakan `PHPUnit\Framework\TestCase`. Dilarang menyentuh database (`RefreshDatabase`) dan dilarang membuat mock Eloquent yang rumit. Eksekusi ultra-cepat ($< 1\text{ms}$).
 2. **Feature Test (`tests/Feature/` - HTTP Endpoint, Boundary & Auth):**
-   - **Cakupan:** 1 HTTP Endpoint tunggal dari FormRequest, Controller, Middleware, Otorisasi (Spatie `v-can` & `v-feature`), Isolasi Tenant (`business_id`/`outlet_id`), hingga Payload Response (Inertia Props / JSON Resource).
-   - **Standar:** Menggunakan In-Memory SQLite (`RefreshDatabase`). Wajib menguji otorisasi (403 Forbidden saat tanpa izin / paket terkunci) dan validasi request gagal (422 Unprocessable Content).
+    - **Cakupan:** 1 HTTP Endpoint tunggal dari FormRequest, Controller, Middleware, Otorisasi (Spatie `v-can` & `v-feature`), Isolasi Tenant (`business_id`/`outlet_id`), hingga Payload Response (Inertia Props / JSON Resource).
+    - **Standar:** Menggunakan In-Memory SQLite (`RefreshDatabase`). Wajib menguji otorisasi (403 Forbidden saat tanpa izin / paket terkunci) dan validasi request gagal (422 Unprocessable Content).
 3. **Integration & Service Test (`tests/Integration/` / `tests/Feature/Services/` - Real State Business Logic):**
-   - **Cakupan:** Service Layer, Jobs, dan orkestrasi lintas bounded context (misal: POS Checkout $\rightarrow$ Mutasi Stok FIFO $\rightarrow$ Shift Cash Drawer $\rightarrow$ Dispatch Notification).
-   - **Standar:** **WAJIB menggunakan data nyata di In-Memory SQLite (`RefreshDatabase`).** Dilarang me-mocking query/model Eloquent. Gunakan **Laravel Fakes resmi** (`Event::fake()`, `Queue::fake()`, `Notification::fake()`, `Storage::fake()`) untuk side-effects eksternal.
+    - **Cakupan:** Service Layer, Jobs, dan orkestrasi lintas bounded context (misal: POS Checkout $\rightarrow$ Mutasi Stok FIFO $\rightarrow$ Shift Cash Drawer $\rightarrow$ Dispatch Notification).
+    - **Standar:** **WAJIB menggunakan data nyata di In-Memory SQLite (`RefreshDatabase`).** Dilarang me-mocking query/model Eloquent. Gunakan **Laravel Fakes resmi** (`Event::fake()`, `Queue::fake()`, `Notification::fake()`, `Storage::fake()`) untuk side-effects eksternal.
 4. **Browser/E2E Test (`tests/Browser/` - Real User Journey):**
-   - **Cakupan:** Alur interaksi user nyata menggunakan Laravel Dusk pada browser riil (Vue 3 / Inertia DOM, drawer `<PopUpPage>`, submit sticky footer, toast notification).
-   - **Standar:** Dilarang ada error JavaScript yang tidak tertangkap di console browser.
+    - **Cakupan:** Alur interaksi user nyata menggunakan Laravel Dusk pada browser riil (Vue 3 / Inertia DOM, drawer `<PopUpPage>`, submit sticky footer, toast notification).
+    - **Standar:** Dilarang ada error JavaScript yang tidak tertangkap di console browser.
 5. **Regression Test (`tests/Regression/` - Bug Prevention):**
-   - **Cakupan:** Reproduksi bug spesifik dari production issue sebelum bugfix dilakukan untuk mencegah *bug recurrence*.
+    - **Cakupan:** Reproduksi bug spesifik dari production issue sebelum bugfix dilakukan untuk mencegah _bug recurrence_.
 
 ### 9.1. Prinsip Penegakan Uji 0% Error (Data, Logika & Integrasi)
 
 1. **Anti-Brittle Mocking:** Jangan pernah me-mock model Eloquent atau query builder (`where`, `join`, `get`). Selalu gunakan data model nyata dari Factory di test database in-memory agar perubahan schema atau query langsung terverifikasi.
 2. **Multi-Tenant Isolation Verification:**
-   ```php
-   // Wajib pastikan Tenant B tidak bisa melihat atau memutasikan data Tenant A
-   $otherBusiness = Business::factory()->create();
-   $this->assertDatabaseMissing('products', [
-       'id' => $product->id,
-       'business_id' => $otherBusiness->id,
-   ]);
-   ```
+    ```php
+    // Wajib pastikan Tenant B tidak bisa melihat atau memutasikan data Tenant A
+    $otherBusiness = Business::factory()->create();
+    $this->assertDatabaseMissing('products', [
+        'id' => $product->id,
+        'business_id' => $otherBusiness->id,
+    ]);
+    ```
 3. **Database Transaction & Atomicity Guard:**
-   - Setiap operasi yang membungkus mutasi data dalam `DB::transaction` wajib diuji skenario kegagalan: saat langkah pertengahan melempar exception, pastikan seluruh baris data sebelumnya di-rollback 100%.
+    - Setiap operasi yang membungkus mutasi data dalam `DB::transaction` wajib diuji skenario kegagalan: saat langkah pertengahan melempar exception, pastikan seluruh baris data sebelumnya di-rollback 100%.
 4. **Side-Effect Verification via Laravel Fakes:**
-   ```php
-   Notification::fake();
-   Event::fake();
+    ```php
+    Notification::fake();
+    Event::fake();
 
-   $service->execute($payload);
+    $service->execute($payload);
 
-   Notification::assertSentTo($user, TransactionCompletedNotification::class);
-   ```
+    Notification::assertSentTo($user, TransactionCompletedNotification::class);
+    ```
 5. **Boundary & Precision Testing:**
-   - Selalu uji angka nol (0), angka negatif, desimal presisi tinggi pada nominal uang dan kuantitas stok, serta kondisi stok kosong/kurang.
+    - Selalu uji angka nol (0), angka negatif, desimal presisi tinggi pada nominal uang dan kuantitas stok, serta kondisi stok kosong/kurang.
 
 ### 9.2. Mandatory Open Question: Test Case Alignment
 
 Saat merancang implementasi fitur baru atau enhancement:
-- **WAJIB** mengajukan pertanyaan terbuka (*open question*) atau menyajikan matriks skenario test yang direncanakan kepada user/stakeholder:
-  - *Happy Path* (alur sukses standar & variasi input).
-  - *Edge Cases* (nilai batas, 0, desimal ekstrem, stok habis).
-  - *Validation & Exception Path* (validasi gagal, saldo tidak cukup, status invalid).
-  - *Tenant Isolation & Security* (cek isolasi `business_id` / `outlet_id`, role permission).
-  - *Cross-Domain Side Effects* (ledger mutasi stok, audit log, notifikasi).
+
+- **WAJIB** mengajukan pertanyaan terbuka (_open question_) atau menyajikan matriks skenario test yang direncanakan kepada user/stakeholder:
+    - _Happy Path_ (alur sukses standar & variasi input).
+    - _Edge Cases_ (nilai batas, 0, desimal ekstrem, stok habis).
+    - _Validation & Exception Path_ (validasi gagal, saldo tidak cukup, status invalid).
+    - _Tenant Isolation & Security_ (cek isolasi `business_id` / `outlet_id`, role permission).
+    - _Cross-Domain Side Effects_ (ledger mutasi stok, audit log, notifikasi).
 
 ---
 
@@ -925,6 +924,7 @@ Saat merancang implementasi fitur baru atau enhancement:
 ### 10.3. Headless Chrome Visual Verification Protocol (macOS & Mobile Viewport)
 
 Saat memverifikasi tampilan mobile viewport secara otomatis menggunakan Headless Chrome pada macOS:
+
 1. **Unsandboxed Execution:** Jalankan Chrome dengan `BypassSandbox: true` karena window server macOS / Crashpad membutuhkan hak akses Mach bootstrap (`KERN_SUCCESS`).
 2. **SPA Render Wait Time:** Wajib berikan jeda render minimal 2 detik (`Page.loadEventFired` + delay 2000ms) sebelum menangkap screenshot agar Vue 3/Inertia selesai melakukan mounting.
 3. **Isolasi Dev Debugbar:** Di lingkungan lokal (`APP_DEBUG=true`), hilangkan bar debug sebelum tangkapan layar via evaluasi DOM (`document.querySelectorAll('.phpdebugbar').forEach(el => el.remove())`) agar screenshot mencerminkan tampilan produksi yang sebenarnya.
@@ -1054,21 +1054,23 @@ Dokumentasi API adalah kontrak antara Backend dan Frontend/Client. Setiap peruba
 4. **Konfirmasi:** Jika file dokumentasi tidak ditemukan di repositori, konfirmasi ke pengguna untuk lokasi file sebelum mengakhiri tugas.
 
 ### 13.2. API Versioning & Hermetic Versioning Architecture
+
 1. **URI Path Versioning:** Seluruh endpoint publik wajib menggunakan URI versioning `/v{MAJOR}/{MODULE}/{RESOURCE}` (misal: `/v1/pos/sync/master`).
 2. **Aturan Mutlak Hermetic Versioning:**
-   - Setiap rilis versi baru (misal `v2`), **SELURUH Controller dan Form Request wajib naik tingkat** ke namespace versi baru (`App\Http\Controllers\API\V2\...` dan `App\Http\Requests\API\V2\...`), meskipun implementasi kodenya 100% identik dengan versi terdahulu.
-   - Rute versi baru **dilarang keras** mengimpor atau mereferensikan controller/request dari versi sebelumnya (`V1`).
-   - Gunakan pendekatan **Hermetic Snapshot (Class Mandiri)** yang mendelegasikan ke Domain Service (Rule Thin Controller).
+    - Setiap rilis versi baru (misal `v2`), **SELURUH Controller dan Form Request wajib naik tingkat** ke namespace versi baru (`App\Http\Controllers\API\V2\...` dan `App\Http\Requests\API\V2\...`), meskipun implementasi kodenya 100% identik dengan versi terdahulu.
+    - Rute versi baru **dilarang keras** mengimpor atau mereferensikan controller/request dari versi sebelumnya (`V1`).
+    - Gunakan pendekatan **Hermetic Snapshot (Class Mandiri)** yang mendelegasikan ke Domain Service (Rule Thin Controller).
 3. **Response Header Wajib:** Header `X-API-Version: v{MAJOR}` wajib disertakan di setiap response.
 4. **Deprecation Standar RFC 8594:** Endpoint versi terdahulu yang di-deprecate wajib menyertakan header `Deprecation: true`, `Sunset`, `Link`, dan `X-API-Deprecation-Warning`.
 
 ### 13.3. AI Consultation Gate (Breaking Change Pre-Check)
-1. **Dilarang Sepihak:** AI dilarang keras menaikkan versi API atau memaksakan *breaking change* pada versi yang sedang aktif tanpa persetujuan pengguna.
+
+1. **Dilarang Sepihak:** AI dilarang keras menaikkan versi API atau memaksakan _breaking change_ pada versi yang sedang aktif tanpa persetujuan pengguna.
 2. **Kriteria Breaking Change:**
-   - Penambahan field `required` baru pada request.
-   - Perubahan tipe data (request maupun response).
-   - Penghapusan atau pengubahan nama field JSON.
-   - Perubahan format envelope response atau penambahan header wajib baru.
+    - Penambahan field `required` baru pada request.
+    - Perubahan tipe data (request maupun response).
+    - Penghapusan atau pengubahan nama field JSON.
+    - Perubahan format envelope response atau penambahan header wajib baru.
 3. **Protokol AI:** Jika terindikasi breaking change, AI **WAJIB BERHENTI**, memaparkan analisis dampak, dan menyajikan opsi solusi kepada user (Opsi A: Naikkan versi dengan Hermetic Versioning vs Opsi B: Redesain agar tetap backward-compatible di versi aktif).
 
 ## 14. Model Context Protocol (MCP) Standards & Tooling Ecosystem
@@ -1077,13 +1079,12 @@ Dokumentasi API adalah kontrak antara Backend dan Frontend/Client. Setiap peruba
 
 Seluruh AI Agent yang bekerja di repositori Sollu App WAJIB mengoptimalkan ekosistem tool MCP terkonfigurasi:
 
-| Server MCP          | Provider / Tool Name                      | Peran Utama & Batasan Operasional                                                                                                                                                                                                       |
-| :------------------ | :---------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Server MCP          | Provider / Tool Name                                         | Peran Utama & Batasan Operasional                                                                                                                                                                                                                                                                                                                                                      |
+| :------------------ | :----------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`sollu-project`** | `SolluProjectServer` (`php artisan mcp:start sollu-project`) | **Inspeksi Arsitektur & Aturan Codebase Sollu.** Memvalidasi `check_enum_integrity` (Zero-Orphan Permission & `$enums`), `trace_feature_stack` (pemetaan Route ke Controller, Form Request, Service & Inertia Vue), `audit_tenant_isolation` (verifikasi `business_id`/`outlet_id`), `inspect_inventory_state` (saldo & FIFO layer), dan `lint_agent_rules` (linter kepatuhan aturan). |
-| **`git`**           | `git-mcp-server`                          | **Wajib untuk Git Workflow.** Prioritaskan tool MCP Git (`status`, `add`, `commit`, `checkout`, `stash_save`, dll.) daripada raw terminal shell. Format commit wajib _Conventional Commits_.                                            |
-| **`laravel-boost`** | `boost:mcp`                               | **Inspeksi & Debugging Framework.** Gunakan `database-schema` untuk struktur skema, `last-error` / `read-log-entries` untuk stacktrace error, dan `search-docs` untuk referensi API Laravel/Inertia.                                    |
-| **`sollu-db`**      | `@modelcontextprotocol/server-postgres`   | **Inspeksi PostgreSQL Core (`sollu_core`).** Audit data multi-tenancy (`business_id`, `outlet_id`), integritas foreign key, dan validasi data riil. **STRICT READ-ONLY (`SELECT`)**. Dilarang keras mutasi DDL/DML langsung via MCP DB. |
-| **`filesystem`**    | `@modelcontextprotocol/server-filesystem` | **Struktur Berkas Proyek.** Inspeksi direktori dan metadata berkas secara terstruktur.                                                                                                                                                  |
+| **`git-core`**      | `git-mcp-server`                                             | **Wajib untuk Git Workflow.** Prioritaskan tool MCP Git (`status`, `add`, `commit`, `checkout`, `stash_save`, dll.) daripada raw terminal shell. Format commit wajib _Conventional Commits_.                                                                                                                                                                                           |
+| **`laravel-boost`** | `boost:mcp`                                                  | **Inspeksi & Debugging Framework.** Gunakan `database-schema` untuk struktur skema, `last-error` / `read-log-entries` untuk stacktrace error, dan `search-docs` untuk referensi API Laravel/Inertia.                                                                                                                                                                                   |
+| **`filesystem`**    | `@modelcontextprotocol/server-filesystem`                    | **Struktur Berkas Proyek.** Inspeksi direktori dan metadata berkas secara terstruktur.                                                                                                                                                                                                                                                                                                 |
 
 ### 14.2. Safe Git Workflow Guidelines
 
@@ -1101,6 +1102,7 @@ Seluruh AI Agent yang bekerja di repositori Sollu App WAJIB mengoptimalkan ekosi
 ### 15.1. Overview & Saluran Pengiriman Terpadu
 
 Sistem notifikasi Sollu App dirancang untuk multi-tenancy yang aman, real-time, dan hemat penyimpanan:
+
 - **`database`**: Riwayat persisten tersimpan di tabel `notifications` (dibaca via popover lonceng).
 - **`mail`**: Email transaksi & kredensial (**password default karyawan baru**).
 - **`broadcast`**: Push WebSocket real-time (< 100ms) menggunakan Laravel Reverb & Echo ke private channels (`App.Models.User.{id}`, `outlets.{id}`, `businesses.{id}`).
@@ -1162,17 +1164,16 @@ app(NotificationDispatcherService::class)->sendToOutlet($outlet, $notification);
 
 1. **Pembuatan Akun**: Password default acak di-generate (`Str::random(10)`).
 2. **Pengiriman Notifikasi**: `NewEmployee($defaultPassword)` dikirimkan:
-   - Saluran `mail`: Email memuat detail login dan password sementara.
-   - Saluran `database`: Notifikasi selamat datang dengan link ganti kata sandi & setup PIN (`route('settings.account.profile')`).
+    - Saluran `mail`: Email memuat detail login dan password sementara.
+    - Saluran `database`: Notifikasi selamat datang dengan link ganti kata sandi & setup PIN (`route('settings.account.profile')`).
 
 ### 15.5. Strategi Retensi Database & Scheduler Pruning
 
 - **Kebijakan**: Notifikasi read $\ge 1\text{ tahun}$ (365 hari) dan link ekspor berkas kedaluwarsa $> 30\text{ hari}$ otomatis dibersihkan.
 - **Eksekusi**: Command `php artisan notifications:prune --days=365` dijalankan harian pukul 02:30 WIB (`routes/console.php`).
-- **Batching**: Penghapusan dilakukan secara bertahap (*chunked batches* 1.000 baris) untuk mencegah beban/lock pada PostgreSQL.
+- **Batching**: Penghapusan dilakukan secara bertahap (_chunked batches_ 1.000 baris) untuk mencegah beban/lock pada PostgreSQL.
 
 ### 15.6. Standar UI Popover (4 Tab Simetris)
 
 - Popover notifikasi menampilkan 4 tab: **Semua**, **Sistem**, **Pesanan**, dan **Stok** dalam layout `grid grid-cols-4` (kontainer 416px, zero text-wrapping).
 - Komponen frontend mendengarkan WebSocket private channel untuk penambahan notifikasi real-time dan audio alert (khusus pesanan baru).
-

@@ -291,6 +291,14 @@ class InventoryCostingService
                 ? $lastLayerPrice
                 : (float) (InventoryBalance::where('outlet_id', $outlet->id)->where('inventory_item_id', $item->id)->value('average_cost') ?? 0);
 
+            if ($fallbackPrice <= 0) {
+                $fallbackPrice = (float) (InventoryBalance::where('outlet_id', $outlet->id)->where('inventory_item_id', $item->id)->value('last_cost') ?? 0);
+            }
+
+            if ($fallbackPrice <= 0) {
+                $fallbackPrice = (float) ($item->productItem?->buy_price ?? 0);
+            }
+
             $totalCogs += ($remainingToDeduct * $fallbackPrice);
         }
 

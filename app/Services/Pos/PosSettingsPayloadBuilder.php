@@ -95,7 +95,15 @@ class PosSettingsPayloadBuilder
         $allowNegativeRaw = $outletSettings->firstWhere('key', 'allow_negative_stock')?->value;
         $allowNegativeStock = $allowNegativeRaw === null ? true : filter_var($allowNegativeRaw, FILTER_VALIDATE_BOOLEAN);
 
+        $activeFeatures = $outlet->business
+            ? array_values(array_map(
+                fn ($f) => $f instanceof FeatureEnum ? $f->value : (string) $f,
+                $outlet->business->activePlanFeatures()
+            ))
+            : [];
+
         return [
+            'active_features' => $activeFeatures,
             'enable_supervisor_pin' => $enableSupervisorPin,
             'tax_percentage' => $financialTax,
             'service_charge_percentage' => $financialServiceFee,

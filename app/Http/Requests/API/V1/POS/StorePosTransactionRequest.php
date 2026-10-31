@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\API\V1\POS;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,6 +17,7 @@ class StorePosTransactionRequest extends FormRequest
     {
         return [
             'offline_id' => ['nullable', 'string'],
+            'is_offline' => ['nullable', 'boolean'],
             'receipt_number' => ['nullable', 'string'],
             'transaction_number' => ['nullable', 'string'],
             'shift_id' => ['nullable', 'string', 'uuid'],

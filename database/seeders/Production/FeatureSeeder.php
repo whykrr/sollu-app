@@ -33,6 +33,15 @@ class FeatureSeeder extends Seeder
                 'sort_order' => 20,
             ],
             [
+                'code' => 'cash_drawer',
+                'name' => 'Manajemen Kas Laci (Cash Drawer)',
+                'description' => 'Pencatatan kas masuk, kas keluar, modal awal, dan rekonsiliasi uang fisik di laci kasir.',
+                'module' => 'pos',
+                'group' => 'pos_and_transactions',
+                'group_label' => 'Penjualan & Kasir',
+                'sort_order' => 25,
+            ],
+            [
                 'code' => 'split_payment',
                 'name' => 'Split & Multi Pembayaran',
                 'description' => 'Membagi satu tagihan transaksi menggunakan kombinasi berbagai metode pembayaran berbeda.',

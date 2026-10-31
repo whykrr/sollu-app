@@ -23,9 +23,17 @@
                     <div class="mt-0.5">
                         <span
                             class="badge text-xs"
-                            :class="transferData.transfer_mode === 'two_step' ? 'badge-purple' : 'badge-info'"
+                            :class="
+                                transferData.transfer_mode === 'two_step'
+                                    ? 'badge-purple'
+                                    : 'badge-info'
+                            "
                         >
-                            {{ transferData.transfer_mode === 'two_step' ? 'Kirim & Terima (2-Langkah)' : 'Transfer Langsung (1-Langkah)' }}
+                            {{
+                                transferData.transfer_mode === 'two_step'
+                                    ? 'Kirim & Terima (2-Langkah)'
+                                    : 'Transfer Langsung (1-Langkah)'
+                            }}
                         </span>
                     </div>
                 </div>
@@ -69,7 +77,8 @@
                     <span>⚠️ Mutasi Stok Telah Dibatalkan (Void)</span>
                 </div>
                 <div v-if="transferData.void_reason" class="text-rose-700">
-                    <span class="font-semibold">Alasan Pembatalan:</span> {{ transferData.void_reason }}
+                    <span class="font-semibold">Alasan Pembatalan:</span>
+                    {{ transferData.void_reason }}
                 </div>
                 <div class="text-[11px] text-rose-500">
                     Dibatalkan pada {{ formatDate(transferData.voided_at) }}
@@ -77,42 +86,117 @@
                         oleh {{ transferData.voided_by?.name || transferData.voidedBy?.name }}
                     </span>
                 </div>
+            </div>
             <!-- Visual Timeline -->
             <div class="bg-white p-3 rounded-lg border border-slate-200">
-                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                <span
+                    class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2"
+                >
                     Tahapan Siklus Transfer
                 </span>
                 <div class="flex items-center justify-between text-xs">
                     <template v-if="transferData.transfer_mode === 'two_step'">
                         <div class="flex flex-col items-center flex-1">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] bg-primary text-white">1</div>
+                            <div
+                                class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] bg-primary text-white"
+                            >
+                                1
+                            </div>
                             <span class="mt-1 font-semibold text-slate-800">Draf</span>
                         </div>
-                        <div class="h-0.5 flex-1" :class="isStepApproved ? 'bg-primary' : 'bg-slate-200'"></div>
+                        <div
+                            class="h-0.5 flex-1"
+                            :class="isStepApproved ? 'bg-primary' : 'bg-slate-200'"
+                        ></div>
                         <div class="flex flex-col items-center flex-1">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]" :class="isStepApproved ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400 border border-slate-300'">2</div>
-                            <span class="mt-1 font-semibold" :class="isStepApproved ? 'text-slate-800' : 'text-slate-400'">Disetujui</span>
+                            <div
+                                class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]"
+                                :class="
+                                    isStepApproved
+                                        ? 'bg-primary text-white'
+                                        : 'bg-slate-100 text-slate-400 border border-slate-300'
+                                "
+                            >
+                                2
+                            </div>
+                            <span
+                                class="mt-1 font-semibold"
+                                :class="isStepApproved ? 'text-slate-800' : 'text-slate-400'"
+                                >Disetujui</span
+                            >
                         </div>
-                        <div class="h-0.5 flex-1" :class="isStepShipped ? 'bg-primary' : 'bg-slate-200'"></div>
+                        <div
+                            class="h-0.5 flex-1"
+                            :class="isStepShipped ? 'bg-primary' : 'bg-slate-200'"
+                        ></div>
                         <div class="flex flex-col items-center flex-1">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]" :class="isStepShipped ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400 border border-slate-300'">3</div>
-                            <span class="mt-1 font-semibold" :class="isStepShipped ? 'text-slate-800' : 'text-slate-400'">Dikirim</span>
+                            <div
+                                class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]"
+                                :class="
+                                    isStepShipped
+                                        ? 'bg-primary text-white'
+                                        : 'bg-slate-100 text-slate-400 border border-slate-300'
+                                "
+                            >
+                                3
+                            </div>
+                            <span
+                                class="mt-1 font-semibold"
+                                :class="isStepShipped ? 'text-slate-800' : 'text-slate-400'"
+                                >Dikirim</span
+                            >
                         </div>
-                        <div class="h-0.5 flex-1" :class="isStepReceived ? 'bg-emerald-600' : 'bg-slate-200'"></div>
+                        <div
+                            class="h-0.5 flex-1"
+                            :class="isStepReceived ? 'bg-emerald-600' : 'bg-slate-200'"
+                        ></div>
                         <div class="flex flex-col items-center flex-1">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]" :class="isStepReceived ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400 border border-slate-300'">4</div>
-                            <span class="mt-1 font-semibold" :class="isStepReceived ? 'text-emerald-700' : 'text-slate-400'">Diterima</span>
+                            <div
+                                class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]"
+                                :class="
+                                    isStepReceived
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-slate-100 text-slate-400 border border-slate-300'
+                                "
+                            >
+                                4
+                            </div>
+                            <span
+                                class="mt-1 font-semibold"
+                                :class="isStepReceived ? 'text-emerald-700' : 'text-slate-400'"
+                                >Diterima</span
+                            >
                         </div>
                     </template>
                     <template v-else>
                         <div class="flex flex-col items-center flex-1">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] bg-primary text-white">1</div>
+                            <div
+                                class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] bg-primary text-white"
+                            >
+                                1
+                            </div>
                             <span class="mt-1 font-semibold text-slate-800">Draf Dibuat</span>
                         </div>
-                        <div class="h-0.5 flex-1" :class="isStepReceived ? 'bg-emerald-600' : 'bg-slate-200'"></div>
+                        <div
+                            class="h-0.5 flex-1"
+                            :class="isStepReceived ? 'bg-emerald-600' : 'bg-slate-200'"
+                        ></div>
                         <div class="flex flex-col items-center flex-1">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]" :class="isStepReceived ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400 border border-slate-300'">2</div>
-                            <span class="mt-1 font-semibold" :class="isStepReceived ? 'text-emerald-700' : 'text-slate-400'">Transfer Selesai</span>
+                            <div
+                                class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px]"
+                                :class="
+                                    isStepReceived
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-slate-100 text-slate-400 border border-slate-300'
+                                "
+                            >
+                                2
+                            </div>
+                            <span
+                                class="mt-1 font-semibold"
+                                :class="isStepReceived ? 'text-emerald-700' : 'text-slate-400'"
+                                >Transfer Selesai</span
+                            >
                         </div>
                     </template>
                 </div>
@@ -265,12 +349,17 @@
                                     <span
                                         class="font-semibold"
                                         :class="
-                                            (item.qty_difference ?? (item.qty - item.qty_received)) > 0
+                                            (item.qty_difference ?? item.qty - item.qty_received) >
+                                            0
                                                 ? 'text-rose-600'
                                                 : 'text-slate-500'
                                         "
                                     >
-                                        {{ formatNumber(item.qty_difference ?? (item.qty - item.qty_received)) }}
+                                        {{
+                                            formatNumber(
+                                                item.qty_difference ?? item.qty - item.qty_received
+                                            )
+                                        }}
                                     </span>
                                     <div
                                         v-if="item.difference_reason"
@@ -338,7 +427,8 @@
                     </h4>
                 </div>
                 <p class="text-xs text-rose-600">
-                    Membatalkan transfer stok ini akan menghasilkan entri pembalik simetris (storno) yang aman untuk audit.
+                    Membatalkan transfer stok ini akan menghasilkan entri pembalik simetris (storno)
+                    yang aman untuk audit.
                 </p>
                 <TextareaField
                     id="void_reason"
@@ -402,14 +492,16 @@
                             :disabled="actionForm.processing"
                             @click="confirmApprove"
                         >
-                            {{ transferData.transfer_mode === 'two_step' ? 'Setujui Transfer' : 'Setujui & Selesaikan' }}
+                            {{
+                                transferData.transfer_mode === 'two_step'
+                                    ? 'Setujui Transfer'
+                                    : 'Setujui & Selesaikan'
+                            }}
                         </button>
                     </template>
 
                     <!-- Actions for APPROVED -->
-                    <template
-                        v-else-if="transferData.status === 'approved'"
-                    >
+                    <template v-else-if="transferData.status === 'approved'">
                         <button
                             v-if="canShip && !showVoidForm"
                             type="button"
@@ -422,9 +514,7 @@
                     </template>
 
                     <!-- Actions for IN_TRANSIT -->
-                    <template
-                        v-else-if="transferData.status === 'in_transit'"
-                    >
+                    <template v-else-if="transferData.status === 'in_transit'">
                         <button
                             v-if="canReceive && !showVoidForm"
                             type="button"
@@ -437,7 +527,12 @@
 
                     <!-- Void Action for non-void, non-rejected statuses -->
                     <button
-                        v-if="canVoid && !['void', 'rejected'].includes(transferData.status) && !showVoidForm && !showRejectForm"
+                        v-if="
+                            canVoid &&
+                            !['void', 'rejected'].includes(transferData.status) &&
+                            !showVoidForm &&
+                            !showRejectForm
+                        "
                         type="button"
                         class="btn btn-outline-danger btn-sm"
                         :disabled="actionForm.processing"
@@ -500,9 +595,7 @@ const canShip = computed(() =>
 const canReceive = computed(() =>
     canAny(['inventory.transfer.receive', 'inventory.*', 'business.*'])
 )
-const canVoid = computed(() =>
-    canAny(['inventory.transfer.validate', 'inventory.*', 'business.*'])
-)
+const canVoid = computed(() => canAny(['inventory.transfer.validate', 'inventory.*', 'business.*']))
 
 const isStepApproved = computed(() => {
     const s = transferData.value?.status

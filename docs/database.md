@@ -202,7 +202,7 @@ class StockAdjustment extends Model
 ## 4. Query Optimization & Indexing Guidelines
 
 1. **Database Schema Diagnostics:**
-   - Gunakan perkakas MCP `sollu-db` (`query`) atau `laravel-boost` (`database-schema`) untuk memeriksa skema langsung di PostgreSQL.
+   - Gunakan perkakas MCP atau `laravel-boost` (`database-schema`) untuk memeriksa skema langsung di PostgreSQL.
 2. **Indeks Wajib:**
    - Indeks gabungan (*composite index*) pada `(business_id, deleted_at)` untuk setiap tabel tenant.
    - Indeks pada `(outlet_id, inventory_item_id)` pada tabel saldo dan mutasi.

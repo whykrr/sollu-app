@@ -62,7 +62,7 @@ class MasterDataSyncService
 
         $products = ! empty($productIds)
             ? Product::with([
-                'productItems:id,product_id,has_variant,uom_id',
+                'productItems:id,product_id,uom_id',
                 'productItems.uom:id,name,code',
                 'productItems.inventoryItem:id,product_item_id',
             ])
@@ -251,13 +251,8 @@ class MasterDataSyncService
                     ->select([
                         'id',
                         'business_id',
-                        'product_id',
                         'product_item_id',
-                        'uom_id',
-                        'sku',
-                        'barcode',
                         'name',
-                        'track_inventory',
                         'minimum_stock',
                         'is_active',
                         'created_at',

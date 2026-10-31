@@ -1,19 +1,8 @@
 {
     "mcpServers": {
-        "sollu-db": {
-            "command": "npx",
-            "args": [
-                "-y",
-                "@modelcontextprotocol/server-postgres",
-                "postgresql://whykrr@127.0.0.1:5432/sollu_core"
-            ]
-        },
         "laravel-boost": {
             "command": "php",
-            "args": [
-                "artisan",
-                "boost:mcp"
-            ]
+            "args": ["artisan", "boost:mcp"]
         },
         "filesystem": {
             "command": "npx",
@@ -31,12 +20,9 @@
                 "sollu-project"
             ]
         },
-        "git": {
+        "git-core": {
             "command": "npx",
-            "args": [
-                "-y",
-                "git-mcp-server"
-            ],
+            "args": ["-y", "git-mcp-server"],
             "env": {
                 "GIT_DEFAULT_PATH": "/Users/whykrr/Documents/Projects/Laravel/sollu-app"
             }

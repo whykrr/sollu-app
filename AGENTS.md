@@ -48,7 +48,7 @@ Activate the relevant specialized skill when working in specific domains:
 - **Frontend Lint:** `npm run lint` & `npm run format`.
 - **Run Tests:** `php artisan test --compact --filter=TestName`.
 - **Rollback Verification:** `php artisan migrate:rollback --step=1 && php artisan migrate` (Wajib saat membuat/mengubah migration).
-- **Database Inspection:** Use `sollu-db` (SELECT only) or `laravel-boost` `database-schema`.
+- **Database Inspection:** Use `laravel-boost` `database-schema`.
 - **Project Inspection:** Gunakan MCP `sollu-project` untuk inspeksi project (enum, tenant, fitur, inventory, rule lints).
 
 ## 5. Scratchpad / Planning / Context & Active Clarification

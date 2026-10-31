@@ -142,7 +142,7 @@ const openDetail = row => {
 const openReceive = data => {
     popUpStore.open({
         title: 'Terima Barang Mutasi',
-        size: 'lg',
+        size: 'xl',
         component: TransferReceiveForm,
         props: { transferData: data },
         events: {

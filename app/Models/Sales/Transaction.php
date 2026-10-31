@@ -27,7 +27,48 @@ class Transaction extends Model
     use HasUuids;
     use SortableModel;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'id',
+        'outlet_id',
+        'customer_id',
+        'shift_id',
+        'channel',
+        'sales_channel',
+        'type',
+        'transaction_number',
+        'transaction_date',
+        'subtotal',
+        'discount_amount',
+        'discount_type',
+        'discount_value',
+        'promo_name',
+        'tax_amount',
+        'shipping_fee',
+        'service_charge_amount',
+        'total',
+        'total_paid',
+        'balance_due',
+        'payment_status',
+        'status',
+        'notes',
+        'created_by',
+        'updated_by',
+        'cashier_id',
+        'offline_id',
+        'voided_at',
+        'void_reason',
+        'voided_by',
+    ];
+
+    public function setSalesChannelAttribute($value): void
+    {
+        $this->attributes['channel'] = $value;
+    }
+
+    public function setCashierIdAttribute($value): void
+    {
+        $this->attributes['created_by'] = $value;
+    }
 
     /**
      * Whitelist column names for sorting.
@@ -71,6 +112,7 @@ class Transaction extends Model
             'type' => TransactionTypeEnum::class,
             'payment_status' => TransactionPaymentStatus::class,
             'status' => TransactionStatus::class,
+            'voided_at' => 'datetime',
         ];
     }
 
@@ -112,6 +154,14 @@ class Transaction extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
     }
 
     /**

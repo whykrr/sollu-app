@@ -35,6 +35,7 @@ class TransactionItem extends Model
             'subtotal' => 'decimal:4',
             'unit_cogs' => 'decimal:4',
             'cogs_amount' => 'decimal:4',
+            'modifiers' => 'array',
         ];
     }
 

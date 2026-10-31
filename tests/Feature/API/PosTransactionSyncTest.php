@@ -24,6 +24,7 @@ use App\Models\Outlet;
 use App\Models\OutletDevice;
 use App\Models\Sales\Shift;
 use App\Models\Sales\Transaction;
+use App\Models\Sales\TransactionItem;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\Uom;
@@ -644,5 +645,274 @@ class PosTransactionSyncTest extends TestCase
             'inventory_item_id' => $this->inventoryItem->id,
             'reference_id' => $offlineId,
         ]);
+    }
+
+    public function test_sync_offline_transaction_stores_modifiers_json_on_transaction_items(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $offlineId = (string) Str::uuid();
+        $modifierOptionId = (string) Str::uuid();
+        $modifiers = [
+            [
+                'modifier_option_id' => $modifierOptionId,
+                'modifier_name' => 'Extra Shot Espresso',
+                'price' => 5000.0,
+                'qty' => 1.0,
+            ],
+        ];
+
+        $payload = [
+            'offline_id' => $offlineId,
+            'transaction_number' => 'POS/MOD/20261030/0001',
+            'shift_id' => $this->shift->id,
+            'cashier_id' => $this->cashier->id,
+            'subtotal' => 30000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'service_charge_amount' => 0,
+            'total' => 30000,
+            'payment_status' => 'paid',
+            'status' => 'completed',
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'track_inventory' => true,
+                    'product_name' => 'Kopi Arabika 250g',
+                    'price' => 25000,
+                    'qty' => 1,
+                    'discount_amount' => 0,
+                    'subtotal' => 30000,
+                    'modifiers' => $modifiers,
+                ],
+            ],
+            'payments' => [
+                [
+                    'payment_method_id' => $this->cashMethod->id,
+                    'amount' => 30000,
+                    'change_amount' => 0,
+                ],
+            ],
+        ];
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'pos-dev-001',
+            'X-HARDWARE-SIGNATURE' => 'pos-sig-001',
+        ])->postJson('http://api.sollu.test/pos/transactions', $payload);
+
+        $response->assertStatus(200);
+
+        $item = TransactionItem::where('transaction_id', $offlineId)->first();
+        $this->assertNotNull($item);
+        $this->assertNotNull($item->modifiers, 'transaction_items.modifiers column must be populated');
+        $this->assertEquals('Extra Shot Espresso', $item->modifiers[0]['modifier_name']);
+        $this->assertEquals(5000.0, (float) $item->modifiers[0]['price']);
+    }
+
+    public function test_sync_offline_transaction_with_multi_tender_payments_records_all_payment_methods(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $qrisMethod = PaymentMethod::create([
+            'business_id' => $this->business->id,
+            'name' => 'QRIS Static',
+            'type' => 'digital',
+            'is_active' => true,
+        ]);
+        $qrisMethod->outlets()->attach($this->outlet->id);
+
+        $offlineId = (string) Str::uuid();
+        $payload = [
+            'offline_id' => $offlineId,
+            'transaction_number' => 'POS/SPLIT/20261030/0002',
+            'shift_id' => $this->shift->id,
+            'cashier_id' => $this->cashier->id,
+            'subtotal' => 50000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'service_charge_amount' => 0,
+            'total' => 50000,
+            'payment_status' => 'paid',
+            'status' => 'completed',
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'track_inventory' => true,
+                    'product_name' => 'Kopi Arabika 250g',
+                    'price' => 25000,
+                    'qty' => 2,
+                    'discount_amount' => 0,
+                    'subtotal' => 50000,
+                ],
+            ],
+            'payments' => [
+                [
+                    'payment_method_id' => $this->cashMethod->id,
+                    'amount' => 20000,
+                    'change_amount' => 0,
+                ],
+                [
+                    'payment_method_id' => $qrisMethod->id,
+                    'amount' => 30000,
+                    'change_amount' => 0,
+                    'payment_reference' => 'QRIS-REF-12345',
+                ],
+            ],
+        ];
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'pos-dev-001',
+            'X-HARDWARE-SIGNATURE' => 'pos-sig-001',
+        ])->postJson('http://api.sollu.test/pos/transactions', $payload);
+
+        $response->assertStatus(200);
+
+        $transaction = Transaction::with('payments')->find($offlineId);
+        $this->assertNotNull($transaction);
+        $this->assertCount(2, $transaction->payments, 'Both split payments must be stored in database');
+    }
+
+    public function test_sync_offline_transaction_force_accepts_negative_stock_and_logs_variance_audit(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        // Set current stock to 0
+        InventoryBalance::where('outlet_id', $this->outlet->id)
+            ->where('inventory_item_id', $this->inventoryItem->id)
+            ->update(['current_stock' => 0.0]);
+
+        $offlineId = (string) Str::uuid();
+        $payload = [
+            'offline_id' => $offlineId,
+            'is_offline' => true,
+            'transaction_number' => 'POS/NODLQ/20261030/0003',
+            'shift_id' => $this->shift->id,
+            'cashier_id' => $this->cashier->id,
+            'subtotal' => 25000,
+            'discount_amount' => 0,
+            'tax_amount' => 0,
+            'service_charge_amount' => 0,
+            'total' => 25000,
+            'payment_status' => 'paid',
+            'status' => 'completed',
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'inventory_item_id' => $this->inventoryItem->id,
+                    'track_inventory' => true,
+                    'product_name' => 'Kopi Arabika 250g',
+                    'price' => 25000,
+                    'qty' => 2,
+                    'discount_amount' => 0,
+                    'subtotal' => 25000,
+                ],
+            ],
+            'payments' => [
+                [
+                    'payment_method_id' => $this->cashMethod->id,
+                    'amount' => 25000,
+                    'change_amount' => 0,
+                ],
+            ],
+        ];
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'pos-dev-001',
+            'X-HARDWARE-SIGNATURE' => 'pos-sig-001',
+        ])->postJson('http://api.sollu.test/pos/transactions', $payload);
+
+        // Anti-DLQ: Request must be accepted (HTTP 200 or 201), NOT 422
+        $this->assertContains($response->status(), [200, 201]);
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => $offlineId,
+            'transaction_number' => 'POS/NODLQ/20261030/0003',
+        ]);
+
+        $balance = InventoryBalance::where('outlet_id', $this->outlet->id)
+            ->where('inventory_item_id', $this->inventoryItem->id)
+            ->first();
+        $this->assertEquals(-2.0, (float) $balance->current_stock);
+    }
+
+    public function test_batch_transaction_sync_endpoint_successfully_processes_multiple_transactions_atomically(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $offlineId1 = (string) Str::uuid();
+        $offlineId2 = (string) Str::uuid();
+
+        $batchPayload = [
+            'transactions' => [
+                [
+                    'offline_id' => $offlineId1,
+                    'transaction_number' => 'POS/BATCH/20261030/0001',
+                    'shift_id' => $this->shift->id,
+                    'cashier_id' => $this->cashier->id,
+                    'subtotal' => 25000,
+                    'total' => 25000,
+                    'payment_status' => 'paid',
+                    'status' => 'completed',
+                    'items' => [
+                        [
+                            'product_id' => $this->product->id,
+                            'inventory_item_id' => $this->inventoryItem->id,
+                            'track_inventory' => true,
+                            'product_name' => 'Kopi Arabika 250g',
+                            'price' => 25000,
+                            'qty' => 1,
+                            'subtotal' => 25000,
+                        ],
+                    ],
+                    'payments' => [
+                        [
+                            'payment_method_id' => $this->cashMethod->id,
+                            'amount' => 25000,
+                            'change_amount' => 0,
+                        ],
+                    ],
+                ],
+                [
+                    'offline_id' => $offlineId2,
+                    'transaction_number' => 'POS/BATCH/20261030/0002',
+                    'shift_id' => $this->shift->id,
+                    'cashier_id' => $this->cashier->id,
+                    'subtotal' => 50000,
+                    'total' => 50000,
+                    'payment_status' => 'paid',
+                    'status' => 'completed',
+                    'items' => [
+                        [
+                            'product_id' => $this->product->id,
+                            'inventory_item_id' => $this->inventoryItem->id,
+                            'track_inventory' => true,
+                            'product_name' => 'Kopi Arabika 250g',
+                            'price' => 25000,
+                            'qty' => 2,
+                            'subtotal' => 50000,
+                        ],
+                    ],
+                    'payments' => [
+                        [
+                            'payment_method_id' => $this->cashMethod->id,
+                            'amount' => 50000,
+                            'change_amount' => 0,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'pos-dev-001',
+            'X-HARDWARE-SIGNATURE' => 'pos-sig-001',
+        ])->postJson('http://api.sollu.test/pos/transactions/batch', $batchPayload);
+
+        $this->assertContains($response->status(), [200, 201]);
+
+        $this->assertDatabaseHas('transactions', ['id' => $offlineId1]);
+        $this->assertDatabaseHas('transactions', ['id' => $offlineId2]);
     }
 }

@@ -3,7 +3,6 @@
 ## 1. Standarisasi Penggunaan MCP (Model Context Protocol)
 - **Git MCP:** Prioritaskan alat Git MCP (`status`, `add`, `commit`, `checkout`, `stash_save`, `stash_pop`) dibandingkan terminal raw git.
 - **Conventional Commits:** `feat(scope): ...`, `fix(scope): ...`, `refactor(scope): ...`, `style: ...`, `test(scope): ...`, `chore: ...`. Commit hanya saat kode terverifikasi bersih.
-- **PostgreSQL Core MCP (`sollu-db`):** **HANYA QUERY READ-ONLY (`SELECT`).** DILARANG KERAS mutasi skema (`ALTER`, `DROP`) atau data (`INSERT`, `UPDATE`, `DELETE`) langsung via MCP.
 - **Sollu Project Inspector MCP (`sollu-project`):** Manfaatkan `check_enum_integrity`, `trace_feature_stack`, `audit_tenant_isolation`, `inspect_inventory_state`, dan `lint_agent_rules`.
 
 ---
