@@ -4,6 +4,7 @@ namespace App\Http\Controllers\App\Master;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
@@ -13,6 +14,7 @@ use App\Http\Requests\App\Master\Service\UpdateServiceProductRequest;
 use App\Http\Resources\Master\ProductResource;
 use App\Jobs\Master\ExportProductJob;
 use App\Jobs\Master\ImportProductJob;
+use App\Models\Business;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
 use App\Models\Outlet;
@@ -25,6 +27,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -124,7 +128,7 @@ class ServiceProductController extends Controller
 
             $this->productService->createService($data);
 
-            return redirect()->route('master.services.index')->with(
+            return redirect()->back(fallback: route('master.services.index'))->with(
                 FlashDataVariable::SUCCESS->value,
                 ResourceMessage::CREATE_SUCCESS
             );
@@ -150,7 +154,7 @@ class ServiceProductController extends Controller
             $data = $request->validated();
             $this->productService->updateService($service, $data);
 
-            return redirect()->route('master.services.index')->with(
+            return redirect()->back(fallback: route('master.services.index'))->with(
                 FlashDataVariable::SUCCESS->value,
                 ResourceMessage::UPDATE_SUCCESS
             );
@@ -197,40 +201,92 @@ class ServiceProductController extends Controller
 
     public function importTemplate(): BinaryFileResponse
     {
+        $business = Business::findCached(auth()->user()->business_id);
+        $hasMultiOutlet = $business ? $business->hasFeature(FeatureEnum::MULTI_OUTLET) : true;
+
         $headers = [
-            'Kode Layanan', 'Nama Layanan', 'Kategori', 'Deskripsi', 'Tarif Dasar', 'Status Tampil',
+            'Kode Layanan', 'Barcode', 'Nama Layanan', 'Kategori', 'Deskripsi', 'Tarif Dasar', 'Status Tampil',
         ];
 
         $outlets = Outlet::currentBusiness()->active()->get();
-        foreach ($outlets as $outlet) {
-            $headers[] = 'Outlet: '.$outlet->name;
+        if ($hasMultiOutlet && $outlets->count() > 1) {
+            foreach ($outlets as $outlet) {
+                $headers[] = 'Outlet: '.$outlet->name;
+            }
         }
 
-        $dummy1 = ['SRV-001', 'Potong Rambut Pria', 'Grooming', 'Layanan cuci dan potong rambut pria standar', '35000', 'Ya'];
-        $dummy2 = ['SRV-002', 'Perawatan Wajah (Facial)', 'Treatment', 'Treatment relaksasi dan pembersihan wajah', '120000', 'Ya'];
+        $dummy1 = ['SRV-001', '899888777001', 'Potong Rambut Pria', 'Grooming', 'Layanan cuci dan potong rambut pria standar', '35000', 'Ya'];
+        $dummy2 = ['SRV-002', '899888777002', 'Perawatan Wajah (Facial)', 'Treatment', 'Treatment relaksasi dan pembersihan wajah', '120000', 'Ya'];
 
-        foreach ($outlets as $outlet) {
-            $dummy1[] = 'Ya';
-            $dummy2[] = 'Ya';
+        if ($hasMultiOutlet && $outlets->count() > 1) {
+            foreach ($outlets as $outlet) {
+                $dummy1[] = 'Ya';
+                $dummy2[] = 'Ya';
+            }
         }
 
         $dummyData = [$dummy1, $dummy2];
 
-        $export = new class($headers, $dummyData) implements FromArray, WithHeadings
+        $instructions = [
+            ['KOLOM', 'TIPE / WAJIB', 'DESKRIPSI & KETENTUAN STANDAR'],
+            ['Kode Layanan', 'Teks (Opsional)', 'Kode unik layanan (SKU). Harus unik di seluruh merchant dan tidak boleh sama dengan Barcode manapun.'],
+            ['Barcode', 'Teks (Opsional)', 'Kode barcode unik (misal tiket/voucher). Harus unik di seluruh merchant dan tidak boleh sama dengan Kode SKU manapun.'],
+            ['Nama Layanan', 'Teks (Wajib)', 'Nama produk layanan / jasa.'],
+            ['Kategori', 'Teks (Opsional)', 'Nama kategori layanan. Jika belum terdaftar, sistem akan otomatis menambahkannya.'],
+            ['Deskripsi', 'Teks (Opsional)', 'Keterangan detail rincian pengerjaan layanan.'],
+            ['Tarif Dasar', 'Angka (Wajib)', 'Tarif layanan dalam format angka tanpa titik/koma (contoh: 35000).'],
+            ['Status Tampil', 'Teks (Ya / Tidak)', 'Ketik Ya agar layanan muncul di katalog transaksi kasir, atau Tidak untuk menyembunyikannya.'],
+        ];
+
+        if ($hasMultiOutlet && $outlets->count() > 1) {
+            $instructions[] = ['Outlet: [Nama Outlet]', 'Teks (Ya / Tidak)', 'Ketik Ya jika layanan tersedia untuk ditransaksikan di outlet tersebut.'];
+        }
+
+        $export = new class($headers, $dummyData, $instructions) implements WithMultipleSheets
         {
             public function __construct(
                 private array $headers,
-                private array $dummyData
+                private array $dummyData,
+                private array $instructions
             ) {}
 
-            public function array(): array
+            public function sheets(): array
             {
-                return $this->dummyData;
-            }
+                return [
+                    new class($this->headers, $this->dummyData) implements FromArray, WithHeadings, WithTitle
+                    {
+                        public function __construct(private array $headers, private array $data) {}
 
-            public function headings(): array
-            {
-                return $this->headers;
+                        public function array(): array
+                        {
+                            return $this->data;
+                        }
+
+                        public function headings(): array
+                        {
+                            return $this->headers;
+                        }
+
+                        public function title(): string
+                        {
+                            return 'Template Impor Layanan';
+                        }
+                    },
+                    new class($this->instructions) implements FromArray, WithTitle
+                    {
+                        public function __construct(private array $instructions) {}
+
+                        public function array(): array
+                        {
+                            return $this->instructions;
+                        }
+
+                        public function title(): string
+                        {
+                            return 'Petunjuk & Kamus Data';
+                        }
+                    },
+                ];
             }
         };
 

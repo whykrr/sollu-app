@@ -161,7 +161,7 @@
                 <button type="button" class="btn btn-flat btn-sm" @click="closeModal">Batal</button>
                 <button
                     type="button"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty || !hasValidItems"
                     class="btn btn-main btn-sm"
                     @click="submit"
                 >
@@ -303,6 +303,14 @@ const getLineCost = item => {
 
 const totalEstimatedHpp = computed(() => {
     return (form.items || []).reduce((sum, item) => sum + getLineCost(item), 0)
+})
+
+const hasValidItems = computed(() => {
+    return (
+        form.items &&
+        form.items.length > 0 &&
+        form.items.some(item => item.product_item_id && parseFloat(item.qty) > 0)
+    )
 })
 
 onMounted(() => {

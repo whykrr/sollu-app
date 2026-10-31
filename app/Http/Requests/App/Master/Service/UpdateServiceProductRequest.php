@@ -4,6 +4,8 @@ namespace App\Http\Requests\App\Master\Service;
 
 use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
+use App\Models\Master\Product;
+use App\Rules\UniqueProductItemCode;
 use Illuminate\Support\Facades\Auth;
 
 class UpdateServiceProductRequest extends BaseInertiaFormRequest
@@ -29,9 +31,24 @@ class UpdateServiceProductRequest extends BaseInertiaFormRequest
 
     public function rules(): array
     {
+        $businessId = auth()->user()?->business_id ?? '';
+        $service = $this->route('service');
+        $serviceId = $service instanceof Product ? $service->id : $service;
+
         return [
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['nullable', 'string', 'max:50'],
+            'code' => [
+                'nullable',
+                'string',
+                'max:50',
+                new UniqueProductItemCode($businessId, 'sku', ignoreProductId: $serviceId),
+            ],
+            'barcode' => [
+                'nullable',
+                'string',
+                'max:50',
+                new UniqueProductItemCode($businessId, 'barcode', ignoreProductId: $serviceId),
+            ],
             'description' => ['nullable', 'string'],
             'product_category_id' => ['nullable', 'uuid', 'exists:product_categories,id'],
             'is_show' => ['boolean'],
@@ -72,5 +89,17 @@ class UpdateServiceProductRequest extends BaseInertiaFormRequest
             'images.*.image_file.image' => 'Berkas foto harus berupa gambar valid.',
             'images.*.image_file.max' => 'Ukuran foto layanan maksimal 2 MB ya.',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($v) {
+            $code = trim((string) $this->input('code', ''));
+            $barcode = trim((string) $this->input('barcode', ''));
+
+            if (! empty($code) && ! empty($barcode) && $code === $barcode) {
+                $v->errors()->add('barcode', 'Barcode tidak boleh bernilai sama dengan Kode Layanan.');
+            }
+        });
     }
 }

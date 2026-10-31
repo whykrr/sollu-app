@@ -64,7 +64,7 @@
                     <div class="flex justify-end pt-4 border-t border-slate-100 mt-4">
                         <button
                             class="btn btn-main flex items-center gap-2"
-                            :disabled="formProfile.processing"
+                            :disabled="formProfile.processing || !formProfile.isDirty"
                             @click="saveDetail"
                         >
                             <FontAwesomeIcon :icon="faSave" />
@@ -113,7 +113,7 @@
                     <div class="flex justify-end pt-4 border-t border-slate-100 mt-5">
                         <button
                             class="btn btn-main flex items-center gap-2"
-                            :disabled="formChangePassword.processing"
+                            :disabled="formChangePassword.processing || !formChangePassword.isDirty"
                             @click="changePassword"
                         >
                             <FontAwesomeIcon :icon="faSave" />

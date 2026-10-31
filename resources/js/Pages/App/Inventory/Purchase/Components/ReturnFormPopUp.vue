@@ -241,7 +241,7 @@
         <button
             type="button"
             class="btn btn-danger"
-            :disabled="form.processing || form.items.length === 0 || !form.reason"
+            :disabled="form.processing || !form.isDirty || form.items.length === 0 || !form.reason"
             @click="submit"
         >
             Simpan Retur Pembelian
@@ -403,6 +403,7 @@ const populateForm = () => {
         }
 
         form.items = returnableItems
+        form.defaults()
     }
 }
 

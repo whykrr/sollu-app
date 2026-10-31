@@ -236,7 +236,7 @@
                     <button
                         type="button"
                         class="btn btn-main btn-sm"
-                        :disabled="form.processing || form.items.length === 0"
+                        :disabled="form.processing || !form.isDirty || form.items.length === 0"
                         @click="submit"
                     >
                         <FontAwesomeIcon :icon="faSave" class="mr-1" />

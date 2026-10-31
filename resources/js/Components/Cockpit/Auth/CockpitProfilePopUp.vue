@@ -33,7 +33,7 @@
                 <div class="flex justify-end pt-1">
                     <button
                         type="submit"
-                        :disabled="profileForm.processing"
+                        :disabled="profileForm.processing || !profileForm.isDirty"
                         class="btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1.5 px-3 rounded-lg font-medium transition-colors disabled:opacity-50"
                     >
                         Simpan Profil
@@ -79,7 +79,7 @@
                 <div class="flex justify-end pt-1">
                     <button
                         type="submit"
-                        :disabled="passwordForm.processing"
+                        :disabled="passwordForm.processing || !passwordForm.isDirty"
                         class="btn bg-slate-800 hover:bg-slate-900 text-white text-xs py-1.5 px-3 rounded-lg font-medium transition-colors disabled:opacity-50"
                     >
                         Ubah Kata Sandi

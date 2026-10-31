@@ -39,7 +39,7 @@
                 v-if="canSubmit"
                 type="button"
                 class="btn btn-main"
-                :disabled="form.processing"
+                :disabled="form.processing || !isProductFormDirty"
                 @click="submit"
             >
                 <FontAwesomeIcon
@@ -404,7 +404,29 @@ if (isEdit.value && props.product) {
 
 // Establish clean snapshot after all initial data is hydrated
 form.defaults()
-const { handleCancel, forceClose } = useFormDirtyGuard({ form })
+
+const initialOutletPriceMap = JSON.stringify(outletPriceMap.value)
+const initialVariantOutletPriceMap = JSON.stringify(variantOutletPriceMap.value)
+const initialOutletStatusMap = JSON.stringify(outletStatusMap.value)
+const initialCustomizeOutlet = customizeOutletPrices.value
+const initialCustomizeVariant = customizeVariantPrices.value
+
+const isPricingDirty = computed(() => {
+    if (!isReady.value) return false
+    return (
+        customizeOutletPrices.value !== initialCustomizeOutlet ||
+        customizeVariantPrices.value !== initialCustomizeVariant ||
+        JSON.stringify(outletPriceMap.value) !== initialOutletPriceMap ||
+        JSON.stringify(variantOutletPriceMap.value) !== initialVariantOutletPriceMap ||
+        JSON.stringify(outletStatusMap.value) !== initialOutletStatusMap
+    )
+})
+
+const isProductFormDirty = computed(() => {
+    return isReady.value && (Boolean(form.isDirty) || isPricingDirty.value)
+})
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form, isDirty: isProductFormDirty })
 
 provide('productForm', form)
 provide('isEdit', isEdit)

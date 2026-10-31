@@ -158,7 +158,12 @@
             >
                 Batal
             </button>
-            <button type="button" class="btn btn-main" :disabled="form.processing" @click="submit">
+            <button
+                type="button"
+                class="btn btn-main"
+                :disabled="form.processing || !form.isDirty"
+                @click="submit"
+            >
                 Simpan
             </button>
         </Teleport>
@@ -247,6 +252,7 @@ watch(
                     knownItemsMap.value.set(i.id, { id: i.id, name: i.name })
                 })
                 form.inventory_items = data.inventory_items.map(i => i.id)
+                form.defaults()
             } else if (data.id) {
                 axios
                     .get(route('inventory.suppliers.show', data.id))
@@ -259,13 +265,16 @@ watch(
                             })
                         })
                         form.inventory_items = items.map(i => i.id)
+                        form.defaults()
                     })
                     .catch(err => console.error(err))
             } else {
                 form.inventory_items = []
+                form.defaults()
             }
         } else {
             knownItemsMap.value.clear()
+            form.defaults()
         }
     },
     { immediate: true }

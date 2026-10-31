@@ -78,7 +78,7 @@
                 <button
                     type="submit"
                     class="btn btn-highlight-main"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty"
                     @click="submit"
                 >
                     {{ form.processing ? 'Menyimpan...' : 'Simpan' }}

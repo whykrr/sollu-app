@@ -84,7 +84,7 @@
                 <button type="button" class="btn btn-flat btn-sm" @click="closeModal">Batal</button>
                 <button
                     type="button"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty"
                     class="btn btn-main btn-sm"
                     @click="submit"
                 >

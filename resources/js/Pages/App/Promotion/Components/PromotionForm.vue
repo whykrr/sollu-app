@@ -430,7 +430,7 @@
                 <button
                     type="submit"
                     class="btn btn-highlight-main"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty"
                     @click="submit"
                 >
                     {{ form.processing ? 'Menyimpan...' : 'Simpan Promo' }}
@@ -441,7 +441,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -552,6 +552,7 @@ const form = useForm({
     product_item_ids: [],
 })
 
+const isReady = ref(false)
 const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 onMounted(async () => {
@@ -585,6 +586,10 @@ onMounted(async () => {
             console.error('Gagal memuat relasi promo:', error)
         }
     }
+
+    await nextTick()
+    form.defaults()
+    isReady.value = true
 })
 
 // Synchronize reactive selection arrays into form submission arrays
@@ -616,6 +621,7 @@ watch(
 watch(
     () => form.application_mode,
     newVal => {
+        if (!isReady.value) return
         if (newVal === 'automatic') {
             form.promo_code = ''
         }
@@ -626,6 +632,7 @@ watch(
 watch(
     () => form.target_scope,
     newScope => {
+        if (!isReady.value) return
         if (newScope !== 'category') {
             selectedCategories.value = []
             form.category_ids = []
@@ -645,6 +652,7 @@ watch(
 watch(
     () => form.discount_type,
     newVal => {
+        if (!isReady.value) return
         if (newVal === 'fixed') {
             form.max_discount_amount = null
         }
@@ -655,6 +663,7 @@ watch(
 watch(
     () => form.applies_to_all_outlets,
     newVal => {
+        if (!isReady.value) return
         if (!newVal && (!form.outlet_ids || form.outlet_ids.length === 0)) {
             form.outlet_ids = getInitialSelectedOutlets()
         }

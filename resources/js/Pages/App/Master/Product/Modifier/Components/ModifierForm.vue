@@ -88,7 +88,7 @@
                 <button type="button" class="btn btn-secondary" @click="closeModal">Batal</button>
                 <button
                     type="button"
-                    :disabled="form.processing || isLoadingOptions"
+                    :disabled="form.processing || isLoadingOptions || !form.isDirty"
                     class="btn btn-success"
                     @click="submit"
                 >
@@ -166,6 +166,7 @@ onMounted(async () => {
             }
         }
     }
+    form.defaults()
 })
 
 const addOption = () => {

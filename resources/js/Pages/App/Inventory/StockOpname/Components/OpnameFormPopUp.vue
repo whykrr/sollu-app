@@ -298,7 +298,7 @@
                 <button
                     type="button"
                     class="btn btn-outline-secondary"
-                    :disabled="form.processing || form.items.length === 0"
+                    :disabled="form.processing || !form.isDirty || form.items.length === 0"
                     @click="executeProgressSave"
                 >
                     Simpan Progres
@@ -384,6 +384,7 @@ onMounted(() => {
             system_qty: Number(i.system_qty ?? 0),
             actual_qty: Number(i.actual_qty ?? i.system_qty ?? 0),
         }))
+        form.defaults()
     }
 })
 

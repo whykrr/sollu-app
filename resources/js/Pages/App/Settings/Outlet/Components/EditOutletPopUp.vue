@@ -47,7 +47,7 @@
                 <button
                     type="button"
                     class="btn btn-main px-5 py-2 rounded-lg text-sm font-medium cursor-pointer"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty"
                     @click="submitForm"
                 >
                     Simpan Perubahan
@@ -92,6 +92,7 @@ watch(
             form.email = outlet.email || ''
             form.address = outlet.address || ''
         }
+        form.defaults()
     },
     { immediate: true }
 )

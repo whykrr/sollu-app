@@ -96,6 +96,69 @@ class SolluProjectServerTest extends TestCase
     }
 
     /**
+     * Test lint_agent_rules verifies CreateEdit components use form.defaults() with useFormDirtyGuard.
+     */
+    public function test_lint_agent_rules_passes_on_well_formed_create_edit_components(): void
+    {
+        $response = SolluProjectServer::tool(LintAgentRules::class, [
+            'path' => 'resources/js/Pages/App/Master/Product/CreateEdit.vue',
+            'ruleset' => 'frontend',
+        ]);
+
+        $response->assertOk();
+        $response->assertDontSee('useFormDirtyGuard used without form.defaults() call');
+    }
+
+    /**
+     * Test lint_agent_rules verifies form submit button dirty state guard.
+     */
+    public function test_lint_agent_rules_verifies_submit_button_dirty_state_guard(): void
+    {
+        $response = SolluProjectServer::tool(LintAgentRules::class, [
+            'path' => 'resources/js/Pages/App/Master/Product/CreateEdit.vue',
+            'ruleset' => 'frontend',
+        ]);
+
+        $response->assertOk();
+        $response->assertDontSee('Submit button on form without dirty-state guard detected');
+    }
+
+    /**
+     * Test lint_agent_rules detects submit button without dirty state guard on candidate form.
+     */
+    public function test_lint_agent_rules_detects_submit_button_without_dirty_state_guard(): void
+    {
+        $dummyPath = resource_path('js/Pages/App/DummyTestForm.vue');
+        file_put_contents($dummyPath, <<<'VUE'
+<template>
+    <form @submit.prevent="submit">
+        <button type="submit" :disabled="form.processing">Simpan</button>
+    </form>
+</template>
+<script setup>
+import { useForm } from '@inertiajs/vue3'
+const form = useForm({ name: '' })
+</script>
+VUE
+        );
+
+        try {
+            $response = SolluProjectServer::tool(LintAgentRules::class, [
+                'path' => 'resources/js/Pages/App/DummyTestForm.vue',
+                'ruleset' => 'frontend',
+            ]);
+
+            $response->assertOk();
+            $response->assertSee('Rule 04: Submit Button Dirty State Guard');
+            $response->assertSee('Submit button on form without dirty-state guard detected');
+        } finally {
+            if (file_exists($dummyPath)) {
+                unlink($dummyPath);
+            }
+        }
+    }
+
+    /**
      * Test audit_migration_compatibility verifies migrations against Git baseline tag.
      */
     public function test_audit_migration_compatibility_tool_executes_successfully(): void

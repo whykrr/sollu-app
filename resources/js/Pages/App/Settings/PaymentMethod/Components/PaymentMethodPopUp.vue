@@ -229,7 +229,7 @@
                 <button
                     type="button"
                     class="btn btn-highlight-main cursor-pointer"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty"
                     @click="submit"
                 >
                     {{ paymentMethod ? 'Simpan Perubahan' : 'Tambah Metode' }}

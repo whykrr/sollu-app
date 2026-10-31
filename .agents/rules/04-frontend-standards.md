@@ -40,12 +40,29 @@ Semua modul operasional **WAJIB** menggunakan layout `<MainPage>` dengan 5 slot 
 - **Tier 2 (Progressive $6-12$ fields):** 80% Core fields selalu tampil di atas + 20% Advanced fields dibungkus `<DisclosureSection>`. Input dependen hanya muncul saat trigger aktif (misal: min stok muncul jika switch lacak stok aktif).
 - **Tier 3 (Complex $> 12$ fields):** Mode Create wajib menggunakan Linear Stepper (`<FormStepper>`), Mode Edit wajib menggunakan Direct Tabs (`<FormTabs>`). Sticky tombol navigasi di-teleport ke `#popUpFooter`.
 
+### 5.1. Reaktivitas Komponen Collapsible & DisclosureSection
+Jika status buka awal (`defaultOpen`) dari komponen pembungkus collapsible/accordion bergantung pada data entitas yang dihitung secara dinamis (misal: `:default-open="hasAdvancedData"` saat hidrasi form edit):
+- Komponen collapsible **WAJIB** merefleksikan perubahan prop `defaultOpen` secara reaktif melalui watcher:
+  ```javascript
+  watch(() => props.defaultOpen, (val) => {
+      if (val) isOpen.value = true
+  })
+  ```
+- Hal ini mencegah status accordion tertinggal pada kondisi tertutup (`false`) akibat evaluasi awal sebelum data entitas selesai dipetakan ke form.
+
 ---
 
 ## 6. Form Lifecycle & Dirty Guard (`useFormDirtyGuard`)
 - Form Create/Edit di dalam drawer `<PopUpPage>` / modal **WAJIB** menggunakan `useFormDirtyGuard({ form })`.
 - Tombol Batal **DILARANG** panggil `popUpStore.close()` langsung. Wajib panggil `handleCancel`.
 - Handler `onSuccess` **WAJIB** panggil `forceClose()` agar drawer tertutup bersih tanpa dialog konfirmasi.
+
+### 6.1. Proteksi Tombol Simpan Berbasis Dirty State & Optimasi Request
+- Seluruh tombol submit/simpan pada formulir Create / Edit WAJIB menonaktifkan diri (`:disabled`) saat form belum diisi / belum dirty:
+  `:disabled="form.processing || !form.isDirty"`
+- Untuk formulir dengan hidrasi data awal reaktif (`watch(() => props.entity)`) atau asinkron (`onMounted` axios), WAJIB memanggil `form.defaults()` setelah pemetaan selesai untuk menetapkan baseline bersih (*pristine snapshot*).
+- Form dengan watcher reaktif kompleks wajib menerapkan pola guard `isReady` agar initial render tidak memicu false-positive dirty state.
+- Pengecualian: Form alur kerja konfirmasi operasional (seperti Penerimaan Transfer Barang, Finalisasi Stok Opname tanpa selisih, dan Pencatatan Pelunasan Faktur Pas) dilarang mengunci tombol konfirmasi dengan dirty state.
 
 ---
 

@@ -10,10 +10,12 @@ use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
 use App\Enums\ProductTypeEnum;
 use App\Jobs\Master\ExportProductJob;
+use App\Jobs\Master\ImportProductJob;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
+use App\Models\Master\ProductItem;
 use App\Models\Outlet;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -21,6 +23,7 @@ use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -526,5 +529,232 @@ class ServiceProductControllerTest extends TestCase
         Queue::assertPushed(ExportProductJob::class, function ($job) {
             return $job->businessId === $this->business->id;
         });
+    }
+
+    public function test_rejects_duplicate_service_sku_in_same_business(): void
+    {
+        ProductItem::create([
+            'business_id' => $this->business->id,
+            'name' => 'Haircut Biasa',
+            'sku' => 'SRV-DUPLICATE-01',
+            'item_type' => 'variant_sku',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/services", [
+                'name' => 'Haircut Khusus',
+                'code' => 'SRV-DUPLICATE-01',
+                'base_price' => 50000,
+            ]);
+
+        $response->assertSessionHasErrors(['code']);
+    }
+
+    public function test_rejects_duplicate_service_barcode_in_same_business(): void
+    {
+        ProductItem::create([
+            'business_id' => $this->business->id,
+            'name' => 'Haircut Biasa',
+            'sku' => 'SRV-BC-01',
+            'barcode' => '899123456789',
+            'item_type' => 'variant_sku',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/services", [
+                'name' => 'Haircut Khusus',
+                'code' => 'SRV-BC-02',
+                'barcode' => '899123456789',
+                'base_price' => 50000,
+            ]);
+
+        $response->assertSessionHasErrors(['barcode']);
+    }
+
+    public function test_rejects_cross_field_collision_where_service_barcode_equals_existing_sku(): void
+    {
+        ProductItem::create([
+            'business_id' => $this->business->id,
+            'name' => 'Shampoo Premium',
+            'sku' => 'BARANG-SKU-999',
+            'barcode' => '111222333444',
+            'item_type' => 'variant_sku',
+            'is_active' => true,
+        ]);
+
+        // Attempt to create a service where barcode equals existing product SKU
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/services", [
+                'name' => 'Cuci Rambut Spesial',
+                'code' => 'SRV-WSH-01',
+                'barcode' => 'BARANG-SKU-999',
+                'base_price' => 30000,
+            ]);
+
+        $response->assertSessionHasErrors(['barcode']);
+    }
+
+    public function test_rejects_cross_field_collision_where_service_sku_equals_existing_barcode(): void
+    {
+        ProductItem::create([
+            'business_id' => $this->business->id,
+            'name' => 'Shampoo Premium',
+            'sku' => 'BARANG-SKU-888',
+            'barcode' => '899999888111',
+            'item_type' => 'variant_sku',
+            'is_active' => true,
+        ]);
+
+        // Attempt to create a service where code (SKU) equals existing product barcode
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/services", [
+                'name' => 'Cuci Rambut Spesial',
+                'code' => '899999888111',
+                'base_price' => 30000,
+            ]);
+
+        $response->assertSessionHasErrors(['code']);
+    }
+
+    public function test_rejects_intra_payload_collision_between_service_code_and_barcode(): void
+    {
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/services", [
+                'name' => 'Creambath Herbal',
+                'code' => 'SAME-CODE-777',
+                'barcode' => 'SAME-CODE-777',
+                'base_price' => 70000,
+            ]);
+
+        $response->assertSessionHasErrors(['barcode']);
+    }
+
+    public function test_allows_same_service_code_and_barcode_in_different_business(): void
+    {
+        $otherBusiness = Business::create([
+            'name' => 'Other Salon',
+            'owner_name' => 'Other Owner',
+            'email' => 'other_salon_'.uniqid().'@test.test',
+            'phone' => '081234567888',
+            'status' => 'active',
+            'trial_end_at' => now()->addDays(14),
+            'business_type_id' => $this->business->business_type_id,
+            'settings' => ['active_features' => array_column(FeatureEnum::cases(), 'value')],
+        ]);
+
+        ProductItem::create([
+            'business_id' => $otherBusiness->id,
+            'name' => 'Layanan Toko Lain',
+            'sku' => 'SHARED-SRV-CODE',
+            'barcode' => 'SHARED-SRV-BARCODE',
+            'item_type' => 'variant_sku',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/services", [
+                'name' => 'Layanan Toko Saya',
+                'code' => 'SHARED-SRV-CODE',
+                'barcode' => 'SHARED-SRV-BARCODE',
+                'base_price' => 40000,
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('product_items', [
+            'business_id' => $this->business->id,
+            'sku' => 'SHARED-SRV-CODE',
+            'barcode' => 'SHARED-SRV-BARCODE',
+        ]);
+    }
+
+    public function test_update_service_allows_preserving_its_own_code_and_barcode(): void
+    {
+        $response = $this->actingAs($this->user, 'business')
+            ->post("http://{$this->appDomain}/master/services", [
+                'name' => 'Pijat Bahu',
+                'code' => 'SRV-PIJAT-01',
+                'barcode' => '899555111001',
+                'base_price' => 60000,
+            ]);
+        $response->assertSessionHasNoErrors();
+
+        $service = Product::where('code', 'SRV-PIJAT-01')->firstOrFail();
+
+        $updateResponse = $this->actingAs($this->user, 'business')
+            ->put("http://{$this->appDomain}/master/services/{$service->id}", [
+                'name' => 'Pijat Bahu & Punggung Relaksasi',
+                'code' => 'SRV-PIJAT-01',
+                'barcode' => '899555111001',
+                'base_price' => 85000,
+            ]);
+
+        $updateResponse->assertSessionHasNoErrors();
+        $this->assertEquals('Pijat Bahu & Punggung Relaksasi', $service->fresh()->name);
+    }
+
+    public function test_redirect_preserves_query_parameters_via_redirect_back(): void
+    {
+        $category = ProductCategory::create([
+            'business_id' => $this->business->id,
+            'name' => 'Refleksi Tubuh',
+        ]);
+
+        $filterUrl = "http://{$this->appDomain}/master/services?category={$category->id}&search=relaksasi&page=2";
+
+        $response = $this->actingAs($this->user, 'business')
+            ->from($filterUrl)
+            ->post("http://{$this->appDomain}/master/services", [
+                'name' => 'Pijat Relaksasi Seluruh Tubuh',
+                'code' => 'SRV-RLX-01',
+                'product_category_id' => $category->id,
+                'base_price' => 150000,
+            ]);
+
+        $response->assertRedirect($filterUrl);
+        $response->assertSessionHas(FlashDataVariable::SUCCESS->value);
+    }
+
+    public function test_import_template_endpoint_returns_binary_excel_download(): void
+    {
+        $response = $this->actingAs($this->user, 'business')
+            ->get("http://{$this->appDomain}/master/services/import-template");
+
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    }
+
+    public function test_import_job_imports_service_product_using_service_template_headers(): void
+    {
+        Storage::fake('local');
+        $csvContent = implode("\n", [
+            'Kode Layanan,Barcode,Nama Layanan,Kategori,Deskripsi,Tarif Dasar,Status Tampil',
+            'SRV-BARBER-99,899888999,Potong Rambut Pompadour,Grooming,Potong rambut model pompadour klimis,45000,Ya',
+        ]);
+        $filePath = 'imports/test_service_import.csv';
+        Storage::disk('local')->put($filePath, $csvContent);
+
+        $job = new ImportProductJob(
+            user: $this->user,
+            filePath: $filePath,
+            businessId: $this->business->id
+        );
+
+        $job->handle();
+
+        $this->assertDatabaseHas('products', [
+            'business_id' => $this->business->id,
+            'name' => 'Potong Rambut Pompadour',
+            'code' => 'SRV-BARBER-99',
+            'product_type' => 'service',
+        ]);
+
+        $this->assertDatabaseHas('product_items', [
+            'business_id' => $this->business->id,
+            'sku' => 'SRV-BARBER-99',
+            'barcode' => '899888999',
+            'name' => 'Potong Rambut Pompadour',
+        ]);
     }
 }

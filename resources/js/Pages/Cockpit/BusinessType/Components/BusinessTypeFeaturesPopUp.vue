@@ -173,7 +173,7 @@
                         <button
                             type="submit"
                             class="btn btn-main"
-                            :disabled="form.processing"
+                            :disabled="form.processing || !form.isDirty"
                             @click="submit"
                         >
                             {{ form.processing ? 'Menyimpan...' : 'Simpan Hak Akses Fitur' }}
@@ -289,6 +289,7 @@ onMounted(async () => {
         if (data.all_features && data.all_features.length) {
             allFeaturesList.value = data.all_features
         }
+        form.defaults()
     } catch (err) {
         console.error('Gagal memuat data fitur jenis bisnis:', err)
     } finally {

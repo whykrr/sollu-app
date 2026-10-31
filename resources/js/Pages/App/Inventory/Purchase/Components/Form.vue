@@ -373,7 +373,9 @@
         <button
             type="button"
             class="btn btn-main"
-            :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
+            :disabled="
+                form.processing || !form.isDirty || form.items.length === 0 || !form.outlet_id
+            "
             @click="submit"
         >
             {{ submitButtonText }}
@@ -564,6 +566,7 @@ watch(
                 selectedOutlet.value?.id ||
                 (userOutlets.value?.length === 1 ? userOutlets.value[0].id : '')
         }
+        form.defaults()
     },
     { immediate: true }
 )

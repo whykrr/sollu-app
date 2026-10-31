@@ -255,6 +255,44 @@ class LintAgentRules extends Tool
                     ];
                 }
             }
+
+            // Rule 04: useFormDirtyGuard must call form.defaults() after initial hydration
+            if (str_ends_with($filePath, 'CreateEdit.vue') && str_contains($content, 'useFormDirtyGuard')) {
+                if (! str_contains($content, 'form.defaults(')) {
+                    $violations[] = [
+                        'line' => 1,
+                        'rule' => 'Rule 04: useFormDirtyGuard Form Protection',
+                        'severity' => 'warning',
+                        'message' => 'useFormDirtyGuard used without form.defaults() call.',
+                        'suggestion' => 'Call form.defaults() after initial data hydration to establish a clean baseline and prevent false-positive unsaved changes warnings.',
+                    ];
+                }
+            }
+
+            // Rule 04: Submit Button Dirty State Guard on Create/Edit Forms
+            $isCandidateForm = (str_contains($filePath, 'Form') || str_ends_with($filePath, 'CreateEdit.vue') || str_ends_with($filePath, 'PopUp.vue'))
+                && ! str_contains($filePath, 'TransferReceiveForm')
+                && ! str_contains($filePath, 'RecordPaymentPopUp')
+                && ! str_contains($filePath, 'PickerModal');
+
+            if ($isCandidateForm && (str_contains($content, 'useForm(') || str_contains($content, 'useFormDirtyGuard'))) {
+                if (preg_match_all('/<button\b([^>]*?(?:type=[\'"]submit[\'"]|@click=[\'"](?:submit|submitForm|submitData|save|saveDetail)\b)[^>]*)>/is', $content, $buttonMatches, PREG_SET_ORDER)) {
+                    foreach ($buttonMatches as $btnMatch) {
+                        $buttonAttrs = $btnMatch[1];
+                        if (! preg_match('/(?:is\w*Dirty|\bDirty\b)/i', $buttonAttrs)) {
+                            $offset = strpos($content, $btnMatch[0]);
+                            $lineNum = $offset !== false ? substr_count(substr($content, 0, $offset), "\n") + 1 : 1;
+                            $violations[] = [
+                                'line' => $lineNum,
+                                'rule' => 'Rule 04: Submit Button Dirty State Guard',
+                                'severity' => 'warning',
+                                'message' => 'Submit button on form without dirty-state guard detected.',
+                                'suggestion' => 'Add :disabled="form.processing || !form.isDirty" to prevent redundant requests when form is pristine.',
+                            ];
+                        }
+                    }
+                }
+            }
         }
 
         return $violations;

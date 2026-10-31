@@ -230,7 +230,11 @@
                 <div
                     class="flex justify-end sticky bottom-4 z-10 bg-white/90 backdrop-blur-xs p-3 rounded-xl border border-slate-200"
                 >
-                    <button class="btn btn-main" :disabled="form.processing" @click="submitForm">
+                    <button
+                        class="btn btn-main"
+                        :disabled="form.processing || !form.isDirty"
+                        @click="submitForm"
+                    >
                         <FontAwesomeIcon :icon="faSave" />
                         <span>Simpan Pengaturan Struk</span>
                     </button>

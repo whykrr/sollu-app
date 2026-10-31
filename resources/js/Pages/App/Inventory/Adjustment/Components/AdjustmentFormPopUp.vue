@@ -263,7 +263,9 @@
             <button
                 type="button"
                 class="btn btn-outline-secondary"
-                :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
+                :disabled="
+                    form.processing || !form.isDirty || form.items.length === 0 || !form.outlet_id
+                "
                 @click="submit(true)"
             >
                 Simpan Draf
@@ -271,7 +273,9 @@
             <button
                 type="button"
                 class="btn btn-main"
-                :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
+                :disabled="
+                    form.processing || !form.isDirty || form.items.length === 0 || !form.outlet_id
+                "
                 @click="submit(false)"
             >
                 Simpan & Terapkan

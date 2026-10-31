@@ -172,7 +172,7 @@
                 <button
                     type="submit"
                     class="btn btn-highlight-main"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty"
                     @click="submit"
                 >
                     {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
@@ -289,6 +289,7 @@ watch(
             form.outlets = resolveInitialOutlets(user)
             form.has_web_access = user.is_root_user ? true : Boolean(user.email)
             showPinField.value = !user.has_pin
+            form.defaults()
         }
     }
 )

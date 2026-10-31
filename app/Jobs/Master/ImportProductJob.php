@@ -170,7 +170,7 @@ class ImportProductJob extends AbstractExcelImportJob
                 $rowData[$headerName] = isset($row[$index]) ? trim((string) $row[$index]) : null;
             }
 
-            $nama = trim($rowData['Nama Produk'] ?? '');
+            $nama = trim($rowData['Nama Produk'] ?? $rowData['Nama Layanan'] ?? '');
 
             if (! empty($nama)) {
                 // Save previous parent
@@ -309,17 +309,18 @@ class ImportProductJob extends AbstractExcelImportJob
 
     protected function buildParentData(array $row): array
     {
-        $kode = trim($row['SKU'] ?? '');
+        $kode = trim($row['SKU'] ?? $row['Kode Layanan'] ?? $row['Kode Layanan / SKU'] ?? '');
         $barcode = trim($row['Barcode'] ?? '');
-        $nama = trim($row['Nama Produk'] ?? '');
+        $nama = trim($row['Nama Produk'] ?? $row['Nama Layanan'] ?? '');
         $kategori = trim($row['Kategori'] ?? '');
         $deskripsi = trim($row['Deskripsi'] ?? '');
-        $tipe = strtolower(trim($row['Tipe Produk'] ?? '')) ?: 'basic';
+        $tipeInput = strtolower(trim($row['Tipe Produk'] ?? ''));
+        $tipe = $tipeInput ?: (isset($row['Nama Layanan']) || isset($row['Tarif Dasar']) ? 'service' : 'basic');
         $v1Name = trim($row['Nama Varian 1'] ?? '');
         $v1Opt = trim($row['Opsi Varian 1'] ?? '');
-        $harga = (float) ($row['Harga Dasar'] ?? 0);
+        $harga = (float) ($row['Harga Dasar'] ?? $row['Tarif Dasar'] ?? 0);
         $satuan = trim($row['Satuan'] ?? '');
-        $lacakStok = strtolower(trim($row['Lacak Stok'] ?? 'ya')) === 'ya';
+        $lacakStok = ($tipe === 'service' || isset($row['Nama Layanan'])) ? false : (strtolower(trim($row['Lacak Stok'] ?? 'ya')) === 'ya');
         $minStok = (float) ($row['Minimum Stok'] ?? 0);
         $statusTampil = strtolower(trim($row['Status Tampil'] ?? 'ya')) === 'ya';
 

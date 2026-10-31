@@ -76,6 +76,7 @@
 
         <template #create>
             <button
+                v-if="can('product.create')"
                 type="button"
                 class="btn btn-main btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer"
                 @click="$emit('create')"
@@ -125,7 +126,7 @@ const props = defineProps({
 
 const emit = defineEmits(['open-import', 'update:viewMode', 'create'])
 
-const { outlets: userOutlets, selectedOutlet } = useAuth()
+const { outlets: userOutlets, selectedOutlet, can } = useAuth()
 const outletOptions = computed(() => {
     return (userOutlets.value || []).map(store => ({
         value: String(store.id),
@@ -187,18 +188,24 @@ const exportCsv = () => {
     )
 }
 
-const actionItems = computed(() => [
-    {
-        label: 'Ekspor Data CSV',
-        icon: faDownload,
-        iconClass: 'text-emerald-600',
-        action: exportCsv,
-    },
-    {
-        label: 'Impor Data Massal',
-        icon: faUpload,
-        iconClass: 'text-blue-600',
-        action: () => emit('open-import'),
-    },
-])
+const actionItems = computed(() => {
+    const items = []
+    if (can('product.view')) {
+        items.push({
+            label: 'Ekspor Data CSV',
+            icon: faDownload,
+            iconClass: 'text-emerald-600',
+            action: exportCsv,
+        })
+    }
+    if (can('product.create')) {
+        items.push({
+            label: 'Impor Data Massal',
+            icon: faUpload,
+            iconClass: 'text-blue-600',
+            action: () => emit('open-import'),
+        })
+    }
+    return items
+})
 </script>

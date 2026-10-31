@@ -305,6 +305,7 @@
                 class="btn btn-main"
                 :disabled="
                     form.processing ||
+                    !form.isDirty ||
                     form.items.length === 0 ||
                     !form.from_outlet_id ||
                     !form.to_outlet_id
@@ -419,6 +420,7 @@ onMounted(() => {
             system_qty: Number(i.current_stock ?? 0),
             qty: Number(i.qty ?? 1),
         }))
+        form.defaults()
     }
 })
 

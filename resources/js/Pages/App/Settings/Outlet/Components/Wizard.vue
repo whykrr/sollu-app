@@ -265,7 +265,7 @@
                 v-if="step === totalSteps"
                 type="button"
                 class="btn btn-main px-5 py-2 rounded-lg text-sm font-medium cursor-pointer"
-                :disabled="formOutlet.processing"
+                :disabled="formOutlet.processing || !formOutlet.isDirty"
                 @click="submitForm"
             >
                 <FontAwesomeIcon :icon="faCheck" class="mr-1.5" />

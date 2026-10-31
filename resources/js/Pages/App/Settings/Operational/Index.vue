@@ -101,7 +101,7 @@
             >
                 <button
                     class="btn btn-main flex items-center gap-2"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty"
                     @click="submitForm"
                 >
                     <FontAwesomeIcon :icon="faSave" />

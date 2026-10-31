@@ -54,18 +54,25 @@
         <DisclosureSection
             id="section-advanced"
             v-model="isAdvancedOpen"
+            :default-open="hasAdvancedData"
             title="Pengaturan Lanjutan"
             description="Kode layanan, deskripsi pengerjaan, ketersediaan outlet & visibilitas kasir"
             :error="hasAdvancedError"
         >
             <div class="space-y-2.5 pt-1">
-                <!-- Kode Layanan -->
-                <div>
+                <!-- Kode Layanan & Barcode -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <TextField
                         v-model="form.code"
-                        label="Kode Layanan"
+                        label="Kode Layanan (SKU)"
                         placeholder="Misal: SRV-HAIR-01 (Opsional)"
                         :error="form.errors.code"
+                    />
+                    <TextField
+                        v-model="form.barcode"
+                        label="Barcode (Opsional)"
+                        placeholder="Scan atau ketik barcode"
+                        :error="form.errors.barcode"
                     />
                 </div>
 
@@ -206,9 +213,10 @@
                 Batal
             </button>
             <button
+                v-if="canSubmit"
                 type="button"
                 class="btn btn-main btn-sm min-w-[120px]"
-                :disabled="form.processing"
+                :disabled="form.processing || !isServiceFormDirty"
                 @click="submit"
             >
                 <FontAwesomeIcon
@@ -249,7 +257,7 @@ const props = defineProps({
     outlets: { type: Array, default: () => [] },
 })
 
-const { selectedOutlet, hasFeature } = useAuth()
+const { selectedOutlet, hasFeature, can } = useAuth()
 
 const isPricingLocked = computed(() => {
     return !hasFeature('product_price_matrix')
@@ -257,8 +265,23 @@ const isPricingLocked = computed(() => {
 
 const isEdit = computed(() => props.editMode)
 const isMounted = ref(false)
+const isReady = ref(false)
 const isAdvancedOpen = ref(false)
 const isPricingOpen = ref(false)
+
+const canSubmit = computed(() => {
+    return isEdit.value ? can('product.update') : can('product.create')
+})
+
+const hasAdvancedData = computed(() => {
+    return Boolean(
+        props.service?.code ||
+        props.service?.barcode ||
+        props.service?.product_items?.[0]?.barcode ||
+        props.service?.description ||
+        (props.service?.outlets && props.service.outlets.some(o => o.pivot?.is_enabled === false))
+    )
+})
 
 const getInitialBasePrice = () => {
     if (props.service?.prices) {
@@ -270,10 +293,15 @@ const getInitialBasePrice = () => {
     return ''
 }
 
+const getInitialBarcode = () => {
+    return props.service?.barcode || props.service?.product_items?.[0]?.barcode || ''
+}
+
 const form = useForm({
     id: props.service?.id || null,
     name: props.service?.name || '',
     code: props.service?.code || '',
+    barcode: getInitialBarcode(),
     product_category_id: props.service?.product_category_id || '',
     description: props.service?.description || '',
     product_type: 'service',
@@ -329,10 +357,14 @@ if (isEdit.value && props.service) {
     }
 }
 
+// Clean baseline snapshot after all initial data is hydrated
+form.defaults()
+
 // Auto-enable customizeOutletPrices when user enters a custom price if feature is not locked
 watch(
     outletPriceMap,
     newMap => {
+        if (!isReady.value) return
         if (!customizeOutletPrices.value && !isPricingLocked.value) {
             const hasAnyVal = Object.values(newMap).some(
                 val => val !== '' && val !== null && val !== undefined
@@ -349,7 +381,24 @@ const activeOutletsCount = computed(() => {
     return props.outlets.filter(o => outletStatusMap.value[o.id]).length
 })
 
-const { handleCancel, forceClose } = useFormDirtyGuard({ form })
+const initialOutletPriceMap = JSON.stringify(outletPriceMap.value)
+const initialOutletStatusMap = JSON.stringify(outletStatusMap.value)
+const initialCustomizeOutlet = customizeOutletPrices.value
+
+const isServicePricingDirty = computed(() => {
+    if (!isReady.value) return false
+    return (
+        customizeOutletPrices.value !== initialCustomizeOutlet ||
+        JSON.stringify(outletPriceMap.value) !== initialOutletPriceMap ||
+        JSON.stringify(outletStatusMap.value) !== initialOutletStatusMap
+    )
+})
+
+const isServiceFormDirty = computed(() => {
+    return isReady.value && (Boolean(form.isDirty) || isServicePricingDirty.value)
+})
+
+const { handleCancel, forceClose } = useFormDirtyGuard({ form, isDirty: isServiceFormDirty })
 
 const categoryOptions = computed(() => {
     return props.categories.map(c => ({
@@ -427,6 +476,7 @@ const getOutletPriceError = outletId => {
 watch(
     () => form.sellable,
     isSellable => {
+        if (!isReady.value) return
         if (!isSellable) {
             form.is_show = false
         }
@@ -436,6 +486,7 @@ watch(
 watch(
     () => form.is_show,
     isShow => {
+        if (!isReady.value) return
         if (isShow && !form.sellable) {
             form.is_show = false
         }
@@ -508,6 +559,7 @@ watch(
 
 onMounted(() => {
     isMounted.value = true
+    isReady.value = true
 
     if (props.targetStepId) {
         setTimeout(() => {
@@ -544,11 +596,15 @@ const submit = () => {
         form.transform(data => ({ ...data, _method: 'PUT' })).post(
             route('master.services.update', props.service.id),
             {
+                preserveScroll: true,
+                preserveState: true,
                 onSuccess: () => forceClose(),
             }
         )
     } else {
         form.post(route('master.services.store'), {
+            preserveScroll: true,
+            preserveState: true,
             onSuccess: () => forceClose(),
         })
     }

@@ -63,7 +63,12 @@
             >
                 Batal
             </button>
-            <button type="button" class="btn btn-main" :disabled="form.processing" @click="submit">
+            <button
+                type="button"
+                class="btn btn-main"
+                :disabled="form.processing || !form.isDirty"
+                @click="submit"
+            >
                 <span v-if="form.processing">Menyimpan...</span>
                 <span v-else>Simpan</span>
             </button>
@@ -125,6 +130,7 @@ watch(
             form.track_inventory = data.track_inventory ?? true
             form.minimum_stock = data.minimum_stock || 0
         }
+        form.defaults()
     },
     { immediate: true }
 )

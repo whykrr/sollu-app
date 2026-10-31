@@ -95,7 +95,7 @@
                 <button
                     type="button"
                     class="btn btn-main px-5 py-2 rounded-lg text-sm font-medium cursor-pointer"
-                    :disabled="form.processing || (isQuotaExceeded && !device)"
+                    :disabled="form.processing || !form.isDirty || (isQuotaExceeded && !device)"
                     @click="submitDeviceForm"
                 >
                     {{ device ? 'Simpan Perubahan' : 'Tambah Perangkat' }}
@@ -213,6 +213,7 @@ watch(
         } else {
             form.outlet_id = initialOutletId.value
         }
+        form.defaults()
     },
     { immediate: true }
 )

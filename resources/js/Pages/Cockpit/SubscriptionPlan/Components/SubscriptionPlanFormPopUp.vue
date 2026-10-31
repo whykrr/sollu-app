@@ -327,7 +327,7 @@
                 <button
                     type="submit"
                     class="btn btn-main"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty"
                     @click="submit"
                 >
                     {{
@@ -420,6 +420,7 @@ onMounted(async () => {
                 selectedMerchant.value = data.business
             }
             form.features = Array.isArray(data.features) ? data.features.map(f => ({ ...f })) : []
+            form.defaults()
         } catch (err) {
             console.error('Failed to load plan details:', err)
         } finally {

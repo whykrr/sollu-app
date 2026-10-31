@@ -50,7 +50,7 @@
                 <button
                     type="button"
                     class="btn btn-main"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty"
                     @click="submitForm"
                 >
                     <span v-if="form.processing">Menyimpan...</span>

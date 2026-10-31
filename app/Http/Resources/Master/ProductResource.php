@@ -136,6 +136,7 @@ class ProductResource extends JsonResource
             'has_recipe' => (bool) $this->has_recipe,
             'track_inventory' => (bool) $this->track_inventory,
             'code' => $this->code,
+            'barcode' => $productItems->first()?->barcode,
             'name' => $this->name,
             'description' => $this->description,
             'image_url' => $this->image_url,

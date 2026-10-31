@@ -45,19 +45,21 @@ export function useFormDirtyGuard(options = {}) {
     const setPopUpDirty = inject('setPopUpDirty', null)
 
     const computedIsDirty = computed(() => {
+        let formDirty = false
         if (options.form && typeof options.form.isDirty !== 'undefined') {
-            return Boolean(options.form.isDirty)
+            formDirty = Boolean(options.form.isDirty)
         }
+
+        let customDirty = false
         if (isRef(options.isDirty)) {
-            return Boolean(options.isDirty.value)
+            customDirty = Boolean(options.isDirty.value)
+        } else if (typeof options.isDirty === 'function') {
+            customDirty = Boolean(options.isDirty())
+        } else if (typeof options.isDirty === 'boolean') {
+            customDirty = options.isDirty
         }
-        if (typeof options.isDirty === 'function') {
-            return Boolean(options.isDirty())
-        }
-        if (typeof options.isDirty === 'boolean') {
-            return options.isDirty
-        }
-        return false
+
+        return formDirty || customDirty
     })
 
     // Sinkronisasi status dirty ke PopUpPage (jika dirender di dalam PopUpPage)

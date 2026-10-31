@@ -496,7 +496,7 @@
                     <button
                         type="button"
                         class="btn btn-outline-secondary btn-sm h-[30px] inline-flex items-center gap-1.5 cursor-pointer text-xs"
-                        :disabled="form.processing || form.items.length === 0"
+                        :disabled="form.processing || !form.isDirty || form.items.length === 0"
                         @click="submitDraft"
                     >
                         <FontAwesomeIcon :icon="faSave" />

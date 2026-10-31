@@ -86,7 +86,7 @@
                 >
                     <button
                         class="btn btn-main flex items-center gap-2"
-                        :disabled="business.processing"
+                        :disabled="business.processing || !business.isDirty"
                         @click="saveDetail"
                     >
                         <FontAwesomeIcon :icon="faSave" />

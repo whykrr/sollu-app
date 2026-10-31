@@ -104,7 +104,7 @@
                 <button
                     type="button"
                     class="btn btn-highlight-main"
-                    :disabled="form.processing || isLoadingPermissions"
+                    :disabled="form.processing || isLoadingPermissions || !form.isDirty"
                     @click="submit"
                 >
                     {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
@@ -203,6 +203,7 @@ onMounted(async () => {
             isLoadingPermissions.value = false
         }
     }
+    form.defaults()
 })
 
 const submit = () => {

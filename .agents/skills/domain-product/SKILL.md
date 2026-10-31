@@ -86,6 +86,10 @@ Modul Produk mengadopsi standar **Unified Item Pattern** (Shopify/Square):
 8. **Invarian Tipe Item & Model Satuan (UOM):**
    - Kolom `product_items.item_type` hanya mengizinkan nilai enum `'variant_sku'` atau `'raw_material'` (DILARANG menggunakan `'inventory'`).
    - Tabel `uoms` dan model `Uom` menggunakan kolom `code` dan `name` (DILARANG mereferensikan `short_name`).
+9. **Karakteristik & Integritas Produk Layanan (Service Product Invariant):**
+   - Produk layanan berstatus `product_type = 'service'`, `track_inventory = false`, dan `has_variant = false`.
+   - Di level database, produk layanan memiliki tepat 1 baris `product_items` dengan `item_type = 'variant_sku'`, `is_default = true`, `sku = $request->code`, dan `barcode = $request->barcode`.
+   - Walaupun bersifat layanan non-stok, field `sku` dan `barcode` tetap tunduk pada aturan keunikan per merchant (`business_id`) dan pencegahan tabrakan silang (*cross-field collision prevention*) terhadap seluruh produk dan varian lain dalam merchant.
 
 ---
 
@@ -118,4 +122,17 @@ Payload sinkronisasi ke POS client mengekspor:
   - **Ekspor (`ExportProductJob`):** Seleksi kolom eksplisit (*anti-overfetching*) dan chunking 200 baris.
   - **Impor (`ImportProductJob`):** Menggunakan stream reader (`fgetcsv` / OpenSpout stream) dan preloading in-memory $O(1)$ untuk seluruh kategori, UOM, produk yang ada, SKU, dan barcode sebelum melakukan perulangan baris (Zero N+1).
 - **Penolakan Fitur Non-Aktif secara Edukatif:** Jika file impor berisi varian produk padahal paket langganan tenant tidak memiliki fitur `PRODUCT_VARIANT`, baris tersebut ditolak secara elegan dan dicatat dalam laporan berkas `failed_import_*.xlsx` dengan pesan edukatif, tanpa menggagalkan baris produk valid lainnya.
+- **Normalisasi Header Alias pada Template Multi-Tipe:**
+  Ketika background job impor (`ImportProductJob`) menangani file Excel dari entitas sejenis namun berbeda tipe (misalnya produk fisik barang vs. produk layanan jasa):
+  - Template ekspor/impor dapat menggunakan istilah yang ramah domain:
+    - Kode: `SKU` (Barang) vs `Kode Layanan` (Jasa)
+    - Nama: `Nama Produk` (Barang) vs `Nama Layanan` (Jasa)
+    - Tarif/Harga: `Harga Dasar` (Barang) vs `Tarif Dasar` (Jasa)
+  - Parser baris impor **WAJIB** mendukung *fallback alias* sebelum validasi dan pemrosesan baris dilakukan:
+    ```php
+    $sku = trim((string) ($rowData['SKU'] ?? $rowData['Kode Layanan'] ?? ''));
+    $nama = trim((string) ($rowData['Nama Produk'] ?? $rowData['Nama Layanan'] ?? ''));
+    $harga = $rowData['Harga Dasar'] ?? $rowData['Tarif Dasar'] ?? null;
+    ```
+  - Hal ini menjamin file Excel yang diunduh dari modul layanan dapat diimpor kembali secara mulus tanpa kegagalan identifikasi baris induk.
 

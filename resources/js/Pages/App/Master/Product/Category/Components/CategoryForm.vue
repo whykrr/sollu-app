@@ -40,7 +40,7 @@
                 <button
                     type="button"
                     class="btn btn-highlight-main btn-sm"
-                    :disabled="form.processing"
+                    :disabled="form.processing || !form.isDirty"
                     @click="submit"
                 >
                     {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
@@ -99,6 +99,7 @@ watch(
             form.parent_id = props.parentCategory ? props.parentCategory.id : ''
             form.sort_order = ''
         }
+        form.defaults()
     },
     { immediate: true }
 )

@@ -96,7 +96,7 @@
 
             <button
                 class="btn btn-main flex items-center gap-2"
-                :disabled="form.processing || isResetting"
+                :disabled="form.processing || isResetting || !form.isDirty"
                 @click="save"
             >
                 <FontAwesomeIcon :icon="faSave" />
@@ -147,6 +147,7 @@ watch(
     () => props.activeFeatures,
     newFeatures => {
         form.features = [...newFeatures]
+        form.defaults()
     },
     { deep: true }
 )

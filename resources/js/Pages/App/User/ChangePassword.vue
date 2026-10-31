@@ -43,7 +43,11 @@
 
             <div class="col-span-2 flex flex-1 ml-auto">
                 <div>
-                    <button type="submit" class="btn btn-main">
+                    <button
+                        type="submit"
+                        class="btn btn-main"
+                        :disabled="form.processing || !form.isDirty"
+                    >
                         {{ $t('action.submit') }}
                     </button>
                 </div>
