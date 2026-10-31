@@ -19,6 +19,7 @@ use App\Enums\NotificationScopeEnum;
 use App\Enums\NotificationTypeEnum;
 use App\Enums\PaymentManualValidationStatus;
 use App\Enums\PaymentMethodType;
+use App\Enums\PaymentReferencePolicy;
 use App\Enums\PaymentTermEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\PlanEnum;
@@ -74,6 +75,7 @@ class FrontendEnumProvider
         NotificationScopeEnum::class,
         NotificationTypeEnum::class,
         PaymentMethodType::class,
+        PaymentReferencePolicy::class,
         PaymentTermEnum::class,
         PermissionEnum::class,
         PlanEnum::class,

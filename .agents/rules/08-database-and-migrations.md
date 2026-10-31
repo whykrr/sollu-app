@@ -101,3 +101,21 @@ php artisan migrate
 Migrasi database (baik DDL maupun DML) **DILARANG memanggil Production Seeder** (seperti `(new FeatureSeeder)->run()` atau `(new RolePermissionSeeder)->run()`).
 - **Alasan:** Migrasi dijalankan otomatis pada setiap siklus testing yang menggunakan trait `RefreshDatabase`. Memanggil seeder di dalam migrasi akan mengotori tabel dan menyebabkan *unique constraint violation* atau kegagalan asersi count pada tes unit/integrasi yang menggunakan Model Factory dari kondisi database kosong.
 - **Pengecualian:** Migrasi data hanya boleh menjalankan query DML spesifik (`DB::table(...)->where(...)->update(...)`) yang bersifat idempoten dan simetris pada `down()`.
+
+---
+
+## 6. Standar Arsitektur Metode Pembayaran (Payment Method Standards)
+
+- **Two-Tier Status:** Status aktif metode pembayaran menggunakan pendekatan dua tingkat:
+  1. Status Global HQ: `payment_methods.is_active` (boolean, default true) untuk arsip global oleh HQ (misal jika metode sudah memiliki transaksi sehingga tidak boleh di-hard delete).
+  2. Status Ketersediaan Cabang: `outlet_payment_method.is_enabled` (boolean, default true) untuk mengontrol ketersediaan per cabang.
+- **Proteksi Sistem (`is_system`):** Metode inti (seperti Tunai / Cash) wajib berstatus `is_system = true`, kebal terhadap penghapusan (`delete()`) dan perubahan tipe dasar (`type`).
+- **Eliminasi Urutan Manual:** Tidak menggunakan drag-and-drop / manual `sort_order`. Query wajib menggunakan `scopeOrderedByIndustryStandard()`:
+  $$\text{CASH (1)} \rightarrow \text{QRIS (2)} \rightarrow \text{EDC (3)} \rightarrow \text{EWALLET (4)} \rightarrow \text{BANK\_TRANSFER (5)} \rightarrow \text{CUSTOM (6)}$$
+  diikuti oleh `is_system DESC, name ASC`.
+- **Atribut Operasional Kasir:** Model `PaymentMethod` wajib mendukung:
+  - `reference_policy`: Enum `PaymentReferencePolicy` (`optional`, `mandatory`, `hidden`).
+  - `open_cash_drawer`: Boolean pemicu buka laci kasir (default true untuk Tunai).
+  - `instructions`: Teks catatan/instruksi pembayaran untuk kasir.
+  - `account_number` & `account_name`: Detail rekening bank/merchant ID.
+  - `qr_image_path`: Path file gambar QRIS statis yang diunggah ke storage publik.

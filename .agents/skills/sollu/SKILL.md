@@ -1179,3 +1179,26 @@ app(NotificationDispatcherService::class)->sendToOutlet($outlet, $notification);
 
 - Popover notifikasi menampilkan 4 tab: **Semua**, **Sistem**, **Pesanan**, dan **Stok** dalam layout `grid grid-cols-4` (kontainer 416px, zero text-wrapping).
 - Komponen frontend mendengarkan WebSocket private channel untuk penambahan notifikasi real-time dan audio alert (khusus pesanan baru).
+
+---
+
+## 16. Domain Payment Methods & Standar Kasir
+
+### 16.1. Two-Tier Lifecycle Status
+- **Global Status (`is_active`):** Mengontrol ketersediaan metode pembayaran secara menyeluruh pada tingkat bisnis. Digunakan untuk mengarsipkan metode pembayaran lama yang sudah memiliki riwayat transaksi tanpa melanggar *foreign key constraint*.
+- **Outlet Pivot Status (`outlet_payment_method.is_enabled`):** Mengontrol ketersediaan metode pembayaran pada masing-masing cabang/outlet.
+- **Scope Aktif Kasir:** Kueri POS wajib menggunakan `scopeActiveForOutlet($outletId)` yang mensyaratkan `is_active = true` AND `is_enabled = true`.
+
+### 16.2. Deterministik Standar Industri (Zero-Manual-Reorder)
+- Menghilangkan pengaturan urutan manual (`sort_order`). Seluruh tampilan tombol kasir diurutkan secara deterministik menggunakan `scopeOrderedByIndustryStandard()`:
+  $$\text{CASH (1)} \rightarrow \text{QRIS (2)} \rightarrow \text{EDC (3)} \rightarrow \text{EWALLET (4)} \rightarrow \text{BANK\_TRANSFER (5)} \rightarrow \text{CUSTOM (6)}$$
+  diikuti oleh `is_system DESC, name ASC`.
+
+### 16.3. Proteksi Sistem (`is_system`)
+- Metode pembayaran inti (khususnya `Tunai` / `CASH`) wajib memiliki flag `is_system = true`.
+- Mencegah perubahan jenis dasar (`type`) dan penghapusan (`delete()`) bahkan jika belum ada riwayat transaksi.
+
+### 16.4. Atribut Operasional Kasir
+- **Kebijakan Referensi (`reference_policy`):** Menggunakan enum `PaymentReferencePolicy` (`optional`, `mandatory`, `hidden`). EDC/Kartu secara default bernilai `mandatory` agar kasir wajib memasukkan trace number/approval code.
+- **Laci Kasir (`open_cash_drawer`):** Menentukan apakah perintah cetak struk memicu RJ-11 drawer kick (default `true` untuk Tunai).
+- **QR Statis & Informasi Rekening:** Mendukung upload gambar QRIS statis ke storage publik (`qr_image_path`), nomor rekening, atas nama, dan instruksi pembayaran untuk ditampilkan di antarmuka kasir.
