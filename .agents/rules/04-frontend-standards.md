@@ -175,6 +175,31 @@ Untuk mencegah pemotongan efek visual (*clipping*) oleh container scrollable (`o
    - `$hasFeature(featureName, requireAll = false)`: Evaluasi boolean fitur aktif di template expression.
    - `$feature(featureName)`: Return status `'active' | 'masked' | 'hidden'`.
 
+---
+
+## 12. Inisialisasi `useFormDirtyGuard` & Proteksi Hydration Watcher (Anti-False-Positive Invariant)
+
+Untuk mencegah dialog konfirmasi *"Perubahan Belum Disimpan"* muncul secara prematur (*false-positive*) saat drawer / formulir Create/Edit pertama kali terbuka:
+1. **Tunda Inisialisasi `useFormDirtyGuard`:**
+   Jangan mengekspos dirty guard sebelum proses pemetaan awal (*data hydration*) selesai. Gunakan penanda reaktif `isReady = ref(false)`:
+   ```javascript
+   const isReady = ref(false)
+   const { handleCancel } = useFormDirtyGuard(form, isReady)
+   ```
+2. **Sinkronisasi `form.defaults()`:**
+   Setelah seluruh data entitas selesai dipetakan ke objek `form` (baik mode create maupun edit), **WAJIB memanggil `form.defaults()`** sebelum mengaktifkan `isReady.value = true`. Hal ini menetapkan baseline bersih bagi sistem pendeteksi perubahan Inertia.
+3. **Proteksi Watcher Form:**
+   Seluruh `watch()` reaktif yang memutasi field formulir (misal: kalkulasi harga dasar, sync varian otomatis, atau pengalihan status switch) **WAJIB diproteksi** dengan guard:
+   ```javascript
+   watch(() => form.base_price, (newVal) => {
+       if (!isReady.value) return; // Mencegah mutasi saat hidrasi inisial
+       // Logika kalkulasi...
+   })
+   ```
+4. **Preservasi State pada Submit:**
+   Saat menjalankan `form.post` atau `form.put`, sertakan opsi `{ preserveScroll: true, preserveState: true }`.
+
+
 
 
 

@@ -78,6 +78,14 @@ Modul Produk mengadopsi standar **Unified Item Pattern** (Shopify/Square):
    - Jika single outlet / selected outlet: tampilkan nama outlet tujuan secara eksplisit pada bagian Stok & Inventori.
    - Jika multi-outlet: tampilkan daftar per-outlet aktif produk, dilengkapi switch toggle *"Samakan semua outlet"* yang secara otomatis mereplikasi input stok awal dan HPP outlet pertama ke outlet lainnya.
    - Pada mode edit, status eligibilitas per outlet / varian dievaluasi via `ProductResource` (zero N+1) untuk mengunci field jika sudah bertransaksi.
+7. **Integritas SKU & Barcode Per Merchant & Pencegahan Tabrakan Silang (*Cross-Field Collision Prevention*):**
+   - SKU dan Barcode harus unik terpisah per `business_id` (mengabaikan soft-delete dan record saat ini).
+   - Validasi silang: Barcode tidak boleh bernilai sama dengan SKU yang sudah ada, dan SKU tidak boleh bernilai sama dengan Barcode yang sudah ada di merchant yang sama.
+   - Pengecekan in-payload: tidak boleh ada duplikasi SKU/Barcode antar varian atau antara kode produk utama dan variannya dalam satu request (`StoreProductRequest` / `UpdateProductRequest`).
+   - PostgreSQL partial unique index: `(business_id, sku) WHERE deleted_at IS NULL AND sku IS NOT NULL AND sku != ''` (dan untuk barcode).
+8. **Invarian Tipe Item & Model Satuan (UOM):**
+   - Kolom `product_items.item_type` hanya mengizinkan nilai enum `'variant_sku'` atau `'raw_material'` (DILARANG menggunakan `'inventory'`).
+   - Tabel `uoms` dan model `Uom` menggunakan kolom `code` dan `name` (DILARANG mereferensikan `short_name`).
 
 ---
 
@@ -100,3 +108,14 @@ Payload sinkronisasi ke POS client mengekspor:
 - `products`: Data induk katalog.
 - `product_items`: Seluruh varian dan default item single (`product_id`, `sku`, `barcode`, `price`, `variant_combination`).
 - `product_item_variant_group_options`: Tautan pivot ID item ke ID opsi varian untuk resolusi kombinasi offline di Drift SQLite.
+
+---
+
+## 5. Standarisasi Ekspor & Impor Industri Berbasis Fitur & Protokol Memori
+
+- **Template Multi-Sheet Adaptif Fitur:** Sheet 1 (*Template Impor Produk*) dinamis menyesuaikan ketersediaan fitur `PRODUCT_VARIANT` dan `MULTI_OUTLET`. Sheet 2 (*Petunjuk & Kamus Data*) berisi panduan tipe data, nilai yang valid, dan batasan operasional.
+- **Protokol Memori $O(1)$ RAM:**
+  - **Ekspor (`ExportProductJob`):** Seleksi kolom eksplisit (*anti-overfetching*) dan chunking 200 baris.
+  - **Impor (`ImportProductJob`):** Menggunakan stream reader (`fgetcsv` / OpenSpout stream) dan preloading in-memory $O(1)$ untuk seluruh kategori, UOM, produk yang ada, SKU, dan barcode sebelum melakukan perulangan baris (Zero N+1).
+- **Penolakan Fitur Non-Aktif secara Edukatif:** Jika file impor berisi varian produk padahal paket langganan tenant tidak memiliki fitur `PRODUCT_VARIANT`, baris tersebut ditolak secara elegan dan dicatat dalam laporan berkas `failed_import_*.xlsx` dengan pesan edukatif, tanpa menggagalkan baris produk valid lainnya.
+

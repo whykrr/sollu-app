@@ -158,6 +158,21 @@ class LintAgentRules extends Tool
                 }
             }
 
+            // Rule 05: Anti-Reset Filter Invariant on Controller Redirects
+            if (str_contains($filePath, '/Controllers/App/')) {
+                foreach ($lines as $i => $line) {
+                    if (preg_match('/redirect\(\)->route\([\'"][^\'"]+\.index[\'"]\)/', $line)) {
+                        $violations[] = [
+                            'line' => $i + 1,
+                            'rule' => 'Rule 05: Anti-Reset Filter Invariant on Redirect',
+                            'severity' => 'info',
+                            'message' => 'Hardcoded redirect()->route(\'*.index\') detected.',
+                            'suggestion' => 'Use redirect()->back(fallback: route(\'*.index\')) to preserve table search, filter, and pagination parameters.',
+                        ];
+                    }
+                }
+            }
+
             // Rule 08: Database Migrations & Backward Compatibility
             if (str_contains($filePath, '/database/migrations/')) {
                 // Check empty down() method

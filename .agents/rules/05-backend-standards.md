@@ -56,6 +56,18 @@
 - **Larangan `parent::toArray()` pada JsonResource:** Eloquent Resource WAJIB mendefinisikan array bentuk DTO terstruktur eksplisit dengan tipe data pasti (strict types). DILARANG KERAS menggunakan `parent::toArray($request)` karena me-dump seluruh atribut mentah model, internal relational state, dan relasi bersarang yang memboroskan bandwidth, RAM server, serta berisiko membocorkan data.
 - **Response Message Constants:** Gunakan `App\Constants\ResourceMessage` (`CREATE_SUCCESS`, `UPDATE_SUCCESS`, `DELETE_SUCCESS`, `RESTORE_SUCCESS`).
 - **Thin Controller:** Controller di `app/Http/Controllers/App/` hanya menerima HTTP request, otorisasi, memanggil Domain Service, dan render/return response. Logika bisnis kompleks dilarang di controller.
+- **Preservasi Filter Query pada Redirect Controller (Anti-Reset Filter Invariant):**
+  - Pada method `store()` dan `update()` formulir CRUD berbasis Drawer / Slide-Over / Modal, **DILARANG KERAS** me-redirect langsung ke rute statis:
+    ```php
+    // SALAH: Membuang parameter pencarian, filter kategori, outlet, dan halaman aktif
+    return redirect()->route('master.products.index');
+    ```
+  - **WAJIB** gunakan `redirect()->back()` dengan fallback rute index:
+    ```php
+    // BENAR: Menjaga query parameter URL tetap utuh dan kompatibel dengan test suite
+    return redirect()->back(fallback: route('master.products.index'))
+        ->with(FlashDataVariable::SUCCESS->value, ResourceMessage::UPDATE_SUCCESS);
+    ```
 
 ---
 
@@ -93,6 +105,16 @@
   - Backend WAJIB melakukan **Force-Accept (HTTP 200/201)**:
     - Potong saldo inventori (diizinkan saldo minus sementara).
     - Catat variansi / selisih stok ke log audit dan kirimkan notifikasi audit inventori ke supervisor secara asinkron.
+- **Integritas Unik SKU & Barcode (Cross-Field Collision Invariant):**
+  - SKU dan Barcode berbagi domain identifikasi operasional yang sama pada scanner fisik kasir dan omni-search POS.
+  - Backend **WAJIB** menerapkan validasi silang per merchant (`business_id`): Barcode tidak boleh bernilai sama dengan SKU produk/varian mana pun yang aktif, dan SKU tidak boleh bernilai sama dengan Barcode mana pun.
+  - Pada level database, gunakan partial unique index dengan pelindung driver (PostgreSQL vs SQLite):
+    ```php
+    if (DB::getDriverName() === 'pgsql') {
+        DB::statement('CREATE UNIQUE INDEX product_items_business_sku_unique ON product_items (business_id, sku) WHERE deleted_at IS NULL AND sku IS NOT NULL AND sku != \'\'');
+        DB::statement('CREATE UNIQUE INDEX product_items_business_barcode_unique ON product_items (business_id, barcode) WHERE deleted_at IS NULL AND barcode IS NOT NULL AND barcode != \'\'');
+    }
+    ```
 
 ---
 

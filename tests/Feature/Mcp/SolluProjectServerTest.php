@@ -82,6 +82,20 @@ class SolluProjectServerTest extends TestCase
     }
 
     /**
+     * Test lint_agent_rules detects hardcoded route redirects in App controllers.
+     */
+    public function test_lint_agent_rules_detects_hardcoded_controller_redirect(): void
+    {
+        $response = SolluProjectServer::tool(LintAgentRules::class, [
+            'path' => 'app/Http/Controllers/App/Employee/EmployeeController.php',
+            'ruleset' => 'backend',
+        ]);
+
+        $response->assertOk();
+        $response->assertSee('Rule 05: Anti-Reset Filter Invariant on Redirect');
+    }
+
+    /**
      * Test audit_migration_compatibility verifies migrations against Git baseline tag.
      */
     public function test_audit_migration_compatibility_tool_executes_successfully(): void

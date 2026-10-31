@@ -30,7 +30,7 @@
                         @click="openCreate"
                     >
                         <FontAwesomeIcon :icon="faPlus" />
-                        <span>Tambah Metode</span>
+                        <span>Metode Pembayaran Baru</span>
                     </button>
                 </template>
             </ActionBar>
