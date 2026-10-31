@@ -3,7 +3,7 @@
         <template #header>
             <MainPageHeader
                 title="Metode Pembayaran"
-                description="Atur metode pembayaran yang tersedia di kasir, seperti tunai, QRIS, atau transfer bank."
+                description="Atur metode pembayaran kasir standar industri (Tunai, QRIS, EDC, E-Wallet, Transfer Bank)."
             />
         </template>
 
@@ -37,15 +37,24 @@
         </template>
 
         <div class="h-full flex-1 min-h-0 flex flex-col">
-            <DraggableTable
-                v-model="localPaymentMethods"
+            <Table
                 :headers="headers"
+                :data="paymentMethods.data"
                 :action="true"
-                @drag-end="onDragEnd"
             >
                 <template #name="{ row }">
                     <div class="flex flex-col">
-                        <span class="font-medium text-neutral-900">{{ row.name }}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-medium text-neutral-900">{{ row.name }}</span>
+                            <span
+                                v-if="row.is_system"
+                                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-neutral-100 text-neutral-600 border border-neutral-200"
+                                title="Metode pembayaran bawaan sistem"
+                            >
+                                <FontAwesomeIcon :icon="faLock" class="text-[9px]" />
+                                Sistem
+                            </span>
+                        </div>
                         <span
                             v-if="row.transaction_payments_count > 0"
                             class="text-[11px] text-neutral-500 mt-0.5"
@@ -59,6 +68,55 @@
                     <span :class="['badge text-xs font-medium', getTypeBadgeClass(row.type)]">
                         {{ getTypeLabel(row.type) }}
                     </span>
+                </template>
+
+                <template #details="{ row }">
+                    <div class="flex items-center gap-2">
+                        <!-- Thumbnail QR jika QRIS -->
+                        <div
+                            v-if="row.type === 'qris' && row.qr_image_url"
+                            class="w-8 h-8 rounded border border-neutral-200 overflow-hidden bg-neutral-50 shrink-0 cursor-pointer hover:opacity-80 transition"
+                            title="Klik untuk melihat QR Code"
+                            @click="previewQr(row.qr_image_url)"
+                        >
+                            <img
+                                :src="row.qr_image_url"
+                                alt="QR Code"
+                                class="w-full h-full object-cover"
+                            />
+                        </div>
+
+                        <div class="flex flex-col text-xs text-neutral-600">
+                            <div v-if="row.provider" class="font-medium text-neutral-800">
+                                {{ row.provider }}
+                            </div>
+                            <div v-if="row.account_number" class="text-neutral-500 font-mono">
+                                {{ row.account_number }}
+                                <span v-if="row.account_name">({{ row.account_name }})</span>
+                            </div>
+                            <div v-if="!row.provider && !row.account_number && !row.qr_image_url" class="text-neutral-400">
+                                -
+                            </div>
+                        </div>
+
+                        <!-- Cash drawer indicator -->
+                        <span
+                            v-if="row.open_cash_drawer"
+                            class="ml-auto inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200"
+                            title="Laci kasir otomatis terbuka saat metode ini digunakan"
+                        >
+                            <FontAwesomeIcon :icon="faCashRegister" class="text-[9px]" />
+                            Laci Kasir
+                        </span>
+                    </div>
+                </template>
+
+                <template #is_active="{ row }">
+                    <Switch
+                        :model-value="row.is_active"
+                        size="sm"
+                        @change="toggleActive(row)"
+                    />
                 </template>
 
                 <template #outlets="{ row }">
@@ -88,7 +146,7 @@
                                         :class="
                                             isOutletActive(row, outlet.id)
                                                 ? 'bg-neutral-600'
-                                                : 'bg-neutral-600'
+                                                : 'bg-neutral-400'
                                         "
                                     />
                                     {{ outlet.name }}
@@ -101,7 +159,7 @@
                 <template #actions="{ row }">
                     <button
                         type="button"
-                        class="btn btn-flat btn-sm h-8 w-8 !p-0 inline-flex items-center justify-center"
+                        class="btn btn-flat btn-sm h-8 w-8 !p-0 inline-flex items-center justify-center cursor-pointer"
                         title="Ubah Metode Pembayaran"
                         @click="openEdit(row)"
                     >
@@ -110,18 +168,21 @@
                     <button
                         type="button"
                         class="btn btn-flat btn-sm h-8 w-8 !p-0 inline-flex items-center justify-center text-rose-600 hover:bg-rose-50"
+                        :class="{ 'opacity-40 cursor-not-allowed': row.is_system || row.transaction_payments_count > 0, 'cursor-pointer': !row.is_system && row.transaction_payments_count === 0 }"
                         :title="
-                            row.transaction_payments_count > 0
-                                ? 'Tidak dapat dihapus karena telah digunakan pada transaksi'
-                                : 'Hapus Metode Pembayaran'
+                            row.is_system
+                                ? 'Metode pembayaran bawaan sistem tidak dapat dihapus'
+                                : row.transaction_payments_count > 0
+                                  ? 'Tidak dapat dihapus karena telah digunakan pada riwayat transaksi'
+                                  : 'Hapus Metode Pembayaran'
                         "
-                        :disabled="row.transaction_payments_count > 0"
+                        :disabled="row.is_system || row.transaction_payments_count > 0"
                         @click="openDelete(row)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
                     </button>
                 </template>
-            </DraggableTable>
+            </Table>
         </div>
 
         <template #footer>
@@ -136,14 +197,14 @@
 </template>
 
 <script setup>
-import { reactive, watch, ref } from 'vue'
+import { reactive, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { debounce } from 'lodash'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPlus, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faPencil, faTrash, faLock, faCashRegister } from '@fortawesome/free-solid-svg-icons'
 
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
@@ -151,12 +212,15 @@ import ActionBar from '@/Components/UI/ActionBar/ActionBar.vue'
 import FilterDropdown from '@/Components/UI/Filter/FilterDropdown.vue'
 import FilterSearch from '@/Components/UI/Filter/FilterSearch.vue'
 import Pagination from '@/Components/Tables/Pagination.vue'
-import DraggableTable from '@/Components/Tables/DraggableTable.vue'
+import Table from '@/Components/Tables/Table.vue'
+import Switch from '@/Components/Form/Switch.vue'
 import PaymentMethodPopUp from './Components/PaymentMethodPopUp.vue'
 
 const headers = [
     { field: 'name', label: 'Metode Pembayaran', slot: 'name' },
     { field: 'type', label: 'Jenis', slot: 'type' },
+    { field: 'details', label: 'Rincian Operasional', slot: 'details' },
+    { field: 'is_active', label: 'Status Global', slot: 'is_active' },
     { field: 'outlets', label: 'Aktivasi per Outlet', slot: 'outlets' },
 ]
 
@@ -173,6 +237,14 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    referencePolicies: {
+        type: Array,
+        default: () => [],
+    },
+    presetProviders: {
+        type: Array,
+        default: () => [],
+    },
     filters: {
         type: Object,
         default: () => ({}),
@@ -181,28 +253,6 @@ const props = defineProps({
 
 const popUpStore = usePopUpStore()
 const modalStore = useModalStore()
-
-const localPaymentMethods = ref([])
-
-watch(
-    () => props.paymentMethods.data,
-    newData => {
-        localPaymentMethods.value = [...newData]
-    },
-    { immediate: true }
-)
-
-const onDragEnd = () => {
-    const orderedIds = localPaymentMethods.value.map(pm => pm.id)
-    router.patch(
-        route('settings.payment-methods.reorder'),
-        { ordered_ids: orderedIds },
-        {
-            preserveScroll: true,
-            preserveState: true,
-        }
-    )
-}
 
 const filters = reactive({
     search: props.filters.search || '',
@@ -233,7 +283,6 @@ const getTypeBadgeClass = type => {
 
 const isOutletActive = (paymentMethod, outletId) => {
     if (!paymentMethod.outlets || paymentMethod.outlets.length === 0) {
-        // Fallback: active for all if no pivot yet
         return true
     }
     const matched = paymentMethod.outlets.find(o => o.id === outletId)
@@ -263,29 +312,15 @@ watch(
     }
 )
 
-const openCreate = () => {
-    popUpStore.open({
-        title: 'Tambah Metode Pembayaran',
-        size: 'md',
-        component: PaymentMethodPopUp,
-        props: {
-            outlets: props.outlets,
-            types: props.types,
-        },
-    })
-}
-
-const openEdit = paymentMethod => {
-    popUpStore.open({
-        title: 'Ubah Metode Pembayaran',
-        size: 'md',
-        component: PaymentMethodPopUp,
-        props: {
-            paymentMethod,
-            outlets: props.outlets,
-            types: props.types,
-        },
-    })
+const toggleActive = paymentMethod => {
+    router.patch(
+        route('settings.payment-methods.toggle-active', paymentMethod.id),
+        {},
+        {
+            preserveScroll: true,
+            preserveState: true,
+        }
+    )
 }
 
 const toggleOutlet = (paymentMethod, outlet) => {
@@ -305,7 +340,43 @@ const toggleOutlet = (paymentMethod, outlet) => {
     )
 }
 
+const previewQr = url => {
+    window.open(url, '_blank')
+}
+
+const openCreate = () => {
+    popUpStore.open({
+        title: 'Tambah Metode Pembayaran',
+        size: 'lg',
+        component: PaymentMethodPopUp,
+        props: {
+            outlets: props.outlets,
+            types: props.types,
+            referencePolicies: props.referencePolicies,
+            presetProviders: props.presetProviders,
+        },
+    })
+}
+
+const openEdit = paymentMethod => {
+    popUpStore.open({
+        title: 'Ubah Metode Pembayaran',
+        size: 'lg',
+        component: PaymentMethodPopUp,
+        props: {
+            paymentMethod,
+            outlets: props.outlets,
+            types: props.types,
+            referencePolicies: props.referencePolicies,
+            presetProviders: props.presetProviders,
+        },
+    })
+}
+
 const openDelete = paymentMethod => {
+    if (paymentMethod.is_system || paymentMethod.transaction_payments_count > 0) {
+        return
+    }
     modalStore.openModalDelete(route('settings.payment-methods.destroy', paymentMethod.id))
 }
 </script>

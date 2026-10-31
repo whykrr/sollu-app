@@ -155,6 +155,7 @@ class MasterDataSyncService
 
         $paymentMethods = PaymentMethod::where('business_id', $businessId)
             ->activeForOutlet($outletId)
+            ->orderedByIndustryStandard()
             ->get()
             ->makeHidden('business_id');
 
@@ -168,6 +169,7 @@ class MasterDataSyncService
 
             $paymentMethods = PaymentMethod::where('business_id', $businessId)
                 ->activeForOutlet($outletId)
+                ->orderedByIndustryStandard()
                 ->get()
                 ->makeHidden('business_id');
 

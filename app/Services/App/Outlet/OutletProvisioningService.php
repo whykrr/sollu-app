@@ -35,11 +35,19 @@ class OutletProvisioningService
                 'name' => 'Tunai',
                 'type' => 'cash',
                 'sort_order' => 1,
+                'is_system' => true,
+                'open_cash_drawer' => true,
+                'reference_policy' => 'hidden',
+                'is_active' => true,
             ],
             [
                 'name' => 'QRIS',
                 'type' => 'qris',
                 'sort_order' => 2,
+                'is_system' => false,
+                'open_cash_drawer' => false,
+                'reference_policy' => 'optional',
+                'is_active' => true,
             ],
         ];
 
@@ -53,6 +61,10 @@ class OutletProvisioningService
                     'id' => (string) Str::uuid(),
                     'name' => $item['name'],
                     'sort_order' => $item['sort_order'],
+                    'is_system' => $item['is_system'],
+                    'open_cash_drawer' => $item['open_cash_drawer'],
+                    'reference_policy' => $item['reference_policy'],
+                    'is_active' => $item['is_active'],
                 ]
             );
 

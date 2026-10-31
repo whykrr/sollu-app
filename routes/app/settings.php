@@ -138,7 +138,7 @@ Route::prefix('settings')
                 ->group(function () {
                     Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
                     Route::post('/', [PaymentMethodController::class, 'store'])->name('store');
-                    Route::patch('/reorder', [PaymentMethodController::class, 'reorder'])->name('reorder');
+                    Route::patch('/{paymentMethod}/toggle-active', [PaymentMethodController::class, 'toggleActive'])->name('toggle-active');
                     Route::put('/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('update');
                     Route::patch('/{paymentMethod}/toggle-outlet/{outlet}', [PaymentMethodController::class, 'toggleOutlet'])->name('toggle-outlet');
                     Route::delete('/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('destroy');

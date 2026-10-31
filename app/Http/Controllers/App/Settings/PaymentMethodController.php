@@ -5,6 +5,7 @@ namespace App\Http\Controllers\App\Settings;
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
 use App\Enums\PaymentMethodType;
+use App\Enums\PaymentReferencePolicy;
 use App\Enums\PermissionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Settings\PaymentMethod\StorePaymentMethodRequest;
@@ -43,10 +44,17 @@ class PaymentMethodController extends Controller
             ->orderBy('name')
             ->get();
 
+        $presetProviders = [
+            'BCA', 'Mandiri', 'BRI', 'BNI', 'BSI', 'CIMB Niaga',
+            'GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja',
+        ];
+
         return Inertia::render('Settings/PaymentMethod/Index', [
             'paymentMethods' => $paymentMethods,
             'outlets' => $outlets,
             'types' => PaymentMethodType::options(),
+            'referencePolicies' => PaymentReferencePolicy::options(),
+            'presetProviders' => $presetProviders,
             'filters' => $filters,
         ]);
     }
@@ -70,27 +78,30 @@ class PaymentMethodController extends Controller
             abort(403);
         }
 
-        $this->paymentMethodService->update($paymentMethod, $request->validated());
+        try {
+            $this->paymentMethodService->update($paymentMethod, $request->validated());
 
-        return redirect()->back()->with(
-            FlashDataVariable::SUCCESS->value,
-            ResourceMessage::UPDATE_SUCCESS
-        );
+            return redirect()->back()->with(
+                FlashDataVariable::SUCCESS->value,
+                ResourceMessage::UPDATE_SUCCESS
+            );
+        } catch (Exception $e) {
+            return redirect()->back()->with(
+                FlashDataVariable::FAILED->value,
+                $e->getMessage()
+            );
+        }
     }
 
-    public function reorder(Request $request): RedirectResponse
+    public function toggleActive(Request $request, PaymentMethod $paymentMethod): RedirectResponse
     {
         $this->authorize(PermissionEnum::SETTING_PAYMENT->value);
 
-        $request->validate([
-            'ordered_ids' => 'required|array',
-            'ordered_ids.*' => 'required|uuid',
-        ]);
+        if ($paymentMethod->business_id !== $request->user()->business_id) {
+            abort(403);
+        }
 
-        $this->paymentMethodService->reorder(
-            $request->input('ordered_ids'),
-            $request->user()->business_id
-        );
+        $this->paymentMethodService->toggleActive($paymentMethod);
 
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
