@@ -50,6 +50,7 @@
         <DisclosureSection
             title="Pengaturan Lanjutan"
             description="Kode SKU, barcode, deskripsi, visibilitas kasir & outlet"
+            :default-open="hasAdvancedData"
             :error="hasAdvancedError"
         >
             <div class="space-y-2 pt-1">
@@ -198,6 +199,19 @@ const categoryOptions = computed(() => {
         label: c.label || c.name || '',
         value: c.value !== undefined && c.value !== null ? c.value : c.id || '',
     }))
+})
+
+const hasAdvancedData = computed(() => {
+    const hasCode = form.code !== undefined && form.code !== null && String(form.code).trim() !== ''
+    const hasBarcode =
+        form.barcode !== undefined && form.barcode !== null && String(form.barcode).trim() !== ''
+    const hasDescription =
+        form.description !== undefined &&
+        form.description !== null &&
+        String(form.description).trim() !== ''
+    const hasCustomVisibility = form.sellable === false || form.is_show === false
+
+    return hasCode || hasBarcode || hasDescription || hasCustomVisibility
 })
 
 const hasAdvancedError = computed(() => {

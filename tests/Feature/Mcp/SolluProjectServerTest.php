@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Mcp;
 
 use App\Mcp\Servers\SolluProjectServer;
+use App\Mcp\Tools\AuditMigrationCompatibility;
 use App\Mcp\Tools\AuditTenantIsolation;
 use App\Mcp\Tools\CheckEnumIntegrity;
 use App\Mcp\Tools\InspectInventoryState;
@@ -78,5 +79,20 @@ class SolluProjectServerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('total_files_checked');
+    }
+
+    /**
+     * Test audit_migration_compatibility verifies migrations against Git baseline tag.
+     */
+    public function test_audit_migration_compatibility_tool_executes_successfully(): void
+    {
+        $response = SolluProjectServer::tool(AuditMigrationCompatibility::class, [
+            'scope' => 'all',
+            'strict' => false,
+        ]);
+
+        $response->assertOk();
+        $response->assertSee('baseline_tag');
+        $response->assertSee('violations');
     }
 }

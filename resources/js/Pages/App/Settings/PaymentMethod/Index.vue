@@ -37,11 +37,7 @@
         </template>
 
         <div class="h-full flex-1 min-h-0 flex flex-col">
-            <Table
-                :headers="headers"
-                :data="paymentMethods.data"
-                :action="true"
-            >
+            <Table :headers="headers" :data="paymentMethods.data" :action="true">
                 <template #name="{ row }">
                     <div class="flex flex-col">
                         <div class="flex items-center gap-1.5">
@@ -94,7 +90,10 @@
                                 {{ row.account_number }}
                                 <span v-if="row.account_name">({{ row.account_name }})</span>
                             </div>
-                            <div v-if="!row.provider && !row.account_number && !row.qr_image_url" class="text-neutral-400">
+                            <div
+                                v-if="!row.provider && !row.account_number && !row.qr_image_url"
+                                class="text-neutral-400"
+                            >
                                 -
                             </div>
                         </div>
@@ -112,11 +111,7 @@
                 </template>
 
                 <template #is_active="{ row }">
-                    <Switch
-                        :model-value="row.is_active"
-                        size="sm"
-                        @change="toggleActive(row)"
-                    />
+                    <Switch :model-value="row.is_active" size="sm" @change="toggleActive(row)" />
                 </template>
 
                 <template #outlets="{ row }">
@@ -168,7 +163,12 @@
                     <button
                         type="button"
                         class="btn btn-flat btn-sm h-8 w-8 !p-0 inline-flex items-center justify-center text-rose-600 hover:bg-rose-50"
-                        :class="{ 'opacity-40 cursor-not-allowed': row.is_system || row.transaction_payments_count > 0, 'cursor-pointer': !row.is_system && row.transaction_payments_count === 0 }"
+                        :class="{
+                            'opacity-40 cursor-not-allowed':
+                                row.is_system || row.transaction_payments_count > 0,
+                            'cursor-pointer':
+                                !row.is_system && row.transaction_payments_count === 0,
+                        }"
                         :title="
                             row.is_system
                                 ? 'Metode pembayaran bawaan sistem tidak dapat dihapus'
@@ -204,7 +204,13 @@ import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPlus, faPencil, faTrash, faLock, faCashRegister } from '@fortawesome/free-solid-svg-icons'
+import {
+    faPlus,
+    faPencil,
+    faTrash,
+    faLock,
+    faCashRegister,
+} from '@fortawesome/free-solid-svg-icons'
 
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'

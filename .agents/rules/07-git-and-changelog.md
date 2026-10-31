@@ -7,7 +7,7 @@
    - `MAJOR` (`vX.0.0`): Breaking changes arsitektur/database.
    - `MINOR` (`v1.X.0`): Fitur/modul baru backward-compatible.
    - `PATCH` (`v1.0.X`): Perbaikan bug/hotfix minor.
-4. **Git Tag SSOT:** Setiap heading rilis pada `CHANGELOG.md` **WAJIB** berpasangan dengan Git Tag beranotasi (`git tag -a vX.Y.Z -m "..."`).
+4. **Git Tag SSOT & Baseline Produksi:** Setiap heading rilis pada `CHANGELOG.md` **WAJIB** berpasangan dengan Git Tag beranotasi (`git tag -a vX.Y.Z -m "..."`). Tag rilis stabil ini menjadi **parameter baseline produksi** yang secara mutlak mengunci (*freeze*) seluruh file database migrasi yang ada di dalamnya (Rule 08).
 
 ---
 
@@ -22,8 +22,12 @@ Setiap versi rilis hanya memuat sub-kategori aktif:
 
 ---
 
-## 3. Prosedur Rilis Cepat
-1. Verifikasi: `vendor/bin/pint --dirty`, `npm run lint`, `php artisan test --compact`.
+## 3. Prosedur Rilis Cepat & Verifikasi Tag
+1. **Verifikasi Kualitas & Integritas:**
+   - Linter & Formatting: `vendor/bin/pint --dirty`, `npm run lint`.
+   - Test Suite: `php artisan test --compact`.
+   - **Audit Migrasi & Backward Compatibility (MCP):** Jalankan tool MCP `audit_migration_compatibility` untuk memastikan tidak ada file migrasi dari tag sebelumnya yang diubah atau dihapus.
 2. Pindahkan item dari `## [Unreleased]` ke heading versi baru `## [vX.Y.Z] - YYYY-MM-DD`.
 3. Commit: `chore(release): bump version to vX.Y.Z and update changelog`.
 4. Tag & Push: `git tag -a vX.Y.Z -m "Release vX.Y.Z"` lalu `git push origin master --tags`.
+5. **Kunci Migrasi:** Seluruh migrasi pada tag rilis tersebut kini terkunci permanen. Seluruh penyesuaian skema berikutnya wajib membuat file migrasi baru (`php artisan make:migration`).

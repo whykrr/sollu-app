@@ -32,12 +32,17 @@
             <!-- Bagian Stok Awal & Modal (Non-Varian) -->
             <div v-if="!form.has_variant && enabledInitialStocks.length > 0" class="space-y-2.5">
                 <!-- Single Outlet Mode -->
-                <div v-if="enabledInitialStocks.length === 1" class="border border-slate-200/80 rounded-xl p-3 bg-slate-50/60 space-y-2.5">
+                <div
+                    v-if="enabledInitialStocks.length === 1"
+                    class="border border-slate-200/80 rounded-xl p-3 bg-slate-50/60 space-y-2.5"
+                >
                     <div class="flex items-center justify-between">
                         <div>
                             <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
                                 <span>Stok Awal & Modal Beli (HPP)</span>
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold">
+                                <span
+                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold"
+                                >
                                     <FontAwesomeIcon :icon="faStore" class="text-[9px]" />
                                     {{ enabledInitialStocks[0]?.outlet_name || 'Outlet Utama' }}
                                 </span>
@@ -50,9 +55,18 @@
                                 </span>
                             </div>
                             <div class="text-[11px] text-slate-500 mt-0.5">
-                                <span v-if="!isEdit">Isi jika barang fisik sudah tersedia di outlet ini.</span>
-                                <span v-else-if="enabledInitialStocks[0]?.can_edit">Stok awal dapat diubah karena belum ada mutasi operasional.</span>
-                                <span v-else class="text-amber-700">Stok awal telah dikunci karena sudah memiliki riwayat mutasi operasional. Gunakan Penyesuaian Stok untuk koreksi stok fisik.</span>
+                                <span v-if="!isEdit"
+                                    >Isi jika barang fisik sudah tersedia di outlet ini.</span
+                                >
+                                <span v-else-if="enabledInitialStocks[0]?.can_edit"
+                                    >Stok awal dapat diubah karena belum ada mutasi
+                                    operasional.</span
+                                >
+                                <span v-else class="text-amber-700"
+                                    >Stok awal telah dikunci karena sudah memiliki riwayat mutasi
+                                    operasional. Gunakan Penyesuaian Stok untuk koreksi stok
+                                    fisik.</span
+                                >
                             </div>
                         </div>
                     </div>
@@ -67,9 +81,14 @@
                                 min="0"
                                 step="1"
                                 :disabled="isEdit && !enabledInitialStocks[0]?.can_edit"
-                                :error="form.errors.initial_stock || form.errors['initial_stocks.0.initial_stock']"
+                                :error="
+                                    form.errors.initial_stock ||
+                                    form.errors['initial_stocks.0.initial_stock']
+                                "
                             />
-                            <p class="text-[10px] text-slate-400 mt-0.5">Jumlah barang siap jual saat ini.</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">
+                                Jumlah barang siap jual saat ini.
+                            </p>
                         </div>
 
                         <div>
@@ -81,28 +100,43 @@
                                 size="sm"
                                 min="0"
                                 :disabled="isEdit && !enabledInitialStocks[0]?.can_edit"
-                                :error="form.errors.purchase_price || form.errors['initial_stocks.0.purchase_price']"
+                                :error="
+                                    form.errors.purchase_price ||
+                                    form.errors['initial_stocks.0.purchase_price']
+                                "
                             />
-                            <p class="text-[10px] text-slate-400 mt-0.5">Modal beli untuk hitung laba bersih.</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">
+                                Modal beli untuk hitung laba bersih.
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Multi Outlet Mode -->
-                <div v-else class="border border-slate-200/80 rounded-xl p-3 bg-slate-50/60 space-y-3">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
+                <div
+                    v-else
+                    class="border border-slate-200/80 rounded-xl p-3 bg-slate-50/60 space-y-3"
+                >
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5"
+                    >
                         <div>
                             <div class="text-xs font-bold text-slate-800">
                                 Stok Awal & Modal Beli per Outlet
                             </div>
                             <div class="text-[11px] text-slate-500">
-                                Tentukan stok fisik awal dan modal beli (HPP) untuk masing-masing outlet.
+                                Tentukan stok fisik awal dan modal beli (HPP) untuk masing-masing
+                                outlet.
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-xs">
+                        <div
+                            class="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-xs"
+                        >
                             <Switch v-model="syncAllOutlets" size="sm" />
-                            <span class="text-xs font-medium text-slate-700">Samakan semua outlet</span>
+                            <span class="text-xs font-medium text-slate-700"
+                                >Samakan semua outlet</span
+                            >
                         </div>
                     </div>
 
@@ -113,8 +147,13 @@
                             class="p-2.5 bg-white rounded-lg border border-slate-200/80 space-y-2 shadow-xs"
                         >
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                                    <FontAwesomeIcon :icon="faStore" class="text-slate-400 text-xs" />
+                                <div
+                                    class="flex items-center gap-1.5 text-xs font-bold text-slate-700"
+                                >
+                                    <FontAwesomeIcon
+                                        :icon="faStore"
+                                        class="text-slate-400 text-xs"
+                                    />
                                     <span>{{ stockItem.outlet_name }}</span>
                                 </div>
                                 <span
@@ -141,7 +180,10 @@
                                         size="sm"
                                         min="0"
                                         step="1"
-                                        :disabled="(isEdit && !stockItem.can_edit) || (syncAllOutlets && sIdx > 0)"
+                                        :disabled="
+                                            (isEdit && !stockItem.can_edit) ||
+                                            (syncAllOutlets && sIdx > 0)
+                                        "
                                         :error="form.errors[`initial_stocks.${sIdx}.initial_stock`]"
                                     />
                                 </div>
@@ -153,13 +195,22 @@
                                         placeholder="0"
                                         size="sm"
                                         min="0"
-                                        :disabled="(isEdit && !stockItem.can_edit) || (syncAllOutlets && sIdx > 0)"
-                                        :error="form.errors[`initial_stocks.${sIdx}.purchase_price`]"
+                                        :disabled="
+                                            (isEdit && !stockItem.can_edit) ||
+                                            (syncAllOutlets && sIdx > 0)
+                                        "
+                                        :error="
+                                            form.errors[`initial_stocks.${sIdx}.purchase_price`]
+                                        "
                                     />
                                 </div>
                             </div>
-                            <p v-if="isEdit && !stockItem.can_edit" class="text-[10px] text-amber-700">
-                                Stok awal terkunci karena outlet ini sudah memiliki transaksi operasional.
+                            <p
+                                v-if="isEdit && !stockItem.can_edit"
+                                class="text-[10px] text-amber-700"
+                            >
+                                Stok awal terkunci karena outlet ini sudah memiliki transaksi
+                                operasional.
                             </p>
                         </div>
                     </div>
@@ -171,7 +222,8 @@
                 v-if="form.has_variant"
                 class="p-2.5 bg-blue-50/70 border border-blue-200/60 rounded-lg text-[11px] text-blue-800"
             >
-                Produk ini memiliki varian. Stok awal dan modal beli untuk masing-masing varian dapat diatur pada bagian <strong>Matriks Harga Khusus</strong> di bawah.
+                Produk ini memiliki varian. Stok awal dan modal beli untuk masing-masing varian
+                dapat diatur pada bagian <strong>Matriks Harga Khusus</strong> di bawah.
             </div>
 
             <!-- Batas Minimum Stok -->
@@ -186,7 +238,8 @@
                     :error="form.errors.minimum_stock"
                 />
                 <p class="text-[11px] text-slate-500 mt-0.5">
-                    Sistem akan menandai status "Menipis" jika sisa stok di outlet berada di bawah angka ini.
+                    Sistem akan menandai status "Menipis" jika sisa stok di outlet berada di bawah
+                    angka ini.
                 </p>
             </div>
         </div>

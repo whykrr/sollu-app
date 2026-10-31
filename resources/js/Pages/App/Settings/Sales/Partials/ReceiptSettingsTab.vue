@@ -47,27 +47,21 @@
                             for="show_address"
                             class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer select-none hover:bg-slate-50/80 hover:border-slate-300 transition-colors"
                         >
-                            <div class="font-medium text-xs text-slate-700">
-                                Tampilkan Alamat
-                            </div>
+                            <div class="font-medium text-xs text-slate-700">Tampilkan Alamat</div>
                             <Switch id="show_address" v-model="form.show_address" size="sm" />
                         </label>
                         <label
                             for="show_phone"
                             class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer select-none hover:bg-slate-50/80 hover:border-slate-300 transition-colors"
                         >
-                            <div class="font-medium text-xs text-slate-700">
-                                Tampilkan No. Telp
-                            </div>
+                            <div class="font-medium text-xs text-slate-700">Tampilkan No. Telp</div>
                             <Switch id="show_phone" v-model="form.show_phone" size="sm" />
                         </label>
                         <label
                             for="show_email"
                             class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer select-none hover:bg-slate-50/80 hover:border-slate-300 transition-colors"
                         >
-                            <div class="font-medium text-xs text-slate-700">
-                                Tampilkan Email
-                            </div>
+                            <div class="font-medium text-xs text-slate-700">Tampilkan Email</div>
                             <Switch id="show_email" v-model="form.show_email" size="sm" />
                         </label>
                     </div>
@@ -87,14 +81,8 @@
                         for="show_cashier_name"
                         class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer select-none hover:bg-slate-50/80 hover:border-slate-300 transition-colors"
                     >
-                        <div class="font-medium text-xs text-slate-700">
-                            Nama Kasir Bertugas
-                        </div>
-                        <Switch
-                            id="show_cashier_name"
-                            v-model="form.show_cashier_name"
-                            size="sm"
-                        />
+                        <div class="font-medium text-xs text-slate-700">Nama Kasir Bertugas</div>
+                        <Switch id="show_cashier_name" v-model="form.show_cashier_name" size="sm" />
                     </label>
                     <label
                         for="show_customer_name"
@@ -129,9 +117,7 @@
                         for="show_item_notes"
                         class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer select-none hover:bg-slate-50/80 hover:border-slate-300 transition-colors"
                     >
-                        <div class="font-medium text-xs text-slate-700">
-                            Catatan Khusus Produk
-                        </div>
+                        <div class="font-medium text-xs text-slate-700">Catatan Khusus Produk</div>
                         <Switch id="show_item_notes" v-model="form.show_item_notes" size="sm" />
                     </label>
                     <label
@@ -272,9 +258,7 @@
                     :class="displayPaperSize === '58mm' ? 'max-w-[300px]' : 'max-w-[380px]'"
                 >
                     <!-- Top jagged edge indicator -->
-                    <div
-                        class="border-b-2 border-dashed border-slate-300 pb-3 mb-3 text-center"
-                    >
+                    <div class="border-b-2 border-dashed border-slate-300 pb-3 mb-3 text-center">
                         <!-- Logo -->
                         <div v-if="form.show_logo" class="flex justify-center mb-2">
                             <img
@@ -359,10 +343,7 @@
                         <div v-if="form.show_modifiers" class="text-[10px] text-slate-500">
                             + Less Sugar, Extra Shot (+Rp 5.000)
                         </div>
-                        <div
-                            v-if="form.show_item_notes"
-                            class="text-[10px] italic text-slate-500"
-                        >
+                        <div v-if="form.show_item_notes" class="text-[10px] italic text-slate-500">
                             * Sedikit es
                         </div>
                         <div class="flex justify-between text-[10px] text-slate-500">
@@ -510,7 +491,11 @@ const form = useForm({
 watch(
     () => props.receiptSetting,
     newSetting => {
-        const merged = { ...defaultSettings, ...(newSetting || {}), outlet_id: props.selectedOutlet?.id ?? '' }
+        const merged = {
+            ...defaultSettings,
+            ...(newSetting || {}),
+            outlet_id: props.selectedOutlet?.id ?? '',
+        }
         Object.keys(merged).forEach(k => {
             form[k] = merged[k]
         })

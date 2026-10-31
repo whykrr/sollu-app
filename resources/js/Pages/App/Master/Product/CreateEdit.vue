@@ -35,7 +35,13 @@
                 Batal
             </button>
 
-            <button type="button" class="btn btn-main" :disabled="form.processing" @click="submit">
+            <button
+                v-if="canSubmit"
+                type="button"
+                class="btn btn-main"
+                :disabled="form.processing"
+                @click="submit"
+            >
                 <FontAwesomeIcon
                     :icon="form.processing ? faSpinner : faSave"
                     :class="{ 'animate-spin': form.processing }"
@@ -75,9 +81,10 @@ const props = defineProps({
     rawMaterials: { type: Array, default: () => [] },
 })
 
-const { selectedOutlet } = useAuth()
+const { selectedOutlet, can } = useAuth()
 
 const isEdit = computed(() => props.editMode)
+const canSubmit = computed(() => (isEdit.value ? can('product.update') : can('product.create')))
 const isMounted = ref(false)
 
 const getInitialUomId = () => {
@@ -135,9 +142,10 @@ const form = useForm({
     uom_id: getInitialUomId(),
     barcode: getInitialBarcode(),
     base_price: '',
-    minimum_stock: props.product?.minimum_stock !== undefined && props.product?.minimum_stock !== null
-        ? String(props.product.minimum_stock)
-        : '',
+    minimum_stock:
+        props.product?.minimum_stock !== undefined && props.product?.minimum_stock !== null
+            ? String(props.product.minimum_stock)
+            : '',
     can_edit_initial_stock: true,
     initial_stock: '',
     purchase_price: '',
@@ -153,7 +161,7 @@ const form = useForm({
     images: props.product?.images || [],
 })
 
-const { handleCancel, forceClose } = useFormDirtyGuard({ form })
+const isReady = ref(false)
 
 if (isEdit.value && props.product?.prices) {
     const bp = props.product.prices.find(p => !p.outlet_id)
@@ -324,8 +332,12 @@ if (isEdit.value && props.product) {
                 sku: matchingItem ? matchingItem.sku || '' : generateSku(comboOptions),
                 barcode: matchingItem ? matchingItem.barcode || '' : '',
                 price: String(price),
-                initial_stock: matchingItem?.initial_stock ? String(matchingItem.initial_stock) : '',
-                purchase_price: matchingItem?.purchase_price ? String(matchingItem.purchase_price) : '',
+                initial_stock: matchingItem?.initial_stock
+                    ? String(matchingItem.initial_stock)
+                    : '',
+                purchase_price: matchingItem?.purchase_price
+                    ? String(matchingItem.purchase_price)
+                    : '',
                 can_edit_initial_stock: matchingItem?.can_edit_initial_stock ?? true,
                 track_inventory: matchingItem
                     ? Boolean(matchingItem.track_inventory)
@@ -340,15 +352,21 @@ if (isEdit.value && props.product) {
         if (hasCustomPrices) customizeVariantPrices.value = true
     } else {
         form.variants = [{ name: '', options: [{ name: '' }] }]
-        const defaultItem = props.product.product_items?.find(item => !item.variant_combination) || props.product.product_items?.[0]
+        const defaultItem =
+            props.product.product_items?.find(item => !item.variant_combination) ||
+            props.product.product_items?.[0]
         if (defaultItem) {
             form.can_edit_initial_stock = defaultItem.can_edit_initial_stock ?? true
             form.initial_stock = defaultItem.initial_stock ? String(defaultItem.initial_stock) : ''
-            form.purchase_price = defaultItem.purchase_price ? String(defaultItem.purchase_price) : ''
+            form.purchase_price = defaultItem.purchase_price
+                ? String(defaultItem.purchase_price)
+                : ''
         }
     }
 
-    const defaultProductItem = props.product?.product_items?.find(item => !item.variant_combination) || props.product?.product_items?.[0]
+    const defaultProductItem =
+        props.product?.product_items?.find(item => !item.variant_combination) ||
+        props.product?.product_items?.[0]
     const stocksMap = defaultProductItem?.initial_stocks_by_outlet || {}
 
     form.initial_stocks = props.outlets.map(o => {
@@ -357,7 +375,9 @@ if (isEdit.value && props.product) {
             outlet_id: o.id,
             outlet_name: o.name,
             initial_stock: existingStock?.initial_stock ? String(existingStock.initial_stock) : '',
-            purchase_price: existingStock?.purchase_price ? String(existingStock.purchase_price) : '',
+            purchase_price: existingStock?.purchase_price
+                ? String(existingStock.purchase_price)
+                : '',
             can_edit: existingStock ? Boolean(existingStock.can_edit_initial_stock) : true,
         }
     })
@@ -381,6 +401,10 @@ if (isEdit.value && props.product) {
         can_edit: true,
     }))
 }
+
+// Establish clean snapshot after all initial data is hydrated
+form.defaults()
+const { handleCancel, forceClose } = useFormDirtyGuard({ form })
 
 provide('productForm', form)
 provide('isEdit', isEdit)
@@ -421,6 +445,7 @@ watch(
         form.initial_stocks?.[0]?.purchase_price,
     ],
     ([sync, firstStock, firstPrice]) => {
+        if (!isReady.value) return
         if (sync && Array.isArray(form.initial_stocks) && form.initial_stocks.length > 1) {
             form.initial_stocks.slice(1).forEach(item => {
                 if (item.can_edit) {
@@ -435,6 +460,7 @@ watch(
 watch(
     () => form.sellable,
     isSellable => {
+        if (!isReady.value) return
         if (!isSellable) {
             form.is_show = false
             if (Array.isArray(form.variant_combinations)) {
@@ -450,6 +476,7 @@ watch(
 watch(
     () => form.is_show,
     isShow => {
+        if (!isReady.value) return
         if (isShow && !form.sellable) {
             form.is_show = false
         }
@@ -459,6 +486,7 @@ watch(
 watch(
     () => form.variants,
     () => {
+        if (!isReady.value) return
         updateCombinations()
     },
     { deep: true }
@@ -467,6 +495,7 @@ watch(
 watch(
     () => form.track_inventory,
     track => {
+        if (!isReady.value) return
         if (!track) form.uom_id = ''
     }
 )
@@ -474,6 +503,7 @@ watch(
 watch(
     () => form.base_price,
     newVal => {
+        if (!isReady.value) return
         form.variant_combinations.forEach(combo => {
             if (!combo.price || combo.price == 0) combo.price = newVal
         })
@@ -530,6 +560,9 @@ watch(
 
 onMounted(() => {
     isMounted.value = true
+    nextTick(() => {
+        isReady.value = true
+    })
     if (props.targetStepId) {
         setTimeout(() => {
             applyTargetStep(props.targetStepId)
@@ -628,10 +661,22 @@ const submit = () => {
             .filter(s => outletStatusMap.value[s.outlet_id] !== false)
             .map(s => ({
                 outlet_id: s.outlet_id,
-                qty: s.initial_stock !== '' && s.initial_stock !== null ? Number(s.initial_stock) : null,
-                initial_stock: s.initial_stock !== '' && s.initial_stock !== null ? Number(s.initial_stock) : null,
-                purchase_price: s.purchase_price !== '' && s.purchase_price !== null ? Number(s.purchase_price) : null,
-                unit_cost: s.purchase_price !== '' && s.purchase_price !== null ? Number(s.purchase_price) : null,
+                qty:
+                    s.initial_stock !== '' && s.initial_stock !== null
+                        ? Number(s.initial_stock)
+                        : null,
+                initial_stock:
+                    s.initial_stock !== '' && s.initial_stock !== null
+                        ? Number(s.initial_stock)
+                        : null,
+                purchase_price:
+                    s.purchase_price !== '' && s.purchase_price !== null
+                        ? Number(s.purchase_price)
+                        : null,
+                unit_cost:
+                    s.purchase_price !== '' && s.purchase_price !== null
+                        ? Number(s.purchase_price)
+                        : null,
             }))
 
         const firstStock = form.initial_stocks[0]
@@ -670,11 +715,15 @@ const submit = () => {
         form.transform(data => ({ ...data, _method: 'PUT' })).post(
             route('master.products.update', props.product.id),
             {
+                preserveScroll: true,
+                preserveState: true,
                 onSuccess: () => forceClose(),
             }
         )
     } else {
         form.post(route('master.products.store'), {
+            preserveScroll: true,
+            preserveState: true,
             onSuccess: () => forceClose(),
         })
     }

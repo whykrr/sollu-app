@@ -7,7 +7,7 @@ namespace App\Mcp\Tools;
 use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Enums\RoleTemplateEnum;
-use App\Models\Cockpit\Feature;
+use App\Models\Feature;
 use App\Support\Enums\FrontendEnumProvider;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Schema;
@@ -221,7 +221,7 @@ class CheckEnumIntegrity extends Tool
 
         try {
             if (Schema::hasTable('features')) {
-                $dbFeatures = Feature::pluck('key')->all();
+                $dbFeatures = Feature::pluck('code')->all();
                 $dbFeatureMap = array_flip($dbFeatures);
                 $enumFeatureMap = array_flip($featureCases);
 

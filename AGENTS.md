@@ -22,8 +22,8 @@ Before designing or modifying code, ensure compliance with the standing rules:
 - `04-frontend-standards.md`: `MainPage` 5-slot layout, `ActionBar`, form `sm` (30px), 3-Tier Forms, `useFormDirtyGuard`.
 - `05-backend-standards.md`: PHP 8.3 multiline chaining, thin controllers, `ResourceMessage`.
 - `06-tooling-and-testing.md`: Git MCP, Pragmatic 5-Layer Testing Architecture, Zero-Error Data & Logic Integrity, Definition of Done.
-- `07-git-and-changelog.md`: SemVer, Conventional Commits, Keep a Changelog.
-- `08-database-and-migrations.md`: Bidirectional migrations, absolute rollback symmetry, phased ETL, rollback verification.
+- `07-git-and-changelog.md`: SemVer, Conventional Commits, Keep a Changelog, Git Tag SSOT production baseline.
+- `08-database-and-migrations.md`: Git Tag production baseline immutability, backward compatibility, bidirectional migrations, absolute rollback symmetry, phased ETL, rollback verification.
 
 ---
 
@@ -49,7 +49,7 @@ Activate the relevant specialized skill when working in specific domains:
 - **Run Tests:** `php artisan test --compact --filter=TestName`.
 - **Rollback Verification:** `php artisan migrate:rollback --step=1 && php artisan migrate` (Wajib saat membuat/mengubah migration).
 - **Database Inspection:** Use `laravel-boost` `database-schema`.
-- **Project Inspection:** Gunakan MCP `sollu-project` untuk inspeksi project (enum, tenant, fitur, inventory, rule lints).
+- **Project Inspection:** Gunakan MCP `sollu-project` untuk inspeksi project (enum, tenant, fitur, inventory, rule lints, migration compatibility & Git Tag production baseline).
 
 ## 5. Scratchpad / Planning / Context & Active Clarification
 

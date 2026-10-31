@@ -23,6 +23,10 @@
     // SALAH (BUG: (bool) "false" menghasilkan true)
     $isEnabled = (bool) ($setting->value ?? false);
     ```
+- **Keamanan Penggabungan Koleksi Berindeks (Anti-Trap Eloquent `Collection::merge()`):**
+  - DILARANG KERAS memanggil `$collectionA->keyBy('key')->merge($collectionB->keyBy('key'))` ketika integritas string key / UUID diperlukan untuk idempotensi atau lookup dictionary.
+  - Di Laravel, `Collection::merge()` memanggil `array_merge()` di balik layar, yang secara otomatis me-reset array numerik atau string angka menjadi indeks integer berurut `0, 1, 2...`, sehingga dictionary lookup menjadi `null` dan memicu duplikasi atau SQL `UniqueConstraintViolationException`.
+  - WAJIB gunakan perulangan eksplisit `$map->put((string) $key, $item)` atau `$collectionA->replace($collectionB)` untuk menjamin key asosiatif tidak ter-reset.
 
 ---
 
@@ -83,6 +87,12 @@
   - Scoped Eager Loading: `with(['relation' => fn($q) => $q->where(...)])`
 - **Kompleksitas Query O(1):** Endpoint daftar/pencarian item harus terbukti mengeksekusi jumlah kueri konstan terlepas dari apakah data yang diproses berjumlah 10, 40, atau 100 baris.
 - **Verifikasi Kinerja Kueri:** Untuk kueri data terfilter atau kalkulatif, sertakan automated test dengan `DB::enableQueryLog()` untuk memastikan query count tetap bounded (O(1)).
+- **Standar POS Offline-First Sync & Anti-DLQ Invariant (Force-Accept):**
+  - Transaksi penjualan offline yang dikirimkan oleh kasir POS (melalui endpoint batch maupun single) **DILARANG KERAS DIGAGALKAN** (HTTP 422/500 Dead-Letter-Queue) hanya karena stok cloud habis atau bernilai 0 akibat keterlambatan sinkronisasi.
+  - Penjualan fisik telah terjadi di gerai nyata; menolak transaksi offline merusak antrean kasir, menghilangkan uang/transaksi fisik, dan menimbulkan inkonsistensi kasir lokal vs cloud.
+  - Backend WAJIB melakukan **Force-Accept (HTTP 200/201)**:
+    - Potong saldo inventori (diizinkan saldo minus sementara).
+    - Catat variansi / selisih stok ke log audit dan kirimkan notifikasi audit inventori ke supervisor secara asinkron.
 
 ---
 

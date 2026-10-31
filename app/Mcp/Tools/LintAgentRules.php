@@ -92,6 +92,7 @@ class LintAgentRules extends Tool
         $files = [];
         if (in_array($ruleset, ['all', 'backend'], true)) {
             $files = array_merge($files, $this->scanDirectory($base.'/app', 'backend'));
+            $files = array_merge($files, $this->scanDirectory($base.'/database/migrations', 'backend'));
         }
         if (in_array($ruleset, ['all', 'frontend'], true)) {
             $files = array_merge($files, $this->scanDirectory($base.'/resources/js/Pages/App', 'frontend'));
@@ -152,6 +153,44 @@ class LintAgentRules extends Tool
                             'severity' => 'warning',
                             'message' => 'Deprecated protected $casts property detected.',
                             'suggestion' => 'Replace with protected function casts(): array { return [...]; } method.',
+                        ];
+                    }
+                }
+            }
+
+            // Rule 08: Database Migrations & Backward Compatibility
+            if (str_contains($filePath, '/database/migrations/')) {
+                // Check empty down() method
+                if (preg_match('/public\s+function\s+down\s*\(\s*\)\s*:\s*void\s*\{\s*\}/', $content) ||
+                    preg_match('/public\s+function\s+down\s*\(\s*\)\s*\{\s*\}/', $content)) {
+                    $violations[] = [
+                        'line' => 1,
+                        'rule' => 'Rule 08: Absolute Rollback Symmetry',
+                        'severity' => 'critical',
+                        'message' => 'Empty down() method detected. All migrations must be bidirectional.',
+                        'suggestion' => 'Implement the exact reverse DDL/DML operations in down() in LIFO order.',
+                    ];
+                }
+
+                // Check seeder called inside migration
+                foreach ($lines as $i => $line) {
+                    if (preg_match('/(new\s+\w+Seeder|\bArtisan::call\([\'"]db:seed)/', $line)) {
+                        $violations[] = [
+                            'line' => $i + 1,
+                            'rule' => 'Rule 08: Test State Isolation',
+                            'severity' => 'critical',
+                            'message' => 'Production Seeder execution detected inside migration file.',
+                            'suggestion' => 'Remove seeder calls from migrations to avoid test state collisions.',
+                        ];
+                    }
+
+                    if (preg_match('/->fullText\(/i', $line) && ! str_contains($content, 'sqlite')) {
+                        $violations[] = [
+                            'line' => $i + 1,
+                            'rule' => 'Rule 08: Multi-Database Driver Guarding',
+                            'severity' => 'warning',
+                            'message' => 'PostgreSQL fullText index without SQLite driver guard.',
+                            'suggestion' => 'Wrap index inside: if (DB::getDriverName() !== \'sqlite\') { ... }',
                         ];
                     }
                 }

@@ -2,7 +2,7 @@
     "mcpServers": {
         "laravel-boost": {
             "command": "php",
-            "args": ["/Users/whykrr/Documents/Projects/Laravel/sollu-app/artisan", "boost:mcp"]
+            "args": ["artisan", "boost:mcp"]
         },
         "filesystem": {
             "command": "npx",

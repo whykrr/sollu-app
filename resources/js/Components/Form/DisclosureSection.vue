@@ -124,6 +124,15 @@ const isOpen = computed(() => {
 const hasError = computed(() => Boolean(props.error))
 
 watch(
+    () => props.defaultOpen,
+    newVal => {
+        if (newVal && props.modelValue === undefined) {
+            internalOpen.value = true
+        }
+    }
+)
+
+watch(
     () => props.error,
     newVal => {
         if (newVal && !isOpen.value) {

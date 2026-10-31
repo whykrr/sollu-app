@@ -57,7 +57,9 @@
                                 value="direct"
                                 class="text-primary focus:ring-primary h-3.5 w-3.5"
                             />
-                            <span class="font-bold text-xs text-slate-900">Transfer Langsung (1-Langkah)</span>
+                            <span class="font-bold text-xs text-slate-900"
+                                >Transfer Langsung (1-Langkah)</span
+                            >
                         </div>
                         <p class="text-[11px] text-slate-500 pl-5.5 leading-relaxed">
                             Stok langsung terpotong dari asal dan seketika masuk ke outlet tujuan.
@@ -79,10 +81,13 @@
                                 value="two_step"
                                 class="text-primary focus:ring-primary h-3.5 w-3.5"
                             />
-                            <span class="font-bold text-xs text-slate-900">Kirim & Terima (2-Langkah)</span>
+                            <span class="font-bold text-xs text-slate-900"
+                                >Kirim & Terima (2-Langkah)</span
+                            >
                         </div>
                         <p class="text-[11px] text-slate-500 pl-5.5 leading-relaxed">
-                            Stok asal dipotong saat dikirim dan butuh konfirmasi penerimaan di outlet tujuan.
+                            Stok asal dipotong saat dikirim dan butuh konfirmasi penerimaan di
+                            outlet tujuan.
                         </p>
                     </label>
                 </div>

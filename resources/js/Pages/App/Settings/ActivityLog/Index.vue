@@ -16,10 +16,7 @@
             <ActivityLogFilter :filters="filters" :modules="modules" :outlets="outlets" />
         </template>
 
-        <div
-            v-feature="$enums.FeatureEnum.AUDIT_LOG"
-            class="h-full flex-1 min-h-0 flex flex-col"
-        >
+        <div v-feature="$enums.FeatureEnum.AUDIT_LOG" class="h-full flex-1 min-h-0 flex flex-col">
             <Table
                 :headers="headers"
                 :data="logs.data"
@@ -28,70 +25,70 @@
                 :action="false"
                 @row-click="openDetail"
             >
-                    <!-- Kolom Waktu -->
-                    <template #created_at="{ row }">
-                        <div class="flex flex-col">
-                            <span class="font-medium text-neutral-800 text-xs">
-                                {{ formatDate(row.created_at) }}
+                <!-- Kolom Waktu -->
+                <template #created_at="{ row }">
+                    <div class="flex flex-col">
+                        <span class="font-medium text-neutral-800 text-xs">
+                            {{ formatDate(row.created_at) }}
+                        </span>
+                        <span class="text-[11px] text-neutral-400">
+                            {{ formatTime(row.created_at) }} WIB
+                        </span>
+                    </div>
+                </template>
+
+                <!-- Kolom Pelaku -->
+                <template #causer="{ row }">
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-7 h-7 bg-main/10 text-main rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                        >
+                            {{ getInitials(row.causer?.name || 'S') }}
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="font-medium text-neutral-800 truncate text-xs">
+                                {{ row.causer?.name || 'Sistem' }}
                             </span>
-                            <span class="text-[11px] text-neutral-400">
-                                {{ formatTime(row.created_at) }} WIB
+                            <span class="text-[11px] text-neutral-400 truncate">
+                                {{ row.causer?.email || '-' }}
                             </span>
                         </div>
-                    </template>
+                    </div>
+                </template>
 
-                    <!-- Kolom Pelaku -->
-                    <template #causer="{ row }">
-                        <div class="flex items-center gap-2">
-                            <div
-                                class="w-7 h-7 bg-main/10 text-main rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
-                            >
-                                {{ getInitials(row.causer?.name || 'S') }}
-                            </div>
-                            <div class="flex flex-col min-w-0">
-                                <span class="font-medium text-neutral-800 truncate text-xs">
-                                    {{ row.causer?.name || 'Sistem' }}
-                                </span>
-                                <span class="text-[11px] text-neutral-400 truncate">
-                                    {{ row.causer?.email || '-' }}
-                                </span>
-                            </div>
-                        </div>
-                    </template>
+                <!-- Kolom Outlet -->
+                <template #outlet="{ row }">
+                    <span class="text-xs text-neutral-600">
+                        {{ row.outlet?.name || 'Pusat / Semua' }}
+                    </span>
+                </template>
 
-                    <!-- Kolom Outlet -->
-                    <template #outlet="{ row }">
-                        <span class="text-xs text-neutral-600">
-                            {{ row.outlet?.name || 'Pusat / Semua' }}
+                <!-- Kolom Modul -->
+                <template #module="{ row }">
+                    <span class="badge badge-neutral-200 text-[10px] font-medium">
+                        {{ formatModule(row.module) }}
+                    </span>
+                </template>
+
+                <!-- Kolom Aksi & Keterangan -->
+                <template #action_description="{ row }">
+                    <div class="flex flex-col gap-0.5">
+                        <span class="text-xs font-medium text-neutral-900 leading-snug">
+                            {{ row.description }}
                         </span>
-                    </template>
-
-                    <!-- Kolom Modul -->
-                    <template #module="{ row }">
-                        <span class="badge badge-neutral-200 text-[10px] font-medium">
-                            {{ formatModule(row.module) }}
+                        <span class="text-[11px] font-mono text-neutral-400">
+                            {{ row.action }}
                         </span>
-                    </template>
+                    </div>
+                </template>
 
-                    <!-- Kolom Aksi & Keterangan -->
-                    <template #action_description="{ row }">
-                        <div class="flex flex-col gap-0.5">
-                            <span class="text-xs font-medium text-neutral-900 leading-snug">
-                                {{ row.description }}
-                            </span>
-                            <span class="text-[11px] font-mono text-neutral-400">
-                                {{ row.action }}
-                            </span>
-                        </div>
-                    </template>
-
-                    <!-- Kolom IP / Jaringan -->
-                    <template #ip_address="{ row }">
-                        <span class="text-[11px] font-mono text-neutral-500">
-                            {{ row.ip_address || '-' }}
-                        </span>
-                    </template>
-                </Table>
+                <!-- Kolom IP / Jaringan -->
+                <template #ip_address="{ row }">
+                    <span class="text-[11px] font-mono text-neutral-500">
+                        {{ row.ip_address || '-' }}
+                    </span>
+                </template>
+            </Table>
         </div>
 
         <template #footer>

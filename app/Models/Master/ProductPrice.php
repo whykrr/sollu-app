@@ -20,9 +20,12 @@ class ProductPrice extends Model
         'amount',
     ];
 
-    protected $casts = [
-        'amount' => 'float',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'float',
+        ];
+    }
 
     public function product()
     {

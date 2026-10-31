@@ -4,6 +4,7 @@ namespace App\Http\Requests\App\Master\Product;
 
 use App\Enums\PermissionEnum;
 use App\Http\Requests\BaseInertiaFormRequest;
+use App\Rules\UniqueProductItemCode;
 use Illuminate\Support\Facades\Auth;
 
 class StoreProductRequest extends BaseInertiaFormRequest
@@ -44,10 +45,23 @@ class StoreProductRequest extends BaseInertiaFormRequest
 
     public function rules(): array
     {
+        $businessId = Auth::user()?->business_id ?? '';
+
         $rules = [
             'name' => 'required|string|max:255',
-            'code' => 'nullable|string|max:255',
-            'barcode' => 'nullable|string|max:255',
+            'code' => [
+                'nullable',
+                'string',
+                'max:255',
+                new UniqueProductItemCode($businessId, 'sku'),
+            ],
+            'barcode' => [
+                'nullable',
+                'string',
+                'max:255',
+                'different:code',
+                new UniqueProductItemCode($businessId, 'barcode'),
+            ],
             'description' => 'nullable|string',
             'product_category_id' => 'nullable|uuid|exists:product_categories,id',
             'product_type' => 'nullable|in:basic,service,bundle',
@@ -99,8 +113,16 @@ class StoreProductRequest extends BaseInertiaFormRequest
 
                 $rules['variant_combinations'] = 'required|array|min:1';
                 $rules['variant_combinations.*.options'] = 'required|array';
-                $rules['variant_combinations.*.sku'] = 'nullable|string';
-                $rules['variant_combinations.*.barcode'] = 'nullable|string';
+                $rules['variant_combinations.*.sku'] = [
+                    'nullable',
+                    'string',
+                    new UniqueProductItemCode($businessId, 'sku'),
+                ];
+                $rules['variant_combinations.*.barcode'] = [
+                    'nullable',
+                    'string',
+                    new UniqueProductItemCode($businessId, 'barcode'),
+                ];
                 $rules['variant_combinations.*.price'] = 'nullable|numeric|min:0';
                 $rules['variant_combinations.*.initial_stock'] = 'nullable|numeric|min:0';
                 $rules['variant_combinations.*.purchase_price'] = 'nullable|numeric|min:0';
@@ -138,5 +160,47 @@ class StoreProductRequest extends BaseInertiaFormRequest
         }
 
         return $rules;
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->has_variant && is_array($this->variant_combinations)) {
+                $skus = [];
+                $barcodes = [];
+
+                foreach ($this->variant_combinations as $index => $combo) {
+                    $sku = isset($combo['sku']) && trim((string) $combo['sku']) !== '' ? trim((string) $combo['sku']) : null;
+                    $barcode = isset($combo['barcode']) && trim((string) $combo['barcode']) !== '' ? trim((string) $combo['barcode']) : null;
+
+                    if ($sku && $barcode && $sku === $barcode) {
+                        $validator->errors()->add("variant_combinations.{$index}.barcode", 'Barcode tidak boleh sama dengan Kode SKU pada varian ini.');
+                    }
+
+                    if ($sku) {
+                        if (in_array($sku, $skus, true)) {
+                            $validator->errors()->add("variant_combinations.{$index}.sku", "Kode SKU '{$sku}' duplikat di antara pilihan varian.");
+                        } else {
+                            $skus[] = $sku;
+                        }
+                    }
+
+                    if ($barcode) {
+                        if (in_array($barcode, $barcodes, true)) {
+                            $validator->errors()->add("variant_combinations.{$index}.barcode", "Barcode '{$barcode}' duplikat di antara pilihan varian.");
+                        } else {
+                            $barcodes[] = $barcode;
+                        }
+                    }
+                }
+
+                foreach ($this->variant_combinations as $index => $combo) {
+                    $barcode = isset($combo['barcode']) && trim((string) $combo['barcode']) !== '' ? trim((string) $combo['barcode']) : null;
+                    if ($barcode && in_array($barcode, $skus, true)) {
+                        $validator->errors()->add("variant_combinations.{$index}.barcode", "Barcode '{$barcode}' tidak boleh sama dengan Kode SKU varian lain.");
+                    }
+                }
+            }
+        });
     }
 }

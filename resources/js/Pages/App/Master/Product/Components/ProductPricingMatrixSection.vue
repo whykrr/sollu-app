@@ -84,7 +84,10 @@
                             />
                         </div>
 
-                        <div v-if="combo.track_inventory ?? form.track_inventory" class="col-span-1">
+                        <div
+                            v-if="combo.track_inventory ?? form.track_inventory"
+                            class="col-span-1"
+                        >
                             <NumberField
                                 v-model="combo.initial_stock"
                                 label="Stok Awal Varian"
@@ -96,7 +99,10 @@
                             />
                         </div>
 
-                        <div v-if="combo.track_inventory ?? form.track_inventory" class="col-span-1">
+                        <div
+                            v-if="combo.track_inventory ?? form.track_inventory"
+                            class="col-span-1"
+                        >
                             <NumberField
                                 v-model="combo.purchase_price"
                                 label="Modal Beli Satuan"

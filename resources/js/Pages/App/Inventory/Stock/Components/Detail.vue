@@ -220,12 +220,7 @@ import MovementTab from '../Tabs/MovementTab.vue'
 import ChartTab from '../Tabs/ChartTab.vue'
 
 // Icons
-import {
-    faHistory,
-    faChartLine,
-    faPencil,
-    faFilePdf,
-} from '@fortawesome/free-solid-svg-icons'
+import { faHistory, faChartLine, faPencil, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 
 const props = defineProps({
     item: {

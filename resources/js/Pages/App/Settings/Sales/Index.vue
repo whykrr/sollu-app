@@ -79,23 +79,23 @@
         <!-- Navigation Tabs -->
 
         <!-- Tab 1: Pengaturan POS -->
-        <div v-show="activeTab === 'pos' && can($enums.PermissionEnum?.SETTING_SALES)" class="pb-12">
-            <PosSettingsTab
-                :outlet="selectedOutlet"
-                :pos-settings="posSettings"
-            />
+        <div
+            v-show="activeTab === 'pos' && can($enums.PermissionEnum?.SETTING_SALES)"
+            class="pb-12"
+        >
+            <PosSettingsTab :outlet="selectedOutlet" :pos-settings="posSettings" />
         </div>
 
         <!-- Tab 2: Pajak & Pembulatan -->
         <div v-show="activeTab === 'tax' && can($enums.PermissionEnum?.SETTING_TAX)" class="pb-12">
-            <TaxSettingsTab
-                :selected-outlet="selectedOutlet"
-                :tax-settings="taxSettings"
-            />
+            <TaxSettingsTab :selected-outlet="selectedOutlet" :tax-settings="taxSettings" />
         </div>
 
         <!-- Tab 3: Desain Struk & Nota -->
-        <div v-show="activeTab === 'receipt' && can($enums.PermissionEnum?.SETTING_RECEIPT)" class="pb-12">
+        <div
+            v-show="activeTab === 'receipt' && can($enums.PermissionEnum?.SETTING_RECEIPT)"
+            class="pb-12"
+        >
             <ReceiptSettingsTab
                 :selected-outlet="selectedOutlet"
                 :receipt-setting="receiptSetting"

@@ -78,11 +78,7 @@
                                 Membulatkan total tagihan akhir ke kelipatan ratusan rupiah
                             </div>
                         </div>
-                        <Switch
-                            id="rounding_enabled"
-                            v-model="form.rounding_enabled"
-                            size="md"
-                        />
+                        <Switch id="rounding_enabled" v-model="form.rounding_enabled" size="md" />
                     </label>
 
                     <div v-if="form.rounding_enabled" class="pt-1">

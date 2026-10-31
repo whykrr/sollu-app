@@ -30,7 +30,8 @@
                 <div>
                     <label class="text-xs font-medium text-neutral-700">Status Aktif Global</label>
                     <p class="text-[11px] text-neutral-500">
-                        Aktifkan metode ini agar dapat digunakan di kasir seluruh outlet yang diizinkan.
+                        Aktifkan metode ini agar dapat digunakan di kasir seluruh outlet yang
+                        diizinkan.
                     </p>
                 </div>
                 <Switch v-model="form.is_active" size="sm" />
@@ -71,8 +72,10 @@
 
             <!-- Khusus QRIS: Dropzone Gambar QR Code -->
             <div v-if="form.type === 'qris'" class="space-y-2">
-                <label class="text-xs font-medium text-neutral-700">Gambar QR Code Statis (Kasir)</label>
-                
+                <label class="text-xs font-medium text-neutral-700"
+                    >Gambar QR Code Statis (Kasir)</label
+                >
+
                 <div
                     v-if="qrPreviewUrl"
                     class="relative border rounded-xl p-3 bg-neutral-50 flex items-center gap-4"
@@ -85,7 +88,8 @@
                     <div class="flex-1 space-y-1">
                         <p class="text-xs font-medium text-neutral-800">QR Code Terpasang</p>
                         <p class="text-[11px] text-neutral-500">
-                            Gambar ini akan ditampilkan pada layar kasir POS untuk dipindai pelanggan.
+                            Gambar ini akan ditampilkan pada layar kasir POS untuk dipindai
+                            pelanggan.
                         </p>
                         <button
                             type="button"
@@ -185,9 +189,12 @@
 
             <div class="flex items-center justify-between pt-1">
                 <div>
-                    <label class="text-xs font-medium text-neutral-700">Buka Laci Kasir (Cash Drawer)</label>
+                    <label class="text-xs font-medium text-neutral-700"
+                        >Buka Laci Kasir (Cash Drawer)</label
+                    >
                     <p class="text-[11px] text-neutral-500">
-                        Otomatis mengirim sinyal pembukaan laci kasir thermal printer saat metode ini diselesaikan.
+                        Otomatis mengirim sinyal pembukaan laci kasir thermal printer saat metode
+                        ini diselesaikan.
                     </p>
                 </div>
                 <Switch v-model="form.open_cash_drawer" size="sm" />
@@ -212,7 +219,11 @@
         <!-- PopUp Footer -->
         <Teleport v-if="isMounted" to="#popUpFooter">
             <div class="flex items-center justify-end w-full gap-2">
-                <button type="button" class="btn btn-flat cursor-pointer" @click="popUpStore.close()">
+                <button
+                    type="button"
+                    class="btn btn-flat cursor-pointer"
+                    @click="popUpStore.close()"
+                >
                     Batal
                 </button>
                 <button
@@ -266,8 +277,17 @@ const props = defineProps({
     presetProviders: {
         type: Array,
         default: () => [
-            'BCA', 'Mandiri', 'BRI', 'BNI', 'BSI', 'CIMB Niaga',
-            'GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja',
+            'BCA',
+            'Mandiri',
+            'BRI',
+            'BNI',
+            'BSI',
+            'CIMB Niaga',
+            'GoPay',
+            'OVO',
+            'DANA',
+            'ShopeePay',
+            'LinkAja',
         ],
     },
 })
@@ -320,7 +340,10 @@ const form = useForm({
     provider: props.paymentMethod?.provider || '',
     account_number: props.paymentMethod?.account_number || '',
     account_name: props.paymentMethod?.account_name || '',
-    reference_policy: props.paymentMethod?.reference_policy?.value || props.paymentMethod?.reference_policy || (props.paymentMethod?.type === 'cash' ? 'hidden' : 'optional'),
+    reference_policy:
+        props.paymentMethod?.reference_policy?.value ||
+        props.paymentMethod?.reference_policy ||
+        (props.paymentMethod?.type === 'cash' ? 'hidden' : 'optional'),
     open_cash_drawer: props.paymentMethod ? Boolean(props.paymentMethod.open_cash_drawer) : false,
     instructions: props.paymentMethod?.instructions || '',
     qr_image: null,
@@ -349,7 +372,12 @@ const getPolicyDescription = policy => {
 
 const selectProvider = providerName => {
     form.provider = providerName
-    if (!form.name || form.name === '' || form.name.startsWith('QRIS') || form.name.startsWith('Transfer')) {
+    if (
+        !form.name ||
+        form.name === '' ||
+        form.name.startsWith('QRIS') ||
+        form.name.startsWith('Transfer')
+    ) {
         if (form.type === 'qris') {
             form.name = `QRIS ${providerName}`
         } else if (form.type === 'bank_transfer') {

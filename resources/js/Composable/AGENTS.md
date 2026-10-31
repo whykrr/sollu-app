@@ -121,6 +121,7 @@ const color = getColor('AdjustmentStatus', item.status)
 ## 4. Feature Plan Gating (`v-feature` & `useAuth`)
 
 Gating fitur paket langganan SaaS (Fitur vs RBAC):
+
 - **Di Template (Utama):** Selalu gunakan directive `v-feature="$enums.FeatureEnum.NAME"` (atau modifier `v-feature.hide` khusus sidebar/navigasi). Modal upsell `FeatureLockedModal` dibuka secara otomatis di belakang layar pada fase capture saat elemen masked diklik.
 - **Di Script Setup (Hanya untuk sanitasi data sebelum submit):** Gunakan `useAuth().hasFeature(featureName)`:
 

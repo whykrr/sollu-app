@@ -2,8 +2,10 @@
 
 namespace App\Jobs\Master;
 
+use App\Enums\FeatureEnum;
 use App\Enums\ProductTypeEnum;
 use App\Jobs\ImportExport\AbstractExcelExportJob;
+use App\Models\Business;
 use App\Models\Master\Product;
 use App\Models\Outlet;
 use App\Models\User;
@@ -32,13 +34,28 @@ class ExportProductJob extends AbstractExcelExportJob
     public function getQuery(): Builder
     {
         return Product::where('business_id', $this->businessId)
+            ->select([
+                'id',
+                'business_id',
+                'product_category_id',
+                'product_type',
+                'has_variant',
+                'track_inventory',
+                'code',
+                'name',
+                'description',
+                'is_show',
+                'sellable',
+                'created_at',
+            ])
             ->with([
                 'category:id,name',
+                'variantGroups:id,product_id,name',
                 'variantGroups.options:id,variant_group_id,name,sort_order',
+                'productItems:id,product_id,item_type,sku,barcode,name,uom_id',
                 'productItems.variantGroupOptions:id,name,variant_group_id',
                 'productItems.uom:id,name',
-                'productItems.inventoryItem:id,product_item_id,minimum_stock',
-                'prices',
+                'prices:id,product_id,product_item_id,outlet_id,amount',
                 'outlets:id,name',
             ])
             ->filters($this->filters)
@@ -47,6 +64,10 @@ class ExportProductJob extends AbstractExcelExportJob
 
     public function getHeaders(): array
     {
+        $business = Business::findCached($this->businessId);
+        $hasVariant = $business ? $business->hasFeature(FeatureEnum::PRODUCT_VARIANT) : true;
+        $hasMultiOutlet = $business ? $business->hasFeature(FeatureEnum::MULTI_OUTLET) : true;
+
         $headers = [
             'SKU',
             'Barcode',
@@ -54,20 +75,30 @@ class ExportProductJob extends AbstractExcelExportJob
             'Kategori',
             'Deskripsi',
             'Tipe Produk',
-            'Nama Varian 1',
-            'Opsi Varian 1',
-            'Nama Varian 2',
-            'Opsi Varian 2',
+        ];
+
+        if ($hasVariant) {
+            $headers = array_merge($headers, [
+                'Nama Varian 1',
+                'Opsi Varian 1',
+                'Nama Varian 2',
+                'Opsi Varian 2',
+            ]);
+        }
+
+        $headers = array_merge($headers, [
             'Harga Dasar',
             'Satuan',
             'Lacak Stok',
             'Minimum Stok',
             'Status Tampil',
-        ];
+        ]);
 
         $outlets = Outlet::where('business_id', $this->businessId)->active()->get();
-        foreach ($outlets as $outlet) {
-            $headers[] = 'Outlet: '.$outlet->name;
+        if ($hasMultiOutlet && $outlets->count() > 1) {
+            foreach ($outlets as $outlet) {
+                $headers[] = 'Outlet: '.$outlet->name;
+            }
         }
 
         return $headers;
@@ -97,47 +128,61 @@ class ExportProductJob extends AbstractExcelExportJob
         }
         $filePath = 'exports/'.$fileName;
 
+        $business = Business::findCached($this->businessId);
+        $hasVariant = $business ? $business->hasFeature(FeatureEnum::PRODUCT_VARIANT) : true;
+        $hasMultiOutlet = $business ? $business->hasFeature(FeatureEnum::MULTI_OUTLET) : true;
+
         $outlets = Outlet::where('business_id', $this->businessId)->active()->get();
         $headers = $this->getHeaders();
 
         $rows = [$headers];
 
-        $this->getQuery()->chunk(500, function ($products) use (&$rows, $outlets) {
+        $this->getQuery()->chunk(200, function ($products) use (&$rows, $outlets, $hasVariant, $hasMultiOutlet) {
             foreach ($products as $product) {
                 $firstItem = $product->productItems->first();
                 $uomName = $firstItem?->uom?->name ?? '';
 
+                $basePrice = $product->prices->firstWhere('outlet_id', null)?->amount ?? 0;
+                $trackInventory = $product->track_inventory ? 'Ya' : 'Tidak';
+                $isShow = $product->is_show ? 'Ya' : 'Tidak';
+
+                $variantItems = $product->productItems->where('item_type', 'variant_sku');
+                $isVariantProduct = $hasVariant && $product->isBasic() && $product->has_variant && $variantItems->count() > 0;
+
                 // Parent Row
                 $parentRow = [
                     $product->code,
-                    '', // Barcode default kosong (diisi di bawah jika tidak ada varian)
+                    $isVariantProduct ? '' : ($firstItem?->barcode ?? ''),
                     $product->name,
                     $product->category ? $product->category->name : '',
                     $product->description,
                     $product->product_type instanceof ProductTypeEnum ? $product->product_type->value : (string) $product->product_type,
-                    '', // Varian 1 Nama
-                    '', // Varian 1 Opsi
-                    '', // Varian 2 Nama
-                    '', // Varian 2 Opsi
-                    $product->prices->firstWhere('outlet_id', null)?->amount ?? 0,
-                    $uomName,
-                    $product->track_inventory ? 'Ya' : 'Tidak',
-                    '', // Min Stok (Anak/Induk)
-                    $product->is_show ? 'Ya' : 'Tidak',
                 ];
 
-                foreach ($outlets as $outlet) {
-                    $hasOutlet = $product->outlets->contains('id', $outlet->id);
-                    $parentRow[] = $hasOutlet ? 'Ya' : 'Tidak';
+                if ($hasVariant) {
+                    $parentRow[] = ''; // Varian 1 Nama
+                    $parentRow[] = ''; // Varian 1 Opsi
+                    $parentRow[] = ''; // Varian 2 Nama
+                    $parentRow[] = ''; // Varian 2 Opsi
                 }
 
-                $variantItems = $product->productItems->where('item_type', 'variant_sku');
+                $parentRow[] = $basePrice;
+                $parentRow[] = $uomName;
+                $parentRow[] = $trackInventory;
+                $parentRow[] = $isVariantProduct ? '' : ($firstItem?->minimum_stock ?? '');
+                $parentRow[] = $isShow;
 
-                if ($product->isBasic() && $product->has_variant && $variantItems->count() > 0) {
+                if ($hasMultiOutlet && $outlets->count() > 1) {
+                    foreach ($outlets as $outlet) {
+                        $hasOutlet = $product->outlets->contains('id', $outlet->id);
+                        $parentRow[] = $hasOutlet ? 'Ya' : 'Tidak';
+                    }
+                }
+
+                $rows[] = $parentRow;
+
+                if ($isVariantProduct) {
                     $variantGroups = $product->variantGroups;
-
-                    $parentRow[13] = ''; // Parent min stock is empty for variant products
-                    $rows[] = $parentRow;
 
                     foreach ($variantItems as $variant) {
                         $v1Name = '';
@@ -161,7 +206,7 @@ class ExportProductJob extends AbstractExcelExportJob
                             }
                         }
 
-                        $childPrice = $product->prices->where('product_item_id', $variant->id)->whereNull('outlet_id')->first()?->amount ?? $parentRow[10];
+                        $childPrice = $product->prices->where('product_item_id', $variant->id)->whereNull('outlet_id')->first()?->amount ?? $basePrice;
 
                         $childRow = [
                             $variant->sku,
@@ -177,21 +222,18 @@ class ExportProductJob extends AbstractExcelExportJob
                             $childPrice,
                             '',
                             '',
-                            $variant->inventoryItem?->minimum_stock ?? '',
+                            $variant->minimum_stock ?? '',
                             '',
                         ];
 
-                        foreach ($outlets as $outlet) {
-                            $childRow[] = '';
+                        if ($hasMultiOutlet && $outlets->count() > 1) {
+                            foreach ($outlets as $outlet) {
+                                $childRow[] = '';
+                            }
                         }
 
                         $rows[] = $childRow;
                     }
-                } else {
-                    $singleItem = $variantItems->first() ?? $firstItem;
-                    $parentRow[1] = $singleItem ? ($singleItem->barcode ?? '') : '';
-                    $parentRow[13] = $singleItem?->inventoryItem?->minimum_stock ?? 0;
-                    $rows[] = $parentRow;
                 }
             }
         });

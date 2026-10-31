@@ -4,6 +4,7 @@ namespace App\Http\Controllers\App\Master;
 
 use App\Constants\FlashDataVariable;
 use App\Constants\ResourceMessage;
+use App\Enums\FeatureEnum;
 use App\Enums\PermissionEnum;
 use App\Helpers\SelectedOutlet;
 use App\Http\Controllers\Controller;
@@ -13,6 +14,7 @@ use App\Http\Requests\App\Master\Product\UpdateProductRequest;
 use App\Http\Resources\Master\ProductResource;
 use App\Jobs\Master\ExportProductJob;
 use App\Jobs\Master\ImportProductJob;
+use App\Models\Business;
 use App\Models\Inventory\InventoryItem;
 use App\Models\Master\ModifierGroup;
 use App\Models\Master\Product;
@@ -29,6 +31,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -189,7 +193,7 @@ class ProductController extends Controller
 
             $this->productService->createProduct($data);
 
-            return redirect()->route('master.products.index')->with(
+            return redirect()->back(fallback: route('master.products.index'))->with(
                 FlashDataVariable::SUCCESS->value,
                 ResourceMessage::CREATE_SUCCESS
             );
@@ -252,7 +256,7 @@ class ProductController extends Controller
             $data = $request->validated();
             $this->productService->updateProduct($product, $data);
 
-            return redirect()->route('master.products.index')->with(
+            return redirect()->back(fallback: route('master.products.index'))->with(
                 FlashDataVariable::SUCCESS->value,
                 ResourceMessage::UPDATE_SUCCESS
             );
@@ -299,52 +303,139 @@ class ProductController extends Controller
 
     public function importTemplate(): BinaryFileResponse
     {
+        $user = auth()->user();
+        $business = $user->relationLoaded('business') ? $user->business : ($user->business_id ? Business::findCached($user->business_id) : null);
+
+        $hasVariant = $business ? $business->hasFeature(FeatureEnum::PRODUCT_VARIANT) : true;
+        $hasMultiOutlet = $business ? $business->hasFeature(FeatureEnum::MULTI_OUTLET) : true;
+
         $headers = [
             'SKU', 'Barcode', 'Nama Produk', 'Kategori', 'Deskripsi', 'Tipe Produk',
-            'Nama Varian 1', 'Opsi Varian 1', 'Nama Varian 2', 'Opsi Varian 2',
-            'Harga Dasar', 'Satuan', 'Lacak Stok', 'Minimum Stok', 'Status Tampil',
         ];
 
+        if ($hasVariant) {
+            $headers = array_merge($headers, [
+                'Nama Varian 1', 'Opsi Varian 1', 'Nama Varian 2', 'Opsi Varian 2',
+            ]);
+        }
+
+        $headers = array_merge($headers, [
+            'Harga Dasar', 'Satuan', 'Lacak Stok', 'Minimum Stok', 'Status Tampil',
+        ]);
+
         $outlets = Outlet::currentBusiness()->active()->get();
-        foreach ($outlets as $outlet) {
-            $headers[] = 'Outlet: '.$outlet->name;
+        if ($hasMultiOutlet && $outlets->count() > 1) {
+            foreach ($outlets as $outlet) {
+                $headers[] = 'Outlet: '.$outlet->name;
+            }
         }
 
-        $dummy1 = ['PRD-001', 'Kopi Susu', 'Minuman', 'Kopi susu enak', 'basic', '', '', '', '', '15000', 'Cup', 'Ya', '10', 'Ya'];
-        $dummy2 = ['PRD-002', 'T-Shirt', 'Pakaian', 'Kaos katun', 'basic', '', '', '', '', '50000', 'Pcs', 'Ya', '', 'Ya'];
-        $dummy3 = ['PRD-002-S-M', '', '', '', '', 'Ukuran', 'S', 'Warna', 'Merah', '50000', '', '', '5', ''];
-        $dummy4 = ['PRD-002-M-M', '', '', '', '', 'Ukuran', 'M', 'Warna', 'Merah', '55000', '', '', '5', ''];
-        $dummy5 = ['PRD-002-L-B', '', '', '', '', 'Ukuran', 'L', 'Warna', 'Biru', '60000', '', '', '5', ''];
+        $dummyData = [];
+        if ($hasVariant) {
+            $d1 = ['PRD-001', '899123456001', 'Kopi Susu', 'Minuman', 'Kopi susu gula aren', 'basic', '', '', '', '', '15000', 'Cup', 'Ya', '10', 'Ya'];
+            $d2 = ['PRD-002', '', 'Kaos Polos', 'Pakaian', 'Kaos katun premium', 'basic', '', '', '', '', '50000', 'Pcs', 'Ya', '', 'Ya'];
+            $d3 = ['PRD-002-S-M', '899123456002', '', '', '', '', 'Ukuran', 'S', 'Warna', 'Merah', '50000', '', '', '5', ''];
+            $d4 = ['PRD-002-M-M', '899123456003', '', '', '', '', 'Ukuran', 'M', 'Warna', 'Merah', '55000', '', '', '5', ''];
+            $d5 = ['PRD-002-L-B', '899123456004', '', '', '', '', 'Ukuran', 'L', 'Warna', 'Biru', '60000', '', '', '5', ''];
 
-        foreach ($outlets as $outlet) {
-            $dummy1[] = 'Ya';
-            $dummy2[] = 'Ya';
-            $dummy3[] = '';
-            $dummy4[] = '';
-            $dummy5[] = '';
+            if ($hasMultiOutlet && $outlets->count() > 1) {
+                foreach ($outlets as $outlet) {
+                    $d1[] = 'Ya';
+                    $d2[] = 'Ya';
+                    $d3[] = '';
+                    $d4[] = '';
+                    $d5[] = '';
+                }
+            }
+            $dummyData = [$d1, $d2, $d3, $d4, $d5];
+        } else {
+            $d1 = ['PRD-001', '899123456001', 'Kopi Susu', 'Minuman', 'Kopi susu gula aren', 'basic', '15000', 'Cup', 'Ya', '10', 'Ya'];
+            $d2 = ['PRD-002', '899123456002', 'Roti Bakar', 'Makanan', 'Roti bakar coklat', 'basic', '20000', 'Pcs', 'Ya', '5', 'Ya'];
+            if ($hasMultiOutlet && $outlets->count() > 1) {
+                foreach ($outlets as $outlet) {
+                    $d1[] = 'Ya';
+                    $d2[] = 'Ya';
+                }
+            }
+            $dummyData = [$d1, $d2];
         }
 
-        $dummyData = [$dummy1, $dummy2, $dummy3, $dummy4, $dummy5];
+        $instructions = [
+            ['KOLOM', 'TIPE / WAJIB', 'DESKRIPSI & KETENTUAN STANDAR'],
+            ['SKU', 'Teks (Opsional)', 'Kode unik produk. Harus unik di seluruh merchant dan tidak boleh sama dengan Barcode manapun.'],
+            ['Barcode', 'Teks (Opsional)', 'Kode barcode unik. Harus unik di seluruh merchant dan tidak boleh sama dengan SKU manapun.'],
+            ['Nama Produk', 'Teks (Wajib utk Induk)', 'Nama barang produk. Pada baris varian anak, kosongkan kolom ini.'],
+            ['Kategori', 'Teks (Opsional)', 'Nama kategori produk. Jika belum terdaftar, sistem akan otomatis menambahkannya.'],
+            ['Deskripsi', 'Teks (Opsional)', 'Keterangan detail atau deskripsi produk.'],
+            ['Tipe Produk', 'Teks (Opsional)', 'Pilihan: basic (Barang Fisik), service (Layanan). Default: basic.'],
+        ];
 
-        $export = new class($headers, $dummyData) implements FromArray, WithHeadings
+        if ($hasVariant) {
+            $instructions[] = ['Nama Varian 1', 'Teks (Khusus Varian)', 'Nama grup varian 1 (contoh: Ukuran, Rasa).'];
+            $instructions[] = ['Opsi Varian 1', 'Teks (Khusus Varian)', 'Nilai opsi varian 1 (contoh: S, M, L).'];
+            $instructions[] = ['Nama Varian 2', 'Teks (Khusus Varian)', 'Nama grup varian 2 (contoh: Warna, Level).'];
+            $instructions[] = ['Opsi Varian 2', 'Teks (Khusus Varian)', 'Nilai opsi varian 2 (contoh: Merah, Pedas).'];
+        }
+
+        $instructions[] = ['Harga Dasar', 'Angka (Wajib)', 'Harga jual produk dalam format angka tanpa titik/koma (contoh: 15000).'];
+        $instructions[] = ['Satuan', 'Teks (Opsional)', 'Satuan produk (contoh: Pcs, Cup, Botol). Harus terdaftar pada menu Satuan master.'];
+        $instructions[] = ['Lacak Stok', 'Teks (Ya / Tidak)', 'Ketik Ya untuk mengaktifkan pelacakan inventori, atau Tidak.'];
+        $instructions[] = ['Minimum Stok', 'Angka (Opsional)', 'Batas minimum stok untuk memicu peringatan persediaan menipis.'];
+        $instructions[] = ['Status Tampil', 'Teks (Ya / Tidak)', 'Ketik Ya agar produk muncul di katalog kasir, atau Tidak untuk menyembunyikannya.'];
+
+        if ($hasMultiOutlet && $outlets->count() > 1) {
+            $instructions[] = ['Outlet: [Nama Outlet]', 'Teks (Ya / Tidak)', 'Ketik Ya jika produk tersedia untuk dijual di outlet tersebut.'];
+        }
+
+        $export = new class($headers, $dummyData, $instructions) implements WithMultipleSheets
         {
             public function __construct(
                 private array $headers,
-                private array $dummyData
+                private array $dummyData,
+                private array $instructions
             ) {}
 
-            public function array(): array
+            public function sheets(): array
             {
-                return $this->dummyData;
-            }
+                return [
+                    new class($this->headers, $this->dummyData) implements FromArray, WithHeadings, WithTitle
+                    {
+                        public function __construct(private array $headers, private array $data) {}
 
-            public function headings(): array
-            {
-                return $this->headers;
+                        public function array(): array
+                        {
+                            return $this->data;
+                        }
+
+                        public function headings(): array
+                        {
+                            return $this->headers;
+                        }
+
+                        public function title(): string
+                        {
+                            return 'Template Impor Produk';
+                        }
+                    },
+                    new class($this->instructions) implements FromArray, WithTitle
+                    {
+                        public function __construct(private array $instructions) {}
+
+                        public function array(): array
+                        {
+                            return $this->instructions;
+                        }
+
+                        public function title(): string
+                        {
+                            return 'Petunjuk & Kamus Data';
+                        }
+                    },
+                ];
             }
         };
 
-        $filename = 'template_'.strtolower(class_basename($this)).'.xlsx';
+        $filename = 'template_impor_produk.xlsx';
 
         return Excel::download($export, $filename);
     }

@@ -1,4 +1,30 @@
-# Rule 08: Standar Database Skema, Migrasi Reversibel & Protokol Rollback
+# Rule 08: Standar Database Skema, Migrasi Reversibel, Immutabilitas Berbasis Git Tag & Protokol Rollback
+
+## 0. Protokol Immutabilitas Migrasi Berbasis Git Tag (Production Baseline)
+
+### 0.1. Prinsip Dasar: Git Tag sebagai Parameter Produksi
+Siklus deployment produksi Sollu App **mutlak dikendalikan oleh Git Tag rilis stabil SemVer** (format `vMAJOR.MINOR.PATCH`, contoh: `v1.2.3`). Setiap tag rilis menandai snapshot kode dan skema database yang telah dieksekusi di server produksi dan dicatat dalam tabel `migrations`.
+
+### 0.2. Aturan Mutlak Immutabilitas Migrasi (Immutability Gate)
+1. **File Migrasi Berstatus Terkunci (Locked):**
+   - Seluruh file migrasi yang telah ada di dalam Git Tag rilis stabil terakhir bersifat **MUTLAK IMMUTABLE**.
+   - **DILARANG KERAS** mengedit, memodifikasi method `up()` / `down()`, me-rename, atau menghapus file migrasi yang telah dirilis pada tag stabil.
+2. **Alasan Teknis & Risiko Produksi:**
+   - Database produksi hanya menjalankan migrasi baru yang belum tercatat di tabel `migrations`.
+   - Mengubah file migrasi lama tidak akan pernah dieksekusi pada database produksi yang sedang berjalan (*missed execution*), menciptakan ketidaksinkronan fatal (*schema drift*) antara lingkungan lokal dan produksi.
+   - Menghapus migrasi lama menyebabkan kegagalan audit rollback dan merusak instalasi node/tenant baru.
+3. **Mandat Pembuatan File Migrasi Baru:**
+   - Setiap perubahan skema terhadap tabel atau kolom yang sudah dirilis (menambah kolom, mengubah tipe data, menambah index, mengubah relasi, atau memodifikasi constraint) **WAJIB dibuatkan file migrasi baru** menggunakan perintah:
+     ```bash
+     php artisan make:migration add_columns_to_table_name --table=table_name
+     ```
+4. **Fase Unreleased (Sebelum Tag Baru Dipotong):**
+   - File migrasi baru yang dibuat *setelah* tag rilis stabil terakhir (berada di fase development/unreleased) masih diizinkan untuk diamandemen atau disatukan sebelum rilis tag stabil berikutnya dipotong.
+   - Begitu tag stabil baru (`git tag -a vX.Y.Z`) dibuat, seluruh migrasi di dalamnya otomatis terkunci permanen.
+5. **Verifikasi Otomatis via MCP:**
+   - Agen AI dan developer **WAJIB menjalankan tool MCP `audit_migration_compatibility`** dari `sollu-project` untuk mendeteksi pelanggaran file terkunci dan memeriksa backward compatibility sebelum memfinalisasi pekerjaan database.
+
+---
 
 ## 1. Prinsip Simetri Mutlak (Absolute Rollback Symmetry)
 Setiap file migrasi **WAJIB bersifat dua arah (bidirectional)**. Seluruh perubahan skema pada method `up()` harus memiliki kebalikan yang presisi dan dapat dieksekusi sempurna pada method `down()` dengan urutan terbalik (*LIFO - Last In, First Out*).
@@ -15,17 +41,21 @@ Setiap file migrasi **WAJIB bersifat dua arah (bidirectional)**. Seluruh perubah
 
 ---
 
-## 2. Protokol Normalisasi & Migrasi Data (Data ETL Reversibility)
-Migrasi yang melibatkan transformasi atau normalisasi data antar tabel (DML) harus dirancang agar **tidak menghilangkan data saat di-rollback**.
+## 2. Backward Compatibility & Protokol Expand-and-Contract (Phased Migrations)
 
-1. **Pola *Expand and Contract* (Phased Migrations):**
-   - **Fase 1 (Expand):** Buat tabel atau kolom baru tanpa langsung menghapus kolom lama.
-   - **Fase 2 (Migrate & Normalisasi):** Salin dan transformasi data dari struktur lama ke struktur baru. Kode aplikasi mulai membaca dan menulis ke struktur baru.
-   - **Fase 3 (Contract):** Setelah fitur stabil dan teruji di production, buat migrasi terpisah untuk menghapus kolom/tabel lama yang sudah deprecated.
-2. **Reverse ETL pada `down()`:**
+Setiap perubahan skema database harus memperhitungkan **Backward Compatibility** terhadap aplikasi produksi, antrean background worker yang sedang berjalan, dan mobile POS client di lapangan:
+
+1. **Non-Breaking Schema Changes (Additive First):**
+   - Kolom baru pada tabel produksi yang sudah aktif **WAJIB bersifat `nullable()`** atau memiliki nilai `default(...)`.
+   - **DILARANG KERAS** menambahkan kolom `NOT NULL` tanpa default value pada tabel yang sudah memiliki data operasional di produksi, karena akan menggagalkan `INSERT` dari versi aplikasi/klien yang belum diperbarui.
+2. **Pola 3-Fase *Expand and Contract*:**
+   - **Fase 1 (Expand):** Tambahkan tabel/kolom baru tanpa menghapus struktur lama. Kode aplikasi mulai menulis ke struktur baru dan lama (*dual-write*) atau membaca fallback.
+   - **Fase 2 (Migrate & Normalisasi):** Salin data historis via migrasi data DML idempoten. Aplikasi sepenuhnya beralih membaca dari struktur baru.
+   - **Fase 3 (Contract):** Setelah seluruh klien mobile dan instance produksi stabil (minimal 1 siklus rilis tag berikutnya), buat file migrasi baru terpisah untuk menghapus kolom/tabel lama yang deprecated.
+3. **Reverse ETL pada `down()`:**
    - Jika `up()` memindahkan data dari tabel A ke tabel B lalu menghapus kolom pada tabel A, method `down()` **WAJIB menyalin kembali data dari tabel B ke tabel A** sebelum tabel B atau kolom barunya di-drop.
    - Hindari penghancuran data (*data loss*) permanen saat proses rollback.
-3. **Database Transaction:**
+4. **Database Transaction:**
    - Gunakan transaksi eksplisit `DB::transaction()` pada migrasi data jika DDL mendukung atau pisahkan DDL skema murni dengan DML migrasi data agar rollback database konsisten.
 
 ---
@@ -60,6 +90,7 @@ php artisan migrate
 ```
 
 ### Kriteria Kelulusan (*Acceptance Criteria*):
+- Tool MCP `audit_migration_compatibility` menghasilkan status `pass`.
 - Perintah `migrate:rollback` berhasil tanpa error sintaks, unknown method, atau constraint violation.
 - Menjalankan `migrate` ulang setelah rollback berjalan mulus tanpa error tabel/kolom duplikat.
 - Seluruh test suite (`php artisan test`) lolos 100%.

@@ -17,78 +17,75 @@
             />
         </template>
 
-        <div
-            v-feature="$enums.FeatureEnum.CUSTOM_ROLE"
-            class="h-full flex-1 min-h-0 flex flex-col"
-        >
+        <div v-feature="$enums.FeatureEnum.CUSTOM_ROLE" class="h-full flex-1 min-h-0 flex flex-col">
             <Table :headers="headers" :data="roles" :action="true">
-                    <template #name="{ row }">
-                        <div class="flex flex-col">
-                            <span class="font-medium text-neutral-900">{{ row.label }}</span>
-                            <span class="text-xs text-neutral-500">{{ row.name }}</span>
-                        </div>
-                    </template>
+                <template #name="{ row }">
+                    <div class="flex flex-col">
+                        <span class="font-medium text-neutral-900">{{ row.label }}</span>
+                        <span class="text-xs text-neutral-500">{{ row.name }}</span>
+                    </div>
+                </template>
 
-                    <template #permissions_summary="{ row }">
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <span
-                                v-if="
-                                    (row.name === $enums.RoleEnum?.OWNER || row.name === 'owner') &&
-                                    row.permissions_count >= 100
-                                "
-                                class="badge badge-success text-xs font-medium"
-                            >
-                                Akses Penuh
-                            </span>
-                            <span v-else class="badge badge-info text-xs font-semibold">
-                                {{ row.permissions_count }} Izin
-                            </span>
-                            <span
-                                v-for="(grp, idx) in (row.summary_groups || []).slice(0, 3)"
-                                :key="idx"
-                                class="text-[11px] text-neutral-600 bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded"
-                            >
-                                {{ grp.label }} ({{ grp.count }})
-                            </span>
-                            <span
-                                v-if="row.summary_groups && row.summary_groups.length > 3"
-                                class="text-[11px] text-neutral-400 bg-slate-50 px-1 py-0.5 rounded"
-                            >
-                                +{{ row.summary_groups.length - 3 }} lainnya
-                            </span>
-                        </div>
-                    </template>
-
-                    <template #users_count="{ row }">
-                        <span class="text-neutral-600"> {{ row.users_count }} Pengguna </span>
-                    </template>
-
-                    <template #actions="{ row }">
-                        <button
-                            v-if="can($enums.PermissionEnum?.ROLE_UPDATE)"
-                            type="button"
-                            class="btn btn-flat btn-sm h-8 w-8 !p-0 inline-flex items-center justify-center"
-                            title="Ubah Peran"
-                            @click="openEdit(row)"
-                        >
-                            <FontAwesomeIcon :icon="faPencil" />
-                        </button>
-                        <button
-                            v-if="!row.is_default && can($enums.PermissionEnum?.ROLE_DELETE)"
-                            type="button"
-                            class="btn btn-flat btn-sm h-8 w-8 !p-0 inline-flex items-center justify-center text-danger hover:bg-danger/10"
-                            :title="
-                                row.users_count > 0
-                                    ? 'Tidak dapat dihapus karena masih digunakan oleh pengguna'
-                                    : 'Hapus Peran'
+                <template #permissions_summary="{ row }">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span
+                            v-if="
+                                (row.name === $enums.RoleEnum?.OWNER || row.name === 'owner') &&
+                                row.permissions_count >= 100
                             "
-                            :disabled="row.users_count > 0"
-                            @click="openDelete(row)"
+                            class="badge badge-success text-xs font-medium"
                         >
-                            <FontAwesomeIcon :icon="faTrash" />
-                        </button>
-                    </template>
-                </Table>
+                            Akses Penuh
+                        </span>
+                        <span v-else class="badge badge-info text-xs font-semibold">
+                            {{ row.permissions_count }} Izin
+                        </span>
+                        <span
+                            v-for="(grp, idx) in (row.summary_groups || []).slice(0, 3)"
+                            :key="idx"
+                            class="text-[11px] text-neutral-600 bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded"
+                        >
+                            {{ grp.label }} ({{ grp.count }})
+                        </span>
+                        <span
+                            v-if="row.summary_groups && row.summary_groups.length > 3"
+                            class="text-[11px] text-neutral-400 bg-slate-50 px-1 py-0.5 rounded"
+                        >
+                            +{{ row.summary_groups.length - 3 }} lainnya
+                        </span>
+                    </div>
+                </template>
+
+                <template #users_count="{ row }">
+                    <span class="text-neutral-600"> {{ row.users_count }} Pengguna </span>
+                </template>
+
+                <template #actions="{ row }">
+                    <button
+                        v-if="can($enums.PermissionEnum?.ROLE_UPDATE)"
+                        type="button"
+                        class="btn btn-flat btn-sm h-8 w-8 !p-0 inline-flex items-center justify-center"
+                        title="Ubah Peran"
+                        @click="openEdit(row)"
+                    >
+                        <FontAwesomeIcon :icon="faPencil" />
+                    </button>
+                    <button
+                        v-if="!row.is_default && can($enums.PermissionEnum?.ROLE_DELETE)"
+                        type="button"
+                        class="btn btn-flat btn-sm h-8 w-8 !p-0 inline-flex items-center justify-center text-danger hover:bg-danger/10"
+                        :title="
+                            row.users_count > 0
+                                ? 'Tidak dapat dihapus karena masih digunakan oleh pengguna'
+                                : 'Hapus Peran'
+                        "
+                        :disabled="row.users_count > 0"
+                        @click="openDelete(row)"
+                    >
+                        <FontAwesomeIcon :icon="faTrash" />
+                    </button>
+                </template>
+            </Table>
         </div>
     </MainPage>
 </template>

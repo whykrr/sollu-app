@@ -1,18 +1,25 @@
 <template>
     <div class="space-y-3.5 pb-16">
         <!-- Banner Petunjuk Ramah Pedagang Mikro -->
-        <div class="p-3 bg-blue-50/80 border border-blue-200/80 rounded-xl flex items-start gap-2.5 text-xs text-blue-900 leading-relaxed">
+        <div
+            class="p-3 bg-blue-50/80 border border-blue-200/80 rounded-xl flex items-start gap-2.5 text-xs text-blue-900 leading-relaxed"
+        >
             <FontAwesomeIcon :icon="faInfoCircle" class="text-blue-500 mt-0.5 text-sm shrink-0" />
             <div>
                 <p class="font-bold text-blue-950">Atur Saldo Awal Persediaan Tokomu</p>
                 <p class="text-[11px] text-blue-800/90 mt-0.5">
-                    Halaman ini digunakan untuk mencatat stok fisik pertama kali dan modal beli barang. Jika barang hanya memiliki stok awal (belum pernah ada transaksi kasir), kamu juga bisa memperbarui jumlah dan modalnya di sini.
+                    Halaman ini digunakan untuk mencatat stok fisik pertama kali dan modal beli
+                    barang. Jika barang hanya memiliki stok awal (belum pernah ada transaksi kasir),
+                    kamu juga bisa memperbarui jumlah dan modalnya di sini.
                 </p>
             </div>
         </div>
 
         <!-- Pilihan Outlet (Jika Multi-Outlet dan belum terkunci di navbar) -->
-        <div v-if="outlets.length > 1" class="bg-slate-50/60 p-3 rounded-xl border border-slate-200 space-y-1.5">
+        <div
+            v-if="outlets.length > 1"
+            class="bg-slate-50/60 p-3 rounded-xl border border-slate-200 space-y-1.5"
+        >
             <label class="block text-xs font-bold text-slate-700">Outlet Tujuan</label>
             <div class="max-w-xs">
                 <SearchableDropdownField
@@ -25,12 +32,15 @@
                 />
             </div>
             <p v-if="form.items.length > 0" class="text-[11px] text-slate-400">
-                Outlet dikunci saat sudah ada barang di daftar. Hapus seluruh baris barang jika ingin beralih outlet.
+                Outlet dikunci saat sudah ada barang di daftar. Hapus seluruh baris barang jika
+                ingin beralih outlet.
             </p>
         </div>
 
         <!-- Header Aksi & Pemilih Barang -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-100">
+        <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-100"
+        >
             <div>
                 <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
                     Daftar Barang ({{ form.items.length }})
@@ -58,13 +68,16 @@
             v-if="form.items.length === 0"
             class="text-center py-10 px-4 border border-dashed border-slate-300 rounded-xl bg-slate-50/50 space-y-2.5"
         >
-            <div class="size-10 rounded-full bg-slate-100 mx-auto flex items-center justify-center text-slate-400">
+            <div
+                class="size-10 rounded-full bg-slate-100 mx-auto flex items-center justify-center text-slate-400"
+            >
                 <FontAwesomeIcon :icon="faBoxesStacked" class="text-lg" />
             </div>
             <div>
                 <p class="text-xs font-bold text-slate-700">Belum ada barang yang dipilih</p>
                 <p class="text-[11px] text-slate-400 max-w-sm mx-auto mt-0.5">
-                    Klik tombol <strong>"Pilih Barang"</strong> di atas untuk memasukkan barang-barang yang ingin diatur stok awalnya.
+                    Klik tombol <strong>"Pilih Barang"</strong> di atas untuk memasukkan
+                    barang-barang yang ingin diatur stok awalnya.
                 </p>
             </div>
             <button
@@ -83,7 +96,9 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs min-w-[720px]">
                     <thead>
-                        <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold">
+                        <tr
+                            class="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold"
+                        >
                             <th class="p-2.5 w-10 text-center">No</th>
                             <th class="p-2.5 min-w-[180px]">Barang</th>
                             <th class="p-2.5 w-32 text-right">Harga Jual (Rp)</th>
@@ -107,7 +122,10 @@
                                 <div class="font-bold text-slate-800 text-xs">
                                     {{ item.name }}
                                 </div>
-                                <div v-if="item.sku" class="text-[11px] text-slate-400 font-mono mt-0.5">
+                                <div
+                                    v-if="item.sku"
+                                    class="text-[11px] text-slate-400 font-mono mt-0.5"
+                                >
                                     SKU: {{ item.sku }}
                                 </div>
                             </td>
@@ -130,7 +148,9 @@
                                 </span>
                             </td>
                             <td class="p-2.5">
-                                <div class="flex items-center rounded-lg border border-slate-300 overflow-hidden focus-within:ring-1 focus-within:ring-main focus-within:border-main bg-white">
+                                <div
+                                    class="flex items-center rounded-lg border border-slate-300 overflow-hidden focus-within:ring-1 focus-within:ring-main focus-within:border-main bg-white"
+                                >
                                     <input
                                         v-model.number="item.qty"
                                         type="number"
@@ -139,11 +159,16 @@
                                         class="w-full px-2 py-1 text-xs border-0 focus:outline-none text-slate-800 font-medium"
                                         placeholder="0"
                                     />
-                                    <span class="bg-slate-100 text-slate-600 px-2 py-1 text-[11px] font-semibold border-l border-slate-200 select-none whitespace-nowrap">
+                                    <span
+                                        class="bg-slate-100 text-slate-600 px-2 py-1 text-[11px] font-semibold border-l border-slate-200 select-none whitespace-nowrap"
+                                    >
                                         {{ item.uom_code || item.uom || 'Pcs' }}
                                     </span>
                                 </div>
-                                <span v-if="form.errors[`items.${idx}.qty`]" class="text-[10px] text-danger mt-0.5 block">
+                                <span
+                                    v-if="form.errors[`items.${idx}.qty`]"
+                                    class="text-[10px] text-danger mt-0.5 block"
+                                >
                                     {{ form.errors[`items.${idx}.qty`] }}
                                 </span>
                             </td>
@@ -159,7 +184,12 @@
                                 />
                             </td>
                             <td class="p-2.5 text-right font-bold text-slate-700">
-                                {{ formatCurrency((parseFloat(item.qty) || 0) * (parseFloat(item.purchase_price) || 0)) }}
+                                {{
+                                    formatCurrency(
+                                        (parseFloat(item.qty) || 0) *
+                                            (parseFloat(item.purchase_price) || 0)
+                                    )
+                                }}
                             </td>
                             <td class="p-2.5 text-center">
                                 <button
@@ -182,11 +212,15 @@
             <div class="flex flex-col sm:flex-row items-center justify-between w-full gap-2">
                 <div class="text-xs text-slate-600 flex items-center gap-3">
                     <div>
-                        Total Barang: <strong class="text-slate-800">{{ form.items.length }}</strong>
+                        Total Barang:
+                        <strong class="text-slate-800">{{ form.items.length }}</strong>
                     </div>
                     <span>•</span>
                     <div>
-                        Total Nilai Modal: <strong class="text-emerald-600">{{ formatCurrency(totalInventoryValue) }}</strong>
+                        Total Nilai Modal:
+                        <strong class="text-emerald-600">{{
+                            formatCurrency(totalInventoryValue)
+                        }}</strong>
                     </div>
                 </div>
 
@@ -277,7 +311,7 @@ const totalInventoryValue = computed(() => {
     return form.items.reduce((sum, item) => {
         const qty = parseFloat(item.qty) || 0
         const price = parseFloat(item.purchase_price) || 0
-        return sum + (qty * price)
+        return sum + qty * price
     }, 0)
 })
 
