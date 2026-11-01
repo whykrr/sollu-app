@@ -249,7 +249,7 @@ const headers = computed(() => {
                 sortable: false,
             },
             {
-                label: 'Pihak Lawan',
+                label: 'Asal / Tujuan',
                 field: 'counterparty',
                 slot: 'counterparty',
                 sortable: false,

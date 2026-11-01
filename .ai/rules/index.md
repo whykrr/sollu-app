@@ -1,7 +1,6 @@
 # Project Rules Index
 
-Before planning or editing, find the row whose globs match the file's path and read that rule file.
+Managed by Laravel Boost (`record-rule`). Standing architecture rules reside in `.agents/rules/`.
 
 | Applies to | Rule file |
 | --- | --- |
-| app/{Notifications,Services/App/Notification,Console/Commands}/** | .ai/rules/commands.md |

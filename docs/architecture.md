@@ -8,7 +8,7 @@ Panduan arsitektur tingkat tinggi dan struktur teknis sistem **Sollu App**.
 
 | Komponen | Teknologi | Keterangan |
 | :--- | :--- | :--- |
-| **Backend Framework** | Laravel 11.9+ | PHP 8.3, modern single-action/thin controller, typed properties |
+| **Backend Framework** | Laravel 12 | PHP 8.3, modern single-action/thin controller, typed properties |
 | **Frontend Framework** | Vue 3 (Composition API `<script setup>`) | Single Root Component, Script Setup, Tailwind v4 |
 | **Monolith Bridge** | Inertia.js 1.2 | `@inertiajs/vue3` ^1.2.0, `inertia-laravel` ^1.3 (Inertia v1 patterns) |
 | **Database** | PostgreSQL 16+ | UUID primary keys (`HasUuids`), JSONB columns, indexed tenant scopes |

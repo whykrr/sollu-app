@@ -123,6 +123,102 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Card 3: PIN Kasir & Supervisi POS -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
+                    <h3
+                        class="text-base font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-2 flex items-center gap-2"
+                    >
+                        <FontAwesomeIcon :icon="faKey" class="text-main" />
+                        <span>PIN Kasir & Supervisi POS</span>
+                    </h3>
+
+                    <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                        PIN 6 digit digunakan untuk login cepat di aplikasi kasir (POS) serta otorisasi
+                        supervisi transaksi (void, refund, dan diskon).
+                    </p>
+
+                    <div class="space-y-3">
+                        <div class="space-y-1">
+                            <label for="pin" class="label">PIN Baru (6 Digit)</label>
+                            <div class="relative">
+                                <input
+                                    id="pin"
+                                    v-model="formChangePin.pin"
+                                    :type="showPin ? 'text' : 'password'"
+                                    maxlength="6"
+                                    inputmode="numeric"
+                                    placeholder="Masukkan 6 angka PIN"
+                                    class="form pr-10"
+                                    :class="{ 'is-invalid': formChangePin.errors.pin }"
+                                    @input="formChangePin.pin = formChangePin.pin.replace(/[^0-9]/g, '')"
+                                />
+                                <button
+                                    type="button"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+                                    @click="showPin = !showPin"
+                                >
+                                    <FontAwesomeIcon
+                                        :icon="showPin ? faEyeSlash : faEye"
+                                        class="text-xs"
+                                    />
+                                </button>
+                            </div>
+                            <span v-if="formChangePin.errors.pin" class="form-feedback text-danger">
+                                {{ formChangePin.errors.pin }}
+                            </span>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label for="pin_confirmation" class="label">Konfirmasi PIN Baru</label>
+                            <div class="relative">
+                                <input
+                                    id="pin_confirmation"
+                                    v-model="formChangePin.pin_confirmation"
+                                    :type="showPinConfirmation ? 'text' : 'password'"
+                                    maxlength="6"
+                                    inputmode="numeric"
+                                    placeholder="Ulangi 6 angka PIN baru"
+                                    class="form pr-10"
+                                    :class="{ 'is-invalid': formChangePin.errors.pin_confirmation }"
+                                    @input="
+                                        formChangePin.pin_confirmation =
+                                            formChangePin.pin_confirmation.replace(/[^0-9]/g, '')
+                                    "
+                                />
+                                <button
+                                    type="button"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+                                    @click="showPinConfirmation = !showPinConfirmation"
+                                >
+                                    <FontAwesomeIcon
+                                        :icon="showPinConfirmation ? faEyeSlash : faEye"
+                                        class="text-xs"
+                                    />
+                                </button>
+                            </div>
+                            <span
+                                v-if="formChangePin.errors.pin_confirmation"
+                                class="form-feedback text-danger"
+                            >
+                                {{ formChangePin.errors.pin_confirmation }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-4 border-t border-slate-100 mt-5">
+                        <button
+                            class="btn btn-main flex items-center gap-2"
+                            :disabled="formChangePin.processing || !formChangePin.isDirty"
+                            @click="changePin"
+                        >
+                            <FontAwesomeIcon :icon="faSave" />
+                            <span>{{
+                                formChangePin.processing ? 'Menyimpan...' : 'Simpan PIN'
+                            }}</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Right Column: Profile Photo Card -->

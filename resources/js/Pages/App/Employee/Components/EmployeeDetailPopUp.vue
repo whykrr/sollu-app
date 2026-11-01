@@ -14,10 +14,7 @@
                     <h3 class="text-sm font-bold text-slate-800 truncate">
                         {{ detail?.name || '-' }}
                     </h3>
-                    <span v-if="detail?.is_root_user" class="badge badge-warning text-[10px]">
-                        Akun Utama
-                    </span>
-                    <span v-else-if="roleLabel" class="badge badge-info text-[10px]">
+                    <span v-if="roleLabel" class="badge badge-info text-[10px]">
                         {{ roleLabel }}
                     </span>
                     <span v-if="detail?.deleted_at" class="badge badge-neutral-500 text-[10px]">
@@ -60,20 +57,19 @@
                             <FontAwesomeIcon
                                 :icon="faGlobe"
                                 :class="
-                                    detail?.is_root_user || detail?.has_web_access || detail?.email
+                                    detail?.has_web_access || detail?.email
                                         ? 'text-emerald-500'
                                         : 'text-slate-300'
                                 "
                             />
                             {{
-                                detail?.is_root_user || detail?.has_web_access || detail?.email
+                                detail?.has_web_access || detail?.email
                                     ? 'Aktif (Email & Sandi)'
                                     : 'Kasir POS Saja (Tanpa Web)'
                             }}
                         </span>
                         <button
                             v-if="
-                                !detail?.is_root_user &&
                                 !detail?.deleted_at &&
                                 (detail?.has_web_access || detail?.email)
                             "
@@ -104,24 +100,15 @@
                 <div>
                     <span class="text-slate-500 block text-[11px]">Peran Utama</span>
                     <span class="font-medium text-slate-800 mt-0.5 block">
-                        {{
-                            detail?.is_root_user
-                                ? 'Akun Utama (Full Access)'
-                                : roleLabel || 'Belum diatur'
-                        }}
+                        {{ roleLabel || 'Belum diatur' }}
                     </span>
                 </div>
                 <div class="sm:col-span-2">
                     <span class="text-slate-500 block text-[11px] mb-1"
                         >Akses Penugasan Outlet</span
                     >
-                    <div v-if="detail?.is_root_user" class="text-xs text-slate-600">
-                        <span class="badge badge-success text-xs"
-                            >Seluruh Outlet (Akses Pemilik)</span
-                        >
-                    </div>
                     <div
-                        v-else-if="detail?.outlets && detail.outlets.length > 0"
+                        v-if="detail?.outlets && detail.outlets.length > 0"
                         class="flex flex-wrap gap-1.5"
                     >
                         <span

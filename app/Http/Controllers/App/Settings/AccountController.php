@@ -9,6 +9,7 @@ use App\Enums\AuditModuleEnum;
 use App\Helpers\SummaryUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\User\AccountChangePasswordRequest;
+use App\Http\Requests\App\User\AccountChangePinRequest;
 use App\Http\Requests\App\User\AccountUpdateRequest;
 use App\Http\Requests\App\User\ChangePhotoRequest;
 use App\Models\User;
@@ -16,6 +17,7 @@ use App\Services\Core\ImageOptimizerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AccountController extends Controller
@@ -104,6 +106,32 @@ class AccountController extends Controller
         return redirect()->back()->with(
             FlashDataVariable::SUCCESS->value,
             ResourceMessage::UPDATE_SUCCESS
+        );
+    }
+
+    public function changePin(AccountChangePinRequest $req)
+    {
+        /** @var User $user */
+        $user = User::find(Auth::id());
+
+        $user->pin = Hash::make($req->validated('pin'));
+        $user->save();
+
+        SummaryUser::cacheDelete($user->id);
+        Cache::delete("auth:user:{$user->id}:info");
+        Cache::forgetPattern('pos:outlet:*:employees');
+
+        $this->auditLogger->log(
+            module: AuditModuleEnum::AUTH->value,
+            action: 'account.pin_updated',
+            description: 'Memperbarui PIN kasir akun',
+            subject: $user,
+            causer: $user
+        );
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            'PIN kasir berhasil diperbarui.'
         );
     }
 

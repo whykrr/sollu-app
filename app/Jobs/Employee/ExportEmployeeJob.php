@@ -23,6 +23,7 @@ class ExportEmployeeJob extends AbstractExcelExportJob
 
         $query = User::query()
             ->where('business_id', $businessId)
+            ->where('is_root_user', false)
             ->with(['roles:id,name,label', 'outlets:id,name']);
 
         if (! empty($this->filters['search'])) {

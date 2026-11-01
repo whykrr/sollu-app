@@ -249,4 +249,71 @@ class InventorySodServiceTest extends TestCase
         $this->service->assertCanApproveAdjustment($adjustment, $user);
         $this->assertTrue(true);
     }
+
+    public function test_root_user_can_bypass_sod_even_when_allow_owner_bypass_is_false(): void
+    {
+        [$business, $user, $outlet] = $this->createBusinessWithUser([
+            'enabled' => true,
+            'allow_owner_bypass' => false, // Toko mematikan bypass owner
+            'rules' => [
+                'stock_adjustment' => true,
+                'stock_opname' => true,
+                'stock_transfer_approval' => true,
+                'stock_transfer_receive' => true,
+                'purchase_order_receive' => true,
+            ],
+        ]);
+
+        $user->update(['is_root_user' => true]);
+
+        // 1. Adjustment
+        $adjustment = new StockAdjustment([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'created_by' => $user->id,
+        ]);
+        $adjustment->setRelation('business', $business);
+        $this->service->assertCanApproveAdjustment($adjustment, $user);
+
+        // 2. Opname
+        $opname = new StockOpname([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'created_by' => $user->id,
+        ]);
+        $opname->setRelation('business', $business);
+        $this->service->assertCanApproveOpname($opname, $user);
+
+        // 3. Transfer
+        $transfer = new StockTransfer([
+            'business_id' => $business->id,
+            'from_outlet_id' => $outlet->id,
+            'to_outlet_id' => $outlet->id,
+            'requested_by' => $user->id,
+        ]);
+        $transfer->setRelation('business', $business);
+        $this->service->assertCanApproveTransfer($transfer, $user);
+        $this->service->assertCanReceiveTransfer($transfer, $user);
+
+        // 4. Purchase Order
+        $po = new PurchaseOrder([
+            'business_id' => $business->id,
+            'outlet_id' => $outlet->id,
+            'created_by' => $user->id,
+        ]);
+        $po->setRelation('business', $business);
+        $this->service->assertCanReceivePurchaseOrder($po, $user);
+
+        $this->assertTrue(true);
+    }
+
+    public function test_root_user_passes_assert_user_has_validation_permission_without_explicit_role(): void
+    {
+        [$business, $user] = $this->createBusinessWithUser();
+        $user->update(['is_root_user' => true]);
+
+        // Root user must pass validation permission assert without throwing 403
+        $this->service->assertUserHasValidationPermission($user, \App\Enums\PermissionEnum::TRANSACTION_VALIDATION_SUPERVISION);
+        $this->assertTrue(true);
+    }
 }

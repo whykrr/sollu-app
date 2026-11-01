@@ -33,6 +33,7 @@ Route::prefix('settings')
                 Route::get('/', [AccountController::class, 'index'])->name('profile');
                 Route::put('/', [AccountController::class, 'save'])->name('profile.save');
                 Route::put('/password', [AccountController::class, 'changePassword'])->name('profile.save.password');
+                Route::put('/pin', [AccountController::class, 'changePin'])->name('profile.save.pin');
                 Route::post('/photo', [AccountController::class, 'savePhoto'])->name('profile.save.photo');
                 Route::delete('/photo', [AccountController::class, 'removePhoto'])->name('profile.destroy.photo');
             });

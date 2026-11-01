@@ -41,6 +41,7 @@ class EmployeeController extends Controller
         $perPage = (int) $req->validated('perpage', 20);
 
         $users = User::currentBusiness()
+            ->where('is_root_user', false)
             ->filters($filters)
             ->sortable($sort, $direction)
             ->with(['roles:id,name,label', 'outlets:id,name'])
@@ -82,6 +83,8 @@ class EmployeeController extends Controller
         if ($user->business_id !== $request->user()?->business_id) {
             abort(403);
         }
+
+        abort_if($user->is_root_user, 404);
 
         $user->load(['roles:id,name,label', 'outlets:id,name']);
 
@@ -224,6 +227,8 @@ class EmployeeController extends Controller
         if ($user->business_id !== $request->user()?->business_id) {
             abort(403);
         }
+
+        abort_if($user->is_root_user, 403, 'Akun pemilik usaha (Root) tidak dapat diubah melalui menu pegawai. Silakan gunakan menu Pengaturan Akun.');
 
         $this->employeeService->update($user, $request->validated());
 

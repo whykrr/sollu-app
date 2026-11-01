@@ -25,7 +25,9 @@ Aplikasi dibagi ke dalam modul-modul mandiri (*Bounded Contexts*): Inventory, Ma
 7. **Clean Navigation & State Reset:**
    - Endpoint switch outlet wajib membersihkan stale query params (`outlet`, `outlet_id`, `page`) dari referer URL sebelum redirect.
    - Komponen switch outlet di Vue (`SidebarOutlet.vue`) wajib menggunakan `:preserve-state="false"` agar seluruh filter dan pagination halaman di-reset bersih.
-
+8. **Pengiriman Notifikasi Billing & Subscription:**
+   - Seluruh notifikasi tagihan, pembaruan langganan, peringatan kuota, dan aktivasi pembayaran **WAJIB** dikirimkan secara eksklusif ke Business Root User (`is_root_user = true`) menggunakan `NotificationDispatcherService::sendToRootUser()`.
+   - **DILARANG KERAS** melakukan looping pengiriman ke seluruh pengguna bisnis (`users`) atau staf operasional umum.
 
 ---
 

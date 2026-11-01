@@ -451,4 +451,113 @@ class PosVoidTransactionTest extends TestCase
 
         $this->assertContains($response->status(), [403, 404]);
     }
+
+    public function test_root_user_can_void_transaction_without_pin(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $owner = User::create([
+            'business_id' => $this->business->id,
+            'name' => 'Owner Root',
+            'email' => 'owner_root_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+            'is_root_user' => true,
+        ]);
+        $this->outlet->users()->attach($owner->id);
+
+        $txId = (string) Str::uuid();
+        $this->createCompletedTransaction($txId);
+
+        $payload = [
+            'supervisor_id' => $owner->id,
+            'reason' => 'Owner self-service void at POS without PIN',
+        ];
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'pos-dev-001',
+            'X-HARDWARE-SIGNATURE' => 'pos-sig-001',
+        ])->postJson("http://api.sollu.test/pos/transactions/{$txId}/void", $payload);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('status', 'success');
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => $txId,
+            'status' => TransactionStatus::Void->value,
+        ]);
+    }
+
+    public function test_root_user_can_void_transaction_with_valid_pin(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $owner = User::create([
+            'business_id' => $this->business->id,
+            'name' => 'Owner Root With PIN',
+            'email' => 'owner_pin_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+            'pin' => Hash::make('654321'),
+            'is_root_user' => true,
+        ]);
+        $this->outlet->users()->attach($owner->id);
+
+        $txId = (string) Str::uuid();
+        $this->createCompletedTransaction($txId);
+
+        $payload = [
+            'supervisor_id' => $owner->id,
+            'supervisor_pin' => '654321',
+            'reason' => 'Owner authorizes cashier via PIN',
+        ];
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'pos-dev-001',
+            'X-HARDWARE-SIGNATURE' => 'pos-sig-001',
+        ])->postJson("http://api.sollu.test/pos/transactions/{$txId}/void", $payload);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('status', 'success');
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => $txId,
+            'status' => TransactionStatus::Void->value,
+        ]);
+    }
+
+    public function test_root_user_void_fails_when_pin_provided_is_incorrect(): void
+    {
+        Sanctum::actingAs($this->device, ['pos:access']);
+
+        $owner = User::create([
+            'business_id' => $this->business->id,
+            'name' => 'Owner Root Wrong PIN',
+            'email' => 'owner_wrong_pin_'.uniqid().'@test.test',
+            'password' => bcrypt('password'),
+            'pin' => Hash::make('654321'),
+            'is_root_user' => true,
+        ]);
+        $this->outlet->users()->attach($owner->id);
+
+        $txId = (string) Str::uuid();
+        $this->createCompletedTransaction($txId);
+
+        $payload = [
+            'supervisor_id' => $owner->id,
+            'supervisor_pin' => '000000', // Salah PIN
+            'reason' => 'Unauthorized void with wrong owner pin',
+        ];
+
+        $response = $this->withHeaders([
+            'X-DEVICE-UUID' => 'pos-dev-001',
+            'X-HARDWARE-SIGNATURE' => 'pos-sig-001',
+        ])->postJson("http://api.sollu.test/pos/transactions/{$txId}/void", $payload);
+
+        $response->assertStatus(422);
+        $response->assertJsonPath('message', 'PIN supervisor tidak valid.');
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => $txId,
+            'status' => TransactionStatus::Completed->value,
+        ]);
+    }
 }

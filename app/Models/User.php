@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Permission;
 use App\Notifications\ResetPassword;
 use App\Notifications\VerifyEmailBusiness;
 use App\Services\Auth\UserPermissionCacheService;
@@ -36,7 +37,13 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasBusiness;
     use HasFactory;
     use HasOutlet;
-    use HasRoles;
+    use HasRoles {
+        hasPermissionTo as spatieHasPermissionTo;
+        hasAnyPermission as spatieHasAnyPermission;
+        hasAllPermissions as spatieHasAllPermissions;
+        hasDirectPermission as spatieHasDirectPermission;
+        getAllPermissions as spatieGetAllPermissions;
+    }
     use HasUuids;
     use Notifiable;
     use SoftDeletes;
@@ -186,6 +193,103 @@ class User extends Authenticatable implements MustVerifyEmail
             $filters['is_deleted'] ?? false,
             fn (Builder $builder, $value) => $builder->onlyTrashed()
         );
+    }
+
+    /**
+     * Determine if the model may perform the given permission.
+     * Root user has wildcard '*' permission and bypasses all checks.
+     *
+     * @param  string|int|\Spatie\Permission\Contracts\Permission|\BackedEnum  $permission
+     * @param  string|null  $guardName
+     */
+    public function hasPermissionTo($permission, $guardName = null): bool
+    {
+        if ($this->is_root_user) {
+            return true;
+        }
+
+        return $this->spatieHasPermissionTo($permission, $guardName);
+    }
+
+    /**
+     * Determine if the entity has the given abilities.
+     * Root user passes all abilities automatically.
+     *
+     * @param  iterable|string  $abilities
+     * @param  array|mixed  $arguments
+     */
+    public function can($abilities, $arguments = []): bool
+    {
+        if ($this->is_root_user) {
+            return true;
+        }
+
+        return parent::can($abilities, $arguments);
+    }
+
+    /**
+     * Determine if the model has any of the given permissions.
+     *
+     * @param  string|int|array|\Spatie\Permission\Contracts\Permission|\Illuminate\Support\Collection|\BackedEnum  ...$permissions
+     */
+    public function hasAnyPermission(...$permissions): bool
+    {
+        if ($this->is_root_user) {
+            return true;
+        }
+
+        return $this->spatieHasAnyPermission(...$permissions);
+    }
+
+    /**
+     * Determine if the model has all of the given permissions.
+     *
+     * @param  string|int|array|\Spatie\Permission\Contracts\Permission|\Illuminate\Support\Collection|\BackedEnum  ...$permissions
+     */
+    public function hasAllPermissions(...$permissions): bool
+    {
+        if ($this->is_root_user) {
+            return true;
+        }
+
+        return $this->spatieHasAllPermissions(...$permissions);
+    }
+
+    /**
+     * Determine if the model has the given direct permission.
+     *
+     * @param  string|int|\Spatie\Permission\Contracts\Permission|\BackedEnum  $permission
+     */
+    public function hasDirectPermission($permission): bool
+    {
+        if ($this->is_root_user) {
+            return true;
+        }
+
+        return $this->spatieHasDirectPermission($permission);
+    }
+
+    /**
+     * Return all the permissions the model has, both directly and via roles.
+     * For root users, return all available permissions so collection methods like
+     * contains() or pluck() work transparently.
+     *
+     * @return Collection
+     */
+    public function getAllPermissions(): Collection
+    {
+        if ($this->is_root_user) {
+            /** @var class-string<Permission> $permissionClass */
+            $permissionClass = config('permission.models.permission', Permission::class);
+
+            return $permissionClass::all();
+        }
+
+        $permissions = $this->spatieGetAllPermissions();
+
+        return $permissions instanceof Collection
+            ? $permissions
+            : new Collection($permissions);
     }
 
     /**

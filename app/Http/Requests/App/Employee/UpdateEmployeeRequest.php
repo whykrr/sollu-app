@@ -18,6 +18,11 @@ class UpdateEmployeeRequest extends BaseInertiaFormRequest
      */
     public function authorize(): bool
     {
+        $targetUser = $this->route('user');
+        if ($targetUser instanceof User && $targetUser->is_root_user) {
+            abort(403, 'Akun pemilik usaha (Root) tidak dapat diubah melalui menu pegawai. Silakan gunakan menu Pengaturan Akun.');
+        }
+
         return Auth::user()?->can('user.update') ?? false;
     }
 
@@ -29,9 +34,8 @@ class UpdateEmployeeRequest extends BaseInertiaFormRequest
     public function rules(): array
     {
         $businessId = Auth::user()?->business_id;
-        $targetUser = $this->route('user');
 
-        $rules = [
+        return [
             'name' => 'required|string|max:200',
             'has_web_access' => 'nullable|boolean',
             'email' => [
@@ -42,26 +46,17 @@ class UpdateEmployeeRequest extends BaseInertiaFormRequest
             ],
             'phone' => 'nullable|numeric|digits_between:8,16',
             'pin' => 'nullable|numeric|digits:6',
-        ];
-
-        if ($targetUser && $targetUser->is_root_user) {
-            $rules['email'] = ['required', 'email', 'max:200'];
-        }
-
-        if ($targetUser && ! $targetUser->is_root_user) {
-            $rules['role'] = [
+            'role' => [
                 'required',
                 'string',
                 Rule::exists('roles', 'name')->where('business_id', $businessId),
-            ];
-            $rules['outlets'] = 'required|array|min:1';
-            $rules['outlets.*'] = [
+            ],
+            'outlets' => 'required|array|min:1',
+            'outlets.*' => [
                 'distinct',
                 Rule::exists('outlets', 'id')->where('business_id', $businessId),
-            ];
-        }
-
-        return $rules;
+            ],
+        ];
     }
 
     /**

@@ -9,7 +9,7 @@ description: >-
 
 # Domain Skill: Sistem Notifikasi & Isolasi Multi-Tenant
 
-Pedoman baku pembuatan, pengiriman, dan manajemen notifikasi di **Sollu App** (Laravel 11, Reverb WebSocket, Vue 3, Inertia.js 1.2).
+Pedoman baku pembuatan, pengiriman, dan manajemen notifikasi di **Sollu App** (Laravel 12, Reverb WebSocket, Vue 3, Inertia.js 1.2).
 
 ---
 

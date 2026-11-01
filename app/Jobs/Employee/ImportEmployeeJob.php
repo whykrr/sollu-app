@@ -67,17 +67,19 @@ class ImportEmployeeJob implements ShouldQueue
         $businessId = $this->user->business_id;
         $availableRoles = Role::where('business_id', $businessId)->get();
         $availableOutlets = Outlet::where('business_id', $businessId)->get();
+        $rootUser = User::where('business_id', $businessId)->where('is_root_user', true)->first();
 
         $processedResults = [];
         $successCount = 0;
         $failedCount = 0;
 
-        $importClass = new class($this, $availableRoles, $availableOutlets, $processedResults, $successCount, $failedCount) implements ToCollection, WithHeadingRow
+        $importClass = new class($this, $availableRoles, $availableOutlets, $rootUser, $processedResults, $successCount, $failedCount) implements ToCollection, WithHeadingRow
         {
             public function __construct(
                 private ImportEmployeeJob $job,
                 private Collection $roles,
                 private Collection $outlets,
+                private ?User $rootUser,
                 public array &$results,
                 public int &$successCount,
                 public int &$failedCount
@@ -133,6 +135,16 @@ class ImportEmployeeJob implements ShouldQueue
                         }
 
                         $businessId = $this->job->user->business_id;
+
+                        // Check root user protection: Akun Utama cannot be modified or overwritten via employee import
+                        if ($this->rootUser) {
+                            if ($email && strcasecmp((string) $this->rootUser->email, (string) $email) === 0) {
+                                throw new Exception("Email '{$email}' adalah Akun Pemilik Usaha (Root). Akun Utama tidak dapat dimodifikasi atau ditimpa melalui impor pegawai.");
+                            }
+                            if (! empty($phone) && ! empty($this->rootUser->phone) && $this->rootUser->phone === $phone) {
+                                throw new Exception("Nomor telepon '{$phone}' adalah milik Akun Pemilik Usaha (Root). Akun Utama tidak dapat dimodifikasi atau ditimpa melalui impor pegawai.");
+                            }
+                        }
 
                         // Check email uniqueness within current business
                         if (User::withTrashed()->where('business_id', $businessId)->where('email', $email)->exists()) {

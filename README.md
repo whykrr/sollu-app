@@ -16,10 +16,10 @@ Sollu POS adalah aplikasi Point of Sale berbasis SaaS yang dirancang khusus untu
 ## 🛠️ Teknologi yang Digunakan
 
 **Backend:**
-- [Laravel 11](https://laravel.com/) (PHP ^8.3 strict types)
+- [Laravel 12](https://laravel.com/) (PHP ^8.3 strict types, constructor promotion, `casts(): array`)
 - [PostgreSQL 16+](https://www.postgresql.org/) (Logical multi-tenancy & table partitioning)
 - [Spatie Permission](https://spatie.be/docs/laravel-permission/v6/introduction) (Manajemen role & permission multi-tenant)
-- [Laravel Horizon](https://laravel.com/docs/11.x/horizon) & [Laravel Pulse](https://laravel.com/docs/11.x/pulse) (Queue monitoring & application observability)
+- [Laravel Horizon](https://laravel.com/docs/12.x/horizon) & [Laravel Pulse](https://laravel.com/docs/12.x/pulse) (Queue monitoring & application observability)
 - [Laravel Reverb](https://reverb.laravel.com/) (Real-time WebSocket server)
 - [Midtrans PHP](https://midtrans.com/) (Payment gateway)
 - [DomPDF](https://github.com/barryvdh/laravel-dompdf) & [PhpSpreadsheet](https://phpspreadsheet.readthedocs.io/) (Laporan PDF & Excel)
@@ -54,7 +54,7 @@ flowchart TB
 
     subgraph BackendServer ["Server (Backend)"]
         direction TB
-        Laravel["Laravel 11"]
+        Laravel["Laravel 12"]
         Spatie{"Spatie Permission"}
         DomPDF["DomPDF (Report)"]
         Laravel <--> Spatie
@@ -63,7 +63,7 @@ flowchart TB
 
     subgraph DatabaseLayer ["Database & Cache"]
         direction LR
-        DB[("MySQL / PostgreSQL")]
+        DB[("PostgreSQL 16+")]
         Redis[("Redis")]
     end
 
@@ -100,12 +100,12 @@ flowchart TB
 2. **Bridge Layer (Inertia.js):**
    - Menghilangkan kebutuhan untuk membuat REST/GraphQL API terpisah.
    - Mencegah *full page reload* (SPA experience) dengan me-render komponen Vue berdasarkan *props* data yang dikirim oleh controller Laravel.
-3. **Backend & Business Logic Layer (Laravel 11):**
+3. **Backend & Business Logic Layer (Laravel 12):**
    - Menangani proses inti bisnis (transaksi POS, manajemen inventaris, langganan).
    - Validasi input, autentikasi sesi pengguna, dan otorisasi dengan **Spatie Permission**.
    - Integrasi eksternal seperti **Midtrans** untuk pembayaran dan pembuatan PDF (DomPDF).
 4. **Data Layer (Database & Cache):**
-   - **RDBMS (MySQL/PostgreSQL):** Menyimpan data persisten seperti user, merchant, produk, dan transaksi.
+   - **RDBMS (PostgreSQL 16+):** Menyimpan data persisten dengan isolasi multi-tenant (`business_id`, `outlet_id`) dan declarative table partitioning (`activity_logs`).
    - **Redis (Cache & Queue):** Digunakan untuk menyimpan cache sementara dan menangani background jobs asinkron, seperti pengiriman email notifikasi atau pembuatan laporan dalam skala besar.
 
 ### 🔄 Internal Service Communication
@@ -127,7 +127,7 @@ flowchart TD
     subgraph Storage ["Data & Background Processing"]
         direction TB
         Model[Models / Eloquent]
-        DB[(Database MySQL)]
+        DB[(Database PostgreSQL 16+)]
         Redis[(Redis Queue)]
         Worker[Queue Workers]
     end
@@ -361,7 +361,7 @@ Pastikan sistem Anda memenuhi persyaratan berikut sebelum melakukan instalasi:
 - **PHP** >= 8.3
 - **Composer** (versi terbaru)
 - **Node.js** (NPM V22 atau yang lebih baru)
-- **Database** (MySQL / PostgreSQL / SQLite)
+- **Database** (PostgreSQL 16+)
 - **Redis** (Opsional, direkomendasikan untuk environment produksi)
 
 ## 📦 Instalasi & Setup

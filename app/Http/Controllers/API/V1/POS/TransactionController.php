@@ -171,25 +171,39 @@ class TransactionController extends Controller
                 ], 422);
             }
 
-            // Validasi hak akses supervisi
+            // Validasi hak akses supervisi & PIN
             setPermissionsTeamId($business->id);
-            $hasSupervisionPermission = $supervisor->hasPermissionTo(PermissionEnum::TRANSACTION_VALIDATION_SUPERVISION->value, 'web')
-                || $supervisor->getAllPermissions()->contains('name', PermissionEnum::TRANSACTION_VALIDATION_SUPERVISION->value);
 
-            if (! $hasSupervisionPermission) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Pengguna tidak memiliki izin supervisi transaksi.',
-                ], 403);
-            }
+            if ($supervisor->is_root_user) {
+                // Root user memiliki wildcard '*' otorisasi supervisi
+                if (! empty($supervisorPin)) {
+                    if (empty($supervisor->pin) || ! Hash::check((string) $supervisorPin, $supervisor->pin)) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'PIN supervisor tidak valid.',
+                        ], 422);
+                    }
+                }
+            } else {
+                $hasSupervisionPermission = $supervisor->can(PermissionEnum::TRANSACTION_VALIDATION_SUPERVISION->value)
+                    || $supervisor->hasPermissionTo(PermissionEnum::TRANSACTION_VALIDATION_SUPERVISION->value, 'business')
+                    || $supervisor->getAllPermissions()->contains('name', PermissionEnum::TRANSACTION_VALIDATION_SUPERVISION->value);
 
-            // Validasi PIN
-            if ($isSupervisorPinRequired || ! empty($supervisorPin)) {
-                if (empty($supervisorPin) || empty($supervisor->pin) || ! Hash::check((string) $supervisorPin, $supervisor->pin)) {
+                if (! $hasSupervisionPermission) {
                     return response()->json([
                         'status' => 'error',
-                        'message' => 'PIN supervisor tidak valid.',
-                    ], 422);
+                        'message' => 'Pengguna tidak memiliki izin supervisi transaksi.',
+                    ], 403);
+                }
+
+                // Validasi PIN untuk non-root
+                if ($isSupervisorPinRequired || ! empty($supervisorPin)) {
+                    if (empty($supervisorPin) || empty($supervisor->pin) || ! Hash::check((string) $supervisorPin, $supervisor->pin)) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'PIN supervisor tidak valid.',
+                        ], 422);
+                    }
                 }
             }
 

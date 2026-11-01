@@ -45,7 +45,7 @@ Isolasi data bukan hanya berlaku di layer pelaporan, melainkan wajib diterapkan 
 
 ---
 
-## 2. Model Standards & Conventions (Laravel 11 & PHP 8.3)
+## 2. Model Standards & Conventions (Laravel 12 & PHP 8.3)
 
 Semua model Eloquent mengikuti struktur standar urutan member (*Member Ordering*):
 
@@ -100,7 +100,7 @@ class StockAdjustment extends Model
         'updated_at',
     ];
 
-    // 3. Laravel 11 casts() Method (Bukan properti $casts)
+    // 3. Laravel 12 casts() Method (Bukan properti $casts)
     protected function casts(): array
     {
         return [

@@ -20,20 +20,8 @@
             type="tel"
         />
 
-        <!-- Akses Web & Email (Bagi Akun Utama / Root User selalu wajib email) -->
-        <div v-if="props.user?.is_root_user">
-            <EmailField
-                id="email"
-                v-model="form.email"
-                label="Alamat Email Pemilik"
-                placeholder="Misal: ahmad@bisnis.com"
-                :error="form.errors.email"
-                required
-            />
-        </div>
-
-        <!-- Akses Web Backoffice Switch (Bagi Karyawan Non-Root) -->
-        <div v-else class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+        <!-- Akses Web Backoffice Switch -->
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
             <div class="flex items-center justify-between">
                 <div class="pr-2">
                     <span class="font-medium text-xs text-slate-800 block">
@@ -121,8 +109,8 @@
             </div>
         </div>
 
-        <!-- Peran (Hanya jika bukan Root User) -->
-        <div v-if="!props.user?.is_root_user" class="space-y-1">
+        <!-- Peran Pegawai -->
+        <div class="space-y-1">
             <label class="block text-xs font-medium text-slate-700">Peran Pegawai</label>
             <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-lg">
                 <SelectionGroupField
@@ -229,7 +217,6 @@ const outletOptions = computed(() => {
 })
 
 const showOutletField = computed(() => {
-    if (props.user?.is_root_user) return false
     if ((authOutlets.value || []).length <= 1) return false
     if (selectedOutlet.value) return false
     return true
@@ -255,7 +242,7 @@ const form = useForm({
     pin: '',
     role: props.user?.roles?.[0]?.name || (roleOptions.value[0]?.value ?? ''),
     outlets: resolveInitialOutlets(props.user),
-    has_web_access: props.user?.is_root_user ? true : Boolean(props.user?.email),
+    has_web_access: Boolean(props.user?.email),
 })
 
 const { handleCancel, forceClose } = useFormDirtyGuard({ form })
@@ -287,7 +274,7 @@ watch(
                 form.role = user.roles[0].name
             }
             form.outlets = resolveInitialOutlets(user)
-            form.has_web_access = user.is_root_user ? true : Boolean(user.email)
+            form.has_web_access = Boolean(user.email)
             showPinField.value = !user.has_pin
             form.defaults()
         }
@@ -299,7 +286,7 @@ onMounted(() => {
 })
 
 const submit = () => {
-    if (!form.has_web_access && !props.user?.is_root_user) {
+    if (!form.has_web_access) {
         form.email = null
     }
 

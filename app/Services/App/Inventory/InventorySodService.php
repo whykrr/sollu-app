@@ -137,6 +137,10 @@ class InventorySodService
      */
     public function assertUserHasValidationPermission(User $user, PermissionEnum $permission): void
     {
+        if ($user->is_root_user) {
+            return;
+        }
+
         if (! $user->can($permission->value)) {
             abort(403, "Kamu tidak memiliki wewenang supervisi untuk memvalidasi transaksi ini: {$permission->value}");
         }

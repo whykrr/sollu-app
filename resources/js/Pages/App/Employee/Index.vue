@@ -35,12 +35,6 @@
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="font-semibold text-slate-800 text-xs">{{ row.name }}</span>
                             <span
-                                v-if="row.is_root_user"
-                                class="badge badge-warning text-[10px] p-0.5 px-1.5"
-                            >
-                                Akun Utama
-                            </span>
-                            <span
                                 v-if="row.deleted_at"
                                 class="badge badge-neutral-500 text-[10px] p-0.5 px-1.5"
                             >
@@ -62,11 +56,8 @@
             </template>
 
             <template #roles="{ row }">
-                <span v-if="row.is_root_user" class="badge badge-warning text-xs">
-                    Akun Utama
-                </span>
                 <span
-                    v-else-if="row.roles && row.roles.length > 0"
+                    v-if="row.roles && row.roles.length > 0"
                     class="badge badge-info text-xs"
                 >
                     {{ row.roles[0].label || row.roles[0].name }}
@@ -75,10 +66,7 @@
             </template>
 
             <template #outlets="{ row }">
-                <div v-if="row.is_root_user" class="text-xs text-slate-500">
-                    <span class="badge badge-success text-xs">Semua Outlet</span>
-                </div>
-                <div v-else-if="row.outlets && row.outlets.length > 0" class="flex flex-wrap gap-1">
+                <div v-if="row.outlets && row.outlets.length > 0" class="flex flex-wrap gap-1">
                     <span
                         v-for="(outlet, index) in row.outlets.slice(0, 2)"
                         :key="index"
@@ -122,7 +110,6 @@
                     </button>
 
                     <ButtonIconGroupArchive
-                        v-if="!row.is_root_user"
                         :data="row"
                         :url-delete="
                             route('employees.delete', {

@@ -19,7 +19,7 @@ Pedoman dan standar baku rekayasa perangkat lunak untuk seluruh modul dan kompon
 0. [Core Philosophy & 15 User-Centric Principles](#0-core-philosophy--15-user-centric-principles)
 1. [Core Architecture & Tech Stack](#1-core-architecture--tech-stack)
 2. [Modular Monolith Architecture & Bounded Contexts](#2-modular-monolith-architecture--bounded-contexts)
-3. [Backend Standards (Laravel 11.9+ & PHP 8.3)](#3-backend-standards-laravel-119--php-83)
+3. [Backend Standards (Laravel 12 & PHP 8.3)](#3-backend-standards-laravel-12--php-83)
 4. [Frontend Standards (Vue 3, Inertia 1.2 & Tailwind v4)](#4-frontend-standards-vue-3-inertia-12--tailwind-v4)
 5. [PHP Enums as Single Source of Truth (Anti-Magic Strings)](#5-php-enums-as-single-source-of-truth-anti-magic-strings)
 6. [Role-Based Access Control (RBAC & Spatie Permissions)](#6-role-based-access-control-rbac--spatie-permissions)
@@ -256,7 +256,7 @@ class PromoEvaluationService
 ### 3.1. Mandatory MCP Laravel Boost & Database Diagnostics
 
 - **MANDATORY BEFORE ANY CODING:**
-    - **Documentation Verification:** Gunakan MCP `laravel-boost` (`search-docs`) untuk memverifikasi sintaks resmi, signature method, dan best practices dari package ekosistem Laravel 11.
+    - **Documentation Verification:** Gunakan MCP `laravel-boost` (`search-docs`) untuk memverifikasi sintaks resmi, signature method, dan best practices dari package ekosistem Laravel 12.
     - **Database Schema Inspection:** Gunakan MCP `laravel-boost` (`database-schema`) untuk membaca skema langsung dari database hidup. Jangan pernah mengira-ngira nama kolom atau tipe data.
     - **Error Diagnostics:** Saat terjadi error / exception, **LANGKAH PERTAMA** adalah memanggil `last-error` atau `read-log-entries` dari `laravel-boost`.
 - **Verifikasi Kolom & Data Type:** Pastikan nama kolom, tipe data, nulabilitas (`nullable`), default value, dan Foreign Key pada Model/FormRequest/Service **persis sama** dengan skema nyata di database.
@@ -275,7 +275,7 @@ class PromoEvaluationService
 - **Member Ordering:**
     1. `use` Traits (satu per baris: `use HasFactory, HasUuids, SoftDeletes, SortableModel;`)
     2. Properti: `$fillable`, `$hidden`, `$sortable`, `$appends`
-    3. Method `casts(): array` (Style Laravel 11 dengan panah `=>` rapi)
+    3. Method `casts(): array` (Style Laravel 12 dengan panah `=>` rapi)
     4. Method Notifikasi Custom
     5. Relationships (Urutan: `BelongsTo` → `HasMany` → `BelongsToMany` → `HasOne`; return type explicit `: BelongsTo`)
     6. `scopeFilters()`, `scopeSortable()` (dari `SortableModel`), & Scopes lainnya
@@ -619,7 +619,7 @@ if (adjustment.status === enums.AdjustmentStatus.Draft) {
 const statusOptions = getOptions('AdjustmentStatus')
 ```
 
-### 5.3. Backend Laravel 11 Usage
+### 5.3. Backend Laravel 12 Usage
 
 - **Model Attribute Casting:**
     ```php

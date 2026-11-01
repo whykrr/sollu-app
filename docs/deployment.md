@@ -179,7 +179,7 @@ docker image prune -f
 
 ## 6. Healthcheck & Monitoring
 
-Container `sollu-app` dilengkapi dengan healthcheck bawaan Laravel 11 (`/up` endpoint):
+Container `sollu-app` dilengkapi dengan healthcheck bawaan Laravel 12 (`/up` endpoint):
 
 ```dockerfile
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
