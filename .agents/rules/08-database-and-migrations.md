@@ -58,6 +58,15 @@ Setiap perubahan skema database harus memperhitungkan **Backward Compatibility**
 4. **Database Transaction:**
    - Gunakan transaksi eksplisit `DB::transaction()` pada migrasi data jika DDL mendukung atau pisahkan DDL skema murni dengan DML migrasi data agar rollback database konsisten.
 
+### 2.1. Standar Migrasi Perbaikan Data (Data Repair Migrations) & Rollback Symmetry
+1. **Larangan Substring Matching Naif pada Token Pendek:**
+   - Dilarang keras menggunakan `str_contains(strtolower($name), strtolower($short_opt))` pada data perbaikan varian/SKU. Opsi pendek (seperti "S", "M", "L") akan mencocokkan karakter di dalam kata (misal "Shaolin Soccer"), mengotori relasi pivot dengan duplikasi data.
+2. **Pola Tabel Backup Sementara untuk Simetri Rollback Mutlak:**
+   - Saat membuat migrasi perbaikan/pembersihan data pivot:
+     - Pada `up()`: Buat tabel backup sementara (`*_repair_backup`), salin baris yang akan dibersihkan ke tabel backup, lalu jalankan pembersihan data pada tabel utama.
+     - Pada `down()`: Salin kembali baris dari tabel backup ke tabel utama (menggunakan `INSERT INTO ... SELECT ... ON CONFLICT DO NOTHING`), lalu hapus tabel backup sementara.
+   - Pola ini menjamin proses rollback 100% simetris tanpa kehilangan data historis.
+
 ---
 
 ## 3. Kompatibilitas Multi-Database (PostgreSQL & SQLite Testing)

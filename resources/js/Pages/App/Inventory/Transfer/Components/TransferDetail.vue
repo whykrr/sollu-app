@@ -290,8 +290,8 @@
                     </h3>
                 </div>
 
-                <div class="border border-slate-200 rounded-lg overflow-hidden">
-                    <table class="w-full text-xs text-left">
+                <div class="border border-slate-200 rounded-lg overflow-x-auto -mx-1 sm:mx-0">
+                    <table class="w-full text-xs text-left min-w-[640px]">
                         <thead
                             class="bg-slate-100 text-slate-600 font-medium border-b border-slate-200"
                         >
@@ -314,7 +314,9 @@
                             >
                                 <td class="py-2 px-3 text-center text-slate-400">{{ idx + 1 }}</td>
                                 <td class="py-2 px-3">
-                                    <div class="font-semibold text-slate-800">
+                                    <div
+                                        class="font-semibold text-slate-800 break-words whitespace-normal leading-snug"
+                                    >
                                         {{
                                             item.inventory_item?.name ||
                                             item.inventoryItem?.name ||

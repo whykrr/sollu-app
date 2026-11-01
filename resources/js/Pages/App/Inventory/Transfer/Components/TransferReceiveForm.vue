@@ -86,8 +86,8 @@
                 Tidak ada item transfer untuk diverifikasi.
             </div>
 
-            <div v-else class="border border-slate-200 rounded-lg overflow-hidden">
-                <table class="w-full text-xs text-left">
+            <div v-else class="border border-slate-200 rounded-lg overflow-x-auto -mx-1 sm:mx-0">
+                <table class="w-full text-xs text-left min-w-[640px]">
                     <thead
                         class="bg-slate-100 text-slate-600 font-medium border-b border-slate-200"
                     >
@@ -109,7 +109,11 @@
                         >
                             <td class="py-2 px-3 text-center text-slate-400">{{ idx + 1 }}</td>
                             <td class="py-2 px-3">
-                                <div class="font-semibold text-slate-800">{{ item.name }}</div>
+                                <div
+                                    class="font-semibold text-slate-800 break-words whitespace-normal leading-snug"
+                                >
+                                    {{ item.name }}
+                                </div>
                                 <div v-if="item.sku" class="text-[11px] text-slate-400">
                                     SKU: {{ item.sku }}
                                 </div>
@@ -160,24 +164,22 @@
 
         <!-- Teleport Drawer Footer -->
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <div class="flex justify-between w-full">
-                <button
-                    type="button"
-                    class="btn btn-flat btn-sm"
-                    :disabled="form.processing"
-                    @click="handleCancel"
-                >
-                    Batal
-                </button>
-                <button
-                    type="button"
-                    class="btn btn-main btn-sm"
-                    :disabled="form.processing || form.items.length === 0"
-                    @click="confirmSubmit"
-                >
-                    Konfirmasi Penerimaan Stok
-                </button>
-            </div>
+            <button
+                type="button"
+                class="btn btn-flat cursor-pointer"
+                :disabled="form.processing"
+                @click="handleCancel"
+            >
+                Batal
+            </button>
+            <button
+                type="button"
+                class="btn btn-main cursor-pointer"
+                :disabled="form.processing || form.items.length === 0"
+                @click="confirmSubmit"
+            >
+                Terima
+            </button>
         </Teleport>
     </div>
 </template>

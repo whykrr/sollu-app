@@ -1,5 +1,27 @@
 <template>
     <div v-if="purchase" class="space-y-3">
+        <!-- Stepper Progress & Alert Banner -->
+        <DocumentProgressStepper
+            :steps="[
+                { key: 'draft', label: 'Draf' },
+                { key: 'ordered', label: 'Dipesan' },
+                { key: 'received', label: 'Diterima' },
+            ]"
+            :current-step="
+                purchase.status === 'received' || purchase.status === 'partial_received'
+                    ? 'received'
+                    : purchase.status === 'ordered'
+                      ? 'ordered'
+                      : 'draft'
+            "
+            :is-voided="purchase.status === 'cancelled' || Boolean(purchase.voided_at)"
+            :void-info="{
+                voided_at: purchase.voided_at,
+                voided_by: purchase.voidedBy || purchase.voided_by,
+                void_reason: purchase.void_reason,
+            }"
+        />
+
         <!-- Informasi Header Dokumen & Status -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg space-y-2">
@@ -129,7 +151,9 @@
                     class="p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/50"
                 >
                     <div class="min-w-0">
-                        <div class="font-bold text-xs text-slate-800 truncate">
+                        <div
+                            class="font-bold text-xs text-slate-800 break-words whitespace-normal leading-snug"
+                        >
                             {{ item.inventory_item?.name || '-' }}
                         </div>
                         <div class="text-[11px] text-slate-400">
@@ -427,39 +451,98 @@
     </div>
 
     <Teleport v-if="isMounted" to="#popUpFooter">
-        <button type="button" class="btn btn-flat" @click="close">Tutup</button>
+        <!-- Left: Destructive actions with mr-auto -->
+        <button
+            v-if="purchase && purchase.status === 'draft'"
+            type="button"
+            class="btn btn-flat text-danger mr-auto cursor-pointer"
+            title="Hapus draf pesanan pembelian ini"
+            aria-label="Hapus Draf"
+            @click="confirmDeletePurchase"
+        >
+            <FontAwesomeIcon :icon="faTrashCan" /> Hapus Draf
+        </button>
+        <button
+            v-else-if="purchase && purchase.status === 'ordered'"
+            type="button"
+            class="btn btn-flat text-danger mr-auto cursor-pointer"
+            title="Batalkan pesanan pembelian ini"
+            aria-label="Batalkan Pesanan"
+            @click="confirmCancelPurchase"
+        >
+            <FontAwesomeIcon :icon="faBan" /> Batalkan Pesanan
+        </button>
+        <button
+            v-else-if="canVoidPurchase"
+            v-can="$enums.PermissionEnum?.PURCHASE_DELETE"
+            type="button"
+            class="btn btn-flat text-danger mr-auto cursor-pointer inline-flex items-center gap-1"
+            title="Batalkan (Void) seluruh pembelian ini"
+            aria-label="Void Pembelian"
+            @click="confirmVoidPurchase"
+        >
+            <FontAwesomeIcon :icon="faBan" />
+            <span>Void</span>
+        </button>
+
+        <!-- Right: Neutral and positive actions -->
+        <button
+            type="button"
+            class="btn btn-flat cursor-pointer"
+            title="Tutup rincian dokumen"
+            aria-label="Tutup"
+            @click="close"
+        >
+            Tutup
+        </button>
 
         <a
             v-if="purchase"
             :href="route('inventory.purchases.pdf', purchase.id)"
             target="_blank"
-            class="btn btn-outline-main inline-flex items-center gap-1"
+            class="btn btn-outline-secondary inline-flex items-center gap-1 cursor-pointer"
+            title="Cetak berkas PDF PO"
+            aria-label="Cetak Dokumen PO"
         >
-            <FontAwesomeIcon :icon="faFilePdf" />
-            <span>Cetak Dokumen PO</span>
+            <FontAwesomeIcon :icon="faFilePdf" class="text-danger" />
+            <span>Cetak PO</span>
         </a>
 
-        <!-- Tombol Batalkan (Void) Pembelian (Jika berstatus Received / PartialReceived) -->
-        <button
-            v-if="canVoidPurchase"
-            v-can="$enums.PermissionEnum?.PURCHASE_DELETE"
-            type="button"
-            class="btn btn-outline-danger inline-flex items-center gap-1"
-            @click="confirmVoidPurchase"
-        >
-            <FontAwesomeIcon :icon="faBan" />
-            <span>Batalkan (Void) Pembelian</span>
-        </button>
+        <!-- Draft actions -->
+        <template v-if="purchase && purchase.status === 'draft'">
+            <button
+                type="button"
+                class="btn btn-outline-secondary cursor-pointer inline-flex items-center gap-1"
+                title="Edit draf pesanan pembelian ini"
+                aria-label="Edit Draf"
+                @click="$emit('edit-purchase', purchase)"
+            >
+                <FontAwesomeIcon :icon="faPencil" />
+                <span>Edit Draf</span>
+            </button>
+            <button
+                type="button"
+                class="btn btn-main cursor-pointer inline-flex items-center gap-1"
+                title="Proses draf menjadi pesanan aktif"
+                aria-label="Proses Pesanan"
+                @click="confirmOrderPurchase"
+            >
+                <FontAwesomeIcon :icon="faCheck" />
+                <span>Proses Pesanan</span>
+            </button>
+        </template>
 
-        <!-- Tombol Terima Barang (Jika masih ada yang belum diterima) -->
+        <!-- Ordered or Partial actions -->
         <button
             v-if="canReceive"
             type="button"
-            class="btn btn-main inline-flex items-center gap-1"
+            class="btn btn-main inline-flex items-center gap-1 cursor-pointer"
+            title="Terima barang masuk dari pemasok"
+            aria-label="Terima Barang"
             @click="$emit('open-receive', purchase)"
         >
             <FontAwesomeIcon :icon="faBoxOpen" />
-            <span>+ Terima Barang</span>
+            <span>Terima Barang</span>
         </button>
     </Teleport>
 </template>
@@ -468,7 +551,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faFilePdf, faBoxOpen, faReply, faTrashCan, faBan } from '@fortawesome/free-solid-svg-icons'
+import {
+    faFilePdf,
+    faBoxOpen,
+    faReply,
+    faTrashCan,
+    faBan,
+    faPencil,
+    faCheck,
+} from '@fortawesome/free-solid-svg-icons'
+import DocumentProgressStepper from '@/Components/UI/DocumentProgressStepper.vue'
+import ReasonPromptModal from '@/Components/Modals/ReasonPromptModal.vue'
 import { formatDateID } from '@/Composable/date'
 import { usePopUpStore } from '@/store/popup'
 import { useModalStore } from '@/store/notification'
@@ -478,7 +571,7 @@ const popUpStore = usePopUpStore()
 const modalStore = useModalStore()
 const { enums } = useEnum()
 
-defineEmits(['open-receive', 'open-return'])
+defineEmits(['open-receive', 'open-return', 'edit-purchase'])
 
 const props = defineProps({
     purchase: {
@@ -525,59 +618,128 @@ const formatQuantity = value => {
 }
 
 const confirmVoidReceipt = receipt => {
-    modalStore.confirm({
+    modalStore.open({
         title: 'Batalkan Penerimaan Barang',
-        message: `Yakin ingin membatalkan penerimaan surat jalan ${receipt.delivery_order_number || receipt.receipt_number}? Stok barang yang telah masuk akan ditarik kembali dari inventori outlet.`,
-        type: 'danger',
-        confirmText: 'Ya, Batalkan Penerimaan',
-        onConfirm: () => {
-            router.post(
-                route('inventory.purchases.receipts.void', receipt.id),
-                {},
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                    onSuccess: () => {
-                        popUpStore.close()
-                    },
-                }
-            )
+        component: ReasonPromptModal,
+        showFooter: false,
+        props: {
+            description: `Yakin ingin membatalkan penerimaan surat jalan ${receipt.delivery_order_number || receipt.receipt_number}? Stok barang yang telah masuk akan ditarik kembali dari inventori outlet.`,
+            label: 'Alasan Pembatalan (Void)',
+            placeholder: 'Tuliskan alasan pembatalan penerimaan...',
+            confirmText: 'Batalkan Penerimaan',
+            confirmButtonClass: 'btn-danger',
+            onConfirm: async reason => {
+                router.post(
+                    route('inventory.purchases.receipts.void', receipt.id),
+                    { reason },
+                    {
+                        preserveScroll: true,
+                        preserveState: true,
+                        onSuccess: () => {
+                            popUpStore.close()
+                        },
+                    }
+                )
+            },
         },
     })
 }
 
 const confirmVoidReturn = ret => {
-    modalStore.confirm({
+    modalStore.open({
         title: 'Batalkan Retur Barang',
-        message: `Yakin ingin membatalkan retur ${ret.return_number}? Stok barang yang sebelumnya dikembalikan ke pemasok akan ditambahkan kembali ke inventori outlet.`,
-        type: 'danger',
-        confirmText: 'Ya, Batalkan Retur',
-        onConfirm: () => {
-            router.post(
-                route('inventory.purchases.returns.void', ret.id),
-                {},
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                    onSuccess: () => {
-                        popUpStore.close()
-                    },
-                }
-            )
+        component: ReasonPromptModal,
+        showFooter: false,
+        props: {
+            description: `Yakin ingin membatalkan retur ${ret.return_number}? Stok barang yang sebelumnya dikembalikan ke pemasok akan ditambahkan kembali ke inventori outlet.`,
+            label: 'Alasan Pembatalan (Void)',
+            placeholder: 'Tuliskan alasan pembatalan retur...',
+            confirmText: 'Batalkan Retur',
+            confirmButtonClass: 'btn-danger',
+            onConfirm: async reason => {
+                router.post(
+                    route('inventory.purchases.returns.void', ret.id),
+                    { reason },
+                    {
+                        preserveScroll: true,
+                        preserveState: true,
+                        onSuccess: () => {
+                            popUpStore.close()
+                        },
+                    }
+                )
+            },
         },
     })
 }
 
 const confirmVoidPurchase = () => {
     if (!props.purchase) return
-    modalStore.confirm({
+    modalStore.open({
         title: 'Batalkan (Void) Seluruh Pembelian',
-        message: `Yakin ingin membatalkan seluruh transaksi pembelian ${props.purchase.po_number}? Seluruh surat jalan penerimaan barang akan dibatalkan, stok ditarik kembali, dan transaksi akan dikunci permanen.`,
-        type: 'danger',
-        confirmText: 'Ya, Batalkan Seluruh Pembelian',
+        component: ReasonPromptModal,
+        showFooter: false,
+        props: {
+            description: `Yakin ingin membatalkan seluruh transaksi pembelian ${props.purchase.po_number}? Seluruh surat jalan penerimaan barang akan dibatalkan, stok ditarik kembali, dan transaksi akan dikunci permanen.`,
+            label: 'Alasan Pembatalan (Void)',
+            placeholder: 'Tuliskan alasan pembatalan pembelian...',
+            confirmText: 'Batalkan Pembelian',
+            confirmButtonClass: 'btn-danger',
+            onConfirm: async reason => {
+                router.post(
+                    route('inventory.purchases.void', props.purchase.id),
+                    { reason },
+                    {
+                        preserveScroll: true,
+                        preserveState: true,
+                        onSuccess: () => {
+                            popUpStore.close()
+                        },
+                    }
+                )
+            },
+        },
+    })
+}
+
+const confirmDeletePurchase = () => {
+    if (!props.purchase?.id) return
+    modalStore.openModalDelete(route('inventory.purchases.destroy', props.purchase.id))
+}
+
+const confirmCancelPurchase = () => {
+    if (!props.purchase?.id) return
+    modalStore.confirm({
+        title: 'Batalkan Pesanan',
+        message: `Yakin ingin membatalkan PO ${props.purchase.po_number}? Pesanan yang dibatalkan tidak dapat diproses lagi.`,
+        type: 'warning',
+        confirmText: 'Ya, Batalkan',
         onConfirm: () => {
             router.post(
-                route('inventory.purchases.void', props.purchase.id),
+                route('inventory.purchases.cancel', props.purchase.id),
+                {},
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onSuccess: () => {
+                        popUpStore.close()
+                    },
+                }
+            )
+        },
+    })
+}
+
+const confirmOrderPurchase = () => {
+    if (!props.purchase?.id) return
+    modalStore.confirm({
+        title: 'Proses Pesanan',
+        message: `Yakin ingin memproses PO ${props.purchase.po_number} menjadi pesanan aktif?`,
+        type: 'info',
+        confirmText: 'Ya, Proses Pesanan',
+        onConfirm: () => {
+            router.post(
+                route('inventory.purchases.order', props.purchase.id),
                 {},
                 {
                     preserveScroll: true,

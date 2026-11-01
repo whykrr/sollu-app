@@ -216,6 +216,7 @@ export const getMainSidebars = (enums = { FeatureEnum: {} }) => [
                 feature: enums.FeatureEnum.STOCK_TRANSFERS,
                 permissions: ['inventory.transfer.view'],
                 activeRoute: 'inventory.transfers.',
+                requiresMultiOutlet: true,
             },
         ],
     },

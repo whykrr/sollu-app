@@ -47,6 +47,9 @@ class PurchaseOrder extends Model
         'total_amount',
         'created_by',
         'approved_by',
+        'voided_at',
+        'voided_by',
+        'void_reason',
     ];
 
     protected array $sortable = [
@@ -66,6 +69,7 @@ class PurchaseOrder extends Model
             'order_date' => 'date',
             'expected_date' => 'date',
             'total_amount' => 'float',
+            'voided_at' => 'datetime',
         ];
     }
 
@@ -109,6 +113,11 @@ class PurchaseOrder extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
     }
 
     // ── Scopes ───────────────────────────────────────────────────

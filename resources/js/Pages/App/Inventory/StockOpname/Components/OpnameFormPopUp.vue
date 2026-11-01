@@ -46,15 +46,21 @@
                 />
             </div>
 
-            <TextareaField
-                id="notes"
-                v-model="form.notes"
-                label="Catatan Sesi (Opsional)"
-                placeholder="Tambahkan keterangan kondisi lapangan atau catatan opname..."
-                :class="{ 'is-invalid': form.errors.notes }"
-                :error="form.errors.notes"
-                rows="2"
-            />
+            <DisclosureSection
+                title="Catatan Sesi"
+                :closed-hint="form.notes ? 'Ada catatan' : 'Opsional'"
+                :default-open="Boolean(form.notes)"
+            >
+                <TextareaField
+                    id="notes"
+                    v-model="form.notes"
+                    label="Catatan Sesi"
+                    placeholder="Tambahkan keterangan kondisi lapangan atau catatan opname..."
+                    :class="{ 'is-invalid': form.errors.notes }"
+                    :error="form.errors.notes"
+                    rows="2"
+                />
+            </DisclosureSection>
 
             <!-- Section Daftar Barang & Input Fisik -->
             <div class="border-t border-slate-200 pt-3 space-y-2">
@@ -146,7 +152,9 @@
                                     {{ index + 1 }}.
                                 </span>
                                 <div class="min-w-0">
-                                    <div class="font-bold text-xs text-slate-800 truncate">
+                                    <div
+                                        class="font-bold text-xs text-slate-800 break-words whitespace-normal leading-snug"
+                                    >
                                         {{ item.name }}
                                     </div>
                                     <div class="text-[11px] text-slate-400 truncate">
@@ -277,48 +285,75 @@
         />
 
         <Teleport v-if="isMounted" to="#popUpFooter">
+            <!-- Edit mode: Left: Batalkan Opname & Simpan Draf -->
+            <div v-if="opname" class="mr-auto flex items-center gap-1.5">
+                <button
+                    v-if="canDelete"
+                    type="button"
+                    class="btn btn-flat text-danger cursor-pointer"
+                    title="Batalkan (Hapus) sesi opname ini"
+                    aria-label="Batalkan Opname"
+                    :disabled="form.processing"
+                    @click="confirmDelete"
+                >
+                    Batalkan Opname
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary cursor-pointer"
+                    title="Simpan draf hasil perhitungan fisik"
+                    aria-label="Simpan Draf"
+                    :disabled="form.processing || form.items.length === 0"
+                    @click="executeProgressSave"
+                >
+                    Simpan Draf
+                </button>
+            </div>
+
+            <!-- Batal button -->
             <button
                 type="button"
-                class="btn btn-flat"
+                class="btn btn-flat cursor-pointer"
+                title="Batal dan tutup formulir"
+                aria-label="Batal"
                 :disabled="form.processing"
                 @click="handleCancel"
             >
                 Batal
             </button>
+
+            <!-- Create mode: Mulai Hitung -->
             <button
                 v-if="!opname"
                 type="button"
-                class="btn btn-main"
+                class="btn btn-main cursor-pointer"
+                title="Mulai sesi penghitungan fisik stok"
+                aria-label="Mulai Hitung"
                 :disabled="form.processing || form.items.length === 0 || !activeOutletId"
                 @click="confirmSubmit('save')"
             >
-                Mulai Opname
+                Mulai Hitung
             </button>
-            <template v-else>
-                <button
-                    type="button"
-                    class="btn btn-outline-secondary"
-                    :disabled="form.processing || !form.isDirty || form.items.length === 0"
-                    @click="executeProgressSave"
-                >
-                    Simpan Progres
-                </button>
-                <button
-                    type="button"
-                    class="btn btn-main"
-                    :disabled="form.processing || form.items.length === 0"
-                    @click="confirmSubmit('final')"
-                >
-                    Selesaikan Opname
-                </button>
-            </template>
+
+            <!-- Edit mode: Posting -->
+            <button
+                v-else
+                type="button"
+                class="btn btn-main cursor-pointer"
+                title="Posting hasil opname dan rekonsiliasi selisih"
+                aria-label="Posting"
+                :disabled="form.processing || form.items.length === 0"
+                @click="confirmSubmit('final')"
+            >
+                Posting
+            </button>
         </Teleport>
     </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useForm } from '@inertiajs/vue3'
+import { useForm, usePage } from '@inertiajs/vue3'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
@@ -326,6 +361,7 @@ import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import { useModalStore } from '@/store/notification'
+import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
@@ -338,9 +374,25 @@ const props = defineProps({
     },
 })
 
+const page = usePage()
 const modalStore = useModalStore()
 const { outlets: userOutlets, selectedOutlet } = useAuth()
 const { getLabel, getColor } = useEnum()
+
+const can = permission => {
+    return (
+        page.props.auth?.permissions?.includes(permission) ||
+        page.props.auth?.permissions?.includes('inventory.*') ||
+        page.props.auth?.permissions?.includes('business.*') ||
+        Boolean(page.props.auth?.user?.is_root_user)
+    )
+}
+const canDelete = computed(() => can('inventory.opname.delete'))
+
+const confirmDelete = () => {
+    if (!props.opname?.id) return
+    modalStore.openModalDelete(route('inventory.opnames.destroy', props.opname.id))
+}
 
 const isMounted = ref(false)
 const showItemPicker = ref(false)

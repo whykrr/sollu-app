@@ -31,15 +31,21 @@
                 />
             </div>
 
-            <TextareaField
-                id="notes"
-                v-model="form.notes"
-                label="Catatan Dokumen (Opsional)"
-                placeholder="Tambahkan catatan umum mengenai dokumen penyesuaian ini..."
-                :class="{ 'is-invalid': form.errors.notes }"
-                :error="form.errors.notes"
-                rows="2"
-            />
+            <DisclosureSection
+                title="Catatan & Info Tambahan"
+                :closed-hint="form.notes ? 'Ada catatan' : 'Opsional'"
+                :default-open="Boolean(form.notes)"
+            >
+                <TextareaField
+                    id="notes"
+                    v-model="form.notes"
+                    label="Catatan Dokumen"
+                    placeholder="Tambahkan catatan umum mengenai dokumen penyesuaian ini..."
+                    :class="{ 'is-invalid': form.errors.notes }"
+                    :error="form.errors.notes"
+                    rows="2"
+                />
+            </DisclosureSection>
 
             <div class="border-t border-slate-200 pt-3 space-y-2">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -109,7 +115,9 @@
                                     {{ index + 1 }}.
                                 </span>
                                 <div class="min-w-0">
-                                    <div class="font-bold text-xs text-slate-800 truncate">
+                                    <div
+                                        class="font-bold text-xs text-slate-800 break-words whitespace-normal leading-snug"
+                                    >
                                         {{ item.name }}
                                     </div>
                                     <div class="text-[11px] text-slate-400 truncate">
@@ -254,7 +262,15 @@
         <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
-                class="btn btn-flat"
+                class="btn btn-outline-secondary mr-auto cursor-pointer"
+                :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
+                @click="submit(true)"
+            >
+                Simpan Draf
+            </button>
+            <button
+                type="button"
+                class="btn btn-flat cursor-pointer"
                 :disabled="form.processing"
                 @click="handleCancel"
             >
@@ -262,23 +278,13 @@
             </button>
             <button
                 type="button"
-                class="btn btn-outline-secondary"
-                :disabled="
-                    form.processing || !form.isDirty || form.items.length === 0 || !form.outlet_id
-                "
-                @click="submit(true)"
-            >
-                Simpan Draf
-            </button>
-            <button
-                type="button"
-                class="btn btn-main"
-                :disabled="
-                    form.processing || !form.isDirty || form.items.length === 0 || !form.outlet_id
-                "
+                class="btn btn-main cursor-pointer"
+                title="Terapkan penyesuaian stok ke buku besar"
+                aria-label="Terapkan"
+                :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
                 @click="submit(false)"
             >
-                Simpan & Terapkan
+                Terapkan
             </button>
         </Teleport>
     </div>
@@ -292,6 +298,7 @@ import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
+import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'

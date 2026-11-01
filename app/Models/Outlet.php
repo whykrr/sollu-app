@@ -130,6 +130,21 @@ class Outlet extends Model
         return $query->where('is_active', $active);
     }
 
+    public function isNegativeStockAllowed(): bool
+    {
+        $setting = $this->relationLoaded('settings')
+            ? $this->settings->first(fn ($s) => in_array($s->key, ['allow_negative_stock', 'allow_negative_stock_b2b']) && in_array($s->category, ['pos', 'sales']))
+            : $this->settings()->whereIn('key', ['allow_negative_stock', 'allow_negative_stock_b2b'])->whereIn('category', ['pos', 'sales'])->first();
+
+        if ($setting !== null) {
+            $val = $setting->value;
+
+            return is_array($val) ? filter_var($val[0] ?? false, FILTER_VALIDATE_BOOLEAN) : filter_var($val, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return false;
+    }
+
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()

@@ -93,15 +93,21 @@
                 </div>
             </div>
 
-            <TextareaField
-                id="notes"
-                v-model="form.notes"
-                label="Catatan Mutasi (Opsional)"
-                placeholder="Tambahkan catatan mengenai mutasi/perpindahan barang ini..."
-                :class="{ 'is-invalid': form.errors.notes }"
-                :error="form.errors.notes"
-                rows="2"
-            />
+            <DisclosureSection
+                title="Catatan & Info Tambahan"
+                :closed-hint="form.notes ? 'Ada catatan' : 'Opsional'"
+                :default-open="Boolean(form.notes)"
+            >
+                <TextareaField
+                    id="notes"
+                    v-model="form.notes"
+                    label="Catatan Mutasi"
+                    placeholder="Tambahkan catatan mengenai mutasi/perpindahan barang ini..."
+                    :class="{ 'is-invalid': form.errors.notes }"
+                    :error="form.errors.notes"
+                    rows="2"
+                />
+            </DisclosureSection>
 
             <div class="border-t border-slate-200 pt-3 space-y-2">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -172,7 +178,9 @@
                                     {{ index + 1 }}.
                                 </span>
                                 <div class="min-w-0">
-                                    <div class="font-bold text-xs text-slate-800 truncate">
+                                    <div
+                                        class="font-bold text-xs text-slate-800 break-words whitespace-normal leading-snug"
+                                    >
                                         {{ item.name }}
                                     </div>
                                     <div class="text-[11px] text-slate-400 truncate">
@@ -294,7 +302,9 @@
         <Teleport v-if="isMounted" to="#popUpFooter">
             <button
                 type="button"
-                class="btn btn-flat"
+                class="btn btn-flat cursor-pointer"
+                title="Batal dan tutup formulir"
+                aria-label="Batal"
                 :disabled="form.processing"
                 @click="handleCancel"
             >
@@ -302,10 +312,23 @@
             </button>
             <button
                 type="button"
-                class="btn btn-main"
+                class="btn btn-main cursor-pointer"
+                :title="
+                    isEdit
+                        ? 'Simpan perubahan mutasi transfer'
+                        : form.transfer_mode === 'two_step'
+                          ? 'Kirim barang ke outlet tujuan (butuh konfirmasi)'
+                          : 'Proses transfer langsung antar-outlet'
+                "
+                :aria-label="
+                    isEdit
+                        ? 'Simpan Perubahan'
+                        : form.transfer_mode === 'two_step'
+                          ? 'Kirim'
+                          : 'Transfer'
+                "
                 :disabled="
                     form.processing ||
-                    !form.isDirty ||
                     form.items.length === 0 ||
                     !form.from_outlet_id ||
                     !form.to_outlet_id
@@ -316,8 +339,8 @@
                     isEdit
                         ? 'Simpan Perubahan'
                         : form.transfer_mode === 'two_step'
-                          ? 'Kirim Barang (2-Langkah)'
-                          : 'Transfer Langsung (1-Langkah)'
+                          ? 'Kirim'
+                          : 'Transfer'
                 }}
             </button>
         </Teleport>
@@ -331,6 +354,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
 import { useAuth } from '@/Composable/useAuth'
+import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'

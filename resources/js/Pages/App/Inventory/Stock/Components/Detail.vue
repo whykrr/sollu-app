@@ -178,10 +178,23 @@
 
                     <!-- Action Buttons -->
                     <div
-                        v-if="!loading && movementsData.length > 0"
                         class="pt-1.5 border-t border-neutral-100 flex items-center justify-end gap-1.5"
                     >
                         <button
+                            v-if="
+                                headerData?.is_active === false ||
+                                item?.is_active === false ||
+                                item?.track_inventory === false
+                            "
+                            type="button"
+                            class="btn btn-sm btn-outline-primary text-xs min-h-[34px] px-3 touch-target-sm cursor-pointer"
+                            @click="reactivateTracking"
+                        >
+                            <FontAwesomeIcon :icon="faCheck" class="mr-1 text-[10px]" />
+                            Aktifkan Lacak Stok
+                        </button>
+                        <button
+                            v-if="!loading && movementsData.length > 0"
                             type="button"
                             class="btn btn-sm btn-outline-secondary text-xs min-h-[34px] px-3 touch-target-sm"
                             @click="exportPdf"
@@ -220,7 +233,13 @@ import MovementTab from '../Tabs/MovementTab.vue'
 import ChartTab from '../Tabs/ChartTab.vue'
 
 // Icons
-import { faHistory, faChartLine, faPencil, faFilePdf } from '@fortawesome/free-solid-svg-icons'
+import {
+    faHistory,
+    faChartLine,
+    faPencil,
+    faFilePdf,
+    faCheck,
+} from '@fortawesome/free-solid-svg-icons'
 
 const props = defineProps({
     item: {
@@ -319,6 +338,32 @@ const openMinimumStockModal = () => {
 
 const exportPdf = () => {
     window.open(route('inventories.stocks.export.pdf', props.item.id), '_blank')
+}
+
+const reactivateTracking = () => {
+    modalStore.open({
+        type: 'confirm',
+        title: 'Aktifkan Pelacakan Stok?',
+        message:
+            'Apakah kamu yakin ingin mengaktifkan kembali pelacakan stok untuk barang ini? Stok item ini akan dipantau secara otomatis di kasir dan inventaris.',
+        confirmText: 'Aktifkan',
+        cancelText: 'Batal',
+        onConfirm: async () => {
+            try {
+                await axios.patch(route('inventories.stocks.toggle-tracking', props.item.id), {
+                    is_active: true,
+                })
+                await fetchHeaderData()
+                router.reload({
+                    only: ['stocks', 'summary'],
+                    preserveScroll: true,
+                    preserveState: true,
+                })
+            } catch (err) {
+                console.error(err)
+            }
+        },
+    })
 }
 
 const tabPages = computed(() => {

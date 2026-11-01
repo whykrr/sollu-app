@@ -82,6 +82,7 @@ class StockController extends Controller
                 'product_items.item_type',
                 'product_items.sku',
                 'inventory_items.is_active',
+                'product_items.track_inventory',
                 'uoms.code as uom',
                 'outlets.name as outlet_name',
                 'product_categories.name as category_name',
@@ -238,6 +239,56 @@ class StockController extends Controller
             'minimum_stock' => (float) $balance->minimum_stock,
             'minimum_stock_formatted' => $balance->minimum_stock_formatted,
         ]);
+    }
+
+    /**
+     * Toggle or reactivate inventory tracking for an item.
+     */
+    public function toggleTracking(Request $request, $id)
+    {
+        $businessId = Auth::user()->business_id;
+
+        // $id can be an InventoryBalance ID or InventoryItem ID
+        $balance = InventoryBalance::where('business_id', $businessId)->find($id);
+        if ($balance) {
+            $item = InventoryItem::where('business_id', $businessId)
+                ->with(['productItem.product'])
+                ->findOrFail($balance->inventory_item_id);
+        } else {
+            $item = InventoryItem::where('business_id', $businessId)
+                ->with(['productItem.product'])
+                ->findOrFail($id);
+        }
+
+        $newActiveState = $request->has('is_active')
+            ? $request->boolean('is_active')
+            : true;
+
+        DB::transaction(function () use ($item, $newActiveState) {
+            $item->update(['is_active' => $newActiveState]);
+
+            $productItem = $item->productItem;
+            if ($productItem) {
+                $productItem->update(['track_inventory' => $newActiveState]);
+
+                $product = $productItem->product;
+                if ($product && ! $product->has_variants) {
+                    $product->update(['track_inventory' => $newActiveState]);
+                }
+            }
+        });
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Status pelacakan stok berhasil diperbarui.',
+                'is_active' => (bool) $item->fresh()->is_active,
+            ]);
+        }
+
+        return redirect()->back()->with(
+            FlashDataVariable::SUCCESS->value,
+            'Status pelacakan stok berhasil diperbarui.'
+        );
     }
 
     public function importTemplate()

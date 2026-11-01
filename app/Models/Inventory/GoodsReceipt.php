@@ -44,6 +44,9 @@ class GoodsReceipt extends Model
         'status',
         'notes',
         'received_by',
+        'voided_at',
+        'voided_by',
+        'void_reason',
     ];
 
     protected array $sortable = [
@@ -60,6 +63,7 @@ class GoodsReceipt extends Model
         return [
             'status' => GoodsReceiptStatus::class,
             'received_at' => 'datetime',
+            'voided_at' => 'datetime',
         ];
     }
 
@@ -133,6 +137,11 @@ class GoodsReceipt extends Model
     public function receiver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'received_by');
+    }
+
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
     }
 
     public function items(): HasMany

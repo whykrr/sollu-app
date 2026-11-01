@@ -34,6 +34,7 @@ class GetStockTransferRequest extends BaseInertiaFormRequest
             'from_outlet_id' => ['nullable', 'uuid', 'exists:outlets,id'],
             'to_outlet_id' => ['nullable', 'uuid', 'exists:outlets,id'],
             'outlet_id' => ['nullable', 'uuid', 'exists:outlets,id'],
+            'transfer_type' => ['nullable', 'string', 'in:incoming,outgoing,all'],
             'preset' => ['nullable', 'string'],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],

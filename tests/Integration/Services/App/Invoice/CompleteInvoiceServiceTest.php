@@ -49,7 +49,7 @@ class CompleteInvoiceServiceTest extends TestCase
         $planMock->id = 1;
         $planMock->name = 'Pro Plan';
 
-        $businessMock->id = 1;
+        $businessMock->id = 'test-business-id';
 
         $subscriptionMock->id = 1;
         $subscriptionMock->status = 'inactive';
@@ -86,6 +86,10 @@ class CompleteInvoiceServiceTest extends TestCase
         $planRenewalQuery->shouldReceive('exists')->andReturn(false);
         $itemsQueryMock->shouldReceive('where')->with('item_type', 'plan_renewal')->andReturn($planRenewalQuery);
 
+        $recurringOrRenewalQuery = Mockery::mock(HasMany::class);
+        $recurringOrRenewalQuery->shouldReceive('first')->andReturn(null);
+        $itemsQueryMock->shouldReceive('whereIn')->with('item_type', ['recurring_plan', 'plan_renewal'])->andReturn($recurringOrRenewalQuery);
+
         // Mock business->subscriptions()->latest()->first()
         $subsQueryMock = Mockery::mock(HasMany::class);
         $businessMock->shouldReceive('subscriptions')->andReturn($subsQueryMock);
@@ -94,7 +98,7 @@ class CompleteInvoiceServiceTest extends TestCase
 
         // Mock business->subscriptions()->where()->where()->update()
         $subsQueryMock->shouldReceive('where')->with('id', '!=', 1)->andReturnSelf();
-        $subsQueryMock->shouldReceive('where')->with('status', SubscriptionStatus::Active)->andReturnSelf();
+        $subsQueryMock->shouldReceive('where')->with('status', SubscriptionStatus::Active->value)->andReturnSelf();
         $subsQueryMock->shouldReceive('update')->andReturn(1);
 
         // Mock subscription update
@@ -103,10 +107,11 @@ class CompleteInvoiceServiceTest extends TestCase
             ->with(['status' => SubscriptionStatus::Active])
             ->andReturnTrue();
 
-        // Mock business->users()->first()
+        // Mock business->users()->where('is_root_user', true)->first()
         $usersQueryMock = Mockery::mock(HasMany::class);
-        $businessMock->shouldReceive('users')->once()->andReturn($usersQueryMock);
-        $usersQueryMock->shouldReceive('first')->once()->andReturn($ownerMock);
+        $businessMock->shouldReceive('users')->andReturn($usersQueryMock);
+        $usersQueryMock->shouldReceive('where')->with('is_root_user', true)->andReturnSelf();
+        $usersQueryMock->shouldReceive('first')->andReturn($ownerMock);
 
         // Mock notify
         $ownerMock->shouldReceive('notify')
@@ -125,6 +130,7 @@ class CompleteInvoiceServiceTest extends TestCase
 
         $invoiceMock = Mockery::mock(Invoice::class)->makePartial();
         $businessMock = Mockery::mock(Business::class)->makePartial();
+        $businessMock->id = 'test-business-id';
         $subscriptionMock = Mockery::mock(Subscription::class)->makePartial();
 
         $invoiceMock->business = $businessMock;
@@ -156,6 +162,10 @@ class CompleteInvoiceServiceTest extends TestCase
         $planRenewalQuery->shouldReceive('exists')->andReturn(false);
         $itemsQueryMock->shouldReceive('where')->with('item_type', 'plan_renewal')->andReturn($planRenewalQuery);
 
+        $recurringOrRenewalQuery = Mockery::mock(HasMany::class);
+        $recurringOrRenewalQuery->shouldReceive('first')->andReturn(null);
+        $itemsQueryMock->shouldReceive('whereIn')->with('item_type', ['recurring_plan', 'plan_renewal'])->andReturn($recurringOrRenewalQuery);
+
         // For the outlet addition logic
         $outletItemMock = Mockery::mock();
         $outletItemMock->metadata = ['outlet_id' => 99];
@@ -170,6 +180,7 @@ class CompleteInvoiceServiceTest extends TestCase
 
         $usersQueryMock = Mockery::mock(HasMany::class);
         $businessMock->shouldReceive('users')->andReturn($usersQueryMock);
+        $usersQueryMock->shouldReceive('where')->with('is_root_user', true)->andReturnSelf();
         $usersQueryMock->shouldReceive('first')->andReturn($ownerMock);
 
         $manageServiceMock = Mockery::mock(ManageOutletStatusService::class);
@@ -194,6 +205,7 @@ class CompleteInvoiceServiceTest extends TestCase
 
         $invoiceMock = Mockery::mock(Invoice::class)->makePartial();
         $businessMock = Mockery::mock(Business::class)->makePartial();
+        $businessMock->id = 'test-business-id';
 
         $planMock = Mockery::mock(SubscriptionPlan::class)->makePartial();
         $planMock->shouldReceive('getAttribute')->with('name')->andReturn('Pro Plan');
@@ -239,6 +251,10 @@ class CompleteInvoiceServiceTest extends TestCase
         $planRenewalQuery->shouldReceive('first')->andReturn($renewalItemMock);
         $itemsQueryMock->shouldReceive('where')->with('item_type', 'plan_renewal')->andReturn($planRenewalQuery);
 
+        $recurringOrRenewalQuery = Mockery::mock(HasMany::class);
+        $recurringOrRenewalQuery->shouldReceive('first')->andReturn($renewalItemMock);
+        $itemsQueryMock->shouldReceive('whereIn')->with('item_type', ['recurring_plan', 'plan_renewal'])->andReturn($recurringOrRenewalQuery);
+
         $subsQueryMock = Mockery::mock(HasMany::class);
         $businessMock->shouldReceive('subscriptions')->andReturn($subsQueryMock);
         $subsQueryMock->shouldReceive('latest')->andReturnSelf();
@@ -256,8 +272,9 @@ class CompleteInvoiceServiceTest extends TestCase
 
         $ownerMock = Mockery::mock(User::class)->makePartial();
         $usersQueryMock = Mockery::mock(HasMany::class);
-        $businessMock->shouldReceive('users')->once()->andReturn($usersQueryMock);
-        $usersQueryMock->shouldReceive('first')->once()->andReturn($ownerMock);
+        $businessMock->shouldReceive('users')->andReturn($usersQueryMock);
+        $usersQueryMock->shouldReceive('where')->with('is_root_user', true)->andReturnSelf();
+        $usersQueryMock->shouldReceive('first')->andReturn($ownerMock);
 
         $ownerMock->shouldReceive('notify')
             ->once()

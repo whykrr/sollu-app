@@ -53,8 +53,10 @@ Activate the relevant specialized skill when working in specific domains:
 
 ## 5. Scratchpad / Planning / Context & Active Clarification
 
-- Untuk tugas yang memodifikasi lebih dari satu komponen atau melibatkan logika bisnis baru, buat planning/spec artifact terlebih dahulu. Tuliskan asumsi, dependency yang terdampak, dan batasan arsitektur sebelum menghasilkan implementasi.
-- Jika ada informasi kritis, API contract, atau edge case yang ambigu, jangan menebak atau mengasumsikan implementasi. Kumpulkan pertanyaan tersebut dalam daftar poin terstruktur dan berikan rekomendasi opsi terbaik untuk dikonfirmasi sebelum melanjutkan. 
+- **Protokol Turn Pertama & /goal (READ-ONLY):** Turn pertama atau setiap pemanggilan perintah `/goal` SELALU berstatus **READ-ONLY**. Dilarang keras memodifikasi, membuat, atau menghapus file apa pun sebelum artefak rencana (`/plan`) disetujui.
+- **Eksplorasi & Perencanaan Wajib:** Setiap tugas baru WAJIB diawali dengan eksplorasi kode menyeluruh dan pembuatan `/plan` terstruktur (asumsi, dependensi terdampak, dan batasan arsitektur).
+- **Persetujuan Eksplisit Sebelum Mutasi:** Tunggu persetujuan eksplisit (seperti *"Lanjutkan"* atau *"Eksekusi"*) dari pengguna sebelum memanggil tool penulisan/modifikasi file atau eksekusi perintah terminal yang merusak/mengubah state.
+- **Klarifikasi Aktif:** Jika ada informasi kritis, API contract, atau edge case yang ambigu, jangan menebak atau mengasumsikan implementasi. Kumpulkan pertanyaan tersebut dalam daftar poin terstruktur dan berikan rekomendasi opsi terbaik untuk dikonfirmasi sebelum melanjutkan. 
 
 </sollu-guidelines>
 

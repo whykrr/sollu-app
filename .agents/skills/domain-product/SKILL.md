@@ -90,6 +90,18 @@ Modul Produk mengadopsi standar **Unified Item Pattern** (Shopify/Square):
    - Produk layanan berstatus `product_type = 'service'`, `track_inventory = false`, dan `has_variant = false`.
    - Di level database, produk layanan memiliki tepat 1 baris `product_items` dengan `item_type = 'variant_sku'`, `is_default = true`, `sku = $request->code`, dan `barcode = $request->barcode`.
    - Walaupun bersifat layanan non-stok, field `sku` dan `barcode` tetap tunduk pada aturan keunikan per merchant (`business_id`) dan pencegahan tabrakan silang (*cross-field collision prevention*) terhadap seluruh produk dan varian lain dalam merchant.
+10. **Integritas Relasional Varian Pivot & Aturan 1 Opsi Per Grup Varian (Exact Relational Division):**
+    - Setiap unit varian (`product_items`) hanya boleh terhubung ke **paling banyak 1 opsi per kelompok varian (`variant_group_id`)**. Misalnya: 1 baju tidak boleh memiliki ukuran "S" sekaligus "M".
+    - Dilarang keras melakukan migrasi/backfill varian dengan substring matching naif seperti `str_contains()` tanpa word boundaries, karena memicu kontaminasi relasi pivot.
+    - Pada pencarian/resolusi varian, wajib menerapkan subquery kardinalitas penuh (*Exact Relational Division*):
+      ```sql
+      SELECT product_item_id FROM product_item_variant_group_options piv
+      WHERE variant_group_option_id IN (:selectedOptionIds)
+      GROUP BY product_item_id
+      HAVING COUNT(DISTINCT variant_group_option_id) = :selectedCount
+      AND (SELECT COUNT(*) FROM product_item_variant_group_options WHERE product_item_id = piv.product_item_id) = :selectedCount
+      ```
+      Hal ini menjamin bahwa varian dengan kelompok tambahan (*superset*) tidak terpilih saat pencarian subset opsi.
 
 ---
 

@@ -45,6 +45,9 @@ class PurchaseReturn extends Model
         'total_return_amount',
         'status',
         'created_by',
+        'voided_at',
+        'voided_by',
+        'void_reason',
     ];
 
     protected array $sortable = [
@@ -62,6 +65,7 @@ class PurchaseReturn extends Model
             'status' => PurchaseReturnStatus::class,
             'return_date' => 'date',
             'total_return_amount' => 'float',
+            'voided_at' => 'datetime',
         ];
     }
 
@@ -90,6 +94,11 @@ class PurchaseReturn extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
     }
 
     public function items(): HasMany

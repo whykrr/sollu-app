@@ -31,18 +31,8 @@
             </div>
         </div>
 
-        <!-- Input Surat Jalan & Tanggal Terima -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <TextField
-                id="delivery_order_number"
-                v-model="form.delivery_order_number"
-                label="Nomor Surat Jalan (DO)"
-                placeholder="Misal: SJ-2026-00129"
-                :class="{ 'is-invalid': form.errors.delivery_order_number }"
-                :error="form.errors.delivery_order_number"
-                required
-            />
-
+        <!-- Input Tanggal Terima -->
+        <div>
             <TextField
                 id="received_at"
                 v-model="form.received_at"
@@ -54,15 +44,26 @@
             />
         </div>
 
-        <TextareaField
-            id="notes"
-            v-model="form.notes"
-            label="Catatan Penerimaan (Opsional)"
-            placeholder="Kondisi barang saat tiba, nomor polisi armada, atau catatan lain..."
-            :class="{ 'is-invalid': form.errors.notes }"
-            :error="form.errors.notes"
-            rows="2"
-        />
+        <DisclosureSection title="Informasi Surat Jalan & Catatan" :default-open="true">
+            <TextField
+                id="delivery_order_number"
+                v-model="form.delivery_order_number"
+                label="Nomor Surat Jalan (DO)"
+                placeholder="Misal: SJ-2026-00129"
+                :class="{ 'is-invalid': form.errors.delivery_order_number }"
+                :error="form.errors.delivery_order_number"
+            />
+
+            <TextareaField
+                id="notes"
+                v-model="form.notes"
+                label="Catatan Penerimaan"
+                placeholder="Kondisi barang saat tiba, nomor polisi armada, atau catatan lain..."
+                :class="{ 'is-invalid': form.errors.notes }"
+                :error="form.errors.notes"
+                rows="2"
+            />
+        </DisclosureSection>
 
         <!-- Input Penerimaan Barang -->
         <div class="border-t border-slate-200 pt-2 space-y-2">
@@ -91,7 +92,11 @@
                 >
                     <div class="flex items-center justify-between">
                         <div>
-                            <div class="font-bold text-xs text-slate-800">{{ item.name }}</div>
+                            <div
+                                class="font-bold text-xs text-slate-800 break-words whitespace-normal leading-snug"
+                            >
+                                {{ item.name }}
+                            </div>
                             <div class="text-[11px] text-slate-500">
                                 Dipesan:
                                 <span class="font-semibold text-slate-700"
@@ -195,7 +200,7 @@
     <Teleport v-if="isMounted" to="#popUpFooter">
         <button
             type="button"
-            class="btn btn-flat"
+            class="btn btn-flat cursor-pointer"
             :disabled="form.processing"
             @click="handleCancel"
         >
@@ -203,11 +208,13 @@
         </button>
         <button
             type="button"
-            class="btn btn-main"
-            :disabled="form.processing || form.items.length === 0 || !form.delivery_order_number"
+            class="btn btn-main cursor-pointer"
+            title="Konfirmasi penerimaan barang fisik ke gudang"
+            aria-label="Terima"
+            :disabled="form.processing || form.items.length === 0"
             @click="submit"
         >
-            Simpan Penerimaan
+            Terima
         </button>
     </Teleport>
 </template>
@@ -218,6 +225,7 @@ import { useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
+import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import TextareaField from '@/Components/Form/TextareaField.vue'

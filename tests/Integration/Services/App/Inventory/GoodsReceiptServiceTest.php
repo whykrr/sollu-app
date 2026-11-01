@@ -413,8 +413,8 @@ class GoodsReceiptServiceTest extends TestCase
         // Simulasi barang terjual di POS sehingga stok berkurang menjadi 3
         InventoryBalance::where('inventory_item_id', $item->id)->update(['current_stock' => 3]);
 
-        $this->expectException(HttpException::class);
-        $this->expectExceptionMessage('kurang dari jumlah penerimaan');
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('kurang dari kuantitas pembatalan');
 
         $this->service->voidReceipt($receipt, $user, 'Salah catat');
     }
@@ -478,7 +478,7 @@ class GoodsReceiptServiceTest extends TestCase
             'subtotal' => 20000,
         ]);
 
-        $this->expectException(HttpException::class);
+        $this->expectException(\DomainException::class);
         $this->expectExceptionMessage('memiliki riwayat retur aktif');
 
         $this->service->voidReceipt($receipt, $user, 'Coba void yang sudah diretur');

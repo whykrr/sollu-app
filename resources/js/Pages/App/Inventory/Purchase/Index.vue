@@ -55,16 +55,17 @@
                 </span>
             </template>
             <template #actions="{ row }">
-                <div class="flex items-center gap-1" @click.stop>
+                <div class="flex items-center gap-1.5 whitespace-nowrap" @click.stop>
                     <!-- Order PO (Draf -> Ordered) -->
                     <button
                         v-if="row.status === $enums.PurchaseOrderStatus.Draft"
-                        class="btn btn-highlight-success btn-sm h-[30px]"
+                        type="button"
+                        class="btn btn-highlight-success btn-sm h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
                         title="Tandai sebagai Dipesan"
                         @click="confirmOrder(row)"
                     >
                         <FontAwesomeIcon :icon="faCheck" />
-                        <span class="hidden sm:inline">Order</span>
+                        <span>Pesan</span>
                     </button>
 
                     <!-- Terima Barang (Ordered / PartialReceived) -->
@@ -73,66 +74,49 @@
                             row.status === $enums.PurchaseOrderStatus.Ordered ||
                             row.status === $enums.PurchaseOrderStatus.PartialReceived
                         "
-                        class="btn btn-highlight-main btn-sm h-[30px]"
+                        type="button"
+                        class="btn btn-highlight-main btn-sm h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
                         title="Terima Barang Masuk"
                         @click="openReceive(row)"
                     >
                         <FontAwesomeIcon :icon="faBoxOpen" />
-                        <span class="hidden sm:inline">Terima</span>
+                        <span>Terima</span>
                     </button>
 
-                    <!-- Batalkan (Void) Pembelian (PartialReceived / Received) -->
-                    <button
-                        v-if="
-                            row.status === $enums.PurchaseOrderStatus.Received ||
-                            row.status === $enums.PurchaseOrderStatus.PartialReceived
-                        "
-                        v-can="$enums.PermissionEnum?.PURCHASE_DELETE"
-                        class="btn btn-flat btn-sm text-danger h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
-                        title="Batalkan (Void) Seluruh Pembelian"
-                        @click="confirmVoidPurchase(row)"
-                    >
-                        <FontAwesomeIcon :icon="faBan" />
-                    </button>
-
-                    <!-- Batalkan PO (Ordered) -->
-                    <button
-                        v-if="row.status === $enums.PurchaseOrderStatus.Ordered"
-                        class="btn btn-flat btn-sm text-danger h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
-                        title="Batalkan Pesanan"
-                        @click="confirmCancel(row)"
-                    >
-                        <FontAwesomeIcon :icon="faBan" />
-                    </button>
-
-                    <!-- Unduh PDF PO -->
+                    <!-- Cetak PDF PO (Setelah Dipesan) -->
                     <a
+                        v-if="row.status !== $enums.PurchaseOrderStatus.Draft"
                         :href="route('inventory.purchases.pdf', row.id)"
                         target="_blank"
-                        class="btn btn-flat btn-sm text-slate-500 hover:text-red-600 h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                        class="btn btn-flat btn-sm text-slate-600 hover:text-red-600 h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
                         title="Unduh Berkas PDF PO"
                     >
                         <FontAwesomeIcon :icon="faFilePdf" />
+                        <span>Cetak</span>
                     </a>
 
                     <!-- Edit Draf PO -->
                     <button
                         v-if="row.status === $enums.PurchaseOrderStatus.Draft"
-                        class="btn btn-flat btn-sm text-slate-600 h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                        type="button"
+                        class="btn btn-flat btn-sm text-slate-600 hover:text-slate-800 h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
                         title="Edit Draf"
                         @click="openForm('po', row)"
                     >
                         <FontAwesomeIcon :icon="faPencil" />
+                        <span>Edit</span>
                     </button>
 
                     <!-- Hapus Draf PO -->
                     <button
                         v-if="row.status === $enums.PurchaseOrderStatus.Draft"
-                        class="btn btn-flat btn-sm text-danger h-[30px] w-7 !p-0 inline-flex items-center justify-center cursor-pointer"
+                        type="button"
+                        class="btn btn-flat btn-sm text-danger h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
                         title="Hapus Draf"
                         @click="confirmDelete(row)"
                     >
                         <FontAwesomeIcon :icon="faTrash" />
+                        <span>Hapus</span>
                     </button>
                 </div>
             </template>
@@ -153,7 +137,6 @@ import {
     faTrash,
     faBoxOpen,
     faCheck,
-    faBan,
     faFilePdf,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -316,6 +299,7 @@ const openDetail = async item => {
         events: {
             'open-receive': po => openReceive(po),
             'open-return': (po, receipt) => openReturn(po, receipt),
+            'edit-purchase': po => openForm('po', po),
         },
     })
 }
@@ -329,38 +313,6 @@ const confirmOrder = item => {
         onConfirm: () => {
             router.post(
                 route('inventory.purchases.order', item.id),
-                {},
-                { preserveScroll: true, preserveState: true }
-            )
-        },
-    })
-}
-
-const confirmCancel = item => {
-    modalStore.confirm({
-        title: 'Batalkan Pesanan',
-        message: `Yakin ingin membatalkan PO ${item.po_number}? Pesanan yang dibatalkan tidak dapat diproses lagi.`,
-        type: 'warning',
-        confirmText: 'Ya, Batalkan',
-        onConfirm: () => {
-            router.post(
-                route('inventory.purchases.cancel', item.id),
-                {},
-                { preserveScroll: true, preserveState: true }
-            )
-        },
-    })
-}
-
-const confirmVoidPurchase = item => {
-    modalStore.confirm({
-        title: 'Batalkan (Void) Pembelian',
-        message: `Yakin ingin membatalkan seluruh transaksi pembelian ${item.po_number}? Seluruh surat jalan penerimaan barang akan dibatalkan, stok ditarik kembali, dan transaksi akan dikunci permanen.`,
-        type: 'danger',
-        confirmText: 'Ya, Batalkan Seluruh Pembelian',
-        onConfirm: () => {
-            router.post(
-                route('inventory.purchases.void', item.id),
                 {},
                 { preserveScroll: true, preserveState: true }
             )

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\FeatureEnum;
+use App\Enums\PermissionEnum;
 use App\Http\Controllers\App\Inventory\InventoryMovementController;
 use App\Http\Controllers\App\Inventory\OutletFreezeController;
 use App\Http\Controllers\App\Inventory\RawMaterialController;
@@ -26,6 +27,9 @@ Route::prefix('inventories')->group(function () {
             Route::post('stocks/initial-stock/batch', [StockController::class, 'storeBatchInitialStock'])->name('stocks.initial-stock.batch');
             Route::get('stocks/{id}', [StockController::class, 'show'])->name('stocks.show');
             Route::patch('stocks/{id}/minimum-stock', [StockController::class, 'updateMinimumStock'])->name('stocks.minimum-stock.update');
+            Route::patch('stocks/{id}/toggle-tracking', [StockController::class, 'toggleTracking'])
+                ->name('stocks.toggle-tracking')
+                ->middleware('can:'.PermissionEnum::INVENTORY_UPDATE->value);
             Route::get('stocks/{id}/export-pdf', [StockController::class, 'exportPdf'])->name('stocks.export.pdf');
 
             Route::middleware('plan.feature:'.FeatureEnum::STOCK_MOVEMENTS->value)->group(function () {

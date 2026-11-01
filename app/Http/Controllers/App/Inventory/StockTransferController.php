@@ -29,6 +29,15 @@ class StockTransferController extends Controller
 
     public function index(GetStockTransferRequest $request)
     {
+        $business = Auth::user()->business;
+        $activeOutletsCount = $business?->outlets()->where('is_active', true)->count() ?? 0;
+        if ($activeOutletsCount <= 1) {
+            return redirect()->route('inventories.stocks.index')->with(
+                FlashDataVariable::FAILED->value,
+                'Fitur Mutasi Stok membutuhkan minimal 2 outlet aktif.'
+            );
+        }
+
         $businessId = Auth::user()->business_id;
 
         $sort = $request->input('sort', 'created_at');
@@ -41,7 +50,7 @@ class StockTransferController extends Controller
         );
 
         $filterData = array_merge(
-            $request->only(['search', 'status', 'transfer_mode', 'from_outlet_id', 'to_outlet_id', 'outlet_id']),
+            $request->only(['search', 'status', 'transfer_mode', 'from_outlet_id', 'to_outlet_id', 'outlet_id', 'transfer_type']),
             [
                 'preset' => $dateRange['preset'],
                 'date_from' => $dateRange['start_date'],
@@ -71,6 +80,20 @@ class StockTransferController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        $business = Auth::user()->business;
+        $activeOutletsCount = $business?->outlets()->where('is_active', true)->count() ?? 0;
+        if ($activeOutletsCount <= 1) {
+            return redirect()->route('inventories.stocks.index')->with(
+                FlashDataVariable::FAILED->value,
+                'Fitur Mutasi Stok membutuhkan minimal 2 outlet aktif.'
+            );
+        }
+
+        return redirect()->route('inventory.transfers.index');
+    }
+
     public function store(StoreStockTransferRequest $request)
     {
         try {
@@ -86,7 +109,7 @@ class StockTransferController extends Controller
                 FlashDataVariable::SUCCESS->value,
                 $message
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
@@ -144,7 +167,7 @@ class StockTransferController extends Controller
                 FlashDataVariable::SUCCESS->value,
                 'Mutasi stok berhasil diperbarui.'
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
@@ -170,7 +193,7 @@ class StockTransferController extends Controller
                 FlashDataVariable::SUCCESS->value,
                 'Mutasi stok berhasil disetujui.'
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
@@ -188,7 +211,7 @@ class StockTransferController extends Controller
                 FlashDataVariable::SUCCESS->value,
                 'Mutasi stok berhasil ditolak.'
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
@@ -204,7 +227,7 @@ class StockTransferController extends Controller
                 FlashDataVariable::SUCCESS->value,
                 'Barang mutasi berhasil ditandai dalam perjalanan.'
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
@@ -218,7 +241,7 @@ class StockTransferController extends Controller
                 FlashDataVariable::SUCCESS->value,
                 'Barang mutasi telah diterima dan stok telah disesuaikan.'
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
@@ -232,7 +255,7 @@ class StockTransferController extends Controller
                 FlashDataVariable::SUCCESS->value,
                 'Mutasi stok berhasil dibatalkan (void).'
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }

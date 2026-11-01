@@ -17,82 +17,85 @@
             :action="true"
             :sort="filters.sort"
             :sort-direction="filters.direction"
-            @row-click="openDetail"
+            @row-click="handleRowClick"
         >
-            <template #outlet="{ item }">
-                {{ item.outlet?.name || '-' }}
+            <template #outlet="{ row }">
+                {{ row.outlet?.name || '-' }}
             </template>
-            <template #created_at="{ item }">
-                {{ formatDateTimeSimple(item.created_at) }}
+            <template #created_at="{ row }">
+                {{ formatDateTimeSimple(row.created_at) }}
             </template>
-            <template #items_count="{ item }">
-                <span>{{ item.items_count ?? 0 }} Item</span>
+            <template #items_count="{ row }">
+                <span>{{ row.items_count ?? 0 }} Item</span>
             </template>
-            <template #status="{ item }">
+            <template #status="{ row }">
                 <span
                     class="badge"
-                    :class="getColor('StockOpnameStatus', item.status) || 'badge-gray'"
+                    :class="getColor('StockOpnameStatus', row.status) || 'badge-gray'"
                 >
-                    {{ getLabel('StockOpnameStatus', item.status) }}
+                    {{ getLabel('StockOpnameStatus', row.status) }}
                 </span>
             </template>
-            <template #actions="{ item }">
-                <div class="flex items-center gap-1.5">
+            <template #actions="{ row }">
+                <div class="flex items-center gap-1.5 whitespace-nowrap" @click.stop>
+                    <!-- Lanjutkan Hitung Fisik (InProgress) -->
                     <button
                         v-if="
-                            item.status === $enums.StockOpnameStatus.InProgress &&
+                            row.status === $enums.StockOpnameStatus.InProgress &&
                             can('inventory.opname.update')
                         "
-                        class="btn btn-highlight-main btn-sm"
-                        title="Lanjutkan Opname"
-                        @click.stop="openForm(item)"
+                        type="button"
+                        class="btn btn-highlight-main btn-sm h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
+                        title="Lanjutkan Penginputan Opname"
+                        @click="openForm(row)"
                     >
                         <FontAwesomeIcon :icon="faPencil" />
+                        <span>Hitung</span>
                     </button>
+
+                    <!-- Review & Setujui (PendingApproval) -->
                     <button
                         v-if="
-                            item.status === $enums.StockOpnameStatus.PendingApproval &&
+                            row.status === $enums.StockOpnameStatus.PendingApproval &&
                             (can('inventory.opname.validate') || can('inventory.opname.approve'))
                         "
-                        class="btn btn-info btn-sm"
-                        title="Review & Setujui"
-                        @click.stop="openDetail(item)"
+                        type="button"
+                        class="btn btn-info btn-sm h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
+                        title="Review Hasil Opname"
+                        @click="openDetail(row)"
                     >
-                        <FontAwesomeIcon :icon="faCheck" /> Review
+                        <FontAwesomeIcon :icon="faCheck" />
+                        <span>Review</span>
                     </button>
+
+                    <!-- Cetak Berita Acara PDF (Approved / Rejected) -->
                     <button
                         v-if="
-                            (item.status === $enums.StockOpnameStatus.Approved ||
-                                item.status === $enums.StockOpnameStatus.Rejected) &&
-                            (can('inventory.opname.view') || can('inventory.opname.read'))
-                        "
-                        class="btn btn-flat btn-sm"
-                        title="Lihat Detail"
-                        @click.stop="openDetail(item)"
-                    >
-                        <FontAwesomeIcon :icon="faEye" />
-                    </button>
-                    <button
-                        v-if="
-                            item.status === $enums.StockOpnameStatus.InProgress &&
-                            can('inventory.opname.delete')
-                        "
-                        class="btn btn-flat btn-sm text-danger"
-                        title="Batalkan Opname"
-                        @click.stop="confirmDelete(item)"
-                    >
-                        <FontAwesomeIcon :icon="faTrash" />
-                    </button>
-                    <button
-                        v-if="
-                            item.status !== $enums.StockOpnameStatus.InProgress &&
+                            row.status !== $enums.StockOpnameStatus.InProgress &&
                             (can('inventory.opname.view') || can('inventory.opname.export'))
                         "
-                        class="btn btn-flat btn-sm text-danger"
-                        title="Ekspor PDF"
-                        @click.stop="exportPdf(item.id)"
+                        type="button"
+                        class="btn btn-flat btn-sm text-slate-600 hover:text-red-600 h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
+                        title="Cetak Berita Acara Opname"
+                        @click="exportPdf(row.id)"
                     >
                         <FontAwesomeIcon :icon="faFilePdf" />
+                        <span>Cetak</span>
+                    </button>
+
+                    <!-- Batalkan Sesi Opname (InProgress) -->
+                    <button
+                        v-if="
+                            row.status === $enums.StockOpnameStatus.InProgress &&
+                            can('inventory.opname.delete')
+                        "
+                        type="button"
+                        class="btn btn-flat btn-sm text-danger h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
+                        title="Batalkan Sesi Opname"
+                        @click="confirmDelete(row)"
+                    >
+                        <FontAwesomeIcon :icon="faTrash" />
+                        <span>Batalkan</span>
                     </button>
                 </div>
             </template>
@@ -111,9 +114,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import { faPencil, faTrash, faCheck, faEye, faFilePdf } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { usePage } from '@inertiajs/vue3'
+import { faPencil, faTrash, faCheck, faFilePdf } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import axios from 'axios'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
@@ -133,6 +136,23 @@ const modalStore = useModalStore()
 const popUpStore = usePopUpStore()
 const { getLabel, getColor } = useEnum()
 
+const can = permission => {
+    return (
+        page.props.auth?.permissions?.includes(permission) ||
+        page.props.auth?.permissions?.includes('inventory.*') ||
+        page.props.auth?.permissions?.includes('business.*') ||
+        Boolean(page.props.auth?.user?.is_root_user)
+    )
+}
+
+const exportPdf = id => {
+    window.open(route('inventory.opnames.export.pdf', id), '_blank')
+}
+
+const confirmDelete = item => {
+    modalStore.openModalDelete(route('inventory.opnames.destroy', item.id))
+}
+
 defineProps({
     opnames: {
         type: Object,
@@ -143,15 +163,6 @@ defineProps({
         default: () => ({}),
     },
 })
-
-const can = permission => {
-    return (
-        page.props.auth?.permissions?.includes(permission) ||
-        page.props.auth?.permissions?.includes('inventory.*') ||
-        page.props.auth?.permissions?.includes('business.*') ||
-        Boolean(page.props.auth?.user?.is_root_user)
-    )
-}
 
 const headers = [
     { label: 'Nomor Opname', field: 'opname_number', sortable: true },
@@ -179,8 +190,12 @@ const openFreezeModal = () => {
     })
 }
 
-const exportPdf = id => {
-    window.open(route('inventory.opnames.export.pdf', id), '_blank')
+const handleRowClick = row => {
+    if (row.status === 'in_progress') {
+        openForm(row)
+    } else {
+        openDetail(row)
+    }
 }
 
 const openForm = async (item = null) => {
@@ -225,9 +240,5 @@ const openDetail = async item => {
     } finally {
         isLoading.value = false
     }
-}
-
-const confirmDelete = item => {
-    modalStore.openModalDelete(route('inventory.opnames.destroy', item.id))
 }
 </script>

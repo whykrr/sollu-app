@@ -210,11 +210,11 @@ class PurchaseOrderService
     /**
      * Void seluruh penerimaan pada PO.
      */
-    public function void(PurchaseOrder $po, User $voider): PurchaseOrder
+    public function void(PurchaseOrder $po, User $voider, ?string $reason = null): PurchaseOrder
     {
-        return DB::transaction(function () use ($po, $voider) {
+        return DB::transaction(function () use ($po, $voider, $reason) {
             if ($po->status !== PurchaseOrderStatus::Received && $po->status !== PurchaseOrderStatus::PartialReceived) {
-                abort(403, 'Hanya PO berstatus Diterima yang dapat di-void.');
+                throw new \DomainException('Hanya PO berstatus Diterima yang dapat di-void.');
             }
 
             $receipts = $po->goodsReceipts()->where('status', GoodsReceiptStatus::Completed)->get();
@@ -222,13 +222,32 @@ class PurchaseOrderService
 
             if ($receipts->isNotEmpty()) {
                 foreach ($receipts as $receipt) {
-                    $goodsReceiptService->voidReceipt($receipt, $voider);
+                    $goodsReceiptService->voidReceipt($receipt, $voider, $reason);
                 }
             } else {
                 // Fallback untuk data PO historis
-                $po->load(['outlet.business', 'items.inventoryItem']);
+                $po->load(['outlet.business', 'items.inventoryItem.uom']);
                 $outlet = $po->outlet;
                 $business = $outlet?->business ?? $voider->business;
+
+                if (! $outlet->isNegativeStockAllowed()) {
+                    foreach ($po->items as $poItem) {
+                        $qtyToReverse = (float) $poItem->converted_qty;
+                        if ($qtyToReverse > 0) {
+                            $balance = InventoryBalance::query()
+                                ->where('outlet_id', $outlet->id)
+                                ->where('inventory_item_id', $poItem->inventory_item_id)
+                                ->first();
+
+                            $currentStock = (float) ($balance?->current_stock ?? 0);
+                            if ($currentStock < $qtyToReverse - 0.0001) {
+                                $itemName = $poItem->inventoryItem?->name ?? 'Barang';
+                                $unitName = $poItem->inventoryItem?->uom?->name ?? 'unit';
+                                throw new \DomainException("Penerimaan PO tidak dapat dibatalkan karena stok fisik {$itemName} saat ini tersisa {$currentStock} {$unitName}, kurang dari kuantitas pembatalan {$qtyToReverse} {$unitName} (sebagian barang telah terjual).");
+                            }
+                        }
+                    }
+                }
 
                 foreach ($po->items as $poItem) {
                     if ($poItem->converted_qty > 0) {
@@ -239,7 +258,7 @@ class PurchaseOrderService
                             qty: (float) $poItem->converted_qty,
                             movementType: InventoryMovementType::PurchaseVoid,
                             reference: $po,
-                            description: 'Void penerimaan barang dari PO: '.$po->po_number,
+                            description: 'Void penerimaan barang dari PO: '.$po->po_number.($reason ? ' - Alasan: '.$reason : ''),
                             user: $voider
                         );
 
@@ -252,6 +271,9 @@ class PurchaseOrderService
             }
 
             $po->status = PurchaseOrderStatus::Cancelled;
+            $po->voided_at = now();
+            $po->voided_by = $voider->id;
+            $po->void_reason = $reason;
             $po->save();
 
             $this->activityLogService->log($po, 'voided', $voider);

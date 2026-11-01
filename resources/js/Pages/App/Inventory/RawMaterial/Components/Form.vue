@@ -9,15 +9,6 @@
                 required
             />
 
-            <TextField id="sku" v-model="form.sku" label="SKU" :error="form.errors.sku" />
-
-            <TextField
-                id="barcode"
-                v-model="form.barcode"
-                label="Barcode"
-                :error="form.errors.barcode"
-            />
-
             <DropdownField
                 id="uom_id"
                 v-model="form.uom_id"
@@ -43,21 +34,51 @@
                 />
             </label>
 
-            <TextField
-                v-if="form.track_inventory"
-                id="minimum_stock"
-                v-model="form.minimum_stock"
-                type="number"
-                label="Minimum Stok"
-                :error="form.errors.minimum_stock"
-            />
+            <DisclosureSection
+                title="Kode & Parameter Stok"
+                :closed-hint="form.sku || form.barcode ? 'Ada kode' : 'Opsional'"
+                :default-open="Boolean(form.sku || form.barcode || form.minimum_stock)"
+            >
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <TextField id="sku" v-model="form.sku" label="SKU" :error="form.errors.sku" />
+
+                    <TextField
+                        id="barcode"
+                        v-model="form.barcode"
+                        label="Barcode"
+                        :error="form.errors.barcode"
+                    />
+                </div>
+
+                <TextField
+                    v-if="form.track_inventory"
+                    id="minimum_stock"
+                    v-model="form.minimum_stock"
+                    type="number"
+                    label="Minimum Stok"
+                    :error="form.errors.minimum_stock"
+                />
+            </DisclosureSection>
         </form>
 
         <!-- Footer Actions Di-teleportkan ke PopUpPage Modal Footer -->
         <Teleport v-if="isMounted" to="#popUpFooter">
             <button
+                v-if="rawMaterial?.id"
                 type="button"
-                class="btn btn-flat"
+                class="btn btn-flat text-danger mr-auto cursor-pointer"
+                title="Hapus data bahan baku"
+                aria-label="Hapus"
+                :disabled="form.processing"
+                @click="confirmDelete"
+            >
+                Hapus
+            </button>
+            <button
+                type="button"
+                class="btn btn-flat cursor-pointer"
+                title="Batal dan tutup formulir"
+                aria-label="Batal"
                 :disabled="form.processing"
                 @click="handleCancel"
             >
@@ -65,7 +86,9 @@
             </button>
             <button
                 type="button"
-                class="btn btn-main"
+                class="btn btn-main cursor-pointer"
+                title="Simpan data bahan baku"
+                aria-label="Simpan"
                 :disabled="form.processing || !form.isDirty"
                 @click="submit"
             >
@@ -80,6 +103,8 @@
 import { computed, watch, ref, onMounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
+import { useModalStore } from '@/store/notification'
+import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import DropdownField from '@/Components/Form/DropdownField.vue'
 
@@ -94,11 +119,17 @@ const props = defineProps({
     },
 })
 
+const modalStore = useModalStore()
 const isMounted = ref(false)
 
 onMounted(() => {
     isMounted.value = true
 })
+
+const confirmDelete = () => {
+    if (!props.rawMaterial?.id) return
+    modalStore.openModalDelete(route('inventory.raw-materials.destroy', props.rawMaterial.id))
+}
 
 const form = useForm({
     name: '',

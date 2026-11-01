@@ -167,7 +167,7 @@ class PurchaseReturnService
     {
         return DB::transaction(function () use ($return, $voider, $reason) {
             if ($return->status === PurchaseReturnStatus::Voided) {
-                abort(400, 'Retur pembelian ini sudah dibatalkan sebelumnya.');
+                throw new \DomainException('Retur pembelian ini sudah dibatalkan sebelumnya.');
             }
 
             $return->load(['items.inventoryItem', 'outlet.business']);
@@ -197,6 +197,9 @@ class PurchaseReturnService
             }
 
             $return->status = PurchaseReturnStatus::Voided;
+            $return->voided_at = now();
+            $return->voided_by = $voider->id;
+            $return->void_reason = $reason;
             $return->reason = trim(($return->reason ? $return->reason."\n" : '').'Dibatalkan oleh '.$voider->name.($reason ? ': '.$reason : ''));
             $return->save();
 

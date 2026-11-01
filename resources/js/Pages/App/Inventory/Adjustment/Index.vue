@@ -19,48 +19,60 @@
             :sort-direction="filters.direction"
             @row-click="openDetail"
         >
-            <template #status="{ item }">
+            <template #status="{ row }">
                 <span
                     class="badge"
-                    :class="getColor('AdjustmentStatus', item.status) || 'badge-gray'"
+                    :class="getColor('AdjustmentStatus', row.status) || 'badge-gray'"
                 >
-                    {{ getLabel('AdjustmentStatus', item.status) }}
+                    {{ getLabel('AdjustmentStatus', row.status) }}
                 </span>
             </template>
-            <template #outlet="{ item }">
-                {{ item.outlet?.name || '-' }}
+            <template #outlet="{ row }">
+                {{ row.outlet?.name || '-' }}
             </template>
-            <template #reason="{ item }">
+            <template #reason="{ row }">
                 <span>
-                    {{ getLabel('AdjustmentReason', item.reason) }}
+                    {{ getLabel('AdjustmentReason', row.reason) }}
                 </span>
             </template>
-            <template #items_count="{ item }">
-                <span>{{ item.items_count }} Item</span>
+            <template #items_count="{ row }">
+                <span>{{ row.items_count }} Item</span>
             </template>
-            <template #created_at="{ item }">
-                <span>{{ formatDateTimeSimple(item.created_at) }}</span>
+            <template #created_at="{ row }">
+                <span>{{ formatDateTimeSimple(row.created_at) }}</span>
             </template>
-            <template #creator="{ item }">
-                {{ item.creator?.name || '-' }}
+            <template #creator="{ row }">
+                {{ row.creator?.name || '-' }}
             </template>
-            <template #actions="{ item }">
-                <button
-                    v-if="can('inventory.adjust.view') || can('inventory.adjustment.read')"
-                    class="btn btn-flat btn-sm"
-                    title="Lihat Detail"
-                    @click.stop="openDetail(item)"
-                >
-                    <FontAwesomeIcon :icon="faEye" />
-                </button>
-                <button
-                    v-if="can('inventory.adjustment.export') || can('inventory.adjust.view')"
-                    class="btn btn-flat btn-sm text-danger"
-                    title="Cetak Berita Acara"
-                    @click.stop="exportPdf(item.id)"
-                >
-                    <FontAwesomeIcon :icon="faFilePdf" />
-                </button>
+            <template #actions="{ row }">
+                <div class="flex items-center gap-1.5 whitespace-nowrap" @click.stop>
+                    <!-- Review Supervisi (Pending) -->
+                    <button
+                        v-if="
+                            row.status === 'pending' &&
+                            (can('inventory.adjustment.approve') || can('inventory.adjust.view'))
+                        "
+                        type="button"
+                        class="btn btn-info btn-sm h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
+                        title="Review & Otorisasi Penyesuaian"
+                        @click="openDetail(row)"
+                    >
+                        <FontAwesomeIcon :icon="faCheck" />
+                        <span>Review</span>
+                    </button>
+
+                    <!-- Cetak Berita Acara PDF -->
+                    <button
+                        v-if="can('inventory.adjustment.export') || can('inventory.adjust.view')"
+                        type="button"
+                        class="btn btn-flat btn-sm text-slate-600 hover:text-red-600 h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
+                        title="Cetak Berita Acara Penyesuaian"
+                        @click="exportPdf(row.id)"
+                    >
+                        <FontAwesomeIcon :icon="faFilePdf" />
+                        <span>Cetak</span>
+                    </button>
+                </div>
             </template>
         </Table>
 
@@ -77,9 +89,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import { faEye, faFilePdf } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { usePage } from '@inertiajs/vue3'
+import { faFilePdf, faCheck } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import axios from 'axios'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
@@ -97,6 +109,19 @@ const page = usePage()
 const popUpStore = usePopUpStore()
 const { getLabel, getColor } = useEnum()
 
+const can = permission => {
+    return (
+        page.props.auth?.permissions?.includes(permission) ||
+        page.props.auth?.permissions?.includes('inventory.*') ||
+        page.props.auth?.permissions?.includes('business.*') ||
+        Boolean(page.props.auth?.user?.is_root_user)
+    )
+}
+
+const exportPdf = id => {
+    window.open(route('inventory.adjustments.export.pdf', id), '_blank')
+}
+
 defineProps({
     adjustments: {
         type: Object,
@@ -107,15 +132,6 @@ defineProps({
         default: () => ({}),
     },
 })
-
-const can = permission => {
-    return (
-        page.props.auth?.permissions?.includes(permission) ||
-        page.props.auth?.permissions?.includes('inventory.*') ||
-        page.props.auth?.permissions?.includes('business.*') ||
-        Boolean(page.props.auth?.user?.is_root_user)
-    )
-}
 
 const headers = [
     { label: 'Nomor', field: 'adjustment_number', sortable: true },
@@ -145,10 +161,6 @@ const openForm = () => {
         size: 'xl',
         component: AdjustmentFormPopUp,
     })
-}
-
-const exportPdf = id => {
-    window.open(route('inventory.adjustments.export.pdf', id), '_blank')
 }
 
 const openDetail = async item => {

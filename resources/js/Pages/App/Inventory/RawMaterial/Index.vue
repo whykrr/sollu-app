@@ -19,30 +19,43 @@
             :sort="filters.sort"
             :sort-direction="filters.direction"
             :action="true"
+            @row-click="openForm"
         >
-            <template #uom="{ item }">
-                {{ item.uom?.name || '-' }}
+            <template #uom="{ row }">
+                {{ row.uom?.name || '-' }}
             </template>
-            <template #track_inventory="{ item }">
+            <template #track_inventory="{ row }">
                 <span
                     class="badge"
-                    :class="item.track_inventory ? 'badge-success' : 'badge-danger'"
+                    :class="row.track_inventory ? 'badge-success' : 'badge-danger'"
                 >
-                    {{ item.track_inventory ? 'Ya' : 'Tidak' }}
+                    {{ row.track_inventory ? 'Ya' : 'Tidak' }}
                 </span>
             </template>
-            <template #is_active="{ item }">
-                <span class="badge" :class="item.is_active ? 'badge-success' : 'badge-danger'">
-                    {{ item.is_active ? 'Aktif' : 'Nonaktif' }}
+            <template #is_active="{ row }">
+                <span class="badge" :class="row.is_active ? 'badge-success' : 'badge-danger'">
+                    {{ row.is_active ? 'Aktif' : 'Nonaktif' }}
                 </span>
             </template>
-            <template #actions="{ item }">
-                <div class="flex items-center gap-2">
-                    <button class="btn btn-flat btn-sm" @click="openForm(item)">
+            <template #actions="{ row }">
+                <div class="flex items-center gap-1.5 whitespace-nowrap" @click.stop>
+                    <button
+                        type="button"
+                        class="btn btn-flat btn-sm text-slate-600 hover:text-slate-800 h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
+                        title="Edit Bahan Baku"
+                        @click="openForm(row)"
+                    >
                         <FontAwesomeIcon :icon="faPencil" />
+                        <span>Edit</span>
                     </button>
-                    <button class="btn btn-flat btn-sm text-danger" @click="confirmDelete(item)">
+                    <button
+                        type="button"
+                        class="btn btn-flat btn-sm text-danger h-[30px] px-2.5 inline-flex items-center gap-1.5 cursor-pointer"
+                        title="Hapus Bahan Baku"
+                        @click="confirmDelete(row)"
+                    >
                         <FontAwesomeIcon :icon="faTrash" />
+                        <span>Hapus</span>
                     </button>
                 </div>
             </template>

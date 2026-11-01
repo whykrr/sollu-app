@@ -6,6 +6,7 @@ namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\AuditMigrationCompatibility;
 use App\Mcp\Tools\AuditTenantIsolation;
+use App\Mcp\Tools\AuditVariantIntegrity;
 use App\Mcp\Tools\CheckEnumIntegrity;
 use App\Mcp\Tools\InspectInventoryState;
 use App\Mcp\Tools\LintAgentRules;
@@ -30,6 +31,7 @@ class SolluProjectServer extends Server
         InspectInventoryState::class,
         LintAgentRules::class,
         AuditMigrationCompatibility::class,
+        AuditVariantIntegrity::class,
     ];
 
     /**

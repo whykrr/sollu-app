@@ -9,7 +9,8 @@ class VoidStockTransferRequest extends BaseInertiaFormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can(PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value) ?? false;
+        return $this->user()?->can(PermissionEnum::INVENTORY_TRANSFER_DELETE->value)
+            || $this->user()?->can(PermissionEnum::INVENTORY_TRANSFER_VALIDATE->value);
     }
 
     public function rules(): array

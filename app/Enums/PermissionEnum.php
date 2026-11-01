@@ -95,16 +95,12 @@ enum PermissionEnum: string
     */
 
     case INVENTORY_VIEW = 'inventory.view';
+    case INVENTORY_UPDATE = 'inventory.update';
 
     case MATERIAL_VIEW = 'material.view';
     case MATERIAL_CREATE = 'material.create';
     case MATERIAL_UPDATE = 'material.update';
     case MATERIAL_DELETE = 'material.delete';
-
-    case INVENTORY_WAREHOUSE_VIEW = 'inventory.warehouse.view';
-    case INVENTORY_WAREHOUSE_CREATE = 'inventory.warehouse.create';
-    case INVENTORY_WAREHOUSE_UPDATE = 'inventory.warehouse.update';
-    case INVENTORY_WAREHOUSE_DELETE = 'inventory.warehouse.delete';
 
     case INVENTORY_ADJUST_VIEW = 'inventory.adjust.view';
     case INVENTORY_ADJUST_CREATE = 'inventory.adjust.create';
@@ -263,18 +259,13 @@ enum PermissionEnum: string
 
             // Inventory
             self::INVENTORY_VIEW => 'Akses Melihat Inventori',
+            self::INVENTORY_UPDATE => 'Akses Memperbarui Inventori',
 
             // Material
             self::MATERIAL_VIEW => 'Akses Melihat Bahan Baku',
             self::MATERIAL_CREATE => 'Akses Membuat Bahan Baku',
             self::MATERIAL_UPDATE => 'Akses Memperbarui Bahan Baku',
             self::MATERIAL_DELETE => 'Akses Menghapus Bahan Baku',
-
-            // Warehouse
-            self::INVENTORY_WAREHOUSE_VIEW => 'Akses Melihat Gudang',
-            self::INVENTORY_WAREHOUSE_CREATE => 'Akses Membuat Gudang',
-            self::INVENTORY_WAREHOUSE_UPDATE => 'Akses Memperbarui Gudang',
-            self::INVENTORY_WAREHOUSE_DELETE => 'Akses Menghapus Gudang',
 
             // Inventory Adjustment
             self::INVENTORY_ADJUST_VIEW => 'Akses Melihat Penyesuaian',
@@ -382,14 +373,11 @@ enum PermissionEnum: string
             self::PRODUCT_BOM_DELETE => 'products_and_menu',
 
             self::INVENTORY_VIEW,
+            self::INVENTORY_UPDATE,
             self::MATERIAL_VIEW,
             self::MATERIAL_CREATE,
             self::MATERIAL_UPDATE,
             self::MATERIAL_DELETE,
-            self::INVENTORY_WAREHOUSE_VIEW,
-            self::INVENTORY_WAREHOUSE_CREATE,
-            self::INVENTORY_WAREHOUSE_UPDATE,
-            self::INVENTORY_WAREHOUSE_DELETE,
             self::INVENTORY_ADJUST_VIEW,
             self::INVENTORY_ADJUST_CREATE,
             self::INVENTORY_ADJUST_UPDATE,

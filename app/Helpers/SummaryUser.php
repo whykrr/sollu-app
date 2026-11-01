@@ -55,6 +55,7 @@ class SummaryUser
                     'business' => $user->business ? array_merge(
                         $user->business->only('id', 'name', 'type', 'has_used_trial', 'logo', 'logo_url'),
                         [
+                            'active_outlets_count' => $user->business->outlets()->where('is_active', true)->count(),
                             'inventory_costing_method' => $user->business->getCostingMethod()->value,
                             'is_costing_configured' => $user->business->isCostingMethodConfigured(),
                             'is_in_grace_period' => $user->business->isInGracePeriod(),

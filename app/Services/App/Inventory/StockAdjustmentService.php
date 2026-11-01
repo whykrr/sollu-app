@@ -25,7 +25,8 @@ class StockAdjustmentService
     public function create(array $data, User $user): StockAdjustment
     {
         return DB::transaction(function () use ($data, $user) {
-            $requiresSupervision = $this->inventorySodService->isSupervisionEnabled($user->business);
+            $canBypass = $this->inventorySodService->canBypass($user->business, $user);
+            $requiresSupervision = ! $canBypass && $this->inventorySodService->isSupervisionEnabledFor($user->business, 'adjustment');
             $isDraft = $requiresSupervision || (bool) ($data['is_draft'] ?? true);
 
             $adjustment = StockAdjustment::create([
@@ -189,16 +190,36 @@ class StockAdjustmentService
     /**
      * Void an approved stock adjustment.
      */
-    public function void(StockAdjustment $adjustment, User $user): StockAdjustment
+    public function void(StockAdjustment $adjustment, User $user, ?string $reason = null): StockAdjustment
     {
         if ($adjustment->status !== AdjustmentStatus::Approved) {
             throw new \Exception('Hanya penyesuaian berstatus Disetujui yang dapat dibatalkan.');
         }
 
-        return DB::transaction(function () use ($adjustment, $user) {
-            $adjustment->load(['outlet.business', 'items.inventoryItem']);
+        return DB::transaction(function () use ($adjustment, $user, $reason) {
+            $adjustment->load(['outlet.business', 'items.inventoryItem.uom']);
             $outlet = $adjustment->outlet;
             $business = $outlet?->business ?? $user->business;
+
+            // Anti-Negative Stock Guard for positive adjustments being reversed (outgoing)
+            if (! $outlet->isNegativeStockAllowed()) {
+                foreach ($adjustment->items as $item) {
+                    $qtyChange = (float) $item->qty_change;
+                    if ($qtyChange > 0) {
+                        $balance = InventoryBalance::query()
+                            ->where('outlet_id', $outlet->id)
+                            ->where('inventory_item_id', $item->inventory_item_id)
+                            ->first();
+
+                        $currentStock = (float) ($balance?->current_stock ?? 0);
+                        if ($currentStock < $qtyChange - 0.0001) {
+                            $itemName = $item->inventoryItem?->name ?? 'Barang';
+                            $unitName = $item->inventoryItem?->uom?->name ?? 'unit';
+                            throw new \DomainException("Penyesuaian stok tidak dapat dibatalkan karena stok fisik {$itemName} saat ini tersisa {$currentStock} {$unitName}, kurang dari kuantitas pembatalan {$qtyChange} {$unitName} (sebagian barang telah terjual).");
+                        }
+                    }
+                }
+            }
 
             foreach ($adjustment->items as $item) {
                 $qtyChange = (float) $item->qty_change;
@@ -213,7 +234,7 @@ class StockAdjustmentService
                         qty: $qtyChange,
                         movementType: InventoryMovementType::AdjustmentOut,
                         reference: $adjustment,
-                        description: 'Void Penyesuaian Masuk ('.$adjustment->adjustment_number.')',
+                        description: 'Void Penyesuaian Masuk ('.$adjustment->adjustment_number.')'.($reason ? ' - Alasan: '.$reason : ''),
                         user: $user
                     );
                 } elseif ($qtyChange < 0) {
@@ -226,7 +247,7 @@ class StockAdjustmentService
                         unitCost: $unitCost,
                         movementType: InventoryMovementType::AdjustmentIn,
                         reference: $adjustment,
-                        description: 'Void Penyesuaian Keluar ('.$adjustment->adjustment_number.')',
+                        description: 'Void Penyesuaian Keluar ('.$adjustment->adjustment_number.')'.($reason ? ' - Alasan: '.$reason : ''),
                         user: $user
                     );
                 }
@@ -234,6 +255,9 @@ class StockAdjustmentService
 
             $adjustment->update([
                 'status' => AdjustmentStatus::Voided,
+                'voided_at' => now(),
+                'voided_by' => $user->id,
+                'void_reason' => $reason,
             ]);
 
             $this->activityLogService->log($adjustment, 'voided', $user);

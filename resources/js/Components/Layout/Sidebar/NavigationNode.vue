@@ -95,7 +95,9 @@ const checkFeat = (features, required) => {
 const isVisible = targetItem => {
     const userPerms = page.props.auth?.permissions || []
     const userFeats = page.props.auth?.features || []
+    const activeOutletsCount = page.props.auth?.business?.active_outlets_count ?? 1
 
+    if (targetItem.requiresMultiOutlet && activeOutletsCount <= 1) return false
     if (!checkPerm(userPerms, targetItem.permissions)) return false
     if (!checkFeat(userFeats, targetItem.feature || targetItem.features)) return false
 

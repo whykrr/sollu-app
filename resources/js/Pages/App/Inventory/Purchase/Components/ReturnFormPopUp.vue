@@ -106,7 +106,9 @@
                 >
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0 flex-1">
-                            <div class="font-bold text-xs text-slate-800 truncate">
+                            <div
+                                class="font-bold text-xs text-slate-800 break-words whitespace-normal leading-snug"
+                            >
                                 {{ item.name }}
                             </div>
                             <div class="flex flex-wrap items-center gap-1.5 mt-1 text-[11px]">
@@ -232,7 +234,7 @@
     <Teleport v-if="isMounted" to="#popUpFooter">
         <button
             type="button"
-            class="btn btn-flat"
+            class="btn btn-flat cursor-pointer"
             :disabled="form.processing"
             @click="handleCancel"
         >
@@ -240,11 +242,13 @@
         </button>
         <button
             type="button"
-            class="btn btn-danger"
-            :disabled="form.processing || !form.isDirty || form.items.length === 0 || !form.reason"
+            class="btn btn-danger cursor-pointer"
+            title="Konfirmasi dan kirim retur barang ke pemasok"
+            aria-label="Retur"
+            :disabled="form.processing || form.items.length === 0 || !form.reason"
             @click="submit"
         >
-            Simpan Retur Pembelian
+            Retur
         </button>
     </Teleport>
 </template>

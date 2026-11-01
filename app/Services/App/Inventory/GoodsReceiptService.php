@@ -174,7 +174,7 @@ class GoodsReceiptService
     {
         return DB::transaction(function () use ($receipt, $voider, $reason) {
             if ($receipt->status === GoodsReceiptStatus::Voided) {
-                abort(400, 'Penerimaan barang ini sudah dibatalkan sebelumnya.');
+                throw new \DomainException('Penerimaan barang ini sudah dibatalkan sebelumnya.');
             }
 
             $receipt->load(['purchaseOrder.items', 'items.inventoryItem', 'items.purchaseReturnItems.purchaseReturn', 'outlet.business']);
@@ -187,25 +187,27 @@ class GoodsReceiptService
                 foreach ($receiptItem->purchaseReturnItems as $prItem) {
                     $pr = $prItem->purchaseReturn;
                     if ($pr && $pr->status !== PurchaseReturnStatus::Voided) {
-                        abort(422, "Penerimaan barang ini memiliki riwayat retur aktif ({$pr->return_number}). Silakan batalkan (void) retur terlebih dahulu sebelum membatalkan penerimaan.");
+                        throw new \DomainException("Penerimaan barang ini memiliki riwayat retur aktif ({$pr->return_number}). Silakan batalkan (void) retur terlebih dahulu sebelum membatalkan penerimaan.");
                     }
                 }
             }
 
             // 2. Validasi ketersediaan stok fisik di outlet (Anti-Negative Stock Guard)
-            foreach ($receipt->items as $receiptItem) {
-                $qtyToReverse = (float) $receiptItem->received_inventory_qty;
-                if ($qtyToReverse > 0) {
-                    $balance = InventoryBalance::query()
-                        ->where('outlet_id', $outlet->id)
-                        ->where('inventory_item_id', $receiptItem->inventory_item_id)
-                        ->first();
+            if (! $outlet->isNegativeStockAllowed()) {
+                foreach ($receipt->items as $receiptItem) {
+                    $qtyToReverse = (float) $receiptItem->received_inventory_qty;
+                    if ($qtyToReverse > 0) {
+                        $balance = InventoryBalance::query()
+                            ->where('outlet_id', $outlet->id)
+                            ->where('inventory_item_id', $receiptItem->inventory_item_id)
+                            ->first();
 
-                    $currentStock = (float) ($balance?->current_stock ?? 0);
-                    if ($currentStock < $qtyToReverse - 0.0001) {
-                        $itemName = $receiptItem->inventoryItem?->name ?? 'Barang';
-                        $unitName = $receiptItem->inventoryItem?->uom?->name ?? 'unit';
-                        abort(422, "Penerimaan barang tidak dapat dibatalkan karena sisa stok {$itemName} di outlet tersisa {$currentStock} {$unitName}, kurang dari jumlah penerimaan yang hendak dibatalkan ({$qtyToReverse} {$unitName}).");
+                        $currentStock = (float) ($balance?->current_stock ?? 0);
+                        if ($currentStock < $qtyToReverse - 0.0001) {
+                            $itemName = $receiptItem->inventoryItem?->name ?? 'Barang';
+                            $unitName = $receiptItem->inventoryItem?->uom?->name ?? 'unit';
+                            throw new \DomainException("Penerimaan barang tidak dapat dibatalkan karena stok fisik {$itemName} saat ini tersisa {$currentStock} {$unitName}, kurang dari kuantitas pembatalan {$qtyToReverse} {$unitName} (sebagian barang telah terjual).");
+                        }
                     }
                 }
             }
@@ -244,6 +246,9 @@ class GoodsReceiptService
 
             // 4. Ubah status receipt menjadi voided
             $receipt->status = GoodsReceiptStatus::Voided;
+            $receipt->voided_at = now();
+            $receipt->voided_by = $voider->id;
+            $receipt->void_reason = $reason;
             $receipt->notes = trim(($receipt->notes ? $receipt->notes."\n" : '').'Dibatalkan oleh '.$voider->name.($reason ? ': '.$reason : ''));
             $receipt->save();
 

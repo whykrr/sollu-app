@@ -1,6 +1,28 @@
 <template>
     <div>
         <div v-if="opname" class="space-y-3">
+            <!-- Stepper Progress & Alert Banner -->
+            <DocumentProgressStepper
+                :steps="[
+                    { key: 'in_progress', label: 'Hitung Fisik' },
+                    { key: 'pending_approval', label: 'Menunggu' },
+                    { key: 'approved', label: 'Disetujui' },
+                ]"
+                :current-step="
+                    opname.status === $enums.StockOpnameStatus.Approved
+                        ? 'approved'
+                        : opname.status === $enums.StockOpnameStatus.PendingApproval
+                          ? 'pending_approval'
+                          : 'in_progress'
+                "
+                :is-rejected="opname.status === $enums.StockOpnameStatus.Rejected"
+                :reject-info="{
+                    rejected_at: opname.approved_at,
+                    rejected_by: opname.approver,
+                    notes: opname.notes,
+                }"
+            />
+
             <!-- Header Ringkasan Informasi -->
             <div
                 class="grid grid-cols-2 gap-2 text-xs bg-slate-50/50 p-3 rounded-lg border border-slate-200"
@@ -55,9 +77,9 @@
                     </button>
                 </div>
 
-                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                <div class="border border-slate-200 rounded-lg overflow-x-auto -mx-1 sm:mx-0">
                     <div class="max-h-80 overflow-y-auto">
-                        <table class="w-full text-xs text-left">
+                        <table class="w-full text-xs text-left min-w-[640px]">
                             <thead
                                 class="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium sticky top-0"
                             >
@@ -81,7 +103,9 @@
                                         {{ index + 1 }}
                                     </td>
                                     <td class="p-2.5">
-                                        <div class="font-semibold text-slate-800">
+                                        <div
+                                            class="font-semibold text-slate-800 break-words whitespace-normal leading-snug"
+                                        >
                                             {{ item.inventory_item?.name }}
                                         </div>
                                         <div class="text-[10px] text-slate-400">
@@ -141,79 +165,53 @@
                     <div class="font-bold text-danger text-sm mt-0.5">-{{ summary.shortage }}</div>
                 </div>
             </div>
-
-            <!-- Bagian Persetujuan / Penolakan jika PendingApproval -->
-            <div
-                v-if="opname.status === $enums.StockOpnameStatus.PendingApproval && canApprove"
-                class="bg-amber-50 p-3 rounded-lg border border-amber-200 space-y-2"
-            >
-                <div>
-                    <h4 class="font-bold text-xs text-amber-900">
-                        Tindakan Verifikasi & Persetujuan
-                    </h4>
-                    <p class="text-xs text-amber-800 mt-0.5">
-                        Menyetujui dokumen ini akan langsung menyesuaikan saldo fisik persediaan di
-                        sistem.
-                    </p>
-                </div>
-
-                <div v-if="showRejectInput" class="space-y-2">
-                    <TextareaField
-                        id="reject_notes"
-                        v-model="rejectForm.notes"
-                        label="Alasan Penolakan"
-                        placeholder="Tulis alasan mengapa opname ini ditolak..."
-                        :class="{ 'is-invalid': rejectForm.errors.notes }"
-                        :error="rejectForm.errors.notes"
-                        rows="2"
-                        required
-                    />
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <template v-if="!showRejectInput">
-                        <button
-                            type="button"
-                            class="btn btn-main btn-sm h-[30px]"
-                            :disabled="isProcessing"
-                            @click="confirmApprove"
-                        >
-                            <FontAwesomeIcon :icon="faCheck" /> Setujui & Sesuaikan Stok
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-danger btn-sm h-[30px]"
-                            :disabled="isProcessing"
-                            @click="showRejectInput = true"
-                        >
-                            <FontAwesomeIcon :icon="faTimes" /> Tolak
-                        </button>
-                    </template>
-                    <template v-else>
-                        <button
-                            type="button"
-                            class="btn btn-danger btn-sm h-[30px]"
-                            :disabled="rejectForm.processing"
-                            @click="executeReject"
-                        >
-                            Konfirmasi Tolak
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-flat btn-sm h-[30px]"
-                            :disabled="rejectForm.processing"
-                            @click="showRejectInput = false"
-                        >
-                            Batal
-                        </button>
-                    </template>
-                </div>
-            </div>
         </div>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button type="button" class="btn btn-flat" :disabled="isProcessing" @click="close">
+            <!-- Left action: Tolak when PendingApproval -->
+            <button
+                v-if="
+                    opname &&
+                    opname.status === $enums.StockOpnameStatus.PendingApproval &&
+                    canApprove
+                "
+                type="button"
+                class="btn btn-danger mr-auto cursor-pointer"
+                title="Tolak pengajuan stock opname ini"
+                aria-label="Tolak"
+                :disabled="isProcessing"
+                @click="promptReject"
+            >
+                <FontAwesomeIcon :icon="faTimes" /> Tolak
+            </button>
+
+            <!-- Tutup Button -->
+            <button
+                type="button"
+                class="btn btn-flat cursor-pointer"
+                title="Tutup rincian dokumen"
+                aria-label="Tutup"
+                :disabled="isProcessing"
+                @click="close"
+            >
                 Tutup
+            </button>
+
+            <!-- Right action: Setujui when PendingApproval -->
+            <button
+                v-if="
+                    opname &&
+                    opname.status === $enums.StockOpnameStatus.PendingApproval &&
+                    canApprove
+                "
+                type="button"
+                class="btn btn-main cursor-pointer"
+                title="Setujui dan proses transaksi ini"
+                aria-label="Setujui"
+                :disabled="isProcessing"
+                @click="confirmApprove"
+            >
+                <FontAwesomeIcon :icon="faCheck" /> Setujui
             </button>
         </Teleport>
     </div>
@@ -221,10 +219,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useForm, router, usePage } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCheck, faTimes, faFilePdf } from '@fortawesome/free-solid-svg-icons'
-import TextareaField from '@/Components/Form/TextareaField.vue'
+import DocumentProgressStepper from '@/Components/UI/DocumentProgressStepper.vue'
+import ReasonPromptModal from '@/Components/Modals/ReasonPromptModal.vue'
 import { formatDateTimeSimple } from '@/Composable/date'
 import { useEnum } from '@/Composable/useEnum'
 import { usePopUpStore } from '@/store/popup'
@@ -245,14 +244,9 @@ const { getLabel, getColor } = useEnum()
 
 const isMounted = ref(false)
 const isProcessing = ref(false)
-const showRejectInput = ref(false)
 
 onMounted(() => {
     isMounted.value = true
-})
-
-const rejectForm = useForm({
-    notes: '',
 })
 
 const can = permission => {
@@ -318,8 +312,6 @@ const exportPdf = id => {
 }
 
 const close = () => {
-    showRejectInput.value = false
-    rejectForm.reset()
     popUpStore.close()
     emit('close')
 }
@@ -362,16 +354,43 @@ const executeApprove = () => {
     })
 }
 
-const executeReject = () => {
-    if (!props.opname) return
-    rejectForm.post(route('inventory.opnames.reject', props.opname.id), {
-        preserveScroll: true,
-        onSuccess: page => {
-            const flash = page.props.app?.flash || {}
-            if (!flash.failed) {
-                close()
-            }
+const promptReject = () => {
+    modalStore.open({
+        title: 'Tolak Dokumen Stok Opname',
+        component: ReasonPromptModal,
+        showFooter: false,
+        props: {
+            description:
+                'Dokumen stok opname yang ditolak tidak akan mengubah saldo stok di sistem.',
+            label: 'Alasan Penolakan',
+            placeholder: 'Tuliskan alasan mengapa dokumen opname ini ditolak...',
+            confirmText: 'Tolak Dokumen',
+            confirmButtonClass: 'btn-danger',
+            onConfirm: async reason => {
+                executeReject(reason)
+            },
         },
     })
+}
+
+const executeReject = reason => {
+    if (!props.opname) return
+    isProcessing.value = true
+    router.post(
+        route('inventory.opnames.reject', props.opname.id),
+        { notes: reason },
+        {
+            preserveScroll: true,
+            onSuccess: page => {
+                const flash = page.props.app?.flash || {}
+                if (!flash.failed) {
+                    close()
+                }
+            },
+            onFinish: () => {
+                isProcessing.value = false
+            },
+        }
+    )
 }
 </script>

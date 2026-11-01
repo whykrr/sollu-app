@@ -15,6 +15,29 @@
             </div>
         </div>
         <div v-else-if="adjustment" class="space-y-3">
+            <!-- Stepper Progress & Alert Banner -->
+            <DocumentProgressStepper
+                :steps="[
+                    { key: 'draft', label: 'Draf' },
+                    { key: 'approved', label: 'Disetujui' },
+                ]"
+                :current-step="
+                    adjustment.status === $enums.AdjustmentStatus.Approved ? 'approved' : 'draft'
+                "
+                :is-voided="adjustment.status === $enums.AdjustmentStatus.Voided"
+                :void-info="{
+                    voided_at: adjustment.voided_at,
+                    voided_by: adjustment.voidedBy || adjustment.voided_by,
+                    void_reason: adjustment.void_reason,
+                }"
+                :is-rejected="adjustment.status === $enums.AdjustmentStatus.Rejected"
+                :reject-info="{
+                    rejected_at: adjustment.approved_at,
+                    rejected_by: adjustment.approver,
+                    notes: adjustment.notes,
+                }"
+            />
+
             <div
                 class="grid grid-cols-2 gap-2 text-sm bg-slate-50/50 p-3 rounded-lg border border-slate-200"
             >
@@ -69,8 +92,8 @@
 
             <div>
                 <h4 class="font-bold text-xs text-slate-700 mb-1.5">Daftar Barang Penyesuaian</h4>
-                <div class="border border-slate-200 rounded-lg overflow-hidden">
-                    <table class="w-full text-xs text-left">
+                <div class="border border-slate-200 rounded-lg overflow-x-auto -mx-1 sm:mx-0">
+                    <table class="w-full text-xs text-left min-w-[640px]">
                         <thead
                             class="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium"
                         >
@@ -101,7 +124,9 @@
                         <tbody class="divide-y divide-slate-100 bg-white">
                             <tr v-for="item in adjustment.items" :key="item.id">
                                 <td class="p-2.5">
-                                    <div class="font-semibold text-slate-800">
+                                    <div
+                                        class="font-semibold text-slate-800 break-words whitespace-normal leading-snug"
+                                    >
                                         {{ item.inventory_item?.name }}
                                     </div>
                                     <div class="text-[10px] text-slate-400">
@@ -142,97 +167,87 @@
                     </table>
                 </div>
             </div>
-
-            <!-- Approval Section -->
-            <div
-                v-if="adjustment.status === $enums.AdjustmentStatus.Draft && canApprove"
-                class="bg-amber-50 p-3 rounded-lg border border-amber-200 mt-2 space-y-2"
-            >
-                <div>
-                    <h4 class="font-bold text-xs text-amber-900">Tindakan Persetujuan</h4>
-                    <p class="text-xs text-amber-800 mt-0.5">
-                        Pastikan seluruh data penyesuaian sudah sesuai kondisi fisik barang sebelum
-                        menyetujui.
-                    </p>
-                </div>
-
-                <div v-if="showRejectInput" class="space-y-2">
-                    <TextareaField
-                        id="reject_notes"
-                        v-model="rejectForm.notes"
-                        label="Alasan Penolakan"
-                        placeholder="Tulis alasan mengapa penyesuaian ini ditolak..."
-                        :class="{ 'is-invalid': rejectForm.errors.notes }"
-                        :error="rejectForm.errors.notes"
-                        rows="2"
-                        required
-                    />
-                </div>
-
-                <div class="flex gap-2">
-                    <template v-if="!showRejectInput">
-                        <button
-                            class="btn btn-main btn-sm"
-                            :disabled="isProcessing"
-                            @click="confirmApprove"
-                        >
-                            <FontAwesomeIcon :icon="faCheck" /> Setujui Penyesuaian
-                        </button>
-                        <button
-                            class="btn btn-danger btn-sm"
-                            :disabled="isProcessing"
-                            @click="showRejectInput = true"
-                        >
-                            <FontAwesomeIcon :icon="faTimes" /> Tolak
-                        </button>
-                    </template>
-                    <template v-else>
-                        <button
-                            class="btn btn-danger btn-sm"
-                            :disabled="rejectForm.processing"
-                            @click="reject"
-                        >
-                            Konfirmasi Tolak
-                        </button>
-                        <button
-                            class="btn btn-flat btn-sm"
-                            :disabled="rejectForm.processing"
-                            @click="showRejectInput = false"
-                        >
-                            Batal
-                        </button>
-                    </template>
-                </div>
-            </div>
-
-            <div
-                v-if="adjustment.status === $enums.AdjustmentStatus.Approved && canVoid"
-                class="mt-2 flex justify-end"
-            >
-                <button
-                    class="btn btn-flat btn-sm text-danger cursor-pointer"
-                    :disabled="isProcessing"
-                    @click="confirmVoid"
-                >
-                    <FontAwesomeIcon :icon="faBan" /> Batalkan Penyesuaian (Void)
-                </button>
-            </div>
         </div>
 
         <Teleport v-if="isMounted" to="#popUpFooter">
-            <button type="button" class="btn btn-flat" :disabled="isProcessing" @click="close">
+            <!-- Left action: Void button when Approved -->
+            <button
+                v-if="
+                    adjustment && adjustment.status === $enums.AdjustmentStatus.Approved && canVoid
+                "
+                type="button"
+                class="btn btn-flat text-danger mr-auto cursor-pointer"
+                title="Batalkan (Void) penyesuaian stok ini"
+                aria-label="Void"
+                :disabled="isProcessing"
+                @click="promptVoid"
+            >
+                <FontAwesomeIcon :icon="faBan" /> Void
+            </button>
+
+            <!-- Cetak Berita Acara -->
+            <button
+                v-if="adjustment && canExport"
+                type="button"
+                class="btn btn-outline-secondary cursor-pointer inline-flex items-center gap-1.5"
+                title="Cetak Berita Acara (PDF)"
+                aria-label="Cetak Berita Acara"
+                @click="exportPdf"
+            >
+                <FontAwesomeIcon :icon="faFilePdf" class="text-danger" />
+                <span>Cetak Berita Acara</span>
+            </button>
+
+            <!-- Close action -->
+            <button
+                type="button"
+                class="btn btn-flat cursor-pointer"
+                title="Tutup rincian dokumen"
+                aria-label="Tutup"
+                :disabled="isProcessing"
+                @click="close"
+            >
                 Tutup
             </button>
+
+            <!-- Right actions: Reject & Approve when Draft -->
+            <template
+                v-if="
+                    adjustment && adjustment.status === $enums.AdjustmentStatus.Draft && canApprove
+                "
+            >
+                <button
+                    type="button"
+                    class="btn btn-danger cursor-pointer"
+                    title="Tolak pengajuan penyesuaian stok ini"
+                    aria-label="Tolak"
+                    :disabled="isProcessing"
+                    @click="promptReject"
+                >
+                    <FontAwesomeIcon :icon="faTimes" /> Tolak
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-main cursor-pointer"
+                    title="Setujui dan proses transaksi ini"
+                    aria-label="Setujui"
+                    :disabled="isProcessing"
+                    @click="confirmApprove"
+                >
+                    <FontAwesomeIcon :icon="faCheck" /> Setujui
+                </button>
+            </template>
         </Teleport>
     </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useForm, router, usePage } from '@inertiajs/vue3'
-import { faCheck, faTimes, faBan } from '@fortawesome/free-solid-svg-icons'
+import { router, usePage } from '@inertiajs/vue3'
+import { faCheck, faTimes, faBan, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import TextareaField from '@/Components/Form/TextareaField.vue'
+import DocumentProgressStepper from '@/Components/UI/DocumentProgressStepper.vue'
+import ReasonPromptModal from '@/Components/Modals/ReasonPromptModal.vue'
 import { formatDateTimeSimple } from '@/Composable/date.js'
 import { useEnum } from '@/Composable/useEnum'
 import { usePopUpStore } from '@/store/popup'
@@ -260,11 +275,6 @@ const props = defineProps({
 })
 
 const isProcessing = ref(false)
-const showRejectInput = ref(false)
-
-const rejectForm = useForm({
-    notes: '',
-})
 
 const can = permission => {
     return (
@@ -282,10 +292,16 @@ const canApprove = computed(
         can('inventory.adjustment.approve')
 )
 const canVoid = computed(() => can('inventory.adjust.delete') || can('inventory.adjustment.void'))
+const canExport = computed(
+    () => can('inventory.adjustment.export') || can('inventory.adjust.view')
+)
+
+const exportPdf = () => {
+    if (!props.adjustment?.id) return
+    window.open(route('inventory.adjustments.export.pdf', props.adjustment.id), '_blank')
+}
 
 const close = () => {
-    showRejectInput.value = false
-    rejectForm.reset()
     popUpStore.close()
 }
 
@@ -322,36 +338,69 @@ const executeApprove = () => {
     )
 }
 
-const reject = () => {
-    rejectForm.post(route('inventory.adjustments.reject', props.adjustment.id), {
-        preserveScroll: true,
-        onSuccess: page => {
-            const flash = page.props.app?.flash || {}
-            if (!flash.failed) {
-                close()
-            }
+const promptReject = () => {
+    modalStore.open({
+        title: 'Tolak Penyesuaian Stok',
+        component: ReasonPromptModal,
+        showFooter: false,
+        props: {
+            description:
+                'Penyesuaian stok yang ditolak tidak akan memotong atau menambah stok gudang.',
+            label: 'Alasan Penolakan',
+            placeholder: 'Tuliskan alasan mengapa penyesuaian ini ditolak...',
+            confirmText: 'Tolak Penyesuaian',
+            confirmButtonClass: 'btn btn-danger',
+            onConfirm: async reason => {
+                executeReject(reason)
+            },
         },
     })
 }
 
-const confirmVoid = () => {
+const executeReject = reason => {
+    isProcessing.value = true
+    router.post(
+        route('inventory.adjustments.reject', props.adjustment.id),
+        { notes: reason },
+        {
+            preserveScroll: true,
+            onSuccess: page => {
+                const flash = page.props.app?.flash || {}
+                if (!flash.failed) {
+                    close()
+                }
+            },
+            onFinish: () => {
+                isProcessing.value = false
+            },
+        }
+    )
+}
+
+const promptVoid = () => {
     modalStore.open({
         title: 'Konfirmasi Pembatalan (Void)',
-        message:
-            'Apakah kamu yakin ingin membatalkan (VOID) dokumen penyesuaian ini? Pergerakan stok akan dikembalikan.',
-        confirmText: 'Ya, Batalkan Dokumen',
-        confirmButtonClass: 'btn btn-danger',
-        onConfirm: () => {
-            executeVoid()
+        component: ReasonPromptModal,
+        showFooter: false,
+        props: {
+            description:
+                'Membatalkan (Void) penyesuaian stok akan mengembalikan pergerakan stok ke kondisi awal.',
+            label: 'Alasan Pembatalan (Void)',
+            placeholder: 'Tulis alasan pembatalan dokumen...',
+            confirmText: 'Batalkan Dokumen',
+            confirmButtonClass: 'btn btn-danger',
+            onConfirm: async reason => {
+                executeVoid(reason)
+            },
         },
     })
 }
 
-const executeVoid = () => {
+const executeVoid = reason => {
     isProcessing.value = true
     router.post(
         route('inventory.adjustments.void', props.adjustment.id),
-        {},
+        { reason },
         {
             preserveScroll: true,
             onSuccess: page => {

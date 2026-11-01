@@ -84,7 +84,7 @@ class DeltaSyncService
 
             if (! empty($targetProductIds)) {
                 $loadedProducts = Product::with([
-                    'productItems:id,product_id,has_variant,uom_id',
+                    'productItems:id,product_id,uom_id',
                     'productItems.uom:id,name,code',
                     'productItems.inventoryItem:id,product_item_id',
                 ])

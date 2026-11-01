@@ -40,9 +40,24 @@
                 </span>
             </template>
             <template #status="{ item }">
-                <span v-if="item.current_stock <= 0" class="badge badge-danger">Habis</span>
-                <span v-else-if="item.is_low_stock" class="badge badge-warning">Menipis</span>
-                <span v-else class="badge badge-success">Aman</span>
+                <div class="flex items-center gap-1.5">
+                    <button
+                        v-if="item.is_active === false || item.track_inventory === false"
+                        type="button"
+                        class="btn btn-xs btn-outline-primary whitespace-nowrap cursor-pointer"
+                        title="Klik untuk mengaktifkan kembali pelacakan stok barang ini"
+                        @click.stop="reactivateTracking(item)"
+                    >
+                        Aktifkan Lacak Stok
+                    </button>
+                    <template v-else>
+                        <span v-if="item.current_stock <= 0" class="badge badge-danger">Habis</span>
+                        <span v-else-if="item.is_low_stock" class="badge badge-warning"
+                            >Menipis</span
+                        >
+                        <span v-else class="badge badge-success">Aman</span>
+                    </template>
+                </div>
             </template>
         </Table>
 
@@ -59,7 +74,7 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { usePage } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
 import Table from '@/Components/Tables/Table.vue'
@@ -157,6 +172,28 @@ const openDetail = item => {
         size: 'xl',
         component: Detail,
         props: { item },
+    })
+}
+
+const reactivateTracking = item => {
+    modalStore.open({
+        type: 'confirm',
+        title: 'Aktifkan Pelacakan Stok?',
+        message: `Apakah kamu yakin ingin mengaktifkan kembali pelacakan stok untuk "${item.item_name}"? Stok item ini akan dipantau secara otomatis di kasir dan inventaris.`,
+        confirmText: 'Aktifkan',
+        cancelText: 'Batal',
+        onConfirm: () => {
+            router.patch(
+                route('inventories.stocks.toggle-tracking', item.id),
+                { is_active: true },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        router.reload({ only: ['stocks', 'summary'] })
+                    },
+                }
+            )
+        },
     })
 }
 </script>

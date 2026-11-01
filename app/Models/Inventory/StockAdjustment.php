@@ -58,6 +58,9 @@ class StockAdjustment extends Model
         'created_by',
         'approved_by',
         'approved_at',
+        'voided_at',
+        'voided_by',
+        'void_reason',
     ];
 
     protected array $sortable = [
@@ -73,6 +76,7 @@ class StockAdjustment extends Model
             'status' => AdjustmentStatus::class,
             'reason' => AdjustmentReason::class,
             'approved_at' => 'datetime',
+            'voided_at' => 'datetime',
         ];
     }
 
@@ -94,6 +98,11 @@ class StockAdjustment extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
     }
 
     public function items(): HasMany

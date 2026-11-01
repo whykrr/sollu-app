@@ -168,10 +168,19 @@ class StockTransfer extends Model
             fn (Builder $q, $value) => $q->where('to_outlet_id', $value)
         )->when(
             $filters['outlet_id'] ?? false,
-            fn (Builder $q, $value) => $q->where(function (Builder $sub) use ($value) {
-                $sub->where('from_outlet_id', $value)
-                    ->orWhere('to_outlet_id', $value);
-            })
+            function (Builder $q, $value) use ($filters) {
+                $transferType = $filters['transfer_type'] ?? null;
+                if ($transferType === 'incoming') {
+                    $q->where('to_outlet_id', $value);
+                } elseif ($transferType === 'outgoing') {
+                    $q->where('from_outlet_id', $value);
+                } else {
+                    $q->where(function (Builder $sub) use ($value) {
+                        $sub->where('from_outlet_id', $value)
+                            ->orWhere('to_outlet_id', $value);
+                    });
+                }
+            }
         )->when(
             $filters['date_from'] ?? false,
             fn (Builder $q, $value) => $q->whereDate('created_at', '>=', $value)

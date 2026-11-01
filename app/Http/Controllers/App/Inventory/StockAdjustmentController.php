@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\App\Inventory;
 
+use App\Constants\FlashDataVariable;
 use App\Enums\AdjustmentStatus;
 use App\Enums\PermissionEnum;
 use App\Helpers\SelectedOutlet;
@@ -13,6 +14,7 @@ use App\Models\Inventory\StockAdjustment;
 use App\Services\App\Inventory\InventorySodService;
 use App\Services\App\Inventory\StockAdjustmentService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
@@ -33,7 +35,7 @@ class StockAdjustmentController extends Controller
 
         $adjustments = StockAdjustment::query()
             ->where('business_id', $businessId)
-            ->with(['outlet', 'creator', 'approver'])
+            ->with(['outlet', 'creator', 'approver', 'voidedBy'])
             ->withCount('items')
             ->filters($filterData)
             ->sortable($sort, $direction)
@@ -76,7 +78,7 @@ class StockAdjustmentController extends Controller
 
         $businessId = Auth::user()->business_id;
 
-        $adjustmentDetail = StockAdjustment::with(['outlet', 'creator', 'approver', 'items.inventoryItem.uom'])
+        $adjustmentDetail = StockAdjustment::with(['outlet', 'creator', 'approver', 'voidedBy', 'items.inventoryItem.uom'])
             ->where('business_id', $businessId)
             ->findOrFail($id);
 
@@ -103,9 +105,9 @@ class StockAdjustmentController extends Controller
         try {
             $service->approve($stock_adjustment, Auth::user());
 
-            return redirect()->back()->with('success', 'Penyesuaian stok berhasil disetujui.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('failed', $e->getMessage());
+            return redirect()->back()->with(FlashDataVariable::SUCCESS->value, 'Penyesuaian stok berhasil disetujui.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
 
@@ -117,27 +119,27 @@ class StockAdjustmentController extends Controller
         try {
             $service->reject($stock_adjustment, $request->input('notes'), Auth::user());
 
-            return redirect()->back()->with('success', 'Penyesuaian stok berhasil ditolak.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('failed', $e->getMessage());
+            return redirect()->back()->with(FlashDataVariable::SUCCESS->value, 'Penyesuaian stok berhasil ditolak.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
 
     /**
      * Void an approved adjustment.
      */
-    public function void(StockAdjustment $stock_adjustment, StockAdjustmentService $service)
+    public function void(Request $request, StockAdjustment $stock_adjustment, StockAdjustmentService $service)
     {
         Gate::authorize(PermissionEnum::INVENTORY_ADJUST_DELETE->value);
 
         // Middleware `EnsureStockNotFrozen` is applied on route
 
         try {
-            $service->void($stock_adjustment, Auth::user());
+            $service->void($stock_adjustment, Auth::user(), $request->input('reason'));
 
-            return redirect()->back()->with('success', 'Penyesuaian stok berhasil dibatalkan.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('failed', $e->getMessage());
+            return redirect()->back()->with(FlashDataVariable::SUCCESS->value, 'Penyesuaian stok berhasil dibatalkan.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
     }
 

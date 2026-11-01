@@ -28,12 +28,13 @@
             </div>
 
             <TextField
-                id="reference_number"
-                v-model="form.reference_number"
-                label="No. Referensi / Invoice Eksternal (Opsional)"
-                placeholder="Misal: INV-SUP-2026/09/01"
-                :class="{ 'is-invalid': form.errors.reference_number }"
-                :error="form.errors.reference_number"
+                id="order_date"
+                v-model="form.order_date"
+                type="date"
+                label="Tanggal Pesan"
+                :class="{ 'is-invalid': form.errors.order_date }"
+                :error="form.errors.order_date"
+                required
             />
 
             <!-- Nomor Surat Jalan (Wajib diisi jika Beli Langsung) -->
@@ -47,37 +48,44 @@
                 :error="form.errors.delivery_order_number"
                 required
             />
-
-            <TextField
-                id="order_date"
-                v-model="form.order_date"
-                type="date"
-                label="Tanggal Pesan"
-                :class="{ 'is-invalid': form.errors.order_date }"
-                :error="form.errors.order_date"
-                required
-            />
-
-            <TextField
-                v-if="purchaseMode === 'po'"
-                id="expected_date"
-                v-model="form.expected_date"
-                type="date"
-                label="Tanggal Estimasi Tiba (Opsional)"
-                :class="{ 'is-invalid': form.errors.expected_date }"
-                :error="form.errors.expected_date"
-            />
         </div>
 
-        <TextareaField
-            id="notes"
-            v-model="form.notes"
-            label="Catatan Pembelian"
-            placeholder="Tambahkan instruksi khusus atau catatan pengiriman..."
-            :class="{ 'is-invalid': form.errors.notes }"
-            :error="form.errors.notes"
-            rows="2"
-        />
+        <DisclosureSection
+            title="Info Referensi & Catatan"
+            :closed-hint="form.notes || form.reference_number ? 'Ada catatan/ref' : 'Opsional'"
+            :default-open="Boolean(form.notes || form.reference_number || form.expected_date)"
+        >
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <TextField
+                    id="reference_number"
+                    v-model="form.reference_number"
+                    label="No. Referensi / Invoice Eksternal"
+                    placeholder="Misal: INV-SUP-2026/09/01"
+                    :class="{ 'is-invalid': form.errors.reference_number }"
+                    :error="form.errors.reference_number"
+                />
+
+                <TextField
+                    v-if="purchaseMode === 'po'"
+                    id="expected_date"
+                    v-model="form.expected_date"
+                    type="date"
+                    label="Tanggal Estimasi Tiba"
+                    :class="{ 'is-invalid': form.errors.expected_date }"
+                    :error="form.errors.expected_date"
+                />
+            </div>
+
+            <TextareaField
+                id="notes"
+                v-model="form.notes"
+                label="Catatan Pembelian"
+                placeholder="Tambahkan instruksi khusus atau catatan pengiriman..."
+                :class="{ 'is-invalid': form.errors.notes }"
+                :error="form.errors.notes"
+                rows="2"
+            />
+        </DisclosureSection>
 
         <!-- Section Daftar Barang yang Dipesan -->
         <div class="border-t border-slate-200 pt-3 space-y-2">
@@ -145,7 +153,9 @@
                                 {{ index + 1 }}.
                             </span>
                             <div class="min-w-0">
-                                <div class="font-bold text-xs text-slate-800 truncate">
+                                <div
+                                    class="font-bold text-xs text-slate-800 break-words whitespace-normal leading-snug"
+                                >
                                     {{ item.name }}
                                 </div>
                                 <div class="text-[11px] text-slate-400 truncate">
@@ -363,8 +373,21 @@
 
     <Teleport v-if="isMounted" to="#popUpFooter">
         <button
+            v-if="!purchase?.id && purchaseMode === 'po'"
             type="button"
-            class="btn btn-flat"
+            class="btn btn-outline-secondary mr-auto cursor-pointer"
+            title="Simpan purchase order sebagai draf"
+            aria-label="Simpan Draf"
+            :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
+            @click="submit"
+        >
+            Simpan Draf
+        </button>
+        <button
+            type="button"
+            class="btn btn-flat cursor-pointer"
+            title="Batal dan tutup formulir"
+            aria-label="Batal"
             :disabled="form.processing"
             @click="handleCancel"
         >
@@ -372,13 +395,31 @@
         </button>
         <button
             type="button"
-            class="btn btn-main"
-            :disabled="
-                form.processing || !form.isDirty || form.items.length === 0 || !form.outlet_id
+            class="btn btn-main cursor-pointer"
+            :title="
+                purchase?.id
+                    ? 'Simpan perubahan purchase order'
+                    : purchaseMode === 'direct'
+                      ? 'Catat pembelian dan terima barang langsung'
+                      : 'Kirim purchase order resmi ke pemasok'
             "
+            :aria-label="
+                purchase?.id
+                    ? 'Simpan Perubahan'
+                    : purchaseMode === 'direct'
+                      ? 'Beli Langsung'
+                      : 'Pesan'
+            "
+            :disabled="form.processing || form.items.length === 0 || !form.outlet_id"
             @click="submit"
         >
-            {{ submitButtonText }}
+            {{
+                purchase?.id
+                    ? 'Simpan Perubahan'
+                    : purchaseMode === 'direct'
+                      ? 'Beli Langsung'
+                      : 'Pesan'
+            }}
         </button>
     </Teleport>
 </template>
@@ -391,6 +432,7 @@ import { faTrash, faExclamationTriangle, faPlus } from '@fortawesome/free-solid-
 import { useAuth } from '@/Composable/useAuth'
 import { useEnum } from '@/Composable/useEnum'
 import { useFormDirtyGuard } from '@/Composable/useFormDirtyGuard'
+import DisclosureSection from '@/Components/Form/DisclosureSection.vue'
 import TextField from '@/Components/Form/TextField.vue'
 import NumberField from '@/Components/Form/NumberField.vue'
 import SearchableDropdownField from '@/Components/Form/SearchableDropdownField.vue'
@@ -570,13 +612,6 @@ watch(
     },
     { immediate: true }
 )
-
-const submitButtonText = computed(() => {
-    if (props.purchase?.id) {
-        return 'Simpan Perubahan'
-    }
-    return purchaseMode.value === 'direct' ? 'Simpan & Terima Stok' : 'Simpan PO Draf'
-})
 
 const submit = () => {
     if (props.purchase?.id) {

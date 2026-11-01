@@ -503,15 +503,18 @@ class StockTransferService
                 $this->stockFreezeService->assertNotFrozen($fromOutlet);
                 $this->stockFreezeService->assertNotFrozen($toOutlet);
                 // Guard: Periksa saldo berjalan di toOutlet >= qty_received (mencegah stok negatif jika barang tujuan sudah terjual)
-                foreach ($transfer->items as $transferItem) {
-                    $qtyReceived = (float) $transferItem->qty_received;
-                    if ($qtyReceived > 0) {
-                        $invItem = $transferItem->inventoryItem;
-                        $currentStock = (float) ($invItem->balances()->where('outlet_id', $toOutlet->id)->value('current_stock') ?? 0);
+                if (! $toOutlet->isNegativeStockAllowed()) {
+                    foreach ($transfer->items as $transferItem) {
+                        $qtyReceived = (float) $transferItem->qty_received;
+                        if ($qtyReceived > 0) {
+                            $invItem = $transferItem->inventoryItem;
+                            $currentStock = (float) ($invItem->balances()->where('outlet_id', $toOutlet->id)->value('current_stock') ?? 0);
 
-                        if ($currentStock < $qtyReceived) {
-                            $name = $invItem->name ?? 'Item';
-                            throw new \Exception("Stok barang {$name} di outlet tujuan ({$toOutlet->name}) tidak mencukupi untuk dibatalkan. Sisa stok: {$currentStock}, Diperlukan: {$qtyReceived}.");
+                            if ($currentStock < $qtyReceived - 0.0001) {
+                                $name = $invItem->name ?? 'Barang';
+                                $unitName = $invItem->uom?->name ?? 'unit';
+                                throw new \DomainException("Mutasi transfer tidak dapat dibatalkan karena stok fisik {$name} di outlet tujuan ({$toOutlet->name}) saat ini tersisa {$currentStock} {$unitName}, kurang dari kuantitas pembatalan {$qtyReceived} {$unitName} (sebagian barang telah terjual).");
+                            }
                         }
                     }
                 }

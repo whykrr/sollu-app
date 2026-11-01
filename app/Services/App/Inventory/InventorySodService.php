@@ -117,6 +117,22 @@ class InventorySodService
     }
 
     /**
+     * Cek apakah supervisi aktif untuk modul tertentu.
+     */
+    public function isSupervisionEnabledFor(?Business $business, string $module): bool
+    {
+        $ruleKey = match ($module) {
+            'adjustment', 'stock_adjustment' => 'stock_adjustment',
+            'opname', 'stock_opname' => 'stock_opname',
+            'transfer', 'stock_transfer' => 'stock_transfer_approval',
+            'po', 'purchase_order' => 'purchase_order_receive',
+            default => $module,
+        };
+
+        return $this->isRuleEnabled($business, $ruleKey);
+    }
+
+    /**
      * Penegakan izin validasi/supervisi pengguna.
      */
     public function assertUserHasValidationPermission(User $user, PermissionEnum $permission): void
@@ -129,15 +145,18 @@ class InventorySodService
     /**
      * Evaluasi apakah pengguna memiliki hak bypass pemilik.
      */
-    protected function canBypass(?Business $business, User $user): bool
+    public function canBypass(?Business $business, User $user): bool
     {
+        if ($user->is_root_user) {
+            return true;
+        }
+
         if (! $this->allowsOwnerBypass($business)) {
             return false;
         }
 
         return (bool) (
-            $user->is_root_user
-            || (method_exists($user, 'isOwner') && $user->isOwner())
+            (method_exists($user, 'isOwner') && $user->isOwner())
             || (method_exists($user, 'hasRole') && $user->hasRole('Owner'))
             || $user->can('business.*')
             || ($business && $business->email === $user->email)

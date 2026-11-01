@@ -115,6 +115,10 @@
         DB::statement('CREATE UNIQUE INDEX product_items_business_barcode_unique ON product_items (business_id, barcode) WHERE deleted_at IS NULL AND barcode IS NOT NULL AND barcode != \'\'');
     }
     ```
+- **Invarian Kolom Eager-Loading Eksplisit (`relation:col1,col2`):**
+  - Saat membatasi kolom pada eager loading (misal `'productItems:id,product_id,uom_id'`), seluruh kolom yang didaftarkan **WAJIB secara fisik ada pada tabel anak yang dimuat**.
+  - **DILARANG KERAS** menyertakan kolom yang merupakan atribut tabel induk (contoh: menyertakan `has_variant` yang merupakan milik tabel `products` ke dalam daftar kolom `productItems`). Hal ini menyebabkan runtime exception fatal `Undefined column: ERROR: column child_table.parent_col does not exist`.
+  - Foreign key relasi (`product_id`) dan primary key (`id`) **WAJIB SELALU disertakan** dalam daftar kolom eager loading agar Eloquent dapat memetakan relasi ke model induk.
 
 ---
 

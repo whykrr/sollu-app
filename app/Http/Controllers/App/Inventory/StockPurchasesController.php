@@ -31,7 +31,6 @@ use App\Services\App\Inventory\PurchaseReturnService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class StockPurchasesController extends Controller
 {
@@ -85,6 +84,7 @@ class StockPurchasesController extends Controller
                 'outlet',
                 'creator:id,name',
                 'approver:id,name',
+                'voidedBy:id,name',
                 'items.inventoryItem:id,product_item_id,name,uom_id',
                 'items.inventoryItem.productItem:id,sku,barcode',
                 'items.inventoryItem.uom:id,name,code',
@@ -96,10 +96,12 @@ class StockPurchasesController extends Controller
                 'goodsReceipts.items.purchaseOrderItem',
                 'goodsReceipts.items.purchaseReturnItems.purchaseReturn:id,status',
                 'goodsReceipts.receiver:id,name',
+                'goodsReceipts.voidedBy:id,name',
                 'purchaseReturns.items.uom:id,name,code',
                 'purchaseReturns.items.inventoryItem:id,product_item_id,name',
                 'purchaseReturns.items.inventoryItem.productItem:id,sku',
                 'purchaseReturns.creator:id,name',
+                'purchaseReturns.voidedBy:id,name',
             ])
             ->findOrFail($id);
 
@@ -271,12 +273,17 @@ class StockPurchasesController extends Controller
         abort_if(! Auth::user()?->can(PermissionEnum::PURCHASE_DELETE->value), 403, AuthorizationMessage::CANT_ACCESS_PAGE);
 
         $po = PurchaseOrder::currentBusiness()->findOrFail($id);
-        $service->void($po, Auth::user());
 
-        return redirect()->back()->with(
-            FlashDataVariable::SUCCESS->value,
-            'Pembelian berhasil dibatalkan (void) dan seluruh stok telah disesuaikan.'
-        );
+        try {
+            $service->void($po, Auth::user(), $request->input('reason'));
+
+            return redirect()->back()->with(
+                FlashDataVariable::SUCCESS->value,
+                'Pembelian berhasil dibatalkan (void) dan seluruh stok telah disesuaikan.'
+            );
+        } catch (\Throwable $e) {
+            return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
+        }
     }
 
     /**
@@ -290,14 +297,14 @@ class StockPurchasesController extends Controller
 
         try {
             $service->voidReceipt($receipt, Auth::user(), $request->input('reason'));
-        } catch (HttpException $e) {
+
+            return redirect()->back()->with(
+                FlashDataVariable::SUCCESS->value,
+                'Penerimaan barang berhasil dibatalkan dan stok telah disesuaikan.'
+            );
+        } catch (\Throwable $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
-
-        return redirect()->back()->with(
-            FlashDataVariable::SUCCESS->value,
-            'Penerimaan barang berhasil dibatalkan dan stok telah disesuaikan.'
-        );
     }
 
     /**
@@ -324,14 +331,14 @@ class StockPurchasesController extends Controller
 
         try {
             $service->voidReturn($return, Auth::user(), $request->input('reason'));
-        } catch (HttpException $e) {
+
+            return redirect()->back()->with(
+                FlashDataVariable::SUCCESS->value,
+                'Retur pembelian berhasil dibatalkan dan stok telah dikembalikan.'
+            );
+        } catch (\Throwable $e) {
             return redirect()->back()->with(FlashDataVariable::FAILED->value, $e->getMessage());
         }
-
-        return redirect()->back()->with(
-            FlashDataVariable::SUCCESS->value,
-            'Retur pembelian berhasil dibatalkan dan stok telah dikembalikan.'
-        );
     }
 
     /**
