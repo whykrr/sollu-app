@@ -292,9 +292,7 @@ const canApprove = computed(
         can('inventory.adjustment.approve')
 )
 const canVoid = computed(() => can('inventory.adjust.delete') || can('inventory.adjustment.void'))
-const canExport = computed(
-    () => can('inventory.adjustment.export') || can('inventory.adjust.view')
-)
+const canExport = computed(() => can('inventory.adjustment.export') || can('inventory.adjust.view'))
 
 const exportPdf = () => {
     if (!props.adjustment?.id) return

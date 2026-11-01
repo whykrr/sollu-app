@@ -132,13 +132,7 @@
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import axios from 'axios'
-import {
-    faPencil,
-    faTrash,
-    faBoxOpen,
-    faCheck,
-    faFilePdf,
-} from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faTrash, faBoxOpen, faCheck, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useModalStore } from '@/store/notification'
 import { useToastStore } from '@/store/toast'

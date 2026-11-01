@@ -69,10 +69,7 @@
                             }}
                         </span>
                         <button
-                            v-if="
-                                !detail?.deleted_at &&
-                                (detail?.has_web_access || detail?.email)
-                            "
+                            v-if="!detail?.deleted_at && (detail?.has_web_access || detail?.email)"
                             type="button"
                             class="btn btn-outline-primary btn-xs"
                             @click.prevent="showPasswordResetModal = true"

@@ -56,10 +56,7 @@
             </template>
 
             <template #roles="{ row }">
-                <span
-                    v-if="row.roles && row.roles.length > 0"
-                    class="badge badge-info text-xs"
-                >
+                <span v-if="row.roles && row.roles.length > 0" class="badge badge-info text-xs">
                     {{ row.roles[0].label || row.roles[0].name }}
                 </span>
                 <span v-else class="text-xs text-slate-400">-</span>

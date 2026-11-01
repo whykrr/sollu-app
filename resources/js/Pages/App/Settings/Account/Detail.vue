@@ -134,8 +134,8 @@
                     </h3>
 
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">
-                        PIN 6 digit digunakan untuk login cepat di aplikasi kasir (POS) serta otorisasi
-                        supervisi transaksi (void, refund, dan diskon).
+                        PIN 6 digit digunakan untuk login cepat di aplikasi kasir (POS) serta
+                        otorisasi supervisi transaksi (void, refund, dan diskon).
                     </p>
 
                     <div class="space-y-3">
@@ -151,7 +151,9 @@
                                     placeholder="Masukkan 6 angka PIN"
                                     class="form pr-10"
                                     :class="{ 'is-invalid': formChangePin.errors.pin }"
-                                    @input="formChangePin.pin = formChangePin.pin.replace(/[^0-9]/g, '')"
+                                    @input="
+                                        formChangePin.pin = formChangePin.pin.replace(/[^0-9]/g, '')
+                                    "
                                 />
                                 <button
                                     type="button"
@@ -251,9 +253,19 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faImage, faInfoCircle, faLock, faSave, faUser } from '@fortawesome/free-solid-svg-icons'
+import {
+    faEye,
+    faEyeSlash,
+    faImage,
+    faInfoCircle,
+    faKey,
+    faLock,
+    faSave,
+    faUser,
+} from '@fortawesome/free-solid-svg-icons'
 
 import MainPage from '@/Components/UI/MainPage.vue'
 import MainPageHeader from '@/Components/UI/MainPage/MainPageHeader.vue'
@@ -265,6 +277,9 @@ import PhotoCropper from './Components/PhotoCropper.vue'
 const props = defineProps({
     profile: Object,
 })
+
+const showPin = ref(false)
+const showPinConfirmation = ref(false)
 
 const formProfile = useForm({
     id: props.profile.id,
@@ -283,6 +298,11 @@ const formChangePassword = useForm({
     new_password_confirmation: null,
 })
 
+const formChangePin = useForm({
+    pin: '',
+    pin_confirmation: '',
+})
+
 const saveDetail = () => {
     formProfile.put(route('settings.account.profile.save'), {
         preserveScroll: true,
@@ -294,6 +314,15 @@ const changePassword = () => {
     formChangePassword.put(route('settings.account.profile.save.password'), {
         preserveScroll: true,
         preserveState: false,
+    })
+}
+
+const changePin = () => {
+    formChangePin.put(route('settings.account.profile.save.pin'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            formChangePin.reset()
+        },
     })
 }
 

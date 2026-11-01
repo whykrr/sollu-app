@@ -105,6 +105,7 @@ class EmployeeExportImportJobTest extends TestCase
         $results = $query->get();
 
         $this->assertCount(1, $results);
+        $this->assertFalse($results->contains('id', $this->user->id));
         $mapped = $job->mapRow($results->first());
 
         $this->assertSame('Staff Kasir', $mapped[0]);
@@ -193,6 +194,54 @@ class EmployeeExportImportJobTest extends TestCase
                     && $notification->meta['failed_count'] === 1
                     && ! empty($notification->actionUrl)
                     && str_contains($notification->actionUrl, 'hasil_impor_pegawai_');
+            }
+        );
+    }
+
+    public function test_import_employee_job_rejects_root_user_email_and_phone(): void
+    {
+        Notification::fake();
+        Storage::fake('local');
+        Storage::fake('public');
+
+        $this->user->update(['phone' => '081234567890']);
+
+        $importData = [
+            ['Nama Lengkap', 'Email', 'Nomor Telepon', 'PIN (6 Angka)', 'Peran', 'Outlet'],
+            ['Tiru Email Owner', $this->user->email, '089911112222', '123456', 'Kasir Toko', 'Outlet Pusat'],
+            ['Tiru Phone Owner', 'staff_lain@test.test', $this->user->phone, '654321', 'Kasir Toko', 'Outlet Pusat'],
+        ];
+
+        $exportClass = new class($importData) implements FromArray
+        {
+            public function __construct(private array $data) {}
+
+            public function array(): array
+            {
+                return $this->data;
+            }
+        };
+
+        $tempFileName = 'imports/test_root_conflict.xlsx';
+        Excel::store($exportClass, $tempFileName, 'local');
+
+        $job = new ImportEmployeeJob($this->user, $tempFileName);
+        $job->handle();
+
+        // Neither conflicting user should be created
+        $this->assertDatabaseMissing('users', [
+            'name' => 'Tiru Email Owner',
+        ]);
+        $this->assertDatabaseMissing('users', [
+            'name' => 'Tiru Phone Owner',
+        ]);
+
+        Notification::assertSentTo(
+            $this->user,
+            ExcelImportCompleted::class,
+            function (ExcelImportCompleted $notification) {
+                return $notification->meta['success_count'] === 0
+                    && $notification->meta['failed_count'] === 2;
             }
         );
     }

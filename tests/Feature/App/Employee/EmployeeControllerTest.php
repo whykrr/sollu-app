@@ -538,4 +538,46 @@ class EmployeeControllerTest extends TestCase
                 'message' => 'Kata sandi Akun Utama tidak dapat direset melalui menu pegawai.',
             ]);
     }
+
+    public function test_it_excludes_root_user_from_employee_index(): void
+    {
+        $staff = User::factory()->create([
+            'business_id' => $this->business->id,
+            'name' => 'Regular Staff',
+            'is_root_user' => false,
+        ]);
+
+        $this->actingAs($this->user, 'business')
+            ->get("http://{$this->appDomain}/employees")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Employee/Index')
+                ->where('users.data', fn ($users) => collect($users)->every(fn ($u) => $u['is_root_user'] === false)
+                    && collect($users)->pluck('id')->contains($staff->id)
+                    && ! collect($users)->pluck('id')->contains($this->user->id)
+                )
+            );
+    }
+
+    public function test_it_returns_404_when_viewing_root_user_via_show(): void
+    {
+        $this->actingAs($this->user, 'business')
+            ->getJson("http://{$this->appDomain}/employees/{$this->user->id}")
+            ->assertNotFound();
+    }
+
+    public function test_it_aborts_403_when_updating_root_user(): void
+    {
+        $payload = [
+            'name' => 'Attempt Update Root',
+            'email' => 'attempt@test.test',
+            'role' => 'cashier',
+            'outlets' => [$this->outlet->id],
+        ];
+
+        $this->actingAs($this->user, 'business')
+            ->from("http://{$this->appDomain}/employees")
+            ->put("http://{$this->appDomain}/employees/{$this->user->id}", $payload)
+            ->assertForbidden();
+    }
 }

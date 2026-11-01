@@ -25,10 +25,7 @@
                 {{ row.uom?.name || '-' }}
             </template>
             <template #track_inventory="{ row }">
-                <span
-                    class="badge"
-                    :class="row.track_inventory ? 'badge-success' : 'badge-danger'"
-                >
+                <span class="badge" :class="row.track_inventory ? 'badge-success' : 'badge-danger'">
                     {{ row.track_inventory ? 'Ya' : 'Tidak' }}
                 </span>
             </template>
