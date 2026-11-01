@@ -14,8 +14,23 @@
 - **Larangan Keras Wildcard Permissions (`.*`):**
   - DILARANG KERAS menggunakan permission wildcard (`business.*`, `product.*`, `transaction.*`, dsb) di database, seeders, route, controller, form request, maupun test.
   - Seluruh permission harus eksplisit terdaftar di `PermissionEnum`. Pada antarmuka kustomisasi peran, seluruh permission dalam satu kategori/grup dipilih sebagai array item eksplisit.
-- **Otorisasi Akun Utama (Root User):**
-  - Otorisasi mutasi level entitas bisnis (profil toko, logo, konfigurasi SoD, dan penentuan metode biaya inventori) serta hak bypass Segregation of Duties (SoD) murni menggunakan verifikasi status Akun Utama: `$user->is_root_user === true`.
+- **Otorisasi & Decoupling Akun Utama (Root User):**
+  - **Decoupling Total dari Role & Permission Spatie:** Akun Utama (`is_root_user === true`) TIDAK memiliki record di `model_has_roles` maupun `model_has_permissions`.
+  - **Wildcard '*' Mutlak di Seluruh Layer:**
+    - Laravel Gate: `Gate::before()` mengembalikan `true`.
+    - Cache Service: `UserPermissionCacheService::getPermissions()` mengembalikan `['*']`.
+    - Model `User`: Wajib meng-override seluruh method pemeriksaan Spatie (`hasPermissionTo`, `can`, `hasAnyPermission`, `hasAllPermissions`, `hasDirectPermission`) untuk langsung mengembalikan `true`, serta `getAllPermissions()` mengembalikan `Permission::all()`. Ini mencegah kegagalan otorisasi ketika kode memanggil Spatie trait secara langsung.
+  - **Eksklusi Mutlak dari Menu Pegawai (Backoffice Web):**
+    - `user_root` DILARANG muncul di tabel pegawai (`EmployeeController::index` wajib menyaring `where('is_root_user', false)`).
+    - Endpoint detail pegawai (`show`) mengembalikan HTTP 404, dan update pegawai (`update`) menolak mutasi `user_root` dengan HTTP 403.
+    - Perubahan data profil `user_root` HANYA dapat dilakukan melalui menu Pengaturan Akun ("Pusat Akun", `AccountController`).
+    - Pengelolaan PIN kasir POS (6 digit) untuk `user_root` dikelola secara mandiri di menu Pusat Akun (`PUT /settings/profile/pin`), bukan melalui formulir pegawai.
+    - Ekspor pegawai wajib mengecualikan `user_root`, dan impor pegawai wajib menolak baris data yang menggunakan email atau nomor telepon milik `user_root`.
+  - **Otorisasi Supervisi POS & Bypass PIN:**
+    - `user_root` selalu memiliki wewenang supervisi kasir (`transaction.validation_supervision`).
+    - Jika `user_root` sendiri yang aktif mengoperasikan kasir, validasi PIN supervisi di-bypass otomatis (`empty($supervisorPin)`). Namun jika kasir lain meminta otorisasi supervisi dari `user_root`, `user_root` wajib memasukkan PIN kasir yang divalidasi via `Hash::check()`.
+  - **Bypass Segregation of Duties (SoD) Mutlak:**
+    - `user_root` memiliki hak bypass mutlak pada seluruh alur supervisi dan SoD di inventori tanpa bergantung pada konfigurasi `allow_owner_bypass`.
   - Permission `business.setting` dan `business.update` telah ditiadakan.
 - **Standardisasi Namespace Permission:**
   - Kategori Produk: `product.category.{view,create,update,delete}` (bukan `category.*`).

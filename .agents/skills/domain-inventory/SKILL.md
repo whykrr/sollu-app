@@ -155,6 +155,7 @@ Dievaluasi terpusat via `App\Services\App\Inventory\InventorySodService`:
    - **Transfer Approval:** Pengaju transfer dilarang menyetujui transfer.
    - **Transfer Receive:** Pengirim dilarang mengeksekusi penerimaan di outlet tujuan.
    - **PO Receive:** Pembuat PO dilarang mencatat penerimaan fisik barang.
+   - **Bypass Akun Utama (Root User):** Pengguna dengan `is_root_user === true` memiliki hak bypass mutlak dari seluruh aturan SoD di atas dan validasi wewenang supervisi, terlepas dari apakah flag `allow_owner_bypass` toko bernilai aktif atau tidak.
    - **DILARANG KERAS** menulis pengecekan manual di controller. WAJIB panggil `InventorySodService`.
 
 ---

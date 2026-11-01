@@ -119,6 +119,11 @@
   - Saat membatasi kolom pada eager loading (misal `'productItems:id,product_id,uom_id'`), seluruh kolom yang didaftarkan **WAJIB secara fisik ada pada tabel anak yang dimuat**.
   - **DILARANG KERAS** menyertakan kolom yang merupakan atribut tabel induk (contoh: menyertakan `has_variant` yang merupakan milik tabel `products` ke dalam daftar kolom `productItems`). Hal ini menyebabkan runtime exception fatal `Undefined column: ERROR: column child_table.parent_col does not exist`.
   - Foreign key relasi (`product_id`) dan primary key (`id`) **WAJIB SELALU disertakan** dalam daftar kolom eager loading agar Eloquent dapat memetakan relasi ke model induk.
+- **Standar Ketahanan Eksekusi Broadcasting (Zero-Crash on Realtime Failure Invariant):**
+  - **Broadcast adalah Saluran Pembantu (Auxiliary):** Pengiriman event real-time melalui WebSocket (Laravel Reverb / Pusher / Ably) adalah notifikasi optimistik pembantu, bukan penyimpanan data utama. Kegagalan socket, koneksi terputus, atau daemon Reverb yang mati/restart **DILARANG KERAS MENGGAGALKAN** atau membatalkan transaksi bisnis (seperti transaksi penjualan, stock adjustment, purchase order, atau mutasi data).
+  - **Kewajiban Kontrak `ShouldRescue` pada `ShouldBroadcastNow`:** Setiap broadcast event yang mengimplementasikan `ShouldBroadcastNow` (eksekusi sinkron dalam lifecycle request HTTP) **WAJIB** mengimplementasikan `Illuminate\Contracts\Broadcasting\ShouldRescue`. Hal ini memastikan Laravel otomatis membungkus dispatch dalam fungsi `rescue()`.
+  - **Defensive Error Handling pada Flusher & Observers:** Setiap service, observer, atau queue flusher (misal `PosNudgeQueueService`) yang men-dispatch event broadcast di dalam siklus request, callback `DB::afterCommit`, atau hook `terminating` **WAJIB** membungkus pemanggilan `event(...)` atau `broadcast(...)` dalam blok `try { ... } catch (\Throwable $e)` dan mencatat log pada level `Log::warning(...)`.
+  - **Preferensi Asinkron (`ShouldBroadcast`):** Untuk broadcast umum (notifikasi pengguna, update status invoice, export/import), prioritaskan implementasi `ShouldBroadcast` (asinkron via antrean Redis/Horizon). Gunakan `ShouldBroadcastNow` hanya jika latensi instan mutlak dibutuhkan (misal sinyal nudge kasir lokal), dan wajib disertai `ShouldRescue`.
 
 ---
 

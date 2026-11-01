@@ -96,6 +96,8 @@ Apakah yang sedang dievaluasi?
 │                        LAYER 5: USER ROLE-BASED ACCESS CONTROL (RBAC)                  │
 │  • Spatie Multi-Tenant Team-Scoped Permissions: PermissionEnum (setPermissionsTeamId)  │
 │  • Super-Bypass Akun Utama: is_root_user = true selalu memiliki hak penuh ['*']        │
+│  • Root User Decoupled: Bebas dari model_has_roles & model_has_permissions             │
+│  • Model User Override: hasPermissionTo, can, getAllPermissions bypass Spatie trait     │
 │  • Pemisahan Kasir POS (email/password null, PIN only) vs Staf Web Backoffice          │
 │  • Role Templates: RoleTemplateEnum (F&B, Retail, Jasa, Owner, Finance)                │
 └────────────────────────────────────────────────────────────────────────────────────────┘
@@ -135,6 +137,7 @@ Sistem menggunakan multi-tier caching berjenjang untuk memastikan evaluasi hak a
 2. **Redis Scoped Cache:** `auth:user:{$userId}:business:{$businessId}:permissions` (TTL 3600 detik).
 3. **Strict Explicit Permissions:** Runtime service mendukung `*` khusus bagi `is_root_user`. Di luar root user, **DILARANG KERAS menggunakan wildcard (`.*`)**; seluruh hak akses harus berupa case eksplisit di `PermissionEnum`.
 4. **AppServiceProvider Gate Hook:** Seluruh panggilan `$user->can(...)` otomatis dicegat di `Gate::before` dan diarahkan ke `UserPermissionCacheService`.
+5. **Model User Spatie Override:** Model `User` meng-override method trait Spatie (`hasPermissionTo`, `can`, `hasAnyPermission`, `hasAllPermissions`, `hasDirectPermission`, `getAllPermissions`) agar langsung lolos jika `is_root_user === true`. Ini mencegah kegagalan otorisasi jika kode controller/service memanggil method Spatie secara langsung tanpa melalui Gate.
 
 ### C. Invalidation Pipeline (`UserCacheObserver`)
 - Perubahan `Subscription`, `SubscriptionPlan`, `Feature`, atau `BusinessType` memanggil `Business::clearCache($businessId)` dan menghapus cache `SummaryUser`.
@@ -193,3 +196,4 @@ class StoreStockAdjustmentRequest extends FormRequest
 4. **Otorisasi Supervisor Kasir & Double Authorization:**
    - Fitur `FeatureEnum::DOUBLE_AUTHORIZATION` mengaktifkan flow verifikasi ganda saat kasir melakukan tindakan berisiko (misal override harga/diskon atau void transaksi).
    - Dialog otorisasi kasir memvalidasi PIN supervisor yang memiliki izin `PermissionEnum::TRANSACTION_VALIDATION_SUPERVISION` (`transaction.validation_supervision`).
+   - **Bypass Akun Utama (Root):** Jika supervisor adalah `user_root`, izin supervisi otomatis lolos (wildcard). Jika `user_root` sendiri yang aktif mengoperasikan kasir, validasi PIN supervisi di-bypass otomatis (`empty($supervisorPin)`). Namun jika kasir non-root meminta otorisasi pemilik, `user_root` memasukkan PIN kasir yang divalidasi via `Hash::check()`.

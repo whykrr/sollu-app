@@ -17,9 +17,12 @@ use App\Models\Outlet;
 use App\Models\Uom;
 use App\Services\Pos\PosNudgeQueueService;
 use Database\Seeders\DatabaseSeeder;
+use Illuminate\Broadcasting\BroadcastException;
+use Illuminate\Contracts\Broadcasting\ShouldRescue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class PosCatalogNudgeTest extends TestCase
@@ -285,5 +288,39 @@ class PosCatalogNudgeTest extends TestCase
         $this->assertEquals('product,product_price', $payload['entity_type']);
         $this->assertEquals(['product', 'product_price'], $payload['entities']);
         $this->assertArrayHasKey('timestamp', $payload);
+    }
+
+    public function test_pos_catalog_nudge_event_implements_should_rescue(): void
+    {
+        $event = new PosCatalogNudgeEvent($this->outlet->id, ['product']);
+        $this->assertInstanceOf(ShouldRescue::class, $event);
+    }
+
+    public function test_flush_handles_broadcast_exception_gracefully(): void
+    {
+        PosNudgeQueueService::$deferInTests = true;
+
+        try {
+            Event::listen(PosCatalogNudgeEvent::class, function (): void {
+                throw new BroadcastException('cURL error 7: Failed to connect to 127.0.0.1:8088');
+            });
+
+            Log::shouldReceive('warning')
+                ->once()
+                ->withArgs(function (string $message, array $context): bool {
+                    return str_contains($message, 'cURL error 7')
+                        && (string) $context['outlet_id'] === (string) $this->outlet->id
+                        && in_array('product', $context['entities'], true);
+                });
+
+            $queue = app(PosNudgeQueueService::class);
+            $queue->queueSignal($this->outlet->id, 'product');
+
+            // Should not throw an exception even though Event::listen throws BroadcastException
+            $queue->flush();
+            $this->assertFalse($queue->hasPendingSignals());
+        } finally {
+            PosNudgeQueueService::$deferInTests = false;
+        }
     }
 }

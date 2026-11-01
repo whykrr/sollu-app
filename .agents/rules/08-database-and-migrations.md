@@ -67,6 +67,15 @@ Setiap perubahan skema database harus memperhitungkan **Backward Compatibility**
      - Pada `down()`: Salin kembali baris dari tabel backup ke tabel utama (menggunakan `INSERT INTO ... SELECT ... ON CONFLICT DO NOTHING`), lalu hapus tabel backup sementara.
    - Pola ini menjamin proses rollback 100% simetris tanpa kehilangan data historis.
 
+### 2.2. Standar Pemeliharaan Permission SSOT & Peran Bawaan Tenant (Owner Role)
+1. **Idempotensi Murni Seeder (`RolePermissionSeeder`):**
+   - Seeder permission HANYA bertugas melakukan `upsert` kasus aktif dari `PermissionEnum::cases()` ke tabel `permissions` dengan chunking/batching hemat memori.
+   - **DILARANG KERAS** menjalankan query `delete` atau `truncate` di dalam seeder.
+2. **Protokol Migrasi untuk Sinkronisasi Tenant & Pembersihan Enum:**
+   - **Penambahan Kasus Baru ke Peran Owner:** Ketika ada penambahan izin baru di `PermissionEnum` yang perlu diberikan ke peran default tenant (`owner`), sinkronisasi role tenant lama WAJIB dijalankan melalui **file migrasi baru**, bukan seeder.
+   - **Pembersihan Permission Usang (Deprecations):** Jika ada permission lama yang dihapus dari `PermissionEnum`, pembersihannya dari database (`permissions`, `role_has_permissions`, `model_has_permissions`) WAJIB melalui file migrasi baru.
+   - **Simetri Rollback Mutlak via Tabel Backup:** Migrasi pembersihan data permission wajib membuat tabel backup sementara (`permissions_deprecated_backup`) pada `up()` dan memulihkan snapshot data pada `down()` sebelum men-drop tabel backup.
+
 ---
 
 ## 3. Kompatibilitas Multi-Database (PostgreSQL & SQLite Testing)

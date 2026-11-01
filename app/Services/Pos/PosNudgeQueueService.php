@@ -6,6 +6,7 @@ namespace App\Services\Pos;
 
 use App\Events\Pos\PosCatalogNudgeEvent;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PosNudgeQueueService
 {
@@ -102,7 +103,14 @@ class PosNudgeQueueService
 
         foreach ($signals as $outletId => $entitiesMap) {
             $entities = array_keys($entitiesMap);
-            event(new PosCatalogNudgeEvent($outletId, $entities));
+            try {
+                event(new PosCatalogNudgeEvent($outletId, $entities));
+            } catch (\Throwable $e) {
+                Log::warning("POS catalog nudge failed to broadcast: {$e->getMessage()}", [
+                    'outlet_id' => $outletId,
+                    'entities' => $entities,
+                ]);
+            }
         }
     }
 

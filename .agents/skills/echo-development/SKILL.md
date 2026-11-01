@@ -163,7 +163,7 @@ Use `search-docs` to find detailed code examples and configuration for each of t
 ### Broadcasting Interfaces
 
 - `ShouldBroadcast` — queue the broadcast (default). Use for most events to avoid blocking the HTTP response.
-- `ShouldBroadcastNow` — broadcast synchronously, skip queue. Use during development or for time-critical events where queue latency is unacceptable.
+- `ShouldBroadcastNow` — broadcast synchronously, skip queue. **PERINGATAN KRITIS:** Jika menggunakan `ShouldBroadcastNow`, Anda **WAJIB** juga mengimplementasikan `ShouldRescue` (`class Event implements ShouldBroadcastNow, ShouldRescue`) untuk mencegah HTTP 500 saat Reverb/Pusher server sedang mati, restart, atau unreachable.
 - `ShouldDispatchAfterCommit` — wait for DB transaction commit. Use when the event references newly created records that listeners need to query (prevents race conditions).
 - `ShouldRescue` — auto-catch broadcast exceptions. Use to prevent broadcast failures (e.g., WebSocket server down) from disrupting the user's HTTP request.
 - `InteractsWithSockets` — required for `toOthers()`. Use on any event where you want to exclude the sender (optimistic UI updates).
@@ -199,6 +199,7 @@ Use `search-docs` to find detailed code examples and configuration for each of t
 
 ## Common Pitfalls
 
+- **Unrescued Synchronous Broadcast Crash:** Menggunakan `ShouldBroadcastNow` tanpa `ShouldRescue` akan melempar `BroadcastException` (misal cURL error 7 / connection refused) yang langsung menghentikan request HTTP pengguna jika daemon Reverb mati atau sedang restart. Selalu kombinasikan `ShouldBroadcastNow` dengan `ShouldRescue` dan terapkan defensive `try-catch` pada service pemanggil.
 - Queue worker must be running for `ShouldBroadcast` events. Use `ShouldBroadcastNow` during development.
 - `BROADCAST_CONNECTION` not `BROADCAST_DRIVER`: Laravel 11+ renamed this env key.
 - `toOthers()` requires `InteractsWithSockets` trait AND `X-Socket-ID` header. Echo auto-adds this to global Axios. For `fetch`, manually send `Echo.socketId()`.
